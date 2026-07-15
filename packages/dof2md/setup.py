@@ -30,6 +30,7 @@ setup(
     entry_points={
         "console_scripts": [
             "dof2md=dof2md.cli:main",
+            "dof2md-archive=dof2md.archive:main",
         ],
     },
     python_requires=">=3.9",

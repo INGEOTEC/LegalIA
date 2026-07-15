@@ -2,7 +2,7 @@
 "features": {
     "ghcr.io/rocker-org/devcontainer-features/quarto-cli":
         {"installChromium": false, "installTinyTex": false},
-    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers/features/node:2.1.0": {},
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
     },
 "remoteUser": "vscode",

@@ -1,0 +1,78 @@
+name: dof-daily
+
+on:
+  schedule:
+    - cron: "0 18 * * *" # 18:00 UTC, after the DOF's daily editions are published
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Date to process (YYYY-MM-DD), defaults to today (UTC)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dof2md
+        run: pip install -e packages/dof2md
+
+      - name: Determine target date and release tag
+        id: target
+        run: |
+          DATE_INPUT="${{ github.event.inputs.date }}"
+          if [ -n "$DATE_INPUT" ]; then
+            DATE="$DATE_INPUT"
+          else
+            DATE=$(date -u +%Y-%m-%d)
+          fi
+          YEAR=$(date -u -d "$DATE" +%Y)
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+          echo "year=$YEAR" >> "$GITHUB_OUTPUT"
+
+      - name: Download and convert today's edition(s)
+        run: dof2md-archive --date "${{ steps.target.outputs.date }}"
+
+      - name: Check whether any edition was produced
+        id: check
+        run: |
+          if [ -s produced_files.txt ]; then
+            echo "has_content=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_content=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure this year's release exists
+        if: steps.check.outputs.has_content == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="dof-${{ steps.target.outputs.year }}"
+          gh release view "$TAG" --repo "${{ github.repository }}" || \
+            gh release create "$TAG" --repo "${{ github.repository }}" \
+              --title "DOF ${{ steps.target.outputs.year }}" \
+              --notes "Ediciones del Diario Oficial de la Federación (DOF), convertidas a Markdown, correspondientes a ${{ steps.target.outputs.year }}."
+
+      - name: Upload Markdown files to the release
+        if: steps.check.outputs.has_content == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="dof-${{ steps.target.outputs.year }}"
+          gh release upload "$TAG" $(cat produced_files.txt) --repo "${{ github.repository }}" --clobber
+
+      - name: Commit updated manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifest.csv
+          git diff --cached --quiet || git commit -m "Update DOF manifest for ${{ steps.target.outputs.date }}"
+          git push
