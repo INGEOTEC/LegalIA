@@ -25,6 +25,7 @@ setup(
     ],
     extras_require={
         "test": ["pytest>=7.0"],
+        "ocr": ["mineru[pipeline]"],
     },
     entry_points={
         "console_scripts": [

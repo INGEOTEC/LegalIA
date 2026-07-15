@@ -2,7 +2,7 @@ import unittest
 
 import fitz
 
-from dof2md.converter import body_font_size, doc_to_markdown
+from dof2md.converter import body_font_size, doc_to_markdown, is_scanned_document
 
 
 def _build_doc():
@@ -54,6 +54,27 @@ class TestDocToMarkdown(unittest.TestCase):
         self.assertIn("#### Page 1", markdown)
         self.assertIn("#### Page 2", markdown)
         self.assertIn("#### Page 3", markdown)
+
+
+def _build_scanned_doc():
+    doc = fitz.open()
+    page = doc.new_page()
+    source = fitz.open()
+    source_page = source.new_page(width=page.rect.width, height=page.rect.height)
+    pixmap = source_page.get_pixmap()
+    page.insert_image(page.rect, pixmap=pixmap)
+    return doc
+
+
+class TestIsScannedDocument(unittest.TestCase):
+    def test_digital_document_is_not_scanned(self):
+        self.assertFalse(is_scanned_document(_build_doc()))
+
+    def test_full_page_image_is_detected_as_scanned(self):
+        self.assertTrue(is_scanned_document(_build_scanned_doc()))
+
+    def test_empty_document_is_not_scanned(self):
+        self.assertFalse(is_scanned_document(fitz.open()))
 
 
 if __name__ == "__main__":

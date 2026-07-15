@@ -47,3 +47,27 @@ def doc_to_markdown(doc: fitz.Document) -> str:
 def convert_to_markdown(pdf_path: Path, md_path: Path) -> None:
     doc = fitz.open(str(pdf_path))
     md_path.write_text(doc_to_markdown(doc), encoding="utf-8")
+
+
+def _is_scanned_page(page: fitz.Page, area_ratio_threshold: float = 0.85) -> bool:
+    """A page is considered scanned if a single image covers most of it —
+    the pattern old DOF editions use (a full-page scan plus a baked-in,
+    often low-quality, text layer)."""
+    page_area = page.rect.width * page.rect.height
+    if page_area <= 0:
+        return False
+    for img in page.get_images(full=True):
+        xref = img[0]
+        for bbox in page.get_image_rects(xref):
+            if (bbox.width * bbox.height) / page_area >= area_ratio_threshold:
+                return True
+    return False
+
+
+def is_scanned_document(doc: fitz.Document, sample_pages: int = 5) -> bool:
+    """Whether most of the first `sample_pages` pages are full-page scans."""
+    pages = doc[: min(sample_pages, len(doc))]
+    if not pages:
+        return False
+    scanned_count = sum(1 for page in pages if _is_scanned_page(page))
+    return scanned_count / len(pages) > 0.5
