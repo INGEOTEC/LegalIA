@@ -8,6 +8,7 @@ context, developed by [INGEOTEC](https://github.com/INGEOTEC).
 | Package | Description |
 |---|---|
 | [dof2md](packages/dof2md) | Downloads editions of Mexico's official gazette (DOF, Diario Oficial de la Federación) as PDF and converts them to Markdown. |
+| [dofjson](packages/dofjson) | Prototype client for SIDOF's undocumented JSON open data service for the DOF. |
 
 Each package lives under `packages/<name>/` with its own `pyproject.toml`,
 dependencies, version, and tests — installed and released independently.
