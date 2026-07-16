@@ -87,6 +87,8 @@ def main(argv=None):
             sys.exit(f"Invalid date: {args.date}. Use YYYY-MM-DD format.")
         fetch = getattr(client, f"get_{args.endpoint}")
         data = fetch(date)
+        if args.endpoint == "notas":
+            data = client.quita_notas_sin_titulo(data)
         filename = f"{date:%d%m%Y}-{args.endpoint}.json"
 
     outdir = Path(args.outdir)

@@ -80,25 +80,34 @@ def infer_paginas(nota: dict, notas_del_dia: dict) -> list[int]:
     starts on the same page, this note is confined to a single page; if it
     starts on a later page, this note is assumed to span through that page
     too.
-
-    Publication order is reconstructed by sorting on `codNota`, which is a
-    per-edition sequential id — verified empirically to track page order
-    (e.g. on 02-01-1980, codNota ascending gives pagina 2,2,2,3,4,6,...,26,
-    never decreasing). The `orden` field is NOT reliable for this: it does
-    not correlate with page order at all in that same sample.
     """
     lista = notas_del_dia[_EDICION_LISTAS[nota["codEdicion"]]]
     ordenada = sorted(lista, key=lambda n: n["codNota"])
     idx = next(i for i, n in enumerate(ordenada) if n["codNota"] == nota["codNota"])
 
     pagina_inicio = nota["pagina"]
-    pagina_fin = pagina_inicio
-    if idx + 1 < len(ordenada):
-        siguiente_pagina = ordenada[idx + 1]["pagina"]
-        if siguiente_pagina > pagina_inicio:
-            pagina_fin = siguiente_pagina
+    if len(ordenada) == idx + 1:
+        return [pagina_inicio]
+    
+    pagina_sig = ordenada[idx + 1]["pagina"]
+    if pagina_inicio == pagina_sig:
+        return [pagina_inicio]
+    return list(range(pagina_inicio, pagina_sig + 1))
 
-    return list(range(pagina_inicio, pagina_fin + 1))
+
+def quita_notas_sin_titulo(notas_del_dia: dict) -> dict:
+    """Drop notes with no `titulo` from a get_notas() response, for building
+    a clean per-day note index. Most are stub duplicates of an adjacent,
+    same-page note (existeHtml "S" but existeDoc "N" — see infer_paginas());
+    the rest are genuine image-only notes (existeHtml "N") with no digital
+    text at all. Do NOT use this on the notas_del_dia passed into
+    infer_paginas()/download_nota(): those rely on stub entries being
+    present to compute page spans."""
+    filtrado = dict(notas_del_dia)
+    for clave in _EDICION_LISTAS.values():
+        if clave in filtrado:
+            filtrado[clave] = [n for n in filtrado[clave] if n.get("titulo")]
+    return filtrado
 
 
 def download_nota(cod_nota: int, outdir: Path) -> list[Path]:
