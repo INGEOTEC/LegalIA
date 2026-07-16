@@ -1,2 +1,2 @@
 requests>=2.31
-pymupdf>=1.24
+mineru[pipeline]

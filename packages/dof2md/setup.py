@@ -21,11 +21,10 @@ setup(
     packages=find_packages(include=["dof2md", "dof2md.*"]),
     install_requires=[
         "requests>=2.31",
-        "pymupdf>=1.24",
+        "mineru[pipeline]",
     ],
     extras_require={
         "test": ["pytest>=7.0"],
-        "ocr": ["mineru[pipeline]"],
     },
     entry_points={
         "console_scripts": [

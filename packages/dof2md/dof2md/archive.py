@@ -8,13 +8,12 @@ is a no-op. Also useful for ad-hoc backfilling of a specific date.
 import argparse
 import csv
 import datetime as dt
+import subprocess
 from pathlib import Path
 
-import fitz
-
-from dof2md.converter import convert_to_markdown, is_scanned_document
+from dof2md.converter import convert_to_markdown
 from dof2md.downloader import build_url, download_pdf
-from dof2md.ocr_converter import convert_scanned_to_markdown
+from dof2md.mineru_server import MineruServer
 
 EDITIONS = ("MAT", "VES")
 MANIFEST_FIELDS = ["date", "edition", "source_url", "markdown_filename", "release_tag"]
@@ -39,7 +38,9 @@ def append_manifest_row(manifest_path: Path, row: dict) -> None:
 def process_edition(date: dt.date, edition: str, outdir: Path) -> dict | None:
     """Downloads and converts one edition. Returns its manifest row, or None
     if that edition doesn't exist for this date (e.g. weekends/holidays, or
-    no evening edition)."""
+    no evening edition), or if conversion timed out. A timed-out edition is
+    never recorded in the manifest, so it's automatically retried the next
+    time this date is processed rather than blocking the rest of the batch."""
     url, filename = build_url(date, edition)
     pdf_path = outdir / filename
     md_path = pdf_path.with_suffix(".md")
@@ -47,12 +48,14 @@ def process_edition(date: dt.date, edition: str, outdir: Path) -> dict | None:
     try:
         download_pdf(url, pdf_path)
     except ValueError:
+        print(f"No {edition} edition for {date}")
         return None
 
-    if is_scanned_document(fitz.open(str(pdf_path))):
-        convert_scanned_to_markdown(pdf_path, md_path)
-    else:
+    try:
         convert_to_markdown(pdf_path, md_path)
+    except subprocess.TimeoutExpired:
+        print(f"Conversion timed out for {date} {edition}, skipping (will retry on next run)")
+        return None
 
     return {
         "date": date.isoformat(),
@@ -85,21 +88,21 @@ def main(argv=None):
     processed = load_processed_keys(manifest_path)
     produced_files = []
 
-    for edition in EDITIONS:
-        key = (date.isoformat(), edition)
-        if key in processed:
-            print(f"Skipping {date} {edition}: already in manifest")
-            continue
+    with MineruServer():
+        for edition in EDITIONS:
+            key = (date.isoformat(), edition)
+            if key in processed:
+                print(f"Skipping {date} {edition}: already in manifest")
+                continue
 
-        print(f"Processing {date} {edition}...")
-        row = process_edition(date, edition, outdir)
-        if row is None:
-            print(f"No {edition} edition for {date}")
-            continue
+            print(f"Processing {date} {edition}...")
+            row = process_edition(date, edition, outdir)
+            if row is None:
+                continue
 
-        append_manifest_row(manifest_path, row)
-        produced_files.append(str(outdir / row["markdown_filename"]))
-        print(f"Done: {row['markdown_filename']}")
+            append_manifest_row(manifest_path, row)
+            produced_files.append(str(outdir / row["markdown_filename"]))
+            print(f"Done: {row['markdown_filename']}")
 
     Path(args.produced_list).write_text("\n".join(produced_files), encoding="utf-8")
     if not produced_files:

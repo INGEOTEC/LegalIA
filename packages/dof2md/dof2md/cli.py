@@ -1,13 +1,11 @@
 import argparse
 import datetime as dt
+import subprocess
 import sys
 from pathlib import Path
 
-import fitz  # PyMuPDF
-
-from dof2md.converter import convert_to_markdown, is_scanned_document
+from dof2md.converter import DEFAULT_TIMEOUT_SECONDS, convert_to_markdown
 from dof2md.downloader import build_url, download_pdf
-from dof2md.ocr_converter import convert_scanned_to_markdown
 
 
 def parse_args(argv=None):
@@ -40,15 +38,14 @@ def main(argv=None):
     download_pdf(url, pdf_path)
     print(f"PDF saved to: {pdf_path}")
 
-    if is_scanned_document(fitz.open(str(pdf_path))):
-        print(
-            "Detected a scanned edition — running OCR (mineru), this can take "
-            "several minutes per document..."
-        )
-        convert_scanned_to_markdown(pdf_path, md_path)
-    else:
-        print("Converting to Markdown...")
+    print("Converting to Markdown (mineru)...")
+    try:
         convert_to_markdown(pdf_path, md_path)
+    except subprocess.TimeoutExpired:
+        sys.exit(
+            f"Conversion timed out after {DEFAULT_TIMEOUT_SECONDS}s. "
+            f"This edition may be unusually large; the partial PDF is at {pdf_path}."
+        )
     print(f"Markdown saved to: {md_path}")
 
 
