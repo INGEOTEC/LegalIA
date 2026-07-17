@@ -36,6 +36,46 @@ pip install -e "packages/dofjson[test]"
 dofjson 2026-07-16 --endpoint notas --outdir output
 ```
 
+## Building a local archive of daily indexes (`--archivo`)
+
+`dofjson --archivo` downloads the **daily notes index** incrementally, day by
+day, over a whole date range (by default from January 2, 1917 to today). For
+each date it does exactly what `dofjson YYYY-MM-DD --endpoint notas` does —
+`get_notas(date)` filtered with `quita_notas_sin_titulo` — and saves one JSON
+per day. It does **not** download each note's content or scanned images: only
+the index.
+
+```bash
+dofjson --archivo                                      # 1917-01-02 -> today
+dofjson --archivo --desde 1980-01-01 --hasta 1980-12-31
+dofjson --archivo --pausa 1.0                          # slower (kinder to the server)
+```
+
+Output goes to `notas-archivo/` (configurable with `--outdir`), a **local,
+never-committed** directory (it is in the repo's `.gitignore`), with the same
+per-day filenames the plain command produces:
+
+```
+notas-archivo/
+  .completados                 # registry of finished days (for resuming)
+  2026/
+    15072026-notas.json        # index for 2026-07-15 (get_notas, filtered)
+    16072026-notas.json
+  1980/
+    02011980-notas.json
+```
+
+The mode is resumable and idempotent: the `.completados` registry records the
+finished days, so each run only fetches what is missing. Days that fail with
+network errors are *not* marked and get retried on the next run; days the
+service does not have (holidays, weekends, very old dates — a 404) *are*
+marked so they are not retried forever. "Today" is never marked, so late
+additions are picked up by a later run. You can interrupt with Ctrl-C and
+resume at any time.
+
+> The full range is ~40,000 days: a long download, meant to be run in parts.
+> Start with a bounded range via `--desde/--hasta` if you only need an era.
+
 ## Development
 
 ```bash
