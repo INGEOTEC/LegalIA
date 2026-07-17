@@ -1,0 +1,48 @@
+project:
+  type: website
+  output-dir: _site
+  post-render:
+    - scripts/fix_home_citations.py
+
+lang: en
+
+bibliography: references.bib
+
+execute:
+  enabled: true
+  freeze: auto
+
+website:
+  title: "LegalIA"
+  site-url: https://ingeotec.github.io/LegalIA/
+  repo-url: https://github.com/INGEOTEC/LegalIA
+  navbar:
+    background: "#f9f8f4"
+    left:
+      - href: index.ipynb
+        text: Home
+      - href: explorations/titles.ipynb
+        text: Explorations
+      - href: tools.ipynb
+        text: Tools
+      - href: references.qmd
+        text: References
+    right:
+      - icon: github
+        href: https://github.com/INGEOTEC/LegalIA
+        aria-label: GitHub
+  page-footer:
+    center: >
+      LegalIA · [INGEOTEC](https://github.com/INGEOTEC) ·
+      Code under the Apache 2.0 license
+
+format:
+  html:
+    theme: [litera, style.scss]
+    toc: true
+    number-sections: true
+    fig-dpi: 150
+    fig-width: 8
+    fig-height: 4.2
+    link-external-newwindow: true
+    code-fold: true

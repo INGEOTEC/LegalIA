@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [dof2md]
+        package: [dof2md, dofjson, nota2md]
         python-version: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install system dependencies (mineru's opencv needs libGL)
+        if: matrix.package == 'dof2md' || matrix.package == 'nota2md'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libgl1 libglib2.0-0
+      - name: Install sibling packages (dofjson, dof2md) for nota2md
+        if: matrix.package == 'nota2md'
+        run: |
+          pip install -e packages/dofjson
+          pip install -e packages/dof2md
       - name: Install package and test dependencies
         run: pip install -e "packages/${{ matrix.package }}[test]"
       - name: Run tests

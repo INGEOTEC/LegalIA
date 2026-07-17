@@ -1,0 +1,8 @@
+/.quarto/
+**/*.quarto_ipynb
+
+# Render output (published via GitHub Actions, not versioned)
+/_site/
+
+# Files written by the executable pages (downloaded notes, generated Markdown)
+output/
