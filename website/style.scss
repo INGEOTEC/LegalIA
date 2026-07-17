@@ -1,6 +1,6 @@
 /*-- scss:defaults --*/
 
-// Estilo académico: texto serif, medida de lectura angosta, cromática sobria.
+// Academic look: serif text, narrow reading measure, restrained color.
 $font-family-base: "Palatino Linotype", Palatino, "URW Palladio L", Georgia,
   "Times New Roman", serif;
 $headings-font-family: $font-family-base;
@@ -38,7 +38,7 @@ h1.title {
   color: #52514e;
 }
 
-// El resumen (abstract) como bloque académico.
+// The abstract as an academic block.
 .abstract {
   margin: 1.5rem 0;
   padding: 0 1.5rem;
@@ -64,7 +64,7 @@ caption {
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-// Las cifras dentro de tablas se alinean verticalmente.
+// Figures inside tables align vertically.
 .table td {
   font-variant-numeric: tabular-nums;
 }

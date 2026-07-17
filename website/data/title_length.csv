@@ -1,4 +1,4 @@
-anio,notas,chars_media,chars_mediana,palabras_media,palabras_mediana
+year,notes,chars_mean,chars_median,words_mean,words_median
 1970,6809,165.27,153,25.6,24
 1971,4095,189.07,180,29.44,28
 1972,4470,186.88,181.0,29.07,28.0

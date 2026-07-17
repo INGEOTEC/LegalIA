@@ -1,4 +1,4 @@
-name: Publicar sitio web
+name: Publish website
 
 on:
   push:
@@ -25,8 +25,8 @@ jobs:
         with:
           version: 1.9.38
 
-      # Los resultados de ejecución están congelados (website/_freeze), de modo
-      # que el render no necesita Python ni el archivo local notas-archivo.
+      # Execution results are frozen (website/_freeze), so rendering needs
+      # neither Python nor the local notas-archivo/ raw data.
       - uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: gh-pages

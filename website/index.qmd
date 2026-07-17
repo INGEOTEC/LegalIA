@@ -1,56 +1,60 @@
 ---
 title: "LegalIA"
-subtitle: "Análisis computacional del Diario Oficial de la Federación"
+subtitle: "Computational analysis of Mexico's Diario Oficial de la Federación"
 toc: false
 number-sections: false
 ---
 
-El *Diario Oficial de la Federación* (DOF) es el órgano de difusión del Estado
-mexicano: en sus páginas se publican las leyes, los decretos, los acuerdos, las
-resoluciones y los avisos que dan forma jurídica a la vida pública del país.
-Cada edición está compuesta por *notas* —unidades documentales individuales,
-cada una con su título, su sección y el organismo que la emite— y ese flujo
-diario, sostenido durante más de un siglo, constituye uno de los registros más
-completos de la actividad del Estado mexicano.
+The *Diario Oficial de la Federación* (DOF) is the official gazette of the
+Mexican State: its pages carry the laws, decrees, agreements, resolutions and
+notices that give legal form to the country's public life. Each edition is
+composed of *notas* — individual documentary units, each with its own title,
+section and issuing body — and that daily flow, sustained for more than a
+century, constitutes one of the most complete records of the activity of the
+Mexican State.
 
-**LegalIA** es un proyecto de [INGEOTEC](https://github.com/INGEOTEC) que busca
-hacer de ese registro un objeto de estudio computacional. El proyecto reúne, en
-un mismo repositorio, las herramientas para descargar y transformar el DOF a
-formatos aptos para el procesamiento de lenguaje natural, y una serie de
-exploraciones que documentan, con métodos cuantitativos, qué contiene el
-archivo y cómo ha cambiado a lo largo del tiempo.
+**LegalIA** is a project by [INGEOTEC](https://github.com/INGEOTEC) that turns
+that record into an object of computational study. The project gathers, in a
+single repository, the tools to download the DOF and transform it into formats
+suitable for natural language processing, together with a series of
+explorations that document, with quantitative methods, what the archive
+contains and how it has changed over time. The gazette is written in Spanish,
+and so are the titles and terms quoted throughout the analyses; the prose that
+examines them is in English.
 
-## El corpus {.unnumbered}
+## The corpus {.unnumbered}
 
-El punto de partida es el archivo de notas del DOF obtenido del servicio de
-datos abiertos del propio diario. La colección cubre de manera continua desde
-1970 hasta el presente e incluye, para cada día de publicación, los metadatos
-de todas las notas de sus ediciones matutina, vespertina y extraordinaria. A la
-fecha, el archivo reúne cerca de un millón de notas distribuidas en más de
-catorce mil días de publicación. Sobre esos metadatos —y, en fases
-posteriores, sobre el texto completo de las notas— se construyen los análisis
-de este sitio.
+The starting point is the DOF's note archive, obtained from the gazette's own
+open-data service. The collection covers, without interruption, from 1970 to
+the present and includes, for every publication day, the metadata of all the
+notes in its morning, evening and extraordinary editions. To date the archive
+holds close to one million notes spread over more than fourteen thousand
+publication days. The analyses on this site are built on that metadata and, in
+later stages, on the full text of the notes.
 
-## Las exploraciones {.unnumbered}
+## The explorations {.unnumbered}
 
-Cada exploración es un documento reproducible: el texto, las figuras y las
-tablas se generan a partir de agregados derivados del archivo, y el código que
-los produce acompaña a cada página. La primera entrega examina los títulos de
-las notas:
+Each exploration is a reproducible document: the text, figures and tables are
+generated from aggregates derived from the archive, and the code that produces
+them accompanies every page. The pages are written as Jupyter notebooks, so
+they can also be opened and executed outside the site — for instance on
+[Google Colab](https://colab.research.google.com/). The first installment
+examines the titles of the notes:
 
-- [Los títulos del Diario Oficial, 1970--2026](exploraciones/titulos.qmd). Una
-  lectura cuantitativa del metadato más elemental del diario: cuántas notas se
-  publican, cómo se nombran, qué tipos documentales dominan cada época y qué
-  revela su vocabulario sobre las prioridades del Estado.
+- [The titles of the Diario Oficial, 1970--2026](explorations/titles.ipynb). A
+  quantitative reading of the gazette's most elementary metadata: how many
+  notes are published, how they are named, which documentary types dominate
+  each era, and what their vocabulary reveals about the priorities of the
+  State.
 
-## Las herramientas {.unnumbered}
+## The tools {.unnumbered}
 
-El repositorio se organiza como un monorepo de paquetes de Python, cada uno
-instalable y versionado de forma independiente:
+The repository is organized as a monorepo of Python packages, each installable
+and versioned independently:
 [dof2md](https://github.com/INGEOTEC/LegalIA/tree/master/packages/dof2md)
-descarga ediciones completas del DOF en PDF y las convierte a Markdown;
-[dofjson](https://github.com/INGEOTEC/LegalIA/tree/master/packages/dofjson) es
-un cliente del servicio JSON de datos abiertos del DOF; y
+downloads complete DOF editions as PDF and converts them to Markdown;
+[dofjson](https://github.com/INGEOTEC/LegalIA/tree/master/packages/dofjson) is
+a client for the DOF's open-data JSON service; and
 [nota2md](https://github.com/INGEOTEC/LegalIA/tree/master/packages/nota2md)
-construye el Markdown de una nota individual a partir de su contenido HTML o
-del OCR de sus imágenes de página.
+builds the Markdown of an individual note from its HTML content or by OCR of
+its scanned page images.
