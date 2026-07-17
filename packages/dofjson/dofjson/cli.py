@@ -27,6 +27,16 @@ def parse_args(argv=None):
         "saves its JSON if cadenaContenido exists, otherwise falls back to its page image",
     )
     parser.add_argument(
+        "--nota-imagenes", type=int,
+        help="Download the scanned page image(s) of a single note by its codNota, "
+        "regardless of whether the note also has HTML content (existeHtml 'S')",
+    )
+    parser.add_argument(
+        "--nota-pdf", type=int,
+        help="Download a single note as its own PDF by its codNota: the whole "
+        "edition PDF sliced down to just the note's page(s)",
+    )
+    parser.add_argument(
         "--pdf-diario", type=int,
         help="Download the PDF of a whole edition by its codDiario (there is no per-note PDF; "
         "get codDiario from get_nota's response, along with pagina/paginaHasta to locate the note)",
@@ -73,6 +83,18 @@ def main(argv=None):
         outdir = Path(args.outdir)
         for dest in client.download_nota(args.nota, outdir):
             print(f"Saved to: {dest}")
+        return
+
+    if args.nota_imagenes is not None:
+        outdir = Path(args.outdir)
+        for dest in client.download_nota_imagenes(args.nota_imagenes, outdir):
+            print(f"Saved to: {dest}")
+        return
+
+    if args.nota_pdf is not None:
+        outdir = Path(args.outdir)
+        dest = client.download_nota_pdf(args.nota_pdf, outdir)
+        print(f"Saved to: {dest}")
         return
 
     if args.imagenes_diario is not None:

@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import tempfile
 from pathlib import Path
 
 import requests
@@ -110,18 +111,25 @@ def quita_notas_sin_titulo(notas_del_dia: dict) -> dict:
     return filtrado
 
 
-def download_nota(cod_nota: int, outdir: Path) -> list[Path]:
-    """Download a note's content by codNota alone: saves its metadata (incl.
-    cadenaContenido) as JSON when the HTML content exists; otherwise falls
-    back to downloading the scanned page image(s) for that note, inferring
-    whether it spans more than one page (see infer_paginas())."""
-    nota = get_nota(cod_nota)["Nota"]
-    outdir.mkdir(parents=True, exist_ok=True)
+def download_nota_imagenes(
+    cod_nota: int, outdir: Path, nota: dict | None = None
+) -> list[Path]:
+    """Download the scanned page image(s) for a note by codNota, inferring
+    whether it spans more than one page (see infer_paginas()).
 
-    if nota.get("cadenaContenido"):
-        dest = outdir / f"nota-{cod_nota}.json"
-        dest.write_text(json.dumps({"Nota": nota}, ensure_ascii=False, indent=2))
-        return [dest]
+    Unlike download_nota(), this ALWAYS fetches the page images, even for a
+    note that also has digital HTML content (cadenaContenido / existeHtml
+    "S"). That is what makes the image→OCR path (dof2md) available for every
+    note, not only the image-only ones — the scanned page is the certified
+    original, and OCR'ing it is a way to get a note's Markdown that does not
+    depend on the HTML being present or well-formed.
+
+    Pass an already-fetched `nota` (the value under the "Nota" key of a
+    get_nota() response) to avoid an extra request when the caller already
+    has it."""
+    if nota is None:
+        nota = get_nota(cod_nota)["Nota"]
+    outdir.mkdir(parents=True, exist_ok=True)
 
     fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
     paginas = infer_paginas(nota, get_notas(fecha))
@@ -132,10 +140,72 @@ def download_nota(cod_nota: int, outdir: Path) -> list[Path]:
         imagen = imagenes_por_pagina.get(pagina)
         if imagen is None:
             raise ValueError(
-                f"nota {cod_nota} has no cadenaContenido and no matching page image "
+                f"nota {cod_nota} has no matching page image "
                 f"(codDiario={nota['codDiario']}, pagina={pagina})"
             )
         dest = outdir / f"nota-{cod_nota}-{imagen['nombreArchivo']}.jpg"
         download_imagen(imagen["nombreArchivo"], nota["codEdicion"], dest)
         dests.append(dest)
     return dests
+
+
+def download_nota_pdf(
+    cod_nota: int, outdir: Path, nota: dict | None = None
+) -> Path:
+    """Download a note as its OWN PDF: fetches the whole edition's PDF and
+    slices out only the page(s) the note occupies (see infer_paginas()),
+    writing them to `outdir/nota-{cod_nota}.pdf`.
+
+    There is no per-note PDF endpoint — the DOF only serves the full edition
+    (download_pdf) — so this is the note-scoped counterpart of
+    download_nota_imagenes(): a PDF holding just the note's pages, ready to
+    hand to dof2md. Works for any note, with or without HTML content.
+
+    Note: the slice uses the note's printed `pagina` numbers as physical PDF
+    page indices (page N → index N-1), which holds for these editions.
+
+    Pass an already-fetched `nota` to skip an extra get_nota() request."""
+    from pypdf import PdfReader, PdfWriter
+
+    if nota is None:
+        nota = get_nota(cod_nota)["Nota"]
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
+    paginas = infer_paginas(nota, get_notas(fecha))
+    dest = outdir / f"nota-{cod_nota}.pdf"
+
+    with tempfile.TemporaryDirectory() as tmp:
+        edicion_pdf = Path(tmp) / f"{nota['codDiario']}.pdf"
+        download_pdf(nota["codDiario"], edicion_pdf)
+
+        reader = PdfReader(str(edicion_pdf))
+        writer = PdfWriter()
+        for pagina in paginas:
+            indice = pagina - 1
+            if indice < 0 or indice >= len(reader.pages):
+                raise ValueError(
+                    f"nota {cod_nota}: página {pagina} fuera del PDF de la edición "
+                    f"(codDiario={nota['codDiario']}, {len(reader.pages)} páginas)"
+                )
+            writer.add_page(reader.pages[indice])
+        with dest.open("wb") as f:
+            writer.write(f)
+    return dest
+
+
+def download_nota(cod_nota: int, outdir: Path) -> list[Path]:
+    """Download a note's content by codNota alone: saves its metadata (incl.
+    cadenaContenido) as JSON when the HTML content exists; otherwise falls
+    back to downloading the scanned page image(s) for that note (see
+    download_nota_imagenes()). To always get the page images regardless of
+    whether HTML content exists, call download_nota_imagenes() directly."""
+    nota = get_nota(cod_nota)["Nota"]
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    if nota.get("cadenaContenido"):
+        dest = outdir / f"nota-{cod_nota}.json"
+        dest.write_text(json.dumps({"Nota": nota}, ensure_ascii=False, indent=2))
+        return [dest]
+
+    return download_nota_imagenes(cod_nota, outdir, nota=nota)
