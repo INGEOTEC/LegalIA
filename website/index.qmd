@@ -58,3 +58,7 @@ a client for the DOF's open-data JSON service; and
 [nota2md](https://github.com/INGEOTEC/LegalIA/tree/master/packages/nota2md)
 builds the Markdown of an individual note from its HTML content or by OCR of
 its scanned page images.
+
+A guided tour of the toolchain — downloading every note of one day, selecting
+a single note and turning it into Markdown — is in
+[From the gazette to Markdown](tools.ipynb).

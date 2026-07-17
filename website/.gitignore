@@ -1,5 +1,8 @@
 /.quarto/
 **/*.quarto_ipynb
 
-# Salida del render (se publica vía GitHub Actions, no se versiona)
+# Render output (published via GitHub Actions, not versioned)
 /_site/
+
+# Files written by the executable pages (downloaded notes, generated Markdown)
+output/
