@@ -8,6 +8,8 @@ from dofjson.client import (
     BASE_URL,
     download_imagen,
     download_nota,
+    download_nota_imagenes,
+    download_nota_pdf,
     download_pdf,
     get_diario,
     get_imagenes,
@@ -17,6 +19,18 @@ from dofjson.client import (
     infer_paginas,
     quita_notas_sin_titulo,
 )
+
+
+def _write_pdf(path, n_pages):
+    """Write a real N-page PDF to `path` (blank pages) so page counts and
+    slicing can be checked without mocking pypdf."""
+    from pypdf import PdfWriter
+
+    writer = PdfWriter()
+    for _ in range(n_pages):
+        writer.add_blank_page(width=72, height=72)
+    with open(path, "wb") as f:
+        writer.write(f)
 
 
 class TestClient(unittest.TestCase):
@@ -386,6 +400,115 @@ class TestDownloadNota(unittest.TestCase):
                 self.outdir / "nota-4845455-19800102-22-U-000.jpg",
             ],
         )
+
+    @patch("dofjson.client.download_imagen")
+    @patch("dofjson.client.get_imagenes")
+    @patch("dofjson.client.get_notas")
+    @patch("dofjson.client.get_nota")
+    def test_download_nota_imagenes_ignores_cadena_contenido(
+        self, mock_get_nota, mock_get_notas, mock_get_imagenes, mock_download_imagen
+    ):
+        # A note WITH HTML content still gets its scanned page image(s)
+        # downloaded — that is the whole point of download_nota_imagenes vs
+        # download_nota, which would have short-circuited to JSON here.
+        mock_get_nota.return_value = {
+            "Nota": {
+                "codNota": 5793655,
+                "cadenaContenido": "<HTML>lots of digital text</HTML>",
+                "codDiario": 328506,
+                "fecha": "15-07-2026",
+                "pagina": 80,
+                "codEdicion": "MAT",
+            }
+        }
+        mock_get_notas.return_value = {
+            "NotasMatutinas": [
+                {"codNota": 5793655, "pagina": 80},
+                {"codNota": 5793656, "pagina": 80},
+            ]
+        }
+        mock_get_imagenes.return_value = {
+            "imagenesFS": [{"pagina": 80, "nombreArchivo": "20260715-080-U-000"}]
+        }
+
+        dests = download_nota_imagenes(5793655, self.outdir)
+
+        mock_download_imagen.assert_called_once_with(
+            "20260715-080-U-000", "MAT", self.outdir / "nota-5793655-20260715-080-U-000.jpg"
+        )
+        self.assertEqual(dests, [self.outdir / "nota-5793655-20260715-080-U-000.jpg"])
+
+    @patch("dofjson.client.download_pdf")
+    @patch("dofjson.client.get_imagenes")
+    @patch("dofjson.client.get_notas")
+    @patch("dofjson.client.get_nota")
+    def test_download_nota_pdf_slices_note_pages(
+        self, mock_get_nota, mock_get_notas, mock_get_imagenes, mock_download_pdf
+    ):
+        from pypdf import PdfReader
+
+        nota = {
+            "codNota": 5793639,
+            "cadenaContenido": "<HTML>tiene texto, pero pedimos PDF</HTML>",
+            "codDiario": 328506,
+            "fecha": "15-07-2026",
+            "pagina": 5,
+            "codEdicion": "MAT",
+        }
+        mock_get_nota.return_value = {"Nota": nota}
+        # next distinct note starts on page 9 -> this note spans pages 5..9
+        mock_get_notas.return_value = {
+            "NotasMatutinas": [
+                {"codNota": 5793639, "pagina": 5},
+                {"codNota": 5793641, "pagina": 9},
+            ]
+        }
+        # the edition PDF has plenty of pages
+        mock_download_pdf.side_effect = lambda cod_diario, dest, **kw: _write_pdf(dest, 12)
+
+        dest = download_nota_pdf(5793639, self.outdir)
+
+        self.assertEqual(dest, self.outdir / "nota-5793639.pdf")
+        (cod_diario_arg, _pdf_path), _ = mock_download_pdf.call_args
+        self.assertEqual(cod_diario_arg, 328506)
+        self.assertEqual(len(PdfReader(str(dest)).pages), 5)  # pages 5,6,7,8,9
+        mock_get_imagenes.assert_not_called()
+
+    @patch("dofjson.client.download_pdf")
+    @patch("dofjson.client.get_notas")
+    @patch("dofjson.client.get_nota")
+    def test_download_nota_pdf_raises_when_page_out_of_range(
+        self, mock_get_nota, mock_get_notas, mock_download_pdf
+    ):
+        nota = {
+            "codNota": 5793639, "cadenaContenido": "", "codDiario": 328506,
+            "fecha": "15-07-2026", "pagina": 5, "codEdicion": "MAT",
+        }
+        mock_get_nota.return_value = {"Nota": nota}
+        mock_get_notas.return_value = {
+            "NotasMatutinas": [{"codNota": 5793639, "pagina": 5}]
+        }
+        # the edition PDF has fewer pages than the note's page number
+        mock_download_pdf.side_effect = lambda cod_diario, dest, **kw: _write_pdf(dest, 3)
+
+        with self.assertRaises(ValueError):
+            download_nota_pdf(5793639, self.outdir)
+
+    @patch("dofjson.client.download_nota_imagenes")
+    @patch("dofjson.client.get_nota")
+    def test_download_nota_delegates_to_imagenes_when_no_content(
+        self, mock_get_nota, mock_download_nota_imagenes
+    ):
+        nota = {"codNota": 4845424, "cadenaContenido": "", "codEdicion": "MAT"}
+        mock_get_nota.return_value = {"Nota": nota}
+        mock_download_nota_imagenes.return_value = [self.outdir / "nota-4845424-x.jpg"]
+
+        dests = download_nota(4845424, self.outdir)
+
+        mock_download_nota_imagenes.assert_called_once_with(
+            4845424, self.outdir, nota=nota
+        )
+        self.assertEqual(dests, [self.outdir / "nota-4845424-x.jpg"])
 
     @patch("dofjson.client.get_imagenes")
     @patch("dofjson.client.get_notas")

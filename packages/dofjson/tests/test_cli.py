@@ -40,6 +40,26 @@ class TestCli(unittest.TestCase):
 
         mock_download_nota.assert_called_once_with(4845455, Path(self.tmpdir.name))
 
+    @patch("dofjson.client.download_nota_imagenes")
+    def test_main_downloads_nota_imagenes_by_id(self, mock_download_nota_imagenes):
+        mock_download_nota_imagenes.return_value = [
+            Path(self.tmpdir.name) / "nota-5793655-20260715-080-U-000.jpg",
+        ]
+
+        main(["--nota-imagenes", "5793655", "--outdir", self.tmpdir.name])
+
+        mock_download_nota_imagenes.assert_called_once_with(
+            5793655, Path(self.tmpdir.name)
+        )
+
+    @patch("dofjson.client.download_nota_pdf")
+    def test_main_downloads_nota_pdf_by_id(self, mock_download_nota_pdf):
+        mock_download_nota_pdf.return_value = Path(self.tmpdir.name) / "nota-5793639.pdf"
+
+        main(["--nota-pdf", "5793639", "--outdir", self.tmpdir.name])
+
+        mock_download_nota_pdf.assert_called_once_with(5793639, Path(self.tmpdir.name))
+
     def test_main_requires_date_or_nota(self):
         with self.assertRaises(SystemExit):
             main(["--outdir", self.tmpdir.name])
