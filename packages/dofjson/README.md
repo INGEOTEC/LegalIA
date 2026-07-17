@@ -20,6 +20,15 @@ viable alternative (or complement) to `dof2md`'s PDF download + Markdown
 conversion pipeline — notes already come with structured HTML content,
 which may be easier to work with than OCR'd PDFs.
 
+On top of the raw endpoints, the client offers note-scoped downloads that
+resolve a note's page span (`infer_paginas`) and fetch it in whichever form
+you want:
+
+- `download_nota_imagenes(codNota)` — the note's scanned page image(s).
+- `download_nota_pdf(codNota)` — the note as its own PDF: the whole edition
+  PDF (there is no per-note PDF endpoint) sliced to just the note's pages,
+  using `pypdf`.
+
 ## Usage
 
 ```bash
