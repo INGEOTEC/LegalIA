@@ -59,8 +59,14 @@ need `dof2md` (and mineru), imported lazily so the HTML path works without them.
 
 ## Installation
 
-`dofjson` (always) and `dof2md` (for the image/PDF paths) are sibling packages
-in this monorepo, not on PyPI — install them editable alongside this one:
+```bash
+pip install nota2md          # HTML path only
+pip install nota2md[ocr]     # also pulls in dof2md, for the image/PDF OCR paths
+```
+
+`dofjson` is a hard dependency and installs automatically. For development in
+this monorepo, install the siblings editable instead so local edits are
+picked up:
 
 ```bash
 pip install -e "packages/dofjson"
