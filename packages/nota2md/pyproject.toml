@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nota2md"
+version = "0.1.0"
+description = "Build the Markdown of a single DOF note (by codNota), from its HTML content or by OCR'ing its scanned page images."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.9"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+# dofjson (always) and dof2md (only for the image/PDF OCR paths) are sibling
+# packages in this monorepo, not on PyPI — install them editable from
+# packages/ alongside this one. Only the third-party deps are declared here.
+dependencies = [
+    "beautifulsoup4>=4.9",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/INGEOTEC/LegalIA/tree/main/packages/nota2md"
+
+[project.scripts]
+nota2md = "nota2md.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["nota2md", "nota2md.*"]
