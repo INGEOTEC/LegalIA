@@ -23,6 +23,9 @@ packages/dof2md/output/
 /dof-output/
 /produced_files.txt
 
+# Local archive downloaded by scripts/descargar_notas.py (local only, never committed)
+/notas-archivo/
+
 # Editor / OS
 .DS_Store
 

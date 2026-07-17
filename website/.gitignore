@@ -1,0 +1,5 @@
+/.quarto/
+**/*.quarto_ipynb
+
+# Salida del render (se publica vía GitHub Actions, no se versiona)
+/_site/

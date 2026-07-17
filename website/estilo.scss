@@ -1,0 +1,81 @@
+/*-- scss:defaults --*/
+
+// Estilo académico: texto serif, medida de lectura angosta, cromática sobria.
+$font-family-base: "Palatino Linotype", Palatino, "URW Palladio L", Georgia,
+  "Times New Roman", serif;
+$headings-font-family: $font-family-base;
+$font-size-root: 19px;
+$line-height-base: 1.65;
+
+$body-bg: #fdfdfb;
+$body-color: #1f1e1b;
+$link-color: #1c5cab;
+$link-decoration: none;
+
+$grid-body-width: 760px;
+$grid-sidebar-width: 260px;
+$grid-margin-width: 260px;
+
+/*-- scss:rules --*/
+
+main p {
+  text-align: justify;
+  hyphens: auto;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+}
+
+h1.title {
+  font-size: 2rem;
+}
+
+.subtitle.lead {
+  font-style: italic;
+  color: #52514e;
+}
+
+// El resumen (abstract) como bloque académico.
+.abstract {
+  margin: 1.5rem 0;
+  padding: 0 1.5rem;
+  border-left: 3px solid #e1e0d9;
+  font-size: 0.92em;
+
+  .abstract-title {
+    font-variant: small-caps;
+    letter-spacing: 0.05em;
+  }
+}
+
+.figure-caption,
+.table-caption,
+caption {
+  font-size: 0.85em;
+  color: #52514e;
+  text-align: left;
+}
+
+.table {
+  font-size: 0.85em;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+// Las cifras dentro de tablas se alinean verticalmente.
+.table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.navbar {
+  border-bottom: 1px solid #e1e0d9;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 0.85rem;
+}
+
+.page-footer {
+  font-size: 0.8rem;
+  color: #898781;
+}

@@ -1,0 +1,56 @@
+---
+title: "LegalIA"
+subtitle: "Análisis computacional del Diario Oficial de la Federación"
+toc: false
+number-sections: false
+---
+
+El *Diario Oficial de la Federación* (DOF) es el órgano de difusión del Estado
+mexicano: en sus páginas se publican las leyes, los decretos, los acuerdos, las
+resoluciones y los avisos que dan forma jurídica a la vida pública del país.
+Cada edición está compuesta por *notas* —unidades documentales individuales,
+cada una con su título, su sección y el organismo que la emite— y ese flujo
+diario, sostenido durante más de un siglo, constituye uno de los registros más
+completos de la actividad del Estado mexicano.
+
+**LegalIA** es un proyecto de [INGEOTEC](https://github.com/INGEOTEC) que busca
+hacer de ese registro un objeto de estudio computacional. El proyecto reúne, en
+un mismo repositorio, las herramientas para descargar y transformar el DOF a
+formatos aptos para el procesamiento de lenguaje natural, y una serie de
+exploraciones que documentan, con métodos cuantitativos, qué contiene el
+archivo y cómo ha cambiado a lo largo del tiempo.
+
+## El corpus {.unnumbered}
+
+El punto de partida es el archivo de notas del DOF obtenido del servicio de
+datos abiertos del propio diario. La colección cubre de manera continua desde
+1970 hasta el presente e incluye, para cada día de publicación, los metadatos
+de todas las notas de sus ediciones matutina, vespertina y extraordinaria. A la
+fecha, el archivo reúne cerca de un millón de notas distribuidas en más de
+catorce mil días de publicación. Sobre esos metadatos —y, en fases
+posteriores, sobre el texto completo de las notas— se construyen los análisis
+de este sitio.
+
+## Las exploraciones {.unnumbered}
+
+Cada exploración es un documento reproducible: el texto, las figuras y las
+tablas se generan a partir de agregados derivados del archivo, y el código que
+los produce acompaña a cada página. La primera entrega examina los títulos de
+las notas:
+
+- [Los títulos del Diario Oficial, 1970--2026](exploraciones/titulos.qmd). Una
+  lectura cuantitativa del metadato más elemental del diario: cuántas notas se
+  publican, cómo se nombran, qué tipos documentales dominan cada época y qué
+  revela su vocabulario sobre las prioridades del Estado.
+
+## Las herramientas {.unnumbered}
+
+El repositorio se organiza como un monorepo de paquetes de Python, cada uno
+instalable y versionado de forma independiente:
+[dof2md](https://github.com/INGEOTEC/LegalIA/tree/master/packages/dof2md)
+descarga ediciones completas del DOF en PDF y las convierte a Markdown;
+[dofjson](https://github.com/INGEOTEC/LegalIA/tree/master/packages/dofjson) es
+un cliente del servicio JSON de datos abiertos del DOF; y
+[nota2md](https://github.com/INGEOTEC/LegalIA/tree/master/packages/nota2md)
+construye el Markdown de una nota individual a partir de su contenido HTML o
+del OCR de sus imágenes de página.
