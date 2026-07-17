@@ -19,6 +19,8 @@ website:
         text: Home
       - href: explorations/titles.ipynb
         text: Explorations
+      - href: tools.ipynb
+        text: Tools
     right:
       - icon: github
         href: https://github.com/INGEOTEC/LegalIA
