@@ -23,7 +23,7 @@ packages/dof2md/output/
 /dof-output/
 /produced_files.txt
 
-# Local archive downloaded by scripts/descargar_notas.py (local only, never committed)
+# Local archive downloaded by `dofjson --archivo` (local only, never committed)
 /notas-archivo/
 
 # Local output from nota2md / dofjson / ad-hoc runs (generated Markdown, PDFs, images)
