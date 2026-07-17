@@ -2,11 +2,10 @@
 
 Left to itself, the `mineru` CLI spins up (and tears down) a fresh temporary
 API server — reloading all layout/OCR models — on every single invocation.
-That's fine for converting one document, but wasteful when a batch job (the
-daily archive, the year backfill script) converts many documents in the same
-run. MineruServer starts one `mineru-api` process, waits for it to report
-healthy, and points `convert_to_markdown` at it via the MINERU_API_URL
-environment variable for the duration of the batch.
+That's fine for converting one document, but wasteful when a batch job
+converts many documents in the same run. MineruServer starts one `mineru-api`
+process, waits for it to report healthy, and points `convert_to_markdown` at
+it via the MINERU_API_URL environment variable for the duration of the batch.
 """
 import os
 import socket
