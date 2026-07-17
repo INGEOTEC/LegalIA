@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from dofjson import client
+from dofjson import archivo, client
 
 ENDPOINT_NAMES = ["diario", "notas", "indicadores"]
 
@@ -54,15 +54,50 @@ def parse_args(argv=None):
         "--edicion", choices=["MAT", "VES", "EXT"],
         help="Edition (MAT/VES/EXT) a note or page belongs to, required with --imagen",
     )
-    parser.add_argument("--outdir", default="output", help="Output directory (default: output/)")
+    parser.add_argument(
+        "--archivo", action="store_true",
+        help="Incrementally download the daily notes index for a whole date range "
+        "into a resumable local archive: one JSON per day under <outdir>/YYYY/, "
+        "with a registry of completed days in <outdir>/.completados so re-runs "
+        "only fetch the missing days. Positional date is ignored; use --desde/--hasta.",
+    )
+    parser.add_argument(
+        "--desde", default=archivo.FECHA_INICIO_DEFAULT.isoformat(),
+        help="First date YYYY-MM-DD of the archive range "
+        f"(only with --archivo; default: {archivo.FECHA_INICIO_DEFAULT.isoformat()})",
+    )
+    parser.add_argument(
+        "--hasta", default=None,
+        help="Last date YYYY-MM-DD of the archive range (only with --archivo; default: today)",
+    )
+    parser.add_argument(
+        "--pausa", type=float, default=0.5,
+        help="Seconds to wait between requests to the server "
+        "(only with --archivo; default: 0.5)",
+    )
+    parser.add_argument(
+        "--outdir", default=None,
+        help="Output directory (default: output/, or notas-archivo/ with --archivo)",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv=None):
     args = parse_args(argv)
+    outdir = Path(args.outdir or ("notas-archivo" if args.archivo else "output"))
+
+    if args.archivo:
+        try:
+            desde = dt.date.fromisoformat(args.desde)
+            hasta = dt.date.fromisoformat(args.hasta) if args.hasta else dt.date.today()
+        except ValueError as exc:
+            sys.exit(f"Invalid date: {exc}. Use YYYY-MM-DD format.")
+        if desde > hasta:
+            sys.exit(f"--desde ({desde}) cannot be later than --hasta ({hasta}).")
+        archivo.download_archivo(desde, hasta, outdir, pausa=args.pausa)
+        return
 
     if args.pdf_diario is not None:
-        outdir = Path(args.outdir)
         outdir.mkdir(parents=True, exist_ok=True)
         dest = outdir / f"{args.pdf_diario}.pdf"
         client.download_pdf(args.pdf_diario, dest)
@@ -72,7 +107,6 @@ def main(argv=None):
     if args.imagen is not None:
         if not args.edicion:
             sys.exit("--imagen requires --edicion")
-        outdir = Path(args.outdir)
         outdir.mkdir(parents=True, exist_ok=True)
         dest = outdir / f"{args.imagen}.jpg"
         client.download_imagen(args.imagen, args.edicion, dest)
@@ -80,19 +114,16 @@ def main(argv=None):
         return
 
     if args.nota is not None:
-        outdir = Path(args.outdir)
         for dest in client.download_nota(args.nota, outdir):
             print(f"Saved to: {dest}")
         return
 
     if args.nota_imagenes is not None:
-        outdir = Path(args.outdir)
         for dest in client.download_nota_imagenes(args.nota_imagenes, outdir):
             print(f"Saved to: {dest}")
         return
 
     if args.nota_pdf is not None:
-        outdir = Path(args.outdir)
         dest = client.download_nota_pdf(args.nota_pdf, outdir)
         print(f"Saved to: {dest}")
         return
@@ -113,7 +144,6 @@ def main(argv=None):
             data = client.quita_notas_sin_titulo(data)
         filename = f"{date:%d%m%Y}-{args.endpoint}.json"
 
-    outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     dest = outdir / filename
     dest.write_text(json.dumps(data, ensure_ascii=False, indent=2))
