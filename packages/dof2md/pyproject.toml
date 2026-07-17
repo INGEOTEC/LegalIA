@@ -1,3 +1,32 @@
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "dof2md"
+version = "0.1.0"
+description = "Download editions of Mexico's official gazette (DOF) as PDF and convert them to Markdown."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.9"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = [
+    "requests>=2.31",
+    "mineru[pipeline]",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/INGEOTEC/LegalIA/tree/main/packages/dof2md"
+
+[project.scripts]
+dof2md = "dof2md.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["dof2md", "dof2md.*"]
