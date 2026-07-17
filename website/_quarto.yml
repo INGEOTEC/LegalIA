@@ -2,9 +2,10 @@ project:
   type: website
   output-dir: _site
 
-lang: es
+lang: en
 
 execute:
+  enabled: true
   freeze: auto
 
 website:
@@ -15,9 +16,9 @@ website:
     background: "#f9f8f4"
     left:
       - href: index.qmd
-        text: Inicio
-      - href: exploraciones/titulos.qmd
-        text: Exploraciones
+        text: Home
+      - href: explorations/titles.ipynb
+        text: Explorations
     right:
       - icon: github
         href: https://github.com/INGEOTEC/LegalIA
@@ -25,17 +26,15 @@ website:
   page-footer:
     center: >
       LegalIA · [INGEOTEC](https://github.com/INGEOTEC) ·
-      Código bajo licencia Apache 2.0
+      Code under the Apache 2.0 license
 
 format:
   html:
-    theme: [litera, estilo.scss]
+    theme: [litera, style.scss]
     toc: true
-    toc-title: "En esta página"
     number-sections: true
     fig-dpi: 150
     fig-width: 8
     fig-height: 4.2
     link-external-newwindow: true
     code-fold: true
-    code-summary: "Código"
