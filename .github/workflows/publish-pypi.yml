@@ -1,0 +1,70 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "dof2md-v*"
+      - "dofjson-v*"
+      - "nota2md-v*"
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Package to publish"
+        required: true
+        type: choice
+        options:
+          - dof2md
+          - dofjson
+          - nota2md
+
+concurrency:
+  group: publish-${{ github.event_name == 'workflow_dispatch' && inputs.package || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Determine package and expected version
+        id: pkg
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ inputs.package }}" >> "$GITHUB_OUTPUT"
+          else
+            tag="${GITHUB_REF#refs/tags/}"
+            echo "name=${tag%-v*}" >> "$GITHUB_OUTPUT"
+            echo "tag_version=${tag##*-v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Tags are the release trigger, so a stale tag (forgot to bump
+      # pyproject.toml) must fail loudly instead of re-publishing the
+      # previous version under a new tag name.
+      - name: Verify tag matches pyproject.toml version
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          pkg_version=$(python -c "import tomllib; print(tomllib.load(open('packages/${{ steps.pkg.outputs.name }}/pyproject.toml', 'rb'))['project']['version'])")
+          if [ "${{ steps.pkg.outputs.tag_version }}" != "$pkg_version" ]; then
+            echo "Tag version ${{ steps.pkg.outputs.tag_version }} does not match pyproject.toml version $pkg_version" >&2
+            exit 1
+          fi
+
+      - name: Install build tooling
+        run: pip install build twine
+
+      - name: Build sdist and wheel
+        run: python -m build "packages/${{ steps.pkg.outputs.name }}"
+
+      - name: Check package metadata
+        run: twine check "packages/${{ steps.pkg.outputs.name }}"/dist/*
+
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload "packages/${{ steps.pkg.outputs.name }}"/dist/*

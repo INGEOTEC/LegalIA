@@ -14,14 +14,16 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-# dofjson (always) and dof2md (only for the image/PDF OCR paths) are sibling
-# packages in this monorepo, not on PyPI — install them editable from
-# packages/ alongside this one. Only the third-party deps are declared here.
+# dof2md is a sibling package in this monorepo, only needed for the image/PDF
+# OCR paths (imported lazily) — kept as an optional extra rather than a hard
+# dependency so the HTML-only path stays lightweight.
 dependencies = [
     "beautifulsoup4>=4.9",
+    "dofjson>=0.1.0",
 ]
 
 [project.optional-dependencies]
+ocr = ["dof2md>=0.1.0"]
 test = ["pytest>=7.0"]
 
 [project.urls]
