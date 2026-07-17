@@ -60,9 +60,8 @@ def convert_to_markdown(
 
     If MINERU_API_URL is set (see mineru_server.MineruServer), reuses that
     already-running server instead of letting mineru spin up (and tear down)
-    its own temporary one for this single call — this is what makes batch
-    conversions in archive.py / scripts/archive_year.py avoid reloading
-    models once per document.
+    its own temporary one for this single call — this is what lets a batch
+    of documents avoid reloading the models once per document.
 
     Raises subprocess.TimeoutExpired if mineru doesn't finish within
     `timeout` seconds — callers doing batch work should catch this and skip
