@@ -22,7 +22,7 @@ website:
       - href: index.ipynb
         text: Home
       - href: explorations/titles.ipynb
-        text: Explorations
+        text: DOF Titles
       - href: tools.ipynb
         text: Tools
       - href: references.qmd
