@@ -60,7 +60,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", default="notas-archivo", type=Path)
     parser.add_argument("--out", default="website/data", type=Path)
-    parser.add_argument("--since", default=1970, type=int)
+    parser.add_argument("--since", default=1917, type=int)
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
 
