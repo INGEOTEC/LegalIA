@@ -21,6 +21,8 @@ website:
     left:
       - href: index.ipynb
         text: Home
+      - href: dataset.ipynb
+        text: Dataset
       - href: explorations/titles.ipynb
         text: DOF Titles
       - href: tools.ipynb
