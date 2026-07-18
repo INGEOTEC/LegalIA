@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-07-17">
+
+<title>From the gazette to Markdown – LegalIA</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-cc90c7c4c9a3139982c100fe453cf067.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">LegalIA</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./dataset.html"> 
+<span class="menu-text">Dataset</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./explorations/titles.html"> 
+<span class="menu-text">DOF Titles</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./tools.html" aria-current="page"> 
+<span class="menu-text">Tools</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./references.html"> 
+<span class="menu-text">References</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/INGEOTEC/LegalIA"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#three-packages-one-pipeline" id="toc-three-packages-one-pipeline" class="nav-link active" data-scroll-target="#three-packages-one-pipeline"><span class="header-section-number">1</span> Three packages, one pipeline</a></li>
+  <li><a href="#step-1-every-note-of-one-day" id="toc-step-1-every-note-of-one-day" class="nav-link" data-scroll-target="#step-1-every-note-of-one-day"><span class="header-section-number">2</span> Step 1: every note of one day</a></li>
+  <li><a href="#step-2-selecting-one-note" id="toc-step-2-selecting-one-note" class="nav-link" data-scroll-target="#step-2-selecting-one-note"><span class="header-section-number">3</span> Step 2: selecting one note</a></li>
+  <li><a href="#step-3-from-html-to-markdown" id="toc-step-3-from-html-to-markdown" class="nav-link" data-scroll-target="#step-3-from-html-to-markdown"><span class="header-section-number">4</span> Step 3: from HTML to Markdown</a></li>
+  <li><a href="#when-there-is-no-html-the-scanned-decades" id="toc-when-there-is-no-html-the-scanned-decades" class="nav-link" data-scroll-target="#when-there-is-no-html-the-scanned-decades"><span class="header-section-number">5</span> When there is no HTML: the scanned decades</a></li>
+  <li><a href="#and-dof2md" id="toc-and-dof2md" class="nav-link" data-scroll-target="#and-dof2md"><span class="header-section-number">6</span> And dof2md?</a></li>
+  
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">From the gazette to Markdown</h1>
+<p class="subtitle lead">Retrieving a single DOF note with dofjson and nota2md</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">July 17, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+<div>
+  <div class="abstract">
+    <div class="block-title">Abstract</div>
+    <p>This walkthrough shows how the LegalIA toolchain turns one note of the Diario Oficial de la Federación into clean Markdown. Using the gazette’s open-data service we download the summary of every note published on one day, select a single note from that list, and build its Markdown from the official HTML — three steps, two small packages: dofjson and nota2md. The third package of the repository, dof2md, is only needed when a note exists solely as scanned page images, so it appears here only in passing.</p>
+  </div>
+</div>
+
+
+</header>
+
+
+<section id="three-packages-one-pipeline" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="three-packages-one-pipeline"><span class="header-section-number">1</span> Three packages, one pipeline</h2>
+<p>The LegalIA repository ships three Python packages, now published on PyPI, that cover complementary stages of the same pipeline:</p>
+<div class="fronts">
+<section id="dofjson" class="level3 unnumbered unlisted front">
+<h3 class="unnumbered unlisted anchored" data-anchor-id="dofjson">dofjson</h3>
+<p>A thin client for the DOF’s open-data JSON service. It answers questions like <em>which notes were published on this day?</em> and <em>what is the content of this note?</em></p>
+</section>
+<section id="nota2md" class="level3 unnumbered unlisted front">
+<h3 class="unnumbered unlisted anchored" data-anchor-id="nota2md">nota2md</h3>
+<p>Given the identifier of a note, produces its Markdown, choosing the best available source: official HTML when it exists, OCR of the scanned pages otherwise.</p>
+</section>
+<section id="dof2md" class="level3 unnumbered unlisted front">
+<h3 class="unnumbered unlisted anchored" data-anchor-id="dof2md">dof2md</h3>
+<p>Operates at the coarsest grain: downloads a <em>complete edition</em> of the gazette as PDF and converts it — OCR included — to Markdown.</p>
+</section>
+</div>
+<p>It is worth stating upfront which of the three this tour actually requires. For a modern note, the DOF publishes its full text as HTML, and the path from identifier to Markdown involves only <a href="https://pypi.org/project/dofjson/">dofjson</a> (to talk to the service) and <a href="https://pypi.org/project/nota2md/">nota2md</a> (to convert the HTML). <a href="https://pypi.org/project/dof2md/">dof2md</a> never enters the picture; it is the heavy artillery that <code>nota2md</code> borrows when a note predates the HTML era and survives only as scanned images. We therefore explain it only superficially, at the end.</p>
+<p>The packages are available on PyPI. If you are running this notebook outside the repository — on <a href="https://colab.research.google.com/">Google Colab</a>, for instance — uncomment the following cell:</p>
+<div id="cell-1" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># %pip install dofjson nota2md</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="step-1-every-note-of-one-day" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="step-1-every-note-of-one-day"><span class="header-section-number">2</span> Step 1: every note of one day</h2>
+<p>The gazette’s open-data service is organized around dates and identifiers. <code>dofjson.client.get_notas</code> takes a date and returns the day’s summary: one list of notes per edition (morning, evening, extraordinary), each note a dictionary of metadata. We ask for July 15, 2026:</p>
+<div id="cell-3" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> datetime <span class="im">as</span> dt</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson <span class="im">import</span> client</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>day <span class="op">=</span> dt.date(<span class="dv">2026</span>, <span class="dv">7</span>, <span class="dv">15</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>notas <span class="op">=</span> client.get_notas(day)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>{k: <span class="bu">len</span>(v) <span class="cf">for</span> k, v <span class="kw">in</span> notas.items() <span class="cf">if</span> <span class="bu">isinstance</span>(v, <span class="bu">list</span>)}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<pre><code>{'NotasExtraordinarias': 0,
+ 'imagenesDiario': 1,
+ 'NotasVespertinas': 0,
+ 'NotasMatutinas': 69,
+ 'audioSumario': 1}</code></pre>
+</div>
+</div>
+<p>The morning edition claims 69 notes, but the raw listing includes stub entries without a title that the DOF uses internally. The client provides a helper that drops them and leaves a clean index of the day:</p>
+<div id="cell-5" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>notas <span class="op">=</span> client.quita_notas_sin_titulo(notas)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>manana <span class="op">=</span> notas[<span class="st">"NotasMatutinas"</span>]</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(manana)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>57</code></pre>
+</div>
+</div>
+<p>Fifty-seven real notes. Each entry carries, among other fields, the note’s identifier (<code>codNota</code>), its title, the section of the gazette it appeared in and whether the service holds its content as HTML (<code>existeHtml</code>). A glance at the first few titles gives the flavor of an ordinary day in the gazette:</p>
+<div id="cell-7" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    [</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">"codNota"</span>: n[<span class="st">"codNota"</span>],</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">"title"</span>: n[<span class="st">"titulo"</span>][:<span class="dv">80</span>] <span class="op">+</span> (<span class="st">"…"</span> <span class="cf">if</span> <span class="bu">len</span>(n[<span class="st">"titulo"</span>]) <span class="op">&gt;</span> <span class="dv">80</span> <span class="cf">else</span> <span class="st">""</span>),</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">"HTML"</span>: n[<span class="st">"existeHtml"</span>],</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> n <span class="kw">in</span> manana[:<span class="dv">8</span>]</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">codNota</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">HTML</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>5793639</td>
+<td>Acuerdo por el que se establecen acciones para...</td>
+<td>S</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>5793641</td>
+<td>Norma Oficial Mexicana NOM-042-NUCL-2026, Cate...</td>
+<td>S</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>5793643</td>
+<td>Circular por la que se comunica a las dependen...</td>
+<td>S</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>5793645</td>
+<td>Acuerdo número 07/07/26 por el que se establec...</td>
+<td>S</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>5793647</td>
+<td>Convenio Modificatorio al Convenio Específico ...</td>
+<td>S</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>5793648</td>
+<td>Convenio Modificatorio al Convenio Específico ...</td>
+<td>S</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>5793650</td>
+<td>Aviso de medición y deslinde del predio de pre...</td>
+<td>S</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>5793651</td>
+<td>Aviso de medición y deslinde del predio de pre...</td>
+<td>S</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="step-2-selecting-one-note" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="step-2-selecting-one-note"><span class="header-section-number">3</span> Step 2: selecting one note</h2>
+<p>Any note can now be addressed by its <code>codNota</code>. For this example we take the agreement that sets the school calendars for the 2026–2027 school year — a document that touches practically every household in the country:</p>
+<div id="cell-9" class="cell" data-execution_count="5">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>nota <span class="op">=</span> <span class="bu">next</span>(n <span class="cf">for</span> n <span class="kw">in</span> manana <span class="cf">if</span> n[<span class="st">"titulo"</span>].startswith(<span class="st">"Acuerdo número 07/07/26"</span>))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cod_nota <span class="op">=</span> nota[<span class="st">"codNota"</span>]</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"codNota   : </span><span class="sc">{</span>cod_nota<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"section   : </span><span class="sc">{</span>nota[<span class="st">'codSeccion'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"page      : </span><span class="sc">{</span>nota[<span class="st">'pagina'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"has HTML  : </span><span class="sc">{</span>nota[<span class="st">'existeHtml'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"title     : </span><span class="sc">{</span>nota[<span class="st">'titulo'</span>][:<span class="dv">120</span>]<span class="sc">}</span><span class="ss">…"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>codNota   : 5793645
+section   : UNICA
+page      : 22
+has HTML  : S
+title     : Acuerdo número 07/07/26 por el que se establecen los calendarios escolares para el ciclo lectivo 2026-2027, aplicables e…</code></pre>
+</div>
+</div>
+<p>Because <code>existeHtml</code> is <code>"S"</code>, the service can hand us the note’s full text directly. <code>dofjson.client.get_nota</code> fetches that detail record; the HTML lives in its <code>cadenaContenido</code> field. It is official, but it is not pretty:</p>
+<div id="cell-11" class="cell" data-execution_count="6">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>detalle <span class="op">=</span> client.get_nota(cod_nota)[<span class="st">"Nota"</span>]</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(detalle[<span class="st">"cadenaContenido"</span>][:<span class="dv">400</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"&gt; &lt;HTML&gt; &lt;head&gt;   &lt;title&gt;ACUERDO número 07/07/26 por el que se establecen los calendarios escolares para el ciclo lectivo 2026-2027, aplicables en toda la República para la educación preescolar, primaria, secundaria, normal y demás para la formación de maestras y maestros de edu&lt;/title&gt;                        </code></pre>
+</div>
+</div>
+</section>
+<section id="step-3-from-html-to-markdown" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="step-3-from-html-to-markdown"><span class="header-section-number">4</span> Step 3: from HTML to Markdown</h2>
+<p>This is where <code>nota2md</code> takes over. Its single entry point, <code>build_nota_markdown</code>, receives the <code>codNota</code>, an output directory and a <code>source</code> argument that selects the conversion path: <code>"html"</code> (what we use here), <code>"image"</code> or <code>"pdf"</code> for the OCR routes, or <code>"auto"</code> to let the package decide — it prefers HTML whenever the note has it. The function fetches whatever it needs through <code>dofjson</code> on its own; passing the day’s index we already downloaded merely saves a request:</p>
+<div id="cell-13" class="cell" data-execution_count="7">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nota2md.builder <span class="im">import</span> build_nota_markdown</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>md_path <span class="op">=</span> build_nota_markdown(cod_nota, Path(<span class="st">"output"</span>), source<span class="op">=</span><span class="st">"html"</span>, notas_del_dia<span class="op">=</span>notas)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>md_path</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>PosixPath('output/nota-5793645.md')</code></pre>
+</div>
+</div>
+<p>The result is a single self-contained Markdown file, with the title as a heading and the body cleaned of the gazette’s presentational markup:</p>
+<div id="cell-15" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(md_path.read_text(encoding<span class="op">=</span><span class="st">"utf-8"</span>)[:<span class="dv">1200</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># ACUERDO número 07/07/26 por el que se establecen los calendarios escolares para el ciclo lectivo 2026-2027, aplicables en toda la República para la educación preescolar, primaria, secundaria, normal y demás para la formación de maestras y maestros de educación básica.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Secretaría de Educación Pública.
+
+MARIO DELGADO CARRILLO, Secretario de Educación Pública, con fundamento en los artículos 38 de la Ley Orgánica de la Administración Pública Federal; 87, primer párrafo, 88, 89, primer párrafo y 113, fracciones III y XXII de la Ley General de Educación; 5, fracción XIX del Reglamento Interior de la Secretaría de Educación Pública, y
+
+## CONSIDERANDO
+
+Que el artículo 3o. de la Constitución Política de los Estados Unidos Mexicanos establece que la educación inicial, preescolar, primaria y secundaria conforman la educación básica, misma que es obligatoria;
+
+Que la Ley General de Educación (LGE) dispone que corresponde de manera exclusiva a la Secretaría de Educación Pública (SEP), establecer el Calendario Escolar aplicable a toda la República para cada ciclo lectivo de la educación preescolar, la primari</code></pre>
+</div>
+</div>
+<p>The same round trip is available from the command line, which is often more convenient for batch work — the two commands below reproduce this whole walkthrough:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dofjson</span> 2026-07-15 <span class="at">--outdir</span> output     <span class="co"># -&gt; output/15072026-notas.json</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="ex">nota2md</span> 5793645 <span class="at">--outdir</span> output        <span class="co"># -&gt; output/nota-5793645.md</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="when-there-is-no-html-the-scanned-decades" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="when-there-is-no-html-the-scanned-decades"><span class="header-section-number">5</span> When there is no HTML: the scanned decades</h2>
+<p>The HTML path covers the recent decades, but the archive reaches back to 1917 — and, as the <a href="./explorations/titles.html">exploration of the titles</a> showed, most of that history predates the electronic gazette. For those notes <code>existeHtml</code> is <code>"N"</code> and the service offers only the scanned images of the printed pages. <code>nota2md</code> handles this case with the same entry point: called with <code>source="image"</code> (or <code>"pdf"</code>), it downloads the note’s page images, determines which pages the note spans, and runs them through an OCR pipeline before cutting out the note’s own text. That OCR machinery is not its own — it is borrowed, lazily, from <code>dof2md</code>.</p>
+</section>
+<section id="and-dof2md" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="and-dof2md"><span class="header-section-number">6</span> And dof2md?</h2>
+<p>As promised, only superficially: <code>dof2md</code> downloads a complete edition of the DOF as PDF and converts it to Markdown with a document-analysis OCR pipeline (<a href="https://github.com/opendatalab/MinerU">MinerU</a>), including the recovery of tables. It is the right tool when the unit of interest is the whole day rather than the individual note, and it is the dependency that gives <code>nota2md</code> its OCR route for the scanned decades. For the journey of this page — one modern note, from identifier to Markdown — it was, as anticipated, never needed.</p>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="methodological-note" class="level2 unnumbered appendix"><h2 class="anchored quarto-appendix-heading">Methodological note</h2><div class="quarto-appendix-contents">
+
+<p>This page is a Jupyter notebook executed against the DOF’s open-data service (<code>https://sidof.segob.gob.mx</code>) at render time; the outputs shown correspond to the note with <code>codNota</code> 5793645, published in the morning edition of July 15, 2026. The packages are documented in their respective READMEs in the <a href="https://github.com/INGEOTEC/LegalIA">repository</a>; none of them requires the raw local archive used by the explorations.</p>
+<p>The three packages this page describes — <code>dofjson</code>, <code>nota2md</code> and <code>dof2md</code> — were written by the LegalIA team together with Claude, Anthropic’s coding assistant, through <a href="https://claude.com/claude-code">Claude Code</a>: the assistant helped design and implement the open-data client, the HTML-to-Markdown conversion and the scanned-page OCR pipeline, along with their test suites. As with the rest of the project, the authors reviewed and validated every change before it was committed.</p>
+
+
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/ingeotec\.github\.io\/LegalIA\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>LegalIA · <a href="https://github.com/INGEOTEC">INGEOTEC</a> · Code under the Apache 2.0 license</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
