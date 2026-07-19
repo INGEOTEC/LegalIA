@@ -29,6 +29,10 @@ packages/dof2md/output/
 # Local output from nota2md / dofjson / ad-hoc runs (generated Markdown, PDFs, images)
 /output/
 
+# Titles dataset downloaded by dofjson.titulos.download_titulos when running
+# website/explorations/titles_by_year.ipynb (local only, never committed)
+/website/explorations/titulos.jsonl.gz
+
 # Editor / OS
 .DS_Store
 
