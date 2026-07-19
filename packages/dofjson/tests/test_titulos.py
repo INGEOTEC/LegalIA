@@ -4,6 +4,7 @@ import json
 import tarfile
 import tempfile
 import unittest
+from collections import Counter
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -137,6 +138,38 @@ class TestDownloadTitulos(unittest.TestCase):
                 {"codNota": 2, "titulo": "B", "fecha": "02-01-1981"},
             ],
         )
+
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_fecha_carries_the_year_for_grouping(self, mock_listar_assets, mock_get):
+        """Every record keeps its fecha, so the flat output can be grouped by
+        the note's own publication year downstream (see titles_by_year)."""
+        mock_listar_assets.return_value = [
+            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
+            {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
+        ]
+        tgz_1980 = hacer_tgz({
+            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"}),
+            "1980/15061980-notas.json": dia({"codNota": 2, "titulo": "B", "fecha": "15-06-1980"}),
+        })
+        tgz_1981 = hacer_tgz({
+            "1981/03031981-notas.json": dia({"codNota": 3, "titulo": "C", "fecha": "03-03-1981"}),
+        })
+        mock_get.side_effect = [
+            Mock(content=tgz_1980, raise_for_status=Mock()),
+            Mock(content=tgz_1981, raise_for_status=Mock()),
+        ]
+
+        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
+        titulos.download_titulos(dest, log=lambda *_: None)
+
+        with gzip.open(dest, "rt", encoding="utf-8") as f:
+            registros = [json.loads(l) for l in f]
+
+        # Each record's year comes from its own fecha (DD-MM-YYYY).
+        self.assertTrue(all(r["fecha"] for r in registros))
+        por_anio = Counter(int(r["fecha"].split("-")[-1]) for r in registros)
+        self.assertEqual(por_anio, Counter({1980: 2, 1981: 1}))
 
     @patch("dofjson.titulos.requests.get")
     @patch("dofjson.titulos.listar_assets")
