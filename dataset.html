@@ -178,6 +178,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#the-release-today" id="toc-the-release-today" class="nav-link" data-scroll-target="#the-release-today"><span class="header-section-number">3</span> The release today</a></li>
   <li><a href="#from-release-to-the-dof-titles-page" id="toc-from-release-to-the-dof-titles-page" class="nav-link" data-scroll-target="#from-release-to-the-dof-titles-page"><span class="header-section-number">4</span> From release to the DOF Titles page</a></li>
   <li><a href="#getting-the-raw-archive-yourself" id="toc-getting-the-raw-archive-yourself" class="nav-link" data-scroll-target="#getting-the-raw-archive-yourself"><span class="header-section-number">5</span> Getting the raw archive yourself</a></li>
+  <li><a href="#downloading-every-title-in-the-archive" id="toc-downloading-every-title-in-the-archive" class="nav-link" data-scroll-target="#downloading-every-title-in-the-archive"><span class="header-section-number">6</span> Downloading every title in the archive</a></li>
   
   </ul>
 </nav>
@@ -217,6 +218,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="https://colab.research.google.com/github/INGEOTEC/LegalIA/blob/master/website/dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" class="img-fluid figure-img"></a></p>
+<figcaption>Open in Colab</figcaption>
+</figure>
+</div>
 <section id="one-release-one-file-per-publication-day" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="one-release-one-file-per-publication-day"><span class="header-section-number">1</span> One release, one file per publication day</h2>
 <p>The <a href="https://github.com/INGEOTEC/LegalIA">repository</a> keeps its collected Diario Oficial data out of git and in a single GitHub Release instead, <a href="https://github.com/INGEOTEC/LegalIA/releases/tag/notas-archivo">notas-archivo</a>: the raw archive is large, grows every month, and would not sit comfortably as committed files. Each asset in that release is a <code>.tgz</code> of one JSON file per publication day, produced by <a href="https://pypi.org/project/dofjson/">dofjson</a>’s incremental <code>--archivo</code> mode against the DOF’s open-data service — the day’s index of what was published, never a note’s full content or its scanned images.</p>
@@ -394,12 +401,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> xzf notas-2025.tgz</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>To extend a local copy going forward instead of downloading a fixed snapshot, <code>dofjson --archivo</code> is the same tool the monthly workflow runs, and it is resumable in the same way: interrupt it and rerun it, and it picks up only the days it is still missing.</p>
 </section>
+<section id="downloading-every-title-in-the-archive" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="downloading-every-title-in-the-archive"><span class="header-section-number">6</span> Downloading every title in the archive</h2>
+<p>Beyond browsing one release asset at a time, <code>dofjson</code> ships a <code>--titulos</code> mode that builds a compact <code>codNota</code> + <code>titulo</code> dataset out of every note ever published: it downloads each <code>notas-archivo</code> asset straight into memory and reads its daily JSON indexes without ever writing them to disk, keeping only those two fields from every note — <code>codNota</code> to fetch the note’s full content later (<code>dofjson.client.get_nota</code>), <code>titulo</code> for exploratory analysis of the titles themselves with other techniques, in the spirit of <a href="./explorations/titles.html">DOF Titles</a>. The result is a single gzip-compressed JSONL file — the 1.2 million-plus notes in the table above fit in a few tens of MB, small enough to move to a Colab GPU runtime for experiments.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dofjson</span> <span class="at">--titulos</span>                    <span class="co"># -&gt; titulos/titulos.jsonl.gz</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>or directly from Python, with <code>dofjson.titulos.download_titulos</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson.titulos <span class="im">import</span> download_titulos</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>download_titulos(Path(<span class="st">"titulos.jsonl.gz"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gzip, json</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> gzip.<span class="bu">open</span>(<span class="st">"titulos.jsonl.gz"</span>, <span class="st">"rt"</span>, encoding<span class="op">=</span><span class="st">"utf-8"</span>) <span class="im">as</span> f:</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    notas <span class="op">=</span> [json.loads(line) <span class="cf">for</span> line <span class="kw">in</span> f]</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>notas[<span class="dv">0</span>]</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co"># {"codNota": 4434476, "titulo": "CIRCULAR nº. 164, relativa a los asuntos</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#  que se traten por telégrafo con esta Secretaría"}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
 
 
 <div id="quarto-appendix" class="default"><section id="methodological-note" class="level2 unnumbered appendix"><h2 class="anchored quarto-appendix-heading">Methodological note</h2><div class="quarto-appendix-contents">
 
 <p>This page is a Jupyter notebook that queries the GitHub REST API for the <code>notas-archivo</code> release at render time; the table above reflects the release’s contents at the moment this page was last rendered, not necessarily today. The archive, the workflow that maintains it and the aggregation script that feeds the DOF Titles page are all part of the <a href="https://github.com/INGEOTEC/LegalIA">repository</a>.</p>
-<p>The archive is itself a product of the collaboration that runs through the whole project: the incremental <code>--archivo</code> downloader in <code>dofjson</code>, the monthly workflow that packages and publishes each release, and this page were written by the LegalIA team together with Claude, Anthropic’s coding assistant, through <a href="https://claude.com/claude-code">Claude Code</a>, with the authors reviewing and validating each contribution before it landed.</p>
+<p>The archive is itself a product of the collaboration that runs through the whole project: the incremental <code>--archivo</code> downloader and the <code>--titulos</code> reader in <code>dofjson</code>, the monthly workflow that packages and publishes each release, and this page were written by the LegalIA team together with Claude, Anthropic’s coding assistant, through <a href="https://claude.com/claude-code">Claude Code</a>, with the authors reviewing and validating each contribution before it landed.</p>
 
 
 </div></section></div></main> <!-- /main -->
