@@ -4,6 +4,7 @@ import json
 import tarfile
 import tempfile
 import unittest
+from collections import Counter
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -51,30 +52,52 @@ class TestListarAssets(unittest.TestCase):
 
 
 class TestTitulosDeTgz(unittest.TestCase):
-    def test_extracts_only_codnota_y_titulo(self):
+    def test_extracts_only_codnota_titulo_y_fecha(self):
         contenido = hacer_tgz({
             "1980/02011980-notas.json": dia(
-                {"codNota": 1, "titulo": "DECRETO uno", "pagina": 3, "codDiario": 99},
-                {"codNota": 2, "titulo": ""},
-                {"codNota": 3},
+                {
+                    "codNota": 1,
+                    "titulo": "DECRETO uno",
+                    "fecha": "02-01-1980",
+                    "pagina": 3,
+                    "codDiario": 99,
+                },
+                {"codNota": 2, "titulo": "", "fecha": "02-01-1980"},
+                {"codNota": 3, "fecha": "02-01-1980"},
             ),
         })
 
         resultado = list(titulos._titulos_de_tgz(contenido))
 
-        self.assertEqual(resultado, [{"codNota": 1, "titulo": "DECRETO uno"}])
+        self.assertEqual(
+            resultado,
+            [{"codNota": 1, "titulo": "DECRETO uno", "fecha": "02-01-1980"}],
+        )
 
     def test_reads_multiple_days(self):
         contenido = hacer_tgz({
-            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A"}),
-            "1980/03011980-notas.json": dia({"codNota": 2, "titulo": "B"}),
+            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"}),
+            "1980/03011980-notas.json": dia({"codNota": 2, "titulo": "B", "fecha": "03-01-1980"}),
         })
 
         resultado = list(titulos._titulos_de_tgz(contenido))
 
         self.assertEqual(
-            resultado, [{"codNota": 1, "titulo": "A"}, {"codNota": 2, "titulo": "B"}]
+            resultado,
+            [
+                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980"},
+                {"codNota": 2, "titulo": "B", "fecha": "03-01-1980"},
+            ],
         )
+
+    def test_fecha_defaults_to_none_when_missing(self):
+        contenido = hacer_tgz({
+            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A"}),
+        })
+
+        resultado = list(titulos._titulos_de_tgz(contenido))
+
+        self.assertEqual(resultado, [{"codNota": 1, "titulo": "A", "fecha": None}])
 
 
 class TestDownloadTitulos(unittest.TestCase):
@@ -91,8 +114,12 @@ class TestDownloadTitulos(unittest.TestCase):
             {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
             {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
         ]
-        tgz_1980 = hacer_tgz({"1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A"})})
-        tgz_1981 = hacer_tgz({"1981/02011981-notas.json": dia({"codNota": 2, "titulo": "B"})})
+        tgz_1980 = hacer_tgz({
+            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
+        })
+        tgz_1981 = hacer_tgz({
+            "1981/02011981-notas.json": dia({"codNota": 2, "titulo": "B", "fecha": "02-01-1981"})
+        })
         mock_get.side_effect = [
             Mock(content=tgz_1980, raise_for_status=Mock()),
             Mock(content=tgz_1981, raise_for_status=Mock()),
@@ -106,8 +133,43 @@ class TestDownloadTitulos(unittest.TestCase):
             lineas = f.read().splitlines()
         self.assertEqual(
             [json.loads(l) for l in lineas],
-            [{"codNota": 1, "titulo": "A"}, {"codNota": 2, "titulo": "B"}],
+            [
+                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980"},
+                {"codNota": 2, "titulo": "B", "fecha": "02-01-1981"},
+            ],
         )
+
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_fecha_carries_the_year_for_grouping(self, mock_listar_assets, mock_get):
+        """Every record keeps its fecha, so the flat output can be grouped by
+        the note's own publication year downstream (see titles_by_year)."""
+        mock_listar_assets.return_value = [
+            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
+            {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
+        ]
+        tgz_1980 = hacer_tgz({
+            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"}),
+            "1980/15061980-notas.json": dia({"codNota": 2, "titulo": "B", "fecha": "15-06-1980"}),
+        })
+        tgz_1981 = hacer_tgz({
+            "1981/03031981-notas.json": dia({"codNota": 3, "titulo": "C", "fecha": "03-03-1981"}),
+        })
+        mock_get.side_effect = [
+            Mock(content=tgz_1980, raise_for_status=Mock()),
+            Mock(content=tgz_1981, raise_for_status=Mock()),
+        ]
+
+        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
+        titulos.download_titulos(dest, log=lambda *_: None)
+
+        with gzip.open(dest, "rt", encoding="utf-8") as f:
+            registros = [json.loads(l) for l in f]
+
+        # Each record's year comes from its own fecha (DD-MM-YYYY).
+        self.assertTrue(all(r["fecha"] for r in registros))
+        por_anio = Counter(int(r["fecha"].split("-")[-1]) for r in registros)
+        self.assertEqual(por_anio, Counter({1980: 2, 1981: 1}))
 
     @patch("dofjson.titulos.requests.get")
     @patch("dofjson.titulos.listar_assets")
@@ -115,7 +177,9 @@ class TestDownloadTitulos(unittest.TestCase):
         mock_listar_assets.return_value = [
             {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
         ]
-        tgz = hacer_tgz({"1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A"})})
+        tgz = hacer_tgz({
+            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
+        })
         mock_get.return_value = Mock(content=tgz, raise_for_status=Mock())
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"

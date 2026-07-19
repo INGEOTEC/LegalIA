@@ -78,17 +78,19 @@ resume at any time.
 
 ## Building a compact titulo dataset from the release (`--titulos`)
 
-`dofjson --titulos` builds a small `codNota` + `titulo` dataset out of every
-note ever published, sourced from the [`notas-archivo` GitHub
+`dofjson --titulos` builds a small `codNota` + `titulo` + `fecha` dataset out
+of every note ever published, sourced from the [`notas-archivo` GitHub
 release](https://github.com/INGEOTEC/LegalIA/releases/tag/notas-archivo)
 (one `notas-YYYY.tgz` per year, 1917 to last year, plus one
 `notas-YYYY-MM.tgz` per month of the current year). Each asset is downloaded
 straight into memory, its daily JSON indexes are read without ever writing
-them to disk, and only `codNota`/`titulo` are kept from every note —
-`codNota` to fetch that note's full content later, `titulo` for exploratory
-analysis of the titles themselves. The result is a single gzip-compressed
-JSONL file (~1.2 million notes fit in a few tens of MB): small enough to
-move to a Colab GPU runtime for experiments.
+them to disk, and only `codNota`/`titulo`/`fecha` are kept from every note
+(`titulo` is Spanish for "title", `fecha` for "date") — `codNota` to fetch
+that note's full content later, `titulo` for exploratory analysis of the
+titles themselves, `fecha` to place each title in time. The
+result is a single gzip-compressed JSONL file (~1.2 million notes fit in a
+few tens of MB): small enough to move to a Colab GPU runtime for
+experiments.
 
 ```bash
 dofjson --titulos                    # -> titulos/titulos.jsonl.gz
@@ -99,7 +101,7 @@ dofjson --titulos --outdir /content  # e.g. from a Colab notebook
 import gzip, json
 with gzip.open("titulos/titulos.jsonl.gz", "rt", encoding="utf-8") as f:
     notas = [json.loads(line) for line in f]
-# notas[0] == {"codNota": 4434476, "titulo": "CIRCULAR nº. 164, ..."}
+# notas[0] == {"codNota": 4434476, "titulo": "CIRCULAR nº. 164, ...", "fecha": "23-03-1917"}
 ```
 
 Or use the function directly:

@@ -1,14 +1,15 @@
-"""Build a compact codNota+titulo dataset from the notas-archivo release.
+"""Build a compact codNota+titulo+fecha dataset from the notas-archivo release.
 
 The `notas-archivo` GitHub release (see `archivo.py`) publishes one
 `notas-YYYY.tgz` per year (1917-2025) and one `notas-YYYY-MM.tgz` per month
 of the current year, each holding the per-day notes-index JSON files. This
 module downloads every asset straight into memory, extracts its daily JSONs
-without ever writing them to disk, and keeps only `codNota` and `titulo`
-from each note — `codNota` to fetch that note's full content later,
-`titulo` for exploratory analysis of the titles themselves. The result is a
-single small JSONL file, light enough to ship to a Colab GPU runtime for
-experiments.
+without ever writing them to disk, and keeps only `codNota`, `titulo`
+(Spanish for "title") and `fecha` (Spanish for "date") from each note —
+`codNota` to fetch that note's full content later, `titulo` for exploratory
+analysis of the titles themselves, `fecha` to place each title in time
+(e.g. grouping by year). The result is a single small JSONL file, light
+enough to ship to a Colab GPU runtime for experiments.
 """
 
 import gzip
@@ -39,7 +40,8 @@ def listar_assets(timeout: int = 30) -> list[dict]:
 
 
 def _titulos_de_tgz(contenido: bytes):
-    """Yield {"codNota", "titulo"} for every titled note inside a notas-YYYY[-MM].tgz.
+    """Yield {"codNota", "titulo", "fecha"} for every titled note inside a
+    notas-YYYY[-MM].tgz.
 
     Reads the tarball straight out of `contenido` in memory: nothing is
     written to disk.
@@ -52,14 +54,18 @@ def _titulos_de_tgz(contenido: bytes):
             for lista in _LISTAS_NOTAS:
                 for nota in dia.get(lista, []):
                     if nota.get("titulo"):
-                        yield {"codNota": nota["codNota"], "titulo": nota["titulo"]}
+                        yield {
+                            "codNota": nota["codNota"],
+                            "titulo": nota["titulo"],
+                            "fecha": nota.get("fecha"),
+                        }
 
 
 def download_titulos(dest: Path, timeout: int = 60, log=print) -> Path:
-    """Build a codNota+titulo dataset (gzipped JSONL) out of every published note.
+    """Build a codNota+titulo+fecha dataset (gzipped JSONL) out of every published note.
 
     Downloads each notas-archivo asset into memory one at a time, extracts
-    it, keeps only codNota/titulo from every note, and appends them to
+    it, keeps only codNota/titulo/fecha from every note, and appends them to
     `dest` as gzip-compressed JSONL. Nothing downloaded touches disk, so the
     whole run leaves behind only the resulting file (~1.2 million notes fit
     in a few tens of MB gzipped) — small enough to move around or commit to
