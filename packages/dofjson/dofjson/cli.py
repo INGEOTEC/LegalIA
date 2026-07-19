@@ -77,10 +77,10 @@ def parse_args(argv=None):
     )
     parser.add_argument(
         "--titulos", action="store_true",
-        help="Build a compact codNota+titulo dataset (gzipped JSONL) from every "
-        "note in the published notas-archivo GitHub release: downloads each "
+        help="Build a compact codNota+titulo+fecha dataset (gzipped JSONL) from "
+        "every note in the published notas-archivo GitHub release: downloads each "
         "year/month asset straight into memory (nothing touches disk) and "
-        "keeps only codNota and titulo. Small output, meant for Colab GPU "
+        "keeps only codNota, titulo and fecha. Small output, meant for Colab GPU "
         "experiments.",
     )
     parser.add_argument(
