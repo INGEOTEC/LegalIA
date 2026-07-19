@@ -76,6 +76,40 @@ resume at any time.
 > The full range is ~40,000 days: a long download, meant to be run in parts.
 > Start with a bounded range via `--desde/--hasta` if you only need an era.
 
+## Building a compact titulo dataset from the release (`--titulos`)
+
+`dofjson --titulos` builds a small `codNota` + `titulo` dataset out of every
+note ever published, sourced from the [`notas-archivo` GitHub
+release](https://github.com/INGEOTEC/LegalIA/releases/tag/notas-archivo)
+(one `notas-YYYY.tgz` per year, 1917 to last year, plus one
+`notas-YYYY-MM.tgz` per month of the current year). Each asset is downloaded
+straight into memory, its daily JSON indexes are read without ever writing
+them to disk, and only `codNota`/`titulo` are kept from every note — the two
+fields needed for a text-classification dataset. The result is a single
+gzip-compressed JSONL file (~1.2 million notes fit in a few tens of MB):
+small enough to move to a Colab GPU runtime for experiments.
+
+```bash
+dofjson --titulos                    # -> titulos/titulos.jsonl.gz
+dofjson --titulos --outdir /content  # e.g. from a Colab notebook
+```
+
+```python
+import gzip, json
+with gzip.open("titulos/titulos.jsonl.gz", "rt", encoding="utf-8") as f:
+    notas = [json.loads(line) for line in f]
+# notas[0] == {"codNota": 4434476, "titulo": "CIRCULAR nº. 164, ..."}
+```
+
+Or use the function directly:
+
+```python
+from pathlib import Path
+from dofjson.titulos import download_titulos
+
+download_titulos(Path("titulos.jsonl.gz"))
+```
+
 ## Development
 
 ```bash
