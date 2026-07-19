@@ -84,10 +84,11 @@ release](https://github.com/INGEOTEC/LegalIA/releases/tag/notas-archivo)
 (one `notas-YYYY.tgz` per year, 1917 to last year, plus one
 `notas-YYYY-MM.tgz` per month of the current year). Each asset is downloaded
 straight into memory, its daily JSON indexes are read without ever writing
-them to disk, and only `codNota`/`titulo` are kept from every note — the two
-fields needed for a text-classification dataset. The result is a single
-gzip-compressed JSONL file (~1.2 million notes fit in a few tens of MB):
-small enough to move to a Colab GPU runtime for experiments.
+them to disk, and only `codNota`/`titulo` are kept from every note —
+`codNota` to fetch that note's full content later, `titulo` for exploratory
+analysis of the titles themselves. The result is a single gzip-compressed
+JSONL file (~1.2 million notes fit in a few tens of MB): small enough to
+move to a Colab GPU runtime for experiments.
 
 ```bash
 dofjson --titulos                    # -> titulos/titulos.jsonl.gz

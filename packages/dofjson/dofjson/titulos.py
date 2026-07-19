@@ -5,9 +5,10 @@ The `notas-archivo` GitHub release (see `archivo.py`) publishes one
 of the current year, each holding the per-day notes-index JSON files. This
 module downloads every asset straight into memory, extracts its daily JSONs
 without ever writing them to disk, and keeps only `codNota` and `titulo`
-from each note — the two fields needed to build a text-classification
-dataset. The result is a single small JSONL file, light enough to ship to a
-Colab GPU runtime for experiments.
+from each note — `codNota` to fetch that note's full content later,
+`titulo` for exploratory analysis of the titles themselves. The result is a
+single small JSONL file, light enough to ship to a Colab GPU runtime for
+experiments.
 """
 
 import gzip
