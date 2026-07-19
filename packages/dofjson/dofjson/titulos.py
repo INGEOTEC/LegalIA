@@ -4,11 +4,12 @@ The `notas-archivo` GitHub release (see `archivo.py`) publishes one
 `notas-YYYY.tgz` per year (1917-2025) and one `notas-YYYY-MM.tgz` per month
 of the current year, each holding the per-day notes-index JSON files. This
 module downloads every asset straight into memory, extracts its daily JSONs
-without ever writing them to disk, and keeps only `codNota`, `titulo` and
-`fecha` from each note — `codNota` to fetch that note's full content later,
-`titulo` for exploratory analysis of the titles themselves, `fecha` to place
-each title in time (e.g. grouping by year). The result is a single small
-JSONL file, light enough to ship to a Colab GPU runtime for experiments.
+without ever writing them to disk, and keeps only `codNota`, `titulo`
+(Spanish for "title") and `fecha` (Spanish for "date") from each note —
+`codNota` to fetch that note's full content later, `titulo` for exploratory
+analysis of the titles themselves, `fecha` to place each title in time
+(e.g. grouping by year). The result is a single small JSONL file, light
+enough to ship to a Colab GPU runtime for experiments.
 """
 
 import gzip

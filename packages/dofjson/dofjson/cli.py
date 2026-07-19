@@ -80,8 +80,8 @@ def parse_args(argv=None):
         help="Build a compact codNota+titulo+fecha dataset (gzipped JSONL) from "
         "every note in the published notas-archivo GitHub release: downloads each "
         "year/month asset straight into memory (nothing touches disk) and "
-        "keeps only codNota, titulo and fecha. Small output, meant for Colab GPU "
-        "experiments.",
+        "keeps only codNota, titulo (title) and fecha (date). Small output, meant "
+        "for Colab GPU experiments.",
     )
     parser.add_argument(
         "--outdir", default=None,
