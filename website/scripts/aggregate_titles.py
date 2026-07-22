@@ -1,27 +1,38 @@
-"""Aggregate the titles of the local DOF note archive (notas-archivo/).
+"""Aggregate the titles of every DOF note into the site's per-year CSVs.
 
-Walks the daily JSON files downloaded by scripts/descargar_notas.py and writes
-small CSV files to website/data/, which are what the Quarto site's pages
-consume.  The raw archive (notas-archivo/) is never committed; these
-aggregates are, so the site can be rebuilt without the raw data.
+Downloads every asset of the `notas-archivo` GitHub release straight into
+memory (via `dofjson.titulos.listar_assets`) and writes small CSV files to
+website/data/, which are what the Quarto site's pages consume. Nothing
+downloaded touches disk, so there is no local raw archive to keep around or
+to fall out of date: each run reflects every note the release has, up to
+its most recent monthly asset.
 
 Usage:
-    python website/scripts/aggregate_titles.py [--archive notas-archivo] [--out website/data]
+    python website/scripts/aggregate_titles.py [--out website/data]
 """
 
 import argparse
 import csv
+import io
 import json
 import re
+import tarfile
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
 from statistics import mean, median
 
+import requests
+from dofjson.titulos import listar_assets
+
 EDITIONS = {
     "NotasMatutinas": "morning",
     "NotasVespertinas": "evening",
     "NotasExtraordinarias": "extraordinary",
+}
+_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; DOF-JSON-Client/1.0)",
+    "Accept": "application/vnd.github+json",
 }
 
 # Minimal Spanish stopword list, plus frequent functional tokens in DOF titles
@@ -56,10 +67,37 @@ def tokens(title: str):
             yield strip_accents(word)
 
 
+def dias_de_tgz(contenido: bytes):
+    """Yield (year, [(edition, titulo, heading), ...]) for every day-index file
+    inside a notas-YYYY[-MM].tgz, reading it straight out of `contenido` in
+    memory.
+
+    The year comes from the member's own path (e.g. "1980/02011980-notas.json"
+    -> 1980) rather than each note's `fecha` field: the two occasionally
+    disagree (a handful of notes carry a `fecha` from the neighbouring year),
+    and grouping by the day-file's own folder is what the local-archive walk
+    this replaces has always done.
+    """
+    with tarfile.open(fileobj=io.BytesIO(contenido), mode="r:gz") as tar:
+        for member in tar:
+            if not member.isfile() or not member.name.endswith(".json"):
+                continue
+            year = int(member.name.split("/")[0])
+            dia = json.load(tar.extractfile(member))
+            notas = []
+            for key, edition in EDITIONS.items():
+                for nota in dia.get(key) or []:
+                    title = (nota.get("titulo") or "").strip()
+                    if not title:
+                        continue
+                    heading = (nota.get("nombreCodOrgaUno") or "").strip().upper()
+                    notas.append((edition, title, heading or "(NO HEADING)"))
+            yield year, notas
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--archive", default="notas-archivo", type=Path)
-    parser.add_argument("--out", default="website/data", type=Path)
+    parser.add_argument("--out", default=Path("website/data"), type=Path)
     parser.add_argument("--since", default=1917, type=int)
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
@@ -72,34 +110,28 @@ def main() -> None:
     headings = Counter()  # (year, top-level heading) -> notes
     terms = Counter()  # (decade, term) -> occurrences
 
-    years = sorted(
-        p for p in args.archive.iterdir() if p.is_dir() and int(p.name) >= args.since
-    )
-    for year_dir in years:
-        year = int(year_dir.name)
-        for path in sorted(year_dir.glob("*-notas.json")):
-            with open(path) as fh:
-                day = json.load(fh)
-            any_notes = False
-            for key, edition in EDITIONS.items():
-                for note in day.get(key) or []:
-                    title = (note.get("titulo") or "").strip()
-                    if not title:
-                        continue
-                    any_notes = True
-                    notes_year_ed[year, edition] += 1
-                    len_chars[year].append(len(title))
-                    words = list(tokens(title))
-                    len_words[year].append(len(WORD_RE.findall(title)))
-                    first_words[year, first_word(title)] += 1
-                    heading = (note.get("nombreCodOrgaUno") or "").strip().upper()
-                    headings[year, heading or "(NO HEADING)"] += 1
-                    decade = year - year % 10
-                    for word in words:
-                        terms[decade, word] += 1
-            if any_notes:
+    assets = listar_assets()
+    for i, asset in enumerate(assets, 1):
+        response = requests.get(asset["url"], headers=_HEADERS, timeout=60)
+        response.raise_for_status()
+        n = 0
+        for year, notas in dias_de_tgz(response.content):
+            if year < args.since:
+                continue
+            if notas:
                 days_with_notes[year] += 1
-        print(f"{year}: {sum(v for (y, _), v in notes_year_ed.items() if y == year):,} notes")
+            for edition, title, heading in notas:
+                n += 1
+                notes_year_ed[year, edition] += 1
+                len_chars[year].append(len(title))
+                words = list(tokens(title))
+                len_words[year].append(len(WORD_RE.findall(title)))
+                first_words[year, first_word(title)] += 1
+                headings[year, heading] += 1
+                decade = year - year % 10
+                for word in words:
+                    terms[decade, word] += 1
+        print(f"[{i}/{len(assets)}] {asset['name']}: {n} notas")
 
     def write(name: str, header, rows):
         path = args.out / name
