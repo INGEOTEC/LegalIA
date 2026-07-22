@@ -4,7 +4,7 @@
     "href": "explorations/titles.html",
     "title": "Exploratory Data Analysis of Diario Oficial Titles, 1917–2025",
     "section": "",
-    "text": "Open in Colab"
+    "text": "Open in Colab\nLoad the aggregated per-year and per-decade datasets\nnotes = load(\"notes_per_year.csv\")\ndays = load(\"days_with_notes.csv\")\nlength = load(\"title_length.csv\")\nfirst_words = load(\"first_words.csv\")\nheadings = load(\"headings.csv\")\nterms = load(\"terms_by_decade.csv\")\n\nper_year = notes.groupby(\"year\").notes.sum()"
   },
   {
     "objectID": "explorations/titles.html#the-title-as-an-object-of-study",
