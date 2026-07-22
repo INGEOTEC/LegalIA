@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dofjson"
-version = "0.1.0"
+version = "0.1.1"
 description = "Prototype client for SIDOF's undocumented JSON open data service for Mexico's official gazette (DOF)."
 readme = "README.md"
 license = { text = "Apache-2.0" }
