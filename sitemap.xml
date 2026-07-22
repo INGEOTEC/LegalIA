@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ingeotec.github.io/LegalIA/explorations/titles.html</loc>
-    <lastmod>2026-07-22T03:01:19.554Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ingeotec.github.io/LegalIA/dataset.html</loc>
-    <lastmod>2026-07-22T03:01:19.521Z</lastmod>
+    <loc>https://ingeotec.github.io/LegalIA/tools.html</loc>
+    <lastmod>2026-07-22T13:39:30.236Z</lastmod>
   </url>
   <url>
     <loc>https://ingeotec.github.io/LegalIA/index.html</loc>
-    <lastmod>2026-07-22T03:01:19.554Z</lastmod>
+    <lastmod>2026-07-22T13:39:30.234Z</lastmod>
   </url>
   <url>
-    <loc>https://ingeotec.github.io/LegalIA/tools.html</loc>
-    <lastmod>2026-07-22T03:01:19.557Z</lastmod>
+    <loc>https://ingeotec.github.io/LegalIA/dataset.html</loc>
+    <lastmod>2026-07-22T13:39:30.202Z</lastmod>
   </url>
   <url>
     <loc>https://ingeotec.github.io/LegalIA/references.html</loc>
-    <lastmod>2026-07-22T03:01:19.555Z</lastmod>
+    <lastmod>2026-07-22T13:39:30.235Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ingeotec.github.io/LegalIA/explorations/titles.html</loc>
+    <lastmod>2026-07-22T13:39:30.234Z</lastmod>
   </url>
 </urlset>
