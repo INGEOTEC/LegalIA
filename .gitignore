@@ -32,6 +32,7 @@ packages/dof2md/output/
 # Titles dataset downloaded by dofjson.titulos.download_titulos when rendering
 # the DOF Titles page (local only, never committed)
 /website/explorations/titulos.jsonl.gz
+/website/explorations/organigrama.json
 
 # Editor / OS
 .DS_Store
