@@ -13,6 +13,7 @@ use `ref/<abbr>.htm`.
 
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
 import requests
 
@@ -28,6 +29,10 @@ _FECHA = re.compile(r"^(\d{2})/(\d{2})/(\d{4})$")
 _TR = re.compile(r"<tr[^>]*>.*?</tr>", re.S)
 _TD = re.compile(r"<td[^>]*>(.*?)</td>", re.S)
 _TAG = re.compile(r"<[^>]+>")
+_HREF = re.compile(r'href="([^"]+)"', re.I)
+# Diputados mirrors each decree as published in the DOF; the "_ima" variant is
+# the scan of the gazette page, the plain one carries extractable text.
+_ES_PDF = re.compile(r"\.pdf$", re.I)
 # Diputados appends an editorial summary of what the decree did; it is not
 # part of the decree's title.
 _RESUMEN = re.compile(r"\bNota\s*:|\bNuevo\b")
@@ -51,6 +56,7 @@ class Reforma:
     fecha: str              # DOF publication date, DD-MM-YYYY (as in dofjson)
     decreto: str            # decree title, editorial summary stripped
     ley: str = ""
+    pdf: str = ""           # Diputados' own copy of the DOF publication
 
 
 def pagina_de_reformas(ley: str) -> str:
@@ -72,6 +78,19 @@ def _texto(celda: str) -> str:
     return re.sub(r"\s+", " ", t).strip()
 
 
+def _pdf_del_decreto(fila: str, ley: str) -> str:
+    """URL of Diputados' copy of the decree, preferring the text-bearing PDF
+    over the `_ima` scan of the gazette page."""
+    pdfs = [h for h in _HREF.findall(fila) if _ES_PDF.search(h)]
+    if not pdfs:
+        return ""
+    texto = [h for h in pdfs if "_ima" not in h.lower()]
+    elegido = (texto or pdfs)[0]
+    if elegido.startswith("http"):
+        return elegido
+    return f"{BASE}/{PAGINAS.get(ley, f'ref/{ley}.htm').rsplit('/', 1)[0]}/{elegido}"
+
+
 def parse_reformas(html: str, ley: str = "") -> list[Reforma]:
     """Every reform in a LeyesBiblio table, oldest first.
 
@@ -90,7 +109,26 @@ def parse_reformas(html: str, ley: str = "") -> list[Reforma]:
         decreto = next((c for c in celdas if len(c) > 25), "")
         reformas.append(
             Reforma(no=no, fecha=f"{d}-{mo}-{y}",
-                    decreto=_RESUMEN.split(decreto)[0].strip(), ley=ley)
+                    decreto=_RESUMEN.split(decreto)[0].strip(), ley=ley,
+                    pdf=_pdf_del_decreto(fila, ley))
         )
     reformas.sort(key=lambda r: (r.fecha[-4:], r.fecha[3:5], r.fecha[:2], r.no or -1))
     return reformas
+
+
+def descarga_decreto(reforma: Reforma, dest: Path, timeout: int = 120) -> Path:
+    """Download Diputados' copy of a reform's decree, as published in the DOF.
+
+    A second, independent route to the primary source: Diputados mirrors every
+    decree it lists, so a reform stays reachable even when the DOF's own
+    service cannot serve the day it was published — as happens with the
+    Constitution's reform 139 of 08-03-1999.
+    """
+    if not reforma.pdf:
+        raise ValueError(f"la reforma {reforma.no} no trae PDF en LeyesBiblio")
+    dest = Path(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    r = requests.get(reforma.pdf, headers=_HEADERS, timeout=timeout)
+    r.raise_for_status()
+    dest.write_bytes(r.content)
+    return dest

@@ -68,22 +68,34 @@ for nota in tweet_iterator("titulos.jsonl.gz"):
 holds across all 284 reforms, which is why a reform without a note is written
 as `null` instead of being skipped.
 
-### One reform has no note
+### One reform has no note — and a second route to it
 
 Reform 139 (`08-03-1999`, amending articles 16, 19, 22 and 123) is that
 `null`. The date is **not** a Diputados mistake: the reform was indeed
-published that day, as independent sources confirm. The gap is in the DOF's
-own open-data service, which returns zero notes for it.
+published that day. The gap is in the DOF's own service, which returns zero
+notes for it — and 404s on every one of its endpoints, not just the notes
+list, so the whole edition is absent rather than merely untitled.
 
-It is not an isolated miss either. Of the eight weekdays of 1999 with no notes
-at all, three are statutory holidays and five are unexplained — and four of
-those five fall in March (the 3rd, 8th, 18th and 23rd), so March 1999 is
-simply thin in the service. Neither adjacent days nor the rest of 1999 carry
-the decree: it is absent, not misdated.
+It is not an isolated miss. Of the eight weekdays of 1999 with no notes at
+all, three are statutory holidays and five are unexplained — four of those in
+March (the 3rd, 8th, 18th and 23rd). Neither adjacent days nor the rest of
+1999 carry the decree.
 
-This is why the pipeline keeps a reform without a note instead of dropping it.
-Diputados is the authority on *which* decrees reformed a law; when the DOF
-cannot supply one, that is a fact about the DOF worth recording.
+**Diputados mirrors the decree itself**, which closes the gap:
+
+```bash
+python -m leyesmx --ley cpeum --decretos decretos/
+#   decreto 139 (08-03-1999) desde Diputados -> decretos/cpeum_ref_139_08-03-1999.pdf
+```
+
+`--decretos` downloads, from LeyesBiblio, exactly the decrees the DOF cannot
+serve. The PDF opens on the gazette's own header — *"DIARIO OFICIAL Lunes 8 de
+marzo de 1999"* — and carries extractable text, so the primary source stays
+reachable by a second, independent route. Every one of the Constitution's 285
+rows has such a PDF (184 also have a scan of the printed page), so this
+fallback is complete rather than best-effort.
+
+Each `Reforma` exposes that URL as `.pdf`, whether or not the DOF has the note.
 
 ## Scope
 
