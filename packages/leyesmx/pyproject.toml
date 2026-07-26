@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "leyesmx"
+version = "0.1.0"
+description = "Reform history of Mexican federal legislation, linked to the DOF notes that published it."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = [
+    "requests>=2.31",
+    "dofjson>=0.1.1",
+    "microtc>=2.4",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/INGEOTEC/LegalIA/tree/main/packages/leyesmx"
+
+[project.scripts]
+leyesmx = "leyesmx.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["leyesmx", "leyesmx.*"]
