@@ -88,6 +88,30 @@ class TestParseo(unittest.TestCase):
         # A new group under an existing one resets, rather than leaking down.
         self.assertEqual(notas[-1]["codOrgaDos"], "SUPREMA CORTE DE JUSTICIA DE LA NACION")
 
+    def test_maps_the_headings_only_older_editions_use(self):
+        """GDF and OTROS appear in the archive but not in a present-day
+        edition; the site labels them with the same words SIDOF names them by."""
+        pagina_gdf = pagina(
+            '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
+            '<td class="txt_blanco2">&nbsp;GOBIERNO DEL DISTRITO FEDERAL</td>'
+            + nota("5001000", "Aviso del GDF")
+            + '<td class="txt_blanco2">&nbsp;OTROS</td>'
+            + nota("5001001", "Nota diversa")
+        )
+        notas = self.notas_de({"MAT": pagina_gdf})["NotasMatutinas"]
+
+        self.assertEqual([n["codOrgaUno"] for n in notas], ["GDF", "OTROS"])
+
+    def test_an_unknown_heading_leaves_the_code_unset_but_keeps_the_name(self):
+        pagina_rara = pagina(
+            '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
+            '<td class="txt_blanco2">&nbsp;ORGANISMO NUEVO</td>' + nota("5001002", "X")
+        )
+        nota_rara = self.notas_de({"MAT": pagina_rara})["NotasMatutinas"][0]
+
+        self.assertIsNone(nota_rara["codOrgaUno"])
+        self.assertEqual(nota_rara["nombreCodOrgaUno"], "ORGANISMO NUEVO")
+
     def test_strips_the_comment_markup_wrapped_around_headings(self):
         notas = self.notas_de({"MAT": UNA_SECCION})["NotasMatutinas"]
 

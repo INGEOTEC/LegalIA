@@ -80,6 +80,8 @@ _CODIGO_ORGA = {
     "PODER JUDICIAL": "PJ",
     "ORGANISMOS AUTONOMOS": "OA",
     "ORGANISMOS DESCONCENTRADOS O DESCENTRALIZADOS": "OD",
+    "GOBIERNO DEL DISTRITO FEDERAL": "GDF",
+    "OTROS": "OTROS",
 }
 
 # Groups the website's daily index never lists.
