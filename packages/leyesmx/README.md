@@ -71,8 +71,19 @@ as `null` instead of being skipped.
 ### One reform has no note
 
 Reform 139 (`08-03-1999`, amending articles 16, 19, 22 and 123) is that
-`null`, because **the DOF's own open-data service returns zero notes for that
-day** — confirmed against the live service, not an artifact of this pipeline.
+`null`. The date is **not** a Diputados mistake: the reform was indeed
+published that day, as independent sources confirm. The gap is in the DOF's
+own open-data service, which returns zero notes for it.
+
+It is not an isolated miss either. Of the eight weekdays of 1999 with no notes
+at all, three are statutory holidays and five are unexplained — and four of
+those five fall in March (the 3rd, 8th, 18th and 23rd), so March 1999 is
+simply thin in the service. Neither adjacent days nor the rest of 1999 carry
+the decree: it is absent, not misdated.
+
+This is why the pipeline keeps a reform without a note instead of dropping it.
+Diputados is the authority on *which* decrees reformed a law; when the DOF
+cannot supply one, that is a fact about the DOF worth recording.
 
 ## Scope
 
