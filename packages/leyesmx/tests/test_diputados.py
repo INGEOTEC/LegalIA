@@ -90,3 +90,71 @@ class TestDescarga(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPdfDelDecreto(unittest.TestCase):
+    def fila_con(self, *hrefs):
+        enlaces = "".join(f'<a href="{h}">x</a>' for h in hrefs)
+        return tabla(f"<tr><td>139</td><td><font>DECRETO con texto suficiente para "
+                     f"pasar el umbral</font></td><td>08/03/1999</td>"
+                     f"<td>{enlaces}</td></tr>")
+
+    def test_resuelve_la_url_relativa_contra_leyesbiblio(self):
+        html = self.fila_con("dof/CPEUM_ref_139_08mar99.pdf")
+
+        r, = diputados.parse_reformas(html, "cpeum")
+
+        self.assertEqual(
+            r.pdf,
+            "https://www.diputados.gob.mx/LeyesBiblio/ref/dof/CPEUM_ref_139_08mar99.pdf")
+
+    def test_prefiere_el_pdf_con_texto_sobre_el_escaneo_ima(self):
+        html = self.fila_con("dof/CPEUM_ref_139_08mar99_ima.pdf",
+                             "dof/CPEUM_ref_139_08mar99.pdf")
+
+        r, = diputados.parse_reformas(html, "cpeum")
+
+        self.assertTrue(r.pdf.endswith("08mar99.pdf"))
+
+    def test_usa_el_escaneo_cuando_es_el_unico(self):
+        html = self.fila_con("dof/CPEUM_ref_139_08mar99_ima.pdf")
+
+        r, = diputados.parse_reformas(html, "cpeum")
+
+        self.assertTrue(r.pdf.endswith("_ima.pdf"))
+
+    def test_ignora_enlaces_que_no_son_pdf(self):
+        html = self.fila_con("dof/CPEUM_ref_139_08mar99.doc")
+
+        r, = diputados.parse_reformas(html, "cpeum")
+
+        self.assertEqual(r.pdf, "")
+
+    def test_respeta_una_url_absoluta(self):
+        html = self.fila_con("https://otro.gob.mx/decreto.pdf")
+
+        r, = diputados.parse_reformas(html, "cpeum")
+
+        self.assertEqual(r.pdf, "https://otro.gob.mx/decreto.pdf")
+
+
+class TestDescargaDecreto(unittest.TestCase):
+    @patch("leyesmx.diputados.requests.get")
+    def test_guarda_el_pdf_y_crea_el_directorio(self, mock_get):
+        import tempfile
+        from pathlib import Path
+        mock_get.return_value = Mock(content=b"%PDF-1.4 x", raise_for_status=Mock())
+        r = diputados.Reforma(no=139, fecha="08-03-1999", decreto="d",
+                              pdf="https://x/CPEUM_ref_139.pdf")
+        with tempfile.TemporaryDirectory() as tmp:
+            destino = Path(tmp) / "nuevo" / "r139.pdf"
+
+            diputados.descarga_decreto(r, destino)
+
+            self.assertEqual(destino.read_bytes(), b"%PDF-1.4 x")
+
+    def test_falla_si_la_reforma_no_trae_pdf(self):
+        r = diputados.Reforma(no=1, fecha="08-07-1921", decreto="d", pdf="")
+
+        with self.assertRaises(ValueError):
+            diputados.descarga_decreto(r, "x.pdf")

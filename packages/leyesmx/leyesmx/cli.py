@@ -35,6 +35,9 @@ def main(argv=None) -> int:
                    help="dataset from dofjson.titulos.download_titulos")
     p.add_argument("--out", type=Path, default=None,
                    help="output JSON (default: data/reformas/<ley>.json)")
+    p.add_argument("--decretos", type=Path, default=None, metavar="DIR",
+                   help="download from Diputados the decrees the DOF cannot "
+                        "serve, as a fallback route to the primary source")
     args = p.parse_args(argv)
 
     from microtc.utils import tweet_iterator
@@ -49,6 +52,17 @@ def main(argv=None) -> int:
 
     destino = args.out or Path("data/reformas") / f"{args.ley}.json"
     escribe_json(enlazadas, destino)
+
+    if args.decretos:
+        faltantes = [r for r, e in zip(reformas, enlazadas) if not e.enlazada]
+        for r in faltantes:
+            destino_pdf = args.decretos / f"{args.ley}_ref_{r.no}_{r.fecha}.pdf"
+            diputados.descarga_decreto(r, destino_pdf)
+            print(f"  decreto {r.no} ({r.fecha}) desde Diputados -> {destino_pdf}",
+                  file=sys.stderr)
+        if not faltantes:
+            print("  el DOF tiene todas las notas; nada que respaldar",
+                  file=sys.stderr)
 
     con = sum(e.enlazada for e in enlazadas)
     exactas = sum(e.confianza >= 0.99 for e in enlazadas)
