@@ -22,7 +22,7 @@ primary source that enacted it.
 
 ```bash
 pip install -e packages/dofjson -e packages/leyesmx
-python -m leyesmx --ley cpeum          # -> data/reformas/cpeum.csv
+python -m leyesmx --ley cpeum          # -> data/reformas/cpeum.json
 ```
 
 The first run downloads the titles dataset (~35 MB) unless `--titulos` points
@@ -38,28 +38,41 @@ enlazadas = dof.enlaza(reformas, tweet_iterator("titulos.jsonl.gz"))
 
 ## The data
 
-`data/reformas/cpeum.csv` — the Constitution's 284 reforms, 1917–2026:
+`data/reformas/cpeum.json` — the Constitution's reforms, 1917–2026, as a plain
+list of `codNota`, oldest first:
 
-| columna | qué es |
-|---|---|
-| `ley` | LeyesBiblio abbreviation (`cpeum`) |
-| `no` | Diputados' own reform number; empty for the original 1917 text |
-| `fecha` | DOF publication date, `DD-MM-YYYY` |
-| `codNota` | the DOF note that published it |
-| `confianza` | title-match score, `1.0` when the DOF title appears verbatim |
-| `titulo_dof` | the note's title as the DOF published it |
-| `decreto_dip` | the decree as Diputados records it |
+```json
+[
+ 4432273,
+ 4426823,
+ ...
+]
+```
 
-Current state: **284 of 285 rows carry a `codNota`** (267 verbatim matches, the
-rest wording variants above 0.89).
+Only the codNota is stored. A note's title, date and issuing branch already
+live in the dataset `dofjson.titulos.download_titulos` builds, and come back
+by joining on codNota — keeping a second copy here would only let the two
+drift apart:
+
+```python
+import json
+from microtc.utils import tweet_iterator
+
+reformas = set(json.load(open("data/reformas/cpeum.json")))
+for nota in tweet_iterator("titulos.jsonl.gz"):
+    if nota["codNota"] in reformas:
+        print(nota["fecha"], nota["titulo"])
+```
+
+**Index N is reform N**, and index 0 is the original 1917 text — the invariant
+holds across all 284 reforms, which is why a reform without a note is written
+as `null` instead of being skipped.
 
 ### One reform has no note
 
-Reform 139 (`08-03-1999`, amending articles 16, 19, 22 and 123) has no note,
-because **the DOF's own open-data service returns zero notes for that day** —
-confirmed against the live service, not an artifact of this pipeline. It is
-kept in the table with an empty `codNota` rather than dropped: a gap in the
-source is worth surfacing.
+Reform 139 (`08-03-1999`, amending articles 16, 19, 22 and 123) is that
+`null`, because **the DOF's own open-data service returns zero notes for that
+day** — confirmed against the live service, not an artifact of this pipeline.
 
 ## Scope
 
