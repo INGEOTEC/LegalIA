@@ -16,6 +16,9 @@ enough to ship to a Colab GPU runtime for experiments.
 Alongside it, `download_titulos` also writes a small JSON map from
 `codOrgaUno` to `nombreCodOrgaUno` (its human-readable name, e.g. "PODER
 EJECUTIVO") — the pairing lives once per code, not once per note.
+
+A note whose day did not come from SIDOF carries a `fuente` key naming where
+it did come from (see `dofweb.py`); notes without one are SIDOF's.
 """
 
 import gzip
@@ -32,6 +35,11 @@ _HEADERS = {
     "Accept": "application/vnd.github+json",
 }
 _LISTAS_NOTAS = ("NotasMatutinas", "NotasVespertinas", "NotasExtraordinarias")
+
+#: Source a note is assumed to come from when its day carries no `fuente`.
+#: Carrying "sidof" on all ~1.2 million rows would cost more than it says, so
+#: only the exceptions — the days recovered from the DOF website — are marked.
+FUENTE_PREDETERMINADA = "sidof"
 
 
 def listar_assets(timeout: int = 30) -> list[dict]:
@@ -62,6 +70,9 @@ def _titulos_de_tgz(contenido: bytes, organigrama: dict | None = None):
             if not member.isfile() or not member.name.endswith(".json"):
                 continue
             dia = json.load(tar.extractfile(member))
+            # Days recovered from the DOF website (see dofweb.py) say so; days
+            # that predate the marker, or came from SIDOF, do not.
+            fuente = dia.get("fuente")
             for lista in _LISTAS_NOTAS:
                 for nota in dia.get(lista, []):
                     if nota.get("titulo"):
@@ -70,12 +81,15 @@ def _titulos_de_tgz(contenido: bytes, organigrama: dict | None = None):
                             nombre = nota.get("nombreCodOrgaUno")
                             if nombre:
                                 organigrama.setdefault(cod_orga_uno, nombre)
-                        yield {
+                        titulo = {
                             "codNota": nota["codNota"],
                             "titulo": nota["titulo"],
                             "fecha": nota.get("fecha"),
                             "codOrgaUno": cod_orga_uno,
                         }
+                        if fuente and fuente != FUENTE_PREDETERMINADA:
+                            titulo["fuente"] = fuente
+                        yield titulo
 
 
 def download_titulos(
