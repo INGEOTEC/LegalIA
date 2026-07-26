@@ -30,7 +30,7 @@ jobs:
         run: |
           python -m leyesmx --ley "${{ inputs.ley || 'cpeum' }}" \
             --titulos "${RUNNER_TEMP}/titulos.jsonl.gz" \
-            --out "packages/leyesmx/data/reformas/${{ inputs.ley || 'cpeum' }}.csv"
+            --out "packages/leyesmx/data/reformas/${{ inputs.ley || 'cpeum' }}.json"
       - name: Commit if the table changed
         run: |
           git config user.name "github-actions[bot]"
