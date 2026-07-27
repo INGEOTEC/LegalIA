@@ -38,7 +38,7 @@ jobs:
       - name: Rebuild the affected assets
         run: |
           set -o pipefail
-          python .github/scripts/reparar_notas_archivo.py \
+          python scripts/reparar_notas_archivo.py \
             --anios '${{ inputs.anios }}' \
             --outdir reparados \
             ${{ inputs.dry_run && '--dry-run' || '' }} | tee salida.txt

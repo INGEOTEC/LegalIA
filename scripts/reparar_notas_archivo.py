@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Repair notas-archivo assets: refill the days SIDOF lost, from the DOF site.
 
 SIDOF reports a day it is missing as 200 OK with no notes, which is also how
@@ -9,11 +10,17 @@ names, order, mode, ownership and mtime.
 
 Run with --dry-run first: it reports what it would change and writes nothing.
 
-    python .github/scripts/reparar_notas_archivo.py --anios 1999,2006 --dry-run
-    python .github/scripts/reparar_notas_archivo.py --anios auto
+    ./scripts/reparar_notas_archivo.py --anios 1999,2006 --dry-run
+    ./scripts/reparar_notas_archivo.py --anios auto --outdir reparados
 
-Uploading is left to `gh release upload --clobber` in the workflow, so this
-script never needs a token.
+Only `requests` is needed; dofjson is picked up from packages/ in this
+checkout, so there is nothing to install first.
+
+Nothing here uploads, and no token is used. To publish the rebuilt assets:
+
+    gh release upload notas-archivo reparados/*.tgz --clobber
+
+or run the `reparar notas-archivo` workflow, which does both steps.
 """
 
 import argparse
@@ -28,7 +35,12 @@ from pathlib import Path
 
 import requests
 
-from dofjson import dofweb, titulos
+# Run straight from a clone, without `pip install -e packages/dofjson` first.
+# This goes at the front on purpose: a repo script should run the code in its
+# own checkout, not an older dofjson that happens to be installed system-wide.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "dofjson"))
+
+from dofjson import dofweb, titulos  # noqa: E402
 
 TAG = "notas-archivo"
 LISTAS = ("NotasMatutinas", "NotasVespertinas", "NotasExtraordinarias")
