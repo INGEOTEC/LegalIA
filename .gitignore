@@ -40,3 +40,6 @@ packages/dof2md/output/
 # Local Claude Code settings (not shared)
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+
+/.quarto/
+**/*.quarto_ipynb
