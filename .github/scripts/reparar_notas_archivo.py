@@ -177,7 +177,12 @@ def main(argv=None):
         print(f"  {r['asset']}: {len(r['dias'])} día(s), {n} notas "
               f"({', '.join(d['fecha'] for d in r['dias'])})")
     print(f"  {len(con_cambios)} asset(s), {total} notas recuperadas")
-    Path("reparacion.json").write_text(json.dumps(resultados, ensure_ascii=False, indent=1))
+    # Alongside the rebuilt assets, not in whatever directory this was run
+    # from -- in CI that is the checkout, which should stay clean.
+    outdir.mkdir(parents=True, exist_ok=True)
+    (outdir / "reparacion.json").write_text(
+        json.dumps(resultados, ensure_ascii=False, indent=1), encoding="utf-8"
+    )
     # Finding nothing to repair is a good outcome, not a failure: the caller
     # decides what to upload from what was actually written.
     return 0
