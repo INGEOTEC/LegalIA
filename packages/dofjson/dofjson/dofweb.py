@@ -1,0 +1,230 @@
+"""Fallback source for a day's notes index: the DOF's own website.
+
+SIDOF (`client.py`) is the primary source, but its dataset has holes. For
+some dates it does not answer 404 — it answers **200 OK with every note list
+empty**, and lists those dates under `FechasSinPublicacion` in
+`GET /diarios/{year}`, as if the gazette had not been published at all. For a
+few of them it did publish: on 08-03-1999, for instance, SIDOF reports
+nothing while the DOF ran the decree amending articles 16, 19, 22 and 123 of
+the Constitution. The note is unreachable from SIDOF by any route — its
+codNota returns `{"Nota": []}` and its codDiario 404s.
+
+The DOF's public website, `www.dof.gob.mx`, is a separate system built on a
+separate database, and it does have those days. This module reads its daily
+index and returns it in the same shape `client.get_notas()` uses, so a caller
+can substitute one for the other.
+
+What the fallback does and does not carry
+-----------------------------------------
+The website's daily index lists the substantive part of the gazette — the
+notes issued by `PE` (Poder Ejecutivo), `PJ`, `PL`, `OA` and `OD`. It leaves
+out the three bulk-announcement sections, which are reachable on the site only
+through its POST search form:
+
+    CV  convocatorias for public-sector procurement
+    VG  convocatorias for civil-service vacancies
+    AV  avisos judiciales y generales
+
+On a day both sources have, the recovered set matches SIDOF's exactly once
+those three are excluded (verified on days sampled from 1999 through 2026).
+So a recovered day is complete with respect to what the gazette *enacted*,
+and short of what it *announced* — `notasIncompletas` is set on the result to
+say so, rather than letting a partial day pass for a whole one.
+
+Editions with no digital index
+------------------------------
+The website's per-note index starts in **January 1999**. Before that it holds
+only scanned images, so a day returns an edition — a codDiario and its section
+list — with no per-note links. Those come back in `edicionesSinIndice`: proof
+that the gazette *was* published, which is what a caller needs to avoid
+recording the day as empty, even though no titles can be listed. Every day
+confirmed lost from SIDOF so far falls in 1999 or later, inside the range
+where titles can actually be recovered.
+
+TLS
+---
+`www.dof.gob.mx` serves its leaf certificate without the intermediate that
+signs it, so verification fails with "unable to get local issuer certificate"
+on any client that does not chase the issuer itself. The missing GoDaddy
+intermediate ships in `certs/dof-gob-mx-chain.pem`. The system trust store is
+tried first, and the bundled chain is used only if that fails — certificate
+verification is never turned off.
+"""
+
+import datetime as dt
+import html
+import re
+from pathlib import Path
+
+import requests
+
+BASE_URL = "https://www.dof.gob.mx"
+FUENTE = "dof.gob.mx"
+_HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; DOF-JSON-Client/1.0)"}
+
+# The site is served as cp1252 without declaring it.
+_ENCODING = "cp1252"
+
+_CADENA = Path(__file__).parent / "certs" / "dof-gob-mx-chain.pem"
+
+# The site says this, in place of a section list, when it has no such day.
+_SIN_DATOS = "No hay datos para la fecha seleccionada"
+
+_EDICIONES = {"MAT": "NotasMatutinas", "VES": "NotasVespertinas", "EXT": "NotasExtraordinarias"}
+
+# Headings the daily index uses for its top-level groups, and the codOrgaUno
+# SIDOF gives the same group. CV/VG/AV are absent from the index (see above).
+_CODIGO_ORGA = {
+    "PODER EJECUTIVO": "PE",
+    "PODER LEGISLATIVO": "PL",
+    "PODER JUDICIAL": "PJ",
+    "ORGANISMOS AUTONOMOS": "OA",
+    "ORGANISMOS DESCONCENTRADOS O DESCENTRALIZADOS": "OD",
+    "GOBIERNO DEL DISTRITO FEDERAL": "GDF",
+    "OTROS": "OTROS",
+}
+
+# Groups the website's daily index never lists.
+ORGA_NO_LISTADOS = ("CV", "VG", "AV")
+
+_TAG = re.compile(r"<[^>]+>")
+# The index leaves commented-out markup inline, and the headings sit inside it,
+# so comment delimiters have to go before tags do or their "-->" survives.
+_COMENTARIO = re.compile(r"<!--|-->")
+_COD_DIARIO = re.compile(r"cod_diario=(\d+)")
+
+# The index is a flat table: section banners, top-level group banners,
+# issuing-body subheadings and note links, in document order. Walking the
+# matches in order is what assigns each note to the headings above it.
+_TOKEN = re.compile(
+    r'class="txt_blanco">(?P<seccion>[^<]*)'
+    r'|class="txt_blanco2">(?P<orga>[^<]*)'
+    r'|class="subtitle_azul">(?P<orgados>.*?)</td>'
+    r'|nota_detalle\.php\?codigo=(?P<cod>\d+)[^>]*>(?P<titulo>.*?)</a>',
+    re.S,
+)
+
+
+def _texto(bruto: str) -> str:
+    """Collapse a chunk of the index's markup down to its visible text."""
+    return " ".join(html.unescape(_TAG.sub(" ", _COMENTARIO.sub(" ", bruto))).split())
+
+
+def _get(url: str, timeout: int) -> str:
+    """Fetch a page, completing the server's certificate chain if needed.
+
+    Tries the system trust store first, so a fixed server (or a platform that
+    chases the issuer on its own) needs nothing extra, and falls back to the
+    bundled GoDaddy chain only on a TLS failure.
+    """
+    try:
+        response = requests.get(url, headers=_HEADERS, timeout=timeout)
+    except requests.exceptions.SSLError:
+        response = requests.get(url, headers=_HEADERS, timeout=timeout, verify=str(_CADENA))
+    response.raise_for_status()
+    return response.content.decode(_ENCODING, errors="replace")
+
+
+def _parse_edicion(pagina: str, fecha: dt.date, edicion: str) -> tuple[list[dict], int | None]:
+    """Pull one edition's notes, and its codDiario, out of the index page."""
+    if _SIN_DATOS in pagina:
+        return [], None
+
+    cod_diario = _COD_DIARIO.search(pagina)
+    cod_diario = int(cod_diario.group(1)) if cod_diario else None
+
+    seccion = orga = orga_dos = None
+    notas = []
+    for m in _TOKEN.finditer(pagina):
+        if m.group("seccion") is not None:
+            seccion = _texto(m.group("seccion")) or None
+            orga = orga_dos = None
+        elif m.group("orga") is not None:
+            orga = _texto(m.group("orga")) or None
+            orga_dos = None
+        elif m.group("orgados") is not None:
+            orga_dos = _texto(m.group("orgados")) or None
+        else:
+            notas.append({
+                "codNota": int(m.group("cod")),
+                "titulo": _texto(m.group("titulo")),
+                "fecha": f"{fecha:%d-%m-%Y}",
+                "codDiario": cod_diario,
+                "codEdicion": edicion,
+                # "PRIMERA SECCION" -> "PRIMERA", as SIDOF writes it.
+                "codSeccion": seccion.replace(" SECCION", "") if seccion else None,
+                "codOrgaUno": _CODIGO_ORGA.get(orga),
+                "nombreCodOrgaUno": orga,
+                "codOrgaDos": orga_dos,
+                "orden": float(len(notas) + 1),
+                "fuente": FUENTE,
+            })
+    return notas, cod_diario
+
+
+def get_notas(date: dt.date, timeout: int = 60) -> dict:
+    """A day's notes index from the DOF website, shaped like client.get_notas().
+
+    Adds three keys the SIDOF response does not have:
+
+    `fuente`
+        Always `"dof.gob.mx"`, so a stored day says where it came from.
+    `notasIncompletas`
+        The codOrgaUno groups the website's index never lists (CV/VG/AV) —
+        present whenever any note was recovered, because the day is complete
+        only with respect to the rest.
+    `edicionesSinIndice`
+        Editions that exist but have no per-note index, as
+        `{"codEdicion", "codDiario"}`. A pre-digital day comes back with no
+        notes and a populated list here: the gazette was published, only its
+        contents are images.
+    """
+    resultado = {
+        "messageCode": 200,
+        "response": "OK",
+        "fuente": FUENTE,
+        "NotasMatutinas": [],
+        "NotasVespertinas": [],
+        "NotasExtraordinarias": [],
+        "edicionesSinIndice": [],
+    }
+
+    for edicion, clave in _EDICIONES.items():
+        url = (
+            f"{BASE_URL}/index.php?year={date:%Y}&month={date:%m}"
+            f"&day={date:%d}&edicion={edicion}"
+        )
+        try:
+            pagina = _get(url, timeout)
+        except requests.exceptions.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 404:
+                continue
+            raise
+        notas, cod_diario = _parse_edicion(pagina, date, edicion)
+        resultado[clave] = notas
+        if cod_diario is not None and not notas:
+            resultado["edicionesSinIndice"].append(
+                {"codEdicion": edicion, "codDiario": cod_diario}
+            )
+
+    if any(resultado[clave] for clave in _EDICIONES.values()):
+        resultado["notasIncompletas"] = list(ORGA_NO_LISTADOS)
+    return resultado
+
+
+def hay_publicacion(respuesta: dict) -> bool:
+    """Whether the DOF published that day, per a get_notas() response.
+
+    True when notes were recovered *or* an edition exists with no digital
+    index — both mean the gazette came out, which is the question a caller
+    asks before recording a day as empty.
+    """
+    return bool(
+        respuesta.get("edicionesSinIndice")
+        or any(respuesta.get(clave) for clave in _EDICIONES.values())
+    )
+
+
+def cuenta_notas(respuesta: dict) -> int:
+    """How many notes a get_notas() response carries, across every edition."""
+    return sum(len(respuesta.get(clave, [])) for clave in _EDICIONES.values())
