@@ -5,6 +5,11 @@ Three sources feed the same output, and build_nota_markdown() picks between them
 * **HTML** — when the note carries digital text (``cadenaContenido``), it is
   converted directly with html_converter.html_to_markdown(). This is the
   preferred path: clean, already scoped to the one note, and needs no OCR.
+  A note SIDOF does not have at all (see dofjson.dofweb: whole days are
+  missing from its dataset) is looked up on the DOF's website instead, which
+  serves the same HTML — so the HTML path covers those notes too, and it is
+  the only path that does: the OCR paths start from SIDOF metadata the lost
+  notes have no record in.
 * **Image** — the note's scanned page image(s) are downloaded
   (dofjson.download_nota_imagenes), OCR'd to Markdown (dof2md).
 * **PDF** — the note's own PDF (the edition PDF sliced to the note's pages, via
@@ -19,7 +24,7 @@ HTML — which is why dofjson downloads images/PDF regardless of ``existeHtml``.
 import datetime as dt
 from pathlib import Path
 
-from dofjson import client
+from dofjson import client, dofweb
 
 from nota2md.cutter import cut_markdown_by_titles
 from nota2md.html_converter import html_to_markdown
@@ -49,6 +54,27 @@ def titulo_siguiente(nota: dict, notas_del_dia: dict) -> str | None:
         if siguiente.get("titulo"):
             return siguiente["titulo"]
     return None
+
+
+def fetch_nota(cod_nota: int) -> dict:
+    """A note's get_nota() record, from SIDOF when it has it and from the DOF
+    website when it does not.
+
+    SIDOF answers `{"Nota": []}` for a codNota it lacks — not an error — so an
+    empty record is what sends the lookup to dofweb.get_nota(). A note found
+    there says so in its `fuente`, and carries no codDiario/codEdicion/pagina:
+    only the HTML path can build it (see the module docstring)."""
+    nota = client.get_nota(cod_nota).get("Nota")
+    if isinstance(nota, dict) and nota:
+        return nota
+
+    nota = dofweb.get_nota(cod_nota).get("Nota")
+    if isinstance(nota, dict) and nota:
+        return nota
+
+    raise ValueError(
+        f"nota {cod_nota} does not exist in SIDOF nor in {dofweb.FUENTE}"
+    )
 
 
 def build_nota_markdown(
@@ -91,7 +117,7 @@ def build_nota_markdown(
     md_path = outdir / f"nota-{cod_nota}.md"
 
     if nota is None:
-        nota = client.get_nota(cod_nota)["Nota"]
+        nota = fetch_nota(cod_nota)
 
     if source == "html" or (source == "auto" and nota.get("cadenaContenido")):
         if not nota.get("cadenaContenido"):
@@ -101,6 +127,13 @@ def build_nota_markdown(
             )
         md_path.write_text(html_to_markdown(nota["cadenaContenido"]) + "\n", encoding="utf-8")
         return md_path
+
+    if nota.get("fuente") == dofweb.FUENTE:
+        raise ValueError(
+            f"nota {cod_nota} was recovered from {dofweb.FUENTE} because SIDOF "
+            f"does not have it; the {source!r} path needs SIDOF's codDiario and "
+            f"page numbers, so only source='html' can build this note"
+        )
 
     if source == "pdf":
         return _build_from_pdf(
