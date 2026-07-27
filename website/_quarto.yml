@@ -19,15 +19,15 @@ website:
   navbar:
     background: "#f9f8f4"
     left:
-      - href: index.ipynb
+      - href: pages/index.ipynb
         text: Home
-      - href: dataset.ipynb
+      - href: pages/dataset.ipynb
         text: Dataset
-      - href: explorations/titles.ipynb
+      - href: pages/titles.ipynb
         text: DOF Titles
-      - href: tools.ipynb
+      - href: pages/tools.ipynb
         text: Tools
-      - href: references.qmd
+      - href: pages/references.qmd
         text: References
     right:
       - icon: github

@@ -25,14 +25,14 @@ Usage, from anywhere in the repo:
 
     python website/scripts/render.py                    # deps, render, verify
     python website/scripts/render.py --verify-only      # check the cache only
-    python website/scripts/render.py explorations/titles.ipynb
-    python website/scripts/render.py --force explorations/titles.ipynb
+    python website/scripts/render.py pages/titles.ipynb
+    python website/scripts/render.py --force pages/titles.ipynb
 
 quarto itself is not installed here: it comes from the devcontainer in
 .devcontainer/ (the rocker-org quarto-cli feature), so run this inside that
 container, or install quarto some other way first.
 
-Re-rendering explorations/titles.ipynb re-downloads every published DOF title
+Re-rendering pages/titles.ipynb re-downloads every published DOF title
 (~1.2 million notes) and refits the tf-idf models behind the word clouds, so
 expect tens of minutes. The other three pages are quick. Both the downloaded
 dataset and _site/ are gitignored; the artifacts to commit are the notebooks
