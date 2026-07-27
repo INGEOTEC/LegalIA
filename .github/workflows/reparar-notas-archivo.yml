@@ -1,0 +1,101 @@
+name: reparar notas-archivo
+
+# Refill the days SIDOF lost into the published notas-archivo assets, taking
+# them from www.dof.gob.mx. SIDOF answers 200-with-no-notes for a day it is
+# missing -- the same answer it gives for a Sunday -- so those days were
+# archived as empty. See packages/dofjson/dofjson/dofweb.py.
+#
+# Run it with dry_run left on first: it reports what it would change and
+# uploads nothing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      anios:
+        description: "Years to repair, comma-separated, or 'auto' for every asset"
+        default: "1999,2000,2001,2004,2005,2006,2007"
+      dry_run:
+        description: "Only report what would change; upload nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  reparar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dofjson
+        run: pip install -e packages/dofjson
+
+      - name: Rebuild the affected assets
+        run: |
+          set -o pipefail
+          python .github/scripts/reparar_notas_archivo.py \
+            --anios '${{ inputs.anios }}' \
+            --outdir reparados \
+            ${{ inputs.dry_run && '--dry-run' || '' }} | tee salida.txt
+
+      - name: Report
+        run: |
+          {
+            echo '## Reparación de notas-archivo'
+            echo
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo '> Simulación: no se subió nada.'
+              echo
+            fi
+            echo '```'
+            sed -n '/=== RESUMEN/,$p' salida.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checksums
+        if: ${{ !inputs.dry_run }}
+        run: |
+          if [ -z "$(ls -A reparados 2>/dev/null)" ]; then
+            echo "No hay assets que subir; nada cambió."
+            exit 0
+          fi
+          cd reparados && sha256sum *.tgz | tee SHA256SUMS.txt
+
+      - name: Keep the rebuilt assets as an artifact
+        if: ${{ !inputs.dry_run && hashFiles('reparados/*.tgz') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: notas-archivo-reparados
+          path: reparados/
+          retention-days: 30
+
+      # --clobber replaces each asset in place, so the release never sits with
+      # a missing file the way delete-then-upload would.
+      - name: Upload to the notas-archivo release
+        if: ${{ !inputs.dry_run && hashFiles('reparados/*.tgz') != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload notas-archivo reparados/*.tgz --clobber --repo "$GITHUB_REPOSITORY"
+
+      - name: Verify what the release now serves
+        if: ${{ !inputs.dry_run && hashFiles('reparados/*.tgz') != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p verificacion && cd verificacion
+          for f in ../reparados/*.tgz; do
+            n=$(basename "$f")
+            gh release download notas-archivo --pattern "$n" --repo "$GITHUB_REPOSITORY" --clobber
+            # the published asset must be byte-identical to what was uploaded
+            if ! cmp -s "$n" "$f"; then
+              echo "::error::$n en el release no coincide con lo que se subió"
+              exit 1
+            fi
+            echo "$n OK"
+          done
