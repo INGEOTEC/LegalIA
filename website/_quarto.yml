@@ -19,7 +19,7 @@ website:
   navbar:
     background: "#f9f8f4"
     left:
-      - href: pages/index.ipynb
+      - href: index.ipynb
         text: Home
       - href: pages/dataset.ipynb
         text: Dataset
