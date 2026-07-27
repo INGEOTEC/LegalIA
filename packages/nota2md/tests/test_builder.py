@@ -3,7 +3,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from nota2md.builder import build_nota_markdown, titulo_siguiente
+from dofjson import dofweb
+
+from nota2md.builder import build_nota_markdown, fetch_nota, titulo_siguiente
 
 HTML_NOTA = {
     "codNota": 5793655,
@@ -33,6 +35,49 @@ class TestTituloSiguiente(unittest.TestCase):
         notas = {"NotasMatutinas": [{"codNota": 100, "titulo": "Nota A"}]}
         nota = {"codNota": 100, "codEdicion": "MAT"}
         self.assertIsNone(titulo_siguiente(nota, notas))
+
+
+class TestFetchNota(unittest.TestCase):
+    """SIDOF is missing whole days (see dofjson.dofweb), and the notes on them
+    have no SIDOF record at all — the DOF's website is the only source."""
+
+    WEB_NOTA = {
+        "codNota": 4997808,
+        "fecha": "03-03-1999",
+        "titulo": "DECRETO por el que se concede permiso...",
+        "cadenaContenido": "<HTML><BODY><p>Cuerpo del decreto.</p></BODY></HTML>",
+        "existeHtml": "S",
+        "fuente": dofweb.FUENTE,
+    }
+
+    @patch("nota2md.builder.dofweb.get_nota")
+    @patch("nota2md.builder.client.get_nota")
+    def test_prefers_sidof_when_it_has_the_note(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {"Nota": {"codNota": 1, "cadenaContenido": "<p>x</p>"}}
+
+        self.assertEqual(fetch_nota(1)["codNota"], 1)
+        mock_web.assert_not_called()
+
+    @patch("nota2md.builder.dofweb.get_nota")
+    @patch("nota2md.builder.client.get_nota")
+    def test_falls_back_to_the_website_when_sidof_lacks_the_note(self, mock_sidof, mock_web):
+        # SIDOF answers an empty list, not an error, for a codNota it lacks.
+        mock_sidof.return_value = {"messageCode": 200, "response": "OK", "Nota": []}
+        mock_web.return_value = {"Nota": self.WEB_NOTA}
+
+        nota = fetch_nota(4997808)
+
+        mock_web.assert_called_once_with(4997808)
+        self.assertEqual(nota["fuente"], dofweb.FUENTE)
+
+    @patch("nota2md.builder.dofweb.get_nota")
+    @patch("nota2md.builder.client.get_nota")
+    def test_raises_when_neither_source_has_the_note(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {"Nota": []}
+        mock_web.return_value = {"Nota": []}
+
+        with self.assertRaises(ValueError):
+            fetch_nota(999999999)
 
 
 class TestBuildNotaMarkdown(unittest.TestCase):
@@ -142,6 +187,28 @@ class TestBuildNotaMarkdown(unittest.TestCase):
         self.assertTrue(text.startswith("## Acuerdo de regularización"))
         self.assertIn("Cuerpo del acuerdo.", text)
         self.assertNotIn("NOM-042-NUCL", text)
+
+    @patch("nota2md.builder.dofweb.get_nota")
+    @patch("nota2md.builder.client.get_nota")
+    def test_builds_a_note_sidof_does_not_have_from_the_website(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {"Nota": []}
+        mock_web.return_value = {"Nota": TestFetchNota.WEB_NOTA}
+
+        dest = build_nota_markdown(4997808, self.outdir)
+
+        self.assertEqual(dest, self.outdir / "nota-4997808.md")
+        self.assertIn("Cuerpo del decreto.", dest.read_text(encoding="utf-8"))
+
+    def test_ocr_paths_reject_a_note_that_only_the_website_has(self):
+        """Those notes carry no codDiario or page numbers — the OCR paths start
+        from SIDOF metadata that does not exist for them."""
+        for source in ("image", "pdf"):
+            with self.subTest(source=source):
+                with self.assertRaises(ValueError) as ctx:
+                    build_nota_markdown(
+                        4997808, self.outdir, source=source, nota=TestFetchNota.WEB_NOTA
+                    )
+                self.assertIn(dofweb.FUENTE, str(ctx.exception))
 
     @patch("dof2md.converter.convert_images_to_markdown")
     @patch("nota2md.builder.client.download_nota_imagenes")
