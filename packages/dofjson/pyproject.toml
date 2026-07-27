@@ -4,11 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dofjson"
-version = "0.1.0"
+version = "0.2.0"
 description = "Prototype client for SIDOF's undocumented JSON open data service for Mexico's official gazette (DOF)."
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.9"
+# 3.10 for the `X | None` annotations the package already evaluates at import.
+requires-python = ">=3.10"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
@@ -30,3 +31,8 @@ dofjson = "dofjson.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["dofjson", "dofjson.*"]
+
+[tool.setuptools.package-data]
+# The certificate chain dofweb needs to verify www.dof.gob.mx, whose server
+# omits the intermediate that signs it.
+dofjson = ["certs/*.pem"]
