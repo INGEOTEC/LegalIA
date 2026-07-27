@@ -1,0 +1,44 @@
+name: reformas
+
+# Rebuilds each law's reform table and commits it when it changes, so the
+# repository accumulates the legislative history as it happens.
+
+on:
+  schedule:
+    # 10:00 UTC (04:00 en Ciudad de México) del día 2 de cada mes, después de
+    # que notas-archivo.yml publica el mes que acaba de cerrar.
+    - cron: "0 10 2 * *"
+  workflow_dispatch:
+    inputs:
+      ley:
+        description: "Abreviatura de LeyesBiblio (p. ej. cpeum)"
+        default: cpeum
+
+jobs:
+  reformas:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install packages
+        run: pip install -e packages/dofjson -e packages/leyesmx
+      - name: Build the reform table
+        run: |
+          python -m leyesmx --ley "${{ inputs.ley || 'cpeum' }}" \
+            --titulos "${RUNNER_TEMP}/titulos.jsonl.gz" \
+            --out "packages/leyesmx/data/reformas/${{ inputs.ley || 'cpeum' }}.json"
+      - name: Commit if the table changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- packages/leyesmx/data/reformas; then
+            echo "sin cambios"
+            exit 0
+          fi
+          git add packages/leyesmx/data/reformas
+          git commit -m "Actualiza la tabla de reformas (${{ inputs.ley || 'cpeum' }})"
+          git push

@@ -4,5 +4,9 @@
 # Render output (published via GitHub Actions, not versioned)
 /_site/
 
+# Per-notebook companion asset dirs produced alongside the source when
+# rendering (the committed cache lives under /_freeze/ instead)
+**/*_files/
+
 # Files written by the executable pages (downloaded notes, generated Markdown)
 output/

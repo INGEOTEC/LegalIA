@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from dofjson import archivo, client
+from dofjson import archivo, client, dofweb, titulos
 
 ENDPOINT_NAMES = ["diario", "notas", "indicadores"]
 
@@ -59,7 +59,19 @@ def parse_args(argv=None):
         help="Incrementally download the daily notes index for a whole date range "
         "into a resumable local archive: one JSON per day under <outdir>/YYYY/, "
         "with a registry of completed days in <outdir>/.completados so re-runs "
-        "only fetch the missing days. Positional date is ignored; use --desde/--hasta.",
+        "only fetch the missing days. Days SIDOF reports as empty are checked "
+        "against the DOF website (see --respaldo), and every saved day records "
+        'which source it came from in its "fuente" key. '
+        "Positional date is ignored; use --desde/--hasta.",
+    )
+    parser.add_argument(
+        "--respaldo", choices=archivo.RESPALDO_OPCIONES, default="habiles",
+        help="What to do when SIDOF reports a day as empty (which is how it "
+        "reports the days it has lost, not just the days with no edition): "
+        "'habiles' (default) re-checks Mon-Fri against dof.gob.mx, where every "
+        "confirmed loss is; 'todos' also re-checks weekends, ~10,000 more "
+        "requests over the full range; 'nunca' trusts SIDOF alone. "
+        "Applies to --archivo and to a single --endpoint notas query.",
     )
     parser.add_argument(
         "--desde", default=archivo.FECHA_INICIO_DEFAULT.isoformat(),
@@ -76,15 +88,35 @@ def parse_args(argv=None):
         "(only with --archivo; default: 0.5)",
     )
     parser.add_argument(
+        "--titulos", action="store_true",
+        help="Build a compact codNota+titulo+fecha dataset (gzipped JSONL) from "
+        "every note in the published notas-archivo GitHub release: downloads each "
+        "year/month asset straight into memory (nothing touches disk) and "
+        "keeps only codNota, titulo (title) and fecha (date). Small output, meant "
+        "for Colab GPU experiments.",
+    )
+    parser.add_argument(
         "--outdir", default=None,
-        help="Output directory (default: output/, or notas-archivo/ with --archivo)",
+        help="Output directory (default: output/, notas-archivo/ with --archivo, "
+        "or titulos/ with --titulos)",
     )
     return parser.parse_args(argv)
 
 
 def main(argv=None):
     args = parse_args(argv)
-    outdir = Path(args.outdir or ("notas-archivo" if args.archivo else "output"))
+    if args.archivo:
+        outdir_default = "notas-archivo"
+    elif args.titulos:
+        outdir_default = "titulos"
+    else:
+        outdir_default = "output"
+    outdir = Path(args.outdir or outdir_default)
+
+    if args.titulos:
+        dest = outdir / "titulos.jsonl.gz"
+        titulos.download_titulos(dest)
+        return
 
     if args.archivo:
         try:
@@ -94,7 +126,9 @@ def main(argv=None):
             sys.exit(f"Invalid date: {exc}. Use YYYY-MM-DD format.")
         if desde > hasta:
             sys.exit(f"--desde ({desde}) cannot be later than --hasta ({hasta}).")
-        archivo.download_archivo(desde, hasta, outdir, pausa=args.pausa)
+        archivo.download_archivo(
+            desde, hasta, outdir, pausa=args.pausa, respaldo=args.respaldo
+        )
         return
 
     if args.pdf_diario is not None:
@@ -142,6 +176,15 @@ def main(argv=None):
         data = fetch(date)
         if args.endpoint == "notas":
             data = client.quita_notas_sin_titulo(data)
+            if archivo.tiene_notas(data):
+                data["fuente"] = archivo.FUENTE_SIDOF
+            elif archivo.consultar_respaldo(date, args.respaldo):
+                # SIDOF reports no notes. It reports the days it has lost the
+                # same way, so confirm against the DOF website before saying so.
+                alterno = dofweb.get_notas(date)
+                if dofweb.hay_publicacion(alterno):
+                    print(f"SIDOF no tiene {date}; recuperada de {dofweb.FUENTE}")
+                    data = alterno
         filename = f"{date:%d%m%Y}-{args.endpoint}.json"
 
     outdir.mkdir(parents=True, exist_ok=True)
