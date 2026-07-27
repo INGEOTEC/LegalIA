@@ -96,6 +96,35 @@ class TestTitulosDeTgz(unittest.TestCase):
             ],
         )
 
+    def test_marks_notas_from_a_day_that_did_not_come_from_sidof(self):
+        """Days the archive recovered from the DOF website (dofweb.py) carry a
+        `fuente`; it rides along so a recovered note stays identifiable."""
+        recuperado = dia({"codNota": 1, "titulo": "A", "fecha": "08-03-1999", "codOrgaUno": "PE"})
+        recuperado["fuente"] = "dof.gob.mx"
+        contenido = hacer_tgz({"1999/08031999-notas.json": recuperado})
+
+        resultado = list(titulos._titulos_de_tgz(contenido))
+
+        self.assertEqual(resultado[0]["fuente"], "dof.gob.mx")
+
+    def test_does_not_mark_sidof_notas(self):
+        """"sidof" on every one of ~1.2 million rows would cost more than it
+        says, so only the exceptions are marked."""
+        desde_sidof = dia({"codNota": 1, "titulo": "A", "fecha": "09-03-1999", "codOrgaUno": "PE"})
+        desde_sidof["fuente"] = "sidof"
+        contenido = hacer_tgz({
+            "1999/09031999-notas.json": desde_sidof,
+            # A day stored before the marker existed is SIDOF's too.
+            "1999/10031999-notas.json": dia(
+                {"codNota": 2, "titulo": "B", "fecha": "10-03-1999", "codOrgaUno": "PE"}
+            ),
+        })
+
+        resultado = list(titulos._titulos_de_tgz(contenido))
+
+        self.assertEqual(len(resultado), 2)
+        self.assertTrue(all("fuente" not in t for t in resultado))
+
     def test_fecha_y_codorgauno_default_to_none_when_missing(self):
         contenido = hacer_tgz({
             "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A"}),

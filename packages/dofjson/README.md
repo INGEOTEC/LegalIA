@@ -11,9 +11,15 @@ unauthenticated endpoints were found under `https://sidof.segob.gob.mx/dof/sidof
 | Endpoint | Description |
 |---|---|
 | `GET /diarios/porFecha/DD-MM-YYYY` | Edition metadata for a date (Matutina/Vespertina/Extraordinaria) |
+| `GET /diarios/{YYYY}` | A whole year's `FechasSinPublicacion` — the dates it claims had no gazette |
 | `GET /notas/DD-MM-YYYY` | Notes/documents published on a date |
 | `GET /notas/nota/{codNota}` | Full detail of a single note, including its HTML content |
 | `GET /indicadores/DD-MM-YYYY` | Economic indicators (exchange rate, TIIE, UDIS) |
+
+Note that this service reports a missing day as `200 OK` with empty note
+lists, not as an error, and that some of the dates it lists as unpublished
+were in fact published — see
+[the days SIDOF loses](#the-days-sidof-loses-and-where-they-are-recovered-from---respaldo).
 
 This is an experimental package for evaluating whether this service is a
 viable alternative (or complement) to `dof2md`'s PDF download + Markdown
@@ -67,14 +73,94 @@ notas-archivo/
 
 The mode is resumable and idempotent: the `.completados` registry records the
 finished days, so each run only fetches what is missing. Days that fail with
-network errors are *not* marked and get retried on the next run; days the
-service does not have (holidays, weekends, very old dates — a 404) *are*
-marked so they are not retried forever. "Today" is never marked, so late
-additions are picked up by a later run. You can interrupt with Ctrl-C and
-resume at any time.
+network errors are *not* marked and get retried on the next run; days with no
+edition (holidays, weekends) *are* marked so they are not retried forever.
+"Today" is never marked, so late additions are picked up by a later run. You
+can interrupt with Ctrl-C and resume at any time.
 
 > The full range is ~40,000 days: a long download, meant to be run in parts.
 > Start with a bounded range via `--desde/--hasta` if you only need an era.
+
+### The days SIDOF loses, and where they are recovered from (`--respaldo`)
+
+SIDOF does not report a day it is missing as an error. It answers **200 OK
+with every note list empty** — which is also how it reports a Sunday — and
+lists the date under `FechasSinPublicacion` in `GET /diarios/{year}`. Most of
+those dates are genuine: weekends and holidays. Some are not.
+
+On 8 March 1999 the DOF published the decree amending articles 16, 19, 22 and
+123 of the Constitution. SIDOF has no trace of it: the day is empty, the
+note's `codNota` returns `{"Nota": []}`, and its `codDiario` 404s. Sampling
+four years (1999, 2006, 2010, 2020) turned up **eight** such days — dates
+SIDOF calls unpublished that were published.
+
+`www.dof.gob.mx`, the DOF's own website, is a separate system on a separate
+database, and it has them. So an empty answer is no longer taken at face
+value: on a weekday, the day is put to the website before being written off.
+
+```bash
+dofjson --archivo                        # habiles (default): re-check Mon-Fri
+dofjson --archivo --respaldo todos       # also weekends (~10,000 more requests)
+dofjson --archivo --respaldo nunca       # trust SIDOF alone
+```
+
+```
+[1999-03-08] SIDOF no la tiene; recuperada de dof.gob.mx
+```
+
+The same applies to a single date, so a lost day is reachable directly:
+
+```bash
+dofjson 1999-03-08 --endpoint notas      # -> "fuente": "dof.gob.mx", 22 notas
+```
+
+**Which source a day came from is recorded, never inferred.** Every saved day
+carries a `fuente` key (`"sidof"` or `"dof.gob.mx"`), and the registry stores
+it next to the date, so provenance can be audited after the fact:
+
+```
+1999-03-06	sin-edicion
+1999-03-08	dof.gob.mx
+1999-03-09	sidof
+```
+
+In the compact `--titulos` dataset the marker rides along on the notes it
+applies to: a note carries `fuente` only when its day did *not* come from
+SIDOF, since repeating `"sidof"` on all ~1.2 million rows would cost more
+than it says.
+
+#### What the fallback carries, and what it does not
+
+The website's daily index lists the substantive gazette — `PE`, `PJ`, `PL`,
+`OA`, `OD` — and leaves out the three bulk-announcement groups, which are
+reachable on the site only through its POST search form:
+
+| | |
+|---|---|
+| `CV` | convocatorias for public-sector procurement |
+| `VG` | convocatorias for civil-service vacancies |
+| `AV` | avisos judiciales y generales |
+
+On days both sources have, the recovered set of `codNota` matches SIDOF's
+**exactly** once those three are excluded (checked on days sampled from 1999
+through 2026). A recovered day is therefore complete with respect to what the
+gazette *enacted* and short of what it *announced*, and says so in
+`notasIncompletas` rather than passing for a whole day.
+
+The website's per-note index **starts in January 1999**; before that it holds
+only scanned images, so an older day returns an edition with no index. Those
+come back in `edicionesSinIndice` as `{"codEdicion", "codDiario"}`: no titles
+to list, but proof the gazette was published, which is what keeps the day off
+the empty pile. Every day confirmed lost from SIDOF so far is 1999 or later,
+inside the range where titles can actually be recovered.
+
+> **On TLS.** `www.dof.gob.mx` serves its leaf certificate without the
+> intermediate that signs it, so verification fails with "unable to get local
+> issuer certificate" on any client that does not chase the issuer itself. The
+> missing GoDaddy intermediate — and its root — ship in
+> `dofjson/certs/dof-gob-mx-chain.pem`. The system trust store is tried first
+> and the bundled chain only on failure. Certificate verification is never
+> disabled.
 
 ## Building a compact titulo dataset from the release (`--titulos`)
 
