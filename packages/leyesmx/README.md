@@ -26,6 +26,8 @@ python -m leyesmx --ley cpeum          # -> data/reformas/cpeum.json
 python -m leyesmx --ley lft            # any LeyesBiblio abbreviation
 python -m leyesmx --ley todas          # all 316 laws in the index
 python -m leyesmx --ley reglamentos    # all 137 federal regulations
+python -m leyesmx --ley normas         # all 4,674 Normas Oficiales Mexicanas
+python -m leyesmx --ley tratados       # all 1,956 international treaties
 ```
 
 The first run downloads the titles dataset (~35 MB) unless `--titulos` points
@@ -40,6 +42,20 @@ enlazadas = dof.enlaza(reformas, tweet_iterator("titulos.jsonl.gz"))
 ```
 
 ## The data
+
+Published as the
+[`historial-legislativo`](https://github.com/INGEOTEC/LegalIA/releases/tag/historial-legislativo)
+release, so it can be had without cloning:
+
+```bash
+gh release download historial-legislativo --repo INGEOTEC/LegalIA
+sha256sum -c SHA256SUMS.txt
+```
+
+`leyes.tgz`, `reglamentos.tgz`, `normas.tgz` and `tratados.tgz`. The monthly
+`reformas` workflow rebuilds all four collections, commits what changed to the
+repository — whose git history is the record of *when* each change appeared —
+and re-uploads only the assets whose bytes actually differ.
 
 One file per law, `data/reformas/<abbr>.json`, plus `leyes.json` with the
 catalogue itself (number, abbreviation, name, counts). Each law's file is a
@@ -120,6 +136,102 @@ rows has such a PDF (184 also have a scan of the printed page), so this
 fallback is complete rather than best-effort.
 
 Each `Reforma` exposes that URL as `.pdf`, whether or not the DOF has the note.
+
+## Normas Oficiales Mexicanas
+
+NOMs need no second source, and that is the whole difference. For a law the DOF
+never says which law a decree amends, which is why Diputados' curation is
+indispensable — but a NOM's DOF title **contains the NOM's own code**, so the
+link is intrinsic and the history reads off the titles dataset alone. Just as
+well, because LeyesBiblio does not carry NOMs at all: not one "NOM-" appears
+across its pages.
+
+A NOM's life in the gazette, as `NOM-001-SCFI-1993` has it:
+
+```
+03-05-1993  PROYECTO de Norma Oficial Mexicana NOM-001-SCFI-1993…
+11-10-1993  RESPUESTA a los comentarios recibidos respecto del Proyecto…
+13-10-1993  NORMA Oficial Mexicana NOM-001-SCFI-1993, aparatos electrónicos…
+19-12-2017  Proyecto de Norma Oficial Mexicana PROY-NOM-001-SCFI-2017…
+17-09-2019  Norma Oficial Mexicana NOM-001-SCFI-2018…
+14-05-2020  Modificación al Transitorio Primero…
+```
+
+A draft is keyed to the NOM it drafts, so `PROY-` is stripped. A note citing
+several codes belongs to each: the note issuing a revision usually also cancels
+the edition it replaces, which is how a lineage stays traceable.
+
+| | |
+|---|---|
+| NOMs | 4,674 |
+| DOF notes | 8,880 |
+| With more than one note | 2,044 |
+
+`data/normas/noms.json` maps each code to its notes, oldest first;
+`catalogo.json` adds the span, the count and a descriptive title — taken from
+the note that *is* the norm, since the most recent one is as often a notice of
+public consultation and says nothing about the subject. One file rather than
+one per NOM: 4,674 files each holding a handful of numbers would cost more than
+they tell.
+
+**Codes are not decomposed.** Sixty years of the gazette have left 253 distinct
+code shapes — `NOM-001-SCFI-1993`, `NOM-150-1979`, `NOM-C-247-1978`,
+`NOM-EM-002-SSA2-1993`, `NOM-015-SCT-2-1993`. Parsing the parts invites reading
+a year as a dependency, which mislabelled 927 notes on the first attempt, so
+the normalized code string is the identifier.
+
+**Codes cited short.** Titles often cite a NOM by part of its code. Where
+exactly one full code extends it the citation is folded in — `NOM-186-SSA1`
+into `NOM-186-SSA1-2000` — which recovers 114 such citations. Where several do,
+it cannot be resolved: `NOM-021` is equally the ASEA, the SAG and the SCT4
+norm. Those 287 codes and their 669 notes go to `citas-ambiguas.json` rather
+than being dropped or guessed at — the notes do concern a NOM, only which one
+cannot be told.
+
+## International treaties
+
+No spine exists for these either, and here not for want of one. LeyesBiblio
+does not carry treaties, and `cja.sre.gob.mx/tratadosmexico` — the SRE's
+official register — answers a Radware bot-management challenge instead of data,
+so it is not a source a program can read. The gazette is read directly again,
+but a treaty has no code, only a name, which makes this the least certain of
+the four.
+
+A treaty reaches the DOF as two decrees, months or years apart:
+
+```
+10-01-1995  DECRETO por el que se aprueba el Convenio entre los Estados Unidos
+            Mexicanos y la República de Corea, para evitar la Doble Imposición…
+16-03-1995  DECRETO de promulgación del Convenio entre los Estados Unidos
+            Mexicanos y la República de Corea para Evitar la Doble Imposición…
+```
+
+Pairing them is the whole problem: the same instrument is worded differently
+each time — "2007" against "dos mil siete", "dado en Madrid" against "adoptado
+en Madrid".
+
+| | |
+|---|---|
+| Treaties | 1,956 |
+| DOF decrees | 2,745 |
+| Both decrees, names identical | 517 |
+| Both decrees, matched | 272 |
+| A single decree | 1,167 |
+
+**A treaty with one decree is the norm, not a miss.** Publishing both is a
+recent practice: the pairing rate climbs from 0% in the 1970s to about half in
+the 2010s, and for older treaties the gazette simply ran one of the two. Every
+one of the 2,745 decrees is accounted for in some treaty.
+
+**Names are weighted by word rarity, not compared as strings.** Treaty names
+are formulaic — "convenio entre el gobierno de los estados unidos mexicanos y
+el gobierno de la república de X para…" — so plain string similarity is
+dominated by the boilerplate and rates unrelated instruments highly: it gave
+**0.88** to a 1977 trade agreement with Gabon paired against a 1994 framework
+agreement, higher than it gave real pairs. Weighting each word by how rare it
+is puts that false pair at 0.56 and real ones at 0.72–0.78, so the threshold
+sits at 0.70. A promulgation is never paired with an approval that follows it,
+and each decree is claimed once.
 
 ## Matching a note to an entry
 
