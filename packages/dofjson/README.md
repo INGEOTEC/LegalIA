@@ -173,6 +173,17 @@ to list, but proof the gazette was published, which is what keeps the day off
 the empty pile. Every day confirmed lost from SIDOF so far is 1999 or later,
 inside the range where titles can actually be recovered.
 
+> **On a page served for the wrong date.** The index prints the date it is
+> actually serving, and it has been seen answering with a *different* day's
+> page. Since the parser stamps each note with the date that was **asked
+> for**, taking such a page at face value would file real notes under the
+> wrong day. Every page carrying content is therefore checked against what it
+> claims to be, and a mismatch raises `dofweb.PaginaDeOtroDia`. `--archivo`
+> treats that like a network error and leaves the day to retry — believing it
+> would corrupt the day, and calling the day empty would bury it for good.
+> Editions the gazette never ran carry no date and no content, which is not a
+> mix-up and is not treated as one.
+
 > **On TLS.** `www.dof.gob.mx` serves its leaf certificate without the
 > intermediate that signs it, so verification fails with "unable to get local
 > issuer certificate" on any client that does not chase the issuer itself. The
