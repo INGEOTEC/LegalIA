@@ -77,17 +77,31 @@ def enlaza(reformas, notas) -> list[ReformaEnlazada]:
     """Pair every reform with the best-matching DOF note published that day.
 
     `notas` is any iterable of dofjson title records (see
-    `dofjson.titulos.download_titulos`). A reform whose date has no note in
-    the dataset comes back with `codNota=None` rather than being dropped: a
-    missing note is a fact about the source worth surfacing, not an error.
-
-    Each note is claimed by at most one reform: several reforms to the same
-    law can share a publication date, and each has its own note. Pairs are
-    assigned best-score-first so the clearest match wins its note.
+    `dofjson.titulos.download_titulos`). Grouping it costs one full pass, so
+    when linking many laws against the same dataset, group once with
+    `notas_por_fecha()` and call `enlaza_agrupadas()` per law instead.
     """
     reformas = list(reformas)
-    porf = notas_por_fecha(notas, (r.fecha for r in reformas))
+    return enlaza_agrupadas(
+        reformas, notas_por_fecha(notas, (r.fecha for r in reformas))
+    )
 
+
+def enlaza_agrupadas(reformas, porf: dict) -> list[ReformaEnlazada]:
+    """As `enlaza()`, over notes already grouped by date.
+
+    A reform whose date has no note in the dataset comes back with
+    `codNota=None` rather than being dropped: a missing note is a fact about
+    the source worth surfacing, not an error.
+
+    Within one law each note is claimed by at most one reform, since several
+    reforms to the same law can share a publication date and each has its own
+    note; pairs are assigned best-score-first so the clearest match wins.
+    Across laws there is no such exclusivity, and there must not be: one
+    decree routinely amends several laws at once, so the same codNota
+    legitimately appears in more than one law's list.
+    """
+    reformas = list(reformas)
     pares = [
         (similitud(r.decreto, n.get("titulo", "")), i, n)
         for i, r in enumerate(reformas)

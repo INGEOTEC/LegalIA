@@ -158,3 +158,134 @@ class TestDescargaDecreto(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             diputados.descarga_decreto(r, "x.pdf")
+
+
+def fila_reforma(no, titulo, fecha_texto, archivo):
+    """Una fila de la tabla "Decretos de Reforma" de una ley ordinaria: el
+    número en su celda, y el título junto con la fecha en la siguiente."""
+    return (
+        "<tr>"
+        f"<td><p>{no}</p></td>"
+        f'<td><p><b>DECRETO</b> {titulo}</p>'
+        f'<p>| <a href="lan/{archivo}">{fecha_texto}</a> | '
+        f'<a href="lan/{archivo.replace(".pdf", ".doc")}">Word</a> |</p></td>'
+        "</tr>"
+    )
+
+
+def pagina_ordinaria(filas, original="01-12-1992"):
+    cabeza = (
+        f"<p><b>Publicación Original:</b></p><p>| DOF {original} | "
+        '<a href="lan/LAN_orig_01dic92_ima.pdf">Imagen</a> |</p>'
+        if original else ""
+    )
+    return (f"<html><body>{cabeza}<p>Decretos de Reforma:</p>"
+            f"<table>{''.join(filas)}</table></body></html>")
+
+
+class TestLeyOrdinaria(unittest.TestCase):
+    """Las leyes ordinarias no usan el formato de la tabla cronológica de la
+    Constitución: la fecha va dentro de la misma celda que el título."""
+
+    def test_lee_numero_fecha_y_titulo(self):
+        html = pagina_ordinaria([
+            fila_reforma("11", "por el que se expide la Ley General de Aguas",
+                         "DOF 11-12-2025", "LAN_ref11_11dic25.pdf"),
+        ])
+
+        rs = diputados.parse_reformas(html, "lan")
+
+        self.assertEqual([r.no for r in rs], [None, 11])
+        self.assertEqual(rs[0].fecha, "01-12-1992")
+        self.assertEqual(rs[1].fecha, "11-12-2025")
+        self.assertIn("Ley General de Aguas", rs[1].decreto)
+
+    def test_acepta_la_fecha_sin_el_prefijo_dof(self):
+        """Ambas grafías están en uso, a veces en la misma página."""
+        html = pagina_ordinaria([
+            fila_reforma("4", "por el que se expide la Ley de Disciplina Financiera",
+                         "27-04-2016", "LGCG_ref04_27abr16.pdf"),
+        ])
+
+        rs = diputados.parse_reformas(html, "lgcg")
+
+        self.assertEqual(rs[-1].fecha, "27-04-2016")
+
+    def test_toma_la_fecha_del_archivo_cuando_el_texto_esta_mal(self):
+        """`lgpgir` escribe "DOF 04-06-214", con el año a tres dígitos; el
+        archivo que enlaza dice 04jun14."""
+        html = pagina_ordinaria([
+            fila_reforma("8", "por el que se reforman diversas disposiciones",
+                         "DOF 04-06-214", "LGPGIR_ref08_04jun14.pdf"),
+        ])
+
+        rs = diputados.parse_reformas(html, "lgpgir")
+
+        self.assertEqual(rs[-1].fecha, "04-06-2014")
+
+    def test_ignora_lo_que_no_es_una_reforma(self):
+        """La misma tabla lleva otros instrumentos, cada uno numerado desde 1:
+        tomarlos por reformas es lo que hacía aparecer números duplicados."""
+        html = pagina_ordinaria([
+            fila_reforma("1", "por el que se reforman diversas disposiciones",
+                         "DOF 29-12-2014", "CNPP_ref01_29dic14.pdf"),
+            fila_reforma("1", "de entrada en vigor", "DOF 24-09-2014",
+                         "CNPP_decla01_24sep14.pdf"),
+            fila_reforma("2", "Actualización de cantidades . ANEXOS 4 y 5",
+                         "DOF 28-12-2025", "CFF_cant02_28dic25.pdf"),
+        ])
+
+        rs = diputados.parse_reformas(html, "cnpp")
+
+        self.assertEqual([r.no for r in rs], [None, 1])
+
+    def test_la_columna_manda_sobre_el_nombre_del_archivo(self):
+        """`loapf` enlaza en su reforma 47 un archivo de otra ley
+        (`LOPJF_ref25_`); la columna es la que acierta."""
+        html = pagina_ordinaria([
+            fila_reforma("47", "por el que se reforman diversas disposiciones",
+                         "DOF 24-12-2014", "LOPJF_ref25_24dic14.pdf"),
+        ])
+
+        rs = diputados.parse_reformas(html, "loapf")
+
+        self.assertEqual(rs[-1].no, 47)
+
+    def test_recupera_el_numero_del_archivo_si_la_columna_esta_vacia(self):
+        """`reg_senado` la deja vacía en las reformas 23 a 29."""
+        html = pagina_ordinaria([
+            fila_reforma("", "por el que se reforman diversos artículos",
+                         "DOF 06-12-2024", "REG_SENADO_ref23_06dic24.pdf"),
+        ])
+
+        rs = diputados.parse_reformas(html, "reg_senado")
+
+        self.assertEqual(rs[-1].no, 23)
+
+    def test_una_ley_sin_publicacion_original(self):
+        html = pagina_ordinaria([
+            fila_reforma("1", "por el que se reforman diversas disposiciones",
+                         "DOF 11-12-2025", "CCOM_ref01_11dic25.pdf"),
+        ], original="")
+
+        rs = diputados.parse_reformas(html, "ccom")
+
+        self.assertEqual([r.no for r in rs], [1])
+
+
+class TestListaLeyes(unittest.TestCase):
+    def test_lee_el_catalogo_del_indice(self):
+        html = (
+            "<table>"
+            '<tr><td>001</td><td><a href="ref/cpeum.htm">CONSTITUCIÓN Política</a>'
+            "<p>DOF 05/02/1917</p></td></tr>"
+            '<tr><td>017</td><td><a href="ref/lan.htm">LEY de Aguas Nacionales</a>'
+            "<p>DOF 01/12/1992</p></td></tr>"
+            "<tr><td>encabezado</td><td>sin enlace</td></tr>"
+            "</table>"
+        )
+
+        leyes = diputados.lista_leyes(html)
+
+        self.assertEqual([(l.no, l.abrev) for l in leyes], [(1, "cpeum"), (17, "lan")])
+        self.assertEqual(leyes[1].nombre, "LEY de Aguas Nacionales")
