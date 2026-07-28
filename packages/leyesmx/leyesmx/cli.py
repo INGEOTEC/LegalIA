@@ -1,6 +1,7 @@
 """Build a law's reform list: `python -m leyesmx --ley cpeum`."""
 
 import argparse
+import concurrent.futures as cf
 import json
 import sys
 from pathlib import Path
@@ -8,29 +9,151 @@ from pathlib import Path
 from leyesmx import diputados, dof
 
 
-def escribe_json(enlazadas, destino: Path) -> None:
-    """The reforms as a plain list of codNota, oldest first.
+def lista_de_codnota(enlazadas) -> list[int | None]:
+    """The reforms as a plain list of codNota, indexed by Diputados' numbering.
 
     Only the codNota is stored: everything else about a note — its title, its
     date, its issuing branch — is already in the dataset that
     `dofjson.titulos.download_titulos` builds, and is recovered by joining on
     codNota. Keeping a copy here would only let the two drift apart.
 
-    A reform whose note is absent from the DOF is written as `null` rather
-    than skipped. That keeps the list aligned with Diputados' own numbering —
-    index 0 is the law's original publication and index N is reform N — and
-    leaves the gap visible in the data instead of only in prose.
+    **Index N is reform N**, and index 0 is the law's original publication.
+    Each entry is placed by its number rather than by position, so the
+    invariant holds even where it otherwise would not: a few laws (`ccf`,
+    `ccom`) have no original publication on their page, and a reform whose
+    note is absent from the DOF stays in place as `null` instead of shifting
+    everything after it. A gap left visible in the data beats one that only
+    shows up in prose.
     """
+    maximo = max((e.no for e in enlazadas if e.no is not None), default=0)
+    lista: list[int | None] = [None] * (maximo + 1)
+    for e in enlazadas:
+        lista[e.no if e.no is not None else 0] = e.codNota
+    return lista
+
+
+def escribe_json(enlazadas, destino: Path) -> None:
     destino.parent.mkdir(parents=True, exist_ok=True)
     with open(destino, "w", encoding="utf-8") as fh:
-        json.dump([e.codNota for e in enlazadas], fh, indent=1)
+        json.dump(lista_de_codnota(enlazadas), fh, indent=1)
         fh.write("\n")
+
+
+def todas_las_leyes(args, tweet_iterator) -> int:
+    """Build the reform list of every law in LeyesBiblio's index.
+
+    The reform pages are fetched first and the DOF dataset is grouped once,
+    over the union of every law's dates: grouping is a full pass over ~1.2
+    million notes, and doing it per law would cost 316 of them.
+    """
+    destino_dir = args.out or Path("data/reformas")
+    leyes = diputados.lista_leyes(diputados.descarga_indice())
+    print(f"leyes en el índice de LeyesBiblio: {len(leyes)}", file=sys.stderr)
+
+    reformas_por_ley, fallidas = {}, []
+    with cf.ThreadPoolExecutor(max_workers=6) as ex:
+        futuros = {
+            ex.submit(lambda l=l: diputados.parse_reformas(
+                diputados.descarga(l.abrev), l.abrev, l.nombre)): l
+            for l in leyes
+        }
+        for fut in cf.as_completed(futuros):
+            ley = futuros[fut]
+            try:
+                reformas_por_ley[ley.abrev] = fut.result()
+            except Exception as exc:
+                fallidas.append((ley, f"{type(exc).__name__}: {exc}"))
+
+    fechas = {r.fecha for rs in reformas_por_ley.values() for r in rs}
+    print(f"agrupando el DOF por fecha ({len(fechas)} fechas distintas)…",
+          file=sys.stderr)
+    porf = dof.notas_por_fecha(tweet_iterator(str(args.titulos)), fechas)
+
+    catalogo, totales = [], {"reformas": 0, "con_nota": 0, "exactas": 0}
+    for ley in leyes:
+        reformas = reformas_por_ley.get(ley.abrev)
+        if reformas is None:
+            continue
+        enlazadas = dof.enlaza_agrupadas(reformas, porf)
+        escribe_json(enlazadas, destino_dir / f"{ley.abrev}.json")
+        con = sum(e.enlazada for e in enlazadas)
+        totales["reformas"] += len(enlazadas)
+        totales["con_nota"] += con
+        totales["exactas"] += sum(e.confianza >= 0.99 for e in enlazadas)
+        catalogo.append({"no": ley.no, "abrev": ley.abrev, "nombre": ley.nombre,
+                         "reformas": len(enlazadas), "conNota": con})
+
+    indice = destino_dir / "leyes.json"
+    indice.parent.mkdir(parents=True, exist_ok=True)
+    with open(indice, "w", encoding="utf-8") as fh:
+        json.dump(catalogo, fh, ensure_ascii=False, indent=1)
+        fh.write("\n")
+
+    print(f"\n{len(catalogo)} leyes -> {destino_dir}/  (índice en {indice})")
+    print(f"{totales['reformas']} reformas | {totales['con_nota']} con codNota "
+          f"({totales['exactas']} coincidencia exacta)")
+    sin = totales["reformas"] - totales["con_nota"]
+    if sin:
+        print(f"{sin} sin nota en el DOF")
+    for ley, err in fallidas:
+        print(f"  falló {ley.abrev} ({ley.nombre[:50]}): {err}", file=sys.stderr)
+    return 1 if fallidas else 0
+
+
+def todos_los_reglamentos(args, tweet_iterator) -> int:
+    """Build the reform list of every federal regulation LeyesBiblio lists.
+
+    Regulations go in their own subdirectory: their identifiers come from
+    Diputados' file names (`reg_ladua`) and the laws' from its index
+    (`reg_senado`), so nothing stops the two from colliding one day.
+    """
+    destino_dir = args.out or Path("data/reformas") / "reglamentos"
+    reglamentos = diputados.parse_reglamentos(diputados.descarga_reglamentos())
+    print(f"reglamentos en LeyesBiblio: {len(reglamentos)}", file=sys.stderr)
+
+    desacuerdos = diputados.numeracion_declarada(reglamentos)
+    if desacuerdos:
+        print(f"aviso: {len(desacuerdos)} reforma(s) cuyo número declarado no "
+              f"coincide con su posición cronológica: {desacuerdos[:5]}",
+              file=sys.stderr)
+
+    fechas = {r.fecha for reg in reglamentos for r in reg.reformas}
+    print(f"agrupando el DOF por fecha ({len(fechas)} fechas distintas)…",
+          file=sys.stderr)
+    porf = dof.notas_por_fecha(tweet_iterator(str(args.titulos)), fechas)
+
+    catalogo, totales = [], {"reformas": 0, "con_nota": 0, "exactas": 0}
+    for reg in reglamentos:
+        enlazadas = dof.enlaza_agrupadas(reg.reformas, porf, por_nombre=True)
+        escribe_json(enlazadas, destino_dir / f"{reg.abrev}.json")
+        con = sum(e.enlazada for e in enlazadas)
+        totales["reformas"] += len(enlazadas)
+        totales["con_nota"] += con
+        totales["exactas"] += sum(e.confianza >= 0.99 for e in enlazadas)
+        catalogo.append({"no": reg.no, "abrev": reg.abrev, "nombre": reg.nombre,
+                         "reformas": len(enlazadas), "conNota": con})
+
+    indice = destino_dir / "reglamentos.json"
+    indice.parent.mkdir(parents=True, exist_ok=True)
+    with open(indice, "w", encoding="utf-8") as fh:
+        json.dump(catalogo, fh, ensure_ascii=False, indent=1)
+        fh.write("\n")
+
+    print(f"\n{len(catalogo)} reglamentos -> {destino_dir}/  (índice en {indice})")
+    print(f"{totales['reformas']} entradas | {totales['con_nota']} con codNota "
+          f"({totales['exactas']} coincidencia exacta)")
+    sin = totales["reformas"] - totales["con_nota"]
+    if sin:
+        print(f"{sin} sin nota en el DOF")
+    return 0
 
 
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--ley", default="cpeum",
-                   help="LeyesBiblio abbreviation (default: cpeum)")
+                   help="LeyesBiblio abbreviation; 'todas' for every law in its "
+                        "index, 'reglamentos' for every federal regulation "
+                        "(default: cpeum)")
     p.add_argument("--titulos", type=Path, default=Path("titulos.jsonl.gz"),
                    help="dataset from dofjson.titulos.download_titulos")
     p.add_argument("--out", type=Path, default=None,
@@ -46,6 +169,11 @@ def main(argv=None) -> int:
         from dofjson.titulos import download_titulos
         print(f"descargando títulos del DOF -> {args.titulos}", file=sys.stderr)
         download_titulos(args.titulos, log=lambda *_: None)
+
+    if args.ley == "todas":
+        return todas_las_leyes(args, tweet_iterator)
+    if args.ley == "reglamentos":
+        return todos_los_reglamentos(args, tweet_iterator)
 
     reformas = diputados.parse_reformas(diputados.descarga(args.ley), args.ley)
     enlazadas = dof.enlaza(reformas, tweet_iterator(str(args.titulos)))
