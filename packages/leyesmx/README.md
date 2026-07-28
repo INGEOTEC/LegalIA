@@ -21,7 +21,7 @@ primary source that enacted it.
 ## Use
 
 ```bash
-pip install -e packages/dofjson -e packages/leyesmx
+pip install -e packages/dofjson -e packages/leyesmx   # requests y pypdf, nada más
 python -m leyesmx --ley cpeum          # -> data/reformas/cpeum.json
 python -m leyesmx --ley lft            # any LeyesBiblio abbreviation
 python -m leyesmx --ley todas          # all 316 laws in the index
@@ -35,10 +35,10 @@ at an existing one.
 
 ```python
 from leyesmx import diputados, dof
-from microtc.utils import tweet_iterator
+from dofjson.titulos import lee_titulos
 
 reformas = diputados.parse_reformas(diputados.descarga("cpeum"), "cpeum")
-enlazadas = dof.enlaza(reformas, tweet_iterator("titulos.jsonl.gz"))
+enlazadas = dof.enlaza(reformas, lee_titulos("titulos.jsonl.gz"))
 ```
 
 ## The data
@@ -76,10 +76,10 @@ drift apart:
 
 ```python
 import json
-from microtc.utils import tweet_iterator
+from dofjson.titulos import lee_titulos
 
 reformas = set(json.load(open("data/reformas/cpeum.json")))
-for nota in tweet_iterator("titulos.jsonl.gz"):
+for nota in lee_titulos("titulos.jsonl.gz"):
     if nota["codNota"] in reformas:
         print(nota["fecha"], nota["titulo"])
 ```

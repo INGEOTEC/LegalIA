@@ -384,5 +384,63 @@ class TestDownloadTitulos(unittest.TestCase):
         self.assertFalse((Path(self.tmpdir.name) / "organigrama.json").exists())
 
 
+class TestLeeTitulos(unittest.TestCase):
+    """El lector de lo que escribe download_titulos. Antes leyesmx usaba
+    microtc.utils.tweet_iterator para esto: lee el mismo formato, pero importa
+    numpy sin declararlo, así que una instalación sin numpy falla en
+    `import microtc` y no en la llamada."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dest = Path(self.tmp.name) / "titulos.jsonl.gz"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def escribe(self, lineas):
+        with gzip.open(self.dest, "wt", encoding="utf-8") as f:
+            f.write(lineas)
+
+    def test_lee_lo_que_download_titulos_escribe(self):
+        self.escribe('{"codNota": 1, "titulo": "DECRETO"}\n'
+                     '{"codNota": 2, "titulo": "ACUERDO"}\n')
+
+        self.assertEqual(
+            list(titulos.lee_titulos(self.dest)),
+            [{"codNota": 1, "titulo": "DECRETO"}, {"codNota": 2, "titulo": "ACUERDO"}],
+        )
+
+    def test_conserva_los_acentos(self):
+        self.escribe('{"codNota": 1, "titulo": "Aclaración al Acuerdo"}\n')
+
+        self.assertEqual(next(titulos.lee_titulos(self.dest))["titulo"],
+                         "Aclaración al Acuerdo")
+
+    def test_ignora_las_lineas_en_blanco(self):
+        self.escribe('{"codNota": 1}\n\n{"codNota": 2}\n')
+
+        self.assertEqual([n["codNota"] for n in titulos.lee_titulos(self.dest)], [1, 2])
+
+    def test_es_perezoso(self):
+        """1.2 millones de notas: cargarlas todas de golpe no es opción."""
+        self.escribe('{"codNota": 1}\n{"codNota": 2}\n')
+
+        self.assertEqual(next(titulos.lee_titulos(self.dest)), {"codNota": 1})
+
+    def test_ida_y_vuelta_con_download_titulos(self):
+        contenido = hacer_tgz({"1980/02011980-notas.json": dia(
+            {"codNota": 7, "titulo": "DECRETO", "fecha": "02-01-1980",
+             "codOrgaUno": "PE"})})
+        with patch("dofjson.titulos.listar_assets",
+                   return_value=[{"name": "notas-1980.tgz", "url": "https://x/a.tgz"}]), \
+             patch("dofjson.titulos.requests.get",
+                   return_value=Mock(content=contenido, raise_for_status=Mock())):
+            titulos.download_titulos(self.dest, log=lambda *_: None)
+
+        self.assertEqual(list(titulos.lee_titulos(self.dest)),
+                         [{"codNota": 7, "titulo": "DECRETO", "fecha": "02-01-1980",
+                           "codOrgaUno": "PE"}])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,8 @@
 plotly
 microtc
+# microtc importa numpy pero no lo declara, así que hay que pedirlo
+# aquí: hoy llega por scipy, y dejaría de llegar si scipy se quita.
+numpy
 scipy
 wordcloud
 jupyter
