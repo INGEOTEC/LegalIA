@@ -2,3 +2,5 @@ plotly
 microtc
 scipy
 wordcloud
+jupyter
+pandas
