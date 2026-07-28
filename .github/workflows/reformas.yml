@@ -1,7 +1,13 @@
 name: reformas
 
-# Rebuilds each law's reform table and commits it when it changes, so the
-# repository accumulates the legislative history as it happens.
+# Rebuilds the legislative history every month and keeps two copies of it in
+# step: the JSON in the repository, whose git history is the record of what
+# changed when, and the `historial-legislativo` release, which is how the data
+# is downloaded without cloning.
+#
+# The release is verified on every run and only the assets whose bytes actually
+# changed are re-uploaded — the tarballs are byte-reproducible, so identical
+# data is an identical file (see scripts/empaqueta_historial.py).
 
 on:
   schedule:
@@ -11,8 +17,11 @@ on:
   workflow_dispatch:
     inputs:
       ley:
-        description: "Abreviatura, 'todas', 'reglamentos', 'normas' o 'tratados'"
-        default: todas
+        description: "'todo', 'todas', 'reglamentos', 'normas', 'tratados' o una abreviatura"
+        default: todo
+
+env:
+  TAG: historial-legislativo
 
 jobs:
   reformas:
@@ -26,33 +35,108 @@ jobs:
           python-version: "3.12"
       - name: Install packages
         run: pip install -e packages/dofjson -e packages/leyesmx
-      # In 'todas' mode --out is the directory the per-law files go in; for a
-      # single law it is that law's file.
-      - name: Build the reform tables
+
+      # 'todo' rebuilds every collection, which is what the monthly run needs:
+      # targeting one would leave the other three to go stale. The titles
+      # dataset is downloaded once by the first build and reused by the rest.
+      - name: Build
         env:
-          LEY: ${{ inputs.ley || 'todas' }}
+          LEY: ${{ inputs.ley || 'todo' }}
         run: |
-          if [ "$LEY" = "todas" ]; then
-            salida="packages/leyesmx/data/reformas"
-          elif [ "$LEY" = "reglamentos" ]; then
-            salida="packages/leyesmx/data/reformas/reglamentos"
-          elif [ "$LEY" = "normas" ]; then
-            salida="packages/leyesmx/data/normas"
-          elif [ "$LEY" = "tratados" ]; then
-            salida="packages/leyesmx/data/tratados"
+          set -eu
+          titulos="${RUNNER_TEMP}/titulos.jsonl.gz"
+          construye() {
+            case "$1" in
+              todas)       salida="packages/leyesmx/data/reformas" ;;
+              reglamentos) salida="packages/leyesmx/data/reformas/reglamentos" ;;
+              normas)      salida="packages/leyesmx/data/normas" ;;
+              tratados)    salida="packages/leyesmx/data/tratados" ;;
+              *)           salida="packages/leyesmx/data/reformas/$1.json" ;;
+            esac
+            python -m leyesmx --ley "$1" --titulos "$titulos" --out "$salida"
+          }
+          if [ "$LEY" = "todo" ]; then
+            for coleccion in todas reglamentos normas tratados; do
+              construye "$coleccion"
+            done
           else
-            salida="packages/leyesmx/data/reformas/$LEY.json"
+            construye "$LEY"
           fi
-          python -m leyesmx --ley "$LEY" \
-            --titulos "${RUNNER_TEMP}/titulos.jsonl.gz" --out "$salida"
-      - name: Commit if the table changed
+
+      - name: Commit if the data changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if git diff --quiet -- packages/leyesmx/data; then
-            echo "sin cambios"
+            echo "sin cambios en el repositorio"
+          else
+            git add packages/leyesmx/data
+            git commit -m "Actualiza el historial legislativo (${{ inputs.ley || 'todo' }})"
+            git push
+          fi
+
+      - name: Pack the release assets
+        run: ./scripts/empaqueta_historial.py --outdir historial
+
+      # Created on the first run; from then on it is only updated.
+      - name: Create the release if it does not exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "el release $TAG ya existe"
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "Historial legislativo" \
+              --notes-file .github/historial-legislativo.md
+          fi
+
+      # A byte comparison, not a guess: an unchanged collection rebuilds to the
+      # same file, so anything that differs really differs.
+      - name: Upload only what changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          mkdir -p publicado
+          cambiados=""
+          for asset in historial/*; do
+            nombre=$(basename "$asset")
+            if gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
+                 --pattern "$nombre" --dir publicado --clobber 2>/dev/null \
+               && cmp -s "publicado/$nombre" "$asset"; then
+              echo "= $nombre sin cambios"
+            else
+              echo "~ $nombre cambió"
+              cambiados="$cambiados $asset"
+            fi
+          done
+          if [ -z "$cambiados" ]; then
+            echo 'El release ya estaba al día.' >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          git add packages/leyesmx/data
-          git commit -m "Actualiza las tablas de reformas (${{ inputs.ley || 'todas' }})"
-          git push
+          # --clobber replaces in place, so the release is never left with an
+          # asset missing the way delete-then-upload would.
+          gh release upload "$TAG" $cambiados --clobber --repo "$GITHUB_REPOSITORY"
+          {
+            echo '## Assets actualizados'
+            for a in $cambiados; do echo "- \`$(basename "$a")\`"; done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify what the release now serves
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          rm -rf verificacion && mkdir verificacion
+          cd verificacion
+          for asset in ../historial/*; do
+            nombre=$(basename "$asset")
+            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --pattern "$nombre" --clobber
+            if ! cmp -s "$nombre" "$asset"; then
+              echo "::error::$nombre en el release no coincide con lo construido"
+              exit 1
+            fi
+            echo "$nombre OK"
+          done
