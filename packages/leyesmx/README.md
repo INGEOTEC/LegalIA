@@ -43,6 +43,20 @@ enlazadas = dof.enlaza(reformas, tweet_iterator("titulos.jsonl.gz"))
 
 ## The data
 
+Published as the
+[`historial-legislativo`](https://github.com/INGEOTEC/LegalIA/releases/tag/historial-legislativo)
+release, so it can be had without cloning:
+
+```bash
+gh release download historial-legislativo --repo INGEOTEC/LegalIA
+sha256sum -c SHA256SUMS.txt
+```
+
+`leyes.tgz`, `reglamentos.tgz`, `normas.tgz` and `tratados.tgz`. The monthly
+`reformas` workflow rebuilds all four collections, commits what changed to the
+repository — whose git history is the record of *when* each change appeared —
+and re-uploads only the assets whose bytes actually differ.
+
 One file per law, `data/reformas/<abbr>.json`, plus `leyes.json` with the
 catalogue itself (number, abbreviation, name, counts). Each law's file is a
 plain list of `codNota`:

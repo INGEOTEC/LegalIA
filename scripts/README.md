@@ -4,6 +4,25 @@ Repo-level utilities. They add `packages/dofjson` to the import path
 themselves, so they run straight from a clone — only `requests` has to be
 available.
 
+## `empaqueta_historial.py`
+
+Packs `packages/leyesmx/data/` into the four tarballs published as assets of
+the [`historial-legislativo`](https://github.com/INGEOTEC/LegalIA/releases/tag/historial-legislativo)
+release — `leyes.tgz`, `reglamentos.tgz`, `normas.tgz`, `tratados.tgz` — plus a
+`SHA256SUMS.txt`.
+
+```bash
+./scripts/empaqueta_historial.py --outdir historial
+./scripts/empaqueta_historial.py --verificar historial   # which assets changed
+```
+
+The tarballs are **byte-reproducible**: gzip is stamped with mtime 0, members
+are added sorted, and their timestamps and ownership are fixed. Identical data
+therefore produces an identical file, which is what lets the monthly workflow
+tell an unchanged collection from a changed one by comparing bytes rather than
+guessing — and what makes `--verificar` meaningful. It exits non-zero when
+anything differs.
+
 ## `reparar_notas_archivo.py`
 
 Refills the days SIDOF lost into the published

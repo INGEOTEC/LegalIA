@@ -118,12 +118,22 @@ class Pesos:
         return math.log(1 + self.total / (1 + self.frecuencia[palabra]))
 
     def similitud(self, a: str, b: str) -> float:
-        """Rarity-weighted overlap of two names, in [0, 1]."""
+        """Rarity-weighted overlap of two names, in [0, 1].
+
+        The sums run over sorted words, not over the sets themselves. Set
+        iteration order follows string hashing, which is randomized per process,
+        so summing in that order made the same pair of names score
+        0.9999999999999998 on one run and 1.0 on the next. Floating-point
+        addition is not associative, and the release only needs re-uploading
+        when the data actually changed — a score that wobbles between runs
+        could reorder near-tied pairs and make an unchanged collection look
+        different.
+        """
         pa, pb = set(normaliza(a).split()), set(normaliza(b).split())
         if not pa or not pb:
             return 0.0
-        union = sum(self.peso(p) for p in pa | pb)
-        return sum(self.peso(p) for p in pa & pb) / union if union else 0.0
+        union = sum(self.peso(p) for p in sorted(pa | pb))
+        return sum(self.peso(p) for p in sorted(pa & pb)) / union if union else 0.0
 
 
 def _orden(nota: dict) -> tuple:
