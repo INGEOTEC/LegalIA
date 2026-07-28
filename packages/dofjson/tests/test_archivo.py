@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 
 import requests
 
+from dofjson import dofweb
 from dofjson.cli import main
 
 
@@ -215,6 +216,19 @@ class TestRespaldo(unittest.TestCase):
         )
         self.assertEqual(guardado["edicionesSinIndice"][0]["codDiario"], 189450)
         self.assertEqual(registro(self.root), [("1930-06-10", "dof.gob.mx")])
+
+    @patch("dofjson.dofweb.get_notas")
+    @patch("dofjson.client.get_notas")
+    def test_a_page_served_for_another_date_leaves_the_day_to_retry(self, mock_sidof, mock_web):
+        """Believing it would file real notes under this day; calling the day
+        empty would bury it for good. Retrying is the only safe answer."""
+        mock_sidof.return_value = respuesta_notas([])
+        mock_web.side_effect = dofweb.PaginaDeOtroDia("se pidió 16/03/2015 y dice 24/07/2015")
+
+        self.correr("2015-03-16", "2015-03-16")
+
+        self.assertFalse((self.root / "2015").exists())
+        self.assertFalse((self.root / ".completados").exists())
 
     @patch("dofjson.dofweb.get_notas")
     @patch("dofjson.client.get_notas")

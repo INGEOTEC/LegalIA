@@ -19,6 +19,21 @@ headings, `**bold**`, `*italic*`, GitHub tables — `dof2md` rewrites mineru's
 HTML tables to Markdown), so a note's Markdown looks much the same whichever
 source it came from.
 
+### Notes SIDOF does not have
+
+SIDOF is missing whole days of the gazette (see [`dofjson`](../dofjson)), and
+the notes published on them have no SIDOF record at all — no `cadenaContenido`,
+and no `codDiario` or page numbers for the OCR paths to start from. When SIDOF
+answers `{"Nota": []}` for a `codNota`, `nota2md` looks the note up on the DOF's
+own website instead, which serves the same HTML:
+
+```bash
+nota2md 4997808 --outdir output   # DOF 03-03-1999, a day SIDOF lost
+```
+
+The HTML path is the only one that can build these notes; asking for `--source
+image` or `--source pdf` on one raises rather than fetching the wrong pages.
+
 ### Cutting a note out of its page
 
 A scanned page (or a sliced PDF) usually holds more than one note: it can begin

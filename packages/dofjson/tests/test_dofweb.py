@@ -24,8 +24,13 @@ def nota(codigo: str, titulo: str) -> str:
     )
 
 
+def encabezado(fecha: str) -> str:
+    return f'<td class="txt"><span>Fecha: {fecha} - Edici&oacute;n Matutina</span></td>'
+
+
 UNA_SECCION = pagina(
-    '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
+    encabezado("08/03/1999")
+    + '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
     '<td class="txt_blanco2">&nbsp;PODER EJECUTIVO</td>'
     # The real page leaves commented-out markup wrapped around the heading.
     '<td class="subtitle_azul"><!-- <img src="b.gif" alt="."> -->'
@@ -42,7 +47,8 @@ SIN_DATOS = pagina('<td class="txt_blanco">&nbsp; No hay datos para la fecha sel
 # A pre-digital day: the edition exists, but only as scanned images, so the
 # index carries section banners and no per-note links.
 SOLO_IMAGEN = pagina(
-    '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
+    encabezado("10/06/1930")
+    + '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
     '<td class="txt_blanco">&nbsp; SEGUNDA SECCION</td>',
     cod_diario="189450",
 )
@@ -92,7 +98,8 @@ class TestParseo(unittest.TestCase):
         """GDF and OTROS appear in the archive but not in a present-day
         edition; the site labels them with the same words SIDOF names them by."""
         pagina_gdf = pagina(
-            '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
+            encabezado("08/03/1999")
+            + '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
             '<td class="txt_blanco2">&nbsp;GOBIERNO DEL DISTRITO FEDERAL</td>'
             + nota("5001000", "Aviso del GDF")
             + '<td class="txt_blanco2">&nbsp;OTROS</td>'
@@ -104,7 +111,8 @@ class TestParseo(unittest.TestCase):
 
     def test_an_unknown_heading_leaves_the_code_unset_but_keeps_the_name(self):
         pagina_rara = pagina(
-            '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
+            encabezado("08/03/1999")
+            + '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
             '<td class="txt_blanco2">&nbsp;ORGANISMO NUEVO</td>' + nota("5001002", "X")
         )
         nota_rara = self.notas_de({"MAT": pagina_rara})["NotasMatutinas"][0]
@@ -128,7 +136,8 @@ class TestParseo(unittest.TestCase):
 
     def test_reads_every_edition(self):
         r = self.notas_de({"MAT": UNA_SECCION, "VES": pagina(
-            '<td class="txt_blanco">&nbsp; UNICA SECCION</td>'
+            encabezado("08/03/1999")
+            + '<td class="txt_blanco">&nbsp; UNICA SECCION</td>'
             '<td class="txt_blanco2">&nbsp;PODER EJECUTIVO</td>'
             + nota("4997870", "Aviso vespertino"))})
 
@@ -162,6 +171,45 @@ class TestHuecos(unittest.TestCase):
             r["edicionesSinIndice"], [{"codEdicion": "MAT", "codDiario": 189450}]
         )
 
+    def test_rejects_a_page_served_for_another_date(self):
+        """The site has been seen answering with a different day's page. The
+        parser stamps each note with the date that was *asked for*, so taking
+        it at face value would file real notes under the wrong day."""
+        with self.assertRaises(dofweb.PaginaDeOtroDia) as cm:
+            # UNA_SECCION prints 08/03/1999; ask for a different day.
+            self.notas_de({"MAT": UNA_SECCION}, fecha=dt.date(2015, 3, 16))
+
+        self.assertIn("16/03/2015", str(cm.exception))
+        self.assertIn("08/03/1999", str(cm.exception))
+
+    def test_rejects_content_that_carries_no_date_at_all(self):
+        sin_encabezado = pagina(
+            '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>' + nota("1", "X")
+        )
+
+        with self.assertRaises(dofweb.PaginaDeOtroDia):
+            self.notas_de({"MAT": sin_encabezado})
+
+    def test_an_edition_that_did_not_run_needs_no_date(self):
+        """Some dates answer for an edition the gazette never ran with a bare
+        page: no "no hay datos" banner, no date, no content. There is nothing
+        there to mistake for another day, so it is not treated as a mix-up —
+        08-03-1999 answers exactly this way for EXT."""
+        vacia = "<html><body><table></table></body></html>"
+
+        r = self.notas_de({"MAT": UNA_SECCION, "EXT": vacia})
+
+        self.assertEqual(len(r["NotasMatutinas"]), 3)
+        self.assertEqual(r["NotasExtraordinarias"], [])
+        self.assertEqual(r["edicionesSinIndice"], [])
+
+    def test_a_day_with_no_edition_needs_no_date_to_be_accepted(self):
+        """"No hay datos" carries no header, and that is not a mix-up: it is
+        the site saying the gazette did not come out."""
+        r = self.notas_de({"MAT": SIN_DATOS})
+
+        self.assertFalse(dofweb.hay_publicacion(r))
+
     def test_a_404_edition_is_not_an_error(self):
         def _get(url, **kwargs):
             response = Mock(status_code=404)
@@ -184,6 +232,102 @@ class TestHuecos(unittest.TestCase):
         with patch("dofjson.dofweb.requests.get", side_effect=_get):
             with self.assertRaises(requests.exceptions.HTTPError):
                 dofweb.get_notas(dt.date(1999, 3, 8))
+
+
+def pagina_nota(fecha="03/03/1999", detalle="", encoding="utf-8"):
+    """A stand-in for nota_detalle.php, in its real shape: the note's markup
+    wrapped in <HTML>…</HTML>, then the site's own disclaimer, both inside
+    DivDetalleNota."""
+    cuerpo = (
+        "<html><body>"
+        f"<td class='txt'><b>DOF: {fecha}</b> </td>"
+        "<td><div id='DivDetalleNota' align='justify' style='overflow:hidden;'>"
+        f"{detalle}"
+        "<table><tr><td class='txt'>En el documento que usted est&aacute; "
+        "visualizando puede haber texto, caracteres u objetos que no se muestren "
+        "correctamente debido a la conversi&oacute;n a formato HTML.</td></tr></table>"
+        "</div></td></body></html>"
+    )
+    response = Mock(content=cuerpo.encode(encoding), encoding=encoding)
+    response.raise_for_status = Mock()
+    return response
+
+
+NOTA_HTML = (
+    '<HTML><BODY><p align="justify"><font size="2" face="Arial">DECRETO por el '
+    "que se concede permiso a los ciudadanos cuya lista encabeza Carlos Jos&eacute; "
+    "Mauricio Prieto y Jacque.</font></p> "
+    '<p><font size="2" face="Arial"><b>ERNESTO ZEDILLO PONCE DE LEON</b>, '
+    "Presidente de los Estados Unidos Mexicanos.</font></p></BODY></HTML>"
+)
+
+# What the site puts in the div when it has no HTML for the note.
+SOLO_PDF = (
+    "<table><tr><td>El contenido del documento &uacute;nicamente puede ser "
+    "visualizado a trav&eacute;s de la edici&oacute;n del Diario Oficial de la "
+    "Federaci&oacute;n en formato PDF.</td></tr></table>"
+)
+
+
+class TestGetNota(unittest.TestCase):
+    def nota_de(self, **kwargs):
+        with patch("dofjson.dofweb.requests.get", return_value=pagina_nota(**kwargs)):
+            return dofweb.get_nota(4997808)
+
+    def test_reads_the_notes_html_and_metadata(self):
+        r = self.nota_de(detalle=NOTA_HTML)
+        nota = r["Nota"]
+
+        self.assertEqual(r["fuente"], dofweb.FUENTE)
+        self.assertEqual(nota["codNota"], 4997808)
+        self.assertEqual(nota["fecha"], "03-03-1999")
+        self.assertEqual(nota["existeHtml"], "S")
+        self.assertEqual(nota["fuente"], dofweb.FUENTE)
+        self.assertEqual(nota["cadenaContenido"], NOTA_HTML)
+
+    def test_the_title_is_the_notes_own_first_line(self):
+        nota = self.nota_de(detalle=NOTA_HTML)["Nota"]
+
+        self.assertEqual(
+            nota["titulo"],
+            "DECRETO por el que se concede permiso a los ciudadanos cuya lista "
+            "encabeza Carlos José Mauricio Prieto y Jacque.",
+        )
+
+    def test_the_sites_disclaimer_is_not_part_of_the_note(self):
+        """The disclaimer sits inside the div but after </HTML>, so the wrapper
+        is what bounds the note — otherwise it would end up in the Markdown."""
+        nota = self.nota_de(detalle=NOTA_HTML)["Nota"]
+
+        self.assertNotIn("En el documento que usted", nota["cadenaContenido"])
+        self.assertTrue(nota["cadenaContenido"].endswith("</BODY></HTML>"))
+
+    def test_a_note_the_site_serves_only_as_pdf_has_no_html(self):
+        nota = self.nota_de(detalle=SOLO_PDF)["Nota"]
+
+        self.assertEqual(nota["existeHtml"], "N")
+        self.assertIsNone(nota["cadenaContenido"])
+        self.assertIsNone(nota["titulo"])
+        self.assertEqual(nota["fecha"], "03-03-1999")
+
+    def test_an_unknown_codigo_answers_an_empty_note_like_sidof(self):
+        """The site does not 404 for a codigo it lacks: it renders the page with
+        the epoch as the publication date. That is the tell."""
+        r = self.nota_de(fecha="31/12/1969", detalle=SOLO_PDF)
+
+        self.assertEqual(r["Nota"], [])
+
+    def test_the_page_is_decoded_by_the_charset_it_declares(self):
+        """Note pages are UTF-8 and say so, unlike the daily index (cp1252)."""
+        nota = self.nota_de(detalle=NOTA_HTML.replace("Jos&eacute;", "José"))["Nota"]
+
+        self.assertIn("José", nota["cadenaContenido"])
+
+    def test_nested_divs_do_not_end_the_note_early(self):
+        detalle = "<HTML><BODY><div><p>Uno</p></div><p>Dos</p></BODY></HTML>"
+        nota = self.nota_de(detalle=detalle)["Nota"]
+
+        self.assertEqual(nota["cadenaContenido"], detalle)
 
 
 class TestTLS(unittest.TestCase):

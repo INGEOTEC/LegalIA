@@ -1,4 +1,4 @@
-"""Fallback source for a day's notes index: the DOF's own website.
+"""Fallback source for the DOF's contents: the DOF's own website.
 
 SIDOF (`client.py`) is the primary source, but its dataset has holes. For
 some dates it does not answer 404 — it answers **200 OK with every note list
@@ -10,9 +10,15 @@ the Constitution. The note is unreachable from SIDOF by any route — its
 codNota returns `{"Nota": []}` and its codDiario 404s.
 
 The DOF's public website, `www.dof.gob.mx`, is a separate system built on a
-separate database, and it does have those days. This module reads its daily
-index and returns it in the same shape `client.get_notas()` uses, so a caller
-can substitute one for the other.
+separate database, and it does have those days. This module reads it and
+returns what it finds in the shapes `client` uses, so a caller can substitute
+one for the other:
+
+* `get_notas()` mirrors `client.get_notas()` — a day's index.
+* `get_nota()` mirrors `client.get_nota()` — one note, with the HTML of its
+  text in `cadenaContenido`. This is the only way to read the text of a note
+  on a day SIDOF lost: those notes have no SIDOF record at all, so the whole
+  HTML → Markdown path (nota2md) would otherwise be unavailable for them.
 
 What the fallback does and does not carry
 -----------------------------------------
@@ -62,7 +68,8 @@ BASE_URL = "https://www.dof.gob.mx"
 FUENTE = "dof.gob.mx"
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; DOF-JSON-Client/1.0)"}
 
-# The site is served as cp1252 without declaring it.
+# The daily index is served as cp1252 without declaring it. Note pages do
+# declare their charset, and it is a different one — see _get_nota_pagina().
 _ENCODING = "cp1252"
 
 _CADENA = Path(__file__).parent / "certs" / "dof-gob-mx-chain.pem"
@@ -87,6 +94,14 @@ _CODIGO_ORGA = {
 # Groups the website's daily index never lists.
 ORGA_NO_LISTADOS = ("CV", "VG", "AV")
 
+# The index prints the date it is actually serving. It has been seen answering
+# with a different day's page — reproducibly enough that a sweep once counted
+# a Monday holiday as published, its codDiario belonging to a day four months
+# later. Since the parser stamps each note with the date that was *asked for*,
+# an unnoticed mix-up would file real notes under the wrong day, so every page
+# is checked against what it claims to be.
+_ENCABEZADO = re.compile(r"Fecha:\s*(\d{2}/\d{2}/\d{4})")
+
 _TAG = re.compile(r"<[^>]+>")
 # The index leaves commented-out markup inline, and the headings sit inside it,
 # so comment delimiters have to go before tags do or their "-->" survives.
@@ -110,7 +125,7 @@ def _texto(bruto: str) -> str:
     return " ".join(html.unescape(_TAG.sub(" ", _COMENTARIO.sub(" ", bruto))).split())
 
 
-def _get(url: str, timeout: int) -> str:
+def _solicita(url: str, timeout: int):
     """Fetch a page, completing the server's certificate chain if needed.
 
     Tries the system trust store first, so a fixed server (or a platform that
@@ -122,11 +137,29 @@ def _get(url: str, timeout: int) -> str:
     except requests.exceptions.SSLError:
         response = requests.get(url, headers=_HEADERS, timeout=timeout, verify=str(_CADENA))
     response.raise_for_status()
-    return response.content.decode(_ENCODING, errors="replace")
+    return response
+
+
+def _get(url: str, timeout: int) -> str:
+    """Fetch a page of the daily index and decode it (see _ENCODING)."""
+    return _solicita(url, timeout).content.decode(_ENCODING, errors="replace")
+
+
+class PaginaDeOtroDia(Exception):
+    """The index answered with a page for a date other than the one asked for.
+
+    Transient, as far as anyone can tell — the same date fetched again comes
+    back correct. Raised rather than swallowed so a caller retries the day
+    instead of either trusting the wrong notes or writing the day off as
+    unpublished.
+    """
 
 
 def _parse_edicion(pagina: str, fecha: dt.date, edicion: str) -> tuple[list[dict], int | None]:
-    """Pull one edition's notes, and its codDiario, out of the index page."""
+    """Pull one edition's notes, and its codDiario, out of the index page.
+
+    Raises PaginaDeOtroDia if the page is not the one that was requested.
+    """
     if _SIN_DATOS in pagina:
         return [], None
 
@@ -159,6 +192,23 @@ def _parse_edicion(pagina: str, fecha: dt.date, edicion: str) -> tuple[list[dict
                 "orden": float(len(notas) + 1),
                 "fuente": FUENTE,
             })
+
+    if not notas and cod_diario is None:
+        # Nothing to take. An edition the gazette did not run comes back
+        # either with the "no data" banner or, for some dates, as a bare page
+        # with neither banner nor date — both mean the same thing, and neither
+        # can be mistaken for another day's content.
+        return [], None
+
+    # Only content needs vouching for: this is what stops another day's notes
+    # from being filed under the date that was asked for.
+    encabezado = _ENCABEZADO.search(pagina)
+    esperado = f"{fecha:%d/%m/%Y}"
+    if encabezado is None or encabezado.group(1) != esperado:
+        raise PaginaDeOtroDia(
+            f"se pidió {esperado} ({edicion}) y la página dice "
+            f"{encabezado.group(1) if encabezado else 'nada'}"
+        )
     return notas, cod_diario
 
 
@@ -178,6 +228,8 @@ def get_notas(date: dt.date, timeout: int = 60) -> dict:
         `{"codEdicion", "codDiario"}`. A pre-digital day comes back with no
         notes and a populated list here: the gazette was published, only its
         contents are images.
+
+    Raises PaginaDeOtroDia if the site answers with a different day's page.
     """
     resultado = {
         "messageCode": 200,
@@ -210,6 +262,106 @@ def get_notas(date: dt.date, timeout: int = 60) -> dict:
     if any(resultado[clave] for clave in _EDICIONES.values()):
         resultado["notasIncompletas"] = list(ORGA_NO_LISTADOS)
     return resultado
+
+
+# --- one note's text -------------------------------------------------------
+#
+# `nota_detalle.php?codigo=N` renders a note inside `<div id="DivDetalleNota">`.
+# The note's own markup is wrapped in `<HTML>…</HTML>` there — byte for byte
+# the string SIDOF serves as `cadenaContenido`, save for the site escaping its
+# accents as entities (which parses back the same). The site then appends its
+# own disclaimer table *after* that wrapper, still inside the div, so the
+# wrapper — not the div — is the note's boundary.
+
+_DIV_NOTA = re.compile(r"""<div[^>]*\bid=['"]?DivDetalleNota['"]?""", re.I)
+_DIV = re.compile(r"<\s*(/?)div\b", re.I)
+_CUERPO_NOTA = re.compile(r"<HTML>.*?</HTML>", re.I | re.S)
+_PARRAFO = re.compile(r"<p\b[^>]*>(.*?)</p>", re.I | re.S)
+_FECHA_NOTA = re.compile(r"DOF:\s*(\d{2})/(\d{2})/(\d{4})")
+
+# The date the page shows for a codigo it does not have: the Unix epoch, one
+# day off — a formatted zero rather than a real publication date.
+_FECHA_INEXISTENTE = ("31", "12", "1969")
+
+
+def _get_nota_pagina(cod_nota: int, timeout: int) -> str:
+    """Fetch a note's page, decoded by the charset it declares.
+
+    Unlike the daily index (see _ENCODING), these pages are served as UTF-8
+    and say so, so the declared charset is honoured and cp1252 is only the
+    fallback for a response that declares nothing.
+    """
+    response = _solicita(f"{BASE_URL}/nota_detalle.php?codigo={cod_nota}", timeout)
+    return response.content.decode(response.encoding or _ENCODING, errors="replace")
+
+
+def _detalle(pagina: str) -> str | None:
+    """The contents of the page's DivDetalleNota, or None if it has none."""
+    inicio = _DIV_NOTA.search(pagina)
+    if inicio is None:
+        return None
+    abre = pagina.find(">", inicio.end())
+    if abre < 0:
+        return None
+
+    profundidad = 1
+    for m in _DIV.finditer(pagina, abre + 1):
+        profundidad += -1 if m.group(1) else 1
+        if profundidad == 0:
+            return pagina[abre + 1 : m.start()]
+    return pagina[abre + 1 :]
+
+
+def get_nota(cod_nota: int, timeout: int = 60) -> dict:
+    """One note from the DOF website, shaped like client.get_nota().
+
+    Returns `{"messageCode", "response", "fuente", "Nota"}`, with `Nota` an
+    empty list — as SIDOF answers for a codNota it does not have — when the
+    site has no such note.
+
+    The note carries the fields the page can actually support:
+
+    `cadenaContenido`
+        The HTML of the note's text, ready for nota2md, or None when the site
+        offers only the scanned edition (`existeHtml` "N").
+    `titulo`
+        The note's own first line. The daily index (get_notas()) words it
+        slightly differently; this is what the document itself says.
+    `fecha`, `codNota`, `fuente`, `existeHtml`
+        As SIDOF writes them.
+
+    The page carries no codDiario, codEdicion or pagina, so those SIDOF fields
+    are absent — the image/PDF paths need them and remain SIDOF-only.
+    """
+    pagina = _get_nota_pagina(cod_nota, timeout)
+
+    fecha = _FECHA_NOTA.search(pagina)
+    if fecha is None or fecha.groups() == _FECHA_INEXISTENTE:
+        return {"messageCode": 200, "response": "OK", "fuente": FUENTE, "Nota": []}
+
+    detalle = _detalle(pagina) or ""
+    cuerpo = _CUERPO_NOTA.search(detalle)
+    contenido = cuerpo.group(0) if cuerpo else None
+
+    titulo = None
+    if contenido:
+        primero = _PARRAFO.search(contenido)
+        titulo = _texto(primero.group(1)) if primero else None
+
+    dia, mes, anio = fecha.groups()
+    return {
+        "messageCode": 200,
+        "response": "OK",
+        "fuente": FUENTE,
+        "Nota": {
+            "codNota": cod_nota,
+            "fecha": f"{dia}-{mes}-{anio}",
+            "titulo": titulo,
+            "cadenaContenido": contenido,
+            "existeHtml": "S" if contenido else "N",
+            "fuente": FUENTE,
+        },
+    }
 
 
 def hay_publicacion(respuesta: dict) -> bool:
