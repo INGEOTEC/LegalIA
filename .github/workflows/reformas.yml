@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       ley:
-        description: "Abreviatura de LeyesBiblio, 'todas', 'reglamentos' o 'normas'"
+        description: "Abreviatura, 'todas', 'reglamentos', 'normas' o 'tratados'"
         default: todas
 
 jobs:
@@ -38,6 +38,8 @@ jobs:
             salida="packages/leyesmx/data/reformas/reglamentos"
           elif [ "$LEY" = "normas" ]; then
             salida="packages/leyesmx/data/normas"
+          elif [ "$LEY" = "tratados" ]; then
+            salida="packages/leyesmx/data/tratados"
           else
             salida="packages/leyesmx/data/reformas/$LEY.json"
           fi
