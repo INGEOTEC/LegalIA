@@ -11,8 +11,8 @@ on:
   workflow_dispatch:
     inputs:
       ley:
-        description: "Abreviatura de LeyesBiblio (p. ej. cpeum)"
-        default: cpeum
+        description: "Abreviatura de LeyesBiblio, 'todas' o 'reglamentos'"
+        default: todas
 
 jobs:
   reformas:
@@ -26,11 +26,21 @@ jobs:
           python-version: "3.12"
       - name: Install packages
         run: pip install -e packages/dofjson -e packages/leyesmx
-      - name: Build the reform table
+      # In 'todas' mode --out is the directory the per-law files go in; for a
+      # single law it is that law's file.
+      - name: Build the reform tables
+        env:
+          LEY: ${{ inputs.ley || 'todas' }}
         run: |
-          python -m leyesmx --ley "${{ inputs.ley || 'cpeum' }}" \
-            --titulos "${RUNNER_TEMP}/titulos.jsonl.gz" \
-            --out "packages/leyesmx/data/reformas/${{ inputs.ley || 'cpeum' }}.json"
+          if [ "$LEY" = "todas" ]; then
+            salida="packages/leyesmx/data/reformas"
+          elif [ "$LEY" = "reglamentos" ]; then
+            salida="packages/leyesmx/data/reformas/reglamentos"
+          else
+            salida="packages/leyesmx/data/reformas/$LEY.json"
+          fi
+          python -m leyesmx --ley "$LEY" \
+            --titulos "${RUNNER_TEMP}/titulos.jsonl.gz" --out "$salida"
       - name: Commit if the table changed
         run: |
           git config user.name "github-actions[bot]"
@@ -40,5 +50,5 @@ jobs:
             exit 0
           fi
           git add packages/leyesmx/data/reformas
-          git commit -m "Actualiza la tabla de reformas (${{ inputs.ley || 'cpeum' }})"
+          git commit -m "Actualiza las tablas de reformas (${{ inputs.ley || 'todas' }})"
           git push
