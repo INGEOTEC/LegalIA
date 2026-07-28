@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """Pack the legislative history into the tarballs published as release assets.
 
-`packages/leyesmx/data/` holds 460-odd JSON files. Shipping them as four
-tarballs — one per kind of instrument — makes them downloadable without cloning
-the repository, and keeps each collection independently versioned.
+`leyesmx --ley todas|reglamentos|normas|tratados` builds 460-odd JSON files.
+They live only in the `historial-legislativo` release, never in git (see
+`leyesmx.historial.descarga_historial` for reading them back), so this script
+takes a data directory built just for the run — `--datos` — rather than
+assuming one already checked out. Shipping them as four tarballs — one per
+kind of instrument — makes them downloadable without cloning the repository,
+and keeps each collection independently versioned.
 
 The tarballs are **byte-reproducible**: gzip is stamped with mtime 0, members
 are added in sorted order, and their timestamps and ownership are fixed. So
@@ -11,8 +15,8 @@ identical data always produces an identical file, which is what lets the monthly
 workflow tell "nothing changed" from "something changed" by comparing bytes
 instead of guessing.
 
-    ./scripts/empaqueta_historial.py --outdir historial
-    ./scripts/empaqueta_historial.py --verificar historial   # against a build
+    ./scripts/empaqueta_historial.py --datos packages/leyesmx/data --outdir historial
+    ./scripts/empaqueta_historial.py --datos packages/leyesmx/data --verificar historial
 
 Writes a SHA256SUMS.txt alongside the tarballs.
 """
@@ -25,10 +29,7 @@ import sys
 import tarfile
 from pathlib import Path
 
-RAIZ = Path(__file__).resolve().parent.parent
-DATOS = RAIZ / "packages" / "leyesmx" / "data"
-
-#: asset name -> directory under data/, and whether to descend into it.
+#: asset name -> directory under the data root, and whether to descend into it.
 #: `reformas/` holds the laws at its top level and the regulations in a
 #: subdirectory, so the two are split rather than shipped together.
 COLECCIONES = {
@@ -75,6 +76,9 @@ def sha256(ruta: Path) -> str:
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--datos", type=Path, required=True, metavar="DIR",
+                   help="data directory built by 'leyesmx --ley todas|reglamentos|"
+                        "normas|tratados --out DIR/...' for this run")
     p.add_argument("--outdir", type=Path, default=Path("historial"))
     p.add_argument("--verificar", type=Path, metavar="DIR",
                    help="compare the tarballs already in DIR against a fresh "
@@ -88,7 +92,7 @@ def main(argv=None) -> int:
 
     hechos = []
     for nombre, (sub, recursivo) in COLECCIONES.items():
-        origen = DATOS / sub
+        origen = args.datos / sub
         if not origen.is_dir():
             print(f"aviso: falta {origen}, se omite {nombre}", file=sys.stderr)
             continue

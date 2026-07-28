@@ -1,9 +1,10 @@
 name: reformas
 
-# Rebuilds the legislative history every month and keeps two copies of it in
-# step: the JSON in the repository, whose git history is the record of what
-# changed when, and the `historial-legislativo` release, which is how the data
-# is downloaded without cloning.
+# Rebuilds the legislative history every month and keeps it in exactly one
+# place: the `historial-legislativo` release. Nothing is committed to git —
+# the data is built fresh into a scratch directory on the runner and packed
+# straight from there, so the repository never carries a copy to fall out of
+# sync with the release.
 #
 # The release is verified on every run and only the assets whose bytes actually
 # changed are re-uploaded — the tarballs are byte-reproducible, so identical
@@ -36,6 +37,29 @@ jobs:
       - name: Install packages
         run: pip install -e packages/dofjson -e packages/leyesmx
 
+      # Since data no longer lives in git, a single-abbreviation dispatch (e.g.
+      # `cpeum`) needs the rest of that collection seeded from the release
+      # itself, or packing would ship a leyes.tgz with one law and no index.
+      # A `todo`/`todas`/... run overwrites everything this seeds anyway.
+      - name: Seed with what the release already publishes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          datos="${RUNNER_TEMP}/datos"
+          mkdir -p "$datos/reformas/reglamentos" "$datos/normas" "$datos/tratados"
+          assets="${RUNNER_TEMP}/assets"
+          mkdir -p "$assets"
+          if gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
+               --dir "$assets" --clobber 2>/dev/null; then
+            tar xzf "$assets/leyes.tgz" -C "$datos/reformas"
+            tar xzf "$assets/reglamentos.tgz" -C "$datos/reformas/reglamentos"
+            tar xzf "$assets/normas.tgz" -C "$datos/normas"
+            tar xzf "$assets/tratados.tgz" -C "$datos/tratados"
+          else
+            echo "el release $TAG aún no existe; se construye desde cero"
+          fi
+
       # 'todo' rebuilds every collection, which is what the monthly run needs:
       # targeting one would leave the other three to go stale. The titles
       # dataset is downloaded once by the first build and reused by the rest.
@@ -45,13 +69,14 @@ jobs:
         run: |
           set -eu
           titulos="${RUNNER_TEMP}/titulos.jsonl.gz"
+          datos="${RUNNER_TEMP}/datos"
           construye() {
             case "$1" in
-              todas)       salida="packages/leyesmx/data/reformas" ;;
-              reglamentos) salida="packages/leyesmx/data/reformas/reglamentos" ;;
-              normas)      salida="packages/leyesmx/data/normas" ;;
-              tratados)    salida="packages/leyesmx/data/tratados" ;;
-              *)           salida="packages/leyesmx/data/reformas/$1.json" ;;
+              todas)       salida="$datos/reformas" ;;
+              reglamentos) salida="$datos/reformas/reglamentos" ;;
+              normas)      salida="$datos/normas" ;;
+              tratados)    salida="$datos/tratados" ;;
+              *)           salida="$datos/reformas/$1.json" ;;
             esac
             python -m leyesmx --ley "$1" --titulos "$titulos" --out "$salida"
           }
@@ -63,20 +88,8 @@ jobs:
             construye "$LEY"
           fi
 
-      - name: Commit if the data changed
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- packages/leyesmx/data; then
-            echo "sin cambios en el repositorio"
-          else
-            git add packages/leyesmx/data
-            git commit -m "Actualiza el historial legislativo (${{ inputs.ley || 'todo' }})"
-            git push
-          fi
-
       - name: Pack the release assets
-        run: ./scripts/empaqueta_historial.py --outdir historial
+        run: ./scripts/empaqueta_historial.py --datos "${RUNNER_TEMP}/datos" --outdir historial
 
       # Created on the first run; from then on it is only updated.
       - name: Create the release if it does not exist
