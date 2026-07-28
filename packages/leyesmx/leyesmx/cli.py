@@ -6,6 +6,7 @@ import json
 import sys
 from pathlib import Path
 
+from dofjson.titulos import lee_titulos
 from leyesmx import diputados, dof, normas, tratados
 
 
@@ -39,7 +40,7 @@ def escribe_json(enlazadas, destino: Path) -> None:
         fh.write("\n")
 
 
-def todas_las_leyes(args, tweet_iterator) -> int:
+def todas_las_leyes(args) -> int:
     """Build the reform list of every law in LeyesBiblio's index.
 
     The reform pages are fetched first and the DOF dataset is grouped once,
@@ -67,7 +68,7 @@ def todas_las_leyes(args, tweet_iterator) -> int:
     fechas = {r.fecha for rs in reformas_por_ley.values() for r in rs}
     print(f"agrupando el DOF por fecha ({len(fechas)} fechas distintas)…",
           file=sys.stderr)
-    porf = dof.notas_por_fecha(tweet_iterator(str(args.titulos)), fechas)
+    porf = dof.notas_por_fecha(lee_titulos(str(args.titulos)), fechas)
 
     catalogo, totales = [], {"reformas": 0, "con_nota": 0, "exactas": 0}
     for ley in leyes:
@@ -100,7 +101,7 @@ def todas_las_leyes(args, tweet_iterator) -> int:
     return 1 if fallidas else 0
 
 
-def todos_los_reglamentos(args, tweet_iterator) -> int:
+def todos_los_reglamentos(args) -> int:
     """Build the reform list of every federal regulation LeyesBiblio lists.
 
     Regulations go in their own subdirectory: their identifiers come from
@@ -120,7 +121,7 @@ def todos_los_reglamentos(args, tweet_iterator) -> int:
     fechas = {r.fecha for reg in reglamentos for r in reg.reformas}
     print(f"agrupando el DOF por fecha ({len(fechas)} fechas distintas)…",
           file=sys.stderr)
-    porf = dof.notas_por_fecha(tweet_iterator(str(args.titulos)), fechas)
+    porf = dof.notas_por_fecha(lee_titulos(str(args.titulos)), fechas)
 
     catalogo, totales = [], {"reformas": 0, "con_nota": 0, "exactas": 0}
     for reg in reglamentos:
@@ -155,7 +156,7 @@ def _escribe(datos, destino: Path) -> None:
         fh.write("\n")
 
 
-def todas_las_normas(args, tweet_iterator) -> int:
+def todas_las_normas(args) -> int:
     """Build every Norma Oficial Mexicana's history from the DOF titles alone.
 
     Unlike the laws and regulations these need no second source: the NOM's code
@@ -165,7 +166,7 @@ def todas_las_normas(args, tweet_iterator) -> int:
     tell.
     """
     destino_dir = args.out or Path("data/normas")
-    grupos = normas.agrupa(tweet_iterator(str(args.titulos)))
+    grupos = normas.agrupa(lee_titulos(str(args.titulos)))
     instrumentos, ambiguas = normas.resuelve_citas_parciales(grupos)
 
     _escribe({c: normas.historia(v) for c, v in instrumentos.items()},
@@ -188,7 +189,7 @@ def todas_las_normas(args, tweet_iterator) -> int:
     return 0
 
 
-def todos_los_tratados(args, tweet_iterator) -> int:
+def todos_los_tratados(args) -> int:
     """Build every international treaty's history from the DOF titles alone.
 
     Neither LeyesBiblio nor the SRE's register can serve as the spine (see
@@ -198,7 +199,7 @@ def todos_los_tratados(args, tweet_iterator) -> int:
     note, which for most older ones is the truth rather than a miss.
     """
     destino_dir = args.out or Path("data/tratados")
-    decretos = tratados.decretos(tweet_iterator(str(args.titulos)))
+    decretos = tratados.decretos(lee_titulos(str(args.titulos)))
     print(f"decretos de tratado en el DOF: {len(decretos)}", file=sys.stderr)
 
     grupos = tratados.empareja(decretos)
@@ -233,24 +234,22 @@ def main(argv=None) -> int:
                         "serve, as a fallback route to the primary source")
     args = p.parse_args(argv)
 
-    from microtc.utils import tweet_iterator
-
     if not args.titulos.exists():
         from dofjson.titulos import download_titulos
         print(f"descargando títulos del DOF -> {args.titulos}", file=sys.stderr)
         download_titulos(args.titulos, log=lambda *_: None)
 
     if args.ley == "todas":
-        return todas_las_leyes(args, tweet_iterator)
+        return todas_las_leyes(args)
     if args.ley == "reglamentos":
-        return todos_los_reglamentos(args, tweet_iterator)
+        return todos_los_reglamentos(args)
     if args.ley == "normas":
-        return todas_las_normas(args, tweet_iterator)
+        return todas_las_normas(args)
     if args.ley == "tratados":
-        return todos_los_tratados(args, tweet_iterator)
+        return todos_los_tratados(args)
 
     reformas = diputados.parse_reformas(diputados.descarga(args.ley), args.ley)
-    enlazadas = dof.enlaza(reformas, tweet_iterator(str(args.titulos)))
+    enlazadas = dof.enlaza(reformas, lee_titulos(str(args.titulos)))
 
     destino = args.out or Path("data/reformas") / f"{args.ley}.json"
     escribe_json(enlazadas, destino)
