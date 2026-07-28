@@ -81,14 +81,14 @@
   "abrev": "lisipl",
   "nombre": "IMPUESTO sobre Servicios Expresamente Declarados de Interés Público por Ley, en los que Intervengan Empresas Concesionarias de Bienes del Dominio Directo de la Nación (LEY que establece, reforma y adiciona las disposiciones relativas a diversos impuestos)",
   "reformas": 1,
-  "conNota": 1
+  "conNota": 0
  },
  {
   "no": 13,
   "abrev": "ladua",
   "nombre": "LEY Aduanera",
   "reformas": 21,
-  "conNota": 21
+  "conNota": 20
  },
  {
   "no": 14,
@@ -256,7 +256,7 @@
   "abrev": "lcmopfih",
   "nombre": "LEY de Contribución de Mejoras por Obras Públicas Federales de Infraestructura Hidráulica",
   "reformas": 1,
-  "conNota": 1
+  "conNota": 0
  },
  {
   "no": 38,
@@ -298,7 +298,7 @@
   "abrev": "ldefam",
   "nombre": "LEY de Disciplina del Ejército, Fuerza Aérea y Guardia Nacional",
   "reformas": 6,
-  "conNota": 6
+  "conNota": 5
  },
  {
   "no": 44,
@@ -396,7 +396,7 @@
   "abrev": "lfi",
   "nombre": "LEY de Fondos de Inversión",
   "reformas": 9,
-  "conNota": 9
+  "conNota": 8
  },
  {
   "no": 58,
@@ -571,7 +571,7 @@
   "abrev": "lmin",
   "nombre": "LEY de Minería",
   "reformas": 7,
-  "conNota": 7
+  "conNota": 6
  },
  {
   "no": 83,
@@ -879,7 +879,7 @@
   "abrev": "lsat",
   "nombre": "LEY del Servicio de Administración Tributaria",
   "reformas": 7,
-  "conNota": 7
+  "conNota": 6
  },
  {
   "no": 127,
@@ -1187,7 +1187,7 @@
   "abrev": "lfisan",
   "nombre": "LEY Federal del Impuesto sobre Automóviles Nuevos",
   "reformas": 8,
-  "conNota": 8
+  "conNota": 7
  },
  {
   "no": 171,

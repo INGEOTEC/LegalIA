@@ -54,7 +54,7 @@ def todas_las_leyes(args, tweet_iterator) -> int:
     with cf.ThreadPoolExecutor(max_workers=6) as ex:
         futuros = {
             ex.submit(lambda l=l: diputados.parse_reformas(
-                diputados.descarga(l.abrev), l.abrev)): l
+                diputados.descarga(l.abrev), l.abrev, l.nombre)): l
             for l in leyes
         }
         for fut in cf.as_completed(futuros):
@@ -100,11 +100,60 @@ def todas_las_leyes(args, tweet_iterator) -> int:
     return 1 if fallidas else 0
 
 
+def todos_los_reglamentos(args, tweet_iterator) -> int:
+    """Build the reform list of every federal regulation LeyesBiblio lists.
+
+    Regulations go in their own subdirectory: their identifiers come from
+    Diputados' file names (`reg_ladua`) and the laws' from its index
+    (`reg_senado`), so nothing stops the two from colliding one day.
+    """
+    destino_dir = args.out or Path("data/reformas") / "reglamentos"
+    reglamentos = diputados.parse_reglamentos(diputados.descarga_reglamentos())
+    print(f"reglamentos en LeyesBiblio: {len(reglamentos)}", file=sys.stderr)
+
+    desacuerdos = diputados.numeracion_declarada(reglamentos)
+    if desacuerdos:
+        print(f"aviso: {len(desacuerdos)} reforma(s) cuyo número declarado no "
+              f"coincide con su posición cronológica: {desacuerdos[:5]}",
+              file=sys.stderr)
+
+    fechas = {r.fecha for reg in reglamentos for r in reg.reformas}
+    print(f"agrupando el DOF por fecha ({len(fechas)} fechas distintas)…",
+          file=sys.stderr)
+    porf = dof.notas_por_fecha(tweet_iterator(str(args.titulos)), fechas)
+
+    catalogo, totales = [], {"reformas": 0, "con_nota": 0, "exactas": 0}
+    for reg in reglamentos:
+        enlazadas = dof.enlaza_agrupadas(reg.reformas, porf, por_nombre=True)
+        escribe_json(enlazadas, destino_dir / f"{reg.abrev}.json")
+        con = sum(e.enlazada for e in enlazadas)
+        totales["reformas"] += len(enlazadas)
+        totales["con_nota"] += con
+        totales["exactas"] += sum(e.confianza >= 0.99 for e in enlazadas)
+        catalogo.append({"no": reg.no, "abrev": reg.abrev, "nombre": reg.nombre,
+                         "reformas": len(enlazadas), "conNota": con})
+
+    indice = destino_dir / "reglamentos.json"
+    indice.parent.mkdir(parents=True, exist_ok=True)
+    with open(indice, "w", encoding="utf-8") as fh:
+        json.dump(catalogo, fh, ensure_ascii=False, indent=1)
+        fh.write("\n")
+
+    print(f"\n{len(catalogo)} reglamentos -> {destino_dir}/  (índice en {indice})")
+    print(f"{totales['reformas']} entradas | {totales['con_nota']} con codNota "
+          f"({totales['exactas']} coincidencia exacta)")
+    sin = totales["reformas"] - totales["con_nota"]
+    if sin:
+        print(f"{sin} sin nota en el DOF")
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--ley", default="cpeum",
-                   help="LeyesBiblio abbreviation, or 'todas' for every law in "
-                        "LeyesBiblio's index (default: cpeum)")
+                   help="LeyesBiblio abbreviation; 'todas' for every law in its "
+                        "index, 'reglamentos' for every federal regulation "
+                        "(default: cpeum)")
     p.add_argument("--titulos", type=Path, default=Path("titulos.jsonl.gz"),
                    help="dataset from dofjson.titulos.download_titulos")
     p.add_argument("--out", type=Path, default=None,
@@ -123,6 +172,8 @@ def main(argv=None) -> int:
 
     if args.ley == "todas":
         return todas_las_leyes(args, tweet_iterator)
+    if args.ley == "reglamentos":
+        return todos_los_reglamentos(args, tweet_iterator)
 
     reformas = diputados.parse_reformas(diputados.descarga(args.ley), args.ley)
     enlazadas = dof.enlaza(reformas, tweet_iterator(str(args.titulos)))

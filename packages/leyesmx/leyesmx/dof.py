@@ -46,6 +46,32 @@ def similitud(decreto: str, titulo_dof: str) -> float:
     return SequenceMatcher(None, a[: len(b)], b).ratio()
 
 
+_PALABRA_CORTA = 3
+
+
+def similitud_nombre(nombre: str, titulo_dof: str) -> float:
+    """How much of an instrument's *name* the DOF title mentions, in [0, 1].
+
+    For regulations there is no decree title to compare against: LeyesBiblio
+    gives only the regulation's name, so `similitud()` — which expects the DOF
+    title to be a prefix of a longer Diputados text — has it backwards and
+    scores unrelated notes as well as real ones. Here the question is the other
+    way round: does this DOF title name this regulation?
+
+    1.0 when the whole name appears in the title; otherwise the fraction of the
+    name's words that do, ignoring words too short to carry meaning.
+    """
+    a, b = normaliza(nombre), normaliza(titulo_dof)
+    if not a or not b:
+        return 0.0
+    if a in b:
+        return 1.0
+    palabras = [p for p in a.split() if len(p) > _PALABRA_CORTA]
+    if not palabras:
+        return 0.0
+    return sum(p in b for p in palabras) / len(palabras)
+
+
 @dataclass
 class ReformaEnlazada:
     """A reform decree together with the DOF note that published it."""
@@ -87,7 +113,28 @@ def enlaza(reformas, notas) -> list[ReformaEnlazada]:
     )
 
 
-def enlaza_agrupadas(reformas, porf: dict) -> list[ReformaEnlazada]:
+def puntua_entrada(reforma, titulo_dof: str, por_nombre: bool = False) -> float:
+    """Score a candidate DOF note for one entry.
+
+    Which metric applies depends on what LeyesBiblio gives for the entry. A
+    numbered reform of a law comes with the decree's own title, which
+    `similitud()` compares directly. An original publication comes with no
+    title at all — only the instrument's name — and so does every entry of a
+    regulation, and for those the question is whether the DOF title *names*
+    the instrument (`similitud_nombre()`).
+
+    Using `similitud()` where only a name is available is not merely weaker,
+    it is wrong: it scored the Ley Federal del Trabajo's 1970 publication
+    against a Mexico City traffic-regulation decree, and the Código Fiscal's
+    against the 1982 budget.
+    """
+    if por_nombre or reforma.no is None:
+        return similitud_nombre(reforma.decreto, titulo_dof)
+    return similitud(reforma.decreto, titulo_dof)
+
+
+def enlaza_agrupadas(reformas, porf: dict, por_nombre: bool = False,
+                     minimo_nombre: float = 0.6) -> list[ReformaEnlazada]:
     """As `enlaza()`, over notes already grouped by date.
 
     A reform whose date has no note in the dataset comes back with
@@ -100,10 +147,17 @@ def enlaza_agrupadas(reformas, porf: dict) -> list[ReformaEnlazada]:
     Across laws there is no such exclusivity, and there must not be: one
     decree routinely amends several laws at once, so the same codNota
     legitimately appears in more than one law's list.
+
+    `por_nombre` says that only the instrument's name is available for every
+    entry, as it is for regulations (see `puntua_entrada`). `minimo_nombre` is
+    the score below which a name-matched entry is left unlinked: a busy day
+    carries a hundred notes, and half a name's words matching is as likely to
+    be coincidence as not — an unlinked entry says less than a wrong one.
     """
     reformas = list(reformas)
     pares = [
-        (similitud(r.decreto, n.get("titulo", "")), i, n)
+        (puntua_entrada(r, n.get("titulo", ""), por_nombre), i, n,
+         por_nombre or r.no is None)
         for i, r in enumerate(reformas)
         for n in porf.get(r.fecha, [])
     ]
@@ -112,8 +166,10 @@ def enlaza_agrupadas(reformas, porf: dict) -> list[ReformaEnlazada]:
     asignada: dict[int, dict] = {}
     puntaje: dict[int, float] = {}
     tomadas: set[int] = set()
-    for s, i, n in pares:
+    for s, i, n, por_nombre_i in pares:
         if i in asignada or n["codNota"] in tomadas or s <= 0:
+            continue
+        if por_nombre_i and s < minimo_nombre:
             continue
         asignada[i], puntaje[i] = n, s
         tomadas.add(n["codNota"])
