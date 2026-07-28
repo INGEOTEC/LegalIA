@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       ley:
-        description: "Abreviatura de LeyesBiblio, 'todas' o 'reglamentos'"
+        description: "Abreviatura de LeyesBiblio, 'todas', 'reglamentos' o 'normas'"
         default: todas
 
 jobs:
@@ -36,6 +36,8 @@ jobs:
             salida="packages/leyesmx/data/reformas"
           elif [ "$LEY" = "reglamentos" ]; then
             salida="packages/leyesmx/data/reformas/reglamentos"
+          elif [ "$LEY" = "normas" ]; then
+            salida="packages/leyesmx/data/normas"
           else
             salida="packages/leyesmx/data/reformas/$LEY.json"
           fi
@@ -45,10 +47,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- packages/leyesmx/data/reformas; then
+          if git diff --quiet -- packages/leyesmx/data; then
             echo "sin cambios"
             exit 0
           fi
-          git add packages/leyesmx/data/reformas
+          git add packages/leyesmx/data
           git commit -m "Actualiza las tablas de reformas (${{ inputs.ley || 'todas' }})"
           git push

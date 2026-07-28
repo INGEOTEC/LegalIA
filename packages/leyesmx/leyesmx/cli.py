@@ -6,7 +6,7 @@ import json
 import sys
 from pathlib import Path
 
-from leyesmx import diputados, dof
+from leyesmx import diputados, dof, normas
 
 
 def lista_de_codnota(enlazadas) -> list[int | None]:
@@ -148,11 +148,52 @@ def todos_los_reglamentos(args, tweet_iterator) -> int:
     return 0
 
 
+def _escribe(datos, destino: Path) -> None:
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    with open(destino, "w", encoding="utf-8") as fh:
+        json.dump(datos, fh, ensure_ascii=False, indent=1, sort_keys=isinstance(datos, dict))
+        fh.write("\n")
+
+
+def todas_las_normas(args, tweet_iterator) -> int:
+    """Build every Norma Oficial Mexicana's history from the DOF titles alone.
+
+    Unlike the laws and regulations these need no second source: the NOM's code
+    is in its own DOF title (see `normas`). One file holds the whole mapping
+    rather than one file per NOM — there are 4,674 of them and each history is
+    a handful of numbers, so thousands of tiny files would cost more than they
+    tell.
+    """
+    destino_dir = args.out or Path("data/normas")
+    grupos = normas.agrupa(tweet_iterator(str(args.titulos)))
+    instrumentos, ambiguas = normas.resuelve_citas_parciales(grupos)
+
+    _escribe({c: normas.historia(v) for c, v in instrumentos.items()},
+             destino_dir / "noms.json")
+    _escribe(normas.catalogo(instrumentos), destino_dir / "catalogo.json")
+    # Kept rather than dropped: these notes do concern a NOM, only which one
+    # cannot be told from a code cited too short to identify it.
+    _escribe({c: normas.historia(v) for c, v in ambiguas.items()},
+             destino_dir / "citas-ambiguas.json")
+
+    notas_inst = sum(len(v) for v in instrumentos.values())
+    print(f"\n{len(instrumentos)} normas -> {destino_dir}/noms.json "
+          f"(catálogo en {destino_dir}/catalogo.json)")
+    print(f"{notas_inst} notas del DOF | "
+          f"{sum(1 for v in instrumentos.values() if len(v) >= 2)} normas con más de una")
+    if ambiguas:
+        print(f"{len(ambiguas)} código(s) citados demasiado cortos para "
+              f"identificar una norma, con {sum(len(v) for v in ambiguas.values())} "
+              f"nota(s) -> {destino_dir}/citas-ambiguas.json")
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--ley", default="cpeum",
                    help="LeyesBiblio abbreviation; 'todas' for every law in its "
-                        "index, 'reglamentos' for every federal regulation "
+                        "index, 'reglamentos' for every federal regulation, "
+                        "'normas' for every Norma Oficial Mexicana "
                         "(default: cpeum)")
     p.add_argument("--titulos", type=Path, default=Path("titulos.jsonl.gz"),
                    help="dataset from dofjson.titulos.download_titulos")
@@ -174,6 +215,8 @@ def main(argv=None) -> int:
         return todas_las_leyes(args, tweet_iterator)
     if args.ley == "reglamentos":
         return todos_los_reglamentos(args, tweet_iterator)
+    if args.ley == "normas":
+        return todas_las_normas(args, tweet_iterator)
 
     reformas = diputados.parse_reformas(diputados.descarga(args.ley), args.ley)
     enlazadas = dof.enlaza(reformas, tweet_iterator(str(args.titulos)))

@@ -26,6 +26,7 @@ python -m leyesmx --ley cpeum          # -> data/reformas/cpeum.json
 python -m leyesmx --ley lft            # any LeyesBiblio abbreviation
 python -m leyesmx --ley todas          # all 316 laws in the index
 python -m leyesmx --ley reglamentos    # all 137 federal regulations
+python -m leyesmx --ley normas         # all 4,674 Normas Oficiales Mexicanas
 ```
 
 The first run downloads the titles dataset (~35 MB) unless `--titulos` points
@@ -120,6 +121,57 @@ rows has such a PDF (184 also have a scan of the printed page), so this
 fallback is complete rather than best-effort.
 
 Each `Reforma` exposes that URL as `.pdf`, whether or not the DOF has the note.
+
+## Normas Oficiales Mexicanas
+
+NOMs need no second source, and that is the whole difference. For a law the DOF
+never says which law a decree amends, which is why Diputados' curation is
+indispensable — but a NOM's DOF title **contains the NOM's own code**, so the
+link is intrinsic and the history reads off the titles dataset alone. Just as
+well, because LeyesBiblio does not carry NOMs at all: not one "NOM-" appears
+across its pages.
+
+A NOM's life in the gazette, as `NOM-001-SCFI-1993` has it:
+
+```
+03-05-1993  PROYECTO de Norma Oficial Mexicana NOM-001-SCFI-1993…
+11-10-1993  RESPUESTA a los comentarios recibidos respecto del Proyecto…
+13-10-1993  NORMA Oficial Mexicana NOM-001-SCFI-1993, aparatos electrónicos…
+19-12-2017  Proyecto de Norma Oficial Mexicana PROY-NOM-001-SCFI-2017…
+17-09-2019  Norma Oficial Mexicana NOM-001-SCFI-2018…
+14-05-2020  Modificación al Transitorio Primero…
+```
+
+A draft is keyed to the NOM it drafts, so `PROY-` is stripped. A note citing
+several codes belongs to each: the note issuing a revision usually also cancels
+the edition it replaces, which is how a lineage stays traceable.
+
+| | |
+|---|---|
+| NOMs | 4,674 |
+| DOF notes | 8,880 |
+| With more than one note | 2,044 |
+
+`data/normas/noms.json` maps each code to its notes, oldest first;
+`catalogo.json` adds the span, the count and a descriptive title — taken from
+the note that *is* the norm, since the most recent one is as often a notice of
+public consultation and says nothing about the subject. One file rather than
+one per NOM: 4,674 files each holding a handful of numbers would cost more than
+they tell.
+
+**Codes are not decomposed.** Sixty years of the gazette have left 253 distinct
+code shapes — `NOM-001-SCFI-1993`, `NOM-150-1979`, `NOM-C-247-1978`,
+`NOM-EM-002-SSA2-1993`, `NOM-015-SCT-2-1993`. Parsing the parts invites reading
+a year as a dependency, which mislabelled 927 notes on the first attempt, so
+the normalized code string is the identifier.
+
+**Codes cited short.** Titles often cite a NOM by part of its code. Where
+exactly one full code extends it the citation is folded in — `NOM-186-SSA1`
+into `NOM-186-SSA1-2000` — which recovers 114 such citations. Where several do,
+it cannot be resolved: `NOM-021` is equally the ASEA, the SAG and the SCT4
+norm. Those 287 codes and their 669 notes go to `citas-ambiguas.json` rather
+than being dropped or guessed at — the notes do concern a NOM, only which one
+cannot be told.
 
 ## Matching a note to an entry
 
