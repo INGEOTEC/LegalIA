@@ -28,7 +28,6 @@ import datetime as dt
 import gzip
 import io
 import json
-import re
 import sys
 import tarfile
 from pathlib import Path
@@ -44,10 +43,6 @@ from dofjson import dofweb, titulos  # noqa: E402
 
 TAG = "notas-archivo"
 LISTAS = ("NotasMatutinas", "NotasVespertinas", "NotasExtraordinarias")
-# The site echoes the date it is actually serving. Under concurrency it has
-# been seen to answer with a different day's page, so a recovered day is only
-# accepted when this matches what was asked for.
-_ENCABEZADO = re.compile(r"Fecha:\s*([0-9/]+)")
 
 
 def dias_del_asset(contenido: bytes) -> dict[str, int]:
@@ -69,22 +64,17 @@ def dias_del_asset(contenido: bytes) -> dict[str, int]:
 def recupera(fecha: dt.date, timeout: int = 60):
     """The day's index from the DOF website, or None if it has no such day.
 
-    Rejects a response whose printed date is not the one requested.
+    dofweb rejects a page served for the wrong date itself (PaginaDeOtroDia),
+    so a repair run skips that day rather than rebuilding from it; the same
+    check protects `dofjson --archivo`, which is where days should be getting
+    recovered in the first place.
     """
-    datos = dofweb.get_notas(fecha, timeout=timeout)
-    if not dofweb.hay_publicacion(datos):
+    try:
+        datos = dofweb.get_notas(fecha, timeout=timeout)
+    except dofweb.PaginaDeOtroDia as exc:
+        print(f"    {fecha}: {exc} — descartada", flush=True)
         return None
-    url = (
-        f"{dofweb.BASE_URL}/index.php?year={fecha:%Y}&month={fecha:%m}"
-        f"&day={fecha:%d}&edicion=MAT"
-    )
-    pagina = dofweb._get(url, timeout)
-    enc = _ENCABEZADO.search(pagina)
-    if not enc or enc.group(1) != f"{fecha:%d/%m/%Y}":
-        print(f"    {fecha}: la página dice {enc.group(1) if enc else 'nada'}, "
-              f"no {fecha:%d/%m/%Y} — descartada", flush=True)
-        return None
-    return datos
+    return datos if dofweb.hay_publicacion(datos) else None
 
 
 def reescribe(contenido: bytes, nuevos: dict[str, bytes], destino: Path) -> tuple[int, int]:

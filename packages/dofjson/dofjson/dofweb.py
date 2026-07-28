@@ -94,6 +94,14 @@ _CODIGO_ORGA = {
 # Groups the website's daily index never lists.
 ORGA_NO_LISTADOS = ("CV", "VG", "AV")
 
+# The index prints the date it is actually serving. It has been seen answering
+# with a different day's page — reproducibly enough that a sweep once counted
+# a Monday holiday as published, its codDiario belonging to a day four months
+# later. Since the parser stamps each note with the date that was *asked for*,
+# an unnoticed mix-up would file real notes under the wrong day, so every page
+# is checked against what it claims to be.
+_ENCABEZADO = re.compile(r"Fecha:\s*(\d{2}/\d{2}/\d{4})")
+
 _TAG = re.compile(r"<[^>]+>")
 # The index leaves commented-out markup inline, and the headings sit inside it,
 # so comment delimiters have to go before tags do or their "-->" survives.
@@ -137,8 +145,21 @@ def _get(url: str, timeout: int) -> str:
     return _solicita(url, timeout).content.decode(_ENCODING, errors="replace")
 
 
+class PaginaDeOtroDia(Exception):
+    """The index answered with a page for a date other than the one asked for.
+
+    Transient, as far as anyone can tell — the same date fetched again comes
+    back correct. Raised rather than swallowed so a caller retries the day
+    instead of either trusting the wrong notes or writing the day off as
+    unpublished.
+    """
+
+
 def _parse_edicion(pagina: str, fecha: dt.date, edicion: str) -> tuple[list[dict], int | None]:
-    """Pull one edition's notes, and its codDiario, out of the index page."""
+    """Pull one edition's notes, and its codDiario, out of the index page.
+
+    Raises PaginaDeOtroDia if the page is not the one that was requested.
+    """
     if _SIN_DATOS in pagina:
         return [], None
 
@@ -171,6 +192,23 @@ def _parse_edicion(pagina: str, fecha: dt.date, edicion: str) -> tuple[list[dict
                 "orden": float(len(notas) + 1),
                 "fuente": FUENTE,
             })
+
+    if not notas and cod_diario is None:
+        # Nothing to take. An edition the gazette did not run comes back
+        # either with the "no data" banner or, for some dates, as a bare page
+        # with neither banner nor date — both mean the same thing, and neither
+        # can be mistaken for another day's content.
+        return [], None
+
+    # Only content needs vouching for: this is what stops another day's notes
+    # from being filed under the date that was asked for.
+    encabezado = _ENCABEZADO.search(pagina)
+    esperado = f"{fecha:%d/%m/%Y}"
+    if encabezado is None or encabezado.group(1) != esperado:
+        raise PaginaDeOtroDia(
+            f"se pidió {esperado} ({edicion}) y la página dice "
+            f"{encabezado.group(1) if encabezado else 'nada'}"
+        )
     return notas, cod_diario
 
 
@@ -190,6 +228,8 @@ def get_notas(date: dt.date, timeout: int = 60) -> dict:
         `{"codEdicion", "codDiario"}`. A pre-digital day comes back with no
         notes and a populated list here: the gazette was published, only its
         contents are images.
+
+    Raises PaginaDeOtroDia if the site answers with a different day's page.
     """
     resultado = {
         "messageCode": 200,

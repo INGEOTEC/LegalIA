@@ -156,7 +156,10 @@ def procesar_dia(
 
     try:
         alterno = dofweb.get_notas(fecha)
-    except requests.exceptions.RequestException:
+    except (requests.exceptions.RequestException, dofweb.PaginaDeOtroDia):
+        # A page served for the wrong date is left to retry, like a network
+        # error: believing it would file real notes under this day, and
+        # writing the day off as empty would bury it for good.
         stats["dias_error"] += 1
         return "reintentar", ""
     time.sleep(pausa)
