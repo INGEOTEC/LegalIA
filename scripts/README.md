@@ -6,14 +6,17 @@ available.
 
 ## `empaqueta_historial.py`
 
-Packs `packages/leyesmx/data/` into the four tarballs published as assets of
-the [`historial-legislativo`](https://github.com/INGEOTEC/LegalIA/releases/tag/historial-legislativo)
+Packs a data directory built by `leyesmx --ley todas|reglamentos|normas|tratados`
+into the four tarballs published as assets of the
+[`historial-legislativo`](https://github.com/INGEOTEC/LegalIA/releases/tag/historial-legislativo)
 release — `leyes.tgz`, `reglamentos.tgz`, `normas.tgz`, `tratados.tgz` — plus a
-`SHA256SUMS.txt`.
+`SHA256SUMS.txt`. That release is the data's only home; it is never committed
+to git, so `--datos` always names a scratch directory built just for the run
+(see `leyesmx.historial.descarga_historial` to read the release back).
 
 ```bash
-./scripts/empaqueta_historial.py --outdir historial
-./scripts/empaqueta_historial.py --verificar historial   # which assets changed
+./scripts/empaqueta_historial.py --datos packages/leyesmx/data --outdir historial
+./scripts/empaqueta_historial.py --datos packages/leyesmx/data --verificar historial   # which assets changed
 ```
 
 The tarballs are **byte-reproducible**: gzip is stamped with mtime 0, members

@@ -53,11 +53,26 @@ sha256sum -c SHA256SUMS.txt
 ```
 
 `leyes.tgz`, `reglamentos.tgz`, `normas.tgz` and `tratados.tgz`. The monthly
-`reformas` workflow rebuilds all four collections, commits what changed to the
-repository — whose git history is the record of *when* each change appeared —
-and re-uploads only the assets whose bytes actually differ.
+`reformas` workflow rebuilds all four collections and re-uploads only the
+assets whose bytes actually differ — that release is the *only* copy; nothing
+is committed to git, so there is no second copy to fall out of sync with it.
 
-One file per law, `data/reformas/<abbr>.json`, plus `leyes.json` with the
+The easiest way to read it back is `leyesmx.historial.descarga_historial`,
+which downloads one collection straight into memory and returns a plain list
+of dicts — one per instrument, each merging its catalogue entry with its own
+`historial` (the `codNota` of its reforms or decrees, oldest first):
+
+```python
+from leyesmx.historial import descarga_historial
+
+leyes = descarga_historial("leyes")          # or "reglamentos", "normas", "tratados"
+cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
+print(cpeum["nombre"], cpeum["reformas"], len(cpeum["historial"]))
+```
+
+`python -m leyesmx --ley todas|reglamentos|normas|tratados` builds the same
+collection on disk instead, laid out the way the release tarballs are: one
+file per law, `data/reformas/<abbr>.json`, plus `leyes.json` with the
 catalogue itself (number, abbreviation, name, counts). Each law's file is a
 plain list of `codNota`:
 
