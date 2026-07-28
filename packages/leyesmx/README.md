@@ -25,6 +25,7 @@ pip install -e packages/dofjson -e packages/leyesmx
 python -m leyesmx --ley cpeum          # -> data/reformas/cpeum.json
 python -m leyesmx --ley lft            # any LeyesBiblio abbreviation
 python -m leyesmx --ley todas          # all 316 laws in the index
+python -m leyesmx --ley reglamentos    # all 137 federal regulations
 ```
 
 The first run downloads the titles dataset (~35 MB) unless `--titulos` points
@@ -73,12 +74,27 @@ even where it otherwise would not: `ccf` and `ccom` have no original
 publication on their page, and a reform without a note stays put as `null`
 instead of shifting everything after it.
 
-### Every reform is linked
+Regulations live in `data/reformas/reglamentos/`, with their own
+`reglamentos.json`. They are kept apart because their identifiers come from
+Diputados' file names (`reg_ladua`) and the laws' from its index
+(`reg_senado`), so nothing stops the two from colliding one day.
 
-All **3,136** reforms across the 316 laws have a `codNota`. The only two
-entries without one are original publications that predate the DOF archive
-itself: the Código de Comercio's (13-12-1889) and the Ordenanza General de la
-Armada's (08-01-1912), both before the gazette's 1917 record begins.
+### How much is linked
+
+| | Laws | Regulations |
+|---|---|---|
+| Instruments | 316 | 137 |
+| Entries | 3,450 | 287 |
+| With a `codNota` | 3,440 | 277 |
+| Verbatim title match | 3,337 | 261 |
+
+Every one of the **3,136** numbered reforms of a law is linked. The ten
+unlinked entries are all original publications, and each for a reason worth
+keeping visible rather than papering over: the Código de Comercio's (1889) and
+the Ordenanza General de la Armada's (1912) predate the DOF archive itself;
+some days carry very few notes in the dataset and not the one wanted (the Ley
+Aduanera's 15-12-1995 has 12); and the Ley de Fondos de Inversión was
+published under its former name, Ley de Sociedades de Inversión.
 
 Reform 139 of the Constitution (`08-03-1999`, amending articles 16, 19, 22 and
 123) used to be a `null` too. The date was never a Diputados mistake — the
@@ -105,9 +121,28 @@ fallback is complete rather than best-effort.
 
 Each `Reforma` exposes that URL as `.pdf`, whether or not the DOF has the note.
 
+## Matching a note to an entry
+
+Which metric applies depends on what LeyesBiblio gives. A numbered reform of a
+law comes with the decree's own title, and the DOF title is typically that
+title without Diputados' editorial summary, so containment settles it.
+
+An original publication comes with no title at all — only the instrument's
+name — and so does **every** entry of a regulation. There the question is the
+other way round: does the DOF title *name* this instrument? Using the first
+metric where only a name is available is not merely weaker but wrong: it
+linked the Ley Federal del Trabajo's 1970 publication to a Mexico City
+traffic-regulation decree, the Código Fiscal's to the 1982 budget, and a
+reform of the Reglamento de la Ley de Aeropuertos to a mining-claim notice.
+
+Name matches also carry a floor, below which the entry is left unlinked. A
+busy day carries a hundred notes, and half a name's words matching is as
+likely to be coincidence as not — an unlinked entry says less than a wrong
+one.
+
 ## Reading LeyesBiblio
 
-Two page layouts, told apart by content. The Constitution has a chronological
+Three page layouts, told apart by content. The Constitution has a chronological
 table (`ref/cpeum_crono.htm`) with each field in its own cell. Every ordinary
 law uses `ref/<abbr>.htm`, where a row's cell holds the decree's title and its
 date together, written either as `DOF DD-MM-YYYY` or bare as `DD-MM-YYYY`.
@@ -125,3 +160,22 @@ few link the wrong file (`lgpsedmtp`'s reform 4 links reform 3's PDF,
 
 With that, all 316 laws parse with contiguous reform numbering, no duplicates
 and no gaps.
+
+Regulations (`regla.htm`) are laid out differently again: there is no page per
+regulation, so the whole history sits inline in the index row, one anchor per
+entry — the file name says what kind of entry it is and the link text is the
+date. A single paragraph can switch kind part-way ("Reformas *a*, *b*, Fe de
+E. *c*"), so the row is walked in order with the last label carried forward.
+
+Three naming generations coexist and only the newest states the reform number
+(`Reg_LAero_ref03_29sep17`, then `Reg_LAero_ref080800`, then plain
+`Reg_LGP_29nov06`), so the number comes from chronological order instead.
+Diputados numbers them chronologically anyway, and every number it *does*
+state agrees with that position — checked with `numeracion_declarada()`, which
+reports no disagreement across all 137.
+
+Of those 137 rows, 49 link no history at all. They still state their
+publication date in the row's own column, so they are recorded with that and
+no reforms. `norma/reglamento.htm` ("Reglamentos Federales Vigentes") is a
+directory of current texts with no history whatsoever — 145 dates and not one
+`_refNN_` file — so no reform list can come from it.

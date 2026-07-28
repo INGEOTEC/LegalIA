@@ -289,3 +289,88 @@ class TestListaLeyes(unittest.TestCase):
 
         self.assertEqual([(l.no, l.abrev) for l in leyes], [(1, "cpeum"), (17, "lan")])
         self.assertEqual(leyes[1].nombre, "LEY de Aguas Nacionales")
+
+
+def fila_reglamento(no, nombre, entradas, vigente="Reg_X.pdf"):
+    """Una fila de `regla.htm`: el historial va en línea, un <a> por entrada,
+    y `entradas` es [(rótulo|None, archivo, fecha)]."""
+    cuerpo = f"<p><b>{nombre}</b></p>"
+    for etiqueta, archivo, fecha in entradas:
+        rotulo = f"<i>{etiqueta}</i>" if etiqueta else ""
+        cuerpo += f'<p>{rotulo} <a href="regley/{archivo}">{fecha}</a></p>'
+    return (f"<tr><td>{no}</td><td>{cuerpo}</td>"
+            f'<td>01/01/1990</td><td><a href="regley/{vigente}">PDF</a></td></tr>')
+
+
+class TestReglamentos(unittest.TestCase):
+    def test_lee_original_y_reformas(self):
+        html = "<table>" + fila_reglamento("01", "REGLAMENTO de la Ley Aduanera", [
+            ("Original", "Reg_LAdua_orig_20abr15.doc", "DOF 20/04/2015"),
+            ("Reforma", "Reg_LAdua_ref01_23feb26.doc", "DOF 23/02/2026"),
+        ]) + "</table>"
+
+        rs = diputados.parse_reglamentos(html)
+
+        self.assertEqual(len(rs), 1)
+        self.assertEqual(rs[0].abrev, "reg_ladua")
+        self.assertEqual(rs[0].nombre, "REGLAMENTO de la Ley Aduanera")
+        self.assertEqual([r.no for r in rs[0].reformas], [None, 1])
+        self.assertEqual(rs[0].reformas[0].fecha, "20-04-2015")
+
+    def test_numera_por_fecha_los_archivos_sin_numero(self):
+        """Conviven tres generaciones de nombre: `_ref03_29sep17` trae el
+        número, `_ref080800` sólo la fecha pegada y `Reg_LGP_29nov06` ninguno
+        de los dos."""
+        html = "<table>" + fila_reglamento("06", "REGLAMENTO de la Ley de Aeropuertos", [
+            ("Original", "Reg_LAero_orig_17feb00.doc", "DOF 17/02/2000"),
+            ("Reformas", "Reg_LAero_ref080800.doc", "DOF 08/08/2000"),
+            (None, "Reg_LAero_ref090903.doc", "09/09/2003"),
+            (None, "Reg_LAero_ref03_29sep17.doc", "29/09/2017"),
+        ]) + "</table>"
+
+        rs = diputados.parse_reglamentos(html)
+
+        # El número declarado (03) coincide con la posición cronológica.
+        self.assertEqual([r.no for r in rs[0].reformas], [None, 1, 2, 3])
+        self.assertEqual(diputados.numeracion_declarada(rs), [])
+
+    def test_un_rotulo_a_media_lista_cambia_de_tipo(self):
+        """"Reformas <a>a</a>, <a>b</a>, Fe de E. <a>c</a>" en un solo párrafo:
+        la fe de erratas no es una reforma."""
+        html = ("<table><tr><td>02</td><td>"
+                "<p><b>REGLAMENTO de prueba</b></p>"
+                '<p><i>Reformas</i> <a href="regley/Reg_P_ref01_01ene10.doc">DOF 01/01/2010</a>,'
+                ' <a href="regley/Reg_P_ref02_02feb11.doc">02/02/2011</a>,'
+                ' <i>Fe de E.</i> <a href="regley/Reg_P_fe_03mar12.doc">03/03/2012</a></p>'
+                "</td><td>01/01/2009</td></tr></table>")
+
+        rs = diputados.parse_reglamentos(html)
+
+        self.assertEqual([r.fecha for r in rs[0].reformas],
+                         ["01-01-2010", "02-02-2011"])
+
+    def test_un_reglamento_sin_historial_conserva_su_publicacion(self):
+        """49 de las 137 filas no enlazan historial; la fila sigue declarando
+        la fecha de publicación en su propia columna."""
+        html = ("<table><tr><td>02</td>"
+                "<td><p><b>REGLAMENTO de la Ley Agraria en Materia de Certificación</b></p></td>"
+                "<td>06/01/1993</td>"
+                '<td><a href="regley/Reg_LAgra_MCDETS.pdf">PDF</a></td></tr></table>')
+
+        rs = diputados.parse_reglamentos(html)
+
+        self.assertEqual(len(rs), 1)
+        self.assertEqual(rs[0].abrev, "reg_lagra_mcdets")
+        self.assertEqual([(r.no, r.fecha) for r in rs[0].reformas],
+                         [(None, "06-01-1993")])
+
+    def test_la_publicacion_original_se_nombra_como_el_reglamento(self):
+        """Para poder emparejarla con el DOF hay que compararla contra el
+        nombre; el literal "Publicación original" no coincide con nada."""
+        html = "<table>" + fila_reglamento("01", "REGLAMENTO de la Ley Aduanera", [
+            ("Original", "Reg_LAdua_orig_20abr15.doc", "DOF 20/04/2015"),
+        ]) + "</table>"
+
+        rs = diputados.parse_reglamentos(html)
+
+        self.assertEqual(rs[0].reformas[0].decreto, "REGLAMENTO de la Ley Aduanera")

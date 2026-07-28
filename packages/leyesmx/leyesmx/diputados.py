@@ -239,7 +239,7 @@ def _numero_de_reforma(fila: str, celda_no: str) -> int | None:
     return int(del_archivo.group(1)) if del_archivo else None
 
 
-def _parse_ref(html: str, ley: str) -> list[Reforma]:
+def _parse_ref(html: str, ley: str, nombre: str = "") -> list[Reforma]:
     """An ordinary law's page: the original publication, then a table of
     decrees whose row holds the title and the date together in one cell.
 
@@ -259,8 +259,13 @@ def _parse_ref(html: str, ley: str) -> list[Reforma]:
         original = _FECHA_DOF.search(_texto(cabeza[etiqueta:]))
         if original:
             d, mo, y = original.groups()
+            # The DOF publishes a law's original text under the law's own
+            # name, so that is what the entry has to be matched on; the
+            # placeholder it used to carry matched nothing (see
+            # dof.puntua_entrada).
             reformas.append(Reforma(no=None, fecha=f"{d}-{mo}-{y}",
-                                    decreto="Publicación original", ley=ley,
+                                    decreto=nombre or "Publicación original",
+                                    ley=ley,
                                     pdf=_pdf_del_decreto(cabeza[etiqueta:], ley)))
 
     for fila in _TR.findall(cuerpo):
@@ -291,7 +296,7 @@ def _parse_ref(html: str, ley: str) -> list[Reforma]:
     return _ordena(reformas)
 
 
-def parse_reformas(html: str, ley: str = "") -> list[Reforma]:
+def parse_reformas(html: str, ley: str = "", nombre: str = "") -> list[Reforma]:
     """Every reform in a LeyesBiblio page, oldest first.
 
     Dates are rewritten to DD-MM-YYYY so they join directly against
@@ -301,7 +306,7 @@ def parse_reformas(html: str, ley: str = "") -> list[Reforma]:
     the decree's title.
     """
     if _ENCABEZADO_REFORMAS in html:
-        return _parse_ref(html, ley)
+        return _parse_ref(html, ley, nombre)
     return _parse_crono(html, ley)
 
 
@@ -350,6 +355,188 @@ def lista_leyes(html: str) -> list[Ley]:
         nombre = _texto(re.sub(r"</a>.*", "", celdas[1], flags=re.S))
         leyes.append(Ley(no=int(no), abrev=abrev, nombre=nombre))
     return leyes
+
+
+@dataclass
+class Reglamento:
+    """One federal regulation, with its reforms, as LeyesBiblio records it."""
+
+    no: int
+    abrev: str              # Diputados' own file stem, lowercased: `reg_ladua`
+    nombre: str
+    reformas: list          # list[Reforma], oldest first
+
+
+#: `regla.htm` lists the regulations *in force* that implement a federal law,
+#: and is the only LeyesBiblio page that carries their reform history.
+#: `regley_abro.htm` has the same shape for abrogated ones and can be passed to
+#: `parse_reglamentos()` as well. `norma/reglamento.htm` ("Reglamentos
+#: Federales Vigentes") is a directory of current texts with no history at all
+#: — 145 dates and not one `_refNN_` file — so no reform list can come from it.
+PAGINA_REGLAMENTOS = "regla.htm"
+PAGINA_REGLAMENTOS_ABROGADOS = "regley_abro.htm"
+
+# A regulation's whole history sits inline in its row, one <a> per entry: the
+# href says what kind of entry it is and the link text is the date. Reading the
+# anchors is therefore enough — the row's Spanish labels ("Original",
+# "Reforma", "Cantidades") never have to be interpreted.
+#
+# Two naming generations coexist. Newer entries carry the reform number and a
+# readable date, `Reg_LAero_ref03_29sep17.doc`; older ones carry neither, just
+# the date run together, `Reg_LAero_ref080800.doc`. So the number is taken from
+# chronological order instead of the file name (see `parse_reglamentos`).
+# Regulations write the date with slashes, laws with hyphens.
+_FECHA_ENTRADA = re.compile(r"(?:DOF\s*)?(\d{2})\s*/\s*(\d{2})\s*/\s*(\d{4})")
+# Each entry is an italic label followed by one or more dated anchors. A single
+# paragraph can switch kind part-way — "Reformas <a>a</a>, <a>b</a>, Fe de E.
+# <a>c</a>" — so the cell is walked in order, carrying the label forward, and
+# every anchor belongs to the last label seen.
+_ETIQUETA_O_ANCLA = re.compile(
+    r"<i\b[^>]*>(?P<etiqueta>.*?)</i>"
+    r'|<a\b[^>]*href="(?P<href>[^"]+)"[^>]*>(?P<texto>.*?)</a>',
+    re.S | re.I,
+)
+_ES_ORIGINAL = re.compile(r"original", re.I)
+_ES_REFORMA = re.compile(r"reforma", re.I)
+# The stem identifies the regulation; three naming generations exist and only
+# the newest states the reform number, so `_numera()` derives it from order.
+_ARCHIVO_ENTRADA = re.compile(r"^([A-Za-z0-9_]+?)_(?:ref|orig)?_?\d", re.I)
+_ARCHIVO_NO_REFORMA = re.compile(
+    r"_(?:cant|fe|abro|acla|aclara|vig|sent|voto)_?\d*_?\d", re.I)
+
+
+def descarga_reglamentos(pagina: str = PAGINA_REGLAMENTOS, timeout: int = 60) -> str:
+    """The regulations index, decoded out of LeyesBiblio's cp1252."""
+    return _pide(f"{BASE}/{pagina}", timeout)
+
+
+def parse_reglamentos(html: str) -> list[Reglamento]:
+    """Every regulation in the index, each with its reforms oldest first.
+
+    Regulations are laid out unlike laws: there is no page per regulation, so
+    the whole history lives in the index row, and each entry is an anchor whose
+    file name carries its kind and number. Only `_refNN_` entries are reforms —
+    `_cant` (restated peso amounts), `_fe`, `_vig` and `_abro` are other
+    instruments, exactly as in the laws' tables.
+
+    The identifier is Diputados' own file stem lowercased (`Reg_LAdua` ->
+    `reg_ladua`), which is stable and unique across the collection.
+    """
+    reglamentos = []
+    for fila in _TR.findall(html):
+        celdas = _TD.findall(fila)
+        if len(celdas) < 2 or not _SOLO_DIGITOS.match(_texto(celdas[0])):
+            continue
+
+        # The name is the row's first paragraph. It is styled bold by a span
+        # rather than a <b> on many rows, so the markup is no help in finding
+        # it; its position is.
+        parrafos = _P.findall(celdas[1])
+        nombre = _texto(parrafos[0]) if parrafos else _texto(celdas[1])[:120]
+
+        abrev, clase, original, reformas = None, None, None, []
+        for m in _ETIQUETA_O_ANCLA.finditer(celdas[1]):
+            if m.group("etiqueta") is not None:
+                texto = _texto(m.group("etiqueta"))
+                if _ES_ORIGINAL.search(texto):
+                    clase = "original"
+                elif _ES_REFORMA.search(texto):
+                    clase = "reforma"
+                elif texto.strip(" ,"):
+                    clase = "otro"       # Fe de E., Cantidades, Aclaración…
+                continue
+
+            archivo = m.group("href").rsplit("/", 1)[-1]
+            stem = _ARCHIVO_ENTRADA.match(archivo)
+            if stem is None:
+                continue                 # the row's current-text PDF/WORD
+            if abrev is None:
+                abrev = stem.group(1).lower()
+            fecha = _FECHA_ENTRADA.search(_texto(m.group("texto")))
+            if fecha is None:
+                continue
+            d, mo, y = fecha.groups()
+            entrada = Reforma(no=None, fecha=f"{d}-{mo}-{y}", ley=abrev,
+                              decreto=nombre, pdf=_url_absoluta(m.group("href")))
+            if clase == "original":
+                original = original or entrada
+            elif clase == "reforma" and not _ARCHIVO_NO_REFORMA.search(archivo):
+                reformas.append(entrada)
+
+        if abrev is None:
+            # No history is linked at all — 49 of the 137 rows are like this.
+            # The row still states the original publication date in its own
+            # column, so the regulation is recorded with that and no reforms.
+            abrev = _abrev_del_texto_vigente(celdas)
+            fecha = _FECHA_ENTRADA.search(_texto(celdas[2])) if len(celdas) > 2 else None
+            if abrev is None or fecha is None:
+                continue
+            d, mo, y = fecha.groups()
+            original = Reforma(no=None, fecha=f"{d}-{mo}-{y}", ley=abrev,
+                               decreto=nombre, pdf="")
+
+        reglamentos.append(Reglamento(
+            no=int(_texto(celdas[0])), abrev=abrev, nombre=nombre,
+            reformas=([original] if original else []) + _numera(reformas),
+        ))
+    return reglamentos
+
+
+def _abrev_del_texto_vigente(celdas: list) -> str | None:
+    """The regulation's identifier from the link to its current text.
+
+    The only place it appears for a row that links no history:
+    `regley/Reg_LAgra_MCDETS.pdf` -> `reg_lagra_mcdets`.
+    """
+    for celda in celdas[2:]:
+        for href in _HREF.findall(celda):
+            nombre = href.rsplit("/", 1)[-1]
+            if nombre.lower().endswith((".pdf", ".doc")):
+                return nombre.rsplit(".", 1)[0].lower()
+    return None
+
+
+def _numera(reformas: list) -> list:
+    """Number a regulation's reforms 1..N by publication date.
+
+    Diputados numbers them chronologically, but only says so in the newer file
+    names; the older ones carry no number at all. Position is the one signal
+    present for every entry, and it agrees with every number that *is* stated
+    — `reg_laero`'s two unnumbered files are 2000 and 2003, and the next file
+    it names explicitly is `ref03`.
+    """
+    ordenadas = sorted(
+        reformas, key=lambda r: (r.fecha[-4:], r.fecha[3:5], r.fecha[:2])
+    )
+    for posicion, entrada in enumerate(ordenadas, 1):
+        entrada.no = posicion
+    return ordenadas
+
+
+def numeracion_declarada(reglamentos: list) -> list[tuple[str, int, int]]:
+    """Where a regulation's file names disagree with chronological numbering.
+
+    Only for checking the assumption `_numera()` rests on; the numbering itself
+    does not consult it. Returns `(abrev, declarado, por_posicion)` per
+    mismatch, and an empty list when every stated number agrees.
+    """
+    desacuerdos = []
+    for r in reglamentos:
+        declarados = {}
+        for entrada in r.reformas:
+            if entrada.no is None:
+                continue
+            m = _ARCHIVO_REF.search(entrada.pdf.rsplit("/", 1)[-1])
+            if m:
+                declarados[entrada.no] = int(m.group(1))
+        for posicion, declarado in declarados.items():
+            if declarado != posicion:
+                desacuerdos.append((r.abrev, declarado, posicion))
+    return desacuerdos
+
+
+def _url_absoluta(href: str) -> str:
+    return href if href.startswith("http") else f"{BASE}/{href}"
 
 
 def descarga_decreto(reforma: Reforma, dest: Path, timeout: int = 120) -> Path:

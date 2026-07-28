@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       ley:
-        description: "Abreviatura de LeyesBiblio (p. ej. cpeum), o 'todas'"
+        description: "Abreviatura de LeyesBiblio, 'todas' o 'reglamentos'"
         default: todas
 
 jobs:
@@ -34,6 +34,8 @@ jobs:
         run: |
           if [ "$LEY" = "todas" ]; then
             salida="packages/leyesmx/data/reformas"
+          elif [ "$LEY" = "reglamentos" ]; then
+            salida="packages/leyesmx/data/reformas/reglamentos"
           else
             salida="packages/leyesmx/data/reformas/$LEY.json"
           fi
