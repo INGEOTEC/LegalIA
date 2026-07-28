@@ -42,6 +42,22 @@ _LISTAS_NOTAS = ("NotasMatutinas", "NotasVespertinas", "NotasExtraordinarias")
 FUENTE_PREDETERMINADA = "sidof"
 
 
+def lee_titulos(origen: Path):
+    """Yield the records of a dataset `download_titulos` wrote.
+
+    The counterpart of writing it, kept here so a consumer does not have to
+    know the file is gzipped JSONL — or reach for a text-mining library to find
+    that out. `microtc.utils.tweet_iterator` reads the same format, but pulling
+    it in costs `numpy` as well, and it does not declare that dependency: an
+    install without it fails on `import microtc`, not at the call.
+    """
+    with gzip.open(Path(origen), "rt", encoding="utf-8") as f:
+        for linea in f:
+            linea = linea.strip()
+            if linea:
+                yield json.loads(linea)
+
+
 def listar_assets(timeout: int = 30) -> list[dict]:
     """`.tgz` assets (name + download URL) of the notas-archivo release."""
     response = requests.get(RELEASES_API, headers=_HEADERS, timeout=timeout)

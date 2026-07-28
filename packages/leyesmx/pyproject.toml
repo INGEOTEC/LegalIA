@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "leyesmx"
-version = "0.2.0"
+version = "0.2.1"
 description = "Reform history of Mexican federal legislation, linked to the DOF notes that published it."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -16,8 +16,10 @@ classifiers = [
 ]
 dependencies = [
     "requests>=2.31",
-    "dofjson>=0.1.1",
-    "microtc>=2.4",
+    # 0.3 trae titulos.lee_titulos. Antes esto usaba
+    # microtc.utils.tweet_iterator, que lee el mismo formato pero
+    # arrastra numpy sin declararlo.
+    "dofjson>=0.3.0",
 ]
 
 [project.optional-dependencies]
