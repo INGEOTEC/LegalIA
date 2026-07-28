@@ -186,6 +186,102 @@ class TestHuecos(unittest.TestCase):
                 dofweb.get_notas(dt.date(1999, 3, 8))
 
 
+def pagina_nota(fecha="03/03/1999", detalle="", encoding="utf-8"):
+    """A stand-in for nota_detalle.php, in its real shape: the note's markup
+    wrapped in <HTML>…</HTML>, then the site's own disclaimer, both inside
+    DivDetalleNota."""
+    cuerpo = (
+        "<html><body>"
+        f"<td class='txt'><b>DOF: {fecha}</b> </td>"
+        "<td><div id='DivDetalleNota' align='justify' style='overflow:hidden;'>"
+        f"{detalle}"
+        "<table><tr><td class='txt'>En el documento que usted est&aacute; "
+        "visualizando puede haber texto, caracteres u objetos que no se muestren "
+        "correctamente debido a la conversi&oacute;n a formato HTML.</td></tr></table>"
+        "</div></td></body></html>"
+    )
+    response = Mock(content=cuerpo.encode(encoding), encoding=encoding)
+    response.raise_for_status = Mock()
+    return response
+
+
+NOTA_HTML = (
+    '<HTML><BODY><p align="justify"><font size="2" face="Arial">DECRETO por el '
+    "que se concede permiso a los ciudadanos cuya lista encabeza Carlos Jos&eacute; "
+    "Mauricio Prieto y Jacque.</font></p> "
+    '<p><font size="2" face="Arial"><b>ERNESTO ZEDILLO PONCE DE LEON</b>, '
+    "Presidente de los Estados Unidos Mexicanos.</font></p></BODY></HTML>"
+)
+
+# What the site puts in the div when it has no HTML for the note.
+SOLO_PDF = (
+    "<table><tr><td>El contenido del documento &uacute;nicamente puede ser "
+    "visualizado a trav&eacute;s de la edici&oacute;n del Diario Oficial de la "
+    "Federaci&oacute;n en formato PDF.</td></tr></table>"
+)
+
+
+class TestGetNota(unittest.TestCase):
+    def nota_de(self, **kwargs):
+        with patch("dofjson.dofweb.requests.get", return_value=pagina_nota(**kwargs)):
+            return dofweb.get_nota(4997808)
+
+    def test_reads_the_notes_html_and_metadata(self):
+        r = self.nota_de(detalle=NOTA_HTML)
+        nota = r["Nota"]
+
+        self.assertEqual(r["fuente"], dofweb.FUENTE)
+        self.assertEqual(nota["codNota"], 4997808)
+        self.assertEqual(nota["fecha"], "03-03-1999")
+        self.assertEqual(nota["existeHtml"], "S")
+        self.assertEqual(nota["fuente"], dofweb.FUENTE)
+        self.assertEqual(nota["cadenaContenido"], NOTA_HTML)
+
+    def test_the_title_is_the_notes_own_first_line(self):
+        nota = self.nota_de(detalle=NOTA_HTML)["Nota"]
+
+        self.assertEqual(
+            nota["titulo"],
+            "DECRETO por el que se concede permiso a los ciudadanos cuya lista "
+            "encabeza Carlos José Mauricio Prieto y Jacque.",
+        )
+
+    def test_the_sites_disclaimer_is_not_part_of_the_note(self):
+        """The disclaimer sits inside the div but after </HTML>, so the wrapper
+        is what bounds the note — otherwise it would end up in the Markdown."""
+        nota = self.nota_de(detalle=NOTA_HTML)["Nota"]
+
+        self.assertNotIn("En el documento que usted", nota["cadenaContenido"])
+        self.assertTrue(nota["cadenaContenido"].endswith("</BODY></HTML>"))
+
+    def test_a_note_the_site_serves_only_as_pdf_has_no_html(self):
+        nota = self.nota_de(detalle=SOLO_PDF)["Nota"]
+
+        self.assertEqual(nota["existeHtml"], "N")
+        self.assertIsNone(nota["cadenaContenido"])
+        self.assertIsNone(nota["titulo"])
+        self.assertEqual(nota["fecha"], "03-03-1999")
+
+    def test_an_unknown_codigo_answers_an_empty_note_like_sidof(self):
+        """The site does not 404 for a codigo it lacks: it renders the page with
+        the epoch as the publication date. That is the tell."""
+        r = self.nota_de(fecha="31/12/1969", detalle=SOLO_PDF)
+
+        self.assertEqual(r["Nota"], [])
+
+    def test_the_page_is_decoded_by_the_charset_it_declares(self):
+        """Note pages are UTF-8 and say so, unlike the daily index (cp1252)."""
+        nota = self.nota_de(detalle=NOTA_HTML.replace("Jos&eacute;", "José"))["Nota"]
+
+        self.assertIn("José", nota["cadenaContenido"])
+
+    def test_nested_divs_do_not_end_the_note_early(self):
+        detalle = "<HTML><BODY><div><p>Uno</p></div><p>Dos</p></BODY></HTML>"
+        nota = self.nota_de(detalle=detalle)["Nota"]
+
+        self.assertEqual(nota["cadenaContenido"], detalle)
+
+
 class TestTLS(unittest.TestCase):
     def test_retries_with_the_bundled_chain_when_the_server_omits_it(self):
         """dof.gob.mx sends no intermediate, so a strict client cannot build a

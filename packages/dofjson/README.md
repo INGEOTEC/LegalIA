@@ -114,6 +114,25 @@ The same applies to a single date, so a lost day is reachable directly:
 dofjson 1999-03-08 --endpoint notas      # -> "fuente": "dof.gob.mx", 22 notas
 ```
 
+**The text of those notes is recoverable too**, not just their titles.
+`dofweb.get_nota(codNota)` reads a note's page on the website and returns it in
+the shape `client.get_nota()` uses, with the note's HTML in `cadenaContenido` —
+the same string SIDOF would have served, so `nota2md` converts it to Markdown
+by the ordinary HTML path:
+
+```python
+from dofjson import dofweb
+
+dofweb.get_nota(4997808)["Nota"]["cadenaContenido"]   # DOF 03-03-1999
+```
+
+On a note both sources have, the recovered HTML differs from SIDOF's only in
+escaping its accents as entities, and the Markdown built from either is
+identical. The page carries no `codDiario`, `codEdicion` or `pagina`, so the
+image and PDF paths stay SIDOF-only; a note the site has no HTML for comes back
+with `existeHtml` `"N"`, and an unknown `codNota` with `"Nota": []`, as SIDOF
+answers.
+
 **Which source a day came from is recorded, never inferred.** Every saved day
 carries a `fuente` key (`"sidof"` or `"dof.gob.mx"`), and the registry stores
 it next to the date, so provenance can be audited after the fact:
