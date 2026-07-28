@@ -24,8 +24,13 @@ def nota(codigo: str, titulo: str) -> str:
     )
 
 
+def encabezado(fecha: str) -> str:
+    return f'<td class="txt"><span>Fecha: {fecha} - Edici&oacute;n Matutina</span></td>'
+
+
 UNA_SECCION = pagina(
-    '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
+    encabezado("08/03/1999")
+    + '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
     '<td class="txt_blanco2">&nbsp;PODER EJECUTIVO</td>'
     # The real page leaves commented-out markup wrapped around the heading.
     '<td class="subtitle_azul"><!-- <img src="b.gif" alt="."> -->'
@@ -42,7 +47,8 @@ SIN_DATOS = pagina('<td class="txt_blanco">&nbsp; No hay datos para la fecha sel
 # A pre-digital day: the edition exists, but only as scanned images, so the
 # index carries section banners and no per-note links.
 SOLO_IMAGEN = pagina(
-    '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
+    encabezado("10/06/1930")
+    + '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
     '<td class="txt_blanco">&nbsp; SEGUNDA SECCION</td>',
     cod_diario="189450",
 )
@@ -92,7 +98,8 @@ class TestParseo(unittest.TestCase):
         """GDF and OTROS appear in the archive but not in a present-day
         edition; the site labels them with the same words SIDOF names them by."""
         pagina_gdf = pagina(
-            '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
+            encabezado("08/03/1999")
+            + '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
             '<td class="txt_blanco2">&nbsp;GOBIERNO DEL DISTRITO FEDERAL</td>'
             + nota("5001000", "Aviso del GDF")
             + '<td class="txt_blanco2">&nbsp;OTROS</td>'
@@ -104,7 +111,8 @@ class TestParseo(unittest.TestCase):
 
     def test_an_unknown_heading_leaves_the_code_unset_but_keeps_the_name(self):
         pagina_rara = pagina(
-            '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
+            encabezado("08/03/1999")
+            + '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>'
             '<td class="txt_blanco2">&nbsp;ORGANISMO NUEVO</td>' + nota("5001002", "X")
         )
         nota_rara = self.notas_de({"MAT": pagina_rara})["NotasMatutinas"][0]
@@ -128,7 +136,8 @@ class TestParseo(unittest.TestCase):
 
     def test_reads_every_edition(self):
         r = self.notas_de({"MAT": UNA_SECCION, "VES": pagina(
-            '<td class="txt_blanco">&nbsp; UNICA SECCION</td>'
+            encabezado("08/03/1999")
+            + '<td class="txt_blanco">&nbsp; UNICA SECCION</td>'
             '<td class="txt_blanco2">&nbsp;PODER EJECUTIVO</td>'
             + nota("4997870", "Aviso vespertino"))})
 
@@ -161,6 +170,45 @@ class TestHuecos(unittest.TestCase):
         self.assertEqual(
             r["edicionesSinIndice"], [{"codEdicion": "MAT", "codDiario": 189450}]
         )
+
+    def test_rejects_a_page_served_for_another_date(self):
+        """The site has been seen answering with a different day's page. The
+        parser stamps each note with the date that was *asked for*, so taking
+        it at face value would file real notes under the wrong day."""
+        with self.assertRaises(dofweb.PaginaDeOtroDia) as cm:
+            # UNA_SECCION prints 08/03/1999; ask for a different day.
+            self.notas_de({"MAT": UNA_SECCION}, fecha=dt.date(2015, 3, 16))
+
+        self.assertIn("16/03/2015", str(cm.exception))
+        self.assertIn("08/03/1999", str(cm.exception))
+
+    def test_rejects_content_that_carries_no_date_at_all(self):
+        sin_encabezado = pagina(
+            '<td class="txt_blanco">&nbsp; PRIMERA SECCION</td>' + nota("1", "X")
+        )
+
+        with self.assertRaises(dofweb.PaginaDeOtroDia):
+            self.notas_de({"MAT": sin_encabezado})
+
+    def test_an_edition_that_did_not_run_needs_no_date(self):
+        """Some dates answer for an edition the gazette never ran with a bare
+        page: no "no hay datos" banner, no date, no content. There is nothing
+        there to mistake for another day, so it is not treated as a mix-up —
+        08-03-1999 answers exactly this way for EXT."""
+        vacia = "<html><body><table></table></body></html>"
+
+        r = self.notas_de({"MAT": UNA_SECCION, "EXT": vacia})
+
+        self.assertEqual(len(r["NotasMatutinas"]), 3)
+        self.assertEqual(r["NotasExtraordinarias"], [])
+        self.assertEqual(r["edicionesSinIndice"], [])
+
+    def test_a_day_with_no_edition_needs_no_date_to_be_accepted(self):
+        """"No hay datos" carries no header, and that is not a mix-up: it is
+        the site saying the gazette did not come out."""
+        r = self.notas_de({"MAT": SIN_DATOS})
+
+        self.assertFalse(dofweb.hay_publicacion(r))
 
     def test_a_404_edition_is_not_an_error(self):
         def _get(url, **kwargs):
