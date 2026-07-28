@@ -27,6 +27,7 @@ python -m leyesmx --ley lft            # any LeyesBiblio abbreviation
 python -m leyesmx --ley todas          # all 316 laws in the index
 python -m leyesmx --ley reglamentos    # all 137 federal regulations
 python -m leyesmx --ley normas         # all 4,674 Normas Oficiales Mexicanas
+python -m leyesmx --ley tratados       # all 1,956 international treaties
 ```
 
 The first run downloads the titles dataset (~35 MB) unless `--titulos` points
@@ -172,6 +173,51 @@ it cannot be resolved: `NOM-021` is equally the ASEA, the SAG and the SCT4
 norm. Those 287 codes and their 669 notes go to `citas-ambiguas.json` rather
 than being dropped or guessed at — the notes do concern a NOM, only which one
 cannot be told.
+
+## International treaties
+
+No spine exists for these either, and here not for want of one. LeyesBiblio
+does not carry treaties, and `cja.sre.gob.mx/tratadosmexico` — the SRE's
+official register — answers a Radware bot-management challenge instead of data,
+so it is not a source a program can read. The gazette is read directly again,
+but a treaty has no code, only a name, which makes this the least certain of
+the four.
+
+A treaty reaches the DOF as two decrees, months or years apart:
+
+```
+10-01-1995  DECRETO por el que se aprueba el Convenio entre los Estados Unidos
+            Mexicanos y la República de Corea, para evitar la Doble Imposición…
+16-03-1995  DECRETO de promulgación del Convenio entre los Estados Unidos
+            Mexicanos y la República de Corea para Evitar la Doble Imposición…
+```
+
+Pairing them is the whole problem: the same instrument is worded differently
+each time — "2007" against "dos mil siete", "dado en Madrid" against "adoptado
+en Madrid".
+
+| | |
+|---|---|
+| Treaties | 1,956 |
+| DOF decrees | 2,745 |
+| Both decrees, names identical | 517 |
+| Both decrees, matched | 272 |
+| A single decree | 1,167 |
+
+**A treaty with one decree is the norm, not a miss.** Publishing both is a
+recent practice: the pairing rate climbs from 0% in the 1970s to about half in
+the 2010s, and for older treaties the gazette simply ran one of the two. Every
+one of the 2,745 decrees is accounted for in some treaty.
+
+**Names are weighted by word rarity, not compared as strings.** Treaty names
+are formulaic — "convenio entre el gobierno de los estados unidos mexicanos y
+el gobierno de la república de X para…" — so plain string similarity is
+dominated by the boilerplate and rates unrelated instruments highly: it gave
+**0.88** to a 1977 trade agreement with Gabon paired against a 1994 framework
+agreement, higher than it gave real pairs. Weighting each word by how rare it
+is puts that false pair at 0.56 and real ones at 0.72–0.78, so the threshold
+sits at 0.70. A promulgation is never paired with an approval that follows it,
+and each decree is claimed once.
 
 ## Matching a note to an entry
 

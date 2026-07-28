@@ -6,7 +6,7 @@ import json
 import sys
 from pathlib import Path
 
-from leyesmx import diputados, dof, normas
+from leyesmx import diputados, dof, normas, tratados
 
 
 def lista_de_codnota(enlazadas) -> list[int | None]:
@@ -188,12 +188,41 @@ def todas_las_normas(args, tweet_iterator) -> int:
     return 0
 
 
+def todos_los_tratados(args, tweet_iterator) -> int:
+    """Build every international treaty's history from the DOF titles alone.
+
+    Neither LeyesBiblio nor the SRE's register can serve as the spine (see
+    `tratados`), so the gazette is read directly. A treaty has no code, only a
+    name, so the two decrees that make it up are matched rather than compared
+    verbatim — and where they cannot be matched the treaty keeps its single
+    note, which for most older ones is the truth rather than a miss.
+    """
+    destino_dir = args.out or Path("data/tratados")
+    decretos = tratados.decretos(tweet_iterator(str(args.titulos)))
+    print(f"decretos de tratado en el DOF: {len(decretos)}", file=sys.stderr)
+
+    grupos = tratados.empareja(decretos)
+    _escribe([tratados.historia(g) for g in grupos], destino_dir / "tratados.json")
+    _escribe(tratados.catalogo(grupos), destino_dir / "catalogo.json")
+
+    exactas = sum(1 for g in grupos if g["certeza"] == "exacta")
+    pares = sum(1 for g in grupos if isinstance(g["certeza"], float))
+    sueltos = sum(1 for g in grupos if g["certeza"] is None)
+    print(f"\n{len(grupos)} tratados -> {destino_dir}/tratados.json "
+          f"(catálogo en {destino_dir}/catalogo.json)")
+    print(f"{sum(len(g['notas']) for g in grupos)} decretos | "
+          f"{exactas} con los dos decretos por nombre idéntico, {pares} emparejados, "
+          f"{sueltos} con un solo decreto")
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--ley", default="cpeum",
                    help="LeyesBiblio abbreviation; 'todas' for every law in its "
                         "index, 'reglamentos' for every federal regulation, "
-                        "'normas' for every Norma Oficial Mexicana "
+                        "'normas' for every Norma Oficial Mexicana, "
+                        "'tratados' for every international treaty "
                         "(default: cpeum)")
     p.add_argument("--titulos", type=Path, default=Path("titulos.jsonl.gz"),
                    help="dataset from dofjson.titulos.download_titulos")
@@ -217,6 +246,8 @@ def main(argv=None) -> int:
         return todos_los_reglamentos(args, tweet_iterator)
     if args.ley == "normas":
         return todas_las_normas(args, tweet_iterator)
+    if args.ley == "tratados":
+        return todos_los_tratados(args, tweet_iterator)
 
     reformas = diputados.parse_reformas(diputados.descarga(args.ley), args.ley)
     enlazadas = dof.enlaza(reformas, tweet_iterator(str(args.titulos)))
