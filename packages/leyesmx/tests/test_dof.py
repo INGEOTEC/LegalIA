@@ -128,3 +128,89 @@ class TestEnlaza(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSimilitudNombre(unittest.TestCase):
+    """Para los reglamentos no hay título de decreto que comparar: LeyesBiblio
+    sólo da el nombre del reglamento, así que la pregunta es la inversa —
+    ¿este título del DOF nombra a este instrumento?"""
+
+    def test_uno_cuando_el_titulo_contiene_el_nombre(self):
+        s = dof.similitud_nombre(
+            "REGLAMENTO de la Ley de Aguas Nacionales",
+            "DECRETO que reforma el Reglamento de la Ley de Aguas Nacionales.",
+        )
+
+        self.assertEqual(s, 1.0)
+
+    def test_cero_cuando_el_titulo_no_tiene_nada_que_ver(self):
+        """El caso que delató la métrica anterior: la reforma de 08-08-2000 al
+        Reglamento de la Ley de Aeropuertos quedaba ligada a esta nota."""
+        s = dof.similitud_nombre(
+            "REGLAMENTO de la Ley de Aeropuertos",
+            "Relación de declaratorias de libertad de terreno número 63/2000",
+        )
+
+        self.assertEqual(s, 0.0)
+
+    def test_ignora_las_palabras_demasiado_cortas(self):
+        """"de" y "la" aparecen en casi cualquier título; contarlas inflaría
+        el parecido de notas sin relación."""
+        s = dof.similitud_nombre("LEY de Minería", "ACUERDO por el que se de la")
+
+        self.assertEqual(s, 0.0)
+
+
+class TestPuntuaEntrada(unittest.TestCase):
+    def test_una_reforma_numerada_se_compara_por_el_titulo_del_decreto(self):
+        reforma = Reforma(no=5, fecha="01-01-2020",
+                          decreto="DECRETO por el que se reforma el artículo 1")
+
+        s = dof.puntua_entrada(reforma, "DECRETO por el que se reforma el artículo 1")
+
+        self.assertEqual(s, 1.0)
+
+    def test_una_publicacion_original_se_compara_por_el_nombre(self):
+        """`similitud` esperaría que el título del DOF fuera prefijo de un texto
+        más largo; con sólo el nombre eso da puntajes altos a notas ajenas —
+        ligó la Ley Federal del Trabajo de 1970 a un reglamento de tránsito."""
+        original = Reforma(no=None, fecha="01-04-1970",
+                           decreto="LEY Federal del Trabajo")
+
+        acertado = dof.puntua_entrada(original, "LEY Federal del Trabajo.")
+        ajeno = dof.puntua_entrada(
+            original, "DECRETO que reforma el Reglamento de Tránsito en el D.F.")
+
+        self.assertEqual(acertado, 1.0)
+        self.assertLess(ajeno, 0.6)
+
+
+class TestMinimoPorNombre(unittest.TestCase):
+    def test_no_enlaza_por_debajo_del_minimo(self):
+        """Un día cargado trae cien notas; que coincida la mitad de las
+        palabras es tan probable por azar como por acierto, y dejar la entrada
+        sin enlazar dice menos que enlazarla mal."""
+        original = Reforma(no=None, fecha="01-01-2020", decreto="LEY de Minería")
+        porf = {"01-01-2020": [{"codNota": 1, "titulo": "ACUERDO sobre otra cosa"}]}
+
+        enlazadas = dof.enlaza_agrupadas([original], porf)
+
+        self.assertFalse(enlazadas[0].enlazada)
+
+    def test_una_reforma_numerada_no_esta_sujeta_a_ese_minimo(self):
+        reforma = Reforma(no=1, fecha="01-01-2020", decreto="DECRETO que reforma algo")
+        porf = {"01-01-2020": [{"codNota": 7, "titulo": "DECRETO que reforma algo"}]}
+
+        enlazadas = dof.enlaza_agrupadas([reforma], porf)
+
+        self.assertEqual(enlazadas[0].codNota, 7)
+
+    def test_por_nombre_aplica_el_minimo_a_todas_las_entradas(self):
+        """Modo de los reglamentos: ninguna entrada trae título de decreto."""
+        reforma = Reforma(no=1, fecha="01-01-2020",
+                          decreto="REGLAMENTO de la Ley de Aeropuertos")
+        porf = {"01-01-2020": [{"codNota": 9, "titulo": "Relación de declaratorias"}]}
+
+        enlazadas = dof.enlaza_agrupadas([reforma], porf, por_nombre=True)
+
+        self.assertFalse(enlazadas[0].enlazada)

@@ -20,16 +20,26 @@ class TestEscribeJson(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_escribe_solo_la_lista_de_codnota(self):
-        escribe_json([enlazada(1, 111), enlazada(2, 222)], self.destino)
-
-        self.assertEqual(json.load(open(self.destino)), [111, 222])
-
-    def test_conserva_el_orden_recibido(self):
-        escribe_json([enlazada(1, 111), enlazada(2, 222), enlazada(3, 333)],
+    def test_el_indice_n_es_la_reforma_n(self):
+        """El índice 0 es la publicación original y el N la reforma N."""
+        escribe_json([enlazada(None, 100), enlazada(1, 111), enlazada(2, 222)],
                      self.destino)
 
-        self.assertEqual(json.load(open(self.destino)), [111, 222, 333])
+        self.assertEqual(json.load(open(self.destino)), [100, 111, 222])
+
+    def test_coloca_por_numero_no_por_posicion(self):
+        """Recibidas en cualquier orden, cada una cae en su propio índice."""
+        escribe_json([enlazada(3, 333), enlazada(1, 111), enlazada(2, 222)],
+                     self.destino)
+
+        self.assertEqual(json.load(open(self.destino)), [None, 111, 222, 333])
+
+    def test_una_ley_sin_publicacion_original_deja_el_indice_0_en_null(self):
+        """`ccf` y `ccom` no la traen en su página; sin reservar el índice 0
+        toda la numeración se correría en uno."""
+        escribe_json([enlazada(1, 111), enlazada(2, 222)], self.destino)
+
+        self.assertEqual(json.load(open(self.destino)), [None, 111, 222])
 
     def test_una_reforma_sin_nota_queda_como_null(self):
         """Así la lista sigue alineada con la numeración de Diputados y el
@@ -37,7 +47,8 @@ class TestEscribeJson(unittest.TestCase):
         escribe_json([enlazada(138, 111), enlazada(139, None), enlazada(140, 333)],
                      self.destino)
 
-        self.assertEqual(json.load(open(self.destino)), [111, None, 333])
+        lista = json.load(open(self.destino))
+        self.assertEqual(lista[138:141], [111, None, 333])
 
     def test_crea_el_directorio_destino(self):
         destino = Path(self.tmp.name) / "nuevo" / "sub" / "cpeum.json"
