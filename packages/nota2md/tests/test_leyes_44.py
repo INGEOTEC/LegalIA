@@ -150,12 +150,16 @@ def _similitud_por_ley(
 
 
 class TestConstruyeLeyContraElTextoVigenteReal(unittest.TestCase):
-    def setUp(self):
-        self.tmpdir = tempfile.TemporaryDirectory()
-        self.outdir = Path(self.tmpdir.name)
+    # A fixed path, not a fresh temp dir per run — normative_reconstruction()
+    # reads a note it already fetched here straight off disk instead of
+    # refetching it, so a rerun of this slow, real-network suite only pays
+    # for the notes it does not already have. Left in place on purpose: it
+    # is what makes a second run fast, not a leak to clean up.
+    OUTDIR = Path(tempfile.gettempdir()) / "nota2md-normative-reconstruction"
 
-    def tearDown(self):
-        self.tmpdir.cleanup()
+    def setUp(self):
+        self.outdir = self.OUTDIR
+        self.outdir.mkdir(parents=True, exist_ok=True)
 
     def test_cada_ley_se_reconstruye_por_encima_del_umbral(self):
         promedios = []
