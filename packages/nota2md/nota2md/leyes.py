@@ -28,6 +28,17 @@ the law's substantive text, and a reform decree's own "Transitorios" section
 into the law. The original publication's own Transitorios section is kept —
 it is still in force until a decree explicitly replaces it, which none of the
 44 laws this was built against ever does.
+
+A restated "Artículo N" rarely repeats the whole article: the DOF only spells
+out the fracciones/incisos it actually touches and marks the rest with a
+placeholder — a bare "…", a "**I.**"/"**a)**" with nothing else, or a span
+like "**I.** a **XVI. …**" — to show where the change belongs without
+retyping everything around it. `_fusiona_articulo()` fills every one of those
+placeholders back in from the article's previous text before the restatement
+replaces it, matching each by its own fracción/inciso label (incisos are
+lettered a), b), c)... independently under every fracción, so a label is
+looked up from wherever the merge last left off, not from the top of the
+article) or, for an unlabelled paragraph, by position.
 """
 
 import re
@@ -380,6 +391,147 @@ def _numeros_derogados(instruccion: str) -> list[str]:
     return derogados
 
 
+_SUFIJO_ETIQUETA = (
+    r"(?:\s+(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies))?"
+)
+_NUMERAL_ETIQUETA = rf"[IVXLCDM]+{_SUFIJO_ETIQUETA}"
+_LETRA_ETIQUETA = r"[a-záéíóúñ]"
+
+_ETIQUETA_NUM = re.compile(rf"^({_NUMERAL_ETIQUETA})\.\s*(.*)$", re.S)
+_ETIQUETA_LETRA = re.compile(rf"^({_LETRA_ETIQUETA})\)\s*(.*)$", re.S)
+_RANGO_NUM = re.compile(
+    rf"^({_NUMERAL_ETIQUETA})\.\s+(?:a|y)\s+({_NUMERAL_ETIQUETA})\.\s*(.*)$", re.S
+)
+_RANGO_LETRA = re.compile(
+    rf"^({_LETRA_ETIQUETA})\)\s+(?:a|y)\s+({_LETRA_ETIQUETA})\)\s*(.*)$", re.S
+)
+
+
+def _es_elipsis(texto: str) -> bool:
+    """`texto` is nothing but an ellipsis ("...", "….", "…") — a placeholder
+    marking a fracción/inciso/párrafo the reform leaves untouched, not real
+    text to keep."""
+    return bool(re.fullmatch(r"\.{3,}", texto.strip().replace("…", "...")))
+
+
+def _analiza_bloque(bloque: str) -> tuple[str | None, str | None, str]:
+    """(tipo, etiqueta, resto) for `bloque`: tipo is "num" for a fracción
+    numeral ("I.", "XIII Bis."), "letra" for a lettered inciso ("a)"), or
+    None for a plain paragraph with no marker at all. `resto` is the text
+    after the marker — the whole block, for a plain paragraph — and is what
+    `_es_elipsis` is checked against to tell a placeholder from real text.
+    """
+    encabezado = _encabezado(bloque)
+    m = _ETIQUETA_NUM.match(encabezado)
+    if m:
+        return "num", m.group(1), m.group(2)
+    m = _ETIQUETA_LETRA.match(encabezado)
+    if m:
+        return "letra", m.group(1), m.group(2)
+    return None, None, encabezado
+
+
+def _analiza_rango(bloque: str) -> tuple[str, str, str] | None:
+    """(tipo, etiqueta_inicio, etiqueta_fin) if `bloque` is a whole span of
+    fracciones/incisos left untouched ("I. a XVI. …", "X. y XI. …") — None
+    otherwise, including when it names a span but goes on to say something
+    other than "…" about it."""
+    encabezado = _encabezado(bloque)
+    for tipo, patron in (("num", _RANGO_NUM), ("letra", _RANGO_LETRA)):
+        m = patron.match(encabezado)
+        if m and _es_elipsis(m.group(3)):
+            return tipo, m.group(1), m.group(2)
+    return None
+
+
+def _normaliza_etiqueta(etiqueta: str) -> str:
+    return re.sub(r"\s+", " ", etiqueta.strip().lower())
+
+
+def _busca_etiqueta(bloques: list[str], tipo: str, etiqueta: str, desde: int) -> int | None:
+    """Index in `bloques` of the block labelled `etiqueta` of `tipo`
+    ("num"/"letra"), searching from `desde` onward first and only falling
+    back to what precedes it if that finds nothing — incisos are lettered
+    a), b), c)... independently under every fracción, so resuming from
+    where the merge left off is what tells one fracción's "a)" from
+    another's instead of always finding the first."""
+    objetivo = _normaliza_etiqueta(etiqueta)
+    for indices in (range(desde, len(bloques)), range(0, desde)):
+        for i in indices:
+            t, e, _ = _analiza_bloque(bloques[i])
+            if t == tipo and e is not None and _normaliza_etiqueta(e) == objetivo:
+                return i
+    return None
+
+
+def _fusiona_cabecera(vieja: str, nueva: str) -> str:
+    """The article's opening block ("Artículo N.- <lo que sea>"): `nueva`
+    itself if it says anything past the "Artículo N" lead, `vieja` if all it
+    says is "…" (the lead paragraph is left untouched)."""
+    m = _ARTICULO.match(nueva)
+    resto = _encabezado(nueva[m.end() :]) if m else _encabezado(nueva)
+    # Only the punctuation right after "Artículo N" ("." or ".-"), never more
+    # than that — a greedy strip would eat straight into a real "…" instead
+    # of stopping at it.
+    resto = re.sub(r"^\s*[.\-:]{1,2}\s*", "", resto)
+    return vieja if _es_elipsis(resto) else nueva
+
+
+def _fusiona_articulo(anterior: str, nuevo: str) -> str:
+    """`nuevo`'s own restated text for an article, with every fracción,
+    inciso or párrafo it marks as untouched — a bare "…", a
+    "**I.**"/"**a)**" with nothing else, or a span like "**I.** a **XVI.
+    …**" — filled back in from `anterior`'s own text for it, matched by
+    label (or, for an unlabelled paragraph, by position). Whatever `nuevo`
+    does spell out — real text, "Se deroga.", or a fracción reprinted under
+    a new number because the ones after it were "recorridas" — is kept
+    exactly as given: only a placeholder ever needs `anterior` at all.
+    """
+    viejos = _bloques(anterior)
+    bloques_nuevos = _bloques(nuevo)
+    if not viejos or not bloques_nuevos:
+        return nuevo
+
+    resultado = [_fusiona_cabecera(viejos[0], bloques_nuevos[0])]
+    cursor = 1
+    for bloque in bloques_nuevos[1:]:
+        rango = _analiza_rango(bloque)
+        if rango:
+            tipo, inicio, fin = rango
+            idx_inicio = _busca_etiqueta(viejos, tipo, inicio, cursor)
+            idx_fin = (
+                _busca_etiqueta(viejos, tipo, fin, idx_inicio)
+                if idx_inicio is not None
+                else None
+            )
+            if idx_inicio is not None and idx_fin is not None:
+                resultado.extend(viejos[idx_inicio : idx_fin + 1])
+                cursor = idx_fin + 1
+                continue
+            resultado.append(bloque)
+            continue
+
+        tipo, etiqueta, resto = _analiza_bloque(bloque)
+        if _es_elipsis(resto):
+            idx = (
+                _busca_etiqueta(viejos, tipo, etiqueta, cursor)
+                if etiqueta is not None
+                else (cursor if cursor < len(viejos) else None)
+            )
+            if idx is not None:
+                resultado.append(viejos[idx])
+                cursor = idx + 1
+                continue
+
+        resultado.append(bloque)
+        if etiqueta is not None:
+            idx = _busca_etiqueta(viejos, tipo, etiqueta, cursor)
+            if idx is not None:
+                cursor = idx + 1
+
+    return "\n\n".join(resultado)
+
+
 def _markdown_de_nota(cod_nota: int) -> str:
     nota = fetch_nota(cod_nota)
     if not nota.get("cadenaContenido"):
@@ -423,8 +575,9 @@ def construye_ley(cod_notas: list[int], nombre_ley: str | None = None) -> str:
     `cod_notas` is a law's reform history as `leyesmx.historial` returns it:
     oldest first, index 0 the original publication and the rest its reform
     decrees in order. Each decree is replayed on top of the previous state —
-    a restated "Artículo N" replaces or inserts that article, a "se deroga el
-    artículo N" with no restated text marks it repealed — never touching the
+    a restated "Artículo N" merges into that article (see
+    `_fusiona_articulo`) or inserts it if it is new, a "se deroga el artículo
+    N" with no restated text marks it repealed — never touching the
     preamble or the original Transitorios section.
 
     `nombre_ley` (as `leyesmx.historial` names it, e.g. "LEY de Amnistía")
@@ -453,9 +606,11 @@ def construye_ley(cod_notas: list[int], nombre_ley: str | None = None) -> str:
             continue
         instruccion, nuevos = _extrae_reforma(_markdown_de_nota(cod_nota), nombre_ley)
         for numero, texto in nuevos:
-            if numero not in articulos:
+            if numero in articulos:
+                articulos[numero] = _fusiona_articulo(articulos[numero], texto)
+            else:
                 _inserta_en_orden(orden, numero)
-            articulos[numero] = texto
+                articulos[numero] = texto
         restatados = {numero for numero, _ in nuevos}
         for numero in _numeros_derogados(instruccion):
             if numero in restatados:

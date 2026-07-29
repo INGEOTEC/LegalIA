@@ -28,6 +28,31 @@ PUBLICACION_ORIGINAL = {
 }
 
 
+def _bloque(negrita: str, resto: str = "") -> str:
+    return (
+        f"<div class='Texto'><span style='font-weight:bold;'>{negrita}</span>"
+        f"<span> {resto}</span></div>"
+    )
+
+
+PUBLICACION_CON_FRACCIONES = {
+    "cadenaContenido": (
+        "<body>"
+        "<h1 class='Titulo_1'><span>DECRETO por el que se expide la Ley de Prueba.</span></h1>"
+        "<h2 class='Titulo_2'><span>Al margen un sello.</span></h2>"
+        "<div class='Texto'><span>Que el Honorable Congreso decreta:</span></div>"
+        + _bloque("Artículo 2.", "Encabezado del artículo.")
+        + _bloque("I.", "Contenido original de la fracción I.")
+        + _bloque("II.", "Contenido original de la fracción II.")
+        + _bloque("III.", "Contenido original de la fracción III.")
+        + _bloque("IV.", "Contenido original de la fracción IV.")
+        + "<h2 class='ANOTACION'><span>Transitorios</span></h2>"
+        + _bloque("Único.", "Entrará en vigor al día siguiente.")
+        + "</body>"
+    )
+}
+
+
 def _reforma(articulo_unico: str, articulos_nuevos: str) -> dict:
     return {
         "cadenaContenido": (
@@ -112,6 +137,122 @@ class TestConstruyeLey(unittest.TestCase):
         self.assertIn("Texto reformado del artículo primero", ley)
         self.assertIn("Derogado", ley)
         self.assertIn("Texto original del artículo segundo", ley)
+
+    @patch("nota2md.leyes.fetch_nota")
+    def test_una_fraccion_marcada_con_elipsis_se_conserva(self, mock_fetch):
+        reforma = _reforma(
+            "Artículo Único.- Se reforma la fracción II del artículo 2 de la "
+            "Ley de Prueba, para quedar como sigue:",
+            _bloque("Artículo 2.", "...")
+            + _bloque("I.", "...")
+            + _bloque("II.", "Contenido reformado de la fracción II.")
+            + _bloque("III.", "...")
+            + _bloque("IV.", "..."),
+        )
+        mock_fetch.side_effect = [PUBLICACION_CON_FRACCIONES, reforma]
+
+        ley = construye_ley([1, 2])
+
+        self.assertIn("Encabezado del artículo", ley)
+        self.assertIn("Contenido original de la fracción I.", ley)
+        self.assertIn("Contenido reformado de la fracción II", ley)
+        self.assertNotIn("**II.** Contenido original", ley)
+        self.assertIn("Contenido original de la fracción III.", ley)
+        self.assertIn("Contenido original de la fracción IV.", ley)
+
+    @patch("nota2md.leyes.fetch_nota")
+    def test_un_rango_de_fracciones_marcado_con_elipsis_se_conserva(self, mock_fetch):
+        reforma = _reforma(
+            "Artículo Único.- Se reforma la fracción IV del artículo 2 de la "
+            "Ley de Prueba, para quedar como sigue:",
+            _bloque("Artículo 2.", "...")
+            + "<div class='Texto'><span style='font-weight:bold;'>I.</span>"
+            "<span> a </span><span style='font-weight:bold;'>III.</span>"
+            "<span> ...</span></div>"
+            + _bloque("IV.", "Contenido reformado de la fracción IV."),
+        )
+        mock_fetch.side_effect = [PUBLICACION_CON_FRACCIONES, reforma]
+
+        ley = construye_ley([1, 2])
+
+        self.assertIn("Contenido original de la fracción I.", ley)
+        self.assertIn("Contenido original de la fracción II.", ley)
+        self.assertIn("Contenido original de la fracción III.", ley)
+        self.assertIn("Contenido reformado de la fracción IV", ley)
+        self.assertNotIn("Contenido original de la fracción IV", ley)
+
+    @patch("nota2md.leyes.fetch_nota")
+    def test_incisos_bajo_distintas_fracciones_no_se_confunden(self, mock_fetch):
+        publicacion = {
+            "cadenaContenido": (
+                "<body>"
+                "<h1 class='Titulo_1'><span>DECRETO por el que se expide la Ley de Prueba.</span></h1>"
+                "<h2 class='Titulo_2'><span>Al margen un sello.</span></h2>"
+                + _bloque("Artículo 2.", "Encabezado.")
+                + _bloque("I.", "Fracción uno.")
+                + _bloque("a)", "inciso a de la fracción I.")
+                + _bloque("b)", "inciso b de la fracción I.")
+                + _bloque("II.", "Fracción dos.")
+                + _bloque("a)", "inciso a de la fracción II.")
+                + _bloque("b)", "inciso b de la fracción II.")
+                + "<h2 class='ANOTACION'><span>Transitorios</span></h2>"
+                + _bloque("Único.", "Entrará en vigor al día siguiente.")
+                + "</body>"
+            )
+        }
+        reforma = _reforma(
+            "Artículo Único.- Se reforma el inciso b) de la fracción II del "
+            "artículo 2 de la Ley de Prueba, para quedar como sigue:",
+            _bloque("Artículo 2.", "...")
+            + _bloque("I.", "...")
+            + _bloque("a)", "...")
+            + _bloque("b)", "...")
+            + _bloque("II.", "...")
+            + _bloque("a)", "...")
+            + _bloque("b)", "Inciso b) reformado de la fracción II."),
+        )
+        mock_fetch.side_effect = [publicacion, reforma]
+
+        ley = construye_ley([1, 2])
+
+        self.assertIn("inciso a de la fracción I.", ley)
+        self.assertIn("inciso b de la fracción I.", ley)
+        self.assertIn("inciso a de la fracción II.", ley)
+        self.assertIn("Inciso b) reformado de la fracción II", ley)
+        self.assertNotIn("inciso b de la fracción II", ley)
+
+    @patch("nota2md.leyes.fetch_nota")
+    def test_parrafo_insertado_recorriendo_los_subsecuentes(self, mock_fetch):
+        publicacion = {
+            "cadenaContenido": (
+                "<body>"
+                "<h1 class='Titulo_1'><span>DECRETO por el que se expide la Ley de Prueba.</span></h1>"
+                "<h2 class='Titulo_2'><span>Al margen un sello.</span></h2>"
+                + _bloque("Artículo 22.", "Primer párrafo original.")
+                + "<div class='Texto'><span>Segundo párrafo original.</span></div>"
+                + "<h2 class='ANOTACION'><span>Transitorios</span></h2>"
+                + _bloque("Único.", "Entrará en vigor al día siguiente.")
+                + "</body>"
+            )
+        }
+        reforma = _reforma(
+            "Artículo Único.- Se adiciona un segundo párrafo, recorriéndose el "
+            "subsecuente, al artículo 22 de la Ley de Prueba, para quedar como sigue:",
+            _bloque("Artículo 22.", "...")
+            + "<div class='Texto'><span>Nuevo segundo párrafo insertado.</span></div>"
+            + "<div class='Texto'><span>...</span></div>",
+        )
+        mock_fetch.side_effect = [publicacion, reforma]
+
+        ley = construye_ley([1, 2])
+
+        self.assertIn("Primer párrafo original", ley)
+        self.assertIn("Nuevo segundo párrafo insertado", ley)
+        self.assertIn("Segundo párrafo original", ley)
+        self.assertLess(
+            ley.index("Nuevo segundo párrafo insertado"),
+            ley.index("Segundo párrafo original"),
+        )
 
     @patch("nota2md.leyes.fetch_nota")
     def test_la_publicacion_original_basta_sin_reformas(self, mock_fetch):
