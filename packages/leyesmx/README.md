@@ -57,15 +57,16 @@ sha256sum -c SHA256SUMS.txt
 assets whose bytes actually differ — that release is the *only* copy; nothing
 is committed to git, so there is no second copy to fall out of sync with it.
 
-The easiest way to read it back is `leyesmx.historial.descarga_historial`,
-which downloads one collection straight into memory and returns a plain list
-of dicts — one per instrument, each merging its catalogue entry with its own
-`historial` (the `codNota` of its reforms or decrees, oldest first):
+The easiest way to read it back is
+[`nota2md.utils.download_normative_history`](../nota2md), which downloads
+one collection straight into memory and returns a plain list of dicts — one
+per instrument, each merging its catalogue entry with its own `historial`
+(the `codNota` of its reforms or decrees, oldest first):
 
 ```python
-from leyesmx.historial import descarga_historial
+from nota2md.utils import download_normative_history
 
-leyes = descarga_historial("leyes")          # or "reglamentos", "normas", "tratados"
+leyes = download_normative_history("leyes")   # or "reglamentos", "normas", "tratados"
 cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
 print(cpeum["nombre"], cpeum["reformas"], len(cpeum["historial"]))
 ```

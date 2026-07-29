@@ -5,7 +5,9 @@ from unittest.mock import patch
 
 from dofjson import dofweb
 
-from nota2md.builder import build_nota_markdown, fetch_nota, titulo_siguiente
+import datetime as dt
+
+from nota2md.builder import build_nota_markdown, fetch_day_notes, fetch_nota, titulo_siguiente
 
 HTML_NOTA = {
     "codNota": 5793655,
@@ -78,6 +80,73 @@ class TestFetchNota(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             fetch_nota(999999999)
+
+
+class TestFetchDayNotes(unittest.TestCase):
+    FECHA = dt.date(2026, 7, 15)
+
+    @patch("nota2md.builder.dofweb.get_notas")
+    @patch("nota2md.builder.client.get_notas")
+    def test_prefers_sidof_when_it_has_notes(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {
+            "NotasMatutinas": [{"codNota": 1, "titulo": "Nota A"}],
+            "NotasVespertinas": [],
+            "NotasExtraordinarias": [],
+        }
+
+        notas = fetch_day_notes(self.FECHA)
+
+        self.assertEqual(notas["NotasMatutinas"], [{"codNota": 1, "titulo": "Nota A"}])
+        mock_web.assert_not_called()
+
+    @patch("nota2md.builder.dofweb.get_notas")
+    @patch("nota2md.builder.client.get_notas")
+    def test_drops_titleless_stub_entries(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {
+            "NotasMatutinas": [
+                {"codNota": 1, "titulo": "Nota A"},
+                {"codNota": 2},  # title-less stub/twin
+            ],
+            "NotasVespertinas": [],
+            "NotasExtraordinarias": [],
+        }
+
+        notas = fetch_day_notes(self.FECHA)
+
+        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [1])
+
+    @patch("nota2md.builder.dofweb.get_notas")
+    @patch("nota2md.builder.client.get_notas")
+    def test_falls_back_to_the_website_when_sidof_has_nothing(self, mock_sidof, mock_web):
+        # SIDOF answers every list empty, not an error, for a day it lacks.
+        mock_sidof.return_value = {
+            "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }
+        mock_web.return_value = {
+            "NotasMatutinas": [{"codNota": 3, "titulo": "Nota recuperada"}],
+            "NotasVespertinas": [],
+            "NotasExtraordinarias": [],
+            "fuente": dofweb.FUENTE,
+        }
+
+        notas = fetch_day_notes(self.FECHA)
+
+        mock_web.assert_called_once_with(self.FECHA)
+        self.assertEqual(notas["fuente"], dofweb.FUENTE)
+        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [3])
+
+    @patch("nota2md.builder.dofweb.get_notas")
+    @patch("nota2md.builder.client.get_notas")
+    def test_returns_empty_when_neither_source_published_that_day(self, mock_sidof, mock_web):
+        vacio = {"NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": []}
+        mock_sidof.return_value = dict(vacio)
+        mock_web.return_value = {**vacio, "edicionesSinIndice": []}
+
+        notas = fetch_day_notes(self.FECHA)
+
+        self.assertEqual(notas["NotasMatutinas"], [])
+        self.assertEqual(notas["NotasVespertinas"], [])
+        self.assertEqual(notas["NotasExtraordinarias"], [])
 
 
 class TestBuildNotaMarkdown(unittest.TestCase):

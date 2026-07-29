@@ -9,8 +9,8 @@ packs into the four tarballs the release publishes (see `dofjson.titulos` for
 the equivalent split for titles). A consumer rarely wants that split: this
 module downloads a tarball straight into memory and re-joins each
 instrument's index entry with its own history into a single dict, so
-`descarga_historial("leyes")` returns the CPEUM as one dict carrying its name,
-its reform count, *and* the list of `codNota` that are its reforms —
+`download_normative_history("leyes")` returns the CPEUM as one dict carrying
+its name, its reform count, *and* the list of `codNota` that are its reforms —
 everything `leyes.json` and `cpeum.json` separately hold about it, together.
 
 Nothing here is written to disk: each collection is small enough (a few MB at
@@ -98,7 +98,7 @@ def _une_con_historial(coleccion: str, catalogo: list[dict], miembros: dict) -> 
     return _con_historial_paralelo(catalogo, miembros, "tratados.json")
 
 
-def descarga_historial(coleccion: str, timeout: int = 60) -> list[dict]:
+def download_normative_history(coleccion: str, timeout: int = 60) -> list[dict]:
     """Every instrument of `coleccion`, each as one dict merging its catalogue
     entry with its own `historial` — the `codNota` of its reforms or decrees,
     oldest first.
