@@ -57,18 +57,22 @@ sha256sum -c SHA256SUMS.txt
 assets whose bytes actually differ — that release is the *only* copy; nothing
 is committed to git, so there is no second copy to fall out of sync with it.
 
-The easiest way to read it back is `leyesmx.historial.descarga_historial`,
-which downloads one collection straight into memory and returns a plain list
-of dicts — one per instrument, each merging its catalogue entry with its own
-`historial` (the `codNota` of its reforms or decrees, oldest first):
+The easiest way to read it back is
+[`norm2md.historial.download_normative_history`](../norm2md), which downloads
+one collection straight into memory and returns a plain list of dicts — one
+per instrument, each merging its catalogue entry with its own `historial`
+(the `codNota` of its reforms or decrees, oldest first):
 
 ```python
-from leyesmx.historial import descarga_historial
+from norm2md.historial import download_normative_history
 
-leyes = descarga_historial("leyes")          # or "reglamentos", "normas", "tratados"
+leyes = download_normative_history("leyes")   # or "reglamentos", "normas", "tratados"
 cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
 print(cpeum["nombre"], cpeum["reformas"], len(cpeum["historial"]))
 ```
+
+(A separate package from `leyesmx` on purpose: reading a collection back needs
+none of the scraping dependencies building one does.)
 
 `python -m leyesmx --ley todas|reglamentos|normas|tratados` builds the same
 collection on disk instead, laid out the way the release tarballs are: one
