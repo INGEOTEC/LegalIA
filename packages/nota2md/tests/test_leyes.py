@@ -1,7 +1,12 @@
 import unittest
 from unittest.mock import patch
 
-from nota2md.leyes import construye_ley, limpia_texto_ley, normaliza_para_comparar
+from nota2md.leyes import (
+    LeyNoReconstruible,
+    construye_ley,
+    limpia_texto_ley,
+    normaliza_para_comparar,
+)
 
 PUBLICACION_ORIGINAL = {
     "cadenaContenido": (
@@ -127,6 +132,37 @@ class TestConstruyeLey(unittest.TestCase):
         mock_fetch.return_value = {"cadenaContenido": ""}
         with self.assertRaises(ValueError):
             construye_ley([1])
+
+    @patch("nota2md.leyes.fetch_nota")
+    def test_nota_original_solo_con_titulo_es_no_reconstruible(self, mock_fetch):
+        """Un anexo grande (p. ej. una tarifa arancelaria) puede publicarse en
+        el DOF como PDF embebido en vez de HTML navegable — la nota entonces
+        solo trae su título, sin "Al margen un sello" ni artículos."""
+        mock_fetch.return_value = {
+            "cadenaContenido": (
+                "<body><h1 class='Titulo_1'>"
+                "<span>DECRETO por el que se expide la Ley de Prueba.</span>"
+                "</h1></body>"
+            )
+        }
+        with self.assertRaises(LeyNoReconstruible) as ctx:
+            construye_ley([1])
+        self.assertIn("solo su título", str(ctx.exception))
+
+    @patch("nota2md.leyes.fetch_nota")
+    def test_nota_original_con_cuerpo_pero_sin_articulos_es_no_reconstruible(self, mock_fetch):
+        mock_fetch.return_value = {
+            "cadenaContenido": (
+                "<body>"
+                "<h1 class='Titulo_1'><span>DECRETO por el que se expide la Ley de Prueba.</span></h1>"
+                "<h2 class='Titulo_2'><span>Al margen un sello.</span></h2>"
+                "<div class='Texto'><span>Texto sin ningún artículo reconocible.</span></div>"
+                "</body>"
+            )
+        }
+        with self.assertRaises(LeyNoReconstruible) as ctx:
+            construye_ley([1])
+        self.assertIn("no se reconoció", str(ctx.exception))
 
 
 class TestLimpiaTextoLey(unittest.TestCase):

@@ -233,8 +233,22 @@ _INSTRUCCION_INICIO = re.compile(r"^\*{0,2}Art[íi]culo\s+[A-Za-zÁÉÍÓÚáé�
 def _segmentos_por_instrumento(bloques: list[str]) -> list[tuple[int, int]]:
     """`bloques` split at each "Artículo Primero/Segundo/Único.-..." instruction,
     one segment per instrument a decree touches. A decree naming only one
-    instrument yields a single segment spanning the whole list."""
-    indices = [i for i, b in enumerate(bloques) if _INSTRUCCION_INICIO.match(_encabezado(b))]
+    instrument yields a single segment spanning the whole list.
+
+    Only markers before the decree's own Transitorios section count: a
+    decree's transitorios are commonly numbered "Artículo Primero.-/Segundo.-"
+    too, and a decree that opens with a bare "Único.-" (no "Artículo") has
+    none of the real kind at all — reading those transitorio markers as
+    instrument boundaries then leaves the entire real body outside every
+    segment `_elige_segmento` could pick.
+    """
+    limite = next(
+        (i for i, b in enumerate(bloques) if _TRANSITORIOS.match(_encabezado(b))),
+        len(bloques),
+    )
+    indices = [
+        i for i in range(limite) if _INSTRUCCION_INICIO.match(_encabezado(bloques[i]))
+    ]
     if not indices:
         return [(0, len(bloques))]
     return [
@@ -376,6 +390,33 @@ def _markdown_de_nota(cod_nota: int) -> str:
     return html_to_markdown(nota["cadenaContenido"])
 
 
+class LeyNoReconstruible(ValueError):
+    """construye_ley() cannot build this law from the notes it was given.
+
+    Raised when the original publication yields no recognized article at
+    all — building reforms on top of that would only manufacture a
+    confident-looking document out of whatever a later reform happens to
+    restate, not a reconstruction of the law. The DOF sometimes publishes a
+    note with no real body at all: a large annex (e.g. a tariff schedule)
+    can go out as a PDF embedded in the DOF's own page rather than as
+    parseable HTML, in which case SIDOF and the DOF's own fallback page
+    both carry only the note's title.
+    """
+
+
+def _diagnostico_original_vacia(markdown: str) -> str:
+    if not re.search(r"^\s*#+\s*Al margen un sello\b", markdown, re.M | re.I):
+        return (
+            "la nota no trae el cuerpo del decreto, solo su título — el DOF "
+            "puede haber publicado el contenido real como un PDF/anexo aparte "
+            "(p. ej. una tarifa arancelaria) en vez de HTML navegable"
+        )
+    return (
+        "el texto sí tiene cuerpo, pero no se reconoció en él ningún "
+        '"Artículo N" (¿usa una numeración o formato distinto?)'
+    )
+
+
 def construye_ley(cod_notas: list[int], nombre_ley: str | None = None) -> str:
     """The law's current text, built only from the DOF notes in `cod_notas`.
 
@@ -391,13 +432,20 @@ def construye_ley(cod_notas: list[int], nombre_ley: str | None = None) -> str:
     may touch — pass it whenever a note is shared with another law's history.
     Left as None, a note is assumed to concern only this law, which holds for
     most of them but silently mixes in another law's articles for the rest.
+
+    Raises LeyNoReconstruible if the original publication yields no article
+    at all to build on — see that exception for why this can happen.
     """
     if not cod_notas or cod_notas[0] is None:
         raise ValueError("cod_notas necesita al menos la publicación original")
 
-    preambulo, articulos, transitorios = _segmenta_original(
-        _markdown_de_nota(cod_notas[0]), nombre_ley
-    )
+    md_original = _markdown_de_nota(cod_notas[0])
+    preambulo, articulos, transitorios = _segmenta_original(md_original, nombre_ley)
+    if not articulos:
+        raise LeyNoReconstruible(
+            f"no se pudo reconstruir la ley a partir de la nota original "
+            f"(codNota {cod_notas[0]}): {_diagnostico_original_vacia(md_original)}"
+        )
     orden = list(articulos.keys())
 
     for cod_nota in cod_notas[1:]:
