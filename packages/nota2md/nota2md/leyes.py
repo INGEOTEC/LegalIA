@@ -199,7 +199,28 @@ _ARTICULO = re.compile(
     r"(bis|ter|qu[áa]ter|quinquies|sexies|septies|octies|nonies|decies)?\b",
     re.I,
 )
-_TRANSITORIOS = re.compile(r"^#+\s*Transitorios?\b", re.I)
+# A heading is a real article boundary; the same phrase mid-sentence
+# ("...conforme al artículo 12 de esta Ley...") is not, and html_to_markdown
+# sometimes wraps a sentence like that onto its own paragraph, putting it at
+# the very start of a block — matching it there would splice that
+# paragraph's tail onto the wrong article. A genuine heading always opens
+# with a capital "Artículo"/"ARTÍCULO"; a cross-reference embedded in prose
+# is grammatically lowercase ("...artículo 12 de esta Ley...") because it
+# isn't the start of its own sentence — `_ARTICULO` itself stays
+# case-insensitive (headings are written both ways), so the capital has to
+# be checked separately.
+def _inicio_de_articulo(bloque: str) -> re.Match | None:
+    encabezado = _encabezado(bloque)
+    if not encabezado[:1].isupper():
+        return None
+    return _ARTICULO.match(encabezado)
+
+
+# "Transitorios" is sometimes its own heading ("## Transitorios") and
+# sometimes just a bold caption paragraph with no heading markup at all
+# ("**TRANSITORIOS**") — html_to_markdown only promotes it to a heading when
+# the note's own HTML marks it up as one.
+_TRANSITORIOS = re.compile(r"^(?:#+\s*Transitorios?\b|Transitorios?\s*$)", re.I)
 _VERBO_REFORMA = re.compile(r"\bse\s+(reforman?|adicionan?|derogan?)\b", re.I)
 _NUM_TOKEN = re.compile(
     r"\d+(?:\s+(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies))?",
@@ -286,7 +307,7 @@ def _texto_instruccion(bloques: list[str], inicio: int, fin: int) -> str:
     segment itself is about.
     """
     i = inicio
-    while i < fin and not _ARTICULO.match(_encabezado(bloques[i])) and not _TRANSITORIOS.match(_encabezado(bloques[i])):
+    while i < fin and not _inicio_de_articulo(bloques[i]) and not _TRANSITORIOS.match(_encabezado(bloques[i])):
         i += 1
     return " ".join(bloques[inicio:i])
 
@@ -326,20 +347,20 @@ def _segmenta_original(markdown: str, nombre_ley: str | None = None) -> tuple[st
     n = len(segmento)
 
     i = 0
-    while i < n and not _ARTICULO.match(_encabezado(segmento[i])):
+    while i < n and not _inicio_de_articulo(segmento[i]):
         i += 1
     preambulo = "\n\n".join(comun + segmento[:i])
 
     articulos: dict[str, str] = {}
     while i < n and not _TRANSITORIOS.match(_encabezado(segmento[i])):
-        m = _ARTICULO.match(_encabezado(segmento[i]))
+        m = _inicio_de_articulo(segmento[i])
         if not m:
             i += 1
             continue
         numero = _canon_numero(m.group(1), m.group(2))
         cuerpo = [segmento[i]]
         i += 1
-        while i < n and not _ARTICULO.match(_encabezado(segmento[i])) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
+        while i < n and not _inicio_de_articulo(segmento[i]) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
             cuerpo.append(segmento[i])
             i += 1
         articulos[numero] = "\n\n".join(cuerpo)
@@ -362,20 +383,20 @@ def _extrae_reforma(markdown: str, nombre_ley: str | None = None) -> tuple[str, 
     n = len(segmento)
 
     i = 0
-    while i < n and not _ARTICULO.match(_encabezado(segmento[i])) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
+    while i < n and not _inicio_de_articulo(segmento[i]) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
         i += 1
     instruccion = "\n\n".join(segmento[:i])
 
     nuevos = []
     while i < n and not _TRANSITORIOS.match(_encabezado(segmento[i])):
-        m = _ARTICULO.match(_encabezado(segmento[i]))
+        m = _inicio_de_articulo(segmento[i])
         if not m:
             i += 1
             continue
         numero = _canon_numero(m.group(1), m.group(2))
         cuerpo = [segmento[i]]
         i += 1
-        while i < n and not _ARTICULO.match(_encabezado(segmento[i])) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
+        while i < n and not _inicio_de_articulo(segmento[i]) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
             cuerpo.append(segmento[i])
             i += 1
         nuevos.append((numero, "\n\n".join(cuerpo)))
@@ -405,10 +426,10 @@ _SUFIJO_ETIQUETA = (
 _NUMERAL_ETIQUETA = rf"[IVXLCDM]+{_SUFIJO_ETIQUETA}"
 _LETRA_ETIQUETA = r"[a-záéíóúñ]"
 
-_ETIQUETA_NUM = re.compile(rf"^({_NUMERAL_ETIQUETA})\.\s*(.*)$", re.S)
+_ETIQUETA_NUM = re.compile(rf"^({_NUMERAL_ETIQUETA})\.-?\s*(.*)$", re.S)
 _ETIQUETA_LETRA = re.compile(rf"^({_LETRA_ETIQUETA})\)\s*(.*)$", re.S)
 _RANGO_NUM = re.compile(
-    rf"^({_NUMERAL_ETIQUETA})\.\s+(?:a|y)\s+({_NUMERAL_ETIQUETA})\.\s*(.*)$", re.S
+    rf"^({_NUMERAL_ETIQUETA})\.-?\s+(?:a|y)\s+({_NUMERAL_ETIQUETA})\.-?\s*(.*)$", re.S
 )
 _RANGO_LETRA = re.compile(
     rf"^({_LETRA_ETIQUETA})\)\s+(?:a|y)\s+({_LETRA_ETIQUETA})\)\s*(.*)$", re.S
