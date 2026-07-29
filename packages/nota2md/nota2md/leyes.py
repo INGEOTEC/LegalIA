@@ -36,18 +36,10 @@ article) or, for an unlabelled paragraph, by position.
 """
 
 import re
-import shutil
-import tempfile
 import unicodedata
 from pathlib import Path
 
 from nota2md.builder import build_nota_markdown, fetch_nota
-
-# Where a note's Markdown lands once build_nota_markdown() downloads and
-# converts it, when normative_reconstruction() isn't told otherwise — a
-# fixed path (not a fresh directory per call) so a note already fetched by
-# an earlier call, possibly in an earlier process, is never fetched again.
-DIRECTORIO_NOTAS_POR_DEFECTO = Path(tempfile.gettempdir()) / "nota2md-notas"
 
 # --- normative_reconstruction: replay the reforms on top of the original text ---------
 
@@ -462,11 +454,11 @@ def _fusiona_articulo(anterior: str, nuevo: str) -> str:
     return "\n\n".join(resultado)
 
 
-def _markdown_de_nota(cod_nota: int, directorio_notas: Path) -> str:
+def _markdown_de_nota(cod_nota: int, outdir: Path) -> str:
     """`cod_nota`'s note as Markdown, via build_nota_markdown() — written to
-    `directorio_notas/nota-{cod_nota}.md` and, once it is there, read back
-    from that file instead of downloaded again."""
-    md_path = directorio_notas / f"nota-{cod_nota}.md"
+    `outdir/nota-{cod_nota}.md` and, once it is there, read back from that
+    file instead of downloaded again."""
+    md_path = outdir / f"nota-{cod_nota}.md"
     if md_path.exists():
         return md_path.read_text(encoding="utf-8")
 
@@ -476,7 +468,7 @@ def _markdown_de_nota(cod_nota: int, directorio_notas: Path) -> str:
             f"la nota {cod_nota} no tiene cadenaContenido (HTML); normative_reconstruction "
             "sólo soporta notas con texto digital"
         )
-    md_path = build_nota_markdown(cod_nota, directorio_notas, source="html", nota=nota)
+    md_path = build_nota_markdown(cod_nota, outdir, source="html", nota=nota)
     return md_path.read_text(encoding="utf-8")
 
 
@@ -514,9 +506,6 @@ def normative_reconstruction(
     cod_notas: list[int],
     outdir: str | Path,
     nombre_ley: str | None = None,
-    *,
-    directorio_notas: str | Path | None = None,
-    borrar_directorio_notas: bool = False,
 ) -> Path:
     """Build the law's current text from the DOF notes in `cod_notas` and
     write it to ``outdir/ley-{cod_notas[0]}.md``; return that path — the
@@ -537,15 +526,10 @@ def normative_reconstruction(
     Left as None, a note is assumed to concern only this law, which holds for
     most of them but silently mixes in another law's articles for the rest.
 
-    Every note is fetched through build_nota_markdown() into
-    `directorio_notas` (DIRECTORIO_NOTAS_POR_DEFECTO if not given) — a note
-    already downloaded there by an earlier call is read back from disk
-    instead of fetched again. That directory is left in place once this
-    returns, so a later call reusing the same `cod_notas` (a rerun of this
-    same suite, say) does not need the network at all; pass
-    `borrar_directorio_notas=True` to delete it instead once this call is
-    done with it. `outdir` (the law's own output, as opposed to the notes it
-    was built from) is never deleted — that is the caller's own to keep.
+    Every note is fetched through build_nota_markdown() into `outdir` too, as
+    `nota-{codNota}.md` — a note already there from an earlier call (this
+    law's own previous run, or another law's sharing the same `outdir`) is
+    read back from disk instead of fetched again.
 
     Raises LeyNoReconstruible if the original publication yields no article
     at all to build on — see that exception for why this can happen.
@@ -553,28 +537,22 @@ def normative_reconstruction(
     if not cod_notas or cod_notas[0] is None:
         raise ValueError("cod_notas necesita al menos la publicación original")
 
-    directorio_notas = Path(directorio_notas or DIRECTORIO_NOTAS_POR_DEFECTO)
-    directorio_notas.mkdir(parents=True, exist_ok=True)
-    try:
-        texto = _normative_reconstruction(cod_notas, nombre_ley, directorio_notas)
-    finally:
-        if borrar_directorio_notas:
-            shutil.rmtree(directorio_notas, ignore_errors=True)
-
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
+    texto = _normative_reconstruction(cod_notas, nombre_ley, outdir)
+
     dest = outdir / f"ley-{cod_notas[0]}.md"
     dest.write_text(texto + "\n", encoding="utf-8")
     return dest
 
 
 def _normative_reconstruction(
-    cod_notas: list[int], nombre_ley: str | None, directorio_notas: Path
+    cod_notas: list[int], nombre_ley: str | None, outdir: Path
 ) -> str:
-    """`normative_reconstruction`'s own body, once `directorio_notas` is
-    resolved and created — split out only so the public function can wrap
-    it in the try/finally that handles `borrar_directorio_notas`."""
-    md_original = _markdown_de_nota(cod_notas[0], directorio_notas)
+    """`normative_reconstruction`'s own body, once `outdir` is resolved and
+    created — split out only so the public function's shape mirrors
+    build_nota_markdown()'s (build the text, then write it)."""
+    md_original = _markdown_de_nota(cod_notas[0], outdir)
     preambulo, articulos, transitorios = _segmenta_original(md_original, nombre_ley)
     if not articulos:
         raise LeyNoReconstruible(
@@ -586,7 +564,7 @@ def _normative_reconstruction(
     for cod_nota in cod_notas[1:]:
         if cod_nota is None:
             continue
-        markdown = _markdown_de_nota(cod_nota, directorio_notas)
+        markdown = _markdown_de_nota(cod_nota, outdir)
         instruccion, nuevos = _extrae_reforma(markdown, nombre_ley)
         for numero, texto in nuevos:
             if numero in articulos:
