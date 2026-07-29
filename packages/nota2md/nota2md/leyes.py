@@ -141,6 +141,14 @@ def _bloques(markdown: str) -> list[str]:
     return [b for b in markdown.split("\n\n")]
 
 
+def _encabezado(bloque: str) -> str:
+    """`bloque`'s text with Markdown emphasis markers removed, so a heading
+    html_to_markdown splits across adjacent bold runs ("**Artículo**
+    **Segundo.-**", instead of one "**Artículo Segundo.-**" span) still
+    matches as the one phrase it is."""
+    return re.sub(r"\*+", "", bloque.strip())
+
+
 _TITULO_NOTA = re.compile(r"^#\s")
 # A block opening a new instrument's own instruction ("Artículo Primero.-",
 # "Artículo Único.-"...): "Artículo" followed by a word, not a number — a
@@ -152,7 +160,7 @@ def _segmentos_por_instrumento(bloques: list[str]) -> list[tuple[int, int]]:
     """`bloques` split at each "Artículo Primero/Segundo/Único.-..." instruction,
     one segment per instrument a decree touches. A decree naming only one
     instrument yields a single segment spanning the whole list."""
-    indices = [i for i, b in enumerate(bloques) if _INSTRUCCION_INICIO.match(b.strip())]
+    indices = [i for i, b in enumerate(bloques) if _INSTRUCCION_INICIO.match(_encabezado(b))]
     if not indices:
         return [(0, len(bloques))]
     return [
@@ -171,7 +179,7 @@ def _texto_instruccion(bloques: list[str], inicio: int, fin: int) -> str:
     segment itself is about.
     """
     i = inicio
-    while i < fin and not _ARTICULO.match(bloques[i].strip()) and not _TRANSITORIOS.match(bloques[i].strip()):
+    while i < fin and not _ARTICULO.match(_encabezado(bloques[i])) and not _TRANSITORIOS.match(_encabezado(bloques[i])):
         i += 1
     return " ".join(bloques[inicio:i])
 
@@ -197,7 +205,7 @@ def _segmenta_original(markdown: str, nombre_ley: str | None = None) -> tuple[st
 
     # The note's own H1 is dofjson's title for it (used to index/search notes),
     # not part of the decree — Diputados' consolidated text does not carry it.
-    inicio_doc = 1 if bloques and _TITULO_NOTA.match(bloques[0].strip()) else 0
+    inicio_doc = 1 if bloques and _TITULO_NOTA.match(_encabezado(bloques[0])) else 0
     resto = bloques[inicio_doc:]
 
     # The front matter common to every instrument in the decree ("Al margen un
@@ -211,20 +219,20 @@ def _segmenta_original(markdown: str, nombre_ley: str | None = None) -> tuple[st
     n = len(segmento)
 
     i = 0
-    while i < n and not _ARTICULO.match(segmento[i].strip()):
+    while i < n and not _ARTICULO.match(_encabezado(segmento[i])):
         i += 1
     preambulo = "\n\n".join(comun + segmento[:i])
 
     articulos: dict[str, str] = {}
-    while i < n and not _TRANSITORIOS.match(segmento[i].strip()):
-        m = _ARTICULO.match(segmento[i].strip())
+    while i < n and not _TRANSITORIOS.match(_encabezado(segmento[i])):
+        m = _ARTICULO.match(_encabezado(segmento[i]))
         if not m:
             i += 1
             continue
         numero = _canon_numero(m.group(1), m.group(2))
         cuerpo = [segmento[i]]
         i += 1
-        while i < n and not _ARTICULO.match(segmento[i].strip()) and not _TRANSITORIOS.match(segmento[i].strip()):
+        while i < n and not _ARTICULO.match(_encabezado(segmento[i])) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
             cuerpo.append(segmento[i])
             i += 1
         articulos[numero] = "\n\n".join(cuerpo)
@@ -247,20 +255,20 @@ def _extrae_reforma(markdown: str, nombre_ley: str | None = None) -> tuple[str, 
     n = len(segmento)
 
     i = 0
-    while i < n and not _ARTICULO.match(segmento[i].strip()) and not _TRANSITORIOS.match(segmento[i].strip()):
+    while i < n and not _ARTICULO.match(_encabezado(segmento[i])) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
         i += 1
     instruccion = "\n\n".join(segmento[:i])
 
     nuevos = []
-    while i < n and not _TRANSITORIOS.match(segmento[i].strip()):
-        m = _ARTICULO.match(segmento[i].strip())
+    while i < n and not _TRANSITORIOS.match(_encabezado(segmento[i])):
+        m = _ARTICULO.match(_encabezado(segmento[i]))
         if not m:
             i += 1
             continue
         numero = _canon_numero(m.group(1), m.group(2))
         cuerpo = [segmento[i]]
         i += 1
-        while i < n and not _ARTICULO.match(segmento[i].strip()) and not _TRANSITORIOS.match(segmento[i].strip()):
+        while i < n and not _ARTICULO.match(_encabezado(segmento[i])) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
             cuerpo.append(segmento[i])
             i += 1
         nuevos.append((numero, "\n\n".join(cuerpo)))
