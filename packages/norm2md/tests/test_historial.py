@@ -4,7 +4,7 @@ import tarfile
 import unittest
 from unittest.mock import Mock, patch
 
-from leyesmx import historial
+from norm2md import historial
 
 
 def hacer_tgz(archivos: dict) -> bytes:
@@ -20,7 +20,7 @@ def hacer_tgz(archivos: dict) -> bytes:
 
 
 class TestListarAssets(unittest.TestCase):
-    @patch("leyesmx.historial.requests.get")
+    @patch("norm2md.historial.requests.get")
     def test_keeps_only_tgz_assets_as_a_name_to_url_map(self, mock_get):
         mock_get.return_value = Mock(
             json=lambda: {
@@ -37,24 +37,24 @@ class TestListarAssets(unittest.TestCase):
         mock_get.return_value.raise_for_status.assert_called_once()
 
 
-class TestDescargaHistorial(unittest.TestCase):
+class TestDownloadNormativeHistory(unittest.TestCase):
     def test_rejects_an_unknown_coleccion_without_any_network_call(self):
-        with patch("leyesmx.historial.requests.get") as mock_get:
+        with patch("norm2md.historial.requests.get") as mock_get:
             with self.assertRaises(ValueError):
-                historial.descarga_historial("reformas")
+                historial.download_normative_history("reformas")
             mock_get.assert_not_called()
 
-    @patch("leyesmx.historial.requests.get")
-    @patch("leyesmx.historial.listar_assets")
+    @patch("norm2md.historial.requests.get")
+    @patch("norm2md.historial.listar_assets")
     def test_raises_when_the_release_lacks_the_asset(self, mock_listar_assets, mock_get):
         mock_listar_assets.return_value = {}
 
         with self.assertRaises(KeyError):
-            historial.descarga_historial("leyes")
+            historial.download_normative_history("leyes")
         mock_get.assert_not_called()
 
-    @patch("leyesmx.historial.requests.get")
-    @patch("leyesmx.historial.listar_assets")
+    @patch("norm2md.historial.requests.get")
+    @patch("norm2md.historial.listar_assets")
     def test_leyes_merges_the_index_with_each_laws_own_file(self, mock_listar_assets, mock_get):
         mock_listar_assets.return_value = {"leyes.tgz": "https://x/leyes.tgz"}
         contenido = hacer_tgz({
@@ -68,7 +68,7 @@ class TestDescargaHistorial(unittest.TestCase):
         })
         mock_get.return_value = Mock(content=contenido, raise_for_status=Mock())
 
-        resultado = historial.descarga_historial("leyes")
+        resultado = historial.download_normative_history("leyes")
 
         self.assertEqual(
             resultado,
@@ -82,8 +82,8 @@ class TestDescargaHistorial(unittest.TestCase):
         mock_get.assert_called_once_with("https://x/leyes.tgz", headers=historial._HEADERS,
                                          timeout=60)
 
-    @patch("leyesmx.historial.requests.get")
-    @patch("leyesmx.historial.listar_assets")
+    @patch("norm2md.historial.requests.get")
+    @patch("norm2md.historial.listar_assets")
     def test_reglamentos_merges_the_index_with_each_regulations_own_file(
         self, mock_listar_assets, mock_get
     ):
@@ -97,7 +97,7 @@ class TestDescargaHistorial(unittest.TestCase):
         })
         mock_get.return_value = Mock(content=contenido, raise_for_status=Mock())
 
-        resultado = historial.descarga_historial("reglamentos")
+        resultado = historial.download_normative_history("reglamentos")
 
         self.assertEqual(
             resultado,
@@ -105,8 +105,8 @@ class TestDescargaHistorial(unittest.TestCase):
              "reformas": 2, "conNota": 2, "historial": [10, 20]}],
         )
 
-    @patch("leyesmx.historial.requests.get")
-    @patch("leyesmx.historial.listar_assets")
+    @patch("norm2md.historial.requests.get")
+    @patch("norm2md.historial.listar_assets")
     def test_normas_merges_the_catalog_with_the_shared_noms_lookup(
         self, mock_listar_assets, mock_get
     ):
@@ -121,7 +121,7 @@ class TestDescargaHistorial(unittest.TestCase):
         })
         mock_get.return_value = Mock(content=contenido, raise_for_status=Mock())
 
-        resultado = historial.descarga_historial("normas")
+        resultado = historial.download_normative_history("normas")
 
         self.assertEqual(
             resultado,
@@ -130,8 +130,8 @@ class TestDescargaHistorial(unittest.TestCase):
              "historial": [4798699, 4798700]}],
         )
 
-    @patch("leyesmx.historial.requests.get")
-    @patch("leyesmx.historial.listar_assets")
+    @patch("norm2md.historial.requests.get")
+    @patch("norm2md.historial.listar_assets")
     def test_tratados_merges_the_catalog_with_the_parallel_tratados_list(
         self, mock_listar_assets, mock_get
     ):
@@ -147,7 +147,7 @@ class TestDescargaHistorial(unittest.TestCase):
         })
         mock_get.return_value = Mock(content=contenido, raise_for_status=Mock())
 
-        resultado = historial.descarga_historial("tratados")
+        resultado = historial.download_normative_history("tratados")
 
         self.assertEqual(
             resultado,

@@ -12,7 +12,7 @@ into the four tarballs published as assets of the
 release — `leyes.tgz`, `reglamentos.tgz`, `normas.tgz`, `tratados.tgz` — plus a
 `SHA256SUMS.txt`. That release is the data's only home; it is never committed
 to git, so `--datos` always names a scratch directory built just for the run
-(see `leyesmx.historial.descarga_historial` to read the release back).
+(see `norm2md.historial.download_normative_history` to read the release back).
 
 ```bash
 ./scripts/empaqueta_historial.py --datos packages/leyesmx/data --outdir historial
