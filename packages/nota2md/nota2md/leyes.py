@@ -42,10 +42,18 @@ article) or, for an unlabelled paragraph, by position.
 """
 
 import re
+import shutil
+import tempfile
 import unicodedata
+from pathlib import Path
 
-from nota2md.builder import fetch_nota
-from nota2md.html_converter import html_to_markdown
+from nota2md.builder import build_nota_markdown, fetch_nota
+
+# Where a note's Markdown lands once build_nota_markdown() downloads and
+# converts it, when normative_reconstruction() isn't told otherwise — a
+# fixed path (not a fresh directory per call) so a note already fetched by
+# an earlier call, possibly in an earlier process, is never fetched again.
+DIRECTORIO_NOTAS_POR_DEFECTO = Path(tempfile.gettempdir()) / "nota2md-notas"
 
 # --- ground truth: Diputados' own consolidated-text PDF --------------------
 
@@ -532,14 +540,22 @@ def _fusiona_articulo(anterior: str, nuevo: str) -> str:
     return "\n\n".join(resultado)
 
 
-def _markdown_de_nota(cod_nota: int) -> str:
+def _markdown_de_nota(cod_nota: int, directorio_notas: Path) -> str:
+    """`cod_nota`'s note as Markdown, via build_nota_markdown() — written to
+    `directorio_notas/nota-{cod_nota}.md` and, once it is there, read back
+    from that file instead of downloaded again."""
+    md_path = directorio_notas / f"nota-{cod_nota}.md"
+    if md_path.exists():
+        return md_path.read_text(encoding="utf-8")
+
     nota = fetch_nota(cod_nota)
     if not nota.get("cadenaContenido"):
         raise ValueError(
             f"la nota {cod_nota} no tiene cadenaContenido (HTML); normative_reconstruction "
             "sólo soporta notas con texto digital"
         )
-    return html_to_markdown(nota["cadenaContenido"])
+    md_path = build_nota_markdown(cod_nota, directorio_notas, source="html", nota=nota)
+    return md_path.read_text(encoding="utf-8")
 
 
 class LeyNoReconstruible(ValueError):
@@ -569,7 +585,13 @@ def _diagnostico_original_vacia(markdown: str) -> str:
     )
 
 
-def normative_reconstruction(cod_notas: list[int], nombre_ley: str | None = None) -> str:
+def normative_reconstruction(
+    cod_notas: list[int],
+    nombre_ley: str | None = None,
+    *,
+    directorio_notas: str | Path | None = None,
+    borrar_directorio_notas: bool = False,
+) -> str:
     """The law's current text, built only from the DOF notes in `cod_notas`.
 
     `cod_notas` is a law's reform history as `leyesmx.historial` returns it:
@@ -586,13 +608,34 @@ def normative_reconstruction(cod_notas: list[int], nombre_ley: str | None = None
     Left as None, a note is assumed to concern only this law, which holds for
     most of them but silently mixes in another law's articles for the rest.
 
+    Every note is fetched through build_nota_markdown() into
+    `directorio_notas` (DIRECTORIO_NOTAS_POR_DEFECTO if not given) — a note
+    already downloaded there by an earlier call is read back from disk
+    instead of fetched again. That directory is left in place once this
+    returns, so a later call reusing the same `cod_notas` (a rerun of this
+    same suite, say) does not need the network at all; pass
+    `borrar_directorio_notas=True` to delete it instead once this call is
+    done with it.
+
     Raises LeyNoReconstruible if the original publication yields no article
     at all to build on — see that exception for why this can happen.
     """
     if not cod_notas or cod_notas[0] is None:
         raise ValueError("cod_notas necesita al menos la publicación original")
 
-    md_original = _markdown_de_nota(cod_notas[0])
+    directorio_notas = Path(directorio_notas or DIRECTORIO_NOTAS_POR_DEFECTO)
+    directorio_notas.mkdir(parents=True, exist_ok=True)
+    try:
+        return _normative_reconstruction(cod_notas, nombre_ley, directorio_notas)
+    finally:
+        if borrar_directorio_notas:
+            shutil.rmtree(directorio_notas, ignore_errors=True)
+
+
+def _normative_reconstruction(
+    cod_notas: list[int], nombre_ley: str | None, directorio_notas: Path
+) -> str:
+    md_original = _markdown_de_nota(cod_notas[0], directorio_notas)
     preambulo, articulos, transitorios = _segmenta_original(md_original, nombre_ley)
     if not articulos:
         raise LeyNoReconstruible(
@@ -604,7 +647,8 @@ def normative_reconstruction(cod_notas: list[int], nombre_ley: str | None = None
     for cod_nota in cod_notas[1:]:
         if cod_nota is None:
             continue
-        instruccion, nuevos = _extrae_reforma(_markdown_de_nota(cod_nota), nombre_ley)
+        markdown = _markdown_de_nota(cod_nota, directorio_notas)
+        instruccion, nuevos = _extrae_reforma(markdown, nombre_ley)
         for numero, texto in nuevos:
             if numero in articulos:
                 articulos[numero] = _fusiona_articulo(articulos[numero], texto)
