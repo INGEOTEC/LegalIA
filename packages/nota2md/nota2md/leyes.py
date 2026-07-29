@@ -39,7 +39,7 @@ import re
 import unicodedata
 from pathlib import Path
 
-from nota2md.builder import build_nota_markdown, fetch_nota
+from nota2md.builder import fetch_nota, legal_provisions
 
 # --- normative_reconstruction: replay the reforms on top of the original text ---------
 
@@ -455,7 +455,7 @@ def _fusiona_articulo(anterior: str, nuevo: str) -> str:
 
 
 def _markdown_de_nota(cod_nota: int, outdir: Path) -> str:
-    """`cod_nota`'s note as Markdown, via build_nota_markdown() — written to
+    """`cod_nota`'s note as Markdown, via legal_provisions() — written to
     `outdir/nota-{cod_nota}.md` and, once it is there, read back from that
     file instead of downloaded again."""
     md_path = outdir / f"nota-{cod_nota}.md"
@@ -468,7 +468,7 @@ def _markdown_de_nota(cod_nota: int, outdir: Path) -> str:
             f"la nota {cod_nota} no tiene cadenaContenido (HTML); normative_reconstruction "
             "sólo soporta notas con texto digital"
         )
-    md_path = build_nota_markdown(cod_nota, outdir, source="html", nota=nota)
+    md_path = legal_provisions(cod_nota, outdir, source="html", nota=nota)
     return md_path.read_text(encoding="utf-8")
 
 
@@ -509,7 +509,7 @@ def normative_reconstruction(
 ) -> Path:
     """Build the law's current text from the DOF notes in `cod_notas` and
     write it to ``outdir/ley-{cod_notas[0]}.md``; return that path — the
-    same shape as build_nota_markdown(), since a law's reconstruction is, in
+    same shape as legal_provisions(), since a law's reconstruction is, in
     the end, one more piece of Markdown built from notes and written to disk.
 
     `cod_notas` is a law's reform history as `nota2md.utils` returns it:
@@ -526,7 +526,7 @@ def normative_reconstruction(
     Left as None, a note is assumed to concern only this law, which holds for
     most of them but silently mixes in another law's articles for the rest.
 
-    Every note is fetched through build_nota_markdown() into `outdir` too, as
+    Every note is fetched through legal_provisions() into `outdir` too, as
     `nota-{codNota}.md` — a note already there from an earlier call (this
     law's own previous run, or another law's sharing the same `outdir`) is
     read back from disk instead of fetched again.
@@ -551,7 +551,7 @@ def _normative_reconstruction(
 ) -> str:
     """`normative_reconstruction`'s own body, once `outdir` is resolved and
     created — split out only so the public function's shape mirrors
-    build_nota_markdown()'s (build the text, then write it)."""
+    legal_provisions()'s (build the text, then write it)."""
     md_original = _markdown_de_nota(cod_notas[0], outdir)
     preambulo, articulos, transitorios = _segmenta_original(md_original, nombre_ley)
     if not articulos:
