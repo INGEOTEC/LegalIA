@@ -219,8 +219,17 @@ def _inicio_de_articulo(bloque: str) -> re.Match | None:
 # "Transitorios" is sometimes its own heading ("## Transitorios") and
 # sometimes just a bold caption paragraph with no heading markup at all
 # ("**TRANSITORIOS**") — html_to_markdown only promotes it to a heading when
-# the note's own HTML marks it up as one.
-_TRANSITORIOS = re.compile(r"^(?:#+\s*Transitorios?\b|Transitorios?\s*$)", re.I)
+# the note's own HTML marks it up as one. Only _TRANSITORIOS_BLOQUE (used once
+# a segment has already been chosen, to tell where its own body ends) accepts
+# the bare-bold form; _TRANSITORIOS stays heading-only for
+# _segmentos_por_instrumento's `limite`, which looks for the *decree's own*
+# closing Transitorios before searching for more instruments — an instrument
+# that itself expedites a brand new law commonly has its own Transitorios
+# for when that law takes effect, often as a bare bold caption too, and
+# accepting that there would truncate the search before the decree's later
+# instruments, collapsing them into whichever one came first.
+_TRANSITORIOS = re.compile(r"^#+\s*Transitorios?\b", re.I)
+_TRANSITORIOS_BLOQUE = re.compile(r"^(?:#+\s*Transitorios?\b|Transitorios?\s*$)", re.I)
 _VERBO_REFORMA = re.compile(r"\bse\s+(reforman?|adicionan?|derogan?)\b", re.I)
 _NUM_TOKEN = re.compile(
     r"\d+(?:\s+(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies))?",
@@ -307,7 +316,7 @@ def _texto_instruccion(bloques: list[str], inicio: int, fin: int) -> str:
     segment itself is about.
     """
     i = inicio
-    while i < fin and not _inicio_de_articulo(bloques[i]) and not _TRANSITORIOS.match(_encabezado(bloques[i])):
+    while i < fin and not _inicio_de_articulo(bloques[i]) and not _TRANSITORIOS_BLOQUE.match(_encabezado(bloques[i])):
         i += 1
     return " ".join(bloques[inicio:i])
 
@@ -352,7 +361,7 @@ def _segmenta_original(markdown: str, nombre_ley: str | None = None) -> tuple[st
     preambulo = "\n\n".join(comun + segmento[:i])
 
     articulos: dict[str, str] = {}
-    while i < n and not _TRANSITORIOS.match(_encabezado(segmento[i])):
+    while i < n and not _TRANSITORIOS_BLOQUE.match(_encabezado(segmento[i])):
         m = _inicio_de_articulo(segmento[i])
         if not m:
             i += 1
@@ -360,7 +369,7 @@ def _segmenta_original(markdown: str, nombre_ley: str | None = None) -> tuple[st
         numero = _canon_numero(m.group(1), m.group(2))
         cuerpo = [segmento[i]]
         i += 1
-        while i < n and not _inicio_de_articulo(segmento[i]) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
+        while i < n and not _inicio_de_articulo(segmento[i]) and not _TRANSITORIOS_BLOQUE.match(_encabezado(segmento[i])):
             cuerpo.append(segmento[i])
             i += 1
         articulos[numero] = "\n\n".join(cuerpo)
@@ -383,12 +392,12 @@ def _extrae_reforma(markdown: str, nombre_ley: str | None = None) -> tuple[str, 
     n = len(segmento)
 
     i = 0
-    while i < n and not _inicio_de_articulo(segmento[i]) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
+    while i < n and not _inicio_de_articulo(segmento[i]) and not _TRANSITORIOS_BLOQUE.match(_encabezado(segmento[i])):
         i += 1
     instruccion = "\n\n".join(segmento[:i])
 
     nuevos = []
-    while i < n and not _TRANSITORIOS.match(_encabezado(segmento[i])):
+    while i < n and not _TRANSITORIOS_BLOQUE.match(_encabezado(segmento[i])):
         m = _inicio_de_articulo(segmento[i])
         if not m:
             i += 1
@@ -396,7 +405,7 @@ def _extrae_reforma(markdown: str, nombre_ley: str | None = None) -> tuple[str, 
         numero = _canon_numero(m.group(1), m.group(2))
         cuerpo = [segmento[i]]
         i += 1
-        while i < n and not _inicio_de_articulo(segmento[i]) and not _TRANSITORIOS.match(_encabezado(segmento[i])):
+        while i < n and not _inicio_de_articulo(segmento[i]) and not _TRANSITORIOS_BLOQUE.match(_encabezado(segmento[i])):
             cuerpo.append(segmento[i])
             i += 1
         nuevos.append((numero, "\n\n".join(cuerpo)))
