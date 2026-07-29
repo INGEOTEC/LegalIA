@@ -57,13 +57,88 @@ def _cuerpo_de_pagina(pagina: str) -> list[str]:
     return lineas
 
 
+# --- turning the extracted text into actual Markdown ------------------------
+#
+# The PDF's text layer is just lines wrapped for print, with no markup at
+# all — plain extraction reads nothing like nota2md's own output (headings,
+# **bold** leads) even though it is the same DOF prose. These patterns give
+# it the same shape: a paragraph's opening "Artículo N.", ordinal ("Primero.")
+# or list marker ("I.", "a)") is bolded, an ALL-CAPS caption line is bolded
+# whole, and "Al margen un sello..."/"Transitorios" become headings — the same
+# elements html_to_markdown marks up, read off typography instead of CSS
+# classes.
+
+_ORDINAL = (
+    r"(?:Único|Unico|Primero|Segundo|Tercero|Cuarto|Quinto|Sexto|S[ée]ptimo|"
+    r"Octavo|Noveno|D[ée]cimo(?:\s+(?:Primero|Segundo|Tercero|Cuarto|Quinto|"
+    r"Sexto|S[ée]ptimo|Octavo|Noveno))?|Vig[ée]simo(?:\s+\w+)?|"
+    r"Trig[ée]simo(?:\s+\w+)?|Cuadrag[ée]simo(?:\s+\w+)?|"
+    r"Quincuag[ée]simo(?:\s+\w+)?|Sexag[ée]simo(?:\s+\w+)?)"
+)
+_LEAD_ARTICULO = re.compile(
+    r"^(Art[íi]culo\s+(?:\d+\s*(?:o\b\.?|[°º])?\s*"
+    r"(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies)?|"
+    rf"{_ORDINAL})\.?-?)",
+    re.I,
+)
+# A Transitorios item numbered by bare ordinal, "Primero." not "Artículo Primero.".
+_LEAD_ORDINAL = re.compile(rf"^({_ORDINAL}\.)", re.I)
+_LEAD_LISTA = re.compile(r"^((?:[IVXLCDM]+|[a-záA-Z])[\.\)])(?=\s)")
+_MARGEN = re.compile(r"^Al margen un sello\b.*", re.I)
+_TRANSITORIOS_PARRAFO = re.compile(r"^TRANSITORIOS?$", re.I)
+# Words only, no trailing space inside the group — a stray space pypdf's
+# extraction sometimes inserts before the comma must land outside the bold.
+_LEAD_NOMBRE = re.compile(r"^((?:[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ.]*\s+){1,6}[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ.]*)(\s*,\s)")
+
+
+def _es_titular(parrafo: str) -> bool:
+    """Whole-paragraph ALL-CAPS captions ("DECRETO", "SE EXPIDE LA LEY...") are
+    bolded in full — mirroring how nota2md's HTML path bolds them (they are
+    styled bold in the DOF's own markup, which the PDF's plain text loses)."""
+    letras = [c for c in parrafo if c.isalpha()]
+    return len(letras) >= 3 and len(parrafo) < 300 and all(c.isupper() for c in letras)
+
+
+def _formatea_parrafo(parrafo: str) -> str:
+    if _MARGEN.match(parrafo):
+        return f"## {parrafo}"
+    if _TRANSITORIOS_PARRAFO.match(parrafo):
+        return f"## {parrafo.capitalize()}"
+    if _es_titular(parrafo):
+        return f"**{parrafo}**"
+    for patron in (_LEAD_ARTICULO, _LEAD_ORDINAL, _LEAD_LISTA):
+        m = patron.match(parrafo)
+        if m:
+            return f"**{m.group(1)}**{parrafo[m.end(1):]}"
+    m = _LEAD_NOMBRE.match(parrafo)
+    if m:
+        return f"**{m.group(1)}**{m.group(2)}{parrafo[m.end(2):]}"
+    return parrafo
+
+
+def _parrafos(texto: str) -> list[str]:
+    """`texto`'s paragraphs, each reflowed to one line — the PDF's own line
+    breaks are just where the printed page ran out of width, not paragraph
+    boundaries."""
+    parrafos = []
+    for crudo in re.split(r"\n\s*\n+", texto):
+        junto = re.sub(r"\s+", " ", " ".join(crudo.splitlines())).strip()
+        if junto:
+            parrafos.append(junto)
+    return parrafos
+
+
 def limpia_texto_ley(paginas: list[str]) -> str:
-    """The law's current substantive text, out of its PDF's page texts.
+    """The law's current substantive text, out of its PDF's page texts —
+    reflowed into Markdown, not just cleaned-up plain text.
 
     Strips the per-page header, the front-matter Diputados adds before the
     decree's own text ("Nueva Ley publicada...", "TEXTO VIGENTE", "Última
     reforma publicada..."), and the trailing appendix of every reform decree's
-    own transitory articles — none of the three are part of the law itself.
+    own transitory articles — none of the three are part of the law itself —
+    then reflows what remains into Markdown paragraphs (see
+    _formatea_parrafo()) so the result reads like nota2md's own output
+    instead of a plain-text PDF dump.
     """
     cuerpo: list[str] = []
     for i, pagina in enumerate(paginas):
@@ -81,9 +156,8 @@ def limpia_texto_ley(paginas: list[str]) -> str:
     if corte:
         texto = texto[: corte.start()]
 
-    texto = re.sub(r"[ \t]+", " ", texto)
-    texto = re.sub(r"\n[ \t]*\n(\s*\n)+", "\n\n", texto)
-    return texto.strip() + "\n"
+    parrafos = [_formatea_parrafo(p) for p in _parrafos(texto)]
+    return "\n\n".join(parrafos) + "\n"
 
 
 def pdf_a_markdown(pdf_path) -> str:
