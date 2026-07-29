@@ -6,7 +6,7 @@ checked against the other.
 PDF, not a scan, so plain text extraction is enough and no OCR is needed. This
 is the *real* current text, used as ground truth.
 
-`construye_ley()` instead derives the current text from nothing but the DOF
+`normative_reconstruction()` instead derives the current text from nothing but the DOF
 notes themselves: it starts from the law's original publication (parsed into
 one entry per article) and replays each reform decree's own "se reforma /
 adiciona / deroga el artículo N ... para quedar como sigue" instruction on top
@@ -27,7 +27,7 @@ the law's substantive text, and a reform decree's own "Transitorios" section
 (governing how *that* decree enters into force) is likewise not folded back
 into the law. The original publication's own Transitorios section is kept —
 it is still in force until a decree explicitly replaces it, which none of the
-44 laws this was built against ever does.
+43 laws this was built against ever does.
 
 A restated "Artículo N" rarely repeats the whole article: the DOF only spells
 out the fracciones/incisos it actually touches and marks the rest with a
@@ -179,7 +179,7 @@ def pdf_a_markdown(pdf_path) -> str:
     return limpia_texto_ley(paginas)
 
 
-# --- construye_ley: replay the reforms on top of the original text ---------
+# --- normative_reconstruction: replay the reforms on top of the original text ---------
 
 _SUFIJOS = {
     "bis": "Bis", "ter": "Ter", "quater": "Quáter", "quáter": "Quáter",
@@ -536,14 +536,14 @@ def _markdown_de_nota(cod_nota: int) -> str:
     nota = fetch_nota(cod_nota)
     if not nota.get("cadenaContenido"):
         raise ValueError(
-            f"la nota {cod_nota} no tiene cadenaContenido (HTML); construye_ley "
+            f"la nota {cod_nota} no tiene cadenaContenido (HTML); normative_reconstruction "
             "sólo soporta notas con texto digital"
         )
     return html_to_markdown(nota["cadenaContenido"])
 
 
 class LeyNoReconstruible(ValueError):
-    """construye_ley() cannot build this law from the notes it was given.
+    """normative_reconstruction() cannot build this law from the notes it was given.
 
     Raised when the original publication yields no recognized article at
     all — building reforms on top of that would only manufacture a
@@ -569,7 +569,7 @@ def _diagnostico_original_vacia(markdown: str) -> str:
     )
 
 
-def construye_ley(cod_notas: list[int], nombre_ley: str | None = None) -> str:
+def normative_reconstruction(cod_notas: list[int], nombre_ley: str | None = None) -> str:
     """The law's current text, built only from the DOF notes in `cod_notas`.
 
     `cod_notas` is a law's reform history as `leyesmx.historial` returns it:

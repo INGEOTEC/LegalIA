@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from nota2md.leyes import (
     LeyNoReconstruible,
-    construye_ley,
+    normative_reconstruction,
     limpia_texto_ley,
     normaliza_para_comparar,
 )
@@ -79,7 +79,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        ley = construye_ley([1, 2])
+        ley = normative_reconstruction([1, 2])
 
         self.assertIn("Texto reformado del artículo segundo", ley)
         self.assertNotIn("Texto original del artículo segundo", ley)
@@ -101,7 +101,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        ley = construye_ley([1, 2])
+        ley = normative_reconstruction([1, 2])
 
         self.assertIn("Texto del nuevo artículo", ley)
         self.assertLess(ley.index("Artículo 1."), ley.index("Artículo 1 Bis."))
@@ -114,7 +114,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        ley = construye_ley([1, 2])
+        ley = normative_reconstruction([1, 2])
 
         self.assertIn("Artículo 2.", ley)
         self.assertIn("Derogado", ley)
@@ -132,7 +132,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        ley = construye_ley([1, 2])
+        ley = normative_reconstruction([1, 2])
 
         self.assertIn("Texto reformado del artículo primero", ley)
         self.assertIn("Derogado", ley)
@@ -151,7 +151,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_CON_FRACCIONES, reforma]
 
-        ley = construye_ley([1, 2])
+        ley = normative_reconstruction([1, 2])
 
         self.assertIn("Encabezado del artículo", ley)
         self.assertIn("Contenido original de la fracción I.", ley)
@@ -173,7 +173,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_CON_FRACCIONES, reforma]
 
-        ley = construye_ley([1, 2])
+        ley = normative_reconstruction([1, 2])
 
         self.assertIn("Contenido original de la fracción I.", ley)
         self.assertIn("Contenido original de la fracción II.", ley)
@@ -213,7 +213,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [publicacion, reforma]
 
-        ley = construye_ley([1, 2])
+        ley = normative_reconstruction([1, 2])
 
         self.assertIn("inciso a de la fracción I.", ley)
         self.assertIn("inciso b de la fracción I.", ley)
@@ -244,7 +244,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [publicacion, reforma]
 
-        ley = construye_ley([1, 2])
+        ley = normative_reconstruction([1, 2])
 
         self.assertIn("Primer párrafo original", ley)
         self.assertIn("Nuevo segundo párrafo insertado", ley)
@@ -258,7 +258,7 @@ class TestConstruyeLey(unittest.TestCase):
     def test_la_publicacion_original_basta_sin_reformas(self, mock_fetch):
         mock_fetch.return_value = PUBLICACION_ORIGINAL
 
-        ley = construye_ley([1])
+        ley = normative_reconstruction([1])
 
         self.assertIn("Texto original del artículo primero", ley)
         self.assertIn("Texto original del artículo segundo", ley)
@@ -266,13 +266,13 @@ class TestConstruyeLey(unittest.TestCase):
 
     def test_rechaza_una_lista_vacia(self):
         with self.assertRaises(ValueError):
-            construye_ley([])
+            normative_reconstruction([])
 
     @patch("nota2md.leyes.fetch_nota")
     def test_nota_sin_html_es_un_error_claro(self, mock_fetch):
         mock_fetch.return_value = {"cadenaContenido": ""}
         with self.assertRaises(ValueError):
-            construye_ley([1])
+            normative_reconstruction([1])
 
     @patch("nota2md.leyes.fetch_nota")
     def test_nota_original_solo_con_titulo_es_no_reconstruible(self, mock_fetch):
@@ -287,7 +287,7 @@ class TestConstruyeLey(unittest.TestCase):
             )
         }
         with self.assertRaises(LeyNoReconstruible) as ctx:
-            construye_ley([1])
+            normative_reconstruction([1])
         self.assertIn("solo su título", str(ctx.exception))
 
     @patch("nota2md.leyes.fetch_nota")
@@ -302,7 +302,7 @@ class TestConstruyeLey(unittest.TestCase):
             )
         }
         with self.assertRaises(LeyNoReconstruible) as ctx:
-            construye_ley([1])
+            normative_reconstruction([1])
         self.assertIn("no se reconoció", str(ctx.exception))
 
 
