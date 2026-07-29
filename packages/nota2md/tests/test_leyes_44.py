@@ -80,16 +80,16 @@ HISTORIAL = json.loads((FIXTURES / "historial_44.json").read_text(encoding="utf-
 
 # Below this, a law's reconstruction is close enough to call a partial success
 # even though it visibly differs from the real text. The worst law measured
-# (lfpccs) lands at 0.82; every other law clears 0.89.
-UMBRAL_POR_LEY = 0.72
+# (lfpccs) lands at 0.84; every other law clears 0.91.
+UMBRAL_POR_LEY = 0.78
 # No law currently needs its own lowered floor (see the module docstring) —
 # kept so a future explained shortfall has somewhere to go without dragging
 # UMBRAL_POR_LEY down for every other law too.
 UMBRAL_EXCEPCIONES = {}
 # Above this on average, an unrelated change that quietly makes the whole
 # batch worse would still be caught even where no single law crosses its own
-# floor. The measured average is 0.966.
-UMBRAL_PROMEDIO = 0.94
+# floor. The measured average is 0.971.
+UMBRAL_PROMEDIO = 0.95
 # Below this, a single article is a bad enough miss to name in a failure
 # message even though its law as a whole cleared UMBRAL_POR_LEY.
 UMBRAL_ARTICULO_A_REPORTAR = 0.3
