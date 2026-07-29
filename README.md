@@ -10,7 +10,7 @@ since 1917.
 
 | Package | Description |
 |---|---|
-| [dofjson](packages/dofjson) ([PyPI](https://pypi.org/project/dofjson/)) | Client for SIDOF's JSON open-data service: which legal provisions were published on a given day, and the full detail — including HTML content, when it exists — of any one of them. |
+| [dofjson](packages/dofjson) ([PyPI](https://pypi.org/project/dofjson/)) | Client for SIDOF's JSON open-data service: which legal provisions were published on a given day, and the full detail — including HTML content, when it exists — of any one of them. Also builds a compact `codNota` + `titulo` + `fecha` dataset of every legal provision ever published (`download_titulos`). |
 | [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF legal provision (`legal_provisions`), reconstructs a law's current text from nothing but its legal provisions (`normative_reconstruction`), and reads back a law's reform history (`download_normative_history`). |
 | [dof2md](packages/dof2md) ([PyPI](https://pypi.org/project/dof2md/)) | Downloads a complete edition of the DOF as PDF and converts it — OCR included — to Markdown; the heavy artillery `nota2md` borrows for legal provisions that predate the HTML era. |
 
@@ -22,6 +22,8 @@ on the project's [website](https://ingeotec.github.io/LegalIA/).
 
 ## Quick start
 
+`nota2md` has three entry points, all re-exported off the package itself.
+
 For a modern legal provision, only `dofjson` and `nota2md` are needed —
 `dof2md` stays in the background, as `nota2md`'s OCR fallback for legal
 provisions that only exist as scanned page images:
@@ -29,6 +31,8 @@ provisions that only exist as scanned page images:
 ```bash
 pip install dofjson nota2md
 ```
+
+### `legal_provisions` — a single DOF legal provision as Markdown
 
 ```python
 import datetime as dt
@@ -50,6 +54,37 @@ The same round trip is available from the command line:
 ```bash
 dofjson 2026-07-15 --outdir output     # -> output/15072026-notas.json
 nota2md 5793639 --outdir output        # -> output/nota-5793639.md
+```
+
+### `download_normative_history` and `normative_reconstruction` — a law's current text from its reform history
+
+```python
+from nota2md import download_normative_history, normative_reconstruction
+
+# Every federal law's reform history: a list of codNota per instrument
+leyes = download_normative_history("leyes")
+cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
+
+# The law's current (vigente) text, reconstructed from nothing but its own
+# DOF legal provisions
+dest = normative_reconstruction(cpeum["historial"], "output", cpeum["nombre"])
+```
+
+### `download_titulos` — every legal provision ever published, as titles
+
+`dofjson.titulos.download_titulos` builds a compact `codNota` + `titulo` +
+`fecha` dataset covering every legal provision published since 1917 (~1.2
+million rows, a few tens of MB compressed):
+
+```python
+from pathlib import Path
+from dofjson.titulos import download_titulos
+
+download_titulos(Path("titulos.jsonl.gz"))
+```
+
+```bash
+dofjson --titulos --outdir output    # -> output/titulos.jsonl.gz
 ```
 
 ## Development
