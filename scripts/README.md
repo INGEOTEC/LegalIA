@@ -32,12 +32,12 @@ Refills the days SIDOF lost into the published
 [`notas-archivo`](https://github.com/INGEOTEC/LegalIA/releases/tag/notas-archivo)
 assets, taking them from `www.dof.gob.mx`.
 
-SIDOF answers `200 OK` with no notes for a day it is missing — the same answer
-it gives for a Sunday — so those days were archived as empty. The script walks
-the published assets, finds every **weekday** stored with no notes, asks the
-DOF website whether the gazette actually came out, and rewrites only those
-days. Everything else is copied through untouched: same member names, order,
-mode, ownership and mtime.
+SIDOF answers `200 OK` with no legal provisions for a day it is missing — the
+same answer it gives for a Sunday — so those days were archived as empty. The
+script walks the published assets, finds every **weekday** stored with no
+legal provisions, asks the DOF website whether the gazette actually came out,
+and rewrites only those days. Everything else is copied through untouched:
+same member names, order, mode, ownership and mtime.
 
 ```bash
 ./scripts/reparar_notas_archivo.py --anios 1999,2006 --dry-run   # report only
@@ -59,11 +59,12 @@ always produce the same bytes and checksums stay comparable across runs.
 Two things are checked rather than assumed. A recovered day is accepted only
 when the page's printed date matches the one requested — the site has been
 seen answering with another day's page under concurrency. And after writing,
-the tarball is read back and the note counts re-verified.
+the tarball is read back and the legal provision counts re-verified.
 
-Recovered days carry `"fuente": "dof.gob.mx"`, on the day and on each note;
-SIDOF's days carry no marker. They also carry `notasIncompletas`: the DOF
-website's index does not list convocatorias (`CV`, `VG`) or avisos (`AV`).
+Recovered days carry `"fuente": "dof.gob.mx"`, on the day and on each legal
+provision; SIDOF's days carry no marker. They also carry `notasIncompletas`:
+the DOF website's index does not list convocatorias (`CV`, `VG`) or avisos
+(`AV`).
 
 ### Publishing
 
