@@ -1,6 +1,6 @@
 """Build the Markdown of a single DOF note, identified by its codNota.
 
-Three sources feed the same output, and build_nota_markdown() picks between them:
+Three sources feed the same output, and legal_provisions() picks between them:
 
 * **HTML** — when the note carries digital text (``cadenaContenido``), it is
   converted directly with html_converter.html_to_markdown(). This is the
@@ -100,7 +100,7 @@ def fetch_day_notes(date: dt.date) -> dict:
     return notas
 
 
-def build_nota_markdown(
+def legal_provisions(
     cod_nota: int,
     outdir: Path,
     source: str = "auto",

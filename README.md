@@ -11,7 +11,7 @@ gazette: more than 1.2 million notes published without interruption since
 | Package | Description |
 |---|---|
 | [dofjson](packages/dofjson) ([PyPI](https://pypi.org/project/dofjson/)) | Client for SIDOF's JSON open-data service: which notes were published on a given day, and the full detail — including HTML content, when it exists — of any one of them. |
-| [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF note, identified by its `codNota`, from its official HTML or by OCR of its scanned pages. |
+| [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF note (`legal_provisions`), reconstructs a law's current text from nothing but its notes (`normative_reconstruction`), and reads back a law's reform history (`download_normative_history`). |
 | [dof2md](packages/dof2md) ([PyPI](https://pypi.org/project/dof2md/)) | Downloads a complete edition of the DOF as PDF and converts it — OCR included — to Markdown; the heavy artillery `nota2md` borrows for notes that predate the HTML era. |
 
 Each package lives under `packages/<name>/` with its own `pyproject.toml`,
@@ -35,14 +35,14 @@ import datetime as dt
 from pathlib import Path
 
 from dofjson import client
-from nota2md.builder import build_nota_markdown
+from nota2md import legal_provisions
 
 # Every note published on a given day
 notas = client.quita_notas_sin_titulo(client.get_notas(dt.date(2026, 7, 15)))
 cod_nota = notas["NotasMatutinas"][0]["codNota"]
 
 # The note's Markdown, from its official HTML
-md_path = build_nota_markdown(cod_nota, Path("output"), source="html")
+md_path = legal_provisions(cod_nota, Path("output"), source="html")
 ```
 
 The same round trip is available from the command line:
