@@ -200,8 +200,14 @@ def _segmenta_original(markdown: str, nombre_ley: str | None = None) -> tuple[st
     inicio_doc = 1 if bloques and _TITULO_NOTA.match(bloques[0].strip()) else 0
     resto = bloques[inicio_doc:]
 
+    # The front matter common to every instrument in the decree ("Al margen un
+    # sello...", "DECRETO", "...DECRETA:") sits before the *first* instrument
+    # segment, whether or not it is the one chosen — using the chosen
+    # segment's own start here would swallow whole any unrelated instrument
+    # that happens to come before it in the same decree.
+    primer_inicio = _segmentos_por_instrumento(resto)[0][0]
     inicio_seg, fin_seg = _elige_segmento(resto, nombre_ley)
-    comun, segmento = resto[:inicio_seg], resto[inicio_seg:fin_seg]
+    comun, segmento = resto[:primer_inicio], resto[inicio_seg:fin_seg]
     n = len(segmento)
 
     i = 0
