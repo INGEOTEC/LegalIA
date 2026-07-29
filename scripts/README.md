@@ -74,6 +74,4 @@ gh release upload notas-archivo reparados/*.tgz --clobber
 ```
 
 `--clobber` replaces each asset in place, so the release never sits with a
-missing file the way delete-then-upload would. The
-`reparar notas-archivo` workflow does both steps and then downloads each
-asset back to compare it byte for byte against what was uploaded.
+missing file the way delete-then-upload would.
