@@ -57,8 +57,13 @@ DIRECTORIO_NOTAS_POR_DEFECTO = Path(tempfile.gettempdir()) / "nota2md-notas"
 
 # --- ground truth: Diputados' own consolidated-text PDF --------------------
 
+# The "N de M" page-number marker Diputados prints at the bottom of every page.
 _PIE_PAGINA = re.compile(r"^\s*\d+\s+de\s+\d+\s*$")
+# The front-matter line naming the law's most recent reform, printed once on
+# the PDF's first page before the decree's own text starts.
 _ULTIMA_REFORMA = re.compile(r"^\s*[UÚ]ltima reforma publicada", re.I)
+# The heading that opens the trailing appendix collecting every reform
+# decree's own transitory articles — not part of the law's substantive text.
 _APENDICE_TRANSITORIOS = re.compile(
     r"^\s*ART[ÍI]CULOS?\s+TRANSITORIOS\s+DE\s+(?:LOS\s+)?DECRETOS?\s+DE\s+REFORMA",
     re.I | re.M,
@@ -87,6 +92,8 @@ def _cuerpo_de_pagina(pagina: str) -> list[str]:
 # elements html_to_markdown marks up, read off typography instead of CSS
 # classes.
 
+# Every ordinal word Diputados' PDFs use to number a Transitorios item
+# ("Primero.", "Décimo Segundo.") or an instrument ("Artículo Único.-").
 _ORDINAL = (
     r"(?:Único|Unico|Primero|Segundo|Tercero|Cuarto|Quinto|Sexto|S[ée]ptimo|"
     r"Octavo|Noveno|D[ée]cimo(?:\s+(?:Primero|Segundo|Tercero|Cuarto|Quinto|"
@@ -94,6 +101,8 @@ _ORDINAL = (
     r"Trig[ée]simo(?:\s+\w+)?|Cuadrag[ée]simo(?:\s+\w+)?|"
     r"Quincuag[ée]simo(?:\s+\w+)?|Sexag[ée]simo(?:\s+\w+)?)"
 )
+# A paragraph's opening "Artículo N." or "Artículo Ordinal.-" lead, numeric or
+# ordinal, to be bolded the same way html_to_markdown bolds a note's own.
 _LEAD_ARTICULO = re.compile(
     r"^(Art[íi]culo\s+(?:\d+\s*(?:o\b\.?|[°º])?\s*"
     r"(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies)?|"
@@ -102,8 +111,11 @@ _LEAD_ARTICULO = re.compile(
 )
 # A Transitorios item numbered by bare ordinal, "Primero." not "Artículo Primero.".
 _LEAD_ORDINAL = re.compile(rf"^({_ORDINAL}\.)", re.I)
+# A fracción/inciso list marker opening a paragraph ("I.", "a)").
 _LEAD_LISTA = re.compile(r"^((?:[IVXLCDM]+|[a-záA-Z])[\.\)])(?=\s)")
+# The "Al margen un sello..." caption every DOF decree opens with.
 _MARGEN = re.compile(r"^Al margen un sello\b.*", re.I)
+# A "Transitorios"/"Transitorio" paragraph on its own, with nothing else in it.
 _TRANSITORIOS_PARRAFO = re.compile(r"^TRANSITORIOS?$", re.I)
 # Words only, no trailing space inside the group — a stray space pypdf's
 # extraction sometimes inserts before the comma must land outside the bold.
@@ -119,6 +131,9 @@ def _es_titular(parrafo: str) -> bool:
 
 
 def _formatea_parrafo(parrafo: str) -> str:
+    """`parrafo` reformatted to match nota2md's own Markdown conventions —
+    a heading, a bolded caption, or a bolded lead ("Artículo N.", "I.", "a)")
+    — or `parrafo` itself unchanged if none of those patterns apply."""
     if _MARGEN.match(parrafo):
         return f"## {parrafo}"
     if _TRANSITORIOS_PARRAFO.match(parrafo):
@@ -189,11 +204,15 @@ def pdf_a_markdown(pdf_path) -> str:
 
 # --- normative_reconstruction: replay the reforms on top of the original text ---------
 
+# Canonical (capitalized, accented) spelling of each article-number suffix,
+# keyed by every lowercase/unaccented way a note might spell it.
 _SUFIJOS = {
     "bis": "Bis", "ter": "Ter", "quater": "Quáter", "quáter": "Quáter",
     "quinquies": "Quinquies", "sexies": "Sexies", "septies": "Septies",
     "octies": "Octies", "nonies": "Nonies", "decies": "Decies",
 }
+# A restated "Artículo N" (optionally suffixed "Bis"/"Ter"/...), bold or not —
+# matched against an already `_encabezado()`-stripped block.
 _ARTICULO = re.compile(
     r"^\*{0,2}Art[íi]culo\s+(\d+)\s*(?:o\b\.?|[°º])?\s*"
     r"(bis|ter|qu[áa]ter|quinquies|sexies|septies|octies|nonies|decies)?\b",
@@ -230,7 +249,11 @@ def _inicio_de_articulo(bloque: str) -> re.Match | None:
 # instruments, collapsing them into whichever one came first.
 _TRANSITORIOS = re.compile(r"^#+\s*Transitorios?\b", re.I)
 _TRANSITORIOS_BLOQUE = re.compile(r"^(?:#+\s*Transitorios?\b|Transitorios?\s*$)", re.I)
+# "Se reforma(n)/adiciona(n)/deroga(n)", the verb an instruction clause uses
+# to say what it does to the article(s) it names.
 _VERBO_REFORMA = re.compile(r"\bse\s+(reforman?|adicionan?|derogan?)\b", re.I)
+# An article number (optionally suffixed) inside an instruction clause's own
+# prose, e.g. one of the numbers listed after "se derogan los artículos".
 _NUM_TOKEN = re.compile(
     r"\d+(?:\s+(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies))?",
     re.I,
@@ -238,12 +261,18 @@ _NUM_TOKEN = re.compile(
 
 
 def _canon_numero(base: str, sufijo: str | None) -> str:
+    """`base` (an article's bare number) with `sufijo` (as `_ARTICULO`
+    captured it, any case/accent) appended in its canonical spelling — the
+    dict key every occurrence of this article, suffixed or not, is stored
+    and looked up under."""
     if not sufijo:
         return base
     return f"{base} {_SUFIJOS.get(sufijo.lower(), sufijo.capitalize())}"
 
 
 def _clave_orden(numero: str) -> tuple[int, int]:
+    """A sort key for `numero` ("5", "5 Bis", "5 Ter"...) that orders it
+    right after its base number and before the next one, in suffix order."""
     m = re.match(r"(\d+)\s*(.*)", numero)
     base, sufijo = int(m.group(1)), m.group(2).strip().lower()
     rango = {"": 0, "bis": 1, "ter": 2, "quáter": 3, "quinquies": 4,
@@ -252,6 +281,9 @@ def _clave_orden(numero: str) -> tuple[int, int]:
 
 
 def _inserta_en_orden(orden: list[str], numero: str) -> None:
+    """Insert `numero` into `orden` (a law's article numbers, already in
+    document order) at the position `_clave_orden` says it belongs —
+    used when a reform adds an article that was never in `orden` yet."""
     clave = _clave_orden(numero)
     for i, existente in enumerate(orden):
         if _clave_orden(existente) > clave:
@@ -261,6 +293,8 @@ def _inserta_en_orden(orden: list[str], numero: str) -> None:
 
 
 def _bloques(markdown: str) -> list[str]:
+    """`markdown` split into its paragraph-level blocks — html_to_markdown's
+    own unit, one per "\n\n"-separated chunk."""
     return [b for b in markdown.split("\n\n")]
 
 
@@ -272,6 +306,7 @@ def _encabezado(bloque: str) -> str:
     return re.sub(r"\*+", "", bloque.strip())
 
 
+# A note's own H1 — dofjson's title for it, not part of the decree.
 _TITULO_NOTA = re.compile(r"^#\s")
 # A block opening a new instrument's own instruction ("Artículo Primero.-",
 # "Artículo Único.-"...): "Artículo" followed by a word, not a number — a
@@ -429,17 +464,24 @@ def _numeros_derogados(instruccion: str) -> list[str]:
     return derogados
 
 
+# A fracción-number suffix ("Bis", "Ter"...), same spelling as an article's own.
 _SUFIJO_ETIQUETA = (
     r"(?:\s+(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies))?"
 )
+# A fracción numeral ("I", "XIII Bis"), roman with an optional suffix.
 _NUMERAL_ETIQUETA = rf"[IVXLCDM]+{_SUFIJO_ETIQUETA}"
+# A single lowercase inciso letter ("a", "b"...).
 _LETRA_ETIQUETA = r"[a-záéíóúñ]"
 
+# A single fracción label ("I.", "XIII Bis.-") and whatever follows it.
 _ETIQUETA_NUM = re.compile(rf"^({_NUMERAL_ETIQUETA})\.-?\s*(.*)$", re.S)
+# A single inciso label ("a)") and whatever follows it.
 _ETIQUETA_LETRA = re.compile(rf"^({_LETRA_ETIQUETA})\)\s*(.*)$", re.S)
+# A fracción span ("I. a XVI.", "X. y XI.") and whatever follows it.
 _RANGO_NUM = re.compile(
     rf"^({_NUMERAL_ETIQUETA})\.-?\s+(?:a|y)\s+({_NUMERAL_ETIQUETA})\.-?\s*(.*)$", re.S
 )
+# An inciso span ("a) a e)", "a) y b)") and whatever follows it.
 _RANGO_LETRA = re.compile(
     rf"^({_LETRA_ETIQUETA})\)\s+(?:a|y)\s+({_LETRA_ETIQUETA})\)\s*(.*)$", re.S
 )
@@ -483,6 +525,9 @@ def _analiza_rango(bloque: str) -> tuple[str, str, str] | None:
 
 
 def _normaliza_etiqueta(etiqueta: str) -> str:
+    """`etiqueta` ("I", "XIII  Bis") folded to a case/whitespace-insensitive
+    form, so `_busca_etiqueta` can match it regardless of how either side
+    happened to capitalize or space a suffix."""
     return re.sub(r"\s+", " ", etiqueta.strip().lower())
 
 
@@ -603,6 +648,9 @@ class LeyNoReconstruible(ValueError):
 
 
 def _diagnostico_original_vacia(markdown: str) -> str:
+    """A human-readable guess at why `markdown` (the original publication's
+    own text) yielded no article at all — the LeyNoReconstruible message
+    tells which of the two known causes it looks like."""
     if not re.search(r"^\s*#+\s*Al margen un sello\b", markdown, re.M | re.I):
         return (
             "la nota no trae el cuerpo del decreto, solo su título — el DOF "
@@ -665,6 +713,9 @@ def normative_reconstruction(
 def _normative_reconstruction(
     cod_notas: list[int], nombre_ley: str | None, directorio_notas: Path
 ) -> str:
+    """`normative_reconstruction`'s own body, once `directorio_notas` is
+    resolved and created — split out only so the public function can wrap
+    it in the try/finally that handles `borrar_directorio_notas`."""
     md_original = _markdown_de_nota(cod_notas[0], directorio_notas)
     preambulo, articulos, transitorios = _segmenta_original(md_original, nombre_ley)
     if not articulos:
@@ -702,6 +753,10 @@ def _normative_reconstruction(
 
 # --- comparing the two ------------------------------------------------------
 
+# Markdown syntax (headings, emphasis, code spans, table pipes) to strip
+# before comparing two texts, so formatting differences don't count as content
+# differences — a table cell's leading "|" is left alone, only a separator
+# "|" with another one somewhere later on the same line counts as syntax.
 _MARKDOWN_SYNTAX = re.compile(r"[#*_`]|\|(?=[^|]*\|)")
 
 
