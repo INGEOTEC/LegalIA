@@ -1,7 +1,7 @@
 # leyesmx
 
-Reform history of Mexican federal legislation, linked to the DOF notes that
-published it.
+Reform history of Mexican federal legislation, linked to the DOF legal
+provisions that published it.
 
 ## Why
 
@@ -12,8 +12,8 @@ story live apart:
   curates, per law, the list of decrees that reformed it and the date each was
   published. This is the authoritative account of *which* decrees changed
   *which* law — the DOF itself never says so.
-- The **DOF** publishes those decrees as notes, each with a `codNota` that
-  addresses its full text (see [`dofjson`](../dofjson)).
+- The **DOF** publishes those decrees as legal provisions, each with a
+  `codNota` that addresses its full text (see [`dofjson`](../dofjson)).
 
 `leyesmx` joins them, so each reform of a law becomes a row pointing at the
 primary source that enacted it.
@@ -85,10 +85,10 @@ plain list of `codNota`:
 ]
 ```
 
-Only the codNota is stored. A note's title, date and issuing branch already
-live in the dataset `dofjson.titulos.download_titulos` builds, and come back
-by joining on codNota — keeping a second copy here would only let the two
-drift apart:
+Only the codNota is stored. A legal provision's title, date and issuing
+branch already live in the dataset `dofjson.titulos.download_titulos`
+builds, and come back by joining on codNota — keeping a second copy here
+would only let the two drift apart:
 
 ```python
 import json
@@ -103,8 +103,8 @@ for nota in lee_titulos("titulos.jsonl.gz"):
 **Index N is reform N**, and index 0 is the law's original publication. Each
 entry is placed by its number rather than by position, so the invariant holds
 even where it otherwise would not: `ccf` and `ccom` have no original
-publication on their page, and a reform without a note stays put as `null`
-instead of shifting everything after it.
+publication on their page, and a reform without a legal provision stays put
+as `null` instead of shifting everything after it.
 
 Regulations live in `data/reformas/reglamentos/`, with their own
 `reglamentos.json`. They are kept apart because their identifiers come from
@@ -124,16 +124,17 @@ Every one of the **3,136** numbered reforms of a law is linked. The ten
 unlinked entries are all original publications, and each for a reason worth
 keeping visible rather than papering over: the Código de Comercio's (1889) and
 the Ordenanza General de la Armada's (1912) predate the DOF archive itself;
-some days carry very few notes in the dataset and not the one wanted (the Ley
-Aduanera's 15-12-1995 has 12); and the Ley de Fondos de Inversión was
-published under its former name, Ley de Sociedades de Inversión.
+some days carry very few legal provisions in the dataset and not the one
+wanted (the Ley Aduanera's 15-12-1995 has 12); and the Ley de Fondos de
+Inversión was published under its former name, Ley de Sociedades de
+Inversión.
 
 Reform 139 of the Constitution (`08-03-1999`, amending articles 16, 19, 22 and
 123) used to be a `null` too. The date was never a Diputados mistake — the
 reform was published that day, and the gap was in SIDOF, which reports the
 days it has lost as days with no gazette. `dofjson` now recovers those from the
-DOF's own website (see `dofjson.dofweb`), so the note is in the dataset and the
-reform is linked.
+DOF's own website (see `dofjson.dofweb`), so the legal provision is in the
+dataset and the reform is linked.
 
 ### A second route to the decree
 
@@ -151,7 +152,8 @@ reachable by a second, independent route. Every one of the Constitution's 285
 rows has such a PDF (184 also have a scan of the printed page), so this
 fallback is complete rather than best-effort.
 
-Each `Reforma` exposes that URL as `.pdf`, whether or not the DOF has the note.
+Each `Reforma` exposes that URL as `.pdf`, whether or not the DOF has the
+legal provision.
 
 ## Normas Oficiales Mexicanas
 
@@ -173,36 +175,37 @@ A NOM's life in the gazette, as `NOM-001-SCFI-1993` has it:
 14-05-2020  Modificación al Transitorio Primero…
 ```
 
-A draft is keyed to the NOM it drafts, so `PROY-` is stripped. A note citing
-several codes belongs to each: the note issuing a revision usually also cancels
-the edition it replaces, which is how a lineage stays traceable.
+A draft is keyed to the NOM it drafts, so `PROY-` is stripped. A legal
+provision citing several codes belongs to each: the legal provision issuing a
+revision usually also cancels the edition it replaces, which is how a lineage
+stays traceable.
 
 | | |
 |---|---|
 | NOMs | 4,674 |
-| DOF notes | 8,880 |
-| With more than one note | 2,044 |
+| DOF legal provisions | 8,880 |
+| With more than one legal provision | 2,044 |
 
-`data/normas/noms.json` maps each code to its notes, oldest first;
+`data/normas/noms.json` maps each code to its legal provisions, oldest first;
 `catalogo.json` adds the span, the count and a descriptive title — taken from
-the note that *is* the norm, since the most recent one is as often a notice of
-public consultation and says nothing about the subject. One file rather than
-one per NOM: 4,674 files each holding a handful of numbers would cost more than
-they tell.
+the legal provision that *is* the norm, since the most recent one is as often
+a notice of public consultation and says nothing about the subject. One file
+rather than one per NOM: 4,674 files each holding a handful of numbers would
+cost more than they tell.
 
 **Codes are not decomposed.** Sixty years of the gazette have left 253 distinct
 code shapes — `NOM-001-SCFI-1993`, `NOM-150-1979`, `NOM-C-247-1978`,
 `NOM-EM-002-SSA2-1993`, `NOM-015-SCT-2-1993`. Parsing the parts invites reading
-a year as a dependency, which mislabelled 927 notes on the first attempt, so
-the normalized code string is the identifier.
+a year as a dependency, which mislabelled 927 legal provisions on the first
+attempt, so the normalized code string is the identifier.
 
 **Codes cited short.** Titles often cite a NOM by part of its code. Where
 exactly one full code extends it the citation is folded in — `NOM-186-SSA1`
 into `NOM-186-SSA1-2000` — which recovers 114 such citations. Where several do,
 it cannot be resolved: `NOM-021` is equally the ASEA, the SAG and the SCT4
-norm. Those 287 codes and their 669 notes go to `citas-ambiguas.json` rather
-than being dropped or guessed at — the notes do concern a NOM, only which one
-cannot be told.
+norm. Those 287 codes and their 669 legal provisions go to
+`citas-ambiguas.json` rather than being dropped or guessed at — the legal
+provisions do concern a NOM, only which one cannot be told.
 
 ## International treaties
 
@@ -249,7 +252,7 @@ is puts that false pair at 0.56 and real ones at 0.72–0.78, so the threshold
 sits at 0.70. A promulgation is never paired with an approval that follows it,
 and each decree is claimed once.
 
-## Matching a note to an entry
+## Matching a legal provision to an entry
 
 Which metric applies depends on what LeyesBiblio gives. A numbered reform of a
 law comes with the decree's own title, and the DOF title is typically that
@@ -264,9 +267,9 @@ traffic-regulation decree, the Código Fiscal's to the 1982 budget, and a
 reform of the Reglamento de la Ley de Aeropuertos to a mining-claim notice.
 
 Name matches also carry a floor, below which the entry is left unlinked. A
-busy day carries a hundred notes, and half a name's words matching is as
-likely to be coincidence as not — an unlinked entry says less than a wrong
-one.
+busy day carries a hundred legal provisions, and half a name's words
+matching is as likely to be coincidence as not — an unlinked entry says less
+than a wrong one.
 
 ## Reading LeyesBiblio
 
