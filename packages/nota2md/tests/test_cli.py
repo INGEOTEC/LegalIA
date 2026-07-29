@@ -15,7 +15,7 @@ class TestCli(unittest.TestCase):
     def tearDown(self):
         self.tmpdir.cleanup()
 
-    @patch("nota2md.cli.build_nota_markdown")
+    @patch("nota2md.cli.legal_provisions")
     def test_main_builds_note_with_defaults(self, mock_build):
         mock_build.return_value = self.outdir / "nota-5793655.md"
 
@@ -30,7 +30,7 @@ class TestCli(unittest.TestCase):
             keep_pages=False,
         )
 
-    @patch("nota2md.cli.build_nota_markdown")
+    @patch("nota2md.cli.legal_provisions")
     def test_main_passes_source_and_loads_notas_file(self, mock_build):
         notas = {"NotasMatutinas": [{"codNota": 5793655, "titulo": "T"}]}
         notas_path = self.outdir / "15072026-notas.json"
