@@ -146,12 +146,36 @@ class TestLimpiaTextoLey(unittest.TestCase):
 
         texto = limpia_texto_ley(paginas)
 
-        self.assertIn("Al margen un sello.", texto)
-        self.assertIn("Artículo 1. Texto del artículo.", texto)
+        self.assertIn("## Al margen un sello.", texto)
+        self.assertIn("**Artículo 1.** Texto del artículo.", texto)
         self.assertNotIn("CÁMARA DE DIPUTADOS", texto)
         self.assertNotIn("TEXTO VIGENTE", texto)
         self.assertNotIn("ARTÍCULOS TRANSITORIOS DE DECRETOS DE REFORMA", texto)
         self.assertNotIn("DECRETO por el que se reforma", texto)
+
+    def test_reflows_paragraphs_and_bolds_headings_and_list_markers(self):
+        paginas = [
+            "\n1 de 1\nAl margen un sello.\n\n"
+            "DECRETO\n\n"
+            "Artículo 1. Texto del\nartículo envuelto en dos líneas.\n\n"
+            "I. Primera fracción.\n\n"
+            "a) Primer inciso.\n\n"
+            "Transitorios\n\n"
+            "Primero. Entra en vigor de inmediato.\n",
+        ]
+
+        texto = limpia_texto_ley(paginas)
+
+        self.assertEqual(
+            texto,
+            "## Al margen un sello.\n\n"
+            "**DECRETO**\n\n"
+            "**Artículo 1.** Texto del artículo envuelto en dos líneas.\n\n"
+            "**I.** Primera fracción.\n\n"
+            "**a)** Primer inciso.\n\n"
+            "## Transitorios\n\n"
+            "**Primero.** Entra en vigor de inmediato.\n",
+        )
 
 
 class TestNormalizaParaComparar(unittest.TestCase):
