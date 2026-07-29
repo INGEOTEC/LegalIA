@@ -1,4 +1,6 @@
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from nota2md.leyes import (
@@ -68,6 +70,13 @@ def _reforma(articulo_unico: str, articulos_nuevos: str) -> dict:
 
 
 class TestConstruyeLey(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.outdir = Path(self.tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
     @patch("nota2md.leyes.fetch_nota")
     def test_reforma_reemplaza_el_articulo_sin_mover_su_posicion(self, mock_fetch):
         reforma = _reforma(
@@ -78,7 +87,8 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        ley = normative_reconstruction([1, 2], borrar_directorio_notas=True)
+        dest = normative_reconstruction([1, 2], self.outdir, borrar_directorio_notas=True)
+        ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Texto reformado del artículo segundo", ley)
         self.assertNotIn("Texto original del artículo segundo", ley)
@@ -100,7 +110,8 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        ley = normative_reconstruction([1, 2], borrar_directorio_notas=True)
+        dest = normative_reconstruction([1, 2], self.outdir, borrar_directorio_notas=True)
+        ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Texto del nuevo artículo", ley)
         self.assertLess(ley.index("Artículo 1."), ley.index("Artículo 1 Bis."))
@@ -113,7 +124,8 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        ley = normative_reconstruction([1, 2], borrar_directorio_notas=True)
+        dest = normative_reconstruction([1, 2], self.outdir, borrar_directorio_notas=True)
+        ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Artículo 2.", ley)
         self.assertIn("Derogado", ley)
@@ -131,7 +143,8 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        ley = normative_reconstruction([1, 2], borrar_directorio_notas=True)
+        dest = normative_reconstruction([1, 2], self.outdir, borrar_directorio_notas=True)
+        ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Texto reformado del artículo primero", ley)
         self.assertIn("Derogado", ley)
@@ -150,7 +163,8 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_CON_FRACCIONES, reforma]
 
-        ley = normative_reconstruction([1, 2], borrar_directorio_notas=True)
+        dest = normative_reconstruction([1, 2], self.outdir, borrar_directorio_notas=True)
+        ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Encabezado del artículo", ley)
         self.assertIn("Contenido original de la fracción I.", ley)
@@ -172,7 +186,8 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_CON_FRACCIONES, reforma]
 
-        ley = normative_reconstruction([1, 2], borrar_directorio_notas=True)
+        dest = normative_reconstruction([1, 2], self.outdir, borrar_directorio_notas=True)
+        ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Contenido original de la fracción I.", ley)
         self.assertIn("Contenido original de la fracción II.", ley)
@@ -212,7 +227,8 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [publicacion, reforma]
 
-        ley = normative_reconstruction([1, 2], borrar_directorio_notas=True)
+        dest = normative_reconstruction([1, 2], self.outdir, borrar_directorio_notas=True)
+        ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("inciso a de la fracción I.", ley)
         self.assertIn("inciso b de la fracción I.", ley)
@@ -243,7 +259,8 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [publicacion, reforma]
 
-        ley = normative_reconstruction([1, 2], borrar_directorio_notas=True)
+        dest = normative_reconstruction([1, 2], self.outdir, borrar_directorio_notas=True)
+        ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Primer párrafo original", ley)
         self.assertIn("Nuevo segundo párrafo insertado", ley)
@@ -257,7 +274,8 @@ class TestConstruyeLey(unittest.TestCase):
     def test_la_publicacion_original_basta_sin_reformas(self, mock_fetch):
         mock_fetch.return_value = PUBLICACION_ORIGINAL
 
-        ley = normative_reconstruction([1], borrar_directorio_notas=True)
+        dest = normative_reconstruction([1], self.outdir, borrar_directorio_notas=True)
+        ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Texto original del artículo primero", ley)
         self.assertIn("Texto original del artículo segundo", ley)
@@ -265,13 +283,13 @@ class TestConstruyeLey(unittest.TestCase):
 
     def test_rechaza_una_lista_vacia(self):
         with self.assertRaises(ValueError):
-            normative_reconstruction([], borrar_directorio_notas=True)
+            normative_reconstruction([], self.outdir, borrar_directorio_notas=True)
 
     @patch("nota2md.leyes.fetch_nota")
     def test_nota_sin_html_es_un_error_claro(self, mock_fetch):
         mock_fetch.return_value = {"cadenaContenido": ""}
         with self.assertRaises(ValueError):
-            normative_reconstruction([1], borrar_directorio_notas=True)
+            normative_reconstruction([1], self.outdir, borrar_directorio_notas=True)
 
     @patch("nota2md.leyes.fetch_nota")
     def test_nota_original_solo_con_titulo_es_no_reconstruible(self, mock_fetch):
@@ -286,7 +304,7 @@ class TestConstruyeLey(unittest.TestCase):
             )
         }
         with self.assertRaises(LeyNoReconstruible) as ctx:
-            normative_reconstruction([1], borrar_directorio_notas=True)
+            normative_reconstruction([1], self.outdir, borrar_directorio_notas=True)
         self.assertIn("solo su título", str(ctx.exception))
 
     @patch("nota2md.leyes.fetch_nota")
@@ -301,7 +319,7 @@ class TestConstruyeLey(unittest.TestCase):
             )
         }
         with self.assertRaises(LeyNoReconstruible) as ctx:
-            normative_reconstruction([1], borrar_directorio_notas=True)
+            normative_reconstruction([1], self.outdir, borrar_directorio_notas=True)
         self.assertIn("no se reconoció", str(ctx.exception))
 
 
