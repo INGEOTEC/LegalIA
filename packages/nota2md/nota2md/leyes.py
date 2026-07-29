@@ -512,12 +512,16 @@ def _diagnostico_original_vacia(markdown: str) -> str:
 
 def normative_reconstruction(
     cod_notas: list[int],
+    outdir: str | Path,
     nombre_ley: str | None = None,
     *,
     directorio_notas: str | Path | None = None,
     borrar_directorio_notas: bool = False,
-) -> str:
-    """The law's current text, built only from the DOF notes in `cod_notas`.
+) -> Path:
+    """Build the law's current text from the DOF notes in `cod_notas` and
+    write it to ``outdir/ley-{cod_notas[0]}.md``; return that path — the
+    same shape as build_nota_markdown(), since a law's reconstruction is, in
+    the end, one more piece of Markdown built from notes and written to disk.
 
     `cod_notas` is a law's reform history as `leyesmx.historial` returns it:
     oldest first, index 0 the original publication and the rest its reform
@@ -540,7 +544,8 @@ def normative_reconstruction(
     returns, so a later call reusing the same `cod_notas` (a rerun of this
     same suite, say) does not need the network at all; pass
     `borrar_directorio_notas=True` to delete it instead once this call is
-    done with it.
+    done with it. `outdir` (the law's own output, as opposed to the notes it
+    was built from) is never deleted — that is the caller's own to keep.
 
     Raises LeyNoReconstruible if the original publication yields no article
     at all to build on — see that exception for why this can happen.
@@ -551,10 +556,16 @@ def normative_reconstruction(
     directorio_notas = Path(directorio_notas or DIRECTORIO_NOTAS_POR_DEFECTO)
     directorio_notas.mkdir(parents=True, exist_ok=True)
     try:
-        return _normative_reconstruction(cod_notas, nombre_ley, directorio_notas)
+        texto = _normative_reconstruction(cod_notas, nombre_ley, directorio_notas)
     finally:
         if borrar_directorio_notas:
             shutil.rmtree(directorio_notas, ignore_errors=True)
+
+    outdir = Path(outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+    dest = outdir / f"ley-{cod_notas[0]}.md"
+    dest.write_text(texto + "\n", encoding="utf-8")
+    return dest
 
 
 def _normative_reconstruction(

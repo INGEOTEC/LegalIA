@@ -65,6 +65,7 @@ is overall.
 
 import difflib
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -149,6 +150,13 @@ def _similitud_por_ley(
 
 
 class TestConstruyeLeyContraElTextoVigenteReal(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.outdir = Path(self.tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
     def test_cada_ley_se_reconstruye_por_encima_del_umbral(self):
         promedios = []
         peores_leyes = []
@@ -156,7 +164,8 @@ class TestConstruyeLeyContraElTextoVigenteReal(unittest.TestCase):
         for abrev, info in HISTORIAL.items():
             with self.subTest(ley=abrev):
                 real = (FIXTURES / f"{abrev}.md").read_text(encoding="utf-8")
-                construida = normative_reconstruction(info["historial"], info["nombre"])
+                dest = normative_reconstruction(info["historial"], self.outdir, info["nombre"])
+                construida = dest.read_text(encoding="utf-8")
                 ratio, por_articulo = _similitud_por_ley(real, construida, info["nombre"], abrev)
                 promedios.append(ratio)
                 peores_articulos.extend(
