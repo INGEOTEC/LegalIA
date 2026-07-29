@@ -317,10 +317,12 @@ class Ley:
     no: int                 # Diputados' position in the index (1 = the Constitution)
     abrev: str              # LeyesBiblio abbreviation; `pagina_de_reformas` takes it
     nombre: str
+    pdf: str = ""           # current (vigente) text, if the row links one
 
 
 _INDICE = "index.htm"
 _ENLACE_REF = re.compile(r'href="ref/([A-Za-z0-9_]+)\.htm"', re.I)
+_ENLACE_VIGENTE = re.compile(r'href="(pdf/[A-Za-z0-9_]+\.pdf)"', re.I)
 _SOLO_DIGITOS = re.compile(r"^\d{1,3}$")
 
 
@@ -353,7 +355,13 @@ def lista_leyes(html: str) -> list[Ley]:
         # The cell holds the law's name and then its publication dates; the
         # name is the linked text.
         nombre = _texto(re.sub(r"</a>.*", "", celdas[1], flags=re.S))
-        leyes.append(Ley(no=int(no), abrev=abrev, nombre=nombre))
+        # The row's last cell links the law's current (vigente) text, named
+        # after its abbreviation more often than not but not always
+        # (`pdf/246.pdf` for `lec`) — so the file name is read as-is rather
+        # than assumed to match `abrev`.
+        vigente = _ENLACE_VIGENTE.search(fila)
+        pdf = _url_absoluta(vigente.group(1)) if vigente else ""
+        leyes.append(Ley(no=int(no), abrev=abrev, nombre=nombre, pdf=pdf))
     return leyes
 
 

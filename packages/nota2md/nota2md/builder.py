@@ -77,6 +77,29 @@ def fetch_nota(cod_nota: int) -> dict:
     )
 
 
+def fetch_day_notes(date: dt.date) -> dict:
+    """`date`'s notes index — title, codNota, codEdicion, pagina... one entry
+    per note, split into NotasMatutinas/NotasVespertinas/NotasExtraordinarias
+    — from SIDOF, falling back to the DOF website when SIDOF has nothing for
+    that day. Title-less stub entries (see dofjson.client.quita_notas_sin_titulo)
+    are dropped either way, so what is left is real, browsable notes.
+
+    SIDOF answers with every list empty both for a day with no edition
+    (weekends, holidays) and for a handful of days it has simply lost outright
+    — the two look identical on their own (see dofjson.archivo's module
+    docstring), so an empty SIDOF answer is always checked against the DOF
+    website before being taken to mean nothing was published.
+    """
+    notas = client.quita_notas_sin_titulo(client.get_notas(date))
+    if any(notas.get(clave) for clave in _EDICION_LISTAS.values()):
+        return notas
+
+    alterno = dofweb.get_notas(date)
+    if dofweb.hay_publicacion(alterno):
+        return client.quita_notas_sin_titulo(alterno)
+    return notas
+
+
 def build_nota_markdown(
     cod_nota: int,
     outdir: Path,
