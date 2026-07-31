@@ -6,14 +6,17 @@ available.
 
 ## `empaqueta_historial.py`
 
-Packs `packages/leyesmx/data/` into the four tarballs published as assets of
-the [`historial-legislativo`](https://github.com/INGEOTEC/LegalIA/releases/tag/historial-legislativo)
+Packs a data directory built by `leyesmx --ley todas|reglamentos|normas|tratados`
+into the four tarballs published as assets of the
+[`historial-legislativo`](https://github.com/INGEOTEC/LegalIA/releases/tag/historial-legislativo)
 release — `leyes.tgz`, `reglamentos.tgz`, `normas.tgz`, `tratados.tgz` — plus a
-`SHA256SUMS.txt`.
+`SHA256SUMS.txt`. That release is the data's only home; it is never committed
+to git, so `--datos` always names a scratch directory built just for the run
+(see `nota2md.utils.download_normative_history` to read the release back).
 
 ```bash
-./scripts/empaqueta_historial.py --outdir historial
-./scripts/empaqueta_historial.py --verificar historial   # which assets changed
+./scripts/empaqueta_historial.py --datos packages/leyesmx/data --outdir historial
+./scripts/empaqueta_historial.py --datos packages/leyesmx/data --verificar historial   # which assets changed
 ```
 
 The tarballs are **byte-reproducible**: gzip is stamped with mtime 0, members
@@ -29,12 +32,12 @@ Refills the days SIDOF lost into the published
 [`notas-archivo`](https://github.com/INGEOTEC/LegalIA/releases/tag/notas-archivo)
 assets, taking them from `www.dof.gob.mx`.
 
-SIDOF answers `200 OK` with no notes for a day it is missing — the same answer
-it gives for a Sunday — so those days were archived as empty. The script walks
-the published assets, finds every **weekday** stored with no notes, asks the
-DOF website whether the gazette actually came out, and rewrites only those
-days. Everything else is copied through untouched: same member names, order,
-mode, ownership and mtime.
+SIDOF answers `200 OK` with no legal provisions for a day it is missing — the
+same answer it gives for a Sunday — so those days were archived as empty. The
+script walks the published assets, finds every **weekday** stored with no
+legal provisions, asks the DOF website whether the gazette actually came out,
+and rewrites only those days. Everything else is copied through untouched:
+same member names, order, mode, ownership and mtime.
 
 ```bash
 ./scripts/reparar_notas_archivo.py --anios 1999,2006 --dry-run   # report only
@@ -56,11 +59,12 @@ always produce the same bytes and checksums stay comparable across runs.
 Two things are checked rather than assumed. A recovered day is accepted only
 when the page's printed date matches the one requested — the site has been
 seen answering with another day's page under concurrency. And after writing,
-the tarball is read back and the note counts re-verified.
+the tarball is read back and the legal provision counts re-verified.
 
-Recovered days carry `"fuente": "dof.gob.mx"`, on the day and on each note;
-SIDOF's days carry no marker. They also carry `notasIncompletas`: the DOF
-website's index does not list convocatorias (`CV`, `VG`) or avisos (`AV`).
+Recovered days carry `"fuente": "dof.gob.mx"`, on the day and on each legal
+provision; SIDOF's days carry no marker. They also carry `notasIncompletas`:
+the DOF website's index does not list convocatorias (`CV`, `VG`) or avisos
+(`AV`).
 
 ### Publishing
 
@@ -71,6 +75,4 @@ gh release upload notas-archivo reparados/*.tgz --clobber
 ```
 
 `--clobber` replaces each asset in place, so the release never sits with a
-missing file the way delete-then-upload would. The
-`reparar notas-archivo` workflow does both steps and then downloads each
-asset back to compare it byte for byte against what was uploaded.
+missing file the way delete-then-upload would.
