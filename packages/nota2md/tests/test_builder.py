@@ -1,3 +1,4 @@
+import datetime as dt
 import tempfile
 import unittest
 from pathlib import Path
@@ -5,7 +6,7 @@ from unittest.mock import patch
 
 from dofjson import dofweb
 
-from nota2md.builder import build_nota_markdown, fetch_nota, titulo_siguiente
+from nota2md.builder import fetch_day_notes, fetch_nota, legal_provisions, titulo_siguiente
 
 HTML_NOTA = {
     "codNota": 5793655,
@@ -80,7 +81,74 @@ class TestFetchNota(unittest.TestCase):
             fetch_nota(999999999)
 
 
-class TestBuildNotaMarkdown(unittest.TestCase):
+class TestFetchDayNotes(unittest.TestCase):
+    FECHA = dt.date(2026, 7, 15)
+
+    @patch("nota2md.builder.dofweb.get_notas")
+    @patch("nota2md.builder.client.get_notas")
+    def test_prefers_sidof_when_it_has_notes(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {
+            "NotasMatutinas": [{"codNota": 1, "titulo": "Nota A"}],
+            "NotasVespertinas": [],
+            "NotasExtraordinarias": [],
+        }
+
+        notas = fetch_day_notes(self.FECHA)
+
+        self.assertEqual(notas["NotasMatutinas"], [{"codNota": 1, "titulo": "Nota A"}])
+        mock_web.assert_not_called()
+
+    @patch("nota2md.builder.dofweb.get_notas")
+    @patch("nota2md.builder.client.get_notas")
+    def test_drops_titleless_stub_entries(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {
+            "NotasMatutinas": [
+                {"codNota": 1, "titulo": "Nota A"},
+                {"codNota": 2},  # title-less stub/twin
+            ],
+            "NotasVespertinas": [],
+            "NotasExtraordinarias": [],
+        }
+
+        notas = fetch_day_notes(self.FECHA)
+
+        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [1])
+
+    @patch("nota2md.builder.dofweb.get_notas")
+    @patch("nota2md.builder.client.get_notas")
+    def test_falls_back_to_the_website_when_sidof_has_nothing(self, mock_sidof, mock_web):
+        # SIDOF answers every list empty, not an error, for a day it lacks.
+        mock_sidof.return_value = {
+            "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }
+        mock_web.return_value = {
+            "NotasMatutinas": [{"codNota": 3, "titulo": "Nota recuperada"}],
+            "NotasVespertinas": [],
+            "NotasExtraordinarias": [],
+            "fuente": dofweb.FUENTE,
+        }
+
+        notas = fetch_day_notes(self.FECHA)
+
+        mock_web.assert_called_once_with(self.FECHA)
+        self.assertEqual(notas["fuente"], dofweb.FUENTE)
+        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [3])
+
+    @patch("nota2md.builder.dofweb.get_notas")
+    @patch("nota2md.builder.client.get_notas")
+    def test_returns_empty_when_neither_source_published_that_day(self, mock_sidof, mock_web):
+        vacio = {"NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": []}
+        mock_sidof.return_value = dict(vacio)
+        mock_web.return_value = {**vacio, "edicionesSinIndice": []}
+
+        notas = fetch_day_notes(self.FECHA)
+
+        self.assertEqual(notas["NotasMatutinas"], [])
+        self.assertEqual(notas["NotasVespertinas"], [])
+        self.assertEqual(notas["NotasExtraordinarias"], [])
+
+
+class TestLegalProvisions(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.TemporaryDirectory()
         self.outdir = Path(self.tmpdir.name)
@@ -90,11 +158,11 @@ class TestBuildNotaMarkdown(unittest.TestCase):
 
     def test_rejects_unknown_source(self):
         with self.assertRaises(ValueError):
-            build_nota_markdown(1, self.outdir, source="xml", nota=HTML_NOTA)
+            legal_provisions(1, self.outdir, source="xml", nota=HTML_NOTA)
 
     @patch("nota2md.builder.client.download_nota_imagenes")
     def test_html_path_converts_cadena_contenido(self, mock_download):
-        dest = build_nota_markdown(5793655, self.outdir, source="auto", nota=HTML_NOTA)
+        dest = legal_provisions(5793655, self.outdir, source="auto", nota=HTML_NOTA)
 
         self.assertEqual(dest, self.outdir / "nota-5793655.md")
         text = dest.read_text(encoding="utf-8")
@@ -105,7 +173,7 @@ class TestBuildNotaMarkdown(unittest.TestCase):
     def test_html_source_without_content_raises(self):
         nota = {"codNota": 1, "codEdicion": "MAT", "cadenaContenido": ""}
         with self.assertRaises(ValueError):
-            build_nota_markdown(1, self.outdir, source="html", nota=nota)
+            legal_provisions(1, self.outdir, source="html", nota=nota)
 
     @patch("dof2md.converter.convert_images_to_markdown")
     @patch("nota2md.builder.client.download_nota_imagenes")
@@ -137,7 +205,7 @@ class TestBuildNotaMarkdown(unittest.TestCase):
 
         mock_convert.side_effect = fake_ocr
 
-        dest = build_nota_markdown(
+        dest = legal_provisions(
             200, self.outdir, source="image", nota=image_only, notas_del_dia=notas
         )
 
@@ -177,7 +245,7 @@ class TestBuildNotaMarkdown(unittest.TestCase):
 
         mock_convert.side_effect = fake_ocr
 
-        dest = build_nota_markdown(
+        dest = legal_provisions(
             300, self.outdir, source="pdf", nota=nota, notas_del_dia=notas
         )
 
@@ -194,7 +262,7 @@ class TestBuildNotaMarkdown(unittest.TestCase):
         mock_sidof.return_value = {"Nota": []}
         mock_web.return_value = {"Nota": TestFetchNota.WEB_NOTA}
 
-        dest = build_nota_markdown(4997808, self.outdir)
+        dest = legal_provisions(4997808, self.outdir)
 
         self.assertEqual(dest, self.outdir / "nota-4997808.md")
         self.assertIn("Cuerpo del decreto.", dest.read_text(encoding="utf-8"))
@@ -205,7 +273,7 @@ class TestBuildNotaMarkdown(unittest.TestCase):
         for source in ("image", "pdf"):
             with self.subTest(source=source):
                 with self.assertRaises(ValueError) as ctx:
-                    build_nota_markdown(
+                    legal_provisions(
                         4997808, self.outdir, source=source, nota=TestFetchNota.WEB_NOTA
                     )
                 self.assertIn(dofweb.FUENTE, str(ctx.exception))
@@ -222,7 +290,7 @@ class TestBuildNotaMarkdown(unittest.TestCase):
             "full page text", encoding="utf-8"
         )
 
-        build_nota_markdown(
+        legal_provisions(
             200, self.outdir, source="image", nota=image_only,
             notas_del_dia={"NotasMatutinas": [{"codNota": 200, "titulo": "T"}]},
             keep_pages=True,
