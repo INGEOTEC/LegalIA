@@ -149,6 +149,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="nav-link" href="../pages/references.html"> 
 <span class="menu-text">References</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/INGEOTEC/LegalIA/issues/views/8351"> 
+<span class="menu-text">Research</span></a>
+  </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
@@ -255,7 +259,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="the-release-today" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="the-release-today"><span class="header-section-number">3</span> The release today</h2>
 <p>Rather than describe the current contents in prose — which would be stale the day after this page is rendered — the cell below asks GitHub directly:</p>
-<div id="cell-9" class="cell" data-execution_count="3">
+<div id="cell-8" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
@@ -293,7 +297,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>115 assets, spanning 1917–2026-06: 109 closed years, 6 months of the year under way (59 MB total).</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="8">
+<div class="cell-output cell-output-display" data-execution_count="2">
 <div>
 
 
@@ -392,20 +396,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Beyond browsing one release asset at a time, <code>dofjson</code> ships a <code>--titulos</code> mode that builds a compact <code>codNota</code> + <code>titulo</code> + <code>fecha</code> dataset out of every note ever published: it downloads each <code>notas-archivo</code> asset straight into memory and reads its daily JSON indexes without ever writing them to disk, keeping only those three fields from every note (<code>titulo</code> is Spanish for “title”, <code>fecha</code> for “date”) — <code>codNota</code> to fetch the note’s full content later (<code>dofjson.client.get_nota</code>), <code>titulo</code> for exploratory analysis of the titles themselves with other techniques (in the spirit of <a href="../pages/titles.html">DOF Titles</a>), and <code>fecha</code> to place each title in time. The result is a single gzip-compressed JSONL file — the 1.2 million-plus notes in the table above fit in a few tens of MB, small enough to move to a Colab GPU runtime for experiments.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dofjson</span> <span class="at">--titulos</span>                    <span class="co"># -&gt; titulos/titulos.jsonl.gz</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>or directly from Python, with <code>dofjson.titulos.download_titulos</code>:</p>
-<div id="cell-15" class="cell" data-execution_count="4">
+<div id="cell-14" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson.titulos <span class="im">import</span> download_titulos</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>titulos <span class="op">=</span> Path(<span class="st">"titulos.jsonl.gz"</span>)</span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> titulos.exists():</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    download_titulos(titulos, log<span class="op">=</span> <span class="kw">lambda</span> x: <span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    download_titulos(titulos, log<span class="op">=</span><span class="kw">lambda</span> x: <span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In the following line, the first title is retrieved. These titles are not sorted globally by the <code>codNota</code> field; the ordering applies only at the day level.</p>
-<div id="cell-17" class="cell" data-execution_count="5">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> microtc.utils <span class="im">import</span> tweet_iterator</span>
+<div id="cell-16" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson.titulos <span class="im">import</span> lee_titulos</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="bu">next</span>(tweet_iterator(<span class="bu">str</span>(titulos)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="bu">next</span>(lee_titulos(titulos))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>{'codNota': 4434476,
  'titulo': 'CIRCULAR nº. 164, relativa a los asuntos que se traten por telégrafo con esta Secretaría',
  'fecha': '23-03-1917',
