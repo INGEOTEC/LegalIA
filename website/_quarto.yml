@@ -29,6 +29,8 @@ website:
         text: Tools
       - href: pages/references.qmd
         text: References
+      - href: https://github.com/INGEOTEC/LegalIA/milestones
+        text: Roadmap
     right:
       - icon: github
         href: https://github.com/INGEOTEC/LegalIA
