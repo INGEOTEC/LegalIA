@@ -1,7 +1,8 @@
-Historial de cambios de la legislación federal mexicana, ligado a las notas del
-Diario Oficial de la Federación que lo publicaron. Cada entrada es un `codNota`:
-el título, la fecha y el organismo emisor se recuperan uniéndolo contra el
-[archivo de notas del DOF](https://github.com/INGEOTEC/LegalIA/releases/tag/notas-archivo).
+Historial de cambios de la legislación federal mexicana, ligado a las legal
+provisions del Diario Oficial de la Federación que lo publicaron. Cada entrada
+es un `codNota`: el título, la fecha y el organismo emisor se recuperan
+uniéndolo contra el
+[archivo de legal provisions del DOF](https://github.com/INGEOTEC/LegalIA/releases/tag/notas-archivo).
 
 | Asset | Contenido |
 |---|---|

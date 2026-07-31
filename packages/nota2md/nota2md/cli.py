@@ -2,7 +2,7 @@ import argparse
 import json
 from pathlib import Path
 
-from nota2md.builder import build_nota_markdown
+from nota2md.builder import legal_provisions
 
 
 def parse_args(argv=None):
@@ -42,7 +42,7 @@ def main(argv=None):
     if args.notas:
         notas_del_dia = json.loads(Path(args.notas).read_text(encoding="utf-8"))
 
-    dest = build_nota_markdown(
+    dest = legal_provisions(
         args.cod_nota,
         Path(args.outdir),
         source=args.source,
