@@ -290,6 +290,29 @@ class TestListaLeyes(unittest.TestCase):
         self.assertEqual([(l.no, l.abrev) for l in leyes], [(1, "cpeum"), (17, "lan")])
         self.assertEqual(leyes[1].nombre, "LEY de Aguas Nacionales")
 
+    def test_lee_el_pdf_del_texto_vigente(self):
+        html = (
+            "<table>"
+            '<tr><td>001</td><td><a href="ref/cpeum.htm">CONSTITUCIÓN Política</a>'
+            "<p>DOF 05/02/1917</p></td><td>DOF 11/12/2025</td>"
+            '<td><a target="_blank" href="pdf/CPEUM.pdf">pdf</a>'
+            '<a href="doc/CPEUM.doc">doc</a></td></tr>'
+            '<tr><td>048</td><td><a href="ref/lec.htm">LEY de Energía para el Campo</a>'
+            "<p>DOF 30/12/2002</p></td><td>DOF 28/12/2012</td>"
+            '<td><a target="_blank" href="pdf/246.pdf">pdf</a>'
+            '<a href="doc/246.doc">doc</a></td></tr>'
+            "</table>"
+        )
+
+        leyes = diputados.lista_leyes(html)
+
+        self.assertEqual(
+            leyes[0].pdf, "https://www.diputados.gob.mx/LeyesBiblio/pdf/CPEUM.pdf"
+        )
+        self.assertEqual(
+            leyes[1].pdf, "https://www.diputados.gob.mx/LeyesBiblio/pdf/246.pdf"
+        )
+
 
 def fila_reglamento(no, nombre, entradas, vigente="Reg_X.pdf"):
     """Una fila de `regla.htm`: el historial va en línea, un <a> por entrada,
