@@ -227,9 +227,9 @@ Or use the function directly:
 
 ```python
 from pathlib import Path
-from dofjson.titulos import download_titulos
+from dofjson.titulos import download_legal_provisions_titles
 
-download_titulos(Path("titulos.jsonl.gz"))
+download_legal_provisions_titles(Path("titulos.jsonl.gz"))
 ```
 
 ## Development

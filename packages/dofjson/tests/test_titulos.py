@@ -242,7 +242,7 @@ class TestDownloadTitulos(unittest.TestCase):
         ]
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        resultado = titulos.download_titulos(dest, log=lambda *_: None)
+        resultado = titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
 
         self.assertEqual(resultado, dest)
         with gzip.open(dest, "rt", encoding="utf-8") as f:
@@ -277,7 +277,7 @@ class TestDownloadTitulos(unittest.TestCase):
         ]
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_titulos(dest, log=lambda *_: None)
+        titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
 
         with gzip.open(dest, "rt", encoding="utf-8") as f:
             registros = [json.loads(l) for l in f]
@@ -299,7 +299,7 @@ class TestDownloadTitulos(unittest.TestCase):
         mock_get.return_value = Mock(content=tgz, raise_for_status=Mock())
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_titulos(dest, log=lambda *_: None)
+        titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
 
         archivos = sorted(p.name for p in Path(self.tmpdir.name).iterdir())
         self.assertEqual(archivos, ["organigrama.json", "titulos.jsonl.gz"])
@@ -346,7 +346,7 @@ class TestDownloadTitulos(unittest.TestCase):
         ]
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_titulos(dest, log=lambda *_: None)
+        titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
 
         organigrama_dest = Path(self.tmpdir.name) / "organigrama.json"
         self.assertTrue(organigrama_dest.exists())
@@ -375,7 +375,7 @@ class TestDownloadTitulos(unittest.TestCase):
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
         organigrama_dest = Path(self.tmpdir.name) / "otro" / "mapa.json"
-        titulos.download_titulos(dest, organigrama_dest, log=lambda *_: None)
+        titulos.download_legal_provisions_titles(dest, organigrama_dest, log=lambda *_: None)
 
         self.assertTrue(organigrama_dest.exists())
         with open(organigrama_dest, encoding="utf-8") as f:
@@ -385,7 +385,7 @@ class TestDownloadTitulos(unittest.TestCase):
 
 
 class TestLeeTitulos(unittest.TestCase):
-    """El lector de lo que escribe download_titulos. Antes leyesmx usaba
+    """El lector de lo que escribe download_legal_provisions_titles. Antes leyesmx usaba
     microtc.utils.tweet_iterator para esto: lee el mismo formato, pero importa
     numpy sin declararlo, así que una instalación sin numpy falla en
     `import microtc` y no en la llamada."""
@@ -401,7 +401,7 @@ class TestLeeTitulos(unittest.TestCase):
         with gzip.open(self.dest, "wt", encoding="utf-8") as f:
             f.write(lineas)
 
-    def test_lee_lo_que_download_titulos_escribe(self):
+    def test_lee_lo_que_download_legal_provisions_titles_escribe(self):
         self.escribe('{"codNota": 1, "titulo": "DECRETO"}\n'
                      '{"codNota": 2, "titulo": "ACUERDO"}\n')
 
@@ -427,7 +427,7 @@ class TestLeeTitulos(unittest.TestCase):
 
         self.assertEqual(next(titulos.lee_titulos(self.dest)), {"codNota": 1})
 
-    def test_ida_y_vuelta_con_download_titulos(self):
+    def test_ida_y_vuelta_con_download_legal_provisions_titles(self):
         contenido = hacer_tgz({"1980/02011980-notas.json": dia(
             {"codNota": 7, "titulo": "DECRETO", "fecha": "02-01-1980",
              "codOrgaUno": "PE"})})
@@ -435,7 +435,7 @@ class TestLeeTitulos(unittest.TestCase):
                    return_value=[{"name": "notas-1980.tgz", "url": "https://x/a.tgz"}]), \
              patch("dofjson.titulos.requests.get",
                    return_value=Mock(content=contenido, raise_for_status=Mock())):
-            titulos.download_titulos(self.dest, log=lambda *_: None)
+            titulos.download_legal_provisions_titles(self.dest, log=lambda *_: None)
 
         self.assertEqual(list(titulos.lee_titulos(self.dest)),
                          [{"codNota": 7, "titulo": "DECRETO", "fecha": "02-01-1980",
