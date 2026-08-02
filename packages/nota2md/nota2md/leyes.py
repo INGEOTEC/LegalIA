@@ -41,7 +41,7 @@ from pathlib import Path
 
 from nota2md.builder import fetch_nota, legal_provisions
 
-# --- normative_reconstruction: replay the reforms on top of the original text ---------
+# --- reconstruct_legal_provisions: replay the reforms on top of the original text ---------
 
 # Canonical (capitalized, accented) spelling of each article-number suffix,
 # keyed by every lowercase/unaccented way a note might spell it.
@@ -465,7 +465,7 @@ def _markdown_de_nota(cod_nota: int, outdir: Path) -> str:
     nota = fetch_nota(cod_nota)
     if not nota.get("cadenaContenido"):
         raise ValueError(
-            f"la nota {cod_nota} no tiene cadenaContenido (HTML); normative_reconstruction "
+            f"la nota {cod_nota} no tiene cadenaContenido (HTML); reconstruct_legal_provisions "
             "sólo soporta notas con texto digital"
         )
     md_path = legal_provisions(cod_nota, outdir, source="html", nota=nota)
@@ -473,7 +473,7 @@ def _markdown_de_nota(cod_nota: int, outdir: Path) -> str:
 
 
 class LeyNoReconstruible(ValueError):
-    """normative_reconstruction() cannot build this law from the notes it was given.
+    """reconstruct_legal_provisions() cannot build this law from the notes it was given.
 
     Raised when the original publication yields no recognized article at
     all — building reforms on top of that would only manufacture a
@@ -502,7 +502,7 @@ def _diagnostico_original_vacia(markdown: str) -> str:
     )
 
 
-def normative_reconstruction(
+def reconstruct_legal_provisions(
     cod_notas: list[int],
     outdir: str | Path,
     nombre_ley: str | None = None,
@@ -539,17 +539,17 @@ def normative_reconstruction(
 
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
-    texto = _normative_reconstruction(cod_notas, nombre_ley, outdir)
+    texto = _reconstruct_legal_provisions(cod_notas, nombre_ley, outdir)
 
     dest = outdir / f"ley-{cod_notas[0]}.md"
     dest.write_text(texto + "\n", encoding="utf-8")
     return dest
 
 
-def _normative_reconstruction(
+def _reconstruct_legal_provisions(
     cod_notas: list[int], nombre_ley: str | None, outdir: Path
 ) -> str:
-    """`normative_reconstruction`'s own body, once `outdir` is resolved and
+    """`reconstruct_legal_provisions`'s own body, once `outdir` is resolved and
     created — split out only so the public function's shape mirrors
     legal_provisions()'s (build the text, then write it)."""
     md_original = _markdown_de_nota(cod_notas[0], outdir)
