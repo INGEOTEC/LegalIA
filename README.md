@@ -38,11 +38,10 @@ pip install dofjson nota2md
 import datetime as dt
 from pathlib import Path
 
-from dofjson import client
-from nota2md import legal_provisions
+from nota2md import fetch_daily_legal_provisions, legal_provisions
 
 # Every legal provision published on a given day
-notas = client.quita_notas_sin_titulo(client.get_notas(dt.date(2026, 7, 15)))
+notas = fetch_daily_legal_provisions(dt.date(2026, 7, 15))
 cod_nota = notas["NotasMatutinas"][0]["codNota"]
 
 # The legal provision's Markdown, from its official HTML
