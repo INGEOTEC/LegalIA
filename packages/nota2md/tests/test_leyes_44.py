@@ -1,6 +1,6 @@
-"""Check normative_reconstruction() against the 43 laws it was designed against.
+"""Check reconstruct_legal_provisions() against the 43 laws it was designed against.
 
-These are integration tests, not unit tests: normative_reconstruction() fetches each
+These are integration tests, not unit tests: reconstruct_legal_provisions() fetches each
 DOF note over the network (SIDOF, with the dofweb fallback), so this module
 makes real HTTP calls and is slower than the rest of the suite. The 43 laws
 are every federal law with exactly 2 or 3 reforms, all published after
@@ -8,12 +8,12 @@ are every federal law with exactly 2 or 3 reforms, all published after
 enough that a handful of reforms plausibly reconstructs the whole thing.
 
 fixtures/leyes/<abrev>.md is the ground truth: Diputados' own "texto vigente"
-PDF for the law, cleaned up by limpia_texto_ley(). normative_reconstruction() never reads
+PDF for the law, cleaned up by limpia_texto_ley(). reconstruct_legal_provisions() never reads
 it or anything derived from it — the comparison is between two independently
 sourced texts.
 
 Similarity is measured article by article, not over the whole document:
-`_segmenta_original()` (the same code normative_reconstruction() itself uses
+`_segmenta_original()` (the same code reconstruct_legal_provisions() itself uses
 to split a note into one entry per article) splits both the real and the
 constructed text into their article dictionaries, and the law's score is the
 average of every article's own ratio. Comparing the whole document in one
@@ -25,7 +25,7 @@ It is also far cheaper: difflib's matching-block search scales worse than
 linearly with input size, so diffing one document of length N costs more
 than diffing N articles of length 1 each summed together.
 
-Similarity, not equality, is what is asserted. normative_reconstruction() is a rule-based
+Similarity, not equality, is what is asserted. reconstruct_legal_provisions() is a rule-based
 reconstruction (see nota2md.leyes' module docstring).
 
 lspcapf used to be this suite's one unexplained shortfall: it recognizes
@@ -46,7 +46,7 @@ nota2md.leyes) now fills those placeholders back in from the article's own
 previous text instead, which is why all four clear the general floor on
 their own.
 
-lgpdppso and lopjf are the opposite problem: not normative_reconstruction()
+lgpdppso and lopjf are the opposite problem: not reconstruct_legal_provisions()
 falling short, but their own "texto vigente" PDF fixtures losing the blank
 line between articles across long stretches of text extraction, so
 _segmenta_original reads a run of a dozen-plus articles as the single one
@@ -72,7 +72,7 @@ from pathlib import Path
 from nota2md.leyes import (
     _clave_orden,
     _segmenta_original,
-    normative_reconstruction,
+    reconstruct_legal_provisions,
     normaliza_para_comparar,
 )
 
@@ -98,7 +98,7 @@ UMBRAL_ARTICULO_A_REPORTAR = 0.3
 # articles across long stretches of text extraction, so _segmenta_original
 # reads a run of a dozen-plus articles as the single one that happens to
 # open it — comparing article by article then scores near zero on both,
-# not because normative_reconstruction did anything wrong (their whole-document
+# not because reconstruct_legal_provisions did anything wrong (their whole-document
 # ratio is ~0.93-0.97) but because the ground truth itself won't segment.
 # Compared whole instead, like every law was before this module's article-
 # by-article rewrite.
@@ -116,13 +116,13 @@ def _similitud_por_ley(
 ) -> tuple[float, list[tuple[str, float]]]:
     """The law's score — the average of every article's own similitud(),
     comparing `real` against `construida` article by article via
-    `_segmenta_original()` (the same split normative_reconstruction() itself
+    `_segmenta_original()` (the same split reconstruct_legal_provisions() itself
     builds on) instead of diffing the two documents whole — and each
     article's ratio, worst first, so a low score says which articles to go
     look at instead of just how low it is.
 
     `nombre_ley` matters here too, and for the same reason it matters to
-    normative_reconstruction(): a handful of these fixtures' own "texto
+    reconstruct_legal_provisions(): a handful of these fixtures' own "texto
     vigente" PDFs (e.g. lfaar's) still carry the enacting decree's own
     "Artículo Primero.-/Segundo.-" front matter, because that decree
     expedited more than one law at once — left unscoped, `_segmenta_original`
@@ -150,12 +150,12 @@ def _similitud_por_ley(
 
 
 class TestConstruyeLeyContraElTextoVigenteReal(unittest.TestCase):
-    # A fixed path, not a fresh temp dir per run — normative_reconstruction()
+    # A fixed path, not a fresh temp dir per run — reconstruct_legal_provisions()
     # reads a note it already fetched here straight off disk instead of
     # refetching it, so a rerun of this slow, real-network suite only pays
     # for the notes it does not already have. Left in place on purpose: it
     # is what makes a second run fast, not a leak to clean up.
-    OUTDIR = Path(tempfile.gettempdir()) / "nota2md-normative-reconstruction"
+    OUTDIR = Path(tempfile.gettempdir()) / "nota2md-reconstruct-legal-provisions"
 
     def setUp(self):
         self.outdir = self.OUTDIR
@@ -168,7 +168,7 @@ class TestConstruyeLeyContraElTextoVigenteReal(unittest.TestCase):
         for abrev, info in HISTORIAL.items():
             with self.subTest(ley=abrev):
                 real = (FIXTURES / f"{abrev}.md").read_text(encoding="utf-8")
-                dest = normative_reconstruction(info["historial"], self.outdir, info["nombre"])
+                dest = reconstruct_legal_provisions(info["historial"], self.outdir, info["nombre"])
                 construida = dest.read_text(encoding="utf-8")
                 ratio, por_articulo = _similitud_por_ley(real, construida, info["nombre"], abrev)
                 promedios.append(ratio)
