@@ -29,7 +29,7 @@ packages/dof2md/output/
 # Local output from nota2md / dofjson / ad-hoc runs (generated Markdown, PDFs, images)
 /output/
 
-# Titles dataset downloaded by dofjson.titulos.download_titulos when rendering
+# Titles dataset downloaded by dofjson.titulos.download_legal_provisions_titles when rendering
 # the DOF Titles page (local only, never committed)
 /website/explorations/titulos.jsonl.gz
 /website/explorations/organigrama.json

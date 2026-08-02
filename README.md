@@ -10,7 +10,7 @@ since 1917.
 
 | Package | Description |
 |---|---|
-| [dofjson](packages/dofjson) ([PyPI](https://pypi.org/project/dofjson/)) | Client for SIDOF's JSON open-data service: which legal provisions were published on a given day, and the full detail — including HTML content, when it exists — of any one of them. Also builds a compact `codNota` + `titulo` + `fecha` dataset of every legal provision ever published (`download_titulos`). |
+| [dofjson](packages/dofjson) ([PyPI](https://pypi.org/project/dofjson/)) | Client for SIDOF's JSON open-data service: which legal provisions were published on a given day, and the full detail — including HTML content, when it exists — of any one of them. Also builds a compact `codNota` + `titulo` + `fecha` dataset of every legal provision ever published (`download_legal_provisions_titles`). |
 | [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF legal provision (`legal_provisions`), reconstructs a law's current text from nothing but its legal provisions (`reconstruct_legal_provisions`), and reads back a law's reform history (`download_legal_provisions_provenance_ids`). |
 | [dof2md](packages/dof2md) ([PyPI](https://pypi.org/project/dof2md/)) | Downloads a complete edition of the DOF as PDF and converts it — OCR included — to Markdown; the heavy artillery `nota2md` borrows for legal provisions that predate the HTML era. |
 
@@ -70,17 +70,17 @@ cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
 dest = reconstruct_legal_provisions(cpeum["historial"], "output", cpeum["nombre"])
 ```
 
-### `download_titulos` — every legal provision ever published, as titles
+### `download_legal_provisions_titles` — every legal provision ever published, as titles
 
-`dofjson.titulos.download_titulos` builds a compact `codNota` + `titulo` +
+`dofjson.titulos.download_legal_provisions_titles` builds a compact `codNota` + `titulo` +
 `fecha` dataset covering every legal provision published since 1917 (~1.2
 million rows, a few tens of MB compressed):
 
 ```python
 from pathlib import Path
-from dofjson.titulos import download_titulos
+from dofjson.titulos import download_legal_provisions_titles
 
-download_titulos(Path("titulos.jsonl.gz"))
+download_legal_provisions_titles(Path("titulos.jsonl.gz"))
 ```
 
 ```bash

@@ -86,7 +86,7 @@ plain list of `codNota`:
 ```
 
 Only the codNota is stored. A legal provision's title, date and issuing
-branch already live in the dataset `dofjson.titulos.download_titulos`
+branch already live in the dataset `dofjson.titulos.download_legal_provisions_titles`
 builds, and come back by joining on codNota — keeping a second copy here
 would only let the two drift apart:
 

@@ -13,7 +13,7 @@ year), `codOrgaUno` to group notes by issuing branch without carrying its
 full name on every row. The result is a single small JSONL file, light
 enough to ship to a Colab GPU runtime for experiments.
 
-Alongside it, `download_titulos` also writes a small JSON map from
+Alongside it, `download_legal_provisions_titles` also writes a small JSON map from
 `codOrgaUno` to `nombreCodOrgaUno` (its human-readable name, e.g. "PODER
 EJECUTIVO") — the pairing lives once per code, not once per note.
 
@@ -43,7 +43,7 @@ FUENTE_PREDETERMINADA = "sidof"
 
 
 def lee_titulos(origen: Path):
-    """Yield the records of a dataset `download_titulos` wrote.
+    """Yield the records of a dataset `download_legal_provisions_titles` wrote.
 
     The counterpart of writing it, kept here so a consumer does not have to
     know the file is gzipped JSONL — or reach for a text-mining library to find
@@ -108,7 +108,7 @@ def _titulos_de_tgz(contenido: bytes, organigrama: dict | None = None):
                         yield titulo
 
 
-def download_titulos(
+def download_legal_provisions_titles(
     dest: Path, organigrama_dest: Path | None = None, timeout: int = 60, log=print
 ) -> Path:
     """Build a codNota+titulo+fecha+codOrgaUno dataset (gzipped JSONL) out of
