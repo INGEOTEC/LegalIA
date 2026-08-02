@@ -4,7 +4,7 @@ Markdown — a born-digital PDF, not a scan, so plain text extraction is enough
 and no OCR is needed.
 
 This is the *real* current text of a law. It exists here only as ground
-truth to check `normative_reconstruction()` (see nota2md.leyes) against —
+truth to check `reconstruct_legal_provisions()` (see nota2md.leyes) against —
 nothing in this module feeds into that function's own output, and it never
 reads this module's output either; the two are meant to be compared, not
 share a source.
