@@ -3,7 +3,7 @@
 
 `leyesmx --ley todas|reglamentos|normas|tratados` builds 460-odd JSON files.
 They live only in the `historial-legislativo` release, never in git (see
-`nota2md.utils.download_normative_history` for reading them back), so this script
+`nota2md.utils.download_legal_provisions_provenance_ids` for reading them back), so this script
 takes a data directory built just for the run — `--datos` — rather than
 assuming one already checked out. Shipping them as four tarballs — one per
 kind of instrument — makes them downloadable without cloning the repository,
