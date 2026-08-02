@@ -8,18 +8,18 @@ Oficial de la Federación) and the federal laws it publishes:
 |---|---|---|
 | [`legal_provisions`](#legal_provisions--a-single-dof-legal-provision-as-markdown) | a legal provision's `codNota` | its Markdown, written to `outdir/nota-{codNota}.md` |
 | [`normative_reconstruction`](#normative_reconstruction--a-laws-current-text-from-its-dof-legal-provisions) | a law's reform history (`codNota` list) | its current text, written to `outdir/ley-{codNota}.md` |
-| [`download_normative_history`](#download_normative_history--a-laws-reform-history) | a collection name (`"leyes"`, `"reglamentos"`, `"normas"`, `"tratados"`) | every instrument's reform history, in memory |
+| [`download_legal_provisions_provenance_ids`](#download_legal_provisions_provenance_ids--a-laws-reform-history) | a collection name (`"leyes"`, `"reglamentos"`, `"normas"`, `"tratados"`) | every instrument's reform history, in memory |
 
-They compose: `download_normative_history` gets you the `codNota` list
+They compose: `download_legal_provisions_provenance_ids` gets you the `codNota` list
 `normative_reconstruction` needs, and `normative_reconstruction` gets you a
 law's current text the same way `legal_provisions` gets you a single legal
 provision's — built from nothing but the DOF's own legal provisions, one
 Markdown file at a time.
 
 ```python
-from nota2md import download_normative_history, legal_provisions, normative_reconstruction
+from nota2md import download_legal_provisions_provenance_ids, legal_provisions, normative_reconstruction
 
-leyes = download_normative_history("leyes")
+leyes = download_legal_provisions_provenance_ids("leyes")
 cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
 
 dest = normative_reconstruction(cpeum["historial"], "output", cpeum["nombre"])
@@ -131,7 +131,7 @@ real federal laws.
 from nota2md import normative_reconstruction
 
 # cpeum's own historial: [5592105, 5730586, ...] — oldest first, index 0 the
-# original publication (see download_normative_history below for where a
+# original publication (see download_legal_provisions_provenance_ids below for where a
 # law's own historial list comes from).
 dest = normative_reconstruction(
     [5592105, 5730586], "output", "LEY de Amnistía",
@@ -144,7 +144,7 @@ same `outdir`, as `nota-{codNota}.md` — a legal provision already there from
 an earlier call (this law's own previous run, or another law's sharing the
 same `outdir`) is read back from disk instead of fetched again.
 
-The third argument, `nombre_ley` (as `download_normative_history` names it,
+The third argument, `nombre_ley` (as `download_legal_provisions_provenance_ids` names it,
 e.g. `"LEY de Amnistía"`), scopes every legal provision to the one instrument
 among the several a single decree may touch — pass it whenever a legal
 provision is shared with another law's history, which `leyesmx`'s data does
@@ -152,7 +152,7 @@ not mark on its own. Left out, a legal provision is assumed to concern only
 this law, which holds for most of them but silently mixes in another law's
 articles for the rest.
 
-## `download_normative_history` — a law's reform history
+## `download_legal_provisions_provenance_ids` — a law's reform history
 
 Reads a Mexican legislative-history collection — laws, regulations, Normas
 Oficiales Mexicanas, international treaties — back from the
@@ -160,9 +160,9 @@ Oficiales Mexicanas, international treaties — back from the
 release that [`leyesmx`](../leyesmx) publishes:
 
 ```python
-from nota2md import download_normative_history
+from nota2md import download_legal_provisions_provenance_ids
 
-leyes = download_normative_history("leyes")   # or "reglamentos", "normas", "tratados"
+leyes = download_legal_provisions_provenance_ids("leyes")   # or "reglamentos", "normas", "tratados"
 cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
 print(cpeum["nombre"], cpeum["reformas"], len(cpeum["historial"]))
 ```
@@ -177,7 +177,7 @@ what `normative_reconstruction` expects as its own first argument.
 
 ```bash
 pip install nota2md          # legal_provisions' HTML path, plus normative_reconstruction
-                              # and download_normative_history
+                              # and download_legal_provisions_provenance_ids
 pip install nota2md[ocr]     # also pulls in dof2md, for legal_provisions' image/PDF OCR paths
 ```
 

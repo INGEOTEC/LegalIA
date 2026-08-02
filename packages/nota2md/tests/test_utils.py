@@ -41,7 +41,7 @@ class TestDownloadNormativeHistory(unittest.TestCase):
     def test_rejects_an_unknown_coleccion_without_any_network_call(self):
         with patch("nota2md.utils.requests.get") as mock_get:
             with self.assertRaises(ValueError):
-                utils.download_normative_history("reformas")
+                utils.download_legal_provisions_provenance_ids("reformas")
             mock_get.assert_not_called()
 
     @patch("nota2md.utils.requests.get")
@@ -50,7 +50,7 @@ class TestDownloadNormativeHistory(unittest.TestCase):
         mock_listar_assets.return_value = {}
 
         with self.assertRaises(KeyError):
-            utils.download_normative_history("leyes")
+            utils.download_legal_provisions_provenance_ids("leyes")
         mock_get.assert_not_called()
 
     @patch("nota2md.utils.requests.get")
@@ -68,7 +68,7 @@ class TestDownloadNormativeHistory(unittest.TestCase):
         })
         mock_get.return_value = Mock(content=contenido, raise_for_status=Mock())
 
-        resultado = utils.download_normative_history("leyes")
+        resultado = utils.download_legal_provisions_provenance_ids("leyes")
 
         self.assertEqual(
             resultado,
@@ -97,7 +97,7 @@ class TestDownloadNormativeHistory(unittest.TestCase):
         })
         mock_get.return_value = Mock(content=contenido, raise_for_status=Mock())
 
-        resultado = utils.download_normative_history("reglamentos")
+        resultado = utils.download_legal_provisions_provenance_ids("reglamentos")
 
         self.assertEqual(
             resultado,
@@ -121,7 +121,7 @@ class TestDownloadNormativeHistory(unittest.TestCase):
         })
         mock_get.return_value = Mock(content=contenido, raise_for_status=Mock())
 
-        resultado = utils.download_normative_history("normas")
+        resultado = utils.download_legal_provisions_provenance_ids("normas")
 
         self.assertEqual(
             resultado,
@@ -147,7 +147,7 @@ class TestDownloadNormativeHistory(unittest.TestCase):
         })
         mock_get.return_value = Mock(content=contenido, raise_for_status=Mock())
 
-        resultado = utils.download_normative_history("tratados")
+        resultado = utils.download_legal_provisions_provenance_ids("tratados")
 
         self.assertEqual(
             resultado,
