@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from dofjson import dofweb
 
-from nota2md.builder import fetch_day_notes, fetch_nota, legal_provisions, titulo_siguiente
+from nota2md.builder import fetch_daily_legal_provisions, fetch_nota, legal_provisions, titulo_siguiente
 
 HTML_NOTA = {
     "codNota": 5793655,
@@ -81,7 +81,7 @@ class TestFetchNota(unittest.TestCase):
             fetch_nota(999999999)
 
 
-class TestFetchDayNotes(unittest.TestCase):
+class TestFetchDailyLegalProvisions(unittest.TestCase):
     FECHA = dt.date(2026, 7, 15)
 
     @patch("nota2md.builder.dofweb.get_notas")
@@ -93,7 +93,7 @@ class TestFetchDayNotes(unittest.TestCase):
             "NotasExtraordinarias": [],
         }
 
-        notas = fetch_day_notes(self.FECHA)
+        notas = fetch_daily_legal_provisions(self.FECHA)
 
         self.assertEqual(notas["NotasMatutinas"], [{"codNota": 1, "titulo": "Nota A"}])
         mock_web.assert_not_called()
@@ -110,7 +110,7 @@ class TestFetchDayNotes(unittest.TestCase):
             "NotasExtraordinarias": [],
         }
 
-        notas = fetch_day_notes(self.FECHA)
+        notas = fetch_daily_legal_provisions(self.FECHA)
 
         self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [1])
 
@@ -128,7 +128,7 @@ class TestFetchDayNotes(unittest.TestCase):
             "fuente": dofweb.FUENTE,
         }
 
-        notas = fetch_day_notes(self.FECHA)
+        notas = fetch_daily_legal_provisions(self.FECHA)
 
         mock_web.assert_called_once_with(self.FECHA)
         self.assertEqual(notas["fuente"], dofweb.FUENTE)
@@ -141,7 +141,7 @@ class TestFetchDayNotes(unittest.TestCase):
         mock_sidof.return_value = dict(vacio)
         mock_web.return_value = {**vacio, "edicionesSinIndice": []}
 
-        notas = fetch_day_notes(self.FECHA)
+        notas = fetch_daily_legal_provisions(self.FECHA)
 
         self.assertEqual(notas["NotasMatutinas"], [])
         self.assertEqual(notas["NotasVespertinas"], [])
