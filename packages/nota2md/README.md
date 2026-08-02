@@ -76,15 +76,15 @@ between. Matching is fuzzy (accent-folded, marker-stripped, `difflib`
 alignment) to tolerate OCR differences, and it also drops the next legal
 provision's organism header that the DOF prints above its title.
 
-`fetch_day_notes(date)` (`nota2md.builder`) is the per-day index itself — a
-day's browsable legal provisions (title, `codNota`, `codEdicion`...), from
-SIDOF and, when SIDOF has nothing for that day, from the DOF's own website:
+`fetch_daily_legal_provisions(date)` is the per-day index itself — a day's
+browsable legal provisions (title, `codNota`, `codEdicion`...), from SIDOF
+and, when SIDOF has nothing for that day, from the DOF's own website:
 
 ```python
-from nota2md.builder import fetch_day_notes
+from nota2md import fetch_daily_legal_provisions
 import datetime as dt
 
-for nota in fetch_day_notes(dt.date(2026, 7, 15))["NotasMatutinas"]:
+for nota in fetch_daily_legal_provisions(dt.date(2026, 7, 15))["NotasMatutinas"]:
     print(nota["codNota"], nota["titulo"])
 ```
 
