@@ -11,7 +11,7 @@ since 1917.
 | Package | Description |
 |---|---|
 | [dofjson](packages/dofjson) ([PyPI](https://pypi.org/project/dofjson/)) | Client for SIDOF's JSON open-data service: which legal provisions were published on a given day, and the full detail — including HTML content, when it exists — of any one of them. Also builds a compact `codNota` + `titulo` + `fecha` dataset of every legal provision ever published (`download_titulos`). |
-| [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF legal provision (`legal_provisions`), reconstructs a law's current text from nothing but its legal provisions (`normative_reconstruction`), and reads back a law's reform history (`download_legal_provisions_provenance_ids`). |
+| [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF legal provision (`legal_provisions`), reconstructs a law's current text from nothing but its legal provisions (`reconstruct_legal_provisions`), and reads back a law's reform history (`download_legal_provisions_provenance_ids`). |
 | [dof2md](packages/dof2md) ([PyPI](https://pypi.org/project/dof2md/)) | Downloads a complete edition of the DOF as PDF and converts it — OCR included — to Markdown; the heavy artillery `nota2md` borrows for legal provisions that predate the HTML era. |
 
 Each package lives under `packages/<name>/` with its own `pyproject.toml`,
@@ -56,10 +56,10 @@ dofjson 2026-07-15 --outdir output     # -> output/15072026-notas.json
 nota2md 5793639 --outdir output        # -> output/nota-5793639.md
 ```
 
-### `download_legal_provisions_provenance_ids` and `normative_reconstruction` — a law's current text from its reform history
+### `download_legal_provisions_provenance_ids` and `reconstruct_legal_provisions` — a law's current text from its reform history
 
 ```python
-from nota2md import download_legal_provisions_provenance_ids, normative_reconstruction
+from nota2md import download_legal_provisions_provenance_ids, reconstruct_legal_provisions
 
 # Every federal law's reform history: a list of codNota per instrument
 leyes = download_legal_provisions_provenance_ids("leyes")
@@ -67,7 +67,7 @@ cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
 
 # The law's current (vigente) text, reconstructed from nothing but its own
 # DOF legal provisions
-dest = normative_reconstruction(cpeum["historial"], "output", cpeum["nombre"])
+dest = reconstruct_legal_provisions(cpeum["historial"], "output", cpeum["nombre"])
 ```
 
 ### `download_titulos` — every legal provision ever published, as titles
