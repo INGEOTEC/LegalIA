@@ -1,6 +1,6 @@
 # nota2md
 
-Three entry points, all re-exported off the package itself
+Five entry points, all re-exported off the package itself
 (`from nota2md import ...`), for Mexico's official gazette (DOF, Diario
 Oficial de la Federación) and the federal laws it publishes:
 
@@ -9,6 +9,8 @@ Oficial de la Federación) and the federal laws it publishes:
 | [`legal_provisions`](#legal_provisions--a-single-dof-legal-provision-as-markdown) | a legal provision's `codNota` | its Markdown, written to `outdir/nota-{codNota}.md` |
 | [`reconstruct_legal_provisions`](#reconstruct_legal_provisions--a-laws-current-text-from-its-dof-legal-provisions) | a law's reform history (`codNota` list) | its current text, written to `outdir/ley-{codNota}.md` |
 | [`download_legal_provisions_provenance_ids`](#download_legal_provisions_provenance_ids--a-laws-reform-history) | a collection name (`"leyes"`, `"reglamentos"`, `"normas"`, `"tratados"`) | every instrument's reform history, in memory |
+| [`fetch_daily_legal_provisions`](#cutting-a-legal-provision-out-of-its-page) | a date | that day's browsable legal provisions (title, `codNota`, `codEdicion`...) |
+| [`download_legal_provisions_titles`](#download_legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` release) | every legal provision ever published, as `codNota`+`titulo`+`fecha`, written to a gzipped JSONL file |
 
 They compose: `download_legal_provisions_provenance_ids` gets you the `codNota` list
 `reconstruct_legal_provisions` needs, and `reconstruct_legal_provisions` gets you a
@@ -172,6 +174,26 @@ disk — and returns one dict per instrument, merging its catalogue entry (name,
 reform count, dates...) with its own `historial`: the `codNota` of its reforms
 or decrees, oldest first, index 0 the original publication. That is exactly
 what `reconstruct_legal_provisions` expects as its own first argument.
+
+## `download_legal_provisions_titles` — every legal provision ever published, as titles
+
+Implemented in [`dofjson.titulos`](../dofjson) and re-exported here so it sits
+alongside the rest of `nota2md`'s entry points. Builds a compact `codNota` +
+`titulo` + `fecha` + `codOrgaUno` dataset covering every legal provision
+published since 1917 (~1.2 million rows, a few tens of MB compressed), read
+straight from the `notas-archivo` release — nothing downloaded touches disk
+except the two result files:
+
+```python
+from pathlib import Path
+from nota2md import download_legal_provisions_titles
+
+download_legal_provisions_titles(Path("titulos.jsonl.gz"))
+```
+
+```bash
+dofjson --titulos --outdir output    # -> output/titulos.jsonl.gz
+```
 
 ## Installation
 

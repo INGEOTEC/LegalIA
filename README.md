@@ -22,7 +22,7 @@ on the project's [website](https://ingeotec.github.io/LegalIA/).
 
 ## Quick start
 
-`nota2md` has three entry points, all re-exported off the package itself.
+`nota2md` has five entry points, all re-exported off the package itself.
 
 For a modern legal provision, only `dofjson` and `nota2md` are needed —
 `dof2md` stays in the background, as `nota2md`'s OCR fallback for legal
@@ -71,13 +71,13 @@ dest = reconstruct_legal_provisions(cpeum["historial"], "output", cpeum["nombre"
 
 ### `download_legal_provisions_titles` — every legal provision ever published, as titles
 
-`dofjson.titulos.download_legal_provisions_titles` builds a compact `codNota` + `titulo` +
+`download_legal_provisions_titles` builds a compact `codNota` + `titulo` +
 `fecha` dataset covering every legal provision published since 1917 (~1.2
 million rows, a few tens of MB compressed):
 
 ```python
 from pathlib import Path
-from dofjson.titulos import download_legal_provisions_titles
+from nota2md import download_legal_provisions_titles
 
 download_legal_provisions_titles(Path("titulos.jsonl.gz"))
 ```
