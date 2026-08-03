@@ -58,6 +58,8 @@ nota2md 5793639 --outdir output        # -> output/nota-5793639.md
 ### `download_legal_provisions_provenance_ids` and `reconstruct_legal_provisions` — a law's current text from its reform history
 
 ```python
+from pathlib import Path
+
 from nota2md import download_legal_provisions_provenance_ids, reconstruct_legal_provisions
 
 # Every federal law's reform history: a list of codNota per instrument
@@ -66,7 +68,7 @@ cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
 
 # The law's current (vigente) text, reconstructed from nothing but its own
 # DOF legal provisions
-dest = reconstruct_legal_provisions(cpeum["historial"], "output", nombre_ley=cpeum["nombre"])
+dest = reconstruct_legal_provisions(cpeum["historial"], Path("output"), nombre_ley=cpeum["nombre"])
 ```
 
 ### `download_legal_provisions_titles` — every legal provision ever published, as titles
@@ -88,7 +90,9 @@ dofjson --titulos --outdir output    # -> output/titulos.jsonl.gz
 
 ## Development
 
-Install a package in editable mode with its test dependencies:
+Install a package in editable mode with its test dependencies, then run its
+tests. The same two commands work for any of the four packages —
+`dofjson`, `nota2md`, `dof2md` and `leyesmx`:
 
 ```bash
 pip install -e "packages/dofjson[test]"
