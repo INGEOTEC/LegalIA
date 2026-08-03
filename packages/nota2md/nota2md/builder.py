@@ -77,7 +77,7 @@ def fetch_nota(cod_nota: int) -> dict:
     )
 
 
-def fetch_day_notes(date: dt.date) -> dict:
+def fetch_daily_legal_provisions(date: dt.date) -> dict:
     """`date`'s notes index — title, codNota, codEdicion, pagina... one entry
     per note, split into NotasMatutinas/NotasVespertinas/NotasExtraordinarias
     — from SIDOF, falling back to the DOF website when SIDOF has nothing for
@@ -102,7 +102,7 @@ def fetch_day_notes(date: dt.date) -> dict:
 
 def legal_provisions(
     cod_nota: int,
-    outdir: Path,
+    outdir: str | Path,
     source: str = "auto",
     *,
     nota: dict | None = None,

@@ -58,15 +58,15 @@ assets whose bytes actually differ — that release is the *only* copy; nothing
 is committed to git, so there is no second copy to fall out of sync with it.
 
 The easiest way to read it back is
-[`nota2md.utils.download_normative_history`](../nota2md), which downloads
-one collection straight into memory and returns a plain list of dicts — one
-per instrument, each merging its catalogue entry with its own `historial`
-(the `codNota` of its reforms or decrees, oldest first):
+[`nota2md.utils.download_legal_provisions_provenance_ids`](../nota2md), which
+downloads one collection straight into memory and returns a plain list of
+dicts — one per instrument, each merging its catalogue entry with its own
+`historial` (the `codNota` of its reforms or decrees, oldest first):
 
 ```python
-from nota2md.utils import download_normative_history
+from nota2md.utils import download_legal_provisions_provenance_ids
 
-leyes = download_normative_history("leyes")   # or "reglamentos", "normas", "tratados"
+leyes = download_legal_provisions_provenance_ids("leyes")   # or "reglamentos", "normas", "tratados"
 cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
 print(cpeum["nombre"], cpeum["reformas"], len(cpeum["historial"]))
 ```
@@ -86,7 +86,7 @@ plain list of `codNota`:
 ```
 
 Only the codNota is stored. A legal provision's title, date and issuing
-branch already live in the dataset `dofjson.titulos.download_titulos`
+branch already live in the dataset `dofjson.titulos.download_legal_provisions_titles`
 builds, and come back by joining on codNota — keeping a second copy here
 would only let the two drift apart:
 

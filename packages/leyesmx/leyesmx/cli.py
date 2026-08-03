@@ -15,7 +15,7 @@ def lista_de_codnota(enlazadas) -> list[int | None]:
 
     Only the codNota is stored: everything else about a note — its title, its
     date, its issuing branch — is already in the dataset that
-    `dofjson.titulos.download_titulos` builds, and is recovered by joining on
+    `dofjson.titulos.download_legal_provisions_titles` builds, and is recovered by joining on
     codNota. Keeping a copy here would only let the two drift apart.
 
     **Index N is reform N**, and index 0 is the law's original publication.
@@ -226,7 +226,7 @@ def main(argv=None) -> int:
                         "'tratados' for every international treaty "
                         "(default: cpeum)")
     p.add_argument("--titulos", type=Path, default=Path("titulos.jsonl.gz"),
-                   help="dataset from dofjson.titulos.download_titulos")
+                   help="dataset from dofjson.titulos.download_legal_provisions_titles")
     p.add_argument("--out", type=Path, default=None,
                    help="output JSON (default: data/reformas/<ley>.json)")
     p.add_argument("--decretos", type=Path, default=None, metavar="DIR",
@@ -235,9 +235,9 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
 
     if not args.titulos.exists():
-        from dofjson.titulos import download_titulos
+        from dofjson.titulos import download_legal_provisions_titles
         print(f"descargando títulos del DOF -> {args.titulos}", file=sys.stderr)
-        download_titulos(args.titulos, log=lambda *_: None)
+        download_legal_provisions_titles(args.titulos, log=lambda *_: None)
 
     if args.ley == "todas":
         return todas_las_leyes(args)

@@ -115,7 +115,7 @@ def main(argv=None):
 
     if args.titulos:
         dest = outdir / "titulos.jsonl.gz"
-        titulos.download_titulos(dest)
+        titulos.download_legal_provisions_titles(dest)
         return
 
     if args.archivo:

@@ -51,6 +51,54 @@ class TestListarAssets(unittest.TestCase):
         mock_get.return_value.raise_for_status.assert_called_once()
 
 
+class TestDownloadDofAssets(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_downloads_every_asset_into_cache_dir(self, mock_listar_assets, mock_get):
+        mock_listar_assets.return_value = [
+            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
+            {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
+        ]
+        mock_get.side_effect = [
+            Mock(content=b"contenido-1980", raise_for_status=Mock()),
+            Mock(content=b"contenido-1981", raise_for_status=Mock()),
+        ]
+
+        cache_dir = Path(self.tmpdir.name) / "cache"
+        rutas = titulos.download_dof_assets(cache_dir, log=lambda *_: None)
+
+        self.assertEqual(rutas, [cache_dir / "notas-1980.tgz", cache_dir / "notas-1981.tgz"])
+        self.assertEqual((cache_dir / "notas-1980.tgz").read_bytes(), b"contenido-1980")
+        self.assertEqual((cache_dir / "notas-1981.tgz").read_bytes(), b"contenido-1981")
+        self.assertEqual(mock_get.call_count, 2)
+
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_skips_assets_already_in_cache_dir(self, mock_listar_assets, mock_get):
+        mock_listar_assets.return_value = [
+            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
+            {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
+        ]
+        cache_dir = Path(self.tmpdir.name) / "cache"
+        cache_dir.mkdir()
+        (cache_dir / "notas-1980.tgz").write_bytes(b"ya-en-cache")
+        mock_get.return_value = Mock(content=b"contenido-1981", raise_for_status=Mock())
+
+        rutas = titulos.download_dof_assets(cache_dir, log=lambda *_: None)
+
+        self.assertEqual(rutas, [cache_dir / "notas-1980.tgz", cache_dir / "notas-1981.tgz"])
+        self.assertEqual((cache_dir / "notas-1980.tgz").read_bytes(), b"ya-en-cache")
+        mock_get.assert_called_once_with(
+            "https://x/1981.tgz", headers=titulos._HEADERS, timeout=60
+        )
+
+
 class TestTitulosDeTgz(unittest.TestCase):
     def test_extracts_only_codnota_titulo_fecha_y_codorgauno(self):
         contenido = hacer_tgz({
@@ -242,7 +290,7 @@ class TestDownloadTitulos(unittest.TestCase):
         ]
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        resultado = titulos.download_titulos(dest, log=lambda *_: None)
+        resultado = titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
 
         self.assertEqual(resultado, dest)
         with gzip.open(dest, "rt", encoding="utf-8") as f:
@@ -277,7 +325,7 @@ class TestDownloadTitulos(unittest.TestCase):
         ]
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_titulos(dest, log=lambda *_: None)
+        titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
 
         with gzip.open(dest, "rt", encoding="utf-8") as f:
             registros = [json.loads(l) for l in f]
@@ -299,7 +347,7 @@ class TestDownloadTitulos(unittest.TestCase):
         mock_get.return_value = Mock(content=tgz, raise_for_status=Mock())
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_titulos(dest, log=lambda *_: None)
+        titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
 
         archivos = sorted(p.name for p in Path(self.tmpdir.name).iterdir())
         self.assertEqual(archivos, ["organigrama.json", "titulos.jsonl.gz"])
@@ -346,7 +394,7 @@ class TestDownloadTitulos(unittest.TestCase):
         ]
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_titulos(dest, log=lambda *_: None)
+        titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
 
         organigrama_dest = Path(self.tmpdir.name) / "organigrama.json"
         self.assertTrue(organigrama_dest.exists())
@@ -375,7 +423,7 @@ class TestDownloadTitulos(unittest.TestCase):
 
         dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
         organigrama_dest = Path(self.tmpdir.name) / "otro" / "mapa.json"
-        titulos.download_titulos(dest, organigrama_dest, log=lambda *_: None)
+        titulos.download_legal_provisions_titles(dest, organigrama_dest, log=lambda *_: None)
 
         self.assertTrue(organigrama_dest.exists())
         with open(organigrama_dest, encoding="utf-8") as f:
@@ -384,8 +432,74 @@ class TestDownloadTitulos(unittest.TestCase):
         self.assertFalse((Path(self.tmpdir.name) / "organigrama.json").exists())
 
 
+class TestDownloadTitulosConCacheDir(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_uses_download_dof_assets_and_reads_from_disk(self, mock_listar_assets, mock_get):
+        mock_listar_assets.return_value = [
+            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
+            {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
+        ]
+        tgz_1980 = hacer_tgz({
+            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
+        })
+        tgz_1981 = hacer_tgz({
+            "1981/02011981-notas.json": dia({"codNota": 2, "titulo": "B", "fecha": "02-01-1981"})
+        })
+        mock_get.side_effect = [
+            Mock(content=tgz_1980, raise_for_status=Mock()),
+            Mock(content=tgz_1981, raise_for_status=Mock()),
+        ]
+
+        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
+        cache_dir = Path(self.tmpdir.name) / "cache"
+        titulos.download_legal_provisions_titles(dest, cache_dir=cache_dir, log=lambda *_: None)
+
+        self.assertEqual(mock_get.call_count, 2)
+        self.assertTrue((cache_dir / "notas-1980.tgz").exists())
+        self.assertTrue((cache_dir / "notas-1981.tgz").exists())
+        with gzip.open(dest, "rt", encoding="utf-8") as f:
+            registros = [json.loads(l) for l in f]
+        self.assertEqual(
+            registros,
+            [
+                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980", "codOrgaUno": None},
+                {"codNota": 2, "titulo": "B", "fecha": "02-01-1981", "codOrgaUno": None},
+            ],
+        )
+
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_does_not_redownload_assets_already_in_cache_dir(self, mock_listar_assets, mock_get):
+        mock_listar_assets.return_value = [
+            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
+        ]
+        cache_dir = Path(self.tmpdir.name) / "cache"
+        cache_dir.mkdir()
+        tgz = hacer_tgz({
+            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
+        })
+        (cache_dir / "notas-1980.tgz").write_bytes(tgz)
+
+        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
+        titulos.download_legal_provisions_titles(dest, cache_dir=cache_dir, log=lambda *_: None)
+
+        mock_get.assert_not_called()
+        with gzip.open(dest, "rt", encoding="utf-8") as f:
+            registros = [json.loads(l) for l in f]
+        self.assertEqual(
+            registros, [{"codNota": 1, "titulo": "A", "fecha": "02-01-1980", "codOrgaUno": None}]
+        )
+
+
 class TestLeeTitulos(unittest.TestCase):
-    """El lector de lo que escribe download_titulos. Antes leyesmx usaba
+    """El lector de lo que escribe download_legal_provisions_titles. Antes leyesmx usaba
     microtc.utils.tweet_iterator para esto: lee el mismo formato, pero importa
     numpy sin declararlo, así que una instalación sin numpy falla en
     `import microtc` y no en la llamada."""
@@ -401,7 +515,7 @@ class TestLeeTitulos(unittest.TestCase):
         with gzip.open(self.dest, "wt", encoding="utf-8") as f:
             f.write(lineas)
 
-    def test_lee_lo_que_download_titulos_escribe(self):
+    def test_lee_lo_que_download_legal_provisions_titles_escribe(self):
         self.escribe('{"codNota": 1, "titulo": "DECRETO"}\n'
                      '{"codNota": 2, "titulo": "ACUERDO"}\n')
 
@@ -427,7 +541,7 @@ class TestLeeTitulos(unittest.TestCase):
 
         self.assertEqual(next(titulos.lee_titulos(self.dest)), {"codNota": 1})
 
-    def test_ida_y_vuelta_con_download_titulos(self):
+    def test_ida_y_vuelta_con_download_legal_provisions_titles(self):
         contenido = hacer_tgz({"1980/02011980-notas.json": dia(
             {"codNota": 7, "titulo": "DECRETO", "fecha": "02-01-1980",
              "codOrgaUno": "PE"})})
@@ -435,7 +549,7 @@ class TestLeeTitulos(unittest.TestCase):
                    return_value=[{"name": "notas-1980.tgz", "url": "https://x/a.tgz"}]), \
              patch("dofjson.titulos.requests.get",
                    return_value=Mock(content=contenido, raise_for_status=Mock())):
-            titulos.download_titulos(self.dest, log=lambda *_: None)
+            titulos.download_legal_provisions_titles(self.dest, log=lambda *_: None)
 
         self.assertEqual(list(titulos.lee_titulos(self.dest)),
                          [{"codNota": 7, "titulo": "DECRETO", "fecha": "02-01-1980",

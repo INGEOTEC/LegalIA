@@ -41,7 +41,7 @@ from pathlib import Path
 
 from nota2md.builder import fetch_nota, legal_provisions
 
-# --- normative_reconstruction: replay the reforms on top of the original text ---------
+# --- reconstruct_legal_provisions: replay the reforms on top of the original text ---------
 
 # Canonical (capitalized, accented) spelling of each article-number suffix,
 # keyed by every lowercase/unaccented way a note might spell it.
@@ -454,26 +454,34 @@ def _fusiona_articulo(anterior: str, nuevo: str) -> str:
     return "\n\n".join(resultado)
 
 
-def _markdown_de_nota(cod_nota: int, outdir: Path) -> str:
+def _markdown_de_nota(
+    cod_nota: int,
+    outdir: Path,
+    *,
+    source: str,
+    min_confidence: float,
+    keep_pages: bool,
+) -> str:
     """`cod_nota`'s note as Markdown, via legal_provisions() — written to
     `outdir/nota-{cod_nota}.md` and, once it is there, read back from that
-    file instead of downloaded again."""
+    file instead of downloaded again. `source`/`min_confidence`/`keep_pages`
+    are forwarded to legal_provisions() as-is; it is the one that raises if
+    `source` needs something the note doesn't have (e.g. "html" on a note
+    with no `cadenaContenido`)."""
     md_path = outdir / f"nota-{cod_nota}.md"
     if md_path.exists():
         return md_path.read_text(encoding="utf-8")
 
     nota = fetch_nota(cod_nota)
-    if not nota.get("cadenaContenido"):
-        raise ValueError(
-            f"la nota {cod_nota} no tiene cadenaContenido (HTML); normative_reconstruction "
-            "sólo soporta notas con texto digital"
-        )
-    md_path = legal_provisions(cod_nota, outdir, source="html", nota=nota)
+    md_path = legal_provisions(
+        cod_nota, outdir, source=source, nota=nota,
+        min_confidence=min_confidence, keep_pages=keep_pages,
+    )
     return md_path.read_text(encoding="utf-8")
 
 
 class LeyNoReconstruible(ValueError):
-    """normative_reconstruction() cannot build this law from the notes it was given.
+    """reconstruct_legal_provisions() cannot build this law from the notes it was given.
 
     Raised when the original publication yields no recognized article at
     all — building reforms on top of that would only manufacture a
@@ -502,10 +510,14 @@ def _diagnostico_original_vacia(markdown: str) -> str:
     )
 
 
-def normative_reconstruction(
+def reconstruct_legal_provisions(
     cod_notas: list[int],
     outdir: str | Path,
+    *,
     nombre_ley: str | None = None,
+    source: str = "html",
+    min_confidence: float = 0.6,
+    keep_pages: bool = False,
 ) -> Path:
     """Build the law's current text from the DOF notes in `cod_notas` and
     write it to ``outdir/ley-{cod_notas[0]}.md``; return that path — the
@@ -526,6 +538,17 @@ def normative_reconstruction(
     Left as None, a note is assumed to concern only this law, which holds for
     most of them but silently mixes in another law's articles for the rest.
 
+    `source`, `min_confidence` and `keep_pages` are forwarded, as-is, to the
+    legal_provisions() call made for every note in `cod_notas` — the same
+    parameters legal_provisions() itself defines, and the same defaults.
+    `source="html"` (the default here, unlike legal_provisions()'s own
+    "auto") keeps this function's original behavior: it only ever built from
+    digital text, and `_fusiona_articulo`'s merge was designed and checked
+    against that HTML-derived shape (see `tests/test_leyes_44.py`). Passing
+    `source="image"` or `"pdf"` lets a note with no `cadenaContenido` be OCR'd
+    instead of failing outright, but the merge has not been validated against
+    OCR output — check the result carefully before trusting it.
+
     Every note is fetched through legal_provisions() into `outdir` too, as
     `nota-{codNota}.md` — a note already there from an earlier call (this
     law's own previous run, or another law's sharing the same `outdir`) is
@@ -539,20 +562,32 @@ def normative_reconstruction(
 
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
-    texto = _normative_reconstruction(cod_notas, nombre_ley, outdir)
+    texto = _reconstruct_legal_provisions(
+        cod_notas, nombre_ley, outdir,
+        source=source, min_confidence=min_confidence, keep_pages=keep_pages,
+    )
 
     dest = outdir / f"ley-{cod_notas[0]}.md"
     dest.write_text(texto + "\n", encoding="utf-8")
     return dest
 
 
-def _normative_reconstruction(
-    cod_notas: list[int], nombre_ley: str | None, outdir: Path
+def _reconstruct_legal_provisions(
+    cod_notas: list[int],
+    nombre_ley: str | None,
+    outdir: Path,
+    *,
+    source: str,
+    min_confidence: float,
+    keep_pages: bool,
 ) -> str:
-    """`normative_reconstruction`'s own body, once `outdir` is resolved and
+    """`reconstruct_legal_provisions`'s own body, once `outdir` is resolved and
     created — split out only so the public function's shape mirrors
     legal_provisions()'s (build the text, then write it)."""
-    md_original = _markdown_de_nota(cod_notas[0], outdir)
+    md_original = _markdown_de_nota(
+        cod_notas[0], outdir,
+        source=source, min_confidence=min_confidence, keep_pages=keep_pages,
+    )
     preambulo, articulos, transitorios = _segmenta_original(md_original, nombre_ley)
     if not articulos:
         raise LeyNoReconstruible(
@@ -564,7 +599,10 @@ def _normative_reconstruction(
     for cod_nota in cod_notas[1:]:
         if cod_nota is None:
             continue
-        markdown = _markdown_de_nota(cod_nota, outdir)
+        markdown = _markdown_de_nota(
+            cod_nota, outdir,
+            source=source, min_confidence=min_confidence, keep_pages=keep_pages,
+        )
         instruccion, nuevos = _extrae_reforma(markdown, nombre_ley)
         for numero, texto in nuevos:
             if numero in articulos:

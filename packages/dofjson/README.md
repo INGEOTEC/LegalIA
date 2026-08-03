@@ -227,9 +227,26 @@ Or use the function directly:
 
 ```python
 from pathlib import Path
-from dofjson.titulos import download_titulos
+from dofjson.titulos import download_legal_provisions_titles
 
-download_titulos(Path("titulos.jsonl.gz"))
+download_legal_provisions_titles(Path("titulos.jsonl.gz"))
+```
+
+Pass `cache_dir` to keep the downloaded `.tgz` assets on disk (e.g. a
+Colab-persisted folder) so rebuilding the dataset later only fetches assets
+not already there:
+
+```python
+download_legal_provisions_titles(Path("titulos.jsonl.gz"), cache_dir=Path("cache"))
+```
+
+`download_dof_assets` does just the download/cache part, independently of
+building the titles dataset:
+
+```python
+from dofjson.titulos import download_dof_assets
+
+download_dof_assets(Path("cache"))  # one notas-YYYY[-MM].tgz per asset
 ```
 
 ## Development
