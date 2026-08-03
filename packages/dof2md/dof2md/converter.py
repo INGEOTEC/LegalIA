@@ -1,3 +1,4 @@
+import contextlib
 import os
 import shutil
 import subprocess
@@ -12,6 +13,22 @@ from dof2md.tables import html_tables_to_markdown
 # in such cases rather than just running slowly. This bounds how long any
 # one conversion is allowed to run before we give up on it.
 DEFAULT_TIMEOUT_SECONDS = 3600
+
+
+def _mineru_out_dir(md_path: Path, keep_mineru_output: bool):
+    """Context manager yielding the directory mineru should write its raw
+    output (Markdown, layout/model JSON, rendered PDFs...) into.
+
+    Normally that output is only a stepping stone to the Markdown this module
+    returns, so it lives in a throwaway temp dir. When `keep_mineru_output` is
+    set, callers debugging a bad conversion need to see that raw output
+    instead of it vanishing with the temp dir, so it is written to
+    `<md stem>_mineru/` next to `md_path` and left there."""
+    if keep_mineru_output:
+        out_dir = md_path.parent / f"{md_path.stem}_mineru"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        return contextlib.nullcontext(str(out_dir))
+    return tempfile.TemporaryDirectory()
 
 
 def _require_mineru() -> None:
@@ -44,7 +61,10 @@ def _run_mineru(input_path: Path, tmp_out: str, timeout: float) -> tuple[str, Pa
 
 
 def convert_to_markdown(
-    pdf_path: Path, md_path: Path, timeout: float = DEFAULT_TIMEOUT_SECONDS
+    pdf_path: Path,
+    md_path: Path,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
+    keep_mineru_output: bool = False,
 ) -> None:
     """Convert a PDF to Markdown using mineru's pipeline backend.
 
@@ -63,13 +83,19 @@ def convert_to_markdown(
     its own temporary one for this single call — this is what lets a batch
     of documents avoid reloading the models once per document.
 
+    `keep_mineru_output` writes mineru's raw output (its own Markdown, layout
+    JSON, rendered layout/model PDFs...) to `<md stem>_mineru/` next to
+    `md_path` instead of a temp dir that disappears at the end of the call —
+    useful when a conversion looks wrong and mineru's own read of the page is
+    the first thing worth inspecting.
+
     Raises subprocess.TimeoutExpired if mineru doesn't finish within
     `timeout` seconds — callers doing batch work should catch this and skip
     the offending document rather than let one stuck conversion block an
     entire run."""
     _require_mineru()
 
-    with tempfile.TemporaryDirectory() as tmp_out:
+    with _mineru_out_dir(md_path, keep_mineru_output) as tmp_out:
         md_text, images_src = _run_mineru(pdf_path, tmp_out, timeout)
         if images_src is not None:
             images_dirname = f"{pdf_path.stem}_images"
@@ -82,7 +108,10 @@ def convert_to_markdown(
 
 
 def convert_images_to_markdown(
-    image_paths: list[Path], md_path: Path, timeout: float = DEFAULT_TIMEOUT_SECONDS
+    image_paths: list[Path],
+    md_path: Path,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
+    keep_mineru_output: bool = False,
 ) -> None:
     """Convert one or more scanned page images into a single Markdown document.
 
@@ -103,7 +132,12 @@ def convert_images_to_markdown(
     Figures mineru extracts from a page are copied next to the output under
     `<md stem>_images/<image stem>/` (namespaced per page so figures from
     different pages can't collide), and their Markdown references rewritten to
-    match. Raises subprocess.TimeoutExpired like convert_to_markdown()."""
+    match. Raises subprocess.TimeoutExpired like convert_to_markdown().
+
+    `keep_mineru_output`, like in convert_to_markdown(), keeps mineru's raw
+    per-page output instead of discarding it — each page lands in its own
+    `<md stem>_mineru/<image stem>/` subdirectory, mirroring how the
+    extracted figures are namespaced per page."""
     _require_mineru()
     image_paths = [Path(p) for p in image_paths]
     if not image_paths:
@@ -111,7 +145,7 @@ def convert_images_to_markdown(
 
     images_dirname = f"{md_path.stem}_images"
     parts = []
-    with tempfile.TemporaryDirectory() as tmp_out:
+    with _mineru_out_dir(md_path, keep_mineru_output) as tmp_out:
         for image_path in image_paths:
             md_text, images_src = _run_mineru(image_path, tmp_out, timeout)
             if images_src is not None:

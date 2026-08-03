@@ -59,7 +59,17 @@ def _locate(
     `from_norm` lets the caller skip past an earlier region — used to find the
     NEXT note's title after the current one, which matters when consecutive
     titles are near-duplicates (e.g. two deslinde avisos differing only in a
-    number) and a whole-text search would otherwise anchor on the first."""
+    number) and a whole-text search would otherwise anchor on the first.
+
+    Confidence is matched characters divided by the span of haystack they are
+    spread across (floored at the title's own length): a title that appears
+    together, even split by a few OCR glitches, matches within a span close
+    to its own length. Boilerplate that merely echoes some of the title's
+    words (e.g. a shared date phrase in running prose) racks up the same
+    matched-character count but scattered over a much wider span, so it is
+    penalized instead of being scored as if it were one solid match — that
+    scattering is exactly what let such boilerplate be mistaken for a real
+    title match before."""
     norm_title, _ = _normalize_with_map(title)
     norm_title = norm_title.strip()
     if not norm_title:
@@ -67,13 +77,14 @@ def _locate(
 
     haystack = norm_text[from_norm:]
     matcher = difflib.SequenceMatcher(None, haystack, norm_title, autojunk=False)
-    blocks = matcher.get_matching_blocks()
-    anchor = max(blocks, key=lambda b: b.size)
-    if anchor.size == 0:
+    blocks = [b for b in matcher.get_matching_blocks() if b.size > 0]
+    if not blocks:
         return None, None, 0.0
+    anchor = max(blocks, key=lambda b: b.size)
 
     matched = sum(b.size for b in blocks)
-    confidence = matched / len(norm_title)
+    span = max(b.a + b.size for b in blocks) - min(b.a for b in blocks)
+    confidence = matched / max(span, len(norm_title))
     start_local = max(0, anchor.a - anchor.b)
     start_norm = min(from_norm + start_local, len(idx_map) - 1)
     return start_norm, idx_map[start_norm], confidence

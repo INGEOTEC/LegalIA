@@ -109,6 +109,7 @@ def legal_provisions(
     notas_del_dia: dict | None = None,
     min_confidence: float = 0.6,
     keep_pages: bool = False,
+    keep_mineru_output: bool = False,
 ) -> Path:
     """Build the Markdown for `cod_nota` and write it to
     ``outdir/nota-{cod_nota}.md``; return that path.
@@ -128,7 +129,9 @@ def legal_provisions(
     index (e.g. a saved notas JSON) instead of fetching it — the OCR paths need
     it to find the next note's title (the cut boundary). `keep_pages` also
     writes the uncut, full OCR output next to the result as
-    ``nota-{cod_nota}.full.md``.
+    ``nota-{cod_nota}.full.md``. `keep_mineru_output` (OCR paths only) keeps
+    mineru's own raw output — otherwise thrown away with its temp dir — under
+    ``nota-{cod_nota}_mineru/``, for inspecting an OCR result that looks wrong.
     """
     if source not in ("auto", "html", "image", "pdf"):
         raise ValueError(
@@ -160,11 +163,13 @@ def legal_provisions(
 
     if source == "pdf":
         return _build_from_pdf(
-            cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages
+            cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages,
+            keep_mineru_output,
         )
 
     return _build_from_images(
-        cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages
+        cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages,
+        keep_mineru_output,
     )
 
 
@@ -181,19 +186,25 @@ def _load_converter(name: str):
     return getattr(converter, name)
 
 
-def _build_from_images(cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages):
+def _build_from_images(
+    cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages,
+    keep_mineru_output,
+):
     convert_images_to_markdown = _load_converter("convert_images_to_markdown")
     image_paths = client.download_nota_imagenes(cod_nota, outdir, nota=nota)
     # dof2md OCRs the pages and already rewrites mineru's HTML tables to
     # Markdown tables, so the read-back is Markdown all the way through.
-    convert_images_to_markdown(image_paths, md_path)
+    convert_images_to_markdown(image_paths, md_path, keep_mineru_output=keep_mineru_output)
     return _cut_and_write(cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages)
 
 
-def _build_from_pdf(cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages):
+def _build_from_pdf(
+    cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages,
+    keep_mineru_output,
+):
     convert_to_markdown = _load_converter("convert_to_markdown")
     pdf_path = client.download_nota_pdf(cod_nota, outdir, nota=nota)
-    convert_to_markdown(pdf_path, md_path)
+    convert_to_markdown(pdf_path, md_path, keep_mineru_output=keep_mineru_output)
     return _cut_and_write(cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages)
 
 
