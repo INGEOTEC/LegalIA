@@ -84,6 +84,18 @@ class TestParseo(unittest.TestCase):
         self.assertEqual(notas[0]["codDiario"], 147514)
         self.assertEqual(notas[0]["codEdicion"], "MAT")
 
+    def test_sets_existe_fields_consistently_with_sidof(self):
+        """A note only gets a link into the index once its digital text
+        exists (see issue #85, codNota 2124037), so existeHtml is always
+        "S". existeImagen/existePdf are always "N": this index carries no
+        per-note page number, so neither can be sliced out for one note."""
+        notas = self.notas_de({"MAT": UNA_SECCION})["NotasMatutinas"]
+
+        for nota in notas:
+            self.assertEqual(nota["existeHtml"], "S")
+            self.assertEqual(nota["existeImagen"], "N")
+            self.assertEqual(nota["existePdf"], "N")
+
     def test_maps_headings_to_the_codOrgaUno_sidof_uses(self):
         notas = self.notas_de({"MAT": UNA_SECCION})["NotasMatutinas"]
 

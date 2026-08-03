@@ -191,6 +191,18 @@ def _parse_edicion(pagina: str, fecha: dt.date, edicion: str) -> tuple[list[dict
                 "codOrgaDos": orga_dos,
                 "orden": float(len(notas) + 1),
                 "fuente": FUENTE,
+                # A note only gets a link into the index when the site has its
+                # digital text (verified against codNota 2124037 — see
+                # get_nota()); "S" here is as reliable as SIDOF's own field.
+                # Image/PDF are edition-wide resources this index carries no
+                # per-note page number for, so neither can actually be sliced
+                # out for a single note (nota2md.legal_provisions() refuses the
+                # image/pdf paths for a fuente="dof.gob.mx" note for the same
+                # reason) — "N" here says so, instead of leaving the field
+                # out and reading, inconsistently with SIDOF, as unknown.
+                "existeHtml": "S",
+                "existeImagen": "N",
+                "existePdf": "N",
             })
 
     if not notas and cod_diario is None:
@@ -228,6 +240,14 @@ def get_notas(date: dt.date, timeout: int = 60) -> dict:
         `{"codEdicion", "codDiario"}`. A pre-digital day comes back with no
         notes and a populated list here: the gazette was published, only its
         contents are images.
+
+    Every note also carries `existeHtml`/`existeImagen`/`existePdf`, exactly
+    as SIDOF's own notes do, rather than leaving them out: `existeHtml` is
+    always `"S"` (a note is only linked into this index once the site has
+    its digital text) and `existeImagen`/`existePdf` are always `"N"` (this
+    index carries no per-note page number, so neither can be sliced out for
+    a single note — see nota2md.legal_provisions(), which refuses those
+    paths for a `fuente="dof.gob.mx"` note for the same reason).
 
     Raises PaginaDeOtroDia if the site answers with a different day's page.
     """
