@@ -281,6 +281,30 @@ class TestConstruyeLey(unittest.TestCase):
         self.assertIn("Texto original del artículo segundo", ley)
         self.assertIn("Texto original del artículo tercero", ley)
 
+    @patch("nota2md.leyes.legal_provisions")
+    @patch("nota2md.leyes.fetch_nota")
+    def test_source_min_confidence_y_keep_pages_se_reenvian_a_legal_provisions(
+        self, mock_fetch, mock_legal_provisions
+    ):
+        mock_fetch.return_value = PUBLICACION_ORIGINAL
+
+        def _fake_legal_provisions(cod_nota, outdir, source="auto", *, nota=None,
+                                    notas_del_dia=None, min_confidence=0.6, keep_pages=False):
+            md_path = Path(outdir) / f"nota-{cod_nota}.md"
+            md_path.write_text("Artículo 1. Texto.\n", encoding="utf-8")
+            return md_path
+
+        mock_legal_provisions.side_effect = _fake_legal_provisions
+
+        reconstruct_legal_provisions(
+            [1], self.outdir, source="image", min_confidence=0.9, keep_pages=True
+        )
+
+        mock_legal_provisions.assert_called_once_with(
+            1, self.outdir, source="image", nota=PUBLICACION_ORIGINAL,
+            min_confidence=0.9, keep_pages=True,
+        )
+
     def test_rechaza_una_lista_vacia(self):
         with self.assertRaises(ValueError):
             reconstruct_legal_provisions([], self.outdir)
