@@ -102,7 +102,7 @@ def fetch_daily_legal_provisions(date: dt.date) -> dict:
 
 def legal_provisions(
     cod_nota: int,
-    outdir: Path,
+    outdir: str | Path,
     source: str = "auto",
     *,
     nota: dict | None = None,

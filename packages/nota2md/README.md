@@ -24,7 +24,7 @@ from nota2md import download_legal_provisions_provenance_ids, legal_provisions, 
 leyes = download_legal_provisions_provenance_ids("leyes")
 cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
 
-dest = reconstruct_legal_provisions(cpeum["historial"], "output", cpeum["nombre"])
+dest = reconstruct_legal_provisions(cpeum["historial"], "output", nombre_ley=cpeum["nombre"])
 print(f"{cpeum['nombre']} -> {dest}")
 ```
 
@@ -136,7 +136,7 @@ from nota2md import reconstruct_legal_provisions
 # original publication (see download_legal_provisions_provenance_ids below for where a
 # law's own historial list comes from).
 dest = reconstruct_legal_provisions(
-    [5592105, 5730586], "output", "LEY de Amnistía",
+    [5592105, 5730586], "output", nombre_ley="LEY de Amnistía",
 )
 print(dest.read_text(encoding="utf-8"))   # -> output/ley-5592105.md
 ```
@@ -146,13 +146,23 @@ same `outdir`, as `nota-{codNota}.md` — a legal provision already there from
 an earlier call (this law's own previous run, or another law's sharing the
 same `outdir`) is read back from disk instead of fetched again.
 
-The third argument, `nombre_ley` (as `download_legal_provisions_provenance_ids` names it,
-e.g. `"LEY de Amnistía"`), scopes every legal provision to the one instrument
+`nombre_ley` (as `download_legal_provisions_provenance_ids` names it, e.g.
+`"LEY de Amnistía"`), scopes every legal provision to the one instrument
 among the several a single decree may touch — pass it whenever a legal
 provision is shared with another law's history, which `leyesmx`'s data does
 not mark on its own. Left out, a legal provision is assumed to concern only
 this law, which holds for most of them but silently mixes in another law's
 articles for the rest.
+
+`source`, `min_confidence` and `keep_pages` are the same parameters
+`legal_provisions` itself takes, forwarded as-is to the call made for every
+legal provision in the history. The default here is `source="html"`, not
+`legal_provisions`'s own `"auto"`: the article-merge this function does
+(`_fusiona_articulo`) was designed and checked against HTML-derived
+Markdown, so a legal provision missing `cadenaContenido` still fails by
+default. Passing `source="image"` or `"pdf"` OCRs it instead of failing, but
+the merge's behavior on OCR output has not been validated — review the
+result before trusting it.
 
 ## `download_legal_provisions_provenance_ids` — a law's reform history
 
