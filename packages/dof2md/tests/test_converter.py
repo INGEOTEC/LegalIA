@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from dof2md.converter import (
     DEFAULT_TIMEOUT_SECONDS,
@@ -172,6 +172,18 @@ class TestConvertImagesToMarkdown(unittest.TestCase):
         for img in self.images:
             img.write_bytes(b"\xff\xd8\xff fake jpeg")
 
+        # Tests exercising the OCR path itself shouldn't spin up a real
+        # mineru-api process, so replace MineruServer with a stand-in and
+        # make sure no leftover MINERU_API_URL from another test leaks in.
+        mineru_server_patcher = patch("dof2md.converter.MineruServer")
+        self.mock_mineru_server_cls = mineru_server_patcher.start()
+        self.mock_mineru_server_cls.return_value = MagicMock()
+        self.addCleanup(mineru_server_patcher.stop)
+        env_patcher = patch.dict(os.environ, {}, clear=False)
+        env_patcher.start()
+        os.environ.pop(MINERU_API_URL_ENV_VAR, None)
+        self.addCleanup(env_patcher.stop)
+
     def tearDown(self):
         self.tmpdir.cleanup()
 
@@ -225,6 +237,42 @@ class TestConvertImagesToMarkdown(unittest.TestCase):
         mineru_dir = self.md_path.parent / "nota-5793654_mineru"
         for img in self.images:
             self.assertTrue((mineru_dir / img.stem / "auto" / f"{img.stem}.md").exists())
+
+    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    def test_keeps_one_mineru_server_alive_for_all_pages(self, mock_which, mock_run):
+        # A multi-page note used to start/stop mineru's own temporary server
+        # once per page (see issue #84); it should now share a single
+        # MineruServer across the whole page loop instead.
+        convert_images_to_markdown(self.images, self.md_path)
+
+        self.mock_mineru_server_cls.assert_called_once_with()
+        server = self.mock_mineru_server_cls.return_value
+        server.__enter__.assert_called_once()
+        server.__exit__.assert_called_once()
+        self.assertEqual(mock_run.call_count, len(self.images))
+
+    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    def test_skips_mineru_server_for_a_single_page(self, mock_which, mock_run):
+        # A one-page note has nothing to share a server across, so it should
+        # behave like before: no extra server is started.
+        convert_images_to_markdown(self.images[:1], self.md_path)
+
+        self.mock_mineru_server_cls.assert_not_called()
+
+    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    def test_skips_mineru_server_when_caller_already_running_one(self, mock_which, mock_run):
+        # If a caller is already batching multiple notes under its own
+        # MineruServer (MINERU_API_URL set), this shouldn't start a nested
+        # one on top of it.
+        with patch.dict(os.environ, {MINERU_API_URL_ENV_VAR: "http://127.0.0.1:9999"}):
+            convert_images_to_markdown(self.images, self.md_path)
+
+        self.mock_mineru_server_cls.assert_not_called()
+        cmd = mock_run.call_args[0][0]
+        self.assertIn("--api-url", cmd)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 from dof2md.mineru_server import ENV_VAR as MINERU_API_URL_ENV_VAR
+from dof2md.mineru_server import MineruServer
 from dof2md.tables import html_tables_to_markdown
 
 # Some real DOF editions run to hundreds of pages with heavy table content,
@@ -137,7 +138,15 @@ def convert_images_to_markdown(
     `keep_mineru_output`, like in convert_to_markdown(), keeps mineru's raw
     per-page output instead of discarding it — each page lands in its own
     `<md stem>_mineru/<image stem>/` subdirectory, mirroring how the
-    extracted figures are namespaced per page."""
+    extracted figures are namespaced per page.
+
+    A note spanning several pages OCRs each page with a separate `mineru`
+    invocation; left alone, that means reloading mineru's layout/OCR models
+    once per page. When MINERU_API_URL isn't already set (i.e. no caller is
+    already running a batch server across multiple notes) and there's more
+    than one page, this starts a MineruServer for the duration of the loop
+    so all of this note's pages share one already-warm server instead of
+    each page starting and stopping its own."""
     _require_mineru()
     image_paths = [Path(p) for p in image_paths]
     if not image_paths:
@@ -145,7 +154,9 @@ def convert_images_to_markdown(
 
     images_dirname = f"{md_path.stem}_images"
     parts = []
-    with _mineru_out_dir(md_path, keep_mineru_output) as tmp_out:
+    needs_server = len(image_paths) > 1 and MINERU_API_URL_ENV_VAR not in os.environ
+    server = MineruServer() if needs_server else contextlib.nullcontext()
+    with server, _mineru_out_dir(md_path, keep_mineru_output) as tmp_out:
         for image_path in image_paths:
             md_text, images_src = _run_mineru(image_path, tmp_out, timeout)
             if images_src is not None:
