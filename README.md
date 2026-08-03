@@ -22,7 +22,7 @@ on the project's [website](https://ingeotec.github.io/LegalIA/).
 
 ## Quick start
 
-`nota2md` has three entry points, all re-exported off the package itself.
+`nota2md` has five entry points, all re-exported off the package itself.
 
 For a modern legal provision, only `dofjson` and `nota2md` are needed —
 `dof2md` stays in the background, as `nota2md`'s OCR fallback for legal
@@ -38,11 +38,10 @@ pip install dofjson nota2md
 import datetime as dt
 from pathlib import Path
 
-from dofjson import client
-from nota2md import legal_provisions
+from nota2md import fetch_daily_legal_provisions, legal_provisions
 
 # Every legal provision published on a given day
-notas = client.quita_notas_sin_titulo(client.get_notas(dt.date(2026, 7, 15)))
+notas = fetch_daily_legal_provisions(dt.date(2026, 7, 15))
 cod_nota = notas["NotasMatutinas"][0]["codNota"]
 
 # The legal provision's Markdown, from its official HTML
@@ -72,13 +71,13 @@ dest = reconstruct_legal_provisions(cpeum["historial"], "output", cpeum["nombre"
 
 ### `download_legal_provisions_titles` — every legal provision ever published, as titles
 
-`dofjson.titulos.download_legal_provisions_titles` builds a compact `codNota` + `titulo` +
+`download_legal_provisions_titles` builds a compact `codNota` + `titulo` +
 `fecha` dataset covering every legal provision published since 1917 (~1.2
 million rows, a few tens of MB compressed):
 
 ```python
 from pathlib import Path
-from dofjson.titulos import download_legal_provisions_titles
+from nota2md import download_legal_provisions_titles
 
 download_legal_provisions_titles(Path("titulos.jsonl.gz"))
 ```
