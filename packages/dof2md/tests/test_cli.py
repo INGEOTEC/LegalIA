@@ -40,12 +40,21 @@ class TestMain(unittest.TestCase):
             self.assertEqual(pdf_path_arg, Path(tmpdir) / "05012010-MAT.pdf")
 
             mock_convert.assert_called_once_with(
-                Path(tmpdir) / "05012010-MAT.pdf", Path(tmpdir) / "05012010-MAT.md"
+                Path(tmpdir) / "05012010-MAT.pdf", Path(tmpdir) / "05012010-MAT.md",
+                keep_mineru_output=False,
             )
 
     def test_main_invalid_date_exits_with_error(self):
         with self.assertRaises(SystemExit):
             main(["not-a-date"])
+
+    @patch("dof2md.cli.convert_to_markdown")
+    @patch("dof2md.cli.download_pdf")
+    def test_main_passes_keep_mineru_output_flag(self, mock_download, mock_convert):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            main(["2010-01-05", "--outdir", tmpdir, "--keep-mineru-output"])
+
+            self.assertTrue(mock_convert.call_args.kwargs["keep_mineru_output"])
 
     @patch("dof2md.cli.convert_to_markdown")
     @patch("dof2md.cli.download_pdf")

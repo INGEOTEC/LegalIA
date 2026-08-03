@@ -28,6 +28,7 @@ class TestCli(unittest.TestCase):
             notas_del_dia=None,
             min_confidence=0.6,
             keep_pages=False,
+            keep_mineru_output=False,
         )
 
     @patch("nota2md.cli.legal_provisions")
@@ -39,7 +40,8 @@ class TestCli(unittest.TestCase):
 
         main([
             "5793655", "--source", "image", "--notas", str(notas_path),
-            "--min-confidence", "0.8", "--keep-pages", "--outdir", str(self.outdir),
+            "--min-confidence", "0.8", "--keep-pages", "--keep-mineru-output",
+            "--outdir", str(self.outdir),
         ])
 
         _, kwargs = mock_build.call_args
@@ -47,6 +49,7 @@ class TestCli(unittest.TestCase):
         self.assertEqual(kwargs["notas_del_dia"], notas)
         self.assertEqual(kwargs["min_confidence"], 0.8)
         self.assertTrue(kwargs["keep_pages"])
+        self.assertTrue(kwargs["keep_mineru_output"])
 
 
 if __name__ == "__main__":

@@ -37,6 +37,32 @@ class TestCutMarkdownByTitles(unittest.TestCase):
         self.assertGreaterEqual(located["start_confidence"], 0.9)
         self.assertGreaterEqual(located["end_confidence"], 0.9)
 
+    def test_boilerplate_echo_of_next_title_does_not_truncate_the_note(self):
+        # Reproduces issue #65 (codNota=4537691): the note's own opening
+        # sentence restates almost the same "sesión celebrada el día X de
+        # diciembre de mil novecientos ..." phrase as the NEXT note's title
+        # (only the day differs), and the OCR'd pages never actually reach
+        # the next note's title. A naive fuzzy match used to find enough
+        # scattered overlap right after the opening sentence to pass
+        # min_confidence, truncating the note down to just its title.
+        markdown = (
+            "## ACTA de la sesión celebrada el día ocho de diciembre de mil "
+            "novecientos diecinueve.\n\n"
+            "En la ciudad de México, a las cuatro y treinta de la tarde del "
+            "lunes ocho de diciembre de mil novecientos diez y nueve, con "
+            "asistencia de ciento cuarenta diputados se abrió la sesión.\n\n"
+            "Después de que se aprobó sin debate el acta de la sesión "
+            "celebrada el día cinco del presente mes, se dió cuenta con "
+            "estos documentos y se discutieron largamente los dictámenes "
+            "presentados por las comisiones respectivas antes de cerrar.\n"
+        )
+        titulo = "ACTA de la sesión celebrada el día ocho de diciembre de mil novecientos diecinueve"
+        siguiente = "ACTA de la sesión celebrada el día nueve de diciembre de mil novecientos diez y nueve"
+
+        cut = cut_markdown_by_titles(markdown, titulo, siguiente)
+
+        self.assertIn("se discutieron largamente los dictámenes", cut)
+
     def test_trims_org_header_preceding_next_title(self):
         # The DOF prints the next note's organism header ABOVE its title; that
         # header (and the blank lines around it) must not be left dangling at
