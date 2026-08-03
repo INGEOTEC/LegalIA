@@ -168,7 +168,9 @@ class TestConstruyeLeyContraElTextoVigenteReal(unittest.TestCase):
         for abrev, info in HISTORIAL.items():
             with self.subTest(ley=abrev):
                 real = (FIXTURES / f"{abrev}.md").read_text(encoding="utf-8")
-                dest = reconstruct_legal_provisions(info["historial"], self.outdir, info["nombre"])
+                dest = reconstruct_legal_provisions(
+                    info["historial"], self.outdir, nombre_ley=info["nombre"]
+                )
                 construida = dest.read_text(encoding="utf-8")
                 ratio, por_articulo = _similitud_por_ley(real, construida, info["nombre"], abrev)
                 promedios.append(ratio)
