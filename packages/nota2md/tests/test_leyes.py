@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from nota2md.leyes import (
     LeyNoReconstruible,
-    normative_reconstruction,
+    reconstruct_legal_provisions,
     normaliza_para_comparar,
 )
 
@@ -87,7 +87,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        dest = normative_reconstruction([1, 2], self.outdir)
+        dest = reconstruct_legal_provisions([1, 2], self.outdir)
         ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Texto reformado del artículo segundo", ley)
@@ -110,7 +110,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        dest = normative_reconstruction([1, 2], self.outdir)
+        dest = reconstruct_legal_provisions([1, 2], self.outdir)
         ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Texto del nuevo artículo", ley)
@@ -124,7 +124,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        dest = normative_reconstruction([1, 2], self.outdir)
+        dest = reconstruct_legal_provisions([1, 2], self.outdir)
         ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Artículo 2.", ley)
@@ -143,7 +143,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_ORIGINAL, reforma]
 
-        dest = normative_reconstruction([1, 2], self.outdir)
+        dest = reconstruct_legal_provisions([1, 2], self.outdir)
         ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Texto reformado del artículo primero", ley)
@@ -163,7 +163,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_CON_FRACCIONES, reforma]
 
-        dest = normative_reconstruction([1, 2], self.outdir)
+        dest = reconstruct_legal_provisions([1, 2], self.outdir)
         ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Encabezado del artículo", ley)
@@ -186,7 +186,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [PUBLICACION_CON_FRACCIONES, reforma]
 
-        dest = normative_reconstruction([1, 2], self.outdir)
+        dest = reconstruct_legal_provisions([1, 2], self.outdir)
         ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Contenido original de la fracción I.", ley)
@@ -227,7 +227,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [publicacion, reforma]
 
-        dest = normative_reconstruction([1, 2], self.outdir)
+        dest = reconstruct_legal_provisions([1, 2], self.outdir)
         ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("inciso a de la fracción I.", ley)
@@ -259,7 +259,7 @@ class TestConstruyeLey(unittest.TestCase):
         )
         mock_fetch.side_effect = [publicacion, reforma]
 
-        dest = normative_reconstruction([1, 2], self.outdir)
+        dest = reconstruct_legal_provisions([1, 2], self.outdir)
         ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Primer párrafo original", ley)
@@ -274,22 +274,46 @@ class TestConstruyeLey(unittest.TestCase):
     def test_la_publicacion_original_basta_sin_reformas(self, mock_fetch):
         mock_fetch.return_value = PUBLICACION_ORIGINAL
 
-        dest = normative_reconstruction([1], self.outdir)
+        dest = reconstruct_legal_provisions([1], self.outdir)
         ley = dest.read_text(encoding="utf-8")
 
         self.assertIn("Texto original del artículo primero", ley)
         self.assertIn("Texto original del artículo segundo", ley)
         self.assertIn("Texto original del artículo tercero", ley)
 
+    @patch("nota2md.leyes.legal_provisions")
+    @patch("nota2md.leyes.fetch_nota")
+    def test_source_min_confidence_y_keep_pages_se_reenvian_a_legal_provisions(
+        self, mock_fetch, mock_legal_provisions
+    ):
+        mock_fetch.return_value = PUBLICACION_ORIGINAL
+
+        def _fake_legal_provisions(cod_nota, outdir, source="auto", *, nota=None,
+                                    notas_del_dia=None, min_confidence=0.6, keep_pages=False):
+            md_path = Path(outdir) / f"nota-{cod_nota}.md"
+            md_path.write_text("Artículo 1. Texto.\n", encoding="utf-8")
+            return md_path
+
+        mock_legal_provisions.side_effect = _fake_legal_provisions
+
+        reconstruct_legal_provisions(
+            [1], self.outdir, source="image", min_confidence=0.9, keep_pages=True
+        )
+
+        mock_legal_provisions.assert_called_once_with(
+            1, self.outdir, source="image", nota=PUBLICACION_ORIGINAL,
+            min_confidence=0.9, keep_pages=True,
+        )
+
     def test_rechaza_una_lista_vacia(self):
         with self.assertRaises(ValueError):
-            normative_reconstruction([], self.outdir)
+            reconstruct_legal_provisions([], self.outdir)
 
     @patch("nota2md.leyes.fetch_nota")
     def test_nota_sin_html_es_un_error_claro(self, mock_fetch):
         mock_fetch.return_value = {"cadenaContenido": ""}
         with self.assertRaises(ValueError):
-            normative_reconstruction([1], self.outdir)
+            reconstruct_legal_provisions([1], self.outdir)
 
     @patch("nota2md.leyes.fetch_nota")
     def test_nota_original_solo_con_titulo_es_no_reconstruible(self, mock_fetch):
@@ -304,7 +328,7 @@ class TestConstruyeLey(unittest.TestCase):
             )
         }
         with self.assertRaises(LeyNoReconstruible) as ctx:
-            normative_reconstruction([1], self.outdir)
+            reconstruct_legal_provisions([1], self.outdir)
         self.assertIn("solo su título", str(ctx.exception))
 
     @patch("nota2md.leyes.fetch_nota")
@@ -319,7 +343,7 @@ class TestConstruyeLey(unittest.TestCase):
             )
         }
         with self.assertRaises(LeyNoReconstruible) as ctx:
-            normative_reconstruction([1], self.outdir)
+            reconstruct_legal_provisions([1], self.outdir)
         self.assertIn("no se reconoció", str(ctx.exception))
 
 
