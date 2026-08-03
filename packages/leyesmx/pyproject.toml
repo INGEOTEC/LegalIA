@@ -18,8 +18,9 @@ dependencies = [
     "requests>=2.31",
     # 0.3 trae titulos.lee_titulos. Antes esto usaba
     # microtc.utils.tweet_iterator, que lee el mismo formato pero
-    # arrastra numpy sin declararlo.
-    "dofjson>=0.3.0",
+    # arrastra numpy sin declararlo. 0.4 renombra download_titulos a
+    # download_legal_provisions_titles, que es el nombre que usa cli.py.
+    "dofjson>=0.4.0",
 ]
 
 [project.optional-dependencies]
