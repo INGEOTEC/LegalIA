@@ -3,8 +3,9 @@
 The `notas-archivo` GitHub release (see `archivo.py`) publishes one
 `notas-YYYY.tgz` per year (1917-2025) and one `notas-YYYY-MM.tgz` per month
 of the current year, each holding the per-day notes-index JSON files. This
-module downloads every asset straight into memory, extracts its daily JSONs
-without ever writing them to disk, and keeps only `codNota`, `titulo`
+module downloads every asset straight into memory by default (or reuses a
+`cache_dir` on disk, via `download_dof_assets`, if one is given), extracts
+its daily JSONs, and keeps only `codNota`, `titulo`
 (Spanish for "title"), `fecha` (Spanish for "date") and `codOrgaUno` (the
 note's top-level organism/branch code) from each note — `codNota` to fetch
 that note's full content later, `titulo` for exploratory analysis of the
@@ -69,6 +70,30 @@ def listar_assets(timeout: int = 30) -> list[dict]:
     ]
 
 
+def download_dof_assets(cache_dir: Path, timeout: int = 60, log=print) -> list[Path]:
+    """Download every notas-archivo `.tgz` asset into `cache_dir`, one per year/month.
+
+    Assets already present in `cache_dir` (matched by file name) are kept
+    as-is and not re-downloaded. Returns the local path of every asset, in
+    the same order as `listar_assets()`.
+    """
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    assets = listar_assets()
+    paths = []
+    for i, asset in enumerate(assets, 1):
+        path = cache_dir / asset["name"]
+        if path.exists():
+            log(f"[{i}/{len(assets)}] {asset['name']}: ya en caché")
+        else:
+            response = requests.get(asset["url"], headers=_HEADERS, timeout=timeout)
+            response.raise_for_status()
+            path.write_bytes(response.content)
+            log(f"[{i}/{len(assets)}] {asset['name']}: descargado")
+        paths.append(path)
+    return paths
+
+
 def _titulos_de_tgz(contenido: bytes, organigrama: dict | None = None):
     """Yield {"codNota", "titulo", "fecha", "codOrgaUno"} for every titled note
     inside a notas-YYYY[-MM].tgz.
@@ -109,7 +134,11 @@ def _titulos_de_tgz(contenido: bytes, organigrama: dict | None = None):
 
 
 def download_legal_provisions_titles(
-    dest: Path, organigrama_dest: Path | None = None, timeout: int = 60, log=print
+    dest: Path,
+    organigrama_dest: Path | None = None,
+    cache_dir: Path | None = None,
+    timeout: int = 60,
+    log=print,
 ) -> Path:
     """Build a codNota+titulo+fecha+codOrgaUno dataset (gzipped JSONL) out of
     every published note, plus a small codOrgaUno -> nombreCodOrgaUno map.
@@ -124,26 +153,43 @@ def download_legal_provisions_titles(
     `organigrama_dest` (default: `organigrama.json` next to `dest`) gets the
     codOrgaUno -> nombreCodOrgaUno map, built from the same notes as they are
     streamed, and written once at the end.
+
+    `cache_dir`, if given, is passed to `download_dof_assets` so assets are
+    fetched (or reused) from disk instead of downloaded straight into memory
+    — a rebuild then only fetches assets not already cached there.
     """
     dest = Path(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
     organigrama_dest = Path(organigrama_dest) if organigrama_dest else dest.with_name("organigrama.json")
     organigrama_dest.parent.mkdir(parents=True, exist_ok=True)
 
-    assets = listar_assets()
+    if cache_dir is not None:
+        asset_paths = download_dof_assets(cache_dir, timeout, log)
+    else:
+        asset_paths = None
+        assets = listar_assets()
     organigrama: dict = {}
 
     total = 0
     with gzip.open(dest, "wt", encoding="utf-8") as out:
-        for i, asset in enumerate(assets, 1):
-            response = requests.get(asset["url"], headers=_HEADERS, timeout=timeout)
-            response.raise_for_status()
-            n = 0
-            for titulo in _titulos_de_tgz(response.content, organigrama):
-                out.write(json.dumps(titulo, ensure_ascii=False) + "\n")
-                n += 1
-            total += n
-            log(f"[{i}/{len(assets)}] {asset['name']}: {n} notas")
+        if asset_paths is not None:
+            for i, path in enumerate(asset_paths, 1):
+                n = 0
+                for titulo in _titulos_de_tgz(path.read_bytes(), organigrama):
+                    out.write(json.dumps(titulo, ensure_ascii=False) + "\n")
+                    n += 1
+                total += n
+                log(f"[{i}/{len(asset_paths)}] {path.name}: {n} notas")
+        else:
+            for i, asset in enumerate(assets, 1):
+                response = requests.get(asset["url"], headers=_HEADERS, timeout=timeout)
+                response.raise_for_status()
+                n = 0
+                for titulo in _titulos_de_tgz(response.content, organigrama):
+                    out.write(json.dumps(titulo, ensure_ascii=False) + "\n")
+                    n += 1
+                total += n
+                log(f"[{i}/{len(assets)}] {asset['name']}: {n} notas")
 
     with open(organigrama_dest, "w", encoding="utf-8") as f:
         json.dump(organigrama, f, ensure_ascii=False, indent=2, sort_keys=True)
