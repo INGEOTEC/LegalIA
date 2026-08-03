@@ -66,7 +66,7 @@ cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
 
 # The law's current (vigente) text, reconstructed from nothing but its own
 # DOF legal provisions
-dest = reconstruct_legal_provisions(cpeum["historial"], "output", cpeum["nombre"])
+dest = reconstruct_legal_provisions(cpeum["historial"], "output", nombre_ley=cpeum["nombre"])
 ```
 
 ### `download_legal_provisions_titles` — every legal provision ever published, as titles
