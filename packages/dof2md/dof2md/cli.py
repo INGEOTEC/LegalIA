@@ -18,6 +18,11 @@ def parse_args(argv=None):
         help="Edition: MAT (morning, default) or VES (evening) — matches the DOF site's own file naming",
     )
     parser.add_argument("--outdir", default="output", help="Output directory (default: output/)")
+    parser.add_argument(
+        "--keep-mineru-output", action="store_true",
+        help="Keep mineru's raw output (layout/model JSON, rendered PDFs...) in "
+        "<outdir>/<pdf stem>_mineru/ instead of discarding it",
+    )
     return parser.parse_args(argv)
 
 
@@ -40,7 +45,7 @@ def main(argv=None):
 
     print("Converting to Markdown (mineru)...")
     try:
-        convert_to_markdown(pdf_path, md_path)
+        convert_to_markdown(pdf_path, md_path, keep_mineru_output=args.keep_mineru_output)
     except subprocess.TimeoutExpired:
         sys.exit(
             f"Conversion timed out after {DEFAULT_TIMEOUT_SECONDS}s. "
