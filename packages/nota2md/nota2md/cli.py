@@ -31,6 +31,11 @@ def parse_args(argv=None):
         "--keep-pages", action="store_true",
         help="Also keep the uncut, full-page OCR output as nota-<codNota>.full.md",
     )
+    parser.add_argument(
+        "--keep-mineru-output", action="store_true",
+        help="Also keep mineru's own raw output (layout/model JSON, rendered PDFs...) "
+        "under nota-<codNota>_mineru/, instead of discarding it (image/pdf paths only)",
+    )
     parser.add_argument("--outdir", default="output", help="Output directory (default: output/)")
     return parser.parse_args(argv)
 
@@ -49,6 +54,7 @@ def main(argv=None):
         notas_del_dia=notas_del_dia,
         min_confidence=args.min_confidence,
         keep_pages=args.keep_pages,
+        keep_mineru_output=args.keep_mineru_output,
     )
     print(f"Saved to: {dest}")
 

@@ -143,6 +143,23 @@ class TestConvertToMarkdown(unittest.TestCase):
         with self.assertRaises(subprocess.TimeoutExpired):
             convert_to_markdown(self.pdf_path, self.md_path)
 
+    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    def test_discards_mineru_output_by_default(self, mock_which, mock_run):
+        convert_to_markdown(self.pdf_path, self.md_path)
+
+        self.assertFalse((self.md_path.parent / "02011980-MAT_mineru").exists())
+
+    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    def test_keeps_mineru_output_when_requested(self, mock_which, mock_run):
+        convert_to_markdown(self.pdf_path, self.md_path, keep_mineru_output=True)
+
+        mineru_dir = self.md_path.parent / "02011980-MAT_mineru"
+        self.assertTrue(
+            (mineru_dir / "02011980-MAT" / "auto" / "02011980-MAT.md").exists()
+        )
+
 
 class TestConvertImagesToMarkdown(unittest.TestCase):
     def setUp(self):
@@ -192,6 +209,22 @@ class TestConvertImagesToMarkdown(unittest.TestCase):
     def test_raises_when_mineru_missing(self, mock_which):
         with self.assertRaises(RuntimeError):
             convert_images_to_markdown(self.images, self.md_path)
+
+    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    def test_discards_mineru_output_by_default(self, mock_which, mock_run):
+        convert_images_to_markdown(self.images, self.md_path)
+
+        self.assertFalse((self.md_path.parent / "nota-5793654_mineru").exists())
+
+    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    def test_keeps_mineru_output_per_page_when_requested(self, mock_which, mock_run):
+        convert_images_to_markdown(self.images, self.md_path, keep_mineru_output=True)
+
+        mineru_dir = self.md_path.parent / "nota-5793654_mineru"
+        for img in self.images:
+            self.assertTrue((mineru_dir / img.stem / "auto" / f"{img.stem}.md").exists())
 
 
 if __name__ == "__main__":
