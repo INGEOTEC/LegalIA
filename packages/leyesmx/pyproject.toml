@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "leyesmx"
-version = "0.3.0"
 description = "Reform history of Mexican federal legislation, linked to the DOF notes that published it."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -20,8 +19,9 @@ dependencies = [
     # microtc.utils.tweet_iterator, que lee el mismo formato pero
     # arrastra numpy sin declararlo. 0.4 renombra download_titulos a
     # download_legal_provisions_titles, que es el nombre que usa cli.py.
-    "dofjson>=0.4.0",
+    "dofjson>=0.4.1",
 ]
+dynamic = ['version']
 
 [project.optional-dependencies]
 test = ["pytest>=7.0"]
@@ -34,3 +34,6 @@ leyesmx = "leyesmx.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["leyesmx", "leyesmx.*"]
+
+[tool.setuptools.dynamic]
+version = {attr = 'leyesmx.__version__'}

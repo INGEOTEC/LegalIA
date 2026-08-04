@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dofjson"
-version = "0.4.0"
 description = "Prototype client for SIDOF's undocumented JSON open data service for Mexico's official gazette (DOF)."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -19,6 +18,7 @@ dependencies = [
     "requests>=2.31",
     "pypdf>=3.0",
 ]
+dynamic = ['version']
 
 [project.optional-dependencies]
 test = ["pytest>=7.0"]
@@ -36,3 +36,6 @@ include = ["dofjson", "dofjson.*"]
 # The certificate chain dofweb needs to verify www.dof.gob.mx, whose server
 # omits the intermediate that signs it.
 dofjson = ["certs/*.pem"]
+
+[tool.setuptools.dynamic]
+version = {attr = 'dofjson.__version__'}
