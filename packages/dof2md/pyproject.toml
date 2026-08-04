@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dof2md"
-version = "0.1.2"
 description = "Download editions of Mexico's official gazette (DOF) as PDF and convert them to Markdown."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -20,6 +19,7 @@ dependencies = [
     "requests>=2.31",
     "mineru[pipeline]",
 ]
+dynamic = ['version']
 
 [project.optional-dependencies]
 test = ["pytest>=7.0"]
@@ -32,3 +32,6 @@ dof2md = "dof2md.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["dof2md", "dof2md.*"]
+
+[tool.setuptools.dynamic]
+version = {attr = 'dof2md.__version__'}

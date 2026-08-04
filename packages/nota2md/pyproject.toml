@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nota2md"
-version = "0.4.1"
 description = "Build a DOF note's Markdown, reconstruct a law's current text from its notes, and read back its reform history."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -24,6 +23,7 @@ dependencies = [
     "dofjson>=0.4.0",
     "requests>=2.31",
 ]
+dynamic = ['version']
 
 [project.optional-dependencies]
 ocr = ["dof2md>=0.1.0"]
@@ -37,3 +37,6 @@ nota2md = "nota2md.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["nota2md", "nota2md.*"]
+
+[tool.setuptools.dynamic]
+version = {attr = 'nota2md.__version__'}
