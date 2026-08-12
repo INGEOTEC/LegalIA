@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -149,6 +150,35 @@ def download_nota_imagenes(
     return dests
 
 
+_PAGINA_HEADER_WINDOW = 120
+
+
+def _detectar_offset_paginacion(reader, paginas_conocidas: set[int]) -> int | None:
+    """Best-effort: work out the (printed page number - physical index)
+    offset of an edition PDF, by looking for one of the day's known printed
+    `pagina` numbers near the top of each physical page's extracted text.
+
+    Modern editions restart their own printed numbering at 1 on the
+    edition's cover, so `pagina - 1` is already a valid physical index
+    (offset 1). But old digitized volumes often carry a running page count
+    from a bound "tomo" spanning many editions (issue #95): their first
+    physical page prints no visible number at all, and later pages resume a
+    much larger count. Matching the day's actual page numbers against what
+    each physical page prints works for both, instead of assuming offset 1.
+    """
+    votos: dict[int, int] = {}
+    for indice, page in enumerate(reader.pages):
+        texto = (page.extract_text() or "")[:_PAGINA_HEADER_WINDOW]
+        for numero in re.findall(r"\d{1,5}", texto):
+            numero = int(numero)
+            if numero in paginas_conocidas:
+                offset = numero - indice
+                votos[offset] = votos.get(offset, 0) + 1
+    if not votos:
+        return None
+    return max(votos, key=votos.get)
+
+
 def download_nota_pdf(
     cod_nota: int, outdir: Path, nota: dict | None = None
 ) -> Path:
@@ -161,8 +191,10 @@ def download_nota_pdf(
     download_nota_imagenes(): a PDF holding just the note's pages, ready to
     hand to dof2md. Works for any note, with or without HTML content.
 
-    Note: the slice uses the note's printed `pagina` numbers as physical PDF
-    page indices (page N → index N-1), which holds for these editions.
+    Note: the note's printed `pagina` numbers are matched against the
+    edition PDF's own printed page numbers (see
+    _detectar_offset_paginacion()) to work out the physical PDF page index,
+    rather than assuming `pagina - 1` always is one (see issue #95).
 
     Pass an already-fetched `nota` to skip an extra get_nota() request."""
     from pypdf import PdfReader, PdfWriter
@@ -172,7 +204,11 @@ def download_nota_pdf(
     outdir.mkdir(parents=True, exist_ok=True)
 
     fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
-    paginas = infer_paginas(nota, get_notas(fecha))
+    notas_del_dia = get_notas(fecha)
+    paginas = infer_paginas(nota, notas_del_dia)
+    paginas_conocidas = {
+        n["pagina"] for n in notas_del_dia[_EDICION_LISTAS[nota["codEdicion"]]]
+    }
     dest = outdir / f"nota-{cod_nota}.pdf"
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -180,9 +216,12 @@ def download_nota_pdf(
         download_pdf(nota["codDiario"], edicion_pdf)
 
         reader = PdfReader(str(edicion_pdf))
+        offset = _detectar_offset_paginacion(reader, paginas_conocidas)
+        if offset is None:
+            offset = 1
         writer = PdfWriter()
         for pagina in paginas:
-            indice = pagina - 1
+            indice = pagina - offset
             if indice < 0 or indice >= len(reader.pages):
                 raise ValueError(
                     f"nota {cod_nota}: página {pagina} fuera del PDF de la edición "
