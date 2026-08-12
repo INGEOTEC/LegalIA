@@ -205,6 +205,53 @@ download_legal_provisions_titles(Path("titulos.jsonl.gz"))
 dofjson --titulos --outdir output    # -> output/titulos.jsonl.gz
 ```
 
+## `markdown_to_akoma_ntoso` — experimental Akoma Ntoso (OASIS LegalDocML) conversion
+
+**Experimental — not one of the entry points above.** A first-pass mapping
+from nota2md's own Markdown (as `legal_provisions()`/`reconstruct_legal_provisions()`
+write it) to [Akoma Ntoso](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=legaldocml)
+XML, the OASIS standard vocabulary for structured legal documents — see
+[issue #91](https://github.com/INGEOTEC/LegalIA/issues/91) for the
+specification review this implements against, now checked against the real
+`akomantoso30.xsd` schema of the OASIS Standard (29 August 2018), not just
+its prose (see the module's own docstring, `nota2md/akoma_ntoso.py`, for the
+full list of corrections that check turned up):
+
+```python
+from pathlib import Path
+from nota2md import download_legal_provisions_provenance_ids, reconstruct_legal_provisions
+from nota2md.akoma_ntoso import markdown_to_akoma_ntoso
+
+leyes = download_legal_provisions_provenance_ids("leyes")
+cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
+
+md_path = reconstruct_legal_provisions(cpeum["historial"], Path("output"), nombre_ley=cpeum["nombre"])
+xml_path = markdown_to_akoma_ntoso(md_path, Path("output"), fecha="2024-09-15")
+```
+
+`fecha` genuinely matters, not just for a resolvable IRI: `FRBRdate` is
+mandatory at every FRBR level and typed `xsd:date`, so leaving it out
+produces XML that is not schema-valid at all (`numero` is the one that is
+truly optional — the opposite of what issue #91 first assumed before
+checking the schema). `FRBRauthor` needs no parameter — the DOF is always
+the issuing authority, so it is always filled in as `href="#dof"`.
+
+Akoma Ntoso has no native element for "Transitorios" (or "Considerandos");
+this follows the convention the standard's own official examples use for
+that kind of gap — a plain `<section refersTo="#transitorios">` (the schema
+has no `name` attribute on `section` at all, unlike what issue #91 first
+guessed), with a matching `<TLCConcept>` declared under
+`<meta>/<references>` so `refersTo` actually resolves to something, the way
+the official examples' own do. Fracciones/incisos inside an article
+(markdown blocks like `"**I.**"`/`"**a)**"`) are nested into Akoma Ntoso's
+own `<paragraph>`/`<point>` hierarchy — a DOF article can legally repeat the
+same fracción label under two separate "I. a X." lists, which is
+disambiguated rather than left to collide (eId must be unique across the
+whole `<act>`). Spanish is `"esp"` (`FRBRlanguage` and the IRI's own
+language segment), matching the official Uruguayan example, not the ISO
+639-2 code `"spa"` this module used at first. See the module's own
+docstring for the complete, current list of what is and is not covered.
+
 ## Installation
 
 ```bash
