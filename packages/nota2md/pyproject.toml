@@ -26,7 +26,7 @@ dependencies = [
 dynamic = ['version']
 
 [project.optional-dependencies]
-ocr = ["dof2md>=0.1.0"]
+ocr = ["dof2md>=0.1.2"]
 test = ["pytest>=7.0", "xmlschema>=3.0"]
 
 [project.urls]

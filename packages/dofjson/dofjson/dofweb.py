@@ -9,7 +9,7 @@ nothing while the DOF ran the decree amending articles 16, 19, 22 and 123 of
 the Constitution. The note is unreachable from SIDOF by any route — its
 codNota returns `{"Nota": []}` and its codDiario 404s.
 
-The DOF's public website, `www.dof.gob.mx`, is a separate system built on a
+The DOF's public website, `dof.gob.mx`, is a separate system built on a
 separate database, and it does have those days. This module reads it and
 returns what it finds in the shapes `client` uses, so a caller can substitute
 one for the other:
@@ -49,12 +49,19 @@ where titles can actually be recovered.
 
 TLS
 ---
-`www.dof.gob.mx` serves its leaf certificate without the intermediate that
-signs it, so verification fails with "unable to get local issuer certificate"
-on any client that does not chase the issuer itself. The missing GoDaddy
-intermediate ships in `certs/dof-gob-mx-chain.pem`. The system trust store is
-tried first, and the bundled chain is used only if that fails — certificate
-verification is never turned off.
+The DOF's certificate covers `dof.gob.mx` only — no SAN for the `www`
+subdomain — so requesting `https://www.dof.gob.mx` fails hostname
+verification outright, on any client, regardless of trust store. BASE_URL
+therefore points at the bare domain, whose redirects (e.g. off
+`nota_detalle.php`) stay on it too.
+
+Separately, `dof.gob.mx` serves its leaf certificate without the
+intermediate that signs it, so verification can still fail with "unable to
+get local issuer certificate" on a client that does not chase the issuer
+itself. The missing GoDaddy intermediate ships in
+`certs/dof-gob-mx-chain.pem`. The system trust store is tried first, and the
+bundled chain is used only if that fails — certificate verification is never
+turned off.
 """
 
 import datetime as dt
@@ -64,7 +71,7 @@ from pathlib import Path
 
 import requests
 
-BASE_URL = "https://www.dof.gob.mx"
+BASE_URL = "https://dof.gob.mx"
 FUENTE = "dof.gob.mx"
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; DOF-JSON-Client/1.0)"}
 
