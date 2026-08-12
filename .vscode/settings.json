@@ -1,4 +1,4 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python.analysis.extraPaths": ["./packages"]
+    "python.analysis.extraPaths": ["./packages", "./packages/dof2md", "./packages/dofjson", "./packages/leyesmx", "./packages/nota2md"]
 }
