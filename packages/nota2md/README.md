@@ -205,6 +205,37 @@ download_legal_provisions_titles(Path("titulos.jsonl.gz"))
 dofjson --titulos --outdir output    # -> output/titulos.jsonl.gz
 ```
 
+## `markdown_to_akoma_ntoso` — experimental Akoma Ntoso (OASIS LegalDocML) conversion
+
+**Experimental — not one of the entry points above.** A first-pass mapping
+from nota2md's own Markdown (as `legal_provisions()`/`reconstruct_legal_provisions()`
+write it) to [Akoma Ntoso](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=legaldocml)
+XML, the OASIS standard vocabulary for structured legal documents — see
+[issue #91](https://github.com/INGEOTEC/LegalIA/issues/91) for the
+specification review this implements against. It covers the structural part
+of a legal provision that review found well-defined (preamble / article /
+Transitorios), not the bibliographic identification machinery
+(FRBRWork/Expression/Manifestation IRIs) — issue #91 found no reliable way to
+derive a DOF decree's "número" from the note alone, so the IRI this emits is a
+placeholder unless `fecha`/`numero` are supplied:
+
+```python
+from pathlib import Path
+from nota2md import legal_provisions
+from nota2md.akoma_ntoso import markdown_to_akoma_ntoso
+
+md_path = legal_provisions(5793639, Path("output"), source="html")
+xml_path = markdown_to_akoma_ntoso(md_path, Path("output"), fecha="2026-01-09")
+```
+
+Akoma Ntoso has no native element for "Transitorios" (or "Considerandos");
+this follows the convention issue #91 sketched for that gap — a plain
+`<section>` carrying a `name` attribute, instead of inventing a new element.
+Fracciones/incisos inside an article are not yet nested into Akoma Ntoso's
+own `<paragraph>`/`<point>` hierarchy — see the module's own docstring
+(`nota2md/akoma_ntoso.py`) for the full list of what this first pass does and
+does not cover.
+
 ## Installation
 
 ```bash
