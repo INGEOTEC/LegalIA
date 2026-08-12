@@ -240,9 +240,17 @@ Akoma Ntoso has no native element for "Transitorios" (or "Considerandos");
 this follows the convention the standard's own official examples use for
 that kind of gap — a plain `<section refersTo="#transitorios">` (the schema
 has no `name` attribute on `section` at all, unlike what issue #91 first
-guessed). Fracciones/incisos inside an article are not yet nested into
-Akoma Ntoso's own `<paragraph>`/`<point>` hierarchy — see the module's own
-docstring for the full list of what this first pass does and does not cover.
+guessed), with a matching `<TLCConcept>` declared under
+`<meta>/<references>` so `refersTo` actually resolves to something, the way
+the official examples' own do. Fracciones/incisos inside an article
+(markdown blocks like `"**I.**"`/`"**a)**"`) are nested into Akoma Ntoso's
+own `<paragraph>`/`<point>` hierarchy — a DOF article can legally repeat the
+same fracción label under two separate "I. a X." lists, which is
+disambiguated rather than left to collide (eId must be unique across the
+whole `<act>`). Spanish is `"esp"` (`FRBRlanguage` and the IRI's own
+language segment), matching the official Uruguayan example, not the ISO
+639-2 code `"spa"` this module used at first. See the module's own
+docstring for the complete, current list of what is and is not covered.
 
 ## Installation
 

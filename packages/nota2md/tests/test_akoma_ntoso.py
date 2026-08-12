@@ -63,7 +63,8 @@ class TestMarkdownToAkomaNtoso(unittest.TestCase):
         self.assertNotIn("Artículo 1.", _texto(articulos[0].find("akn:content", _NS)))
 
         transitorios = act.find("akn:body/akn:section", _NS)
-        self.assertEqual(transitorios.get("eId"), "transitorios")
+        self.assertEqual(transitorios.get("eId"), "sec_transitorios")
+        self.assertEqual(transitorios.get("refersTo"), "#transitorios")
         self.assertEqual(transitorios.find("akn:heading", _NS).text, "Transitorios")
         contenido = _texto(transitorios.find("akn:content", _NS))
         self.assertIn("Entrará en vigor al día siguiente.", contenido)
@@ -78,6 +79,41 @@ class TestMarkdownToAkomaNtoso(unittest.TestCase):
         b = p.find("akn:b", _NS)
         self.assertIsNotNone(b)
         self.assertEqual(b.text, "palabra en negrita")
+
+    def test_fracciones_e_incisos_se_anidan_como_paragraph_y_point(self):
+        root = self._convierte(
+            "**Artículo 1.** Encabezado del artículo.\n\n"
+            "**I.** Contenido de la fracción I.\n\n"
+            "**II.** Encabezado de la fracción II.\n\n"
+            "**a)** Contenido del inciso a).\n\n"
+            "**b)** Contenido del inciso b).\n\n"
+            "**III.** Contenido de la fracción III.\n"
+        )
+        articulo = root.find("akn:act/akn:body/akn:article", _NS)
+        self.assertIsNone(articulo.find("akn:content", _NS))  # flat <content> and nested hierarchy never mix
+        self.assertIn("Encabezado del artículo.", _texto(articulo.find("akn:intro", _NS)))
+
+        fracciones = articulo.findall("akn:paragraph", _NS)
+        self.assertEqual([f.get("eId") for f in fracciones], ["art_1__I", "art_1__II", "art_1__III"])
+        self.assertEqual(fracciones[0].find("akn:num", _NS).text, "I.")
+        self.assertIn("Contenido de la fracción I.", _texto(fracciones[0].find("akn:content", _NS)))
+
+        incisos = fracciones[1].findall("akn:point", _NS)
+        self.assertEqual([i.get("eId") for i in incisos], ["art_1__II__a", "art_1__II__b"])
+        self.assertIn("Encabezado de la fracción II.", _texto(fracciones[1].find("akn:intro", _NS)))
+        self.assertIn("Contenido del inciso a).", _texto(incisos[0].find("akn:content", _NS)))
+
+    def test_etiqueta_de_fraccion_repetida_no_colisiona_de_eid(self):
+        # A DOF article can restate "I." under two separate "I. a X." lists.
+        root = self._convierte(
+            "**Artículo 1.** Encabezado.\n\n"
+            "**I.** Primera lista, fracción I.\n\n"
+            "**I.** Segunda lista, fracción I otra vez.\n"
+        )
+        fracciones = root.findall("akn:act/akn:body/akn:article/akn:paragraph", _NS)
+        eids = [f.get("eId") for f in fracciones]
+        self.assertEqual(eids, ["art_1__I", "art_1__I_2"])
+        self.assertEqual(len(eids), len(set(eids)))
 
     def test_sin_fecha_ni_numero_usa_placeholder_explicito(self):
         root = self._convierte("**Artículo 1.** Texto.\n")
@@ -147,6 +183,17 @@ class TestValidacionContraElEsquemaOficial(unittest.TestCase):
             "**Único.** Entrará en vigor al día siguiente.\n",
             fecha="2006-06-28",
             numero="1",
+        )
+        self.schema.validate(str(dest))
+
+    def test_valido_con_fracciones_e_incisos_repetidos(self):
+        dest = self._convierte(
+            "**Artículo 1.** Encabezado.\n\n"
+            "**I.** Primera lista, fracción I.\n\n"
+            "**II.** Encabezado de la fracción II.\n\n"
+            "**a)** Contenido del inciso a).\n\n"
+            "**I.** Segunda lista, fracción I otra vez.\n",
+            fecha="2024-09-15",
         )
         self.schema.validate(str(dest))
 
