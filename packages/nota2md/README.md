@@ -252,6 +252,44 @@ language segment), matching the official Uruguayan example, not the ISO
 639-2 code `"spa"` this module used at first. See the module's own
 docstring for the complete, current list of what is and is not covered.
 
+[Issue #93](https://github.com/INGEOTEC/LegalIA/issues/93) asked for the
+other direction too: `akoma_ntoso_to_markdown()` reads an `<akomaNtoso>`
+XML file back into nota2md's own Markdown — `<b>` back to `**bold**`, a
+fracción/inciso's `<num>` back to its `"**I.**"`/`"**a)**"` label, and so
+on:
+
+```python
+from nota2md.akoma_ntoso import akoma_ntoso_to_markdown, markdown_to_akoma_ntoso
+
+xml_path = markdown_to_akoma_ntoso(md_path, Path("output"), fecha="2024-09-15")
+md_path_de_vuelta = akoma_ntoso_to_markdown(xml_path, Path("output"))
+```
+
+Written to ``outdir/{stem}.md`` (`stem` is the XML file's own stem with a
+trailing `.akn` dropped, so `markdown_to_akoma_ntoso`'s own
+`"{md_path.stem}.akn.xml"` round-trips back to `"{md_path.stem}.md"`, not
+`"{md_path.stem}.akn.md"`). It is a best-effort inverse, not a lossless
+one: information the forward conversion never keeps in the XML at all —
+the note's own H1 title, any "#"/"##" Markdown heading other than
+Transitorios' own (Akoma Ntoso has no dedicated element for a `<preamble>`
+paragraph that happened to be a heading, unlike `<section>`'s `<heading>`)
+— cannot be recovered from the XML alone.
+
+Checked against a real note too, not just hand-written Markdown snippets:
+`tests/test_akoma_ntoso_red.py` round-trips a real CONAGUA "acuerdo"
+(codNota 5793639, the same one #91/#92 verified by hand) through both
+converters and measures how close the result lands to the original with
+`difflib`, the same way `test_leyes_44.py` scores a reconstruction against
+its own ground truth — ~0.996 similarity once Markdown syntax is folded
+away, the gap being almost entirely that dropped H1 title. Like
+`test_leyes_44.py`, it makes a real network call and is excluded from the
+default run:
+
+```bash
+pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
+    --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py
+```
+
 ## Installation
 
 ```bash
