@@ -7,3 +7,6 @@ scipy
 wordcloud
 jupyter
 pandas
+google-colab-cli
+jupyter-kernel-client<1.0.0
+tqdm
