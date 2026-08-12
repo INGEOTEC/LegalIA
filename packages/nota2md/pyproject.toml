@@ -27,7 +27,7 @@ dependencies = [
 
 [project.optional-dependencies]
 ocr = ["dof2md>=0.1.0"]
-test = ["pytest>=7.0"]
+test = ["pytest>=7.0", "xmlschema>=3.0"]
 
 [project.urls]
 Homepage = "https://github.com/INGEOTEC/LegalIA/tree/main/packages/nota2md"

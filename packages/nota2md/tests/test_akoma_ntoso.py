@@ -3,9 +3,16 @@ import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import xmlschema
+
 from nota2md.akoma_ntoso import AKN_NS, markdown_to_akoma_ntoso
 
 _NS = {"akn": AKN_NS}
+# Vendored from the OASIS Standard (29 August 2018) itself — see
+# http://docs.oasis-open.org/legaldocml/akn-core/v1.0/os/part2-specs/schemas/ —
+# not fetched at test time so this check does not depend on the network or
+# on OASIS's docs site staying up.
+_XSD = Path(__file__).parent / "fixtures" / "akn" / "akomantoso30.xsd"
 
 
 def _texto(elemento) -> str:
@@ -44,7 +51,7 @@ class TestMarkdownToAkomaNtoso(unittest.TestCase):
         act = root.find("akn:act", _NS)
         self.assertEqual(act.get("name"), "decreto")
 
-        preamble = act.find("akn:body/akn:preamble", _NS)
+        preamble = act.find("akn:preamble", _NS)
         self.assertIn("Al margen un sello.", _texto(preamble))
         self.assertIn("Que el Honorable Congreso decreta:", _texto(preamble))
 
@@ -109,3 +116,46 @@ class TestMarkdownToAkomaNtoso(unittest.TestCase):
         root = self._convierte(markdown, nombre_ley="Ley B")
         contenido = _texto(root.find("akn:act/akn:body/akn:article", _NS))
         self.assertIn("Texto de la Ley B.", contenido)
+
+
+class TestValidacionContraElEsquemaOficial(unittest.TestCase):
+    """Validates the generated XML against the real OASIS Standard XSD
+    (akomantoso30.xsd), not just against our own idea of its structure —
+    the schema review issue #91 asked for, made into a permanent check
+    instead of a one-off manual run."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.schema = xmlschema.XMLSchema(str(_XSD))
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.outdir = Path(self.tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def _convierte(self, markdown: str, **kwargs) -> Path:
+        md_path = self.outdir / "nota-1.md"
+        md_path.write_text(markdown, encoding="utf-8")
+        return markdown_to_akoma_ntoso(md_path, self.outdir, **kwargs)
+
+    def test_valido_con_fecha(self):
+        dest = self._convierte(
+            "**Artículo 1.** Texto original del artículo primero.\n\n"
+            "## Transitorios\n\n"
+            "**Único.** Entrará en vigor al día siguiente.\n",
+            fecha="2006-06-28",
+            numero="1",
+        )
+        self.schema.validate(str(dest))
+
+    def test_invalido_sin_fecha(self):
+        """FRBRdate is mandatory at every FRBR level (coreProperties in the
+        XSD) and typed `xsd:date` — there is no placeholder string that
+        could stand in for a missing one, so omitting `fecha` genuinely
+        produces schema-invalid output, not just an unresolvable IRI. This
+        pins that down as a real, tested constraint instead of a guess."""
+        dest = self._convierte("**Artículo 1.** Texto sin fecha.\n")
+        with self.assertRaises(xmlschema.XMLSchemaValidationError):
+            self.schema.validate(str(dest))
