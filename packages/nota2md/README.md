@@ -275,6 +275,21 @@ Transitorios' own (Akoma Ntoso has no dedicated element for a `<preamble>`
 paragraph that happened to be a heading, unlike `<section>`'s `<heading>`)
 — cannot be recovered from the XML alone.
 
+Checked against a real note too, not just hand-written Markdown snippets:
+`tests/test_akoma_ntoso_red.py` round-trips a real CONAGUA "acuerdo"
+(codNota 5793639, the same one #91/#92 verified by hand) through both
+converters and measures how close the result lands to the original with
+`difflib`, the same way `test_leyes_44.py` scores a reconstruction against
+its own ground truth — ~0.996 similarity once Markdown syntax is folded
+away, the gap being almost entirely that dropped H1 title. Like
+`test_leyes_44.py`, it makes a real network call and is excluded from the
+default run:
+
+```bash
+pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
+    --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py
+```
+
 ## Installation
 
 ```bash
