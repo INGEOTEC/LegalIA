@@ -5,19 +5,51 @@ OASIS LegalDocML vocabulary for structured legal documents. This is the
 formal specification) asked for, not a complete implementation of the
 standard: it covers the part of a DOF legal provision the spec review found
 well-defined (preamble / article / Transitorios), not the full bibliographic
-identification machinery (FRBRWork/Expression/Manifestation IRIs), which
-issue #91 itself flags as unresolved — a DOF decree does not reliably carry
-a clean "número" to build a real, resolvable IRI from.
+identification machinery, which is still incomplete (see below).
 
-Akoma Ntoso has no native element for "Transitorios" (nor "Considerandos");
-this follows the convention issue #91 sketched for that gap: a plain
-<section> carrying a `name` attribute that names its role, instead of
-inventing a new element outside the standard's closed vocabulary.
+Checked against the real thing, not just the prose spec: this module's
+output is validated in `tests/test_akoma_ntoso.py` against akomantoso30.xsd,
+the actual normative schema of the OASIS Standard (29 August 2018, vendored
+in `tests/fixtures/akn/` — issue #91's original links pointed at an older,
+pre-standard 2016 draft (csprd02) that even uses a different XML namespace;
+the real one is `http://docs.oasis-open.org/legaldocml/ns/akn/3.0`, matching
+what this module emits). Cross-checked against two of OASIS's own official
+Spanish-language examples too (Uruguay, Chile).
 
-Fracciones/incisos (markdown blocks like "**I.**"/"**a)**" inside an
-article) are NOT nested into Akoma Ntoso's own <paragraph>/<point> hierarchy
-yet — they are kept as sibling <p> paragraphs under the article's <content>,
-same as any other block. Modeling that nesting is left for a later pass.
+That check corrected two assumptions from #91's own preliminary read of the
+spec text:
+- `<preamble>` is `<act>`'s own child, a sibling of `<body>` — NOT nested
+  inside it. `<body>`'s content model only allows the hierarchical elements
+  (article, section, ...), nothing else.
+- **`fecha` (FRBRdate), not `número` (FRBRnumber), is the metadata issue #91
+  should have worried about.** `FRBRWork`/`Expression`/`Manifestation` all
+  require a `FRBRdate` (`coreProperties` in the schema — typed `xsd:date`,
+  so no placeholder string can stand in for a missing one) and a
+  `FRBRauthor`; `FRBRnumber` is genuinely optional. Without `fecha`, this
+  module's output is NOT schema-valid — not just "not a resolvable IRI" as
+  originally framed — see `test_invalido_sin_fecha`. `FRBRauthor` needs no
+  parameter at all: the DOF is always the issuing authority, so it is filled
+  in unconditionally (`href="#dof"`).
+
+Still open after this pass (i.e., still not a complete implementation):
+- Akoma Ntoso has no native element for "Transitorios" (nor
+  "Considerandos"/"Vistos"); this follows the real convention the official
+  examples use for that kind of gap — a plain <section refersTo="#..."> —
+  rather than the `name` attribute #91 first guessed (the schema does not
+  actually declare a `name` attribute on `section`). `refersTo`'s target
+  ("#transitorios") is not, itself, declared anywhere under
+  `<meta>/<references>` yet, unlike the official examples' own `refersTo`
+  targets — a `<TLCConcept>` entry for it is a natural next step, not done
+  here.
+- Fracciones/incisos (markdown blocks like "**I.**"/"**a)**" inside an
+  article) are NOT nested into Akoma Ntoso's own <paragraph>/<point>
+  hierarchy yet — they are kept as sibling <p> paragraphs under the
+  article's <content>, same as any other block.
+- The official Uruguayan example spells Spanish as `language="esp"`; this
+  module uses the ISO 639-2 code `"spa"` instead. Both are schema-valid
+  (the attribute is unrestricted), but which convention other Spanish-
+  language implementations actually settled on is an open question, not
+  resolved here.
 """
 
 import re
@@ -102,13 +134,32 @@ def _eid(numero: str) -> str:
     return "art_" + re.sub(r"\s+", "_", numero.strip())
 
 
+def _coreProperties(elemento: ET.Element, this_iri: str, uri: str, fecha: str | None) -> None:
+    """FRBRthis/FRBRuri/FRBRdate/FRBRauthor, in the exact order and
+    mandatory-ness `coreProperties` requires at every FRBR level (Work,
+    Expression and Manifestation alike) — see akomantoso30.xsd. FRBRdate is
+    genuinely required there (and typed `xsd:date`, so no placeholder string
+    can stand in for a missing one): a document built without `fecha` is
+    NOT schema-valid, full stop, unlike FRBRnumber below (optional). FRBRauthor
+    is required too, but does not depend on anything nota2md's Markdown
+    itself carries — the DOF is always the issuing authority — so it is
+    filled in unconditionally.
+    """
+    ET.SubElement(elemento, "FRBRthis", {"value": this_iri})
+    ET.SubElement(elemento, "FRBRuri", {"value": uri})
+    if fecha:
+        ET.SubElement(elemento, "FRBRdate", {"date": fecha, "name": "publication"})
+    ET.SubElement(elemento, "FRBRauthor", {"href": "#dof"})
+
+
 def _identification(subtipo: str, fecha: str | None, numero: str | None) -> ET.Element:
-    """A best-effort <identification> block: FRBRcountry is always "mx"
-    (this project only covers the federal DOF), but the IRI's "fecha" and
-    "numero" segments fall back to a literal placeholder when not given —
-    issue #91 found no reliable way to derive a DOF decree's "número" from
-    the note alone, so this is NOT a resolvable IRI unless the caller
-    supplies both.
+    """A best-effort <identification> block. The IRI's "fecha" and "numero"
+    segments fall back to a literal, non-resolvable placeholder when not
+    given — issue #91 found no reliable way to derive a DOF decree's
+    "número" from the note alone. Per the real schema this placeholder is
+    harmless for `numero` (FRBRnumber is optional there) but not for
+    `fecha` — see `_coreProperties` for why that one genuinely blocks
+    schema validity, not just IRI resolvability.
     """
     fecha_iri = fecha or "sin-fecha"
     numero_iri = numero or "sin-numero"
@@ -116,22 +167,19 @@ def _identification(subtipo: str, fecha: str | None, numero: str | None) -> ET.E
 
     identification = ET.Element("identification", {"source": "#legalia"})
     work = ET.SubElement(identification, "FRBRWork")
-    ET.SubElement(work, "FRBRthis", {"value": f"{work_iri}/main"})
-    ET.SubElement(work, "FRBRuri", {"value": work_iri})
-    if fecha:
-        ET.SubElement(work, "FRBRdate", {"date": fecha, "name": "publication"})
+    _coreProperties(work, f"{work_iri}/!main", work_iri, fecha)
     ET.SubElement(work, "FRBRcountry", {"value": "mx"})
+    if numero:
+        ET.SubElement(work, "FRBRnumber", {"value": numero})
 
     expression_iri = f"{work_iri}/spa@"
     expression = ET.SubElement(identification, "FRBRExpression")
-    ET.SubElement(expression, "FRBRthis", {"value": f"{expression_iri}/main"})
-    ET.SubElement(expression, "FRBRuri", {"value": expression_iri})
+    _coreProperties(expression, f"{expression_iri}/!main", expression_iri, fecha)
     ET.SubElement(expression, "FRBRlanguage", {"language": "spa"})
 
     manifestation_iri = f"{expression_iri}.xml"
     manifestation = ET.SubElement(identification, "FRBRManifestation")
-    ET.SubElement(manifestation, "FRBRthis", {"value": f"{manifestation_iri}/main"})
-    ET.SubElement(manifestation, "FRBRuri", {"value": manifestation_iri})
+    _coreProperties(manifestation, f"{manifestation_iri}/!main", manifestation_iri, fecha)
     return identification
 
 
@@ -169,19 +217,27 @@ def markdown_to_akoma_ntoso(
     meta = ET.SubElement(act, "meta")
     meta.append(_identification(subtipo, fecha, numero))
 
-    body = ET.SubElement(act, "body")
+    # <preamble> is <act>'s own child, a sibling of <body> — NOT nested
+    # inside it (hierarchicalStructure's sequence is meta, ..., preamble?,
+    # body, ...); bodyType's content model only allows the hierarchical
+    # elements (article, section, ...), nothing else.
     if preambulo:
-        preamble = ET.SubElement(body, "preamble")
+        preamble = ET.SubElement(act, "preamble")
         for p in _parrafos(preambulo):
             preamble.append(p)
 
+    body = ET.SubElement(act, "body")
     for numero_articulo, texto in articulos.items():
         article = ET.SubElement(body, "article", {"eId": _eid(numero_articulo)})
         ET.SubElement(article, "num").text = f"Artículo {numero_articulo}"
         article.append(_contenido(texto, es_articulo=True))
 
     if transitorios:
-        section = ET.SubElement(body, "section", {"eId": "transitorios", "name": "transitorios"})
+        # `section`'s schema type (`hierarchy`) has no `name` attribute —
+        # only `refersTo` (an IRI into <meta>/<references>, not enforced at
+        # the XSD level) is the schema-sanctioned way to say what a generic
+        # container stands for, so that is what marks this as Transitorios.
+        section = ET.SubElement(body, "section", {"eId": "transitorios", "refersTo": "#transitorios"})
         ET.SubElement(section, "heading").text = "Transitorios"
         # transitorios' own first block is the "Transitorios" heading itself
         # (see _segmenta_original) — already covered by <heading> above.
