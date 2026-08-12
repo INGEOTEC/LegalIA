@@ -31,32 +31,37 @@ spec text:
   parameter at all: the DOF is always the issuing authority, so it is filled
   in unconditionally (`href="#dof"`).
 
-Still open after this pass (i.e., still not a complete implementation):
+A second pass closed the three gaps that first schema check left open:
 - Akoma Ntoso has no native element for "Transitorios" (nor
-  "Considerandos"/"Vistos"); this follows the real convention the official
-  examples use for that kind of gap — a plain <section refersTo="#..."> —
-  rather than the `name` attribute #91 first guessed (the schema does not
-  actually declare a `name` attribute on `section`). `refersTo`'s target
-  ("#transitorios") is not, itself, declared anywhere under
-  `<meta>/<references>` yet, unlike the official examples' own `refersTo`
-  targets — a `<TLCConcept>` entry for it is a natural next step, not done
-  here.
-- Fracciones/incisos (markdown blocks like "**I.**"/"**a)**" inside an
-  article) are NOT nested into Akoma Ntoso's own <paragraph>/<point>
-  hierarchy yet — they are kept as sibling <p> paragraphs under the
-  article's <content>, same as any other block.
-- The official Uruguayan example spells Spanish as `language="esp"`; this
-  module uses the ISO 639-2 code `"spa"` instead. Both are schema-valid
-  (the attribute is unrestricted), but which convention other Spanish-
-  language implementations actually settled on is an open question, not
-  resolved here.
+  "Considerandos"/"Vistos"); it is a plain <section refersTo="#transitorios">
+  (not the `name` attribute #91 first guessed — `section`'s schema type
+  declares no such attribute), matching the convention the official
+  examples use for the same kind of gap. `refersTo`'s target is now
+  actually declared, too: `<meta>/<references>` gets a matching
+  `<TLCConcept eId="transitorios" .../>` whenever the note has a
+  Transitorios section (see `_references`) — note that `eId` must be
+  unique across the whole `<act>`, so the `<section>` itself is
+  `eId="sec_transitorios"`, not "transitorios" again.
+- Fracciones/incisos ("**I.**"/"**a)**" blocks inside an article) are now
+  nested into Akoma Ntoso's own <paragraph>(fracción)/<point>(inciso)
+  hierarchy instead of flattened into sibling <p>s — see
+  `_cuerpo_articulo`. `hierarchy`'s content model is a strict choice
+  between a flat <content> and nested hierarchy elements (never both), so
+  an article either has one of the two, decided from whether it has any
+  fracción at all. A DOF article can legally repeat the same fracción
+  label under two separate "I. a X." lists (e.g. one for a body's
+  composition, a later one for its members' eligibility) — `_eid_unico`
+  disambiguates those instead of emitting a duplicate, schema-invalid eId.
+- Settled "esp" vs. "spa" for Spanish (`FRBRlanguage`, and the IRI's own
+  language segment): "esp", matching the official Uruguayan example, not
+  the ISO 639-2 code this module used at first.
 """
 
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from nota2md.leyes import _segmenta_original
+from nota2md.leyes import _analiza_bloque, _segmenta_original
 
 AKN_NS = "http://docs.oasis-open.org/legaldocml/ns/akn/3.0"
 
@@ -114,16 +119,27 @@ def _quita_encabezado_articulo(p: ET.Element) -> None:
     p.text = re.sub(r"^\s*[.\-:]{0,2}\s*", "", cola)
 
 
+def _quita_etiqueta_bloque(p: ET.Element, etiqueta: str) -> None:
+    """Same idea as `_quita_encabezado_articulo`, but for a fracción/inciso
+    label ("**I.**"/"**a)**") instead of an article's "Artículo N" — it is
+    already represented by the <paragraph>/<point>'s own <num>."""
+    hijos = list(p)
+    if not hijos or hijos[0].tag != "b":
+        return
+    if (hijos[0].text or "").strip().rstrip(".)-").strip().lower() != etiqueta.lower():
+        return
+    cola = hijos[0].tail or ""
+    p.remove(hijos[0])
+    p.text = re.sub(r"^\s*[.\-:)]{0,2}\s*", "", cola)
+
+
 def _parrafos(texto_md: str) -> list[ET.Element]:
     return [_bloque_a_parrafo(b) for b in texto_md.split("\n\n") if b.strip()]
 
 
-def _contenido(texto_md: str, *, es_articulo: bool = False) -> ET.Element:
+def _contenido(texto_md: str) -> ET.Element:
     contenido = ET.Element("content")
-    parrafos = _parrafos(texto_md)
-    if es_articulo and parrafos:
-        _quita_encabezado_articulo(parrafos[0])
-    for p in parrafos:
+    for p in _parrafos(texto_md):
         contenido.append(p)
     return contenido
 
@@ -132,6 +148,110 @@ def _eid(numero: str) -> str:
     """`numero` ("5", "5 Bis") as an Akoma Ntoso `eId` token — ASCII,
     whitespace turned into "_"."""
     return "art_" + re.sub(r"\s+", "_", numero.strip())
+
+
+def _eid_hijo(eid_padre: str, etiqueta: str) -> str:
+    """A nested fracción/inciso's own `eId`, scoped under its parent's."""
+    return eid_padre + "__" + re.sub(r"\s+", "_", etiqueta.strip())
+
+
+def _eid_unico(propuesto: str, usados: set[str]) -> str:
+    """`propuesto`, or `propuesto` with a numeric suffix appended until it is
+    not already in `usados` (which gains whatever is returned) — eId must be
+    unique across the whole <act>, but a DOF article can restate the same
+    fracción/inciso label more than once (see `_cuerpo_articulo`)."""
+    candidato = propuesto
+    i = 2
+    while candidato in usados:
+        candidato = f"{propuesto}_{i}"
+        i += 1
+    usados.add(candidato)
+    return candidato
+
+
+def _agrupa_bloques(bloques_md: list[str]) -> tuple[list[ET.Element], list[dict], list[ET.Element]]:
+    """`bloques_md` (an article's own blocks, header already excluded)
+    grouped into (intro, fracciones, wrapUp): plain paragraphs before the
+    first fracción are `intro`, plain paragraphs after the last one are
+    `wrapUp` (Akoma Ntoso's own names for "leads into"/"wraps up" the
+    nested elements in between — see `intro`/`wrapUp` in akomantoso30.xsd),
+    and each fracción is `{"etiqueta", "p", "incisos": [(etiqueta, p), ...]}`.
+    An inciso block with no fracción open yet (should not happen in real DOF
+    text — incisos are always introduced by a fracción) falls back to a
+    plain paragraph rather than being dropped.
+    """
+    intro: list[ET.Element] = []
+    fracciones: list[dict] = []
+    wrapup: list[ET.Element] = []
+    for bloque in bloques_md:
+        tipo, etiqueta, _ = _analiza_bloque(bloque)
+        p = _bloque_a_parrafo(bloque)
+        if tipo == "num":
+            _quita_etiqueta_bloque(p, etiqueta)
+            fracciones.append({"etiqueta": etiqueta, "p": p, "incisos": []})
+        elif tipo == "letra" and fracciones:
+            _quita_etiqueta_bloque(p, etiqueta)
+            fracciones[-1]["incisos"].append((etiqueta, p))
+        elif fracciones:
+            wrapup.append(p)
+        else:
+            intro.append(p)
+    return intro, fracciones, wrapup
+
+
+def _cuerpo_articulo(article: ET.Element, texto_md: str) -> None:
+    """Append this article's body to it: a flat <content> when its text has
+    no fracciones, or <intro>/<paragraph>(fracción, itself possibly holding
+    <point>s for its own incisos)/<wrapUp> when it does. Akoma Ntoso's
+    `hierarchy` type is a strict choice between the two — nested hierarchy
+    elements and a flat <content> never mix at the same level — so which
+    branch to use is decided once, from whether any fracción was found at
+    all, not block by block.
+    """
+    bloques = [b for b in texto_md.split("\n\n") if b.strip()]
+    if not bloques:
+        return
+
+    primero = _bloque_a_parrafo(bloques[0])
+    _quita_encabezado_articulo(primero)
+    intro, fracciones, wrapup = _agrupa_bloques(bloques[1:])
+    intro = [primero] + intro
+
+    if not fracciones:
+        contenido = ET.SubElement(article, "content")
+        for p in intro:
+            contenido.append(p)
+        return
+
+    intro_el = ET.SubElement(article, "intro")
+    for p in intro:
+        intro_el.append(p)
+
+    eid_articulo = article.get("eId")
+    # A DOF article can restate the same fracción label twice under two
+    # separate "I. a X." lists (e.g. one for a body's own composition, a
+    # later one for its members' eligibility) — eId must still be unique
+    # across the whole <act>, so disambiguate within this one article.
+    usados: set[str] = set()
+    for fraccion in fracciones:
+        eid_fraccion = _eid_unico(_eid_hijo(eid_articulo, fraccion["etiqueta"]), usados)
+        paragraph = ET.SubElement(article, "paragraph", {"eId": eid_fraccion})
+        ET.SubElement(paragraph, "num").text = f"{fraccion['etiqueta']}."
+        if fraccion["incisos"]:
+            paragraph_intro = ET.SubElement(paragraph, "intro")
+            paragraph_intro.append(fraccion["p"])
+            for etiqueta_inciso, p_inciso in fraccion["incisos"]:
+                eid_inciso = _eid_unico(_eid_hijo(eid_fraccion, etiqueta_inciso), usados)
+                point = ET.SubElement(paragraph, "point", {"eId": eid_inciso})
+                ET.SubElement(point, "num").text = f"{etiqueta_inciso})"
+                ET.SubElement(point, "content").append(p_inciso)
+        else:
+            ET.SubElement(paragraph, "content").append(fraccion["p"])
+
+    if wrapup:
+        wrapup_el = ET.SubElement(article, "wrapUp")
+        for p in wrapup:
+            wrapup_el.append(p)
 
 
 def _coreProperties(elemento: ET.Element, this_iri: str, uri: str, fecha: str | None) -> None:
@@ -172,15 +292,36 @@ def _identification(subtipo: str, fecha: str | None, numero: str | None) -> ET.E
     if numero:
         ET.SubElement(work, "FRBRnumber", {"value": numero})
 
-    expression_iri = f"{work_iri}/spa@"
+    # "esp", not the ISO 639-2 code "spa" — matching the convention OASIS's
+    # own official Uruguayan example uses for Spanish (issue #91 flagged the
+    # two as an open question; this project settles on "esp").
+    expression_iri = f"{work_iri}/esp@"
     expression = ET.SubElement(identification, "FRBRExpression")
     _coreProperties(expression, f"{expression_iri}/!main", expression_iri, fecha)
-    ET.SubElement(expression, "FRBRlanguage", {"language": "spa"})
+    ET.SubElement(expression, "FRBRlanguage", {"language": "esp"})
 
     manifestation_iri = f"{expression_iri}.xml"
     manifestation = ET.SubElement(identification, "FRBRManifestation")
     _coreProperties(manifestation, f"{manifestation_iri}/!main", manifestation_iri, fecha)
     return identification
+
+
+def _references(conceptos: dict[str, str]) -> ET.Element:
+    """<meta>'s <references> block: one <TLCConcept> per {eId: showAs} in
+    `conceptos` — the schema-sanctioned way to declare what a `refersTo`
+    target (e.g. "#transitorios") actually stands for, matching the
+    convention OASIS's own official examples use (a local ontology-style
+    href under "/akn/ontology/concepts/...", not a real, resolvable one —
+    same placeholder spirit as FRBRauthor's "#dof").
+    """
+    references = ET.Element("references", {"source": "#legalia"})
+    for eid, show_as in conceptos.items():
+        ET.SubElement(
+            references,
+            "TLCConcept",
+            {"eId": eid, "href": f"/akn/ontology/concepts/mx/{eid}", "showAs": show_as},
+        )
+    return references
 
 
 def markdown_to_akoma_ntoso(
@@ -216,6 +357,12 @@ def markdown_to_akoma_ntoso(
 
     meta = ET.SubElement(act, "meta")
     meta.append(_identification(subtipo, fecha, numero))
+    if transitorios:
+        # <references> must declare the "#transitorios" refersTo target
+        # used below, the way OASIS's own examples declare theirs — a bare
+        # refersTo with nothing behind it is schema-valid too (referenceRef
+        # is not integrity-checked at the XSD level), but incomplete.
+        meta.append(_references({"transitorios": "Transitorios"}))
 
     # <preamble> is <act>'s own child, a sibling of <body> — NOT nested
     # inside it (hierarchicalStructure's sequence is meta, ..., preamble?,
@@ -230,14 +377,17 @@ def markdown_to_akoma_ntoso(
     for numero_articulo, texto in articulos.items():
         article = ET.SubElement(body, "article", {"eId": _eid(numero_articulo)})
         ET.SubElement(article, "num").text = f"Artículo {numero_articulo}"
-        article.append(_contenido(texto, es_articulo=True))
+        _cuerpo_articulo(article, texto)
 
     if transitorios:
         # `section`'s schema type (`hierarchy`) has no `name` attribute —
         # only `refersTo` (an IRI into <meta>/<references>, not enforced at
         # the XSD level) is the schema-sanctioned way to say what a generic
         # container stands for, so that is what marks this as Transitorios.
-        section = ET.SubElement(body, "section", {"eId": "transitorios", "refersTo": "#transitorios"})
+        # eId must be unique across the whole <act> (the schema enforces
+        # this), so this can't reuse "transitorios" too — that belongs to
+        # the <TLCConcept> above, which is what refersTo points at.
+        section = ET.SubElement(body, "section", {"eId": "sec_transitorios", "refersTo": "#transitorios"})
         ET.SubElement(section, "heading").text = "Transitorios"
         # transitorios' own first block is the "Transitorios" heading itself
         # (see _segmenta_original) — already covered by <heading> above.
