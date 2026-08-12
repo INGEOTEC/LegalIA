@@ -55,6 +55,17 @@ A second pass closed the three gaps that first schema check left open:
 - Settled "esp" vs. "spa" for Spanish (`FRBRlanguage`, and the IRI's own
   language segment): "esp", matching the official Uruguayan example, not
   the ISO 639-2 code this module used at first.
+
+Issue #93 asked for the other direction too: `akoma_ntoso_to_markdown()`
+reads back an `<akomaNtoso>` XML file — one this module produced, or any
+other file shaped the same way — and reassembles nota2md's own Markdown
+from it (`<b>` back to `**bold**`, a fracción/inciso's `<num>` back to its
+"**I.**"/"**a)**" label prepended to its own first paragraph, and so on).
+It is not a lossless round trip: information this module never keeps in
+the XML in the first place (the note's own H1 title, "##"-level heading
+markup on anything but the Transitorios section — Akoma Ntoso only has a
+dedicated `<heading>` for that one, not for `<preamble>`'s own content) is
+gone for good and cannot be reconstructed from the XML alone.
 """
 
 import re
@@ -399,5 +410,157 @@ def markdown_to_akoma_ntoso(
     outdir.mkdir(parents=True, exist_ok=True)
     dest = outdir / f"{md_path.stem}.akn.xml"
     ET.indent(akoma_ntoso, space="  ")
+    _repara_p_indentado(akoma_ntoso)
     ET.ElementTree(akoma_ntoso).write(dest, encoding="unicode", xml_declaration=True)
+    return dest
+
+
+def _repara_p_indentado(akoma_ntoso: ET.Element) -> None:
+    """`ET.indent()`, called on the whole tree just above, is not safe on
+    `<p>`: its own text mixes real prose with `<b>` runs (mixed content),
+    an element shape the stdlib helper assumes never happens. When a `<p>`
+    opens right on a `<b>` — no plain text before it, e.g. a Transitorios
+    paragraph's own "**Único.**" label — `<p>`'s leading text is empty, and
+    `indent()` mistakes that for "not yet indented" and fills it with
+    indentation whitespace, which then reads as if it were part of the
+    prose once the file is written back out. Undone here for every `<p>`
+    it happened to."""
+    for p in akoma_ntoso.iter(f"{{{AKN_NS}}}p"):
+        if len(p) and p.text is not None and not p.text.strip():
+            p.text = None
+
+
+# --- akoma_ntoso_to_markdown: the other direction --------------------------
+
+_NS = {"akn": AKN_NS}
+
+
+def _sin_ns(tag: str) -> str:
+    """`tag` ("{http://.../akn/3.0}article") with its namespace stripped
+    down to the bare local name ("article") — `body`'s own children mix
+    `<article>`/`<section>` in document order, so telling them apart means
+    comparing against a plain string, not the qualified one ElementTree
+    hands back."""
+    return tag.rsplit("}", 1)[-1]
+
+
+def _texto_parrafo(p: ET.Element) -> str:
+    """The inverse of `_bloque_a_parrafo`: `p`'s own text, its `<b>`
+    children's text and every tail reassembled into one Markdown string,
+    with `<b>` restored as `**bold**`. Outer whitespace is trimmed — a
+    block's own leading/trailing whitespace is never significant, but a
+    note's very last block can literally end in a stray "\\n" (the source
+    Markdown file's own single trailing newline, still attached because
+    blocks only ever split on the blank line between them, not the file's
+    own last character), which would otherwise survive into the
+    reconstructed Markdown as an extra blank line."""
+    partes = [p.text or ""]
+    for hijo in p:
+        if _sin_ns(hijo.tag) == "b":
+            partes.append(f"**{hijo.text or ''}**")
+        partes.append(hijo.tail or "")
+    return "".join(partes).strip()
+
+
+def _parrafos_de(elemento: ET.Element | None) -> list[str]:
+    """The Markdown blocks for every direct `<p>` child of `elemento` — `[]`
+    when `elemento` itself is absent (e.g. an article with no `<wrapUp>`)."""
+    if elemento is None:
+        return []
+    return [_texto_parrafo(p) for p in elemento.findall("akn:p", _NS)]
+
+
+def _antepone_etiqueta(bloques: list[str], etiqueta_md: str) -> list[str]:
+    """`bloques` with `etiqueta_md` ("**Artículo 1.**"/"**I.**"/"**a)**")
+    prepended to the first one — the inverse of `_quita_encabezado_articulo`/
+    `_quita_etiqueta_bloque`, which strip exactly that label out on the way
+    in. A label with nothing but an empty `<content>`/`<intro>` behind it
+    still becomes its own block, not an empty one."""
+    if not bloques:
+        return [etiqueta_md]
+    resto = bloques[0].lstrip()
+    primero = f"{etiqueta_md} {resto}" if resto else etiqueta_md
+    return [primero] + bloques[1:]
+
+
+def _fraccion_a_bloques(paragraph: ET.Element) -> list[str]:
+    """A `<paragraph>` (fracción), back into its own Markdown blocks: its
+    `<num>` ("I.") reprinted as the bold label of either its flat `<content>`
+    or its `<intro>` (when it also nests `<point>`s of its own, each
+    similarly relabelled from its own `<num>`, "a)")."""
+    etiqueta = f"**{paragraph.find('akn:num', _NS).text}**"
+    content = paragraph.find("akn:content", _NS)
+    if content is not None:
+        return _antepone_etiqueta(_parrafos_de(content), etiqueta)
+
+    bloques = _antepone_etiqueta(_parrafos_de(paragraph.find("akn:intro", _NS)), etiqueta)
+    for point in paragraph.findall("akn:point", _NS):
+        etiqueta_inciso = f"**{point.find('akn:num', _NS).text}**"
+        bloques.extend(_antepone_etiqueta(_parrafos_de(point.find("akn:content", _NS)), etiqueta_inciso))
+    return bloques
+
+
+def _articulo_a_bloques(article: ET.Element) -> list[str]:
+    """An `<article>`, back into its own Markdown blocks — the inverse of
+    `_cuerpo_articulo`: its `<num>` ("Artículo 1") reprinted, "." appended,
+    as the bold label of its first block, whether that block is its flat
+    `<content>` or its `<intro>` (when it instead nests `<paragraph>`
+    fracciones, each expanded via `_fraccion_a_bloques`, followed by
+    whatever `<wrapUp>` closes the article)."""
+    etiqueta = f"**{article.find('akn:num', _NS).text}.**"
+    content = article.find("akn:content", _NS)
+    if content is not None:
+        return _antepone_etiqueta(_parrafos_de(content), etiqueta)
+
+    bloques = _antepone_etiqueta(_parrafos_de(article.find("akn:intro", _NS)), etiqueta)
+    for paragraph in article.findall("akn:paragraph", _NS):
+        bloques.extend(_fraccion_a_bloques(paragraph))
+    bloques.extend(_parrafos_de(article.find("akn:wrapUp", _NS)))
+    return bloques
+
+
+def akoma_ntoso_to_markdown(xml_path: str | Path, outdir: str | Path) -> Path:
+    """Convert the Akoma Ntoso XML at `xml_path` (an `<akomaNtoso>` document
+    shaped the way `markdown_to_akoma_ntoso` emits it — its own output, or
+    any other file following the same convention) back into nota2md's own
+    Markdown, written to ``outdir/{stem}.md`` (`stem` is `xml_path`'s own
+    stem with a trailing ".akn" dropped, so `markdown_to_akoma_ntoso`'s own
+    "{md_path.stem}.akn.xml" round-trips back to "{md_path.stem}.md", not
+    "{md_path.stem}.akn.md"); returns that path.
+
+    This is a best-effort inverse, not a lossless one: information the
+    forward conversion never keeps in the XML at all cannot be recovered
+    from it. The note's own H1 title is gone (it was dropped as "not part
+    of the decree" before conversion even started), and so is any "#"/"##"
+    Markdown heading markup other than the Transitorios section's own
+    (Akoma Ntoso has no dedicated element for a `<preamble>` paragraph that
+    happened to be a heading — only `<section>`'s `<heading>` survives,
+    which is why Transitorios is the one heading that does come back).
+    """
+    xml_path = Path(xml_path)
+    root = ET.parse(xml_path).getroot()
+    act = root.find("akn:act", _NS)
+    if act is None:
+        raise ValueError(f"{xml_path}: no se encontró <act> en el XML")
+
+    bloques = list(_parrafos_de(act.find("akn:preamble", _NS)))
+
+    body = act.find("akn:body", _NS)
+    for hijo in ([] if body is None else body):
+        etiqueta = _sin_ns(hijo.tag)
+        if etiqueta == "article":
+            bloques.extend(_articulo_a_bloques(hijo))
+        elif etiqueta == "section":
+            heading = hijo.find("akn:heading", _NS)
+            if heading is not None and heading.text:
+                bloques.append(f"## {heading.text}")
+            bloques.extend(_parrafos_de(hijo.find("akn:content", _NS)))
+
+    markdown = "\n\n".join(b for b in bloques if b.strip()) + "\n"
+
+    outdir = Path(outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+    stem = xml_path.stem[: -len(".akn")] if xml_path.stem.endswith(".akn") else xml_path.stem
+    dest = outdir / f"{stem}.md"
+    dest.write_text(markdown, encoding="utf-8")
     return dest

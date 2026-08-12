@@ -5,7 +5,7 @@ from pathlib import Path
 
 import xmlschema
 
-from nota2md.akoma_ntoso import AKN_NS, markdown_to_akoma_ntoso
+from nota2md.akoma_ntoso import AKN_NS, akoma_ntoso_to_markdown, markdown_to_akoma_ntoso
 
 _NS = {"akn": AKN_NS}
 # Vendored from the OASIS Standard (29 August 2018) itself — see
@@ -206,3 +206,133 @@ class TestValidacionContraElEsquemaOficial(unittest.TestCase):
         dest = self._convierte("**Artículo 1.** Texto sin fecha.\n")
         with self.assertRaises(xmlschema.XMLSchemaValidationError):
             self.schema.validate(str(dest))
+
+
+class TestAkomaNtosoToMarkdown(unittest.TestCase):
+    """`akoma_ntoso_to_markdown` — the other direction issue #93 asked for."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.outdir = Path(self.tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def _ida_y_vuelta(self, markdown: str, **kwargs) -> str:
+        """`markdown` converted to Akoma Ntoso and straight back — the
+        Markdown `akoma_ntoso_to_markdown` reconstructs from that XML."""
+        md_path = self.outdir / "nota-1.md"
+        md_path.write_text(markdown, encoding="utf-8")
+        xml_path = markdown_to_akoma_ntoso(md_path, self.outdir, **kwargs)
+        md_de_vuelta = akoma_ntoso_to_markdown(xml_path, self.outdir)
+        self.assertEqual(md_de_vuelta, self.outdir / "nota-1.md")
+        return md_de_vuelta.read_text(encoding="utf-8")
+
+    def test_nombre_de_archivo_quita_el_akn(self):
+        md_path = self.outdir / "nota-1.md"
+        md_path.write_text("**Artículo 1.** Texto.\n", encoding="utf-8")
+        xml_path = markdown_to_akoma_ntoso(md_path, self.outdir)
+        self.assertEqual(xml_path.name, "nota-1.akn.xml")
+        dest = akoma_ntoso_to_markdown(xml_path, self.outdir)
+        self.assertEqual(dest.name, "nota-1.md")
+
+    def test_ida_y_vuelta_articulos_simples(self):
+        markdown = (
+            "**Artículo 1.** Texto original del artículo primero.\n\n"
+            "**Artículo 2.** Texto original del artículo segundo.\n"
+        )
+        self.assertEqual(self._ida_y_vuelta(markdown), markdown)
+
+    def test_ida_y_vuelta_negritas_dentro_del_texto(self):
+        markdown = "**Artículo 1.** Texto con una **palabra en negrita** dentro.\n"
+        self.assertEqual(self._ida_y_vuelta(markdown), markdown)
+
+    def test_ida_y_vuelta_fracciones_e_incisos(self):
+        markdown = (
+            "**Artículo 1.** Encabezado del artículo.\n\n"
+            "**I.** Contenido de la fracción I.\n\n"
+            "**II.** Encabezado de la fracción II.\n\n"
+            "**a)** Contenido del inciso a).\n\n"
+            "**b)** Contenido del inciso b).\n\n"
+            "**III.** Contenido de la fracción III.\n"
+        )
+        self.assertEqual(self._ida_y_vuelta(markdown), markdown)
+
+    def test_ida_y_vuelta_transitorios_preserva_el_encabezado(self):
+        markdown = (
+            "**Artículo 1.** Texto original del artículo primero.\n\n"
+            "## Transitorios\n\n"
+            "**Único.** Entrará en vigor al día siguiente.\n"
+        )
+        self.assertEqual(self._ida_y_vuelta(markdown), markdown)
+
+    def test_preambulo_pierde_el_marcado_de_encabezado(self):
+        # Akoma Ntoso keeps no heading-ness for <preamble>'s own paragraphs
+        # (only <section> has a dedicated <heading>) — this is a best-effort
+        # inverse, not a lossless one, so the "##" is gone on the way back.
+        markdown = (
+            "## Al margen un sello.\n\n"
+            "Que el Honorable Congreso decreta:\n\n"
+            "**Artículo 1.** Texto.\n"
+        )
+        self.assertEqual(
+            self._ida_y_vuelta(markdown),
+            "Al margen un sello.\n\n"
+            "Que el Honorable Congreso decreta:\n\n"
+            "**Artículo 1.** Texto.\n",
+        )
+
+    def test_convierte_un_xml_escrito_a_mano(self):
+        xml_path = self.outdir / "manual.akn.xml"
+        xml_path.write_text(
+            f"""<?xml version='1.0' encoding='utf-8'?>
+<akomaNtoso xmlns="{AKN_NS}">
+  <act name="decreto">
+    <meta>
+      <identification source="#legalia">
+        <FRBRWork>
+          <FRBRthis value="/akn/mx/act/decreto/2024-01-01/1/!main"/>
+          <FRBRuri value="/akn/mx/act/decreto/2024-01-01/1"/>
+          <FRBRdate date="2024-01-01" name="publication"/>
+          <FRBRauthor href="#dof"/>
+          <FRBRcountry value="mx"/>
+          <FRBRnumber value="1"/>
+        </FRBRWork>
+        <FRBRExpression>
+          <FRBRthis value="/akn/mx/act/decreto/2024-01-01/1/esp@/!main"/>
+          <FRBRuri value="/akn/mx/act/decreto/2024-01-01/1/esp@"/>
+          <FRBRdate date="2024-01-01" name="publication"/>
+          <FRBRauthor href="#dof"/>
+          <FRBRlanguage language="esp"/>
+        </FRBRExpression>
+        <FRBRManifestation>
+          <FRBRthis value="/akn/mx/act/decreto/2024-01-01/1/esp@.xml/!main"/>
+          <FRBRuri value="/akn/mx/act/decreto/2024-01-01/1/esp@.xml"/>
+          <FRBRdate date="2024-01-01" name="publication"/>
+          <FRBRauthor href="#dof"/>
+        </FRBRManifestation>
+      </identification>
+    </meta>
+    <preamble>
+      <p>Al margen un sello.</p>
+    </preamble>
+    <body>
+      <article eId="art_1">
+        <num>Artículo 1</num>
+        <content>
+          <p>Texto con <b>una palabra</b> en negrita.</p>
+        </content>
+      </article>
+    </body>
+  </act>
+</akomaNtoso>
+""",
+            encoding="utf-8",
+        )
+        dest = akoma_ntoso_to_markdown(xml_path, self.outdir)
+        self.assertEqual(dest, self.outdir / "manual.md")
+        self.assertEqual(
+            dest.read_text(encoding="utf-8"),
+            "Al margen un sello.\n\n"
+            "**Artículo 1.** Texto con **una palabra** en negrita.\n",
+        )
