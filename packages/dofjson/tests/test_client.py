@@ -33,6 +33,39 @@ def _write_pdf(path, n_pages):
         writer.write(f)
 
 
+def _write_pdf_with_page_numbers(path, numeros):
+    """Write a real PDF to `path`, one page per entry of `numeros`, each
+    page's extracted text reading "{numero} DIARIO OFICIAL" -- or blank, for
+    a `None` entry (reproduces an old edition's unnumbered cover page)."""
+    from pypdf import PdfWriter
+    from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
+
+    writer = PdfWriter()
+    font = DictionaryObject()
+    font[NameObject("/Type")] = NameObject("/Font")
+    font[NameObject("/Subtype")] = NameObject("/Type1")
+    font[NameObject("/BaseFont")] = NameObject("/Helvetica")
+    font_ref = writer._add_object(font)
+
+    for numero in numeros:
+        page = writer.add_blank_page(width=200, height=100)
+        if numero is not None:
+            resources = DictionaryObject()
+            fonts = DictionaryObject()
+            fonts[NameObject("/F1")] = font_ref
+            resources[NameObject("/Font")] = fonts
+            page[NameObject("/Resources")] = resources
+
+            stream = DecodedStreamObject()
+            stream.set_data(
+                f"BT /F1 12 Tf 10 50 Td ({numero} DIARIO OFICIAL) Tj ET".encode("latin-1")
+            )
+            page[NameObject("/Contents")] = writer._add_object(stream)
+
+    with open(path, "wb") as f:
+        writer.write(f)
+
+
 class TestClient(unittest.TestCase):
     def _mock_response(self, payload):
         mock_response = MagicMock()
@@ -493,6 +526,50 @@ class TestDownloadNota(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             download_nota_pdf(5793639, self.outdir)
+
+    @patch("dofjson.client.download_pdf")
+    @patch("dofjson.client.get_notas")
+    @patch("dofjson.client.get_nota")
+    def test_download_nota_pdf_handles_running_volume_page_numbers(
+        self, mock_get_nota, mock_get_notas, mock_download_pdf
+    ):
+        # Reproduces issue #95 (codNota=4535455, 31-08-1934): unlike a modern
+        # edition, this bound-volume PDF's printed numbering doesn't restart
+        # at 1 -- it carries on from earlier in the "tomo" (1137, 1138, ...),
+        # and the note's own `pagina` (1142) is a printed number, not a
+        # physical PDF page index. `pagina - 1` would point far past the
+        # edition PDF's few physical pages; the real physical index has to
+        # be worked out from what the PDF's own pages actually print.
+        from pypdf import PdfReader
+
+        nota = {
+            "codNota": 4535455,
+            "cadenaContenido": "",
+            "codDiario": 193549,
+            "fecha": "31-08-1934",
+            "pagina": 1142,
+            "codEdicion": "MAT",
+        }
+        mock_get_nota.return_value = {"Nota": nota}
+        mock_get_notas.return_value = {
+            "NotasMatutinas": [
+                {"codNota": 4535406, "pagina": 1138},
+                {"codNota": 4535455, "pagina": 1142},
+                {"codNota": 4535505, "pagina": 1143},
+            ]
+        }
+        # Physical page 0 is the edition's cover, with no printed number.
+        numeros = [None, 1138, 1139, 1140, 1141, 1142, 1143, 1144]
+        mock_download_pdf.side_effect = (
+            lambda cod_diario, dest, **kw: _write_pdf_with_page_numbers(dest, numeros)
+        )
+
+        dest = download_nota_pdf(4535455, self.outdir)
+
+        # pages 1142,1143 -> physical indices 5,6
+        self.assertEqual(len(PdfReader(str(dest)).pages), 2)
+        self.assertIn("1142", PdfReader(str(dest)).pages[0].extract_text())
+        self.assertIn("1143", PdfReader(str(dest)).pages[1].extract_text())
 
     @patch("dofjson.client.download_nota_imagenes")
     @patch("dofjson.client.get_nota")
