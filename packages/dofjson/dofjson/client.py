@@ -277,7 +277,21 @@ def download_nota_imagen_o_pdf(
     later `nota2md.legal_provisions(cod_nota, outdir, source="image"|"pdf")`
     call against that same `outdir` then only has to OCR and cut — it never
     re-downloads anything this function already put there.
+
+    This function itself also skips straight to whatever is already on
+    disk with NO network call — not even get_nota() for `nota` — the same
+    way download_nota_pdf() does on its own: it does not yet know which of
+    the two paths a previous run took for this note, so it checks for
+    download_nota_pdf()'s own `nota-{cod_nota}.pdf` first, then for any
+    `nota-{cod_nota}-*.jpg` download_nota_imagenes() may have left behind.
     """
+    pdf_existente = outdir / f"nota-{cod_nota}.pdf"
+    if pdf_existente.exists():
+        return [pdf_existente]
+    imagenes_existentes = sorted(outdir.glob(f"nota-{cod_nota}-*.jpg"))
+    if imagenes_existentes:
+        return imagenes_existentes
+
     if nota is None:
         nota = get_nota(cod_nota)["Nota"]
     try:
