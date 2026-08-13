@@ -8,6 +8,7 @@ from dofjson.client import (
     BASE_URL,
     download_imagen,
     download_nota,
+    download_nota_imagen_o_pdf,
     download_nota_imagenes,
     download_nota_pdf,
     download_pdf,
@@ -610,6 +611,130 @@ class TestDownloadNota(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             download_nota(4845424, self.outdir)
+
+    @patch("dofjson.client.download_imagen")
+    @patch("dofjson.client.get_imagenes")
+    @patch("dofjson.client.get_notas")
+    @patch("dofjson.client.get_nota")
+    def test_download_nota_imagenes_skips_page_already_on_disk(
+        self, mock_get_nota, mock_get_notas, mock_get_imagenes, mock_download_imagen
+    ):
+        nota = {
+            "codNota": 5793655, "cadenaContenido": "", "codDiario": 208439,
+            "fecha": "15-07-2026", "pagina": 80, "codEdicion": "MAT",
+        }
+        mock_get_nota.return_value = {"Nota": nota}
+        mock_get_notas.return_value = {
+            "NotasMatutinas": [{"codNota": 5793655, "pagina": 80}]
+        }
+        mock_get_imagenes.return_value = {
+            "imagenesFS": [{"pagina": 80, "nombreArchivo": "20260715-080-U-000"}]
+        }
+        existente = self.outdir / "nota-5793655-20260715-080-U-000.jpg"
+        existente.write_bytes(b"\xff\xd8\xff ya estaba aqui")
+
+        dests = download_nota_imagenes(5793655, self.outdir)
+
+        mock_download_imagen.assert_not_called()
+        self.assertEqual(dests, [existente])
+        self.assertEqual(existente.read_bytes(), b"\xff\xd8\xff ya estaba aqui")
+
+    @patch("dofjson.client.download_pdf")
+    @patch("dofjson.client.get_notas")
+    @patch("dofjson.client.get_nota")
+    def test_download_nota_pdf_reuses_cached_edicion_across_notas(
+        self, mock_get_nota, mock_get_notas, mock_download_pdf
+    ):
+        notas = {
+            5793639: {
+                "codNota": 5793639, "cadenaContenido": "", "codDiario": 328506,
+                "fecha": "15-07-2026", "pagina": 5, "codEdicion": "MAT",
+            },
+            5793641: {
+                "codNota": 5793641, "cadenaContenido": "", "codDiario": 328506,
+                "fecha": "15-07-2026", "pagina": 9, "codEdicion": "MAT",
+            },
+        }
+        mock_get_nota.side_effect = lambda cod: {"Nota": notas[cod]}
+        mock_get_notas.return_value = {
+            "NotasMatutinas": [
+                {"codNota": 5793639, "pagina": 5},
+                {"codNota": 5793641, "pagina": 9},
+            ]
+        }
+        mock_download_pdf.side_effect = lambda cod_diario, dest, **kw: _write_pdf(dest, 12)
+
+        download_nota_pdf(5793639, self.outdir)
+        download_nota_pdf(5793641, self.outdir)
+
+        mock_download_pdf.assert_called_once()  # same codDiario -> edition fetched only once
+        self.assertTrue((self.outdir / "edicion-328506.pdf").exists())
+
+    @patch("dofjson.client.get_nota")
+    def test_download_nota_pdf_returns_cached_file_without_any_network_call(
+        self, mock_get_nota
+    ):
+        existente = self.outdir / "nota-5793639.pdf"
+        existente.write_bytes(b"%PDF- ya estaba aqui")
+
+        dest = download_nota_pdf(5793639, self.outdir)
+
+        mock_get_nota.assert_not_called()
+        self.assertEqual(dest, existente)
+        self.assertEqual(existente.read_bytes(), b"%PDF- ya estaba aqui")
+
+
+class TestDownloadNotaImagenOPdf(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.outdir = Path(self.tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    @patch("dofjson.client.download_nota_pdf")
+    @patch("dofjson.client.download_imagen")
+    @patch("dofjson.client.get_imagenes")
+    @patch("dofjson.client.get_notas")
+    def test_prefers_the_page_imagen_when_sidof_has_one(
+        self, mock_get_notas, mock_get_imagenes, mock_download_imagen, mock_download_nota_pdf
+    ):
+        nota = {
+            "codNota": 5793655, "cadenaContenido": "", "codDiario": 208439,
+            "fecha": "15-07-2026", "pagina": 80, "codEdicion": "MAT",
+        }
+        mock_get_notas.return_value = {
+            "NotasMatutinas": [{"codNota": 5793655, "pagina": 80}]
+        }
+        mock_get_imagenes.return_value = {
+            "imagenesFS": [{"pagina": 80, "nombreArchivo": "20260715-080-U-000"}]
+        }
+
+        dests = download_nota_imagen_o_pdf(5793655, self.outdir, nota=nota)
+
+        self.assertEqual(dests, [self.outdir / "nota-5793655-20260715-080-U-000.jpg"])
+        mock_download_nota_pdf.assert_not_called()
+
+    @patch("dofjson.client.download_nota_pdf")
+    @patch("dofjson.client.get_imagenes")
+    @patch("dofjson.client.get_notas")
+    def test_falls_back_to_pdf_when_no_matching_page_imagen(
+        self, mock_get_notas, mock_get_imagenes, mock_download_nota_pdf
+    ):
+        nota = {
+            "codNota": 4845424, "cadenaContenido": "", "codDiario": 208439,
+            "fecha": "02-01-1980", "pagina": 2, "codEdicion": "MAT",
+        }
+        mock_get_notas.return_value = {
+            "NotasMatutinas": [{"codNota": 4845424, "pagina": 2}]
+        }
+        mock_get_imagenes.return_value = {"imagenesFS": []}  # no imagen for pagina=2
+        mock_download_nota_pdf.return_value = self.outdir / "nota-4845424.pdf"
+
+        dests = download_nota_imagen_o_pdf(4845424, self.outdir, nota=nota)
+
+        self.assertEqual(dests, [self.outdir / "nota-4845424.pdf"])
+        mock_download_nota_pdf.assert_called_once_with(4845424, self.outdir, nota=nota)
 
 
 if __name__ == "__main__":
