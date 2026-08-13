@@ -1,7 +1,6 @@
 import datetime as dt
 import json
 import re
-import tempfile
 from pathlib import Path
 
 import requests
@@ -127,7 +126,12 @@ def download_nota_imagenes(
 
     Pass an already-fetched `nota` (the value under the "Nota" key of a
     get_nota() response) to avoid an extra request when the caller already
-    has it."""
+    has it.
+
+    A page already present in `outdir` from an earlier call (same codNota,
+    same outdir) is not re-downloaded — only checked for by name, so the
+    day's notes/imagenes metadata is still fetched to work out which page(s)
+    this note occupies and their file names."""
     if nota is None:
         nota = get_nota(cod_nota)["Nota"]
     outdir.mkdir(parents=True, exist_ok=True)
@@ -145,7 +149,8 @@ def download_nota_imagenes(
                 f"(codDiario={nota['codDiario']}, pagina={pagina})"
             )
         dest = outdir / f"nota-{cod_nota}-{imagen['nombreArchivo']}.jpg"
-        download_imagen(imagen["nombreArchivo"], nota["codEdicion"], dest)
+        if not dest.exists():
+            download_imagen(imagen["nombreArchivo"], nota["codEdicion"], dest)
         dests.append(dest)
     return dests
 
@@ -179,6 +184,17 @@ def _detectar_offset_paginacion(reader, paginas_conocidas: set[int]) -> int | No
     return max(votos, key=votos.get)
 
 
+def _edicion_pdf_cacheada(cod_diario: int, outdir: Path, timeout: int = 60) -> Path:
+    """The whole edition's PDF, cached in `outdir` as `edicion-{cod_diario}.pdf`
+    instead of being downloaded into a throwaway tempdir — a second note from
+    the same edition (same day, same codDiario) reuses the file already on
+    disk instead of fetching the whole edition again."""
+    dest = outdir / f"edicion-{cod_diario}.pdf"
+    if not dest.exists():
+        download_pdf(cod_diario, dest, timeout=timeout)
+    return dest
+
+
 def download_nota_pdf(
     cod_nota: int, outdir: Path, nota: dict | None = None
 ) -> Path:
@@ -191,6 +207,15 @@ def download_nota_pdf(
     download_nota_imagenes(): a PDF holding just the note's pages, ready to
     hand to dof2md. Works for any note, with or without HTML content.
 
+    The edition PDF itself is cached in `outdir` (see
+    _edicion_pdf_cacheada()) rather than downloaded-and-discarded per note,
+    so slicing out another note from the same edition later does not
+    re-fetch it. If `outdir/nota-{cod_nota}.pdf` already exists, this
+    returns it right away without any network call at all — not even
+    get_nota() for `nota` — which is what makes it safe to call again on a
+    directory a previous run (or download_nota_imagen_o_pdf()) already
+    populated.
+
     Note: the note's printed `pagina` numbers are matched against the
     edition PDF's own printed page numbers (see
     _detectar_offset_paginacion()) to work out the physical PDF page index,
@@ -199,9 +224,13 @@ def download_nota_pdf(
     Pass an already-fetched `nota` to skip an extra get_nota() request."""
     from pypdf import PdfReader, PdfWriter
 
+    outdir.mkdir(parents=True, exist_ok=True)
+    dest = outdir / f"nota-{cod_nota}.pdf"
+    if dest.exists():
+        return dest
+
     if nota is None:
         nota = get_nota(cod_nota)["Nota"]
-    outdir.mkdir(parents=True, exist_ok=True)
 
     fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
     notas_del_dia = get_notas(fecha)
@@ -209,28 +238,66 @@ def download_nota_pdf(
     paginas_conocidas = {
         n["pagina"] for n in notas_del_dia[_EDICION_LISTAS[nota["codEdicion"]]]
     }
-    dest = outdir / f"nota-{cod_nota}.pdf"
 
-    with tempfile.TemporaryDirectory() as tmp:
-        edicion_pdf = Path(tmp) / f"{nota['codDiario']}.pdf"
-        download_pdf(nota["codDiario"], edicion_pdf)
-
-        reader = PdfReader(str(edicion_pdf))
-        offset = _detectar_offset_paginacion(reader, paginas_conocidas)
-        if offset is None:
-            offset = 1
-        writer = PdfWriter()
-        for pagina in paginas:
-            indice = pagina - offset
-            if indice < 0 or indice >= len(reader.pages):
-                raise ValueError(
-                    f"nota {cod_nota}: página {pagina} fuera del PDF de la edición "
-                    f"(codDiario={nota['codDiario']}, {len(reader.pages)} páginas)"
-                )
-            writer.add_page(reader.pages[indice])
-        with dest.open("wb") as f:
-            writer.write(f)
+    edicion_pdf = _edicion_pdf_cacheada(nota["codDiario"], outdir)
+    reader = PdfReader(str(edicion_pdf))
+    offset = _detectar_offset_paginacion(reader, paginas_conocidas)
+    if offset is None:
+        offset = 1
+    writer = PdfWriter()
+    for pagina in paginas:
+        indice = pagina - offset
+        if indice < 0 or indice >= len(reader.pages):
+            raise ValueError(
+                f"nota {cod_nota}: página {pagina} fuera del PDF de la edición "
+                f"(codDiario={nota['codDiario']}, {len(reader.pages)} páginas)"
+            )
+        writer.add_page(reader.pages[indice])
+    with dest.open("wb") as f:
+        writer.write(f)
     return dest
+
+
+def download_nota_imagen_o_pdf(
+    cod_nota: int, outdir: Path, nota: dict | None = None
+) -> list[Path]:
+    """Download whatever it takes to OCR a note beyond its HTML: the scanned
+    page image(s) (download_nota_imagenes()) when SIDOF has one for the
+    note's page, or — when it does not (the ValueError download_nota_imagenes
+    raises for a page with no matching image) — its own PDF sliced out of the
+    edition (download_nota_pdf()) instead. Returns the resulting path(s),
+    always a list (one PDF path, wrapped, in the fallback case) so a caller
+    does not need to know which of the two happened.
+
+    Meant for bulk-downloading every note a collection's historial needs
+    that has no usable HTML, into one `outdir` per run: download_nota_pdf()
+    caches the edition PDF there instead of discarding it, so later notes
+    from the same day reuse it, and both this function and download_nota_pdf()
+    skip a note whose file is already in `outdir` from a previous run. A
+    later `nota2md.legal_provisions(cod_nota, outdir, source="image"|"pdf")`
+    call against that same `outdir` then only has to OCR and cut — it never
+    re-downloads anything this function already put there.
+
+    This function itself also skips straight to whatever is already on
+    disk with NO network call — not even get_nota() for `nota` — the same
+    way download_nota_pdf() does on its own: it does not yet know which of
+    the two paths a previous run took for this note, so it checks for
+    download_nota_pdf()'s own `nota-{cod_nota}.pdf` first, then for any
+    `nota-{cod_nota}-*.jpg` download_nota_imagenes() may have left behind.
+    """
+    pdf_existente = outdir / f"nota-{cod_nota}.pdf"
+    if pdf_existente.exists():
+        return [pdf_existente]
+    imagenes_existentes = sorted(outdir.glob(f"nota-{cod_nota}-*.jpg"))
+    if imagenes_existentes:
+        return imagenes_existentes
+
+    if nota is None:
+        nota = get_nota(cod_nota)["Nota"]
+    try:
+        return download_nota_imagenes(cod_nota, outdir, nota=nota)
+    except ValueError:
+        return [download_nota_pdf(cod_nota, outdir, nota=nota)]
 
 
 def download_nota(cod_nota: int, outdir: Path) -> list[Path]:

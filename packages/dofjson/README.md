@@ -33,7 +33,17 @@ fetch it in whichever form you want:
 - `download_nota_imagenes(codNota)` — the legal provision's scanned page image(s).
 - `download_nota_pdf(codNota)` — the legal provision as its own PDF: the whole
   edition PDF (there is no per-legal-provision PDF endpoint) sliced to just
-  the legal provision's pages, using `pypdf`.
+  the legal provision's pages, using `pypdf`. The edition PDF itself is
+  cached in `outdir` as `edicion-{codDiario}.pdf`, so slicing out another
+  legal provision from the same edition later does not re-fetch it, and a
+  legal provision whose own `nota-{codNota}.pdf` is already in `outdir`
+  is returned immediately, with no network call at all.
+- `download_nota_imagen_o_pdf(codNota)` — tries the page image first, and
+  falls back to the (now-cached) PDF path only when SIDOF has no image for
+  that page. Meant for bulk-downloading everything a large batch of legal
+  provisions without HTML needs into one `outdir`, so that a later
+  `nota2md.legal_provisions(codNota, outdir, source="image"|"pdf")` call
+  against that same directory only has to OCR and cut — never re-download.
 
 ## Usage
 
