@@ -2,7 +2,7 @@ import datetime as dt
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from dofjson import dofweb
 
@@ -299,6 +299,29 @@ class TestLegalProvisions(unittest.TestCase):
         self.assertEqual(
             (self.outdir / "nota-200.full.md").read_text(encoding="utf-8"),
             "full page text",
+        )
+
+    @patch("nota2md.builder.client.download_nota_imagenes")
+    def test_reuses_an_already_entered_converter_instead_of_the_default_path(
+        self, mock_download
+    ):
+        image_only = {
+            "codNota": 200, "titulo": "T", "codEdicion": "MAT",
+            "fecha": "15-07-2026", "cadenaContenido": "",
+        }
+        mock_download.return_value = [self.outdir / "nota-200-p1.jpg"]
+        fake_converter = MagicMock(return_value=self.outdir / "nota-200.md")
+
+        dest = legal_provisions(
+            200, self.outdir, source="image", nota=image_only,
+            notas_del_dia={"NotasMatutinas": [{"codNota": 200, "titulo": "T"}]},
+            converter=fake_converter,
+        )
+
+        self.assertEqual(dest, self.outdir / "nota-200.md")
+        fake_converter.assert_called_once_with(
+            [self.outdir / "nota-200-p1.jpg"], self.outdir, "nota-200.md", "T", None,
+            min_confidence=0.6, keep_pages=False, keep_mineru_output=False,
         )
 
 
