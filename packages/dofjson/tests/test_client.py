@@ -515,18 +515,24 @@ class TestDownloadNota(unittest.TestCase):
         self, mock_get_nota, mock_get_notas, mock_download_pdf
     ):
         nota = {
-            "codNota": 5793639, "cadenaContenido": "", "codDiario": 328506,
-            "fecha": "15-07-2026", "pagina": 5, "codEdicion": "MAT",
+            "codNota": 5793641, "cadenaContenido": "", "codDiario": 328506,
+            "fecha": "15-07-2026", "pagina": 9, "codEdicion": "MAT",
         }
         mock_get_nota.return_value = {"Nota": nota}
+        # min(paginas_conocidas)=5 -> even the metadata-based fallback offset
+        # (used when the PDF's own text yields no votes, see
+        # test_download_nota_pdf_falls_back_to_metadata_offset_when_pdf_has_no_text)
+        # still puts pagina 9 at índice 4, past this edition's 3 pages.
         mock_get_notas.return_value = {
-            "NotasMatutinas": [{"codNota": 5793639, "pagina": 5}]
+            "NotasMatutinas": [
+                {"codNota": 5793639, "pagina": 5},
+                {"codNota": 5793641, "pagina": 9},
+            ]
         }
-        # the edition PDF has fewer pages than the note's page number
         mock_download_pdf.side_effect = lambda cod_diario, dest, **kw: _write_pdf(dest, 3)
 
         with self.assertRaises(ValueError):
-            download_nota_pdf(5793639, self.outdir)
+            download_nota_pdf(5793641, self.outdir)
 
     @patch("dofjson.client.download_pdf")
     @patch("dofjson.client.get_notas")
@@ -571,6 +577,37 @@ class TestDownloadNota(unittest.TestCase):
         self.assertEqual(len(PdfReader(str(dest)).pages), 2)
         self.assertIn("1142", PdfReader(str(dest)).pages[0].extract_text())
         self.assertIn("1143", PdfReader(str(dest)).pages[1].extract_text())
+
+    @patch("dofjson.client.download_pdf")
+    @patch("dofjson.client.get_notas")
+    @patch("dofjson.client.get_nota")
+    def test_download_nota_pdf_falls_back_to_metadata_offset_when_pdf_has_no_text(
+        self, mock_get_nota, mock_get_notas, mock_download_pdf
+    ):
+        # The edition PDF carries no extractable text at all (a purely
+        # scanned, un-OCR'd volume) -- _detectar_offset_paginacion finds no
+        # votes. offset=1 (the modern-edition default) would be wrong here
+        # and point past the PDF entirely; the smallest pagina the day's
+        # own notes report (50) is the edition's real first physical page.
+        nota = {
+            "codNota": 52, "cadenaContenido": "", "codDiario": 900001,
+            "fecha": "01-01-1930", "pagina": 52, "codEdicion": "MAT",
+        }
+        mock_get_nota.return_value = {"Nota": nota}
+        mock_get_notas.return_value = {
+            "NotasMatutinas": [
+                {"codNota": 50, "pagina": 50},
+                {"codNota": 51, "pagina": 51},
+                {"codNota": 52, "pagina": 52},  # last of the day -> single page
+            ]
+        }
+        mock_download_pdf.side_effect = lambda cod_diario, dest, **kw: _write_pdf(dest, 3)
+
+        dest = download_nota_pdf(52, self.outdir)
+
+        from pypdf import PdfReader
+
+        self.assertEqual(len(PdfReader(str(dest)).pages), 1)  # pagina 52 -> indice 2, in range
 
     @patch("dofjson.client.download_nota_imagenes")
     @patch("dofjson.client.get_nota")
@@ -692,12 +729,12 @@ class TestDownloadNotaImagenOPdf(unittest.TestCase):
     def tearDown(self):
         self.tmpdir.cleanup()
 
-    @patch("dofjson.client.download_nota_pdf")
+    @patch("dofjson.client.download_pdf")
     @patch("dofjson.client.download_imagen")
     @patch("dofjson.client.get_imagenes")
     @patch("dofjson.client.get_notas")
     def test_prefers_the_page_imagen_when_sidof_has_one(
-        self, mock_get_notas, mock_get_imagenes, mock_download_imagen, mock_download_nota_pdf
+        self, mock_get_notas, mock_get_imagenes, mock_download_imagen, mock_download_pdf
     ):
         nota = {
             "codNota": 5793655, "cadenaContenido": "", "codDiario": 208439,
@@ -713,38 +750,36 @@ class TestDownloadNotaImagenOPdf(unittest.TestCase):
         dests = download_nota_imagen_o_pdf(5793655, self.outdir, nota=nota)
 
         self.assertEqual(dests, [self.outdir / "nota-5793655-20260715-080-U-000.jpg"])
-        mock_download_nota_pdf.assert_not_called()
+        mock_download_pdf.assert_not_called()
 
-    @patch("dofjson.client.download_nota_pdf")
+    @patch("dofjson.client.download_pdf")
     @patch("dofjson.client.get_imagenes")
     @patch("dofjson.client.get_notas")
-    def test_falls_back_to_pdf_when_no_matching_page_imagen(
-        self, mock_get_notas, mock_get_imagenes, mock_download_nota_pdf
+    def test_falls_back_to_the_whole_uncut_edicion_when_no_matching_page_imagen(
+        self, mock_get_notas, mock_get_imagenes, mock_download_pdf
     ):
+        # Reproduces the reported bug: a note's `pagina` can be a running,
+        # multi-edition tomo count (issue #95) that simply never matches
+        # this single day's own local image index — download_nota_pdf()'s
+        # own page-position work (which that mismatch would also break) is
+        # never even reached, because this function must not need it at
+        # download time in the first place.
         nota = {
-            "codNota": 4845424, "cadenaContenido": "", "codDiario": 208439,
-            "fecha": "02-01-1980", "pagina": 2, "codEdicion": "MAT",
+            "codNota": 4456687, "cadenaContenido": "", "codDiario": 188437,
+            "fecha": "27-04-1933", "pagina": 677, "codEdicion": "MAT",
         }
         mock_get_notas.return_value = {
-            "NotasMatutinas": [{"codNota": 4845424, "pagina": 2}]
+            "NotasMatutinas": [{"codNota": 4456687, "pagina": 677}]
         }
-        mock_get_imagenes.return_value = {"imagenesFS": []}  # no imagen for pagina=2
-        mock_download_nota_pdf.return_value = self.outdir / "nota-4845424.pdf"
+        mock_get_imagenes.return_value = {
+            "imagenesFS": [{"pagina": p, "nombreArchivo": f"x-{p}"} for p in range(1, 9)]
+        }  # local page numbers 1..8 -- pagina=677 never matches any of them
+        mock_download_pdf.side_effect = lambda cod_diario, dest, **kw: dest.write_bytes(b"%PDF-edicion")
 
-        dests = download_nota_imagen_o_pdf(4845424, self.outdir, nota=nota)
+        dests = download_nota_imagen_o_pdf(4456687, self.outdir, nota=nota)
 
-        self.assertEqual(dests, [self.outdir / "nota-4845424.pdf"])
-        mock_download_nota_pdf.assert_called_once_with(4845424, self.outdir, nota=nota)
-
-    @patch("dofjson.client.get_nota")
-    def test_returns_cached_pdf_without_any_network_call(self, mock_get_nota):
-        existente = self.outdir / "nota-4535455.pdf"
-        existente.write_bytes(b"%PDF- ya estaba aqui")
-
-        dests = download_nota_imagen_o_pdf(4535455, self.outdir)
-
-        mock_get_nota.assert_not_called()
-        self.assertEqual(dests, [existente])
+        self.assertEqual(dests, [self.outdir / "edicion-188437.pdf"])
+        mock_download_pdf.assert_called_once()
 
     @patch("dofjson.client.get_nota")
     def test_returns_cached_imagenes_without_any_network_call(self, mock_get_nota):
