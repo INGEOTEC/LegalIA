@@ -243,7 +243,14 @@ def download_nota_pdf(
     reader = PdfReader(str(edicion_pdf))
     offset = _detectar_offset_paginacion(reader, paginas_conocidas)
     if offset is None:
-        offset = 1
+        # No page's own printed text corroborated an offset at all — some
+        # scanned editions carry no extractable text layer whatsoever, so
+        # _detectar_offset_paginacion never gets a vote to work with.
+        # Assuming offset 1 (modern-edition numbering) is a worse guess than
+        # the smallest pagina the day's own notes/imagenes index reports:
+        # that page is, by construction, the edition's own first physical
+        # page — see get_notas()'s own `pagina` field, sorted.
+        offset = min(paginas_conocidas) if paginas_conocidas else 1
     writer = PdfWriter()
     for pagina in paginas:
         indice = pagina - offset
@@ -264,30 +271,38 @@ def download_nota_imagen_o_pdf(
     """Download whatever it takes to OCR a note beyond its HTML: the scanned
     page image(s) (download_nota_imagenes()) when SIDOF has one for the
     note's page, or — when it does not (the ValueError download_nota_imagenes
-    raises for a page with no matching image) — its own PDF sliced out of the
-    edition (download_nota_pdf()) instead. Returns the resulting path(s),
-    always a list (one PDF path, wrapped, in the fallback case) so a caller
-    does not need to know which of the two happened.
+    raises for a page with no matching image) — the *whole edition's* PDF,
+    cached in `outdir` as `edicion-{codDiario}.pdf` (see
+    _edicion_pdf_cacheada()), left uncut. Returns the resulting path(s) as a
+    list either way (one edition path, wrapped, in the fallback case) so a
+    caller does not need to know which of the two happened.
+
+    This deliberately does NOT slice the edition down to just this note's
+    page(s) the way download_nota_pdf() does — that needs the note's
+    physical page position worked out (_detectar_offset_paginacion(), or a
+    get_notas()-based equivalent), which is OCR/cutting work, not
+    downloading: this function is meant for bulk-downloading everything a
+    batch of notes without HTML needs, before any OCR happens at all.
+    Working out a note's page position from a *running, multi-edition*
+    pagina count (issue #95) can itself fail before there is even a PDF
+    reader in the picture — e.g. a note's own pagina can fall outside the
+    single day's image listing entirely — which is one more reason that
+    work has no business happening at this stage. Call download_nota_pdf()
+    directly (e.g. from nota2md.legal_provisions(..., source="pdf")) when a
+    per-note, pre-cut PDF is actually needed for OCR.
 
     Meant for bulk-downloading every note a collection's historial needs
-    that has no usable HTML, into one `outdir` per run: download_nota_pdf()
-    caches the edition PDF there instead of discarding it, so later notes
-    from the same day reuse it, and both this function and download_nota_pdf()
-    skip a note whose file is already in `outdir` from a previous run. A
-    later `nota2md.legal_provisions(cod_nota, outdir, source="image"|"pdf")`
-    call against that same `outdir` then only has to OCR and cut — it never
-    re-downloads anything this function already put there.
+    that has no usable HTML, into one `outdir` per run: the edition PDF
+    this function (or download_nota_pdf(), later) fetches is cached there,
+    so later notes from the same day reuse it instead of re-downloading it.
 
     This function itself also skips straight to whatever is already on
-    disk with NO network call — not even get_nota() for `nota` — the same
-    way download_nota_pdf() does on its own: it does not yet know which of
-    the two paths a previous run took for this note, so it checks for
-    download_nota_pdf()'s own `nota-{cod_nota}.pdf` first, then for any
-    `nota-{cod_nota}-*.jpg` download_nota_imagenes() may have left behind.
+    disk with NO network call — not even get_nota() for `nota` — when it
+    can: it checks for any `nota-{cod_nota}-*.jpg` download_nota_imagenes()
+    may have left behind from a previous run. There is no equivalent
+    shortcut for the PDF fallback here, since which edition a note belongs
+    to is only known once `nota` itself has been fetched.
     """
-    pdf_existente = outdir / f"nota-{cod_nota}.pdf"
-    if pdf_existente.exists():
-        return [pdf_existente]
     imagenes_existentes = sorted(outdir.glob(f"nota-{cod_nota}-*.jpg"))
     if imagenes_existentes:
         return imagenes_existentes
@@ -297,7 +312,8 @@ def download_nota_imagen_o_pdf(
     try:
         return download_nota_imagenes(cod_nota, outdir, nota=nota)
     except ValueError:
-        return [download_nota_pdf(cod_nota, outdir, nota=nota)]
+        outdir.mkdir(parents=True, exist_ok=True)
+        return [_edicion_pdf_cacheada(nota["codDiario"], outdir)]
 
 
 def download_nota(cod_nota: int, outdir: Path) -> list[Path]:
