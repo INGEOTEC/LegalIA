@@ -128,7 +128,8 @@ def convert_images_to_markdown(
 
     The page images typically hold more than the note of interest (a page can
     start or end mid-note); callers wanting only one note should slice the
-    result afterwards — see nota2md.cutter.cut_markdown_by_titles().
+    result afterwards — see cutter.cut_markdown_by_titles(), or use
+    BatchConverter, which does the cut inline.
 
     Figures mineru extracts from a page are copied next to the output under
     `<md stem>_images/<image stem>/` (namespaced per page so figures from
