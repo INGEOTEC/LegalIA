@@ -270,12 +270,17 @@ def download_nota_imagen_o_pdf(
 ) -> list[Path]:
     """Download whatever it takes to OCR a note beyond its HTML: the scanned
     page image(s) (download_nota_imagenes()) when SIDOF has one for the
-    note's page, or — when it does not (the ValueError download_nota_imagenes
-    raises for a page with no matching image) — the *whole edition's* PDF,
-    cached in `outdir` as `edicion-{codDiario}.pdf` (see
-    _edicion_pdf_cacheada()), left uncut. Returns the resulting path(s) as a
-    list either way (one edition path, wrapped, in the fallback case) so a
-    caller does not need to know which of the two happened.
+    note's page, or — when it does not — the *whole edition's* PDF, cached
+    in `outdir` as `edicion-{codDiario}.pdf` (see _edicion_pdf_cacheada()),
+    left uncut. Returns the resulting path(s) as a list either way (one
+    edition path, wrapped, in the fallback case) so a caller does not need
+    to know which of the two happened.
+
+    The image path can be unavailable in two different ways, both treated
+    as the same fallback signal: download_nota_imagenes() raises ValueError
+    itself for a page with no matching image, and SIDOF's image-listing
+    endpoint (get_imagenes()) can 404 outright for a codDiario it has no
+    listing for at all, which surfaces as requests.HTTPError.
 
     This deliberately does NOT slice the edition down to just this note's
     page(s) the way download_nota_pdf() does — that needs the note's
@@ -296,12 +301,13 @@ def download_nota_imagen_o_pdf(
     this function (or download_nota_pdf(), later) fetches is cached there,
     so later notes from the same day reuse it instead of re-downloading it.
 
-    This function itself also skips straight to whatever is already on
-    disk with NO network call — not even get_nota() for `nota` — when it
-    can: it checks for any `nota-{cod_nota}-*.jpg` download_nota_imagenes()
-    may have left behind from a previous run. There is no equivalent
-    shortcut for the PDF fallback here, since which edition a note belongs
-    to is only known once `nota` itself has been fetched.
+    This function skips straight to whatever is already on disk before
+    doing any downloading: first any `nota-{cod_nota}-*.jpg`
+    download_nota_imagenes() may have left behind from a previous run (no
+    network call at all, not even get_nota() for `nota`), and — once `nota`
+    is known, to read its codDiario — any already-cached
+    `edicion-{codDiario}.pdf`, so a previous PDF-fallback run is not retried
+    (and re-failed) on every call.
     """
     imagenes_existentes = sorted(outdir.glob(f"nota-{cod_nota}-*.jpg"))
     if imagenes_existentes:
@@ -309,9 +315,14 @@ def download_nota_imagen_o_pdf(
 
     if nota is None:
         nota = get_nota(cod_nota)["Nota"]
+
+    edicion_existente = outdir / f"edicion-{nota['codDiario']}.pdf"
+    if edicion_existente.exists():
+        return [edicion_existente]
+
     try:
         return download_nota_imagenes(cod_nota, outdir, nota=nota)
-    except ValueError:
+    except (ValueError, requests.HTTPError):
         outdir.mkdir(parents=True, exist_ok=True)
         return [_edicion_pdf_cacheada(nota["codDiario"], outdir)]
 
