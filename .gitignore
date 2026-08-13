@@ -47,3 +47,4 @@ packages/dof2md/output/
 
 /.quarto/
 **/*.quarto_ipynb
+scripts/legal_provisions/
