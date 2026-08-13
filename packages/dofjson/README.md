@@ -39,10 +39,13 @@ fetch it in whichever form you want:
   legal provision whose own `nota-{codNota}.pdf` is already in `outdir`
   is returned immediately, with no network call at all.
 - `download_nota_imagen_o_pdf(codNota)` — tries the page image first, and
-  falls back to the *whole, uncut* edition PDF (cached the same way) only
-  when SIDOF has no image for that page — deliberately not the sliced,
-  per-legal-provision PDF `download_nota_pdf` produces, since working out
-  a legal provision's page position is OCR/cutting work, not downloading.
+  falls back to the *whole, uncut* edition PDF (cached the same way) when
+  SIDOF has no image for that page, or its image-listing endpoint 404s for
+  that edition outright — deliberately not the sliced, per-legal-provision
+  PDF `download_nota_pdf` produces, since working out a legal provision's
+  page position is OCR/cutting work, not downloading. A legal provision
+  whose images or fallback edition PDF are already in `outdir` is returned
+  immediately, without repeating a previous, already-failed image attempt.
   Meant for bulk-downloading everything a large batch of legal provisions
   without HTML needs into one `outdir`, so that a later
   `nota2md.legal_provisions(codNota, outdir, source="image"|"pdf")` call
