@@ -14,7 +14,7 @@ from nota2md.builder import fetch_daily_legal_provisions, legal_provisions
 from nota2md.leyes import reconstruct_legal_provisions
 from nota2md.utils import download_legal_provisions_provenance_ids
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 
 __all__ = [
     "legal_provisions",
