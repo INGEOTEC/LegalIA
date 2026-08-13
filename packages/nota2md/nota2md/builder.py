@@ -16,17 +16,24 @@ Three sources feed the same output, and legal_provisions() picks between them:
   dofjson.download_nota_pdf) is OCR'd to Markdown (dof2md).
 
 Both OCR paths then slice the result down to the single note with
-cutter.cut_markdown_by_titles(), using the note's own title and the next note's
-title from the per-day index as boundaries (a page/PDF usually holds more than
-one note). They are available for every note — including those that also have
-HTML — which is why dofjson downloads images/PDF regardless of ``existeHtml``.
+dof2md.cutter.cut_markdown_by_titles(), using the note's own title and the
+next note's title from the per-day index as boundaries (a page/PDF usually
+holds more than one note). They are available for every note — including
+those that also have HTML — which is why dofjson downloads images/PDF
+regardless of ``existeHtml``. dof2md.cutter is only imported once an OCR path
+actually runs (see _load_converter()), same as the rest of dof2md — it is an
+optional dependency, so the HTML-only path stays lightweight.
+
+Passing `converter` (a dof2md.BatchConverter already `__enter__`'d by the
+caller) lets a batch of legal_provisions() calls share one already-warm
+mineru-api server instead of each OCR path starting and stopping its own —
+see BatchConverter's own docstring.
 """
 import datetime as dt
 from pathlib import Path
 
 from dofjson import client, dofweb
 
-from nota2md.cutter import cut_markdown_by_titles
 from nota2md.html_converter import html_to_markdown
 
 # Which per-edition list in a get_notas() response holds a note, keyed by its
@@ -110,6 +117,7 @@ def legal_provisions(
     min_confidence: float = 0.6,
     keep_pages: bool = False,
     keep_mineru_output: bool = False,
+    converter=None,
 ) -> Path:
     """Build the Markdown for `cod_nota` and write it to
     ``outdir/nota-{cod_nota}.md``; return that path.
@@ -132,6 +140,19 @@ def legal_provisions(
     ``nota-{cod_nota}.full.md``. `keep_mineru_output` (OCR paths only) keeps
     mineru's own raw output — otherwise thrown away with its temp dir — under
     ``nota-{cod_nota}_mineru/``, for inspecting an OCR result that looks wrong.
+
+    Pass an already-`__enter__`'d `dof2md.BatchConverter` as `converter` (OCR
+    paths only) to have this call reuse its already-warm mineru-api server
+    instead of starting/stopping its own — the way to build a batch of notes
+    without paying the OCR server's startup cost once per note:
+
+        with dof2md.BatchConverter() as ins:
+            for cod_nota in codigos_sin_html:
+                legal_provisions(cod_nota, outdir, source="image", converter=ins)
+
+    Left as None (the default), a call still works exactly as before —
+    dof2md's own convert_images_to_markdown()/convert_to_markdown() manage
+    whatever server they individually need.
     """
     if source not in ("auto", "html", "image", "pdf"):
         raise ValueError(
@@ -162,15 +183,35 @@ def legal_provisions(
         )
 
     if source == "pdf":
-        return _build_from_pdf(
-            cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages,
-            keep_mineru_output,
+        path_or_paths = client.download_nota_pdf(cod_nota, outdir, nota=nota)
+    else:
+        path_or_paths = client.download_nota_imagenes(cod_nota, outdir, nota=nota)
+
+    if notas_del_dia is None:
+        fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
+        notas_del_dia = client.get_notas(fecha)
+    titulo = nota.get("titulo", "")
+    titulo_sig = titulo_siguiente(nota, notas_del_dia)
+
+    if converter is not None:
+        # The caller already __enter__'d this BatchConverter — its mineru-api
+        # server (if any) is already up; reuse it as-is, no new one to manage.
+        return converter(
+            path_or_paths, outdir, md_path.name, titulo, titulo_sig,
+            min_confidence=min_confidence, keep_pages=keep_pages,
+            keep_mineru_output=keep_mineru_output,
         )
 
-    return _build_from_images(
-        cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages,
-        keep_mineru_output,
+    # No shared converter given: behave exactly as before BatchConverter
+    # existed — convert_images_to_markdown()/convert_to_markdown() manage
+    # whatever server a single call individually needs (none, for a single
+    # PDF or page; their own short-lived one for a multi-page note), instead
+    # of this call starting a BatchConverter's server for just itself.
+    convert = _load_converter(
+        "convert_to_markdown" if source == "pdf" else "convert_images_to_markdown"
     )
+    convert(path_or_paths, md_path, keep_mineru_output=keep_mineru_output)
+    return _cut_and_write(md_path, outdir, titulo, titulo_sig, min_confidence, keep_pages, cod_nota)
 
 
 def _load_converter(name: str):
@@ -186,45 +227,18 @@ def _load_converter(name: str):
     return getattr(converter, name)
 
 
-def _build_from_images(
-    cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages,
-    keep_mineru_output,
-):
-    convert_images_to_markdown = _load_converter("convert_images_to_markdown")
-    image_paths = client.download_nota_imagenes(cod_nota, outdir, nota=nota)
-    # dof2md OCRs the pages and already rewrites mineru's HTML tables to
-    # Markdown tables, so the read-back is Markdown all the way through.
-    convert_images_to_markdown(image_paths, md_path, keep_mineru_output=keep_mineru_output)
-    return _cut_and_write(cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages)
+def _cut_and_write(md_path, outdir, titulo, titulo_sig, min_confidence, keep_pages, cod_nota):
+    """Shared tail of the OCR paths (no shared `converter`): read the full
+    OCR Markdown at `md_path`, optionally keep it, then slice it down to
+    just this note and overwrite."""
+    from dof2md.cutter import cut_markdown_by_titles
 
-
-def _build_from_pdf(
-    cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages,
-    keep_mineru_output,
-):
-    convert_to_markdown = _load_converter("convert_to_markdown")
-    pdf_path = client.download_nota_pdf(cod_nota, outdir, nota=nota)
-    convert_to_markdown(pdf_path, md_path, keep_mineru_output=keep_mineru_output)
-    return _cut_and_write(cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages)
-
-
-def _cut_and_write(cod_nota, nota, outdir, md_path, notas_del_dia, min_confidence, keep_pages):
-    """Shared tail of the OCR paths: read the full OCR Markdown at `md_path`,
-    optionally keep it, then slice it down to just this note and overwrite."""
     full_markdown = md_path.read_text(encoding="utf-8")
-
     if keep_pages:
         (outdir / f"nota-{cod_nota}.full.md").write_text(full_markdown, encoding="utf-8")
 
-    if notas_del_dia is None:
-        fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
-        notas_del_dia = client.get_notas(fecha)
-
     cut = cut_markdown_by_titles(
-        full_markdown,
-        nota.get("titulo", ""),
-        titulo_siguiente(nota, notas_del_dia),
-        min_confidence=min_confidence,
+        full_markdown, titulo, titulo_sig, min_confidence=min_confidence
     )
     md_path.write_text(cut + "\n", encoding="utf-8")
     return md_path

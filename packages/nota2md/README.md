@@ -116,6 +116,26 @@ legal_provisions(5793655, "output")                 # -> output/nota-5793655.md
 The HTML path needs only `beautifulsoup4`; the image and PDF paths additionally
 need `dof2md` (and mineru), imported lazily so the HTML path works without them.
 
+### Batch conversion — reusing one OCR server across many legal provisions
+
+Left alone, every `legal_provisions(..., source="image"|"pdf")` call manages
+its own OCR server as needed. Building many legal provisions in one run
+(e.g. every legal provision in a law's `historial` that has no HTML) can
+instead share one already-warm `mineru-api` server across all of them, by
+passing an already-`__enter__`'d `dof2md.BatchConverter` as `converter`:
+
+```python
+from dof2md import BatchConverter
+from nota2md import legal_provisions
+
+with BatchConverter() as ins:
+    for cod_nota in codigos_sin_html:
+        legal_provisions(cod_nota, "output", source="image", converter=ins)
+```
+
+This is the same `BatchConverter` [`dof2md`](../dof2md) itself uses to
+convert any batch of documents — DOF-sourced or not.
+
 ## `reconstruct_legal_provisions` — a law's current text from its DOF legal provisions
 
 Builds a law's current (vigente) text from nothing but its DOF legal
