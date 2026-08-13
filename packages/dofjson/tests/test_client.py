@@ -736,6 +736,26 @@ class TestDownloadNotaImagenOPdf(unittest.TestCase):
         self.assertEqual(dests, [self.outdir / "nota-4845424.pdf"])
         mock_download_nota_pdf.assert_called_once_with(4845424, self.outdir, nota=nota)
 
+    @patch("dofjson.client.get_nota")
+    def test_returns_cached_pdf_without_any_network_call(self, mock_get_nota):
+        existente = self.outdir / "nota-4535455.pdf"
+        existente.write_bytes(b"%PDF- ya estaba aqui")
+
+        dests = download_nota_imagen_o_pdf(4535455, self.outdir)
+
+        mock_get_nota.assert_not_called()
+        self.assertEqual(dests, [existente])
+
+    @patch("dofjson.client.get_nota")
+    def test_returns_cached_imagenes_without_any_network_call(self, mock_get_nota):
+        existente = self.outdir / "nota-5793655-20260715-080-U-000.jpg"
+        existente.write_bytes(b"\xff\xd8\xff ya estaba aqui")
+
+        dests = download_nota_imagen_o_pdf(5793655, self.outdir)
+
+        mock_get_nota.assert_not_called()
+        self.assertEqual(dests, [existente])
+
 
 if __name__ == "__main__":
     unittest.main()
