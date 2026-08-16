@@ -19,6 +19,18 @@ HTML_NOTA = {
     ),
 }
 
+# A note SIDOF has no record of at all, recovered from the DOF website (see
+# dofjson.dofweb): no codDiario/codEdicion/pagina, so only the HTML path can
+# build it.
+WEB_NOTA = {
+    "codNota": 4997808,
+    "fecha": "03-03-1999",
+    "titulo": "DECRETO por el que se concede permiso...",
+    "cadenaContenido": "<HTML><BODY><p>Cuerpo del decreto.</p></BODY></HTML>",
+    "existeHtml": "S",
+    "fuente": dofweb.FUENTE,
+}
+
 
 class TestTituloSiguiente(unittest.TestCase):
     def test_skips_titleless_stub_and_returns_next_titled_note(self):
@@ -39,55 +51,38 @@ class TestTituloSiguiente(unittest.TestCase):
 
 
 class TestFetchNota(unittest.TestCase):
-    """SIDOF is missing whole days (see dofjson.dofweb), and the notes on them
-    have no SIDOF record at all — the DOF's website is the only source."""
+    """fetch_nota() is a thin wrapper over dofjson.get_nota() — the
+    package's unified entry point for SIDOF + the DOF website fallback (see
+    dofjson.api). The fallback behaviour itself is tested there; here it's
+    only checked that this wrapper delegates to it and returns what it
+    returns."""
 
-    WEB_NOTA = {
-        "codNota": 4997808,
-        "fecha": "03-03-1999",
-        "titulo": "DECRETO por el que se concede permiso...",
-        "cadenaContenido": "<HTML><BODY><p>Cuerpo del decreto.</p></BODY></HTML>",
-        "existeHtml": "S",
-        "fuente": dofweb.FUENTE,
-    }
+    @patch("nota2md.builder.dofjson.get_nota")
+    def test_delegates_to_the_unified_dofjson_entry_point(self, mock_get_nota):
+        mock_get_nota.return_value = {"codNota": 1, "cadenaContenido": "<p>x</p>"}
 
-    @patch("nota2md.builder.dofweb.get_nota")
-    @patch("nota2md.builder.client.get_nota")
-    def test_prefers_sidof_when_it_has_the_note(self, mock_sidof, mock_web):
-        mock_sidof.return_value = {"Nota": {"codNota": 1, "cadenaContenido": "<p>x</p>"}}
+        nota = fetch_nota(1)
 
-        self.assertEqual(fetch_nota(1)["codNota"], 1)
-        mock_web.assert_not_called()
+        mock_get_nota.assert_called_once_with(1)
+        self.assertEqual(nota, mock_get_nota.return_value)
 
-    @patch("nota2md.builder.dofweb.get_nota")
-    @patch("nota2md.builder.client.get_nota")
-    def test_falls_back_to_the_website_when_sidof_lacks_the_note(self, mock_sidof, mock_web):
-        # SIDOF answers an empty list, not an error, for a codNota it lacks.
-        mock_sidof.return_value = {"messageCode": 200, "response": "OK", "Nota": []}
-        mock_web.return_value = {"Nota": self.WEB_NOTA}
-
-        nota = fetch_nota(4997808)
-
-        mock_web.assert_called_once_with(4997808)
-        self.assertEqual(nota["fuente"], dofweb.FUENTE)
-
-    @patch("nota2md.builder.dofweb.get_nota")
-    @patch("nota2md.builder.client.get_nota")
-    def test_raises_when_neither_source_has_the_note(self, mock_sidof, mock_web):
-        mock_sidof.return_value = {"Nota": []}
-        mock_web.return_value = {"Nota": []}
+    @patch("nota2md.builder.dofjson.get_nota")
+    def test_propagates_the_error_when_neither_source_has_the_note(self, mock_get_nota):
+        mock_get_nota.side_effect = ValueError("nota 999999999 does not exist in SIDOF nor in dof.gob.mx")
 
         with self.assertRaises(ValueError):
             fetch_nota(999999999)
 
 
 class TestFetchDailyLegalProvisions(unittest.TestCase):
+    """Same as TestFetchNota: fetch_daily_legal_provisions() only delegates
+    to dofjson.get_notas() now — see dofjson.api for the fallback tests."""
+
     FECHA = dt.date(2026, 7, 15)
 
-    @patch("nota2md.builder.dofweb.get_notas")
-    @patch("nota2md.builder.client.get_notas")
-    def test_prefers_sidof_when_it_has_notes(self, mock_sidof, mock_web):
-        mock_sidof.return_value = {
+    @patch("nota2md.builder.dofjson.get_notas")
+    def test_delegates_to_the_unified_dofjson_entry_point(self, mock_get_notas):
+        mock_get_notas.return_value = {
             "NotasMatutinas": [{"codNota": 1, "titulo": "Nota A"}],
             "NotasVespertinas": [],
             "NotasExtraordinarias": [],
@@ -95,57 +90,8 @@ class TestFetchDailyLegalProvisions(unittest.TestCase):
 
         notas = fetch_daily_legal_provisions(self.FECHA)
 
-        self.assertEqual(notas["NotasMatutinas"], [{"codNota": 1, "titulo": "Nota A"}])
-        mock_web.assert_not_called()
-
-    @patch("nota2md.builder.dofweb.get_notas")
-    @patch("nota2md.builder.client.get_notas")
-    def test_drops_titleless_stub_entries(self, mock_sidof, mock_web):
-        mock_sidof.return_value = {
-            "NotasMatutinas": [
-                {"codNota": 1, "titulo": "Nota A"},
-                {"codNota": 2},  # title-less stub/twin
-            ],
-            "NotasVespertinas": [],
-            "NotasExtraordinarias": [],
-        }
-
-        notas = fetch_daily_legal_provisions(self.FECHA)
-
-        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [1])
-
-    @patch("nota2md.builder.dofweb.get_notas")
-    @patch("nota2md.builder.client.get_notas")
-    def test_falls_back_to_the_website_when_sidof_has_nothing(self, mock_sidof, mock_web):
-        # SIDOF answers every list empty, not an error, for a day it lacks.
-        mock_sidof.return_value = {
-            "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
-        }
-        mock_web.return_value = {
-            "NotasMatutinas": [{"codNota": 3, "titulo": "Nota recuperada"}],
-            "NotasVespertinas": [],
-            "NotasExtraordinarias": [],
-            "fuente": dofweb.FUENTE,
-        }
-
-        notas = fetch_daily_legal_provisions(self.FECHA)
-
-        mock_web.assert_called_once_with(self.FECHA)
-        self.assertEqual(notas["fuente"], dofweb.FUENTE)
-        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [3])
-
-    @patch("nota2md.builder.dofweb.get_notas")
-    @patch("nota2md.builder.client.get_notas")
-    def test_returns_empty_when_neither_source_published_that_day(self, mock_sidof, mock_web):
-        vacio = {"NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": []}
-        mock_sidof.return_value = dict(vacio)
-        mock_web.return_value = {**vacio, "edicionesSinIndice": []}
-
-        notas = fetch_daily_legal_provisions(self.FECHA)
-
-        self.assertEqual(notas["NotasMatutinas"], [])
-        self.assertEqual(notas["NotasVespertinas"], [])
-        self.assertEqual(notas["NotasExtraordinarias"], [])
+        mock_get_notas.assert_called_once_with(self.FECHA)
+        self.assertEqual(notas, mock_get_notas.return_value)
 
 
 class TestLegalProvisions(unittest.TestCase):
@@ -256,11 +202,9 @@ class TestLegalProvisions(unittest.TestCase):
         self.assertIn("Cuerpo del acuerdo.", text)
         self.assertNotIn("NOM-042-NUCL", text)
 
-    @patch("nota2md.builder.dofweb.get_nota")
-    @patch("nota2md.builder.client.get_nota")
-    def test_builds_a_note_sidof_does_not_have_from_the_website(self, mock_sidof, mock_web):
-        mock_sidof.return_value = {"Nota": []}
-        mock_web.return_value = {"Nota": TestFetchNota.WEB_NOTA}
+    @patch("nota2md.builder.dofjson.get_nota")
+    def test_builds_a_note_sidof_does_not_have_from_the_website(self, mock_get_nota):
+        mock_get_nota.return_value = WEB_NOTA
 
         dest = legal_provisions(4997808, self.outdir)
 
@@ -274,7 +218,7 @@ class TestLegalProvisions(unittest.TestCase):
             with self.subTest(source=source):
                 with self.assertRaises(ValueError) as ctx:
                     legal_provisions(
-                        4997808, self.outdir, source=source, nota=TestFetchNota.WEB_NOTA
+                        4997808, self.outdir, source=source, nota=WEB_NOTA
                     )
                 self.assertIn(dofweb.FUENTE, str(ctx.exception))
 
