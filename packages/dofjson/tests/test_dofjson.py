@@ -1,13 +1,13 @@
 """dofjson (the package) is meant to be the ONE entry point for every piece
 of SIDOF/dofweb functionality (issue #104): no other function, in this
 package or another one (nota2md, leyesmx...), should need to import
-dofjson.client or dofjson.dofweb directly. These tests lock that surface in,
-so a future addition to client/dofweb that forgets to re-export it here
+dofjson.sidof or dofjson.dofweb directly. These tests lock that surface in,
+so a future addition to sidof/dofweb that forgets to re-export it here
 doesn't quietly reintroduce the need to reach into a submodule."""
 import unittest
 
 import dofjson
-from dofjson import api, client, dofweb, notas
+from dofjson import api, dofweb, notas, sidof
 
 
 class TestUnifiedEntryPoints(unittest.TestCase):
@@ -19,9 +19,9 @@ class TestUnifiedEntryPoints(unittest.TestCase):
         self.assertIs(dofjson.get_notas, api.get_notas)
 
 
-class TestClientPassthroughEntryPoints(unittest.TestCase):
+class TestSidofPassthroughEntryPoints(unittest.TestCase):
     """These have no dofweb equivalent to fall back to at all, so dofjson
-    re-exports dofjson.client's own function object directly."""
+    re-exports dofjson.sidof's own function object directly."""
 
     PASSTHROUGHS = (
         "get_diario",
@@ -35,15 +35,15 @@ class TestClientPassthroughEntryPoints(unittest.TestCase):
         "download_nota_imagen_o_pdf",
     )
 
-    def test_every_passthrough_is_the_client_function_itself(self):
+    def test_every_passthrough_is_the_sidof_function_itself(self):
         for nombre in self.PASSTHROUGHS:
             with self.subTest(nombre=nombre):
-                self.assertIs(getattr(dofjson, nombre), getattr(client, nombre))
+                self.assertIs(getattr(dofjson, nombre), getattr(sidof, nombre))
 
 
 class TestNotasPassthroughEntryPoints(unittest.TestCase):
     """infer_paginas/quita_notas_sin_titulo are pure, source-agnostic helpers
-    that live in dofjson.notas (not dofjson.client) -- see its docstring."""
+    that live in dofjson.notas (not dofjson.sidof) -- see its docstring."""
 
     PASSTHROUGHS = ("infer_paginas", "quita_notas_sin_titulo")
 
@@ -60,7 +60,7 @@ class TestDofjsonSurface(unittest.TestCase):
     def test_all_lists_exactly_the_exported_names(self):
         esperado = {
             "get_nota", "get_notas", "FUENTE_WEB",
-            *TestClientPassthroughEntryPoints.PASSTHROUGHS,
+            *TestSidofPassthroughEntryPoints.PASSTHROUGHS,
             *TestNotasPassthroughEntryPoints.PASSTHROUGHS,
         }
         self.assertEqual(set(dofjson.__all__), esperado)

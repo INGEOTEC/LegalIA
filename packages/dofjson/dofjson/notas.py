@@ -1,11 +1,11 @@
 """Pure helpers for working with a day's notes index or an edition PDF once
 it has already been fetched — none of these make a network request, and
-none of them care whether the data came from SIDOF (dofjson.client) or the
+none of them care whether the data came from SIDOF (dofjson.sidof) or the
 DOF's own website (dofjson.dofweb): dofjson.api.get_notas() runs a
 website-recovered day through quita_notas_sin_titulo() exactly the same way
 it does a SIDOF one.
 
-Kept out of dofjson.client on purpose, so that module is left holding only
+Kept out of dofjson.sidof on purpose, so that module is left holding only
 what actually talks to SIDOF — see its own module docstring.
 """
 

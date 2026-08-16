@@ -23,7 +23,7 @@ class TestGetNota(unittest.TestCase):
     source."""
 
     @patch("dofjson.api.dofweb.get_nota")
-    @patch("dofjson.api.client.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
     def test_prefers_sidof_when_it_has_the_note(self, mock_sidof, mock_web):
         mock_sidof.return_value = {"Nota": {"codNota": 1, "cadenaContenido": "<p>x</p>"}}
 
@@ -31,7 +31,7 @@ class TestGetNota(unittest.TestCase):
         mock_web.assert_not_called()
 
     @patch("dofjson.api.dofweb.get_nota")
-    @patch("dofjson.api.client.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
     def test_falls_back_to_the_website_when_sidof_lacks_the_note(self, mock_sidof, mock_web):
         # SIDOF answers an empty list, not an error, for a codNota it lacks.
         mock_sidof.return_value = {"messageCode": 200, "response": "OK", "Nota": []}
@@ -43,7 +43,7 @@ class TestGetNota(unittest.TestCase):
         self.assertEqual(nota["fuente"], dofweb.FUENTE)
 
     @patch("dofjson.api.dofweb.get_nota")
-    @patch("dofjson.api.client.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
     def test_raises_when_neither_source_has_the_note(self, mock_sidof, mock_web):
         mock_sidof.return_value = {"Nota": []}
         mock_web.return_value = {"Nota": []}
@@ -56,7 +56,7 @@ class TestGetNotas(unittest.TestCase):
     FECHA = dt.date(2026, 7, 15)
 
     @patch("dofjson.api.dofweb.get_notas")
-    @patch("dofjson.api.client.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
     def test_prefers_sidof_when_it_has_notes(self, mock_sidof, mock_web):
         mock_sidof.return_value = {
             "NotasMatutinas": [{"codNota": 1, "titulo": "Nota A"}],
@@ -71,7 +71,7 @@ class TestGetNotas(unittest.TestCase):
         mock_web.assert_not_called()
 
     @patch("dofjson.api.dofweb.get_notas")
-    @patch("dofjson.api.client.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
     def test_drops_titleless_stub_entries(self, mock_sidof, mock_web):
         mock_sidof.return_value = {
             "NotasMatutinas": [
@@ -87,7 +87,7 @@ class TestGetNotas(unittest.TestCase):
         self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [1])
 
     @patch("dofjson.api.dofweb.get_notas")
-    @patch("dofjson.api.client.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
     def test_falls_back_to_the_website_when_sidof_has_nothing(self, mock_sidof, mock_web):
         # SIDOF answers every list empty, not an error, for a day it lacks.
         mock_sidof.return_value = {
@@ -107,7 +107,7 @@ class TestGetNotas(unittest.TestCase):
         self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [3])
 
     @patch("dofjson.api.dofweb.get_notas")
-    @patch("dofjson.api.client.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
     def test_returns_empty_when_neither_source_published_that_day(self, mock_sidof, mock_web):
         vacio = {"NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": []}
         mock_sidof.return_value = dict(vacio)
@@ -123,7 +123,7 @@ class TestGetNotas(unittest.TestCase):
         self.assertEqual(notas["fuente"], FUENTE_SIDOF)
 
     @patch("dofjson.api.dofweb.get_notas")
-    @patch("dofjson.api.client.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
     def test_respaldo_nunca_never_checks_the_website(self, mock_sidof, mock_web):
         mock_sidof.return_value = {
             "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
@@ -135,7 +135,7 @@ class TestGetNotas(unittest.TestCase):
         self.assertEqual(notas["fuente"], FUENTE_SIDOF)
 
     @patch("dofjson.api.dofweb.get_notas")
-    @patch("dofjson.api.client.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
     def test_respaldo_habiles_skips_a_weekend_day(self, mock_sidof, mock_web):
         sabado = dt.date(2026, 7, 18)
         mock_sidof.return_value = {
@@ -147,7 +147,7 @@ class TestGetNotas(unittest.TestCase):
         mock_web.assert_not_called()
 
     @patch("dofjson.api.dofweb.get_notas")
-    @patch("dofjson.api.client.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
     def test_default_respaldo_checks_even_on_a_weekend(self, mock_sidof, mock_web):
         # get_notas()'s own default ("todos") is not archivo's ("habiles") --
         # an ordinary single-day caller always gets a second opinion.
@@ -167,7 +167,7 @@ class TestGetNotas(unittest.TestCase):
         self.assertEqual(notas["fuente"], dofweb.FUENTE)
 
     @patch("dofjson.api.dofweb.get_notas")
-    @patch("dofjson.api.client.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
     def test_a_404_from_sidof_is_treated_like_an_empty_answer(self, mock_sidof, mock_web):
         response = Mock(status_code=404)
         mock_sidof.side_effect = requests.exceptions.HTTPError(response=response)
@@ -182,7 +182,7 @@ class TestGetNotas(unittest.TestCase):
         mock_web.assert_called_once_with(self.FECHA)
         self.assertEqual(notas["fuente"], dofweb.FUENTE)
 
-    @patch("dofjson.api.client.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
     def test_a_non_404_http_error_from_sidof_propagates(self, mock_sidof):
         response = Mock(status_code=500)
         mock_sidof.side_effect = requests.exceptions.HTTPError(response=response)
@@ -191,7 +191,7 @@ class TestGetNotas(unittest.TestCase):
             get_notas(self.FECHA)
 
     @patch("dofjson.api.dofweb.get_notas")
-    @patch("dofjson.api.client.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
     def test_a_page_served_for_another_date_propagates(self, mock_sidof, mock_web):
         mock_sidof.return_value = {
             "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
