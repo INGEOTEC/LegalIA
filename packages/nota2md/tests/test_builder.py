@@ -293,5 +293,20 @@ class TestLegalProvisions(unittest.TestCase):
         )
 
 
+class TestOnlyUsesTheUnifiedDofjsonApi(unittest.TestCase):
+    """nota2md must reach SIDOF/dofweb functionality only through dofjson
+    itself (issue #104) -- never dofjson.client or dofjson.dofweb directly.
+    A mechanical, import-level guard: it would catch a future call site that
+    reintroduces `from dofjson import client, dofweb`, even one no other
+    test happens to patch/exercise."""
+
+    def test_builder_module_never_imported_client_or_dofweb_by_name(self):
+        import nota2md.builder as builder_module
+
+        self.assertFalse(hasattr(builder_module, "client"))
+        self.assertFalse(hasattr(builder_module, "dofweb"))
+        self.assertTrue(hasattr(builder_module, "dofjson"))
+
+
 if __name__ == "__main__":
     unittest.main()
