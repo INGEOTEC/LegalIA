@@ -29,7 +29,7 @@ from dofjson.client import (
 )
 from dofjson.dofweb import FUENTE as FUENTE_WEB
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 __all__ = [
     "get_nota",

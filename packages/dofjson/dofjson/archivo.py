@@ -107,6 +107,23 @@ def consultar_respaldo(fecha: dt.date, respaldo: str) -> bool:
     return fecha.weekday() < 5
 
 
+def consulta_respaldo_dofweb(fecha: dt.date) -> dict | None:
+    """dofweb.get_notas(fecha), or None if it agrees the gazette did not come
+    out that day (per dofweb.hay_publicacion()).
+
+    This is the one piece both procesar_dia() and dofjson.cli's own single-
+    day ``--endpoint notas`` query need identically once SIDOF itself has
+    nothing for the day and `consultar_respaldo()` says it is worth asking —
+    shared here instead of reimplemented twice. Raises whatever
+    dofweb.get_notas() itself raises (network errors, PaginaDeOtroDia): a
+    caller that needs retry semantics (procesar_dia) catches those itself;
+    a single manual query has no run to retry on, so it lets them surface
+    immediately instead.
+    """
+    alterno = dofweb.get_notas(fecha)
+    return alterno if dofweb.hay_publicacion(alterno) else None
+
+
 def _guardar(notas: dict, fecha: dt.date, root: Path) -> Path:
     day_dir = root / f"{fecha:%Y}"
     day_dir.mkdir(parents=True, exist_ok=True)
@@ -155,7 +172,7 @@ def procesar_dia(
         return "completado", "sin-edicion"
 
     try:
-        alterno = dofweb.get_notas(fecha)
+        alterno = consulta_respaldo_dofweb(fecha)
     except (requests.exceptions.RequestException, dofweb.PaginaDeOtroDia):
         # A page served for the wrong date is left to retry, like a network
         # error: believing it would file real notes under this day, and
@@ -164,7 +181,7 @@ def procesar_dia(
         return "reintentar", ""
     time.sleep(pausa)
 
-    if not dofweb.hay_publicacion(alterno):
+    if alterno is None:
         # Both sources agree the gazette did not come out.
         stats["dias_sin_edicion"] += 1
         return "completado", "sin-edicion"
