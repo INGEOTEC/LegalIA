@@ -7,7 +7,7 @@ doesn't quietly reintroduce the need to reach into a submodule."""
 import unittest
 
 import dofjson
-from dofjson import api, client, dofweb
+from dofjson import api, client, dofweb, notas
 
 
 class TestUnifiedEntryPoints(unittest.TestCase):
@@ -19,9 +19,9 @@ class TestUnifiedEntryPoints(unittest.TestCase):
         self.assertIs(dofjson.get_notas, api.get_notas)
 
 
-class TestPassthroughEntryPoints(unittest.TestCase):
-    """Every other function has no dofweb equivalent to fall back to, so
-    dofjson re-exports dofjson.client's own function object directly."""
+class TestClientPassthroughEntryPoints(unittest.TestCase):
+    """These have no dofweb equivalent to fall back to at all, so dofjson
+    re-exports dofjson.client's own function object directly."""
 
     PASSTHROUGHS = (
         "get_diario",
@@ -33,8 +33,6 @@ class TestPassthroughEntryPoints(unittest.TestCase):
         "download_nota_imagenes",
         "download_nota_pdf",
         "download_nota_imagen_o_pdf",
-        "infer_paginas",
-        "quita_notas_sin_titulo",
     )
 
     def test_every_passthrough_is_the_client_function_itself(self):
@@ -42,11 +40,29 @@ class TestPassthroughEntryPoints(unittest.TestCase):
             with self.subTest(nombre=nombre):
                 self.assertIs(getattr(dofjson, nombre), getattr(client, nombre))
 
+
+class TestNotasPassthroughEntryPoints(unittest.TestCase):
+    """infer_paginas/quita_notas_sin_titulo are pure, source-agnostic helpers
+    that live in dofjson.notas (not dofjson.client) -- see its docstring."""
+
+    PASSTHROUGHS = ("infer_paginas", "quita_notas_sin_titulo")
+
+    def test_every_passthrough_is_the_notas_function_itself(self):
+        for nombre in self.PASSTHROUGHS:
+            with self.subTest(nombre=nombre):
+                self.assertIs(getattr(dofjson, nombre), getattr(notas, nombre))
+
+
+class TestDofjsonSurface(unittest.TestCase):
     def test_fuente_web_is_dofwebs_own_constant(self):
         self.assertEqual(dofjson.FUENTE_WEB, dofweb.FUENTE)
 
     def test_all_lists_exactly_the_exported_names(self):
-        esperado = {"get_nota", "get_notas", "FUENTE_WEB", *self.PASSTHROUGHS}
+        esperado = {
+            "get_nota", "get_notas", "FUENTE_WEB",
+            *TestClientPassthroughEntryPoints.PASSTHROUGHS,
+            *TestNotasPassthroughEntryPoints.PASSTHROUGHS,
+        }
         self.assertEqual(set(dofjson.__all__), esperado)
 
 

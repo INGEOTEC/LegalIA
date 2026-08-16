@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 
 import requests
 
-from dofjson import archivo, dofweb
+from dofjson import dofweb
 from dofjson.cli import main
 
 
@@ -245,49 +245,6 @@ class TestRespaldo(unittest.TestCase):
     def test_rejects_an_unknown_respaldo(self):
         with self.assertRaises(SystemExit):
             self.correr("1999-03-08", "1999-03-08", "--respaldo", "quizas")
-
-
-class TestConsultaRespaldoDofweb(unittest.TestCase):
-    """The one piece of the SIDOF-then-dofweb fallback decision procesar_dia()
-    and dofjson.cli's own single-day `notas` query both need identically —
-    shared as archivo.consulta_respaldo_dofweb() instead of reimplemented in
-    each place (procesar_dia()'s own use of it is covered by TestRespaldo
-    above, through the full --archivo run)."""
-
-    FECHA = dt.date(1999, 3, 8)
-
-    @patch("dofjson.dofweb.get_notas")
-    def test_returns_the_website_answer_when_it_published(self, mock_web):
-        mock_web.return_value = respuesta_notas(["Decreto recuperado"])
-
-        resultado = archivo.consulta_respaldo_dofweb(self.FECHA)
-
-        mock_web.assert_called_once_with(self.FECHA)
-        self.assertEqual(resultado, mock_web.return_value)
-
-    @patch("dofjson.dofweb.get_notas")
-    def test_returns_none_when_the_website_agrees_the_day_was_empty(self, mock_web):
-        mock_web.return_value = {
-            "messageCode": 200, "response": "OK", "fuente": dofweb.FUENTE,
-            "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
-            "edicionesSinIndice": [],
-        }
-
-        self.assertIsNone(archivo.consulta_respaldo_dofweb(self.FECHA))
-
-    @patch("dofjson.dofweb.get_notas")
-    def test_propagates_a_page_served_for_another_date(self, mock_web):
-        mock_web.side_effect = dofweb.PaginaDeOtroDia("otro día")
-
-        with self.assertRaises(dofweb.PaginaDeOtroDia):
-            archivo.consulta_respaldo_dofweb(self.FECHA)
-
-    @patch("dofjson.dofweb.get_notas")
-    def test_propagates_network_errors(self, mock_web):
-        mock_web.side_effect = requests.exceptions.ConnectionError("caído")
-
-        with self.assertRaises(requests.exceptions.ConnectionError):
-            archivo.consulta_respaldo_dofweb(self.FECHA)
 
 
 if __name__ == "__main__":

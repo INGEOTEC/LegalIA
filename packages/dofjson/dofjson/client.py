@@ -1,9 +1,23 @@
+"""SIDOF's own JSON/PDF/image endpoints, and downloads built on top of them.
+
+Everything below either talks to SIDOF directly (the `get_*`/`download_*`
+endpoint wrappers) or has to, because it needs a SIDOF-only field
+(codDiario, codEdicion, pagina) that a dofweb-recovered note never carries
+— download_nota_imagenes(), download_nota_pdf() and friends are SIDOF-only
+for that reason, not by choice. The parts of the old page/title logic that
+do NOT need any of that — infer_paginas(), quita_notas_sin_titulo(),
+_detectar_offset_paginacion() — live in dofjson.notas instead, since they
+apply just as well to a dofweb-shaped notas dict once it has been fetched
+(see dofjson.api.get_notas()); imported back in here only for the
+functions in this module that still need them.
+"""
 import datetime as dt
 import json
-import re
 from pathlib import Path
 
 import requests
+
+from dofjson.notas import EDICION_LISTAS, _detectar_offset_paginacion, infer_paginas
 
 BASE_URL = "https://sidof.segob.gob.mx/dof/sidof"
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; DOF-JSON-Client/1.0)"}
@@ -68,49 +82,6 @@ def download_imagen(nombre_archivo: str, edicion: str, dest: Path, timeout: int 
     dest.write_bytes(response.content)
 
 
-_EDICION_LISTAS = {
-    "MAT": "NotasMatutinas",
-    "VES": "NotasVespertinas",
-    "EXT": "NotasExtraordinarias",
-}
-
-
-def infer_paginas(nota: dict, notas_del_dia: dict) -> list[int]:
-    """Infer which page(s) a note occupies, using the fact that notes are
-    published one after another: if the next note (in publication order)
-    starts on the same page, this note is confined to a single page; if it
-    starts on a later page, this note is assumed to span through that page
-    too.
-    """
-    lista = notas_del_dia[_EDICION_LISTAS[nota["codEdicion"]]]
-    ordenada = sorted(lista, key=lambda n: n["codNota"])
-    idx = next(i for i, n in enumerate(ordenada) if n["codNota"] == nota["codNota"])
-
-    pagina_inicio = nota["pagina"]
-    if len(ordenada) == idx + 1:
-        return [pagina_inicio]
-    
-    pagina_sig = ordenada[idx + 1]["pagina"]
-    if pagina_inicio == pagina_sig:
-        return [pagina_inicio]
-    return list(range(pagina_inicio, pagina_sig + 1))
-
-
-def quita_notas_sin_titulo(notas_del_dia: dict) -> dict:
-    """Drop notes with no `titulo` from a get_notas() response, for building
-    a clean per-day note index. Most are stub duplicates of an adjacent,
-    same-page note (existeHtml "S" but existeDoc "N" — see infer_paginas());
-    the rest are genuine image-only notes (existeHtml "N") with no digital
-    text at all. Do NOT use this on the notas_del_dia passed into
-    infer_paginas()/download_nota(): those rely on stub entries being
-    present to compute page spans."""
-    filtrado = dict(notas_del_dia)
-    for clave in _EDICION_LISTAS.values():
-        if clave in filtrado:
-            filtrado[clave] = [n for n in filtrado[clave] if n.get("titulo")]
-    return filtrado
-
-
 def download_nota_imagenes(
     cod_nota: int, outdir: Path, nota: dict | None = None
 ) -> list[Path]:
@@ -153,35 +124,6 @@ def download_nota_imagenes(
             download_imagen(imagen["nombreArchivo"], nota["codEdicion"], dest)
         dests.append(dest)
     return dests
-
-
-_PAGINA_HEADER_WINDOW = 120
-
-
-def _detectar_offset_paginacion(reader, paginas_conocidas: set[int]) -> int | None:
-    """Best-effort: work out the (printed page number - physical index)
-    offset of an edition PDF, by looking for one of the day's known printed
-    `pagina` numbers near the top of each physical page's extracted text.
-
-    Modern editions restart their own printed numbering at 1 on the
-    edition's cover, so `pagina - 1` is already a valid physical index
-    (offset 1). But old digitized volumes often carry a running page count
-    from a bound "tomo" spanning many editions (issue #95): their first
-    physical page prints no visible number at all, and later pages resume a
-    much larger count. Matching the day's actual page numbers against what
-    each physical page prints works for both, instead of assuming offset 1.
-    """
-    votos: dict[int, int] = {}
-    for indice, page in enumerate(reader.pages):
-        texto = (page.extract_text() or "")[:_PAGINA_HEADER_WINDOW]
-        for numero in re.findall(r"\d{1,5}", texto):
-            numero = int(numero)
-            if numero in paginas_conocidas:
-                offset = numero - indice
-                votos[offset] = votos.get(offset, 0) + 1
-    if not votos:
-        return None
-    return max(votos, key=votos.get)
 
 
 def _edicion_pdf_cacheada(cod_diario: int, outdir: Path, timeout: int = 60) -> Path:
@@ -236,7 +178,7 @@ def download_nota_pdf(
     notas_del_dia = get_notas(fecha)
     paginas = infer_paginas(nota, notas_del_dia)
     paginas_conocidas = {
-        n["pagina"] for n in notas_del_dia[_EDICION_LISTAS[nota["codEdicion"]]]
+        n["pagina"] for n in notas_del_dia[EDICION_LISTAS[nota["codEdicion"]]]
     }
 
     edicion_pdf = _edicion_pdf_cacheada(nota["codDiario"], outdir)

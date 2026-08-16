@@ -74,7 +74,10 @@ class TestCli(unittest.TestCase):
             (Path(self.tmpdir.name) / "08031999-notas.json").read_text()
         )
         self.assertEqual(guardado["NotasMatutinas"], [])
-        self.assertNotIn("fuente", guardado)
+        # Tagged "sidof" even though it is empty: `fuente` now always names
+        # which source the returned answer actually is (see
+        # dofjson.api.get_notas()), not just which one had notes.
+        self.assertEqual(guardado["fuente"], "sidof")
 
     def test_main_rejects_invalid_date(self):
         with self.assertRaises(SystemExit):

@@ -152,7 +152,19 @@ dofjson --archivo --respaldo nunca       # trust SIDOF alone
 [1999-03-08] SIDOF no la tiene; recuperada de dof.gob.mx
 ```
 
-The same applies to a single date, so a lost day is reachable directly:
+`--respaldo` is `dofjson.get_notas(date, respaldo=...)`'s own parameter,
+just surfaced on the CLI — a single call to the library defaults to
+`respaldo="todos"` (always double-check an empty day), unlike `--archivo`'s
+`"habiles"`, since a one-off query has no ~40,000-day request budget to
+mind:
+
+```python
+dofjson.get_notas(date)                       # respaldo="todos" by default
+dofjson.get_notas(date, respaldo="nunca")      # trust SIDOF alone
+```
+
+The same applies to a single date on the CLI, so a lost day is reachable
+directly:
 
 ```bash
 dofjson 1999-03-08 --endpoint notas      # -> "fuente": "dof.gob.mx", 22 legal provisions

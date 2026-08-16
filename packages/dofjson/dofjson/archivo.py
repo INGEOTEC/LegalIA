@@ -4,10 +4,9 @@ For every date in a range this does exactly what the command
 
     dofjson YYYY-MM-DD --endpoint notas
 
-does: query ``get_notas(date)``, drop title-less stub entries with
-``quita_notas_sin_titulo``, and save the result as one JSON file per day
-(``<outdir>/YYYY/DDMMYYYY-notas.json``). It does NOT download each note's
-content or scanned images: only the index.
+does: query ``api.get_notas(date, respaldo=respaldo)`` and save the result
+as one JSON file per day (``<outdir>/YYYY/DDMMYYYY-notas.json``). It does
+NOT download each note's content or scanned images: only the index.
 
 Meant to be run as many times as needed: each run only downloads the missing
 days. A registry of completed days is kept in ``<outdir>/.completados``, so
@@ -27,10 +26,12 @@ reform, is one). Left alone, the archive would record those days as empty and
 mark them done forever.
 
 So an empty answer is not taken at face value. On a weekday — where a real
-edition is expected and the confirmed losses all are — the day is put to
-``dofweb``, the DOF's own website, which is a separate system with a separate
-database. If it has the day, its index is stored instead; if it agrees the
-day is empty, that is now two independent sources agreeing.
+edition is expected and the confirmed losses all are — the day is put to the
+DOF's own website, a separate system with a separate database, through
+dofjson.api.get_notas() (see its own docstring for the ``respaldo`` policy
+this module's ``respaldo`` parameter maps straight onto). If it has the day,
+its index is stored instead; if it agrees the day is empty, that is now two
+independent sources agreeing.
 
 Every stored day carries a ``fuente`` key naming where it came from
 (``"sidof"`` or ``"dof.gob.mx"``), and the registry records it alongside the
@@ -44,19 +45,9 @@ from pathlib import Path
 
 import requests
 
-from dofjson import client, dofweb
+from dofjson import api
 
 FECHA_INICIO_DEFAULT = dt.date(1917, 1, 2)
-
-FUENTE_SIDOF = "sidof"
-
-#: When to fall back to the DOF website after SIDOF reports an empty day.
-#: ``habiles`` (the default) asks only on Mon-Fri, where an edition is
-#: expected — that is a few hundred extra requests over the full range, and
-#: covers every confirmed loss. ``todos`` also asks on weekends, which do very
-#: occasionally carry an extraordinary edition, at the cost of roughly 10,000
-#: more requests. ``nunca`` restores the SIDOF-only behaviour.
-RESPALDO_OPCIONES = ("habiles", "todos", "nunca")
 
 
 def iter_fechas(desde: dt.date, hasta: dt.date):
@@ -90,40 +81,6 @@ def _marcar_completado(path: Path, fecha: dt.date, completados: set, fuente: str
         f.write(f"{fecha.isoformat()}\t{fuente}\n")
 
 
-_LISTAS_NOTAS = ("NotasMatutinas", "NotasVespertinas", "NotasExtraordinarias")
-
-
-def tiene_notas(notas: dict) -> bool:
-    """Whether a get_notas() response carries any note at all."""
-    return any(notas.get(clave) for clave in _LISTAS_NOTAS)
-
-
-def consultar_respaldo(fecha: dt.date, respaldo: str) -> bool:
-    """Whether an empty SIDOF answer for this date is worth double-checking."""
-    if respaldo == "nunca":
-        return False
-    if respaldo == "todos":
-        return True
-    return fecha.weekday() < 5
-
-
-def consulta_respaldo_dofweb(fecha: dt.date) -> dict | None:
-    """dofweb.get_notas(fecha), or None if it agrees the gazette did not come
-    out that day (per dofweb.hay_publicacion()).
-
-    This is the one piece both procesar_dia() and dofjson.cli's own single-
-    day ``--endpoint notas`` query need identically once SIDOF itself has
-    nothing for the day and `consultar_respaldo()` says it is worth asking —
-    shared here instead of reimplemented twice. Raises whatever
-    dofweb.get_notas() itself raises (network errors, PaginaDeOtroDia): a
-    caller that needs retry semantics (procesar_dia) catches those itself;
-    a single manual query has no run to retry on, so it lets them surface
-    immediately instead.
-    """
-    alterno = dofweb.get_notas(fecha)
-    return alterno if dofweb.hay_publicacion(alterno) else None
-
-
 def _guardar(notas: dict, fecha: dt.date, root: Path) -> Path:
     day_dir = root / f"{fecha:%Y}"
     day_dir.mkdir(parents=True, exist_ok=True)
@@ -140,60 +97,47 @@ def procesar_dia(
     Returns ``(resultado, fuente)``, where `resultado` is "completado" (mark
     done, do not repeat) or "reintentar" (transient error; retried on a future
     run), and `fuente` names where the day's data came from — for the registry.
+
+    The actual SIDOF-then-dofweb decision is entirely api.get_notas()'s own
+    (see its docstring) — this function is left with only what is specific to
+    a long batch run: rate limiting (`pausa`) and turning a network failure
+    into "reintentar" instead of raising. One pausa() covers the whole call,
+    even on the rare day it makes two requests (SIDOF then dofweb) instead of
+    one — the handful of such days a full archive run ever hits are not worth
+    a second parameter just to pace them individually.
     """
     try:
-        notas = client.get_notas(fecha)
-    except requests.exceptions.HTTPError as exc:
-        # 404 = the service has no such day. Rare: SIDOF answers 200-with-no-
-        # notes instead, which is handled below. Treated the same way.
-        if exc.response is not None and exc.response.status_code == 404:
-            notas = None
-        else:
-            stats["dias_error"] += 1
-            return "reintentar", ""
-    except requests.exceptions.RequestException:
+        notas = api.get_notas(fecha, respaldo=respaldo)
+    except (requests.exceptions.RequestException, api.PaginaDeOtroDia):
+        # A network error, or a page served for the wrong date, is left to
+        # retry instead of trusted or written off as empty: believing a
+        # wrong-date page would file real notes under this day, and calling
+        # a network hiccup "no edition" would bury the day for good.
         stats["dias_error"] += 1
         return "reintentar", ""
     time.sleep(pausa)
 
-    if notas is not None:
-        notas = client.quita_notas_sin_titulo(notas)
-    if notas is not None and tiene_notas(notas):
-        notas["fuente"] = FUENTE_SIDOF
+    if notas.get("fuente") == api.FUENTE_WEB:
+        _guardar(notas, fecha, root)
+        if api.cuenta_notas(notas):
+            stats["dias_recuperados"] += 1
+        else:
+            # An edition exists but only as scanned images, so there is no
+            # index to recover — the file records that it was published all
+            # the same.
+            stats["dias_solo_imagen"] += 1
+        return "completado", api.FUENTE_WEB
+
+    if api.tiene_notas(notas):
         _guardar(notas, fecha, root)
         stats["dias_con_indice"] += 1
-        return "completado", FUENTE_SIDOF
+        return "completado", api.FUENTE_SIDOF
 
-    # SIDOF has nothing for this day. That is the normal answer for a Sunday
-    # and the wrong answer for a day it lost, and the two look identical from
-    # here — so ask the other source before believing it.
-    if not consultar_respaldo(fecha, respaldo):
-        stats["dias_sin_edicion"] += 1
-        return "completado", "sin-edicion"
-
-    try:
-        alterno = consulta_respaldo_dofweb(fecha)
-    except (requests.exceptions.RequestException, dofweb.PaginaDeOtroDia):
-        # A page served for the wrong date is left to retry, like a network
-        # error: believing it would file real notes under this day, and
-        # writing the day off as empty would bury it for good.
-        stats["dias_error"] += 1
-        return "reintentar", ""
-    time.sleep(pausa)
-
-    if alterno is None:
-        # Both sources agree the gazette did not come out.
-        stats["dias_sin_edicion"] += 1
-        return "completado", "sin-edicion"
-
-    _guardar(alterno, fecha, root)
-    if dofweb.cuenta_notas(alterno):
-        stats["dias_recuperados"] += 1
-    else:
-        # An edition exists but only as scanned images, so there is no index
-        # to recover — the file records that it was published all the same.
-        stats["dias_solo_imagen"] += 1
-    return "completado", dofweb.FUENTE
+    # SIDOF has nothing for this day, and either `respaldo` said not to
+    # bother checking dofweb, or it did and dofweb agreed — a day with no
+    # edition either way.
+    stats["dias_sin_edicion"] += 1
+    return "completado", "sin-edicion"
 
 
 def download_archivo(
@@ -208,11 +152,11 @@ def download_archivo(
 
     Resumable: skips the days registered in ``root/.completados``. When SIDOF
     reports a day as empty, `respaldo` decides whether to check it against the
-    DOF website first (see RESPALDO_OPCIONES). Returns the run's statistics.
+    DOF website first (see api.RESPALDO_OPCIONES). Returns the run's statistics.
     """
-    if respaldo not in RESPALDO_OPCIONES:
+    if respaldo not in api.RESPALDO_OPCIONES:
         raise ValueError(
-            f"respaldo debe ser uno de {RESPALDO_OPCIONES}, no {respaldo!r}"
+            f"respaldo debe ser uno de {api.RESPALDO_OPCIONES}, no {respaldo!r}"
         )
     root.mkdir(parents=True, exist_ok=True)
     completados_path = root / ".completados"
@@ -227,7 +171,7 @@ def download_archivo(
 
     log(f"Descargando índices de notas del DOF: {desde} -> {hasta}  (destino: {root}/)")
     log(f"Días ya completados: {len(completados)}")
-    log(f"Respaldo desde {dofweb.BASE_URL} cuando SIDOF no trae notas: {respaldo}\n")
+    log(f"Respaldo desde {api.FUENTE_WEB} cuando SIDOF no trae notas: {respaldo}\n")
 
     try:
         for fecha in iter_fechas(desde, hasta):
@@ -237,7 +181,7 @@ def download_archivo(
             resultado, fuente = procesar_dia(fecha, root, pausa, stats, respaldo)
             stats["dias_procesados"] += 1
             if stats["dias_recuperados"] > antes:
-                log(f"[{fecha}] SIDOF no la tiene; recuperada de {dofweb.FUENTE}")
+                log(f"[{fecha}] SIDOF no la tiene; recuperada de {api.FUENTE_WEB}")
             # Never mark "today" as completed: it can receive more notes later.
             if resultado == "completado" and fecha < hoy:
                 _marcar_completado(completados_path, fecha, completados, fuente)
@@ -257,7 +201,7 @@ def download_archivo(
     if stats["dias_recuperados"] or stats["dias_solo_imagen"]:
         log(
             f"\n{stats['dias_recuperados'] + stats['dias_solo_imagen']} día(s) que SIDOF "
-            f"da por vacíos sí se publicaron; se tomaron de {dofweb.FUENTE} "
-            f'(marcados con "fuente": "{dofweb.FUENTE}").'
+            f"da por vacíos sí se publicaron; se tomaron de {api.FUENTE_WEB} "
+            f'(marcados con "fuente": "{api.FUENTE_WEB}").'
         )
     return stats

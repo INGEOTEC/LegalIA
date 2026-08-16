@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from dofjson import archivo, client, dofweb, titulos
+from dofjson import api, archivo, client, titulos
 
 ENDPOINT_NAMES = ["diario", "notas", "indicadores"]
 
@@ -65,7 +65,7 @@ def parse_args(argv=None):
         "Positional date is ignored; use --desde/--hasta.",
     )
     parser.add_argument(
-        "--respaldo", choices=archivo.RESPALDO_OPCIONES, default="habiles",
+        "--respaldo", choices=api.RESPALDO_OPCIONES, default="habiles",
         help="What to do when SIDOF reports a day as empty (which is how it "
         "reports the days it has lost, not just the days with no edition): "
         "'habiles' (default) re-checks Mon-Fri against dof.gob.mx, where every "
@@ -172,20 +172,15 @@ def main(argv=None):
             date = dt.datetime.strptime(args.date, "%Y-%m-%d").date()
         except ValueError:
             sys.exit(f"Invalid date: {args.date}. Use YYYY-MM-DD format.")
-        fetch = getattr(client, f"get_{args.endpoint}")
-        data = fetch(date)
         if args.endpoint == "notas":
-            data = client.quita_notas_sin_titulo(data)
-            if archivo.tiene_notas(data):
-                data["fuente"] = archivo.FUENTE_SIDOF
-            elif archivo.consultar_respaldo(date, args.respaldo):
-                # SIDOF reports no notes. It reports the days it has lost the
-                # same way, so confirm against the DOF website before saying so
-                # (the same fallback decision procesar_dia() makes, per day).
-                alterno = archivo.consulta_respaldo_dofweb(date)
-                if alterno is not None:
-                    print(f"SIDOF no tiene {date}; recuperada de {dofweb.FUENTE}")
-                    data = alterno
+            # api.get_notas() makes the SIDOF-then-dofweb decision itself
+            # (see its docstring) -- the same one procesar_dia() delegates
+            # to for a full --archivo run.
+            data = api.get_notas(date, respaldo=args.respaldo)
+            if data.get("fuente") == api.FUENTE_WEB:
+                print(f"SIDOF no tiene {date}; recuperada de {api.FUENTE_WEB}")
+        else:
+            data = getattr(client, f"get_{args.endpoint}")(date)
         filename = f"{date:%d%m%Y}-{args.endpoint}.json"
 
     outdir.mkdir(parents=True, exist_ok=True)
