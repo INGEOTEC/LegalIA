@@ -180,9 +180,10 @@ def main(argv=None):
                 data["fuente"] = archivo.FUENTE_SIDOF
             elif archivo.consultar_respaldo(date, args.respaldo):
                 # SIDOF reports no notes. It reports the days it has lost the
-                # same way, so confirm against the DOF website before saying so.
-                alterno = dofweb.get_notas(date)
-                if dofweb.hay_publicacion(alterno):
+                # same way, so confirm against the DOF website before saying so
+                # (the same fallback decision procesar_dia() makes, per day).
+                alterno = archivo.consulta_respaldo_dofweb(date)
+                if alterno is not None:
                     print(f"SIDOF no tiene {date}; recuperada de {dofweb.FUENTE}")
                     data = alterno
         filename = f"{date:%d%m%Y}-{args.endpoint}.json"
