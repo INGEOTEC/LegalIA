@@ -32,6 +32,7 @@ see BatchConverter's own docstring.
 import datetime as dt
 from pathlib import Path
 
+import dofjson
 from dofjson import client, dofweb
 
 from nota2md.html_converter import html_to_markdown
@@ -65,46 +66,20 @@ def titulo_siguiente(nota: dict, notas_del_dia: dict) -> str | None:
 
 def fetch_nota(cod_nota: int) -> dict:
     """A note's get_nota() record, from SIDOF when it has it and from the DOF
-    website when it does not.
-
-    SIDOF answers `{"Nota": []}` for a codNota it lacks — not an error — so an
-    empty record is what sends the lookup to dofweb.get_nota(). A note found
-    there says so in its `fuente`, and carries no codDiario/codEdicion/pagina:
-    only the HTML path can build it (see the module docstring)."""
-    nota = client.get_nota(cod_nota).get("Nota")
-    if isinstance(nota, dict) and nota:
-        return nota
-
-    nota = dofweb.get_nota(cod_nota).get("Nota")
-    if isinstance(nota, dict) and nota:
-        return nota
-
-    raise ValueError(
-        f"nota {cod_nota} does not exist in SIDOF nor in {dofweb.FUENTE}"
-    )
+    website when it does not — see dofjson.get_nota(), the package's unified
+    entry point for both sources. A note found there says so in its
+    `fuente`, and carries no codDiario/codEdicion/pagina: only the HTML path
+    can build it (see the module docstring)."""
+    return dofjson.get_nota(cod_nota)
 
 
 def fetch_daily_legal_provisions(date: dt.date) -> dict:
     """`date`'s notes index — title, codNota, codEdicion, pagina... one entry
     per note, split into NotasMatutinas/NotasVespertinas/NotasExtraordinarias
     — from SIDOF, falling back to the DOF website when SIDOF has nothing for
-    that day. Title-less stub entries (see dofjson.client.quita_notas_sin_titulo)
-    are dropped either way, so what is left is real, browsable notes.
-
-    SIDOF answers with every list empty both for a day with no edition
-    (weekends, holidays) and for a handful of days it has simply lost outright
-    — the two look identical on their own (see dofjson.archivo's module
-    docstring), so an empty SIDOF answer is always checked against the DOF
-    website before being taken to mean nothing was published.
-    """
-    notas = client.quita_notas_sin_titulo(client.get_notas(date))
-    if any(notas.get(clave) for clave in _EDICION_LISTAS.values()):
-        return notas
-
-    alterno = dofweb.get_notas(date)
-    if dofweb.hay_publicacion(alterno):
-        return client.quita_notas_sin_titulo(alterno)
-    return notas
+    that day. See dofjson.get_notas(), the package's unified entry point for
+    both sources."""
+    return dofjson.get_notas(date)
 
 
 def legal_provisions(

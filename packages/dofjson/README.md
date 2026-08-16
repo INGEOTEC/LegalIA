@@ -21,6 +21,25 @@ provision lists, not as an error, and that some of the dates it lists as
 unpublished were in fact published — see
 [the days SIDOF loses](#the-days-sidof-loses-and-where-they-are-recovered-from---respaldo).
 
+## Reading a note or a day's index: `get_nota` / `get_notas`
+
+SIDOF (`dofjson.client`) is the preferred source — it exposes a REST API —
+but it is missing some days and legal provisions outright (see above), for
+which `dofjson.dofweb`, the DOF's own website, is used as a fallback.
+`dofjson.get_nota(codNota)` and `dofjson.get_notas(date)` are the package's
+unified entry point for that: they try SIDOF first and fall back to the
+website automatically, so a caller (in this package or another one, like
+`nota2md`) never has to juggle `client` and `dofweb` itself, or risk only
+ever calling `client` and missing the legal provisions/days that live on
+the website instead.
+
+```python
+import dofjson
+
+dofjson.get_nota(4997808)          # SIDOF has it, or the website does
+dofjson.get_notas(dt.date(1999, 3, 8))  # a day SIDOF lost, recovered from the website
+```
+
 This is an experimental package for evaluating whether this service is a
 viable alternative (or complement) to `dof2md`'s PDF download + Markdown
 conversion pipeline — legal provisions already come with structured HTML
