@@ -1,6 +1,6 @@
 """Fallback source for the DOF's contents: the DOF's own website.
 
-SIDOF (`client.py`) is the primary source, but its dataset has holes. For
+SIDOF (`sidof.py`) is the primary source, but its dataset has holes. For
 some dates it does not answer 404 — it answers **200 OK with every note list
 empty**, and lists those dates under `FechasSinPublicacion` in
 `GET /diarios/{year}`, as if the gazette had not been published at all. For a
@@ -11,11 +11,11 @@ codNota returns `{"Nota": []}` and its codDiario 404s.
 
 The DOF's public website, `dof.gob.mx`, is a separate system built on a
 separate database, and it does have those days. This module reads it and
-returns what it finds in the shapes `client` uses, so a caller can substitute
+returns what it finds in the shapes `sidof` uses, so a caller can substitute
 one for the other:
 
-* `get_notas()` mirrors `client.get_notas()` — a day's index.
-* `get_nota()` mirrors `client.get_nota()` — one note, with the HTML of its
+* `get_notas()` mirrors `sidof.get_notas()` — a day's index.
+* `get_nota()` mirrors `sidof.get_nota()` — one note, with the HTML of its
   text in `cadenaContenido`. This is the only way to read the text of a note
   on a day SIDOF lost: those notes have no SIDOF record at all, so the whole
   HTML → Markdown path (nota2md) would otherwise be unavailable for them.
@@ -232,7 +232,7 @@ def _parse_edicion(pagina: str, fecha: dt.date, edicion: str) -> tuple[list[dict
 
 
 def get_notas(date: dt.date, timeout: int = 60) -> dict:
-    """A day's notes index from the DOF website, shaped like client.get_notas().
+    """A day's notes index from the DOF website, shaped like sidof.get_notas().
 
     Adds three keys the SIDOF response does not have:
 
@@ -340,7 +340,7 @@ def _detalle(pagina: str) -> str | None:
 
 
 def get_nota(cod_nota: int, timeout: int = 60) -> dict:
-    """One note from the DOF website, shaped like client.get_nota().
+    """One note from the DOF website, shaped like sidof.get_nota().
 
     Returns `{"messageCode", "response", "fuente", "Nota"}`, with `Nota` an
     empty list — as SIDOF answers for a codNota it does not have — when the

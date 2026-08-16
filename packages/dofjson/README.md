@@ -23,10 +23,10 @@ unpublished were in fact published — see
 
 ## One entry point: `dofjson` itself
 
-`dofjson.client` talks to SIDOF (the preferred source — it exposes a REST
+`dofjson.sidof` talks to SIDOF (the preferred source — it exposes a REST
 API); `dofjson.dofweb` talks to the DOF's own website, used to recover the
 days and legal provisions SIDOF is missing outright (see below). A caller
-should never need to import `client` or `dofweb` directly, or decide for
+should never need to import `sidof` or `dofweb` directly, or decide for
 itself which of the two has what it needs — every function either module
 offers is reachable straight off the `dofjson` package:
 
@@ -41,11 +41,11 @@ dofjson.download_nota_pdf(4997808, outdir)
 `get_nota(codNota)` and `get_notas(date)` are where that actually matters:
 they try SIDOF first and fall back to the website automatically, so a
 caller (in this package or another one, like `nota2md`) never risks only
-ever calling `client` and missing the legal provisions/days that live on
+ever calling `sidof` and missing the legal provisions/days that live on
 the website instead. Every other function below has no equivalent on the
 website at all (no per-legal-provision images, PDFs, page numbers,
 economic indicators, or edition metadata exist there), so `dofjson`
-re-exports them as plain passthroughs to `client` — reachable from the same
+re-exports them as plain passthroughs to `sidof` — reachable from the same
 one name either way.
 
 This is an experimental package for evaluating whether this service is a
@@ -174,7 +174,7 @@ dofjson 1999-03-08 --endpoint notas      # -> "fuente": "dof.gob.mx", 22 legal p
 titles — `dofjson.get_nota(codNota)` is what recovers it, the same call as
 any other legal provision (see above). Under the hood, `dofweb.get_nota()`
 reads a legal provision's page on the website and returns it in the shape
-`client.get_nota()` uses, with the legal provision's HTML in
+`sidof.get_nota()` uses, with the legal provision's HTML in
 `cadenaContenido` — the same string SIDOF would have served, so `nota2md`
 converts it to Markdown by the ordinary HTML path:
 

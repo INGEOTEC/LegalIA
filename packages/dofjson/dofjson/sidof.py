@@ -82,6 +82,28 @@ def download_imagen(nombre_archivo: str, edicion: str, dest: Path, timeout: int 
     dest.write_bytes(response.content)
 
 
+def _resolver_nota(cod_nota: int) -> dict:
+    """Resolve `cod_nota` through dofjson.api.get_nota() — not this module's
+    own get_nota() — so a codNota SIDOF has no record of at all (recovered
+    only from dofweb) fails clearly here instead of crashing confusingly
+    later on a codDiario/pagina a dofweb-recovered note never carries.
+
+    Every function below that accepts an already-fetched `nota` treats this
+    as their own fallback for when the caller has not already resolved (and
+    vetted) the note itself.
+    """
+    from dofjson import api  # lazy: api imports this module itself
+
+    nota = api.get_nota(cod_nota)
+    if nota.get("fuente") == api.FUENTE_WEB:
+        raise ValueError(
+            f"nota {cod_nota} was recovered from {api.FUENTE_WEB}; SIDOF has no "
+            f"record of it, so it carries no codDiario/pagina to locate a scanned "
+            f"page or PDF from"
+        )
+    return nota
+
+
 def download_nota_imagenes(
     cod_nota: int, outdir: Path, nota: dict | None = None
 ) -> list[Path]:
@@ -104,7 +126,7 @@ def download_nota_imagenes(
     day's notes/imagenes metadata is still fetched to work out which page(s)
     this note occupies and their file names."""
     if nota is None:
-        nota = get_nota(cod_nota)["Nota"]
+        nota = _resolver_nota(cod_nota)
     outdir.mkdir(parents=True, exist_ok=True)
 
     fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
@@ -172,7 +194,7 @@ def download_nota_pdf(
         return dest
 
     if nota is None:
-        nota = get_nota(cod_nota)["Nota"]
+        nota = _resolver_nota(cod_nota)
 
     fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
     notas_del_dia = get_notas(fecha)
@@ -250,7 +272,7 @@ def download_nota_imagen_o_pdf(
         return imagenes_existentes
 
     if nota is None:
-        nota = get_nota(cod_nota)["Nota"]
+        nota = _resolver_nota(cod_nota)
     try:
         return download_nota_imagenes(cod_nota, outdir, nota=nota)
     except ValueError:
@@ -264,7 +286,7 @@ def download_nota(cod_nota: int, outdir: Path) -> list[Path]:
     back to downloading the scanned page image(s) for that note (see
     download_nota_imagenes()). To always get the page images regardless of
     whether HTML content exists, call download_nota_imagenes() directly."""
-    nota = get_nota(cod_nota)["Nota"]
+    nota = _resolver_nota(cod_nota)
     outdir.mkdir(parents=True, exist_ok=True)
 
     if nota.get("cadenaContenido"):

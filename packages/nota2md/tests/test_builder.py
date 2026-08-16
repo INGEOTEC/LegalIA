@@ -252,7 +252,7 @@ class TestLegalProvisions(unittest.TestCase):
         self, mock_download, mock_get_notas, mock_convert
     ):
         # legal_provisions() must not fetch the day's index straight off
-        # dofjson.client itself when notas_del_dia isn't supplied — that
+        # dofjson.sidof itself when notas_del_dia isn't supplied — that
         # would skip dofjson.get_notas()'s dofweb fallback (issue #104),
         # the same bug class fetch_daily_legal_provisions() was fixed for.
         image_only = {
@@ -295,14 +295,15 @@ class TestLegalProvisions(unittest.TestCase):
 
 class TestOnlyUsesTheUnifiedDofjsonApi(unittest.TestCase):
     """nota2md must reach SIDOF/dofweb functionality only through dofjson
-    itself (issue #104) -- never dofjson.client or dofjson.dofweb directly.
+    itself (issue #104) -- never dofjson.sidof or dofjson.dofweb directly.
     A mechanical, import-level guard: it would catch a future call site that
-    reintroduces `from dofjson import client, dofweb`, even one no other
+    reintroduces `from dofjson import sidof, dofweb`, even one no other
     test happens to patch/exercise."""
 
-    def test_builder_module_never_imported_client_or_dofweb_by_name(self):
+    def test_builder_module_never_imported_sidof_or_dofweb_by_name(self):
         import nota2md.builder as builder_module
 
+        self.assertFalse(hasattr(builder_module, "sidof"))
         self.assertFalse(hasattr(builder_module, "client"))
         self.assertFalse(hasattr(builder_module, "dofweb"))
         self.assertTrue(hasattr(builder_module, "dofjson"))

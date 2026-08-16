@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from dofjson import api, archivo, client, titulos
+from dofjson import api, archivo, sidof, titulos
 
 ENDPOINT_NAMES = ["diario", "notas", "indicadores"]
 
@@ -134,7 +134,7 @@ def main(argv=None):
     if args.pdf_diario is not None:
         outdir.mkdir(parents=True, exist_ok=True)
         dest = outdir / f"{args.pdf_diario}.pdf"
-        client.download_pdf(args.pdf_diario, dest)
+        sidof.download_pdf(args.pdf_diario, dest)
         print(f"Saved to: {dest}")
         return
 
@@ -143,27 +143,27 @@ def main(argv=None):
             sys.exit("--imagen requires --edicion")
         outdir.mkdir(parents=True, exist_ok=True)
         dest = outdir / f"{args.imagen}.jpg"
-        client.download_imagen(args.imagen, args.edicion, dest)
+        sidof.download_imagen(args.imagen, args.edicion, dest)
         print(f"Saved to: {dest}")
         return
 
     if args.nota is not None:
-        for dest in client.download_nota(args.nota, outdir):
+        for dest in sidof.download_nota(args.nota, outdir):
             print(f"Saved to: {dest}")
         return
 
     if args.nota_imagenes is not None:
-        for dest in client.download_nota_imagenes(args.nota_imagenes, outdir):
+        for dest in sidof.download_nota_imagenes(args.nota_imagenes, outdir):
             print(f"Saved to: {dest}")
         return
 
     if args.nota_pdf is not None:
-        dest = client.download_nota_pdf(args.nota_pdf, outdir)
+        dest = sidof.download_nota_pdf(args.nota_pdf, outdir)
         print(f"Saved to: {dest}")
         return
 
     if args.imagenes_diario is not None:
-        data = client.get_imagenes(args.imagenes_diario)
+        data = sidof.get_imagenes(args.imagenes_diario)
         filename = f"{args.imagenes_diario}-imagenes.json"
     else:
         if not args.date:
@@ -180,7 +180,7 @@ def main(argv=None):
             if data.get("fuente") == api.FUENTE_WEB:
                 print(f"SIDOF no tiene {date}; recuperada de {api.FUENTE_WEB}")
         else:
-            data = getattr(client, f"get_{args.endpoint}")(date)
+            data = getattr(sidof, f"get_{args.endpoint}")(date)
         filename = f"{date:%d%m%Y}-{args.endpoint}.json"
 
     outdir.mkdir(parents=True, exist_ok=True)

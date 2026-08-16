@@ -1,9 +1,9 @@
 """Unified entry point for reading a note or a day's index — and the one
-place that is allowed to know dofjson.client (SIDOF) and dofjson.dofweb
+place that is allowed to know dofjson.sidof (SIDOF) and dofjson.dofweb
 (the DOF's own website) both exist. Every other function, in this package
 (dofjson.archivo, dofjson.cli) or another one (nota2md, leyesmx...), calls
-just this instead of juggling client/dofweb itself, which is the bug this
-module exists to close: a caller that only ever calls ``client`` and never
+just this instead of juggling sidof/dofweb itself, which is the bug this
+module exists to close: a caller that only ever calls ``sidof`` and never
 considers that the day/note could be sitting in ``dofweb`` instead.
 
 get_notas() also carries the day-level policy dofjson.archivo needs for its
@@ -14,14 +14,14 @@ answered (and, from the shape of what comes back, whether it actually had
 anything) without reaching for dofweb-specific knowledge of its own. Every
 other name below (RESPALDO_OPCIONES, tiene_notas, consultar_respaldo,
 cuenta_notas, PaginaDeOtroDia) is re-exported for exactly that: so archivo
-and cli need nothing from dofjson.client/dofjson.dofweb directly either.
+and cli need nothing from dofjson.sidof/dofjson.dofweb directly either.
 """
 
 import datetime as dt
 
 import requests
 
-from dofjson import client, dofweb
+from dofjson import dofweb, sidof
 from dofjson.dofweb import PaginaDeOtroDia
 from dofjson.notas import EDICION_LISTAS, quita_notas_sin_titulo
 
@@ -65,12 +65,16 @@ def get_nota(cod_nota: int) -> dict:
     """A note by its codNota, from SIDOF or — when SIDOF has no record of it
     at all — the DOF website (see dofjson.dofweb).
 
+    Tagged with `fuente` (FUENTE_SIDOF or FUENTE_WEB), naming which source
+    the returned record actually is — same convention as get_notas().
+
     SIDOF answers ``{"Nota": []}``, not an error, for a codNota it lacks —
     that empty answer is what sends the lookup to the website. Raises
     ValueError if neither source has the note.
     """
-    nota = client.get_nota(cod_nota).get("Nota")
+    nota = sidof.get_nota(cod_nota).get("Nota")
     if isinstance(nota, dict) and nota:
+        nota["fuente"] = FUENTE_SIDOF
         return nota
 
     nota = dofweb.get_nota(cod_nota).get("Nota")
@@ -102,7 +106,7 @@ def get_notas(date: dt.date, *, respaldo: str = "todos") -> dict:
     _validar_respaldo(respaldo)
 
     try:
-        notas = quita_notas_sin_titulo(client.get_notas(date))
+        notas = quita_notas_sin_titulo(sidof.get_notas(date))
     except requests.exceptions.HTTPError as exc:
         if exc.response is None or exc.response.status_code != 404:
             raise
