@@ -21,31 +21,39 @@ provision lists, not as an error, and that some of the dates it lists as
 unpublished were in fact published — see
 [the days SIDOF loses](#the-days-sidof-loses-and-where-they-are-recovered-from---respaldo).
 
-## Reading a note or a day's index: `get_nota` / `get_notas`
+## One entry point: `dofjson` itself
 
-SIDOF (`dofjson.client`) is the preferred source — it exposes a REST API —
-but it is missing some days and legal provisions outright (see above), for
-which `dofjson.dofweb`, the DOF's own website, is used as a fallback.
-`dofjson.get_nota(codNota)` and `dofjson.get_notas(date)` are the package's
-unified entry point for that: they try SIDOF first and fall back to the
-website automatically, so a caller (in this package or another one, like
-`nota2md`) never has to juggle `client` and `dofweb` itself, or risk only
-ever calling `client` and missing the legal provisions/days that live on
-the website instead.
+`dofjson.client` talks to SIDOF (the preferred source — it exposes a REST
+API); `dofjson.dofweb` talks to the DOF's own website, used to recover the
+days and legal provisions SIDOF is missing outright (see below). A caller
+should never need to import `client` or `dofweb` directly, or decide for
+itself which of the two has what it needs — every function either module
+offers is reachable straight off the `dofjson` package:
 
 ```python
 import dofjson
 
-dofjson.get_nota(4997808)          # SIDOF has it, or the website does
+dofjson.get_nota(4997808)               # SIDOF has it, or the website does
 dofjson.get_notas(dt.date(1999, 3, 8))  # a day SIDOF lost, recovered from the website
+dofjson.download_nota_pdf(4997808, outdir)
 ```
+
+`get_nota(codNota)` and `get_notas(date)` are where that actually matters:
+they try SIDOF first and fall back to the website automatically, so a
+caller (in this package or another one, like `nota2md`) never risks only
+ever calling `client` and missing the legal provisions/days that live on
+the website instead. Every other function below has no equivalent on the
+website at all (no per-legal-provision images, PDFs, page numbers,
+economic indicators, or edition metadata exist there), so `dofjson`
+re-exports them as plain passthroughs to `client` — reachable from the same
+one name either way.
 
 This is an experimental package for evaluating whether this service is a
 viable alternative (or complement) to `dof2md`'s PDF download + Markdown
 conversion pipeline — legal provisions already come with structured HTML
 content, which may be easier to work with than OCR'd PDFs.
 
-On top of the raw endpoints, the client offers legal-provision-scoped
+On top of the raw endpoints, `dofjson` offers legal-provision-scoped
 downloads that resolve a legal provision's page span (`infer_paginas`) and
 fetch it in whichever form you want:
 
@@ -58,10 +66,13 @@ fetch it in whichever form you want:
   legal provision whose own `nota-{codNota}.pdf` is already in `outdir`
   is returned immediately, with no network call at all.
 - `download_nota_imagen_o_pdf(codNota)` — tries the page image first, and
-  falls back to the *whole, uncut* edition PDF (cached the same way) only
-  when SIDOF has no image for that page — deliberately not the sliced,
-  per-legal-provision PDF `download_nota_pdf` produces, since working out
-  a legal provision's page position is OCR/cutting work, not downloading.
+  falls back to the *whole, uncut* edition PDF (cached the same way) when
+  SIDOF has no image for that page, or its image-listing endpoint 404s for
+  the edition outright — deliberately not the sliced, per-legal-provision
+  PDF `download_nota_pdf` produces, since working out a legal provision's
+  page position is OCR/cutting work, not downloading. A legal provision
+  whose images or fallback edition PDF are already in `outdir` is returned
+  immediately, without repeating a previous, already-failed image attempt.
   Meant for bulk-downloading everything a large batch of legal provisions
   without HTML needs into one `outdir`, so that a later
   `nota2md.legal_provisions(codNota, outdir, source="image"|"pdf")` call
@@ -148,15 +159,15 @@ dofjson 1999-03-08 --endpoint notas      # -> "fuente": "dof.gob.mx", 22 legal p
 ```
 
 **The text of those legal provisions is recoverable too**, not just their
-titles. `dofweb.get_nota(codNota)` reads a legal provision's page on the
-website and returns it in the shape `client.get_nota()` uses, with the legal
-provision's HTML in `cadenaContenido` — the same string SIDOF would have
-served, so `nota2md` converts it to Markdown by the ordinary HTML path:
+titles — `dofjson.get_nota(codNota)` is what recovers it, the same call as
+any other legal provision (see above). Under the hood, `dofweb.get_nota()`
+reads a legal provision's page on the website and returns it in the shape
+`client.get_nota()` uses, with the legal provision's HTML in
+`cadenaContenido` — the same string SIDOF would have served, so `nota2md`
+converts it to Markdown by the ordinary HTML path:
 
 ```python
-from dofjson import dofweb
-
-dofweb.get_nota(4997808)["Nota"]["cadenaContenido"]   # DOF 03-03-1999
+dofjson.get_nota(4997808)["cadenaContenido"]   # DOF 03-03-1999
 ```
 
 On a legal provision both sources have, the recovered HTML differs from
