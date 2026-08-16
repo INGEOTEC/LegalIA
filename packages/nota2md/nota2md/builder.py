@@ -37,8 +37,8 @@ import dofjson
 from nota2md.html_converter import html_to_markdown
 
 # Which per-edition list in a get_notas() response holds a note, keyed by its
-# codEdicion. Mirrors dofjson.client._EDICION_LISTAS (kept local so nota2md
-# doesn't reach into dofjson's private names).
+# codEdicion. Mirrors dofjson.notas.EDICION_LISTAS (kept local rather than
+# imported, since dofjson.notas isn't part of dofjson's own unified surface).
 _EDICION_LISTAS = {
     "MAT": "NotasMatutinas",
     "VES": "NotasVespertinas",

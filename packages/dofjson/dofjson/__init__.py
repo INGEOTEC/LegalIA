@@ -6,8 +6,10 @@ dofjson.dofweb directly.
 get_nota() and get_notas() are re-exported from dofjson.api, which does the
 real unification work: SIDOF (dofjson.client) first, falling back to the
 DOF's own website (dofjson.dofweb) when SIDOF has nothing for that note/day.
-Every other function below has no dofweb equivalent to fall back to at all
-(the website carries no per-note images, PDFs, page numbers, economic
+infer_paginas() and quita_notas_sin_titulo() (dofjson.notas) are pure
+helpers for a notas-shaped dict already in hand, from either source. Every
+other function below has no dofweb equivalent to fall back to at all (the
+website carries no per-note images, PDFs, page numbers, economic
 indicators, or edition metadata) — those are re-exported here as thin,
 direct passthroughs to dofjson.client, so a caller reaches all of it through
 one name (`dofjson`) either way, without needing to know which submodule
@@ -24,12 +26,11 @@ from dofjson.client import (
     get_diario,
     get_imagenes,
     get_indicadores,
-    infer_paginas,
-    quita_notas_sin_titulo,
 )
 from dofjson.dofweb import FUENTE as FUENTE_WEB
+from dofjson.notas import infer_paginas, quita_notas_sin_titulo
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"
 
 __all__ = [
     "get_nota",
