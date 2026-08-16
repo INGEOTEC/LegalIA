@@ -33,7 +33,6 @@ import datetime as dt
 from pathlib import Path
 
 import dofjson
-from dofjson import client, dofweb
 
 from nota2md.html_converter import html_to_markdown
 
@@ -150,17 +149,17 @@ def legal_provisions(
         md_path.write_text(html_to_markdown(nota["cadenaContenido"]) + "\n", encoding="utf-8")
         return md_path
 
-    if nota.get("fuente") == dofweb.FUENTE:
+    if nota.get("fuente") == dofjson.FUENTE_WEB:
         raise ValueError(
-            f"nota {cod_nota} was recovered from {dofweb.FUENTE} because SIDOF "
+            f"nota {cod_nota} was recovered from {dofjson.FUENTE_WEB} because SIDOF "
             f"does not have it; the {source!r} path needs SIDOF's codDiario and "
             f"page numbers, so only source='html' can build this note"
         )
 
     if source == "pdf":
-        path_or_paths = client.download_nota_pdf(cod_nota, outdir, nota=nota)
+        path_or_paths = dofjson.download_nota_pdf(cod_nota, outdir, nota=nota)
     else:
-        path_or_paths = client.download_nota_imagenes(cod_nota, outdir, nota=nota)
+        path_or_paths = dofjson.download_nota_imagenes(cod_nota, outdir, nota=nota)
 
     if notas_del_dia is None:
         fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()

@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from dofjson import dofweb
+import dofjson
 
 from nota2md.builder import fetch_daily_legal_provisions, fetch_nota, legal_provisions, titulo_siguiente
 
@@ -28,7 +28,7 @@ WEB_NOTA = {
     "titulo": "DECRETO por el que se concede permiso...",
     "cadenaContenido": "<HTML><BODY><p>Cuerpo del decreto.</p></BODY></HTML>",
     "existeHtml": "S",
-    "fuente": dofweb.FUENTE,
+    "fuente": dofjson.FUENTE_WEB,
 }
 
 
@@ -106,7 +106,7 @@ class TestLegalProvisions(unittest.TestCase):
         with self.assertRaises(ValueError):
             legal_provisions(1, self.outdir, source="xml", nota=HTML_NOTA)
 
-    @patch("nota2md.builder.client.download_nota_imagenes")
+    @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_html_path_converts_cadena_contenido(self, mock_download):
         dest = legal_provisions(5793655, self.outdir, source="auto", nota=HTML_NOTA)
 
@@ -122,7 +122,7 @@ class TestLegalProvisions(unittest.TestCase):
             legal_provisions(1, self.outdir, source="html", nota=nota)
 
     @patch("dof2md.converter.convert_images_to_markdown")
-    @patch("nota2md.builder.client.download_nota_imagenes")
+    @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_image_path_ocrs_and_cuts_to_the_note(self, mock_download, mock_convert):
         image_only = {
             "codNota": 200,
@@ -163,7 +163,7 @@ class TestLegalProvisions(unittest.TestCase):
         self.assertNotIn("SUP 036", text)
 
     @patch("dof2md.converter.convert_to_markdown")
-    @patch("nota2md.builder.client.download_nota_pdf")
+    @patch("nota2md.builder.dofjson.download_nota_pdf")
     def test_pdf_path_ocrs_note_pdf_and_cuts(self, mock_download_pdf, mock_convert):
         nota = {
             "codNota": 300,
@@ -220,10 +220,10 @@ class TestLegalProvisions(unittest.TestCase):
                     legal_provisions(
                         4997808, self.outdir, source=source, nota=WEB_NOTA
                     )
-                self.assertIn(dofweb.FUENTE, str(ctx.exception))
+                self.assertIn(dofjson.FUENTE_WEB, str(ctx.exception))
 
     @patch("dof2md.converter.convert_images_to_markdown")
-    @patch("nota2md.builder.client.download_nota_imagenes")
+    @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_keep_pages_writes_full_uncut_copy(self, mock_download, mock_convert):
         image_only = {
             "codNota": 200, "titulo": "T", "codEdicion": "MAT",
@@ -247,7 +247,7 @@ class TestLegalProvisions(unittest.TestCase):
 
     @patch("dof2md.converter.convert_images_to_markdown")
     @patch("nota2md.builder.dofjson.get_notas")
-    @patch("nota2md.builder.client.download_nota_imagenes")
+    @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_fetches_notas_del_dia_through_the_unified_dofjson_entry_point(
         self, mock_download, mock_get_notas, mock_convert
     ):
@@ -269,7 +269,7 @@ class TestLegalProvisions(unittest.TestCase):
 
         mock_get_notas.assert_called_once_with(dt.date(2026, 7, 15))
 
-    @patch("nota2md.builder.client.download_nota_imagenes")
+    @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_reuses_an_already_entered_converter_instead_of_the_default_path(
         self, mock_download
     ):
