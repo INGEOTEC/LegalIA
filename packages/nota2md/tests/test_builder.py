@@ -245,6 +245,30 @@ class TestLegalProvisions(unittest.TestCase):
             "full page text",
         )
 
+    @patch("dof2md.converter.convert_images_to_markdown")
+    @patch("nota2md.builder.dofjson.get_notas")
+    @patch("nota2md.builder.client.download_nota_imagenes")
+    def test_fetches_notas_del_dia_through_the_unified_dofjson_entry_point(
+        self, mock_download, mock_get_notas, mock_convert
+    ):
+        # legal_provisions() must not fetch the day's index straight off
+        # dofjson.client itself when notas_del_dia isn't supplied — that
+        # would skip dofjson.get_notas()'s dofweb fallback (issue #104),
+        # the same bug class fetch_daily_legal_provisions() was fixed for.
+        image_only = {
+            "codNota": 200, "titulo": "T", "codEdicion": "MAT",
+            "fecha": "15-07-2026", "cadenaContenido": "",
+        }
+        mock_download.return_value = [self.outdir / "nota-200-p1.jpg"]
+        mock_get_notas.return_value = {"NotasMatutinas": [{"codNota": 200, "titulo": "T"}]}
+        mock_convert.side_effect = lambda paths, md_path, **kw: md_path.write_text(
+            "## T\n\ncontenido\n", encoding="utf-8"
+        )
+
+        legal_provisions(200, self.outdir, source="image", nota=image_only)
+
+        mock_get_notas.assert_called_once_with(dt.date(2026, 7, 15))
+
     @patch("nota2md.builder.client.download_nota_imagenes")
     def test_reuses_an_already_entered_converter_instead_of_the_default_path(
         self, mock_download

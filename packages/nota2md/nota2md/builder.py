@@ -164,7 +164,7 @@ def legal_provisions(
 
     if notas_del_dia is None:
         fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
-        notas_del_dia = client.get_notas(fecha)
+        notas_del_dia = dofjson.get_notas(fecha)
     titulo = nota.get("titulo", "")
     titulo_sig = titulo_siguiente(nota, notas_del_dia)
 
