@@ -45,7 +45,7 @@ from pathlib import Path
 
 import requests
 
-from dofjson import api
+from dofjson import api, dofweb
 
 FECHA_INICIO_DEFAULT = dt.date(1917, 1, 2)
 
@@ -108,7 +108,7 @@ def procesar_dia(
     """
     try:
         notas = api.get_notas(fecha, respaldo=respaldo)
-    except (requests.exceptions.RequestException, api.PaginaDeOtroDia):
+    except (requests.exceptions.RequestException, dofweb.PaginaDeOtroDia):
         # A network error, or a page served for the wrong date, is left to
         # retry instead of trusted or written off as empty: believing a
         # wrong-date page would file real notes under this day, and calling
