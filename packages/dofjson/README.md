@@ -68,7 +68,11 @@ fetch it in whichever form you want:
 - `download_nota_imagen_o_pdf(codNota)` — tries the page image first, and
   falls back to the *whole, uncut* edition PDF (cached the same way) when
   SIDOF has no image for that page, or its image-listing endpoint 404s for
+<<<<<<< HEAD
   the edition outright — deliberately not the sliced, per-legal-provision
+=======
+  that edition outright — deliberately not the sliced, per-legal-provision
+>>>>>>> origin/master
   PDF `download_nota_pdf` produces, since working out a legal provision's
   page position is OCR/cutting work, not downloading. A legal provision
   whose images or fallback edition PDF are already in `outdir` is returned
