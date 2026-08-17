@@ -148,17 +148,17 @@ def main(argv=None):
         return
 
     if args.nota is not None:
-        for dest in sidof.download_nota(args.nota, outdir):
+        for dest in api.download_nota(args.nota, outdir):
             print(f"Saved to: {dest}")
         return
 
     if args.nota_imagenes is not None:
-        for dest in sidof.download_nota_imagenes(args.nota_imagenes, outdir):
+        for dest in api.download_nota_imagenes(args.nota_imagenes, outdir):
             print(f"Saved to: {dest}")
         return
 
     if args.nota_pdf is not None:
-        dest = sidof.download_nota_pdf(args.nota_pdf, outdir)
+        dest = api.download_nota_pdf(args.nota_pdf, outdir)
         print(f"Saved to: {dest}")
         return
 
