@@ -83,6 +83,8 @@ class TestDofjsonSurface(unittest.TestCase):
     def test_all_lists_exactly_the_exported_names(self):
         esperado = {
             "get_nota", "get_notas", "FUENTE_WEB",
+            "download_dof_assets", "iterador_de_assets",
+            "notas_de_tgz",
             *TestApiDownloadEntryPoints.NOMBRES,
             *TestSidofPassthroughEntryPoints.PASSTHROUGHS,
             *TestNotasPassthroughEntryPoints.PASSTHROUGHS,
