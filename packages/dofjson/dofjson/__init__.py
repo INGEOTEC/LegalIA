@@ -42,4 +42,7 @@ __all__ = [
     "download_imagen",
     "infer_paginas",
     "quita_notas_sin_titulo",
+    "download_dof_assets",
+    "iterador_de_assets",
+    "notas_de_tgz"
 ]
