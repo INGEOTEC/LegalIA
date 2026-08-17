@@ -2,25 +2,21 @@ import datetime as dt
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import requests
 
-from dofjson.client import (
-    BASE_URL,
-    download_imagen,
+from dofjson import dofweb
+from dofjson.api import (
+    FUENTE_SIDOF,
+    RESPALDO_OPCIONES,
+    consultar_respaldo,
     download_nota,
     download_nota_imagen_o_pdf,
     download_nota_imagenes,
     download_nota_pdf,
-    download_pdf,
-    get_diario,
-    get_imagenes,
-    get_indicadores,
     get_nota,
     get_notas,
-    infer_paginas,
-    quita_notas_sin_titulo,
 )
 
 
@@ -69,272 +65,287 @@ def _write_pdf_with_page_numbers(path, numeros):
         writer.write(f)
 
 
-class TestClient(unittest.TestCase):
-    def _mock_response(self, payload):
-        mock_response = MagicMock()
-        mock_response.json.return_value = payload
-        mock_response.raise_for_status = MagicMock()
-        return mock_response
-
-    @patch("dofjson.client.requests.get")
-    def test_get_diario_builds_expected_url(self, mock_get):
-        mock_get.return_value = self._mock_response({"messageCode": 200})
-
-        result = get_diario(dt.date(2026, 7, 16))
-
-        mock_get.assert_called_once()
-        (url,), _ = mock_get.call_args
-        self.assertEqual(url, f"{BASE_URL}/diarios/porFecha/16-07-2026")
-        self.assertEqual(result, {"messageCode": 200})
-
-    @patch("dofjson.client.requests.get")
-    def test_get_notas_builds_expected_url(self, mock_get):
-        mock_get.return_value = self._mock_response({"messageCode": 200})
-
-        get_notas(dt.date(2026, 1, 5))
-
-        (url,), _ = mock_get.call_args
-        self.assertEqual(url, f"{BASE_URL}/notas/05-01-2026")
-
-    @patch("dofjson.client.requests.get")
-    def test_get_nota_builds_expected_url(self, mock_get):
-        mock_get.return_value = self._mock_response({"messageCode": 200})
-
-        get_nota(5793717)
-
-        (url,), _ = mock_get.call_args
-        self.assertEqual(url, f"{BASE_URL}/notas/nota/5793717")
-
-    @patch("dofjson.client.requests.get")
-    def test_get_indicadores_builds_expected_url(self, mock_get):
-        mock_get.return_value = self._mock_response({"messageCode": 200})
-
-        get_indicadores(dt.date(2026, 7, 16))
-
-        (url,), _ = mock_get.call_args
-        self.assertEqual(url, f"{BASE_URL}/indicadores/16-07-2026")
-
-    @patch("dofjson.client.requests.get")
-    def test_propagates_http_errors(self, mock_get):
-        mock_response = MagicMock()
-        mock_response.raise_for_status.side_effect = Exception("500 Server Error")
-        mock_get.return_value = mock_response
-
-        with self.assertRaises(Exception):
-            get_diario(dt.date(2026, 7, 16))
-
-    @patch("dofjson.client.requests.get")
-    def test_get_imagenes_builds_expected_url(self, mock_get):
-        mock_get.return_value = self._mock_response({"messageCode": 200})
-
-        get_imagenes(208439)
-
-        (url,), _ = mock_get.call_args
-        self.assertEqual(url, f"{BASE_URL}/imagenesFsRecurso/obtieneImagenesFS/208439")
+WEB_NOTA = {
+    "codNota": 4997808,
+    "fecha": "03-03-1999",
+    "titulo": "DECRETO por el que se concede permiso...",
+    "cadenaContenido": "<HTML><BODY><p>Cuerpo del decreto.</p></BODY></HTML>",
+    "existeHtml": "S",
+    "fuente": dofweb.FUENTE,
+}
 
 
-class TestDownloadPdf(unittest.TestCase):
-    def setUp(self):
-        self.tmpdir = tempfile.TemporaryDirectory()
-        self.dest = Path(self.tmpdir.name) / "edicion.pdf"
+class TestGetNota(unittest.TestCase):
+    """SIDOF is missing whole days (see dofjson.dofweb), and the notes on
+    them have no SIDOF record at all — the DOF's website is the only
+    source."""
 
-    def tearDown(self):
-        self.tmpdir.cleanup()
+    @patch("dofjson.api.dofweb.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
+    def test_prefers_sidof_when_it_has_the_note(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {"Nota": {"codNota": 1, "cadenaContenido": "<p>x</p>"}}
 
-    @patch("dofjson.client.requests.get")
-    def test_download_pdf_writes_valid_pdf(self, mock_get):
-        mock_response = MagicMock()
-        mock_response.content = b"%PDF-1.4 fake test content"
-        mock_response.raise_for_status = MagicMock()
-        mock_get.return_value = mock_response
+        self.assertEqual(get_nota(1)["codNota"], 1)
+        mock_web.assert_not_called()
 
-        download_pdf(208439, self.dest)
+    @patch("dofjson.api.dofweb.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
+    def test_falls_back_to_the_website_when_sidof_lacks_the_note(self, mock_sidof, mock_web):
+        # SIDOF answers an empty list, not an error, for a codNota it lacks.
+        mock_sidof.return_value = {"messageCode": 200, "response": "OK", "Nota": []}
+        mock_web.return_value = {"Nota": WEB_NOTA}
 
-        (url,), _ = mock_get.call_args
-        self.assertEqual(url, f"{BASE_URL}/documentos/pdf/208439")
-        self.assertEqual(self.dest.read_bytes(), mock_response.content)
+        nota = get_nota(4997808)
 
-    @patch("dofjson.client.requests.get")
-    def test_download_pdf_rejects_non_pdf_content(self, mock_get):
-        mock_response = MagicMock()
-        mock_response.content = b"<html>404 not found</html>"
-        mock_response.raise_for_status = MagicMock()
-        mock_get.return_value = mock_response
+        mock_web.assert_called_once_with(4997808)
+        self.assertEqual(nota["fuente"], dofweb.FUENTE)
+
+    @patch("dofjson.api.dofweb.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
+    def test_raises_when_neither_source_has_the_note(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {"Nota": []}
+        mock_web.return_value = {"Nota": []}
 
         with self.assertRaises(ValueError):
-            download_pdf(208439, self.dest)
-
-        self.assertFalse(self.dest.exists())
+            get_nota(999999999)
 
 
-class TestDownloadImagen(unittest.TestCase):
-    def setUp(self):
-        self.tmpdir = tempfile.TemporaryDirectory()
-        self.dest = Path(self.tmpdir.name) / "pagina.jpg"
+class TestGetNotas(unittest.TestCase):
+    FECHA = dt.date(2026, 7, 15)
 
-    def tearDown(self):
-        self.tmpdir.cleanup()
-
-    @patch("dofjson.client.requests.get")
-    def test_download_imagen_writes_valid_jpeg(self, mock_get):
-        mock_response = MagicMock()
-        mock_response.content = b"\xff\xd8\xff\xe0 fake test content"
-        mock_response.raise_for_status = MagicMock()
-        mock_get.return_value = mock_response
-
-        download_imagen("19800102-02-U-000", "MAT", self.dest)
-
-        (url,), _ = mock_get.call_args
-        self.assertEqual(url, f"{BASE_URL}/copiaCertificada/MAT/19800102-02-U-000.jpg")
-        self.assertEqual(self.dest.read_bytes(), mock_response.content)
-
-    @patch("dofjson.client.requests.get")
-    def test_download_imagen_rejects_non_jpeg_content(self, mock_get):
-        mock_response = MagicMock()
-        mock_response.content = b"<html>404 not found</html>"
-        mock_response.raise_for_status = MagicMock()
-        mock_get.return_value = mock_response
-
-        with self.assertRaises(ValueError):
-            download_imagen("19800102-02-U-000", "MAT", self.dest)
-
-        self.assertFalse(self.dest.exists())
-
-
-class TestInferPaginas(unittest.TestCase):
-    def _notas_del_dia(self, paginas_ordenadas):
-        return {
-            "NotasMatutinas": [
-                {"codNota": 1000 + i, "pagina": pagina}
-                for i, pagina in enumerate(paginas_ordenadas)
-            ]
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_prefers_sidof_when_it_has_notes(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {
+            "NotasMatutinas": [{"codNota": 1, "titulo": "Nota A"}],
+            "NotasVespertinas": [],
+            "NotasExtraordinarias": [],
         }
 
-    def test_single_page_when_next_nota_same_page(self):
-        notas_del_dia = self._notas_del_dia([20, 20, 21, 21, 22])
-        nota = {"codNota": 1002, "codEdicion": "MAT", "pagina": 21}
+        notas = get_notas(self.FECHA)
 
-        self.assertEqual(infer_paginas(nota, notas_del_dia), [21])
+        self.assertEqual(notas["NotasMatutinas"], [{"codNota": 1, "titulo": "Nota A"}])
+        self.assertEqual(notas["fuente"], FUENTE_SIDOF)
+        mock_web.assert_not_called()
 
-    def test_spans_two_pages_when_next_nota_is_next_page(self):
-        # Reproduces codNota=4845455 (pagina 21) followed by codNota=4845457
-        # (pagina 22) on 02-01-1980.
-        notas_del_dia = self._notas_del_dia([20, 20, 21, 22, 23])
-        nota = {"codNota": 1002, "codEdicion": "MAT", "pagina": 21}
-
-        self.assertEqual(infer_paginas(nota, notas_del_dia), [21, 22])
-
-    def test_last_nota_of_the_day_is_a_single_page(self):
-        notas_del_dia = self._notas_del_dia([20, 21, 22])
-        nota = {"codNota": 1002, "codEdicion": "MAT", "pagina": 22}
-
-        self.assertEqual(infer_paginas(nota, notas_del_dia), [22])
-
-    def test_resorts_by_codnota_when_raw_list_and_orden_dont_match_page_order(self):
-        # Real API response shape for 02-01-1980: raw list order and `orden`
-        # do not match page order, but codNota ascending does — infer_paginas
-        # must re-sort by codNota, not rely on list order or `orden`.
-        notas_del_dia = {
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_drops_titleless_stub_entries(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {
             "NotasMatutinas": [
-                {"codNota": 4845457, "pagina": 22, "orden": 0.0},
-                {"codNota": 4845424, "pagina": 2, "orden": 2.0},
-                {"codNota": 4845455, "pagina": 21, "orden": 0.0},
-            ]
-        }
-        nota = {"codNota": 4845455, "codEdicion": "MAT", "pagina": 21}
-
-        self.assertEqual(infer_paginas(nota, notas_del_dia), [21, 22])
-
-    def test_skips_digital_twin_sharing_the_same_starting_page(self):
-        # Reproduces codNota=5793654 (pagina 80, existeDoc "N") on 15-07-2026:
-        # its immediate next note by codNota is 5793655, a digital-text twin
-        # of the same content (existeDoc "S") also starting on page 80. The
-        # true next distinct note (5793656) starts on page 89, but doesn't
-        # share it with 5793654 — unlike a genuine same-page neighbor, a
-        # skipped twin's page is excluded from the range.
-        notas_del_dia = {
-            "NotasMatutinas": [
-                {"codNota": 5793653, "pagina": 78},
-                {"codNota": 5793654, "pagina": 80},
-                {"codNota": 5793655, "pagina": 80},
-                {"codNota": 5793656, "pagina": 89},
-            ]
-        }
-        nota = {"codNota": 5793654, "codEdicion": "MAT", "pagina": 80, "existeDoc": "N"}
-
-        self.assertEqual(infer_paginas(nota, notas_del_dia), list(range(80, 81)))
-
-    def test_skips_multiple_consecutive_digital_twins(self):
-        # Some notes are split into several digital "section" entries, all
-        # sharing the image-only note's starting page — infer_paginas must
-        # skip all of them, not just the first.
-        notas_del_dia = {
-            "NotasMatutinas": [
-                {"codNota": 100, "pagina": 30},
-                {"codNota": 101, "pagina": 30},
-                {"codNota": 102, "pagina": 30},
-                {"codNota": 103, "pagina": 30},
-                {"codNota": 104, "pagina": 40},
-            ]
-        }
-        nota = {"codNota": 100, "codEdicion": "MAT", "pagina": 30, "existeDoc": "N"}
-
-        self.assertEqual(infer_paginas(nota, notas_del_dia), list(range(30, 31)))
-
-    def test_same_page_neighbor_without_existdoc_field_stays_single_page(self):
-        # A same-page neighbor is only treated as a digital twin when it is
-        # explicitly marked existeDoc "S" — synthetic/legacy data lacking
-        # that field must keep the original single-page confinement.
-        notas_del_dia = self._notas_del_dia([20, 20, 21, 21, 22])
-        nota = {"codNota": 1002, "codEdicion": "MAT", "pagina": 21}
-
-        self.assertEqual(infer_paginas(nota, notas_del_dia), [21])
-
-
-class TestQuitaNotasSinTitulo(unittest.TestCase):
-    def test_drops_titleless_stub_note(self):
-        # Reproduces codNota=5793456/5793457 on 14-07-2026: 5793456 is a stub
-        # duplicate (no titulo, existeHtml "S") of 5793457, which carries the
-        # real title on the same page.
-        notas_del_dia = {
-            "NotasMatutinas": [
-                {"codNota": 5793456, "pagina": 5, "existeHtml": "S", "existeDoc": "N"},
-                {"codNota": 5793457, "pagina": 5, "existeHtml": "S", "existeDoc": "S", "titulo": "Decreto..."},
+                {"codNota": 1, "titulo": "Nota A"},
+                {"codNota": 2},  # title-less stub/twin
             ],
             "NotasVespertinas": [],
             "NotasExtraordinarias": [],
         }
 
-        resultado = quita_notas_sin_titulo(notas_del_dia)
+        notas = get_notas(self.FECHA)
 
-        self.assertEqual([n["codNota"] for n in resultado["NotasMatutinas"]], [5793457])
+        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [1])
 
-    def test_drops_titleless_image_only_note_too(self):
-        # A genuine image-only note (existeHtml "N") has no digital twin at
-        # all, but is still dropped: this function's only criterion is
-        # whether `titulo` is present.
-        notas_del_dia = {
-            "NotasMatutinas": [
-                {"codNota": 5793654, "pagina": 80, "existeHtml": "N", "existeDoc": "N"},
-                {"codNota": 5793655, "pagina": 80, "existeHtml": "S", "existeDoc": "S", "titulo": "Convenio..."},
-            ],
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_falls_back_to_the_website_when_sidof_has_nothing(self, mock_sidof, mock_web):
+        # SIDOF answers every list empty, not an error, for a day it lacks.
+        mock_sidof.return_value = {
+            "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }
+        mock_web.return_value = {
+            "NotasMatutinas": [{"codNota": 3, "titulo": "Nota recuperada"}],
+            "NotasVespertinas": [],
+            "NotasExtraordinarias": [],
+            "fuente": dofweb.FUENTE,
         }
 
-        resultado = quita_notas_sin_titulo(notas_del_dia)
+        notas = get_notas(self.FECHA)
 
-        self.assertEqual([n["codNota"] for n in resultado["NotasMatutinas"]], [5793655])
+        mock_web.assert_called_once_with(self.FECHA)
+        self.assertEqual(notas["fuente"], dofweb.FUENTE)
+        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [3])
 
-    def test_keeps_titled_notes_untouched(self):
-        notas_del_dia = {
-            "NotasMatutinas": [
-                {"codNota": 1, "pagina": 1, "existeHtml": "S", "existeDoc": "S", "titulo": "Aviso A"},
-                {"codNota": 2, "pagina": 1, "existeHtml": "S", "existeDoc": "S", "titulo": "Aviso B"},
-            ],
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_returns_empty_when_neither_source_published_that_day(self, mock_sidof, mock_web):
+        vacio = {"NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": []}
+        mock_sidof.return_value = dict(vacio)
+        mock_web.return_value = {**vacio, "edicionesSinIndice": []}
+
+        notas = get_notas(self.FECHA)
+
+        self.assertEqual(notas["NotasMatutinas"], [])
+        self.assertEqual(notas["NotasVespertinas"], [])
+        self.assertEqual(notas["NotasExtraordinarias"], [])
+        # Tagged "sidof" even though empty: `fuente` names which source the
+        # returned answer actually is, not just which one had notes.
+        self.assertEqual(notas["fuente"], FUENTE_SIDOF)
+
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_respaldo_nunca_never_checks_the_website(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {
+            "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
         }
 
-        resultado = quita_notas_sin_titulo(notas_del_dia)
+        notas = get_notas(self.FECHA, respaldo="nunca")
 
-        self.assertEqual(resultado, notas_del_dia)
+        mock_web.assert_not_called()
+        self.assertEqual(notas["fuente"], FUENTE_SIDOF)
+
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_respaldo_habiles_skips_a_weekend_day(self, mock_sidof, mock_web):
+        sabado = dt.date(2026, 7, 18)
+        mock_sidof.return_value = {
+            "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }
+
+        get_notas(sabado, respaldo="habiles")
+
+        mock_web.assert_not_called()
+
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_default_respaldo_checks_even_on_a_weekend(self, mock_sidof, mock_web):
+        # get_notas()'s own default ("todos") is not archivo's ("habiles") --
+        # an ordinary single-day caller always gets a second opinion.
+        sabado = dt.date(2026, 7, 18)
+        mock_sidof.return_value = {
+            "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }
+        mock_web.return_value = {
+            "NotasMatutinas": [{"codNota": 9, "titulo": "Extraordinaria"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+            "fuente": dofweb.FUENTE,
+        }
+
+        notas = get_notas(sabado)
+
+        mock_web.assert_called_once_with(sabado)
+        self.assertEqual(notas["fuente"], dofweb.FUENTE)
+
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_a_404_from_sidof_is_treated_like_an_empty_answer(self, mock_sidof, mock_web):
+        response = Mock(status_code=404)
+        mock_sidof.side_effect = requests.exceptions.HTTPError(response=response)
+        mock_web.return_value = {
+            "NotasMatutinas": [{"codNota": 5, "titulo": "Recuperada"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+            "fuente": dofweb.FUENTE,
+        }
+
+        notas = get_notas(self.FECHA)
+
+        mock_web.assert_called_once_with(self.FECHA)
+        self.assertEqual(notas["fuente"], dofweb.FUENTE)
+
+    @patch("dofjson.api.sidof.get_notas")
+    def test_a_non_404_http_error_from_sidof_propagates(self, mock_sidof):
+        response = Mock(status_code=500)
+        mock_sidof.side_effect = requests.exceptions.HTTPError(response=response)
+
+        with self.assertRaises(requests.exceptions.HTTPError):
+            get_notas(self.FECHA)
+
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_a_page_served_for_another_date_propagates(self, mock_sidof, mock_web):
+        mock_sidof.return_value = {
+            "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }
+        mock_web.side_effect = dofweb.PaginaDeOtroDia("otro día")
+
+        with self.assertRaises(dofweb.PaginaDeOtroDia):
+            get_notas(self.FECHA)
+
+    def test_rejects_an_unknown_respaldo(self):
+        with self.assertRaises(ValueError):
+            get_notas(self.FECHA, respaldo="quizas")
+
+
+class TestConsultarRespaldo(unittest.TestCase):
+    def test_nunca_is_always_false(self):
+        self.assertFalse(consultar_respaldo(dt.date(2026, 7, 15), "nunca"))
+        self.assertFalse(consultar_respaldo(dt.date(2026, 7, 18), "nunca"))
+
+    def test_todos_is_always_true(self):
+        self.assertTrue(consultar_respaldo(dt.date(2026, 7, 15), "todos"))
+        self.assertTrue(consultar_respaldo(dt.date(2026, 7, 18), "todos"))
+
+    def test_habiles_is_true_on_weekdays_only(self):
+        lunes = dt.date(2026, 7, 13)
+        sabado = dt.date(2026, 7, 18)
+        self.assertTrue(consultar_respaldo(lunes, "habiles"))
+        self.assertFalse(consultar_respaldo(sabado, "habiles"))
+
+    def test_rejects_an_unknown_value(self):
+        with self.assertRaises(ValueError):
+            consultar_respaldo(dt.date(2026, 7, 15), "quizas")
+
+    def test_options_are_exactly_the_three_documented(self):
+        self.assertEqual(RESPALDO_OPCIONES, ("habiles", "todos", "nunca"))
+
+
+class TestResolverNotaGuardsAgainstDofwebOnlyNotes(unittest.TestCase):
+    """download_nota_imagenes()/download_nota_pdf()/download_nota_imagen_o_pdf()/
+    download_nota() resolve a bare codNota through get_nota() above -- not
+    dofjson.sidof.get_nota() directly -- when no `nota` is passed in, so a
+    codNota SIDOF has no record of at all (recovered only from dofweb, no
+    codDiario/pagina) fails with a clear error here instead of crashing on a
+    missing field deep inside page-inference logic."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.outdir = Path(self.tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def _mock_dofweb_only_nota(self, mock_sidof_get_nota, mock_dofweb_get_nota):
+        # SIDOF answers {"Nota": []}, not an error, for a codNota it lacks.
+        mock_sidof_get_nota.return_value = {"messageCode": 200, "response": "OK", "Nota": []}
+        mock_dofweb_get_nota.return_value = {
+            "Nota": {
+                "codNota": 4997808,
+                "fecha": "03-03-1999",
+                "cadenaContenido": "<HTML><BODY><p>x</p></BODY></HTML>",
+                "existeHtml": "S",
+                "fuente": "dof.gob.mx",
+            }
+        }
+
+    @patch("dofjson.api.dofweb.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
+    def test_download_nota_imagenes_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
+        self._mock_dofweb_only_nota(mock_sidof, mock_web)
+
+        with self.assertRaises(ValueError):
+            download_nota_imagenes(4997808, self.outdir)
+
+    @patch("dofjson.api.dofweb.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
+    def test_download_nota_pdf_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
+        self._mock_dofweb_only_nota(mock_sidof, mock_web)
+
+        with self.assertRaises(ValueError):
+            download_nota_pdf(4997808, self.outdir)
+
+    @patch("dofjson.api.dofweb.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
+    def test_download_nota_imagen_o_pdf_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
+        self._mock_dofweb_only_nota(mock_sidof, mock_web)
+
+        with self.assertRaises(ValueError):
+            download_nota_imagen_o_pdf(4997808, self.outdir)
+
+    @patch("dofjson.api.dofweb.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
+    def test_download_nota_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
+        self._mock_dofweb_only_nota(mock_sidof, mock_web)
+
+        with self.assertRaises(ValueError):
+            download_nota(4997808, self.outdir)
 
 
 class TestDownloadNota(unittest.TestCase):
@@ -345,8 +356,8 @@ class TestDownloadNota(unittest.TestCase):
     def tearDown(self):
         self.tmpdir.cleanup()
 
-    @patch("dofjson.client.get_imagenes")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.get_imagenes")
+    @patch("dofjson.api.sidof.get_nota")
     def test_saves_json_when_content_exists(self, mock_get_nota, mock_get_imagenes):
         mock_get_nota.return_value = {
             "Nota": {"codNota": 5793719, "cadenaContenido": "<HTML>...</HTML>"}
@@ -358,10 +369,10 @@ class TestDownloadNota(unittest.TestCase):
         self.assertTrue(dests[0].exists())
         mock_get_imagenes.assert_not_called()
 
-    @patch("dofjson.client.download_imagen")
-    @patch("dofjson.client.get_imagenes")
-    @patch("dofjson.client.get_notas")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.download_imagen")
+    @patch("dofjson.api.sidof.get_imagenes")
+    @patch("dofjson.api.sidof.get_notas")
+    @patch("dofjson.api.sidof.get_nota")
     def test_falls_back_to_single_imagen_when_no_content(
         self, mock_get_nota, mock_get_notas, mock_get_imagenes, mock_download_imagen
     ):
@@ -396,10 +407,10 @@ class TestDownloadNota(unittest.TestCase):
         )
         self.assertEqual(dests, [self.outdir / "nota-4845424-19800102-02-U-000.jpg"])
 
-    @patch("dofjson.client.download_imagen")
-    @patch("dofjson.client.get_imagenes")
-    @patch("dofjson.client.get_notas")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.download_imagen")
+    @patch("dofjson.api.sidof.get_imagenes")
+    @patch("dofjson.api.sidof.get_notas")
+    @patch("dofjson.api.sidof.get_nota")
     def test_falls_back_to_two_imagenes_when_nota_spans_two_pages(
         self, mock_get_nota, mock_get_notas, mock_get_imagenes, mock_download_imagen
     ):
@@ -437,10 +448,10 @@ class TestDownloadNota(unittest.TestCase):
             ],
         )
 
-    @patch("dofjson.client.download_imagen")
-    @patch("dofjson.client.get_imagenes")
-    @patch("dofjson.client.get_notas")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.download_imagen")
+    @patch("dofjson.api.sidof.get_imagenes")
+    @patch("dofjson.api.sidof.get_notas")
+    @patch("dofjson.api.sidof.get_nota")
     def test_download_nota_imagenes_ignores_cadena_contenido(
         self, mock_get_nota, mock_get_notas, mock_get_imagenes, mock_download_imagen
     ):
@@ -474,10 +485,10 @@ class TestDownloadNota(unittest.TestCase):
         )
         self.assertEqual(dests, [self.outdir / "nota-5793655-20260715-080-U-000.jpg"])
 
-    @patch("dofjson.client.download_pdf")
-    @patch("dofjson.client.get_imagenes")
-    @patch("dofjson.client.get_notas")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_imagenes")
+    @patch("dofjson.api.sidof.get_notas")
+    @patch("dofjson.api.sidof.get_nota")
     def test_download_nota_pdf_slices_note_pages(
         self, mock_get_nota, mock_get_notas, mock_get_imagenes, mock_download_pdf
     ):
@@ -510,9 +521,9 @@ class TestDownloadNota(unittest.TestCase):
         self.assertEqual(len(PdfReader(str(dest)).pages), 5)  # pages 5,6,7,8,9
         mock_get_imagenes.assert_not_called()
 
-    @patch("dofjson.client.download_pdf")
-    @patch("dofjson.client.get_notas")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_notas")
+    @patch("dofjson.api.sidof.get_nota")
     def test_download_nota_pdf_raises_when_page_out_of_range(
         self, mock_get_nota, mock_get_notas, mock_download_pdf
     ):
@@ -536,9 +547,9 @@ class TestDownloadNota(unittest.TestCase):
         with self.assertRaises(ValueError):
             download_nota_pdf(5793641, self.outdir)
 
-    @patch("dofjson.client.download_pdf")
-    @patch("dofjson.client.get_notas")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_notas")
+    @patch("dofjson.api.sidof.get_nota")
     def test_download_nota_pdf_handles_running_volume_page_numbers(
         self, mock_get_nota, mock_get_notas, mock_download_pdf
     ):
@@ -580,9 +591,9 @@ class TestDownloadNota(unittest.TestCase):
         self.assertIn("1142", PdfReader(str(dest)).pages[0].extract_text())
         self.assertIn("1143", PdfReader(str(dest)).pages[1].extract_text())
 
-    @patch("dofjson.client.download_pdf")
-    @patch("dofjson.client.get_notas")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_notas")
+    @patch("dofjson.api.sidof.get_nota")
     def test_download_nota_pdf_falls_back_to_metadata_offset_when_pdf_has_no_text(
         self, mock_get_nota, mock_get_notas, mock_download_pdf
     ):
@@ -611,8 +622,8 @@ class TestDownloadNota(unittest.TestCase):
 
         self.assertEqual(len(PdfReader(str(dest)).pages), 1)  # pagina 52 -> indice 2, in range
 
-    @patch("dofjson.client.download_nota_imagenes")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.download_nota_imagenes")
+    @patch("dofjson.api.sidof.get_nota")
     def test_download_nota_delegates_to_imagenes_when_no_content(
         self, mock_get_nota, mock_download_nota_imagenes
     ):
@@ -627,9 +638,9 @@ class TestDownloadNota(unittest.TestCase):
         )
         self.assertEqual(dests, [self.outdir / "nota-4845424-x.jpg"])
 
-    @patch("dofjson.client.get_imagenes")
-    @patch("dofjson.client.get_notas")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.get_imagenes")
+    @patch("dofjson.api.sidof.get_notas")
+    @patch("dofjson.api.sidof.get_nota")
     def test_raises_when_no_matching_page(
         self, mock_get_nota, mock_get_notas, mock_get_imagenes
     ):
@@ -651,10 +662,10 @@ class TestDownloadNota(unittest.TestCase):
         with self.assertRaises(ValueError):
             download_nota(4845424, self.outdir)
 
-    @patch("dofjson.client.download_imagen")
-    @patch("dofjson.client.get_imagenes")
-    @patch("dofjson.client.get_notas")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.download_imagen")
+    @patch("dofjson.api.sidof.get_imagenes")
+    @patch("dofjson.api.sidof.get_notas")
+    @patch("dofjson.api.sidof.get_nota")
     def test_download_nota_imagenes_skips_page_already_on_disk(
         self, mock_get_nota, mock_get_notas, mock_get_imagenes, mock_download_imagen
     ):
@@ -678,9 +689,9 @@ class TestDownloadNota(unittest.TestCase):
         self.assertEqual(dests, [existente])
         self.assertEqual(existente.read_bytes(), b"\xff\xd8\xff ya estaba aqui")
 
-    @patch("dofjson.client.download_pdf")
-    @patch("dofjson.client.get_notas")
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_notas")
+    @patch("dofjson.api.sidof.get_nota")
     def test_download_nota_pdf_reuses_cached_edicion_across_notas(
         self, mock_get_nota, mock_get_notas, mock_download_pdf
     ):
@@ -709,7 +720,7 @@ class TestDownloadNota(unittest.TestCase):
         mock_download_pdf.assert_called_once()  # same codDiario -> edition fetched only once
         self.assertTrue((self.outdir / "edicion-328506.pdf").exists())
 
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
     def test_download_nota_pdf_returns_cached_file_without_any_network_call(
         self, mock_get_nota
     ):
@@ -731,10 +742,10 @@ class TestDownloadNotaImagenOPdf(unittest.TestCase):
     def tearDown(self):
         self.tmpdir.cleanup()
 
-    @patch("dofjson.client.download_pdf")
-    @patch("dofjson.client.download_imagen")
-    @patch("dofjson.client.get_imagenes")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.download_imagen")
+    @patch("dofjson.api.sidof.get_imagenes")
+    @patch("dofjson.api.sidof.get_notas")
     def test_prefers_the_page_imagen_when_sidof_has_one(
         self, mock_get_notas, mock_get_imagenes, mock_download_imagen, mock_download_pdf
     ):
@@ -754,9 +765,9 @@ class TestDownloadNotaImagenOPdf(unittest.TestCase):
         self.assertEqual(dests, [self.outdir / "nota-5793655-20260715-080-U-000.jpg"])
         mock_download_pdf.assert_not_called()
 
-    @patch("dofjson.client.download_pdf")
-    @patch("dofjson.client.get_imagenes")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_imagenes")
+    @patch("dofjson.api.sidof.get_notas")
     def test_falls_back_to_the_whole_uncut_edicion_when_no_matching_page_imagen(
         self, mock_get_notas, mock_get_imagenes, mock_download_pdf
     ):
@@ -783,7 +794,7 @@ class TestDownloadNotaImagenOPdf(unittest.TestCase):
         self.assertEqual(dests, [self.outdir / "edicion-188437.pdf"])
         mock_download_pdf.assert_called_once()
 
-    @patch("dofjson.client.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
     def test_returns_cached_imagenes_without_any_network_call(self, mock_get_nota):
         existente = self.outdir / "nota-5793655-20260715-080-U-000.jpg"
         existente.write_bytes(b"\xff\xd8\xff ya estaba aqui")
@@ -793,9 +804,9 @@ class TestDownloadNotaImagenOPdf(unittest.TestCase):
         mock_get_nota.assert_not_called()
         self.assertEqual(dests, [existente])
 
-    @patch("dofjson.client.download_pdf")
-    @patch("dofjson.client.get_imagenes")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_imagenes")
+    @patch("dofjson.api.sidof.get_notas")
     def test_falls_back_to_the_edicion_when_the_imagenes_listing_404s(
         self, mock_get_notas, mock_get_imagenes, mock_download_pdf
     ):
@@ -825,8 +836,8 @@ class TestDownloadNotaImagenOPdf(unittest.TestCase):
         self.assertEqual(dests, [self.outdir / "edicion-203595.pdf"])
         mock_download_pdf.assert_called_once()
 
-    @patch("dofjson.client.download_pdf")
-    @patch("dofjson.client.get_imagenes")
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_imagenes")
     def test_returns_cached_edicion_without_retrying_a_failed_imagenes_lookup(
         self, mock_get_imagenes, mock_download_pdf
     ):

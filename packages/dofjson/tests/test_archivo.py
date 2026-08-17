@@ -43,7 +43,7 @@ class TestArchivo(unittest.TestCase):
             "--pausa", "0", "--outdir", self.tmpdir.name, *extra,
         ])
 
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_saves_one_json_per_day_and_marks_completed(self, mock_get_notas):
         mock_get_notas.return_value = respuesta_notas(["DECRETO uno", "AVISO dos"])
 
@@ -58,7 +58,7 @@ class TestArchivo(unittest.TestCase):
             registro(self.root), [("1980-01-02", "sidof"), ("1980-01-03", "sidof")]
         )
 
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_resumes_skipping_already_completed_days(self, mock_get_notas):
         mock_get_notas.return_value = respuesta_notas(["ACUERDO"])
         (self.root / ".completados").write_text("1980-01-02\n", encoding="utf-8")
@@ -67,7 +67,7 @@ class TestArchivo(unittest.TestCase):
 
         mock_get_notas.assert_called_once_with(dt.date(1980, 1, 3))
 
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_404_days_complete_without_file_but_errors_retry(self, mock_get_notas):
         mock_get_notas.side_effect = [
             requests.exceptions.HTTPError(response=Mock(status_code=404)),
@@ -80,7 +80,7 @@ class TestArchivo(unittest.TestCase):
         # The 404 day is marked as done; the network-error day is left to retry.
         self.assertEqual(registro(self.root), [("1980-01-02", "sin-edicion")])
 
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_reads_a_registry_written_before_provenance_was_recorded(self, mock_get_notas):
         mock_get_notas.return_value = respuesta_notas(["ACUERDO"])
         (self.root / ".completados").write_text("1980-01-02\n", encoding="utf-8")
@@ -89,7 +89,7 @@ class TestArchivo(unittest.TestCase):
 
         mock_get_notas.assert_called_once_with(dt.date(1980, 1, 3))
 
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_today_is_never_marked_completed(self, mock_get_notas):
         mock_get_notas.return_value = respuesta_notas(["AVISO"])
         hoy = dt.date.today().isoformat()
@@ -136,7 +136,7 @@ class TestRespaldo(unittest.TestCase):
         ])
 
     @patch("dofjson.dofweb.get_notas")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_recovers_a_weekday_sidof_reports_as_empty(self, mock_sidof, mock_web):
         mock_sidof.return_value = respuesta_notas([])
         mock_web.return_value = respuesta_web(["DECRETO recuperado"])
@@ -152,7 +152,7 @@ class TestRespaldo(unittest.TestCase):
         self.assertEqual(registro(self.root), [("1999-03-08", "dof.gob.mx")])
 
     @patch("dofjson.dofweb.get_notas")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_does_not_ask_the_web_when_sidof_has_the_day(self, mock_sidof, mock_web):
         mock_sidof.return_value = respuesta_notas(["ACUERDO"])
 
@@ -165,7 +165,7 @@ class TestRespaldo(unittest.TestCase):
         self.assertEqual(guardado["fuente"], "sidof")
 
     @patch("dofjson.dofweb.get_notas")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_skips_weekends_by_default_but_checks_them_with_todos(self, mock_sidof, mock_web):
         mock_sidof.return_value = respuesta_notas([])
         mock_web.return_value = respuesta_web([])
@@ -179,7 +179,7 @@ class TestRespaldo(unittest.TestCase):
         self.assertEqual(mock_web.call_count, 2)
 
     @patch("dofjson.dofweb.get_notas")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_respaldo_nunca_trusts_sidof_alone(self, mock_sidof, mock_web):
         mock_sidof.return_value = respuesta_notas([])
 
@@ -189,7 +189,7 @@ class TestRespaldo(unittest.TestCase):
         self.assertEqual(registro(self.root), [("1999-03-08", "sin-edicion")])
 
     @patch("dofjson.dofweb.get_notas")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_both_sources_agreeing_on_empty_is_a_day_with_no_edition(self, mock_sidof, mock_web):
         mock_sidof.return_value = respuesta_notas([])
         mock_web.return_value = respuesta_web([])
@@ -200,7 +200,7 @@ class TestRespaldo(unittest.TestCase):
         self.assertEqual(registro(self.root), [("1999-01-01", "sin-edicion")])
 
     @patch("dofjson.dofweb.get_notas")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_an_image_only_edition_is_stored_as_published(self, mock_sidof, mock_web):
         mock_sidof.return_value = respuesta_notas([])
         mock_web.return_value = respuesta_web(
@@ -218,7 +218,7 @@ class TestRespaldo(unittest.TestCase):
         self.assertEqual(registro(self.root), [("1930-06-10", "dof.gob.mx")])
 
     @patch("dofjson.dofweb.get_notas")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_a_page_served_for_another_date_leaves_the_day_to_retry(self, mock_sidof, mock_web):
         """Believing it would file real notes under this day; calling the day
         empty would bury it for good. Retrying is the only safe answer."""
@@ -231,7 +231,7 @@ class TestRespaldo(unittest.TestCase):
         self.assertFalse((self.root / ".completados").exists())
 
     @patch("dofjson.dofweb.get_notas")
-    @patch("dofjson.client.get_notas")
+    @patch("dofjson.sidof.get_notas")
     def test_a_failing_web_lookup_leaves_the_day_to_retry(self, mock_sidof, mock_web):
         mock_sidof.return_value = respuesta_notas([])
         mock_web.side_effect = requests.exceptions.ConnectionError()
