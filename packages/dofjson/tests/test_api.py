@@ -1,4 +1,7 @@
 import datetime as dt
+import io
+import json
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +14,7 @@ from dofjson.api import (
     FUENTE_SIDOF,
     RESPALDO_OPCIONES,
     consultar_respaldo,
+    download_dof_assets,
     download_nota,
     download_nota_imagen_o_pdf,
     download_nota_imagenes,
@@ -18,6 +22,19 @@ from dofjson.api import (
     get_nota,
     get_notas,
 )
+
+
+def hacer_tgz(archivos: dict) -> bytes:
+    """Build an in-memory notas-YYYY[-MM].tgz from {member_name: dict_contenido}
+    -- same shape tests/test_titulos.py's own helper builds."""
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+        for nombre, contenido in archivos.items():
+            data = json.dumps(contenido).encode("utf-8")
+            info = tarfile.TarInfo(name=nombre)
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    return buf.getvalue()
 
 
 def _write_pdf(path, n_pages):
@@ -262,6 +279,119 @@ class TestGetNotas(unittest.TestCase):
     def test_rejects_an_unknown_respaldo(self):
         with self.assertRaises(ValueError):
             get_notas(self.FECHA, respaldo="quizas")
+
+
+class TestGetNotasCacheDir(unittest.TestCase):
+    """A cache_dir already holding the day's notas-archivo asset answers
+    get_notas() straight off disk -- no SIDOF, no dofweb -- since that asset
+    is exactly what get_notas() itself would return and store (see
+    dofjson.archivo)."""
+
+    FECHA = dt.date(1980, 1, 2)
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.cache_dir = Path(self.tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def _cachear(self, notas_del_dia):
+        contenido = hacer_tgz({"1980/02011980-notas.json": notas_del_dia})
+        (self.cache_dir / "notas-1980.tgz").write_bytes(contenido)
+
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_a_cached_day_skips_sidof_and_dofweb_entirely(self, mock_sidof, mock_web):
+        self._cachear({
+            "messageCode": 200, "response": "OK", "fuente": "sidof",
+            "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        })
+
+        notas = get_notas(self.FECHA, cache_dir=self.cache_dir)
+
+        mock_sidof.assert_not_called()
+        mock_web.assert_not_called()
+        self.assertEqual(notas["NotasMatutinas"], [{"codNota": 1, "titulo": "DECRETO cacheado"}])
+        self.assertEqual(notas["fuente"], "sidof")
+
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_a_day_not_in_the_cache_falls_back_to_the_ordinary_lookup(
+        self, mock_sidof, mock_web
+    ):
+        # cache_dir exists but has nothing archived for this date at all.
+        mock_sidof.return_value = {
+            "NotasMatutinas": [{"codNota": 9, "titulo": "Nota en vivo"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }
+
+        notas = get_notas(self.FECHA, cache_dir=self.cache_dir)
+
+        mock_sidof.assert_called_once_with(self.FECHA)
+        self.assertEqual(notas["fuente"], FUENTE_SIDOF)
+
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_an_unrelated_cache_dir_is_not_consulted_when_omitted(self, mock_sidof, mock_web):
+        """Omitting cache_dir falls back to the CACHE_DIR global (see below),
+        not to whatever unrelated directory a test/caller happens to have
+        lying around."""
+        self._cachear({
+            "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        })
+        mock_sidof.return_value = {
+            "NotasMatutinas": [{"codNota": 9, "titulo": "Nota en vivo"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }
+
+        notas = get_notas(self.FECHA)
+
+        mock_sidof.assert_called_once_with(self.FECHA)
+        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [9])
+
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_omitting_cache_dir_uses_the_cache_dir_global(self, mock_sidof, mock_web):
+        """Not passing cache_dir at all still gets the cache, via
+        dofjson.titulos.CACHE_DIR -- the "best default for the end user" the
+        package-wide global is for."""
+        self._cachear({
+            "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        })
+
+        from dofjson import titulos
+        with patch.object(titulos, "CACHE_DIR", self.cache_dir):
+            notas = get_notas(self.FECHA)
+
+        mock_sidof.assert_not_called()
+        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [1])
+
+    @patch("dofjson.api.dofweb.get_notas")
+    @patch("dofjson.api.sidof.get_notas")
+    def test_explicit_none_skips_the_cache_dir_global(self, mock_sidof, mock_web):
+        self._cachear({
+            "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        })
+        mock_sidof.return_value = {
+            "NotasMatutinas": [{"codNota": 9, "titulo": "Nota en vivo"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }
+
+        from dofjson import titulos
+        with patch.object(titulos, "CACHE_DIR", self.cache_dir):
+            notas = get_notas(self.FECHA, cache_dir=None)
+
+        mock_sidof.assert_called_once_with(self.FECHA)
+        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [9])
+
+    def test_download_dof_assets_is_reachable_from_api(self):
+        from dofjson import titulos
+        self.assertIs(download_dof_assets, titulos.download_dof_assets)
 
 
 class TestConsultarRespaldo(unittest.TestCase):
