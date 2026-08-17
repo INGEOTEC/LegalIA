@@ -4,7 +4,13 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+<<<<<<< HEAD:packages/dofjson/tests/test_sidof.py
 from dofjson.sidof import (
+=======
+import requests
+
+from dofjson.client import (
+>>>>>>> origin/master:packages/dofjson/tests/test_client.py
     BASE_URL,
     download_imagen,
     download_nota,
@@ -713,6 +719,59 @@ class TestDownloadNotaImagenOPdf(unittest.TestCase):
 
         mock_get_nota.assert_not_called()
         self.assertEqual(dests, [existente])
+
+    @patch("dofjson.client.download_pdf")
+    @patch("dofjson.client.get_imagenes")
+    @patch("dofjson.client.get_notas")
+    def test_falls_back_to_the_edicion_when_the_imagenes_listing_404s(
+        self, mock_get_notas, mock_get_imagenes, mock_download_pdf
+    ):
+        # Reproduces the reported bug: SIDOF's imagenesFsRecurso endpoint
+        # can 404 outright for a codDiario it has no listing for at all,
+        # which surfaces as requests.HTTPError (not the ValueError
+        # download_nota_imagenes raises for a page with no matching image)
+        # and used to propagate uncaught instead of falling back to the pdf.
+        nota = {
+            "codNota": 4723515, "cadenaContenido": "", "codDiario": 203595,
+            "fecha": "01-07-2019", "pagina": 12, "codEdicion": "MAT",
+        }
+        mock_get_notas.return_value = {
+            "NotasMatutinas": [{"codNota": 4723515, "pagina": 12}]
+        }
+        response = MagicMock(status_code=404)
+        mock_get_imagenes.side_effect = requests.HTTPError(
+            "404 Client Error: Not Found for url: "
+            "https://sidof.segob.gob.mx/dof/sidof/imagenesFsRecurso/"
+            "obtieneImagenesFS/203595",
+            response=response,
+        )
+        mock_download_pdf.side_effect = lambda cod_diario, dest, **kw: dest.write_bytes(b"%PDF-edicion")
+
+        dests = download_nota_imagen_o_pdf(4723515, self.outdir, nota=nota)
+
+        self.assertEqual(dests, [self.outdir / "edicion-203595.pdf"])
+        mock_download_pdf.assert_called_once()
+
+    @patch("dofjson.client.download_pdf")
+    @patch("dofjson.client.get_imagenes")
+    def test_returns_cached_edicion_without_retrying_a_failed_imagenes_lookup(
+        self, mock_get_imagenes, mock_download_pdf
+    ):
+        # Reproduces the second reported bug: once the pdf fallback has
+        # already run once for this codDiario, a later call must not
+        # re-attempt (and re-fail) the imagenes lookup.
+        nota = {
+            "codNota": 4723515, "cadenaContenido": "", "codDiario": 203595,
+            "fecha": "01-07-2019", "pagina": 12, "codEdicion": "MAT",
+        }
+        cacheada = self.outdir / "edicion-203595.pdf"
+        cacheada.write_bytes(b"%PDF-edicion ya estaba aqui")
+
+        dests = download_nota_imagen_o_pdf(4723515, self.outdir, nota=nota)
+
+        self.assertEqual(dests, [cacheada])
+        mock_get_imagenes.assert_not_called()
+        mock_download_pdf.assert_not_called()
 
 
 if __name__ == "__main__":
