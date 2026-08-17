@@ -246,18 +246,21 @@ class TestHuecos(unittest.TestCase):
                 dofweb.get_notas(dt.date(1999, 3, 8))
 
 
-def pagina_nota(fecha="03/03/1999", detalle="", encoding="utf-8"):
-    """A stand-in for nota_detalle.php, in its real shape: the note's markup
-    wrapped in <HTML>…</HTML>, then the site's own disclaimer, both inside
-    DivDetalleNota."""
+def pagina_nota(fecha="03/03/1999", detalle="", encoding="utf-8", aviso=True):
+    """A stand-in for nota_detalle.php, in its real shape: the note's markup,
+    then — only when the note actually has HTML to warn about — the site's
+    conversion-quality disclaimer, both inside DivDetalleNota."""
+    disclaimer = (
+        "<table><tr><td class='txt'>En el documento que usted est&aacute; "
+        "visualizando puede haber texto, caracteres u objetos que no se muestren "
+        "correctamente debido a la conversi&oacute;n a formato HTML.</td></tr></table>"
+        if aviso else ""
+    )
     cuerpo = (
         "<html><body>"
         f"<td class='txt'><b>DOF: {fecha}</b> </td>"
         "<td><div id='DivDetalleNota' align='justify' style='overflow:hidden;'>"
-        f"{detalle}"
-        "<table><tr><td class='txt'>En el documento que usted est&aacute; "
-        "visualizando puede haber texto, caracteres u objetos que no se muestren "
-        "correctamente debido a la conversi&oacute;n a formato HTML.</td></tr></table>"
+        f"{detalle}{disclaimer}"
         "</div></td></body></html>"
     )
     response = Mock(content=cuerpo.encode(encoding), encoding=encoding)
@@ -282,9 +285,16 @@ SOLO_PDF = (
 
 
 class TestGetNota(unittest.TestCase):
-    def nota_de(self, **kwargs):
+    def nota_de(self, fecha_arg=None, **kwargs):
         with patch("dofjson.dofweb.requests.get", return_value=pagina_nota(**kwargs)):
-            return dofweb.get_nota(4997808)
+            return dofweb.get_nota(4997808, fecha=fecha_arg)
+
+    def url_pedida(self, fecha_arg=None, **kwargs):
+        with patch(
+            "dofjson.dofweb.requests.get", return_value=pagina_nota(**kwargs)
+        ) as m:
+            dofweb.get_nota(4997808, fecha=fecha_arg)
+        return m.call_args[0][0]
 
     def test_reads_the_notes_html_and_metadata(self):
         r = self.nota_de(detalle=NOTA_HTML)
@@ -315,7 +325,7 @@ class TestGetNota(unittest.TestCase):
         self.assertTrue(nota["cadenaContenido"].endswith("</BODY></HTML>"))
 
     def test_a_note_the_site_serves_only_as_pdf_has_no_html(self):
-        nota = self.nota_de(detalle=SOLO_PDF)["Nota"]
+        nota = self.nota_de(detalle=SOLO_PDF, aviso=False)["Nota"]
 
         self.assertEqual(nota["existeHtml"], "N")
         self.assertIsNone(nota["cadenaContenido"])
@@ -340,6 +350,37 @@ class TestGetNota(unittest.TestCase):
         nota = self.nota_de(detalle=detalle)["Nota"]
 
         self.assertEqual(nota["cadenaContenido"], detalle)
+
+    def test_a_note_with_no_html_wrapper_still_yields_its_content(self):
+        """Some notes (issue #109, codNota 677794) carry no <HTML>…</HTML> at
+        all — just bare markup directly in the div, with the site's own
+        disclaimer still appended right after it and no tag telling them
+        apart."""
+        detalle = (
+            '<P align=justify><FONT face=Arial size=2>CONVENIO de Coordinaci'
+            "&oacute;n que celebran...</FONT></P>"
+        )
+        nota = self.nota_de(detalle=detalle)["Nota"]
+
+        self.assertEqual(nota["existeHtml"], "S")
+        self.assertEqual(nota["cadenaContenido"], detalle)
+        self.assertNotIn("no se muestren", nota["cadenaContenido"])
+        self.assertEqual(nota["titulo"], "CONVENIO de Coordinación que celebran...")
+
+    def test_passes_the_given_date_in_the_url(self):
+        """A bare codigo fails to resolve to its date for some notes (issue
+        #109, codNota 4920760), even though the site does have them — but
+        codigo *and* its real date together resolve correctly. So a caller
+        that already knows the date (e.g. from get_notas()) can pass it."""
+        url = self.url_pedida(fecha_arg=dt.date(2000, 2, 29), detalle=NOTA_HTML)
+
+        self.assertIn("codigo=4997808", url)
+        self.assertIn("fecha=29/02/2000", url)
+
+    def test_omits_the_date_from_the_url_when_not_given(self):
+        url = self.url_pedida(detalle=NOTA_HTML)
+
+        self.assertNotIn("fecha=", url)
 
 
 class TestTLS(unittest.TestCase):

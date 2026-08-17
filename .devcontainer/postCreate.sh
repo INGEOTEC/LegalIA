@@ -34,6 +34,6 @@ sudo apt-get install -y --no-install-recommends \
 # curl -LsSf https://astral.sh/uv/install.sh | sh
 python -m pip install --upgrade pip
 python -m pip install -e 'packages/dof2md[test]'
-python -m pip install -e 'packages/dofjson[test]' 
+python -m pip install -e 'packages/dofjson[test]'
 python -m pip install -e 'packages/nota2md[test]'
 python -m pip install -r requirements.txt
