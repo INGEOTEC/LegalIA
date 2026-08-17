@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from dofjson import archivo, client, dofweb, titulos
+from dofjson import api, archivo, sidof, titulos
 
 ENDPOINT_NAMES = ["diario", "notas", "indicadores"]
 
@@ -65,7 +65,7 @@ def parse_args(argv=None):
         "Positional date is ignored; use --desde/--hasta.",
     )
     parser.add_argument(
-        "--respaldo", choices=archivo.RESPALDO_OPCIONES, default="habiles",
+        "--respaldo", choices=api.RESPALDO_OPCIONES, default="habiles",
         help="What to do when SIDOF reports a day as empty (which is how it "
         "reports the days it has lost, not just the days with no edition): "
         "'habiles' (default) re-checks Mon-Fri against dof.gob.mx, where every "
@@ -134,7 +134,7 @@ def main(argv=None):
     if args.pdf_diario is not None:
         outdir.mkdir(parents=True, exist_ok=True)
         dest = outdir / f"{args.pdf_diario}.pdf"
-        client.download_pdf(args.pdf_diario, dest)
+        sidof.download_pdf(args.pdf_diario, dest)
         print(f"Saved to: {dest}")
         return
 
@@ -143,27 +143,27 @@ def main(argv=None):
             sys.exit("--imagen requires --edicion")
         outdir.mkdir(parents=True, exist_ok=True)
         dest = outdir / f"{args.imagen}.jpg"
-        client.download_imagen(args.imagen, args.edicion, dest)
+        sidof.download_imagen(args.imagen, args.edicion, dest)
         print(f"Saved to: {dest}")
         return
 
     if args.nota is not None:
-        for dest in client.download_nota(args.nota, outdir):
+        for dest in api.download_nota(args.nota, outdir):
             print(f"Saved to: {dest}")
         return
 
     if args.nota_imagenes is not None:
-        for dest in client.download_nota_imagenes(args.nota_imagenes, outdir):
+        for dest in api.download_nota_imagenes(args.nota_imagenes, outdir):
             print(f"Saved to: {dest}")
         return
 
     if args.nota_pdf is not None:
-        dest = client.download_nota_pdf(args.nota_pdf, outdir)
+        dest = api.download_nota_pdf(args.nota_pdf, outdir)
         print(f"Saved to: {dest}")
         return
 
     if args.imagenes_diario is not None:
-        data = client.get_imagenes(args.imagenes_diario)
+        data = sidof.get_imagenes(args.imagenes_diario)
         filename = f"{args.imagenes_diario}-imagenes.json"
     else:
         if not args.date:
@@ -172,19 +172,15 @@ def main(argv=None):
             date = dt.datetime.strptime(args.date, "%Y-%m-%d").date()
         except ValueError:
             sys.exit(f"Invalid date: {args.date}. Use YYYY-MM-DD format.")
-        fetch = getattr(client, f"get_{args.endpoint}")
-        data = fetch(date)
         if args.endpoint == "notas":
-            data = client.quita_notas_sin_titulo(data)
-            if archivo.tiene_notas(data):
-                data["fuente"] = archivo.FUENTE_SIDOF
-            elif archivo.consultar_respaldo(date, args.respaldo):
-                # SIDOF reports no notes. It reports the days it has lost the
-                # same way, so confirm against the DOF website before saying so.
-                alterno = dofweb.get_notas(date)
-                if dofweb.hay_publicacion(alterno):
-                    print(f"SIDOF no tiene {date}; recuperada de {dofweb.FUENTE}")
-                    data = alterno
+            # api.get_notas() makes the SIDOF-then-dofweb decision itself
+            # (see its docstring) -- the same one procesar_dia() delegates
+            # to for a full --archivo run.
+            data = api.get_notas(date, respaldo=args.respaldo)
+            if data.get("fuente") == api.FUENTE_WEB:
+                print(f"SIDOF no tiene {date}; recuperada de {api.FUENTE_WEB}")
+        else:
+            data = getattr(sidof, f"get_{args.endpoint}")(date)
         filename = f"{date:%d%m%Y}-{args.endpoint}.json"
 
     outdir.mkdir(parents=True, exist_ok=True)
