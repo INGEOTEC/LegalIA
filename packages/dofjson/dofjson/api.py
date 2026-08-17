@@ -13,7 +13,7 @@ FUENTE_WEB — so a caller like archivo.procesar_dia() can tell which source
 answered (and, from the shape of what comes back, whether it actually had
 anything) without reaching for dofweb-specific knowledge of its own. Every
 other name below (RESPALDO_OPCIONES, tiene_notas, consultar_respaldo,
-cuenta_notas, PaginaDeOtroDia) is re-exported for exactly that: so archivo
+cuenta_notas) is re-exported for exactly that: so archivo
 and cli need nothing from dofjson.sidof/dofjson.dofweb directly either.
 
 download_nota_imagenes()/download_nota_pdf()/download_nota_imagen_o_pdf()/
@@ -33,7 +33,12 @@ from pathlib import Path
 import requests
 
 from dofjson import dofweb, sidof
-from dofjson.notas import EDICION_LISTAS, _detectar_offset_paginacion, infer_paginas, quita_notas_sin_titulo
+from dofjson.notas import (
+    EDICION_LISTAS,
+    _detectar_offset_paginacion,
+    infer_paginas,
+    quita_notas_sin_titulo
+)
 
 FUENTE_SIDOF = "sidof"
 FUENTE_WEB = dofweb.FUENTE
