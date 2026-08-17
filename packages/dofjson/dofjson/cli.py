@@ -100,7 +100,28 @@ def parse_args(argv=None):
         help="Output directory (default: output/, notas-archivo/ with --archivo, "
         "or titulos/ with --titulos)",
     )
+    parser.add_argument(
+        "--cache-dir", default=None,
+        help="Directory already holding notas-archivo .tgz assets (see "
+        "dofjson.titulos.download_dof_assets). A date already published there "
+        "is read off disk instead of querying SIDOF/dofweb. Applies to "
+        "--archivo and to a single --endpoint notas query. Not given: uses "
+        "dofjson.titulos.CACHE_DIR (the OS-appropriate default). "
+        "'none': always fetch live, skipping the cache entirely.",
+    )
     return parser.parse_args(argv)
+
+
+def _resolver_cache_dir(valor: str | None):
+    """--cache-dir's value, as a get_notas()/download_archivo()-ready
+    argument: not given at all -> titulos.SIN_CACHE_DIR (their own default,
+    titulos.CACHE_DIR); 'none' -> None (skip the cache entirely); anything
+    else -> that path."""
+    if valor is None:
+        return titulos.SIN_CACHE_DIR
+    if valor.lower() == "none":
+        return None
+    return Path(valor)
 
 
 def main(argv=None):
@@ -127,7 +148,8 @@ def main(argv=None):
         if desde > hasta:
             sys.exit(f"--desde ({desde}) cannot be later than --hasta ({hasta}).")
         archivo.download_archivo(
-            desde, hasta, outdir, pausa=args.pausa, respaldo=args.respaldo
+            desde, hasta, outdir, pausa=args.pausa, respaldo=args.respaldo,
+            cache_dir=_resolver_cache_dir(args.cache_dir),
         )
         return
 
@@ -176,7 +198,10 @@ def main(argv=None):
             # api.get_notas() makes the SIDOF-then-dofweb decision itself
             # (see its docstring) -- the same one procesar_dia() delegates
             # to for a full --archivo run.
-            data = api.get_notas(date, respaldo=args.respaldo)
+            data = api.get_notas(
+                date, respaldo=args.respaldo,
+                cache_dir=_resolver_cache_dir(args.cache_dir),
+            )
             if data.get("fuente") == api.FUENTE_WEB:
                 print(f"SIDOF no tiene {date}; recuperada de {api.FUENTE_WEB}")
         else:

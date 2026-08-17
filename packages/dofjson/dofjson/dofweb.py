@@ -306,19 +306,31 @@ _CUERPO_NOTA = re.compile(r"<HTML>.*?</HTML>", re.I | re.S)
 _PARRAFO = re.compile(r"<p\b[^>]*>(.*?)</p>", re.I | re.S)
 _FECHA_NOTA = re.compile(r"DOF:\s*(\d{2})/(\d{2})/(\d{4})")
 
+# Some notes (seen on codes from 1999-2000) carry no <HTML>…</HTML> wrapper at
+# all — their markup sits directly in the div, as bare <p>/<font> tags. The
+# site's own disclaimer about HTML-conversion quality still follows right
+# after, inside the same div, with no tag boundary marking where the note
+# ends and the disclaimer begins — so that sentence is the only landmark
+# available to cut it off. Its absence means the div has no note content at
+# all (e.g. a PDF-only note, whose disclaimer says something else entirely).
+_AVISO_CALIDAD = re.compile(r"no se muestren correctamente debido a la conversi")
+
 # The date the page shows for a codigo it does not have: the Unix epoch, one
 # day off — a formatted zero rather than a real publication date.
 _FECHA_INEXISTENTE = ("31", "12", "1969")
 
 
-def _get_nota_pagina(cod_nota: int, timeout: int) -> str:
+def _get_nota_pagina(cod_nota: int, timeout: int, fecha: dt.date | None) -> str:
     """Fetch a note's page, decoded by the charset it declares.
 
     Unlike the daily index (see _ENCODING), these pages are served as UTF-8
     and say so, so the declared charset is honoured and cp1252 is only the
     fallback for a response that declares nothing.
     """
-    response = _solicita(f"{BASE_URL}/nota_detalle.php?codigo={cod_nota}", timeout)
+    url = f"{BASE_URL}/nota_detalle.php?codigo={cod_nota}"
+    if fecha is not None:
+        url += f"&fecha={fecha:%d/%m/%Y}"
+    response = _solicita(url, timeout)
     return response.content.decode(response.encoding or _ENCODING, errors="replace")
 
 
@@ -339,7 +351,7 @@ def _detalle(pagina: str) -> str | None:
     return pagina[abre + 1 :]
 
 
-def get_nota(cod_nota: int, timeout: int = 60) -> dict:
+def get_nota(cod_nota: int, timeout: int = 60, fecha: dt.date | None = None) -> dict:
     """One note from the DOF website, shaped like sidof.get_nota().
 
     Returns `{"messageCode", "response", "fuente", "Nota"}`, with `Nota` an
@@ -359,23 +371,41 @@ def get_nota(cod_nota: int, timeout: int = 60) -> dict:
 
     The page carries no codDiario, codEdicion or pagina, so those SIDOF fields
     are absent — the image/PDF paths need them and remain SIDOF-only.
-    """
-    pagina = _get_nota_pagina(cod_nota, timeout)
 
-    fecha = _FECHA_NOTA.search(pagina)
-    if fecha is None or fecha.groups() == _FECHA_INEXISTENTE:
+    `fecha`, the argument
+        The page normally resolves a bare codigo to its date on its own, but
+        for some codes (seen from 1999-2000) that lookup fails and the page
+        answers as if the codigo did not exist at all, even though it does —
+        while `codigo` *and* its real date together resolve it correctly (see
+        issue #109). Pass the date when it is already known — from
+        get_notas(), say — to get those notes too; a wrong date is rejected
+        the same way a missing note is, so this never risks a mismatched note.
+    """
+    pagina = _get_nota_pagina(cod_nota, timeout, fecha)
+
+    fecha_pagina = _FECHA_NOTA.search(pagina)
+    if fecha_pagina is None or fecha_pagina.groups() == _FECHA_INEXISTENTE:
         return {"messageCode": 200, "response": "OK", "fuente": FUENTE, "Nota": []}
 
     detalle = _detalle(pagina) or ""
     cuerpo = _CUERPO_NOTA.search(detalle)
-    contenido = cuerpo.group(0) if cuerpo else None
+    if cuerpo:
+        contenido = cuerpo.group(0)
+    else:
+        # No <HTML> wrapper to bound the note — cut the disclaimer off instead.
+        aviso = _AVISO_CALIDAD.search(detalle)
+        if aviso is None:
+            contenido = None
+        else:
+            corte = detalle.lower().rfind("<table", 0, aviso.start())
+            contenido = detalle[: corte if corte >= 0 else aviso.start()].strip() or None
 
     titulo = None
     if contenido:
         primero = _PARRAFO.search(contenido)
         titulo = _texto(primero.group(1)) if primero else None
 
-    dia, mes, anio = fecha.groups()
+    dia, mes, anio = fecha_pagina.groups()
     return {
         "messageCode": 200,
         "response": "OK",

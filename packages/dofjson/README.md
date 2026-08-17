@@ -73,11 +73,7 @@ fetch it in whichever form you want:
 - `download_nota_imagen_o_pdf(codNota)` — tries the page image first, and
   falls back to the *whole, uncut* edition PDF (cached the same way) when
   SIDOF has no image for that page, or its image-listing endpoint 404s for
-<<<<<<< HEAD
   the edition outright — deliberately not the sliced, per-legal-provision
-=======
-  that edition outright — deliberately not the sliced, per-legal-provision
->>>>>>> origin/master
   PDF `download_nota_pdf` produces, since working out a legal provision's
   page position is OCR/cutting work, not downloading. A legal provision
   whose images or fallback edition PDF are already in `outdir` is returned
@@ -305,13 +301,87 @@ download_legal_provisions_titles(Path("titulos.jsonl.gz"), cache_dir=Path("cache
 ```
 
 `download_dof_assets` does just the download/cache part, independently of
-building the titles dataset:
+building the titles dataset. Its own `cache_dir` is optional too: leave it
+out and the assets land in an OS-appropriate per-user cache directory
+(`dofjson.titulos.directorio_cache_predeterminado()`, via `platformdirs` —
+e.g. `~/.cache/dofjson` on Linux) instead of a path you have to pick
+yourself:
 
 ```python
 from dofjson.titulos import download_dof_assets
 
-download_dof_assets(Path("cache"))  # one notas-YYYY[-MM].tgz per asset
+download_dof_assets()               # -> directorio_cache_predeterminado()
+download_dof_assets(Path("cache"))  # -> one notas-YYYY[-MM].tgz per asset, here instead
 ```
+
+`api.download_dof_assets` is the same function, reachable without importing
+`dofjson.titulos` directly — `dofjson.api` is meant to be the one entry point
+a caller needs (see above).
+
+### Reading a whole asset, not just titles (`notas_de_tgz`)
+
+`titulos._titulos_de_tgz` (what `download_legal_provisions_titles` writes)
+only ever kept four fields per legal provision. `dofjson.notas_de_tgz` is the
+general form: every field a note carries, in publication order (by day, then
+by `codNota` within the day):
+
+```python
+import dofjson
+
+for nota in dofjson.notas_de_tgz(Path("cache/notas-1980.tgz").read_bytes()):
+    ...  # nota carries every field SIDOF/dofweb published it with
+```
+
+`dofjson.iterador_de_assets` is `notas_de_tgz` over the *whole* release
+instead of one asset already in hand: it downloads (or reads from
+`cache_dir`) every `notas-YYYY[-MM].tgz` in turn and yields every note across
+all of them, one at a time, without ever holding more than one asset's notes
+in memory. `download_legal_provisions_titles` itself is built on top of it
+(it just keeps the titled notes and projects them down to four fields):
+
+```python
+import dofjson
+
+for nota in dofjson.iterador_de_assets():           # every note ever published
+    ...
+for nota in dofjson.iterador_de_assets(Path("cache")):  # reuse a cache_dir on disk
+    ...
+```
+
+### Reducing calls to SIDOF with an already-downloaded archive (`cache_dir`)
+
+A day's notes index (`dofjson.get_notas(date)`/`dofjson.api.get_notas(date)`)
+is exactly what a notas-archivo asset holds for an already-published date —
+so when a `cache_dir` already populated by `download_dof_assets` has that
+date, it is read straight off disk instead of asking SIDOF (or dofweb) at
+all:
+
+```python
+from dofjson import api
+
+api.get_notas(date, cache_dir=Path("cache"))   # a cache hit skips the network entirely
+```
+
+Leaving `cache_dir` out entirely still gets the cache: it defaults to the
+package-wide `dofjson.titulos.CACHE_DIR` (itself
+`directorio_cache_predeterminado()`, an OS-appropriate per-user cache
+directory, unless you set it to something else). Pass `cache_dir=None`
+explicitly to skip the cache for just that call.
+
+The same default flows through `dofjson --archivo`/`download_archivo()` (so
+rebuilding the archive elsewhere does not repeat the requests the release
+itself already paid for) and the CLI's single-date query:
+
+```bash
+dofjson --archivo --cache-dir cache        # a specific directory
+dofjson 1980-01-02 --endpoint notas        # no --cache-dir: uses CACHE_DIR
+dofjson 1980-01-02 --endpoint notas --cache-dir none  # always fetch live
+```
+
+`dofjson.get_nota(codNota)` has no matching `cache_dir`: the archive only
+ever holds the daily index, never a legal provision's own `cadenaContenido`
+(its HTML text), which always requires the one-note SIDOF/dofweb request
+`get_nota()` already makes.
 
 ## Development
 

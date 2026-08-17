@@ -24,7 +24,20 @@ into its record still has to go through get_nota() above to give a clear
 error for a dofweb-only note instead of crashing later on a missing field,
 and dofjson.sidof has no business calling back into this module to do that
 -- dofjson.sidof stays a plain, dependency-free SIDOF REST client, only
-ever depended on, never depending on anything else in this package."""
+ever depended on, never depending on anything else in this package.
+
+get_notas() also accepts a `cache_dir`: when given, and that date's day
+index is already sitting in one of the notas-archivo assets download_dof_assets()
+put there, it is read straight off disk (dofjson.titulos.nota_del_dia_en_cache())
+instead of asking SIDOF (or dofweb) at all -- this is where "reduce calls to
+SIDOF when the answer is already in a directory" is decided. get_nota() has
+no matching `cache_dir` parameter: the archive only ever holds the daily
+INDEX (dofjson.archivo saves it after quita_notas_sin_titulo, exactly what a
+cache hit here returns), never a note's own cadenaContenido -- that always
+requires the one-note SIDOF/dofweb request get_nota() already makes.
+download_dof_assets() itself is re-exported below so a caller that only
+imports dofjson.api (the intended single entry point) can build/refresh that
+cache_dir without reaching into dofjson.titulos directly."""
 
 import datetime as dt
 import json
@@ -32,13 +45,14 @@ from pathlib import Path
 
 import requests
 
-from dofjson import dofweb, sidof
+from dofjson import dofweb, sidof, titulos
 from dofjson.notas import (
     EDICION_LISTAS,
     _detectar_offset_paginacion,
     infer_paginas,
     quita_notas_sin_titulo
 )
+from dofjson.titulos import nota_del_dia_en_cache
 
 FUENTE_SIDOF = "sidof"
 FUENTE_WEB = dofweb.FUENTE
@@ -99,7 +113,9 @@ def get_nota(cod_nota: int) -> dict:
     raise ValueError(f"nota {cod_nota} does not exist in SIDOF nor in {FUENTE_WEB}")
 
 
-def get_notas(date: dt.date, *, respaldo: str = "todos") -> dict:
+def get_notas(
+    date: dt.date, *, respaldo: str = "todos", cache_dir: Path | None = titulos.SIN_CACHE_DIR
+) -> dict:
     """A day's notes index, always tagged with `fuente` (FUENTE_SIDOF or
     FUENTE_WEB) naming which source the returned data actually is — not
     just which one has notes: a day with no edition (a weekend, a holiday,
@@ -111,6 +127,15 @@ def get_notas(date: dt.date, *, respaldo: str = "todos") -> dict:
     loses, in dofjson's README) — "todos" (the default here) always checks;
     dofjson.archivo passes "habiles"/"nunca" for its own batch download.
 
+    `cache_dir` is checked first (dofjson.titulos.nota_del_dia_en_cache()):
+    when `date`'s day index is already sitting in a notas-archivo asset there
+    (see download_dof_assets()), it is returned straight off disk and neither
+    SIDOF nor dofweb is ever asked. A miss (asset not downloaded, or `date`
+    not archived yet) falls through to the ordinary SIDOF/dofweb lookup below.
+    Left unset, it defaults to the package-wide `dofjson.titulos.CACHE_DIR` —
+    every caller gets the cache for free without naming a directory; pass
+    `cache_dir=None` explicitly to skip the cache for just this call.
+
     SIDOF's own 404 for a date outside its coverage is treated exactly like
     its ordinary 200-with-nothing answer — both mean "the fallback is worth
     a look" — instead of raising.
@@ -119,6 +144,13 @@ def get_notas(date: dt.date, *, respaldo: str = "todos") -> dict:
     dropped either way, so what is left is real, browsable notes.
     """
     _validar_respaldo(respaldo)
+
+    if cache_dir is titulos.SIN_CACHE_DIR:
+        cache_dir = titulos.CACHE_DIR
+    if cache_dir is not None:
+        cacheada = nota_del_dia_en_cache(date, cache_dir)
+        if cacheada is not None:
+            return cacheada
 
     try:
         notas = quita_notas_sin_titulo(sidof.get_notas(date))
