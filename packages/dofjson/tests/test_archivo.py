@@ -1,5 +1,7 @@
 import datetime as dt
+import io
 import json
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,7 +9,7 @@ from unittest.mock import Mock, patch
 
 import requests
 
-from dofjson import dofweb
+from dofjson import archivo, dofweb, titulos
 from dofjson.cli import main
 
 
@@ -21,6 +23,19 @@ def respuesta_notas(titulos):
         "NotasVespertinas": [],
         "NotasExtraordinarias": [],
     }
+
+
+def hacer_tgz(archivos: dict) -> bytes:
+    """Build an in-memory notas-YYYY.tgz from {member_name: dict_contenido}
+    -- same shape tests/test_titulos.py's own helper builds."""
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+        for nombre, contenido in archivos.items():
+            data = json.dumps(contenido).encode("utf-8")
+            info = tarfile.TarInfo(name=nombre)
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    return buf.getvalue()
 
 
 def registro(root):
@@ -245,6 +260,95 @@ class TestRespaldo(unittest.TestCase):
     def test_rejects_an_unknown_respaldo(self):
         with self.assertRaises(SystemExit):
             self.correr("1999-03-08", "1999-03-08", "--respaldo", "quizas")
+
+
+class TestCacheDir(unittest.TestCase):
+    """A cache_dir already holding the notas-archivo release lets a day
+    already published there be read off disk, without SIDOF or dofweb."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmpdir.name) / "archivo"
+        self.cache_tmpdir = tempfile.TemporaryDirectory()
+        self.cache_dir = Path(self.cache_tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+        self.cache_tmpdir.cleanup()
+
+    def correr(self, desde, hasta, *extra):
+        main([
+            "--archivo", "--desde", desde, "--hasta", hasta,
+            "--pausa", "0.5", "--outdir", str(self.root),
+            "--cache-dir", str(self.cache_dir), *extra,
+        ])
+
+    @patch("dofjson.dofweb.get_notas")
+    @patch("dofjson.sidof.get_notas")
+    def test_a_cached_day_is_saved_without_touching_sidof_or_dofweb(
+        self, mock_sidof, mock_web
+    ):
+        contenido = hacer_tgz({"1980/02011980-notas.json": {
+            "messageCode": 200, "response": "OK", "fuente": "sidof",
+            "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }})
+        (self.cache_dir / "notas-1980.tgz").write_bytes(contenido)
+
+        self.correr("1980-01-02", "1980-01-02")
+
+        mock_sidof.assert_not_called()
+        mock_web.assert_not_called()
+        guardado = json.loads(
+            (self.root / "1980" / "02011980-notas.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(guardado["NotasMatutinas"], [{"codNota": 1, "titulo": "DECRETO cacheado"}])
+        self.assertEqual(registro(self.root), [("1980-01-02", "sidof")])
+
+    @patch("dofjson.dofweb.get_notas")
+    @patch("dofjson.sidof.get_notas")
+    def test_a_cache_hit_skips_the_pausa(self, mock_sidof, mock_web):
+        contenido = hacer_tgz({"1980/02011980-notas.json": {
+            "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }})
+        (self.cache_dir / "notas-1980.tgz").write_bytes(contenido)
+
+        with patch("dofjson.archivo.time.sleep") as mock_sleep:
+            self.correr("1980-01-02", "1980-01-02")
+
+        mock_sleep.assert_not_called()
+
+    @patch("dofjson.dofweb.get_notas")
+    @patch("dofjson.sidof.get_notas")
+    def test_a_day_missing_from_the_cache_falls_back_to_sidof(self, mock_sidof, mock_web):
+        mock_sidof.return_value = respuesta_notas(["ACUERDO en vivo"])
+        # cache_dir exists, but nothing archived for this date.
+
+        self.correr("1980-01-02", "1980-01-02")
+
+        mock_sidof.assert_called_once_with(dt.date(1980, 1, 2))
+
+    @patch("dofjson.dofweb.get_notas")
+    @patch("dofjson.sidof.get_notas")
+    def test_download_archivo_defaults_to_the_cache_dir_global(self, mock_sidof, mock_web):
+        """Calling archivo.download_archivo() directly, with no cache_dir at
+        all, still picks up dofjson.titulos.CACHE_DIR -- same default as
+        api.get_notas()."""
+        contenido = hacer_tgz({"1980/02011980-notas.json": {
+            "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }})
+        (self.cache_dir / "notas-1980.tgz").write_bytes(contenido)
+
+        with patch.object(titulos, "CACHE_DIR", self.cache_dir):
+            archivo.download_archivo(
+                dt.date(1980, 1, 2), dt.date(1980, 1, 2), self.root,
+                pausa=0, log=lambda *_: None,
+            )
+
+        mock_sidof.assert_not_called()
+        mock_web.assert_not_called()
 
 
 if __name__ == "__main__":

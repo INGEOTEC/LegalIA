@@ -1,4 +1,15 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python.analysis.extraPaths": ["./packages", "./packages/dof2md", "./packages/dofjson", "./packages/leyesmx", "./packages/nota2md"]
+    "python.analysis.extraPaths": [
+        "./packages",
+        "./packages/dof2md",
+        "./packages/dofjson",
+        "./packages/leyesmx",
+        "./packages/nota2md"
+    ],
+    "python.testing.pytestArgs": [
+        "packages"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }
