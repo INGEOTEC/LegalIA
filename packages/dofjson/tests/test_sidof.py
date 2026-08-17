@@ -4,13 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-<<<<<<< HEAD:packages/dofjson/tests/test_sidof.py
 from dofjson.sidof import (
-=======
-import requests
-
-from dofjson.client import (
->>>>>>> origin/master:packages/dofjson/tests/test_client.py
     BASE_URL,
     download_imagen,
     download_nota,
