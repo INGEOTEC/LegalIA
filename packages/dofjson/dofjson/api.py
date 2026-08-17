@@ -33,7 +33,6 @@ from pathlib import Path
 import requests
 
 from dofjson import dofweb, sidof
-from dofjson.dofweb import PaginaDeOtroDia
 from dofjson.notas import EDICION_LISTAS, _detectar_offset_paginacion, infer_paginas, quita_notas_sin_titulo
 
 FUENTE_SIDOF = "sidof"
