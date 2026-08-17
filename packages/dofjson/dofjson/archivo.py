@@ -45,7 +45,7 @@ from pathlib import Path
 
 import requests
 
-from dofjson import api, dofweb
+from dofjson import api, dofweb, titulos
 
 FECHA_INICIO_DEFAULT = dt.date(1917, 1, 2)
 
@@ -90,7 +90,8 @@ def _guardar(notas: dict, fecha: dt.date, root: Path) -> Path:
 
 
 def procesar_dia(
-    fecha: dt.date, root: Path, pausa: float, stats: dict, respaldo: str = "habiles"
+    fecha: dt.date, root: Path, pausa: float, stats: dict, respaldo: str = "habiles",
+    cache_dir: Path | None = titulos.SIN_CACHE_DIR,
 ) -> tuple[str, str]:
     """Download and save one day's notes index.
 
@@ -105,9 +106,24 @@ def procesar_dia(
     even on the rare day it makes two requests (SIDOF then dofweb) instead of
     one — the handful of such days a full archive run ever hits are not worth
     a second parameter just to pace them individually.
+
+    `cache_dir`, passed straight to api.get_notas(), lets a day already
+    published in the notas-archivo release be read off disk instead of hitting
+    SIDOF/dofweb again — handy for rebuilding a local archive (e.g. on a fresh
+    clone) without re-downloading history the release already has. Left
+    unset, it defaults to `dofjson.titulos.CACHE_DIR` just like api.get_notas()
+    does; pass `cache_dir=None` to force every day to be fetched live. A cache
+    hit skips `pausa` too: it made no request, so there is nothing to be kind
+    to the server about, and pacing a purely local read would only slow a
+    from-cache rebuild down for no reason.
     """
+    cache_dir_efectivo = titulos.CACHE_DIR if cache_dir is titulos.SIN_CACHE_DIR else cache_dir
+    cache_hit = (
+        cache_dir_efectivo is not None
+        and titulos.nota_del_dia_en_cache(fecha, cache_dir_efectivo) is not None
+    )
     try:
-        notas = api.get_notas(fecha, respaldo=respaldo)
+        notas = api.get_notas(fecha, respaldo=respaldo, cache_dir=cache_dir)
     except (requests.exceptions.RequestException, dofweb.PaginaDeOtroDia):
         # A network error, or a page served for the wrong date, is left to
         # retry instead of trusted or written off as empty: believing a
@@ -115,7 +131,8 @@ def procesar_dia(
         # a network hiccup "no edition" would bury the day for good.
         stats["dias_error"] += 1
         return "reintentar", ""
-    time.sleep(pausa)
+    if not cache_hit:
+        time.sleep(pausa)
 
     if notas.get("fuente") == api.FUENTE_WEB:
         _guardar(notas, fecha, root)
@@ -147,12 +164,21 @@ def download_archivo(
     pausa: float = 0.5,
     log=print,
     respaldo: str = "habiles",
+    cache_dir: Path | None = titulos.SIN_CACHE_DIR,
 ) -> dict:
     """Download the notes index for every day in [desde, hasta] into root.
 
     Resumable: skips the days registered in ``root/.completados``. When SIDOF
     reports a day as empty, `respaldo` decides whether to check it against the
     DOF website first (see api.RESPALDO_OPCIONES). Returns the run's statistics.
+
+    `cache_dir` names a directory already holding notas-archivo `.tgz` assets
+    (see dofjson.titulos.download_dof_assets()): any day in range already
+    published there is read straight off disk instead of hit
+    against SIDOF/dofweb — useful for rebuilding this same archive elsewhere
+    (a fresh clone, a new machine) without repeating the ~40,000 requests the
+    release itself already paid for. Left unset, it defaults to
+    `dofjson.titulos.CACHE_DIR`; pass `cache_dir=None` to always fetch live.
     """
     if respaldo not in api.RESPALDO_OPCIONES:
         raise ValueError(
@@ -178,7 +204,7 @@ def download_archivo(
             if fecha.isoformat() in completados:
                 continue
             antes = stats["dias_recuperados"]
-            resultado, fuente = procesar_dia(fecha, root, pausa, stats, respaldo)
+            resultado, fuente = procesar_dia(fecha, root, pausa, stats, respaldo, cache_dir)
             stats["dias_procesados"] += 1
             if stats["dias_recuperados"] > antes:
                 log(f"[{fecha}] SIDOF no la tiene; recuperada de {api.FUENTE_WEB}")

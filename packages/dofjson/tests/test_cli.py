@@ -1,10 +1,26 @@
+import io
 import json
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from dofjson import titulos
 from dofjson.cli import main
+
+
+def hacer_tgz(archivos: dict) -> bytes:
+    """Build an in-memory notas-YYYY.tgz from {member_name: dict_contenido}
+    -- same shape tests/test_titulos.py's own helper builds."""
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+        for nombre, contenido in archivos.items():
+            data = json.dumps(contenido).encode("utf-8")
+            info = tarfile.TarInfo(name=nombre)
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    return buf.getvalue()
 
 
 class TestCli(unittest.TestCase):
@@ -151,6 +167,64 @@ class TestCli(unittest.TestCase):
     def test_main_imagen_requires_edicion(self):
         with self.assertRaises(SystemExit):
             main(["--imagen", "19800102-02-U-000", "--outdir", self.tmpdir.name])
+
+
+class TestCliCacheDir(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.cache_tmpdir = tempfile.TemporaryDirectory()
+        self.cache_dir = Path(self.cache_tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+        self.cache_tmpdir.cleanup()
+
+    def _cachear(self):
+        contenido = hacer_tgz({"1980/02011980-notas.json": {
+            "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }})
+        (self.cache_dir / "notas-1980.tgz").write_bytes(contenido)
+
+    @patch("dofjson.sidof.get_notas")
+    def test_cache_dir_flag_reads_a_cached_day_without_sidof(self, mock_sidof):
+        self._cachear()
+
+        main([
+            "1980-01-02", "--endpoint", "notas", "--outdir", self.tmpdir.name,
+            "--cache-dir", str(self.cache_dir),
+        ])
+
+        mock_sidof.assert_not_called()
+        guardado = json.loads(
+            (Path(self.tmpdir.name) / "02011980-notas.json").read_text()
+        )
+        self.assertEqual(guardado["NotasMatutinas"], [{"codNota": 1, "titulo": "DECRETO cacheado"}])
+
+    @patch("dofjson.sidof.get_notas")
+    def test_omitting_cache_dir_still_uses_the_cache_dir_global(self, mock_sidof):
+        self._cachear()
+
+        with patch.object(titulos, "CACHE_DIR", self.cache_dir):
+            main(["1980-01-02", "--endpoint", "notas", "--outdir", self.tmpdir.name])
+
+        mock_sidof.assert_not_called()
+
+    @patch("dofjson.sidof.get_notas")
+    def test_cache_dir_none_always_fetches_live(self, mock_sidof):
+        self._cachear()
+        mock_sidof.return_value = {
+            "NotasMatutinas": [{"codNota": 9, "titulo": "Nota en vivo"}],
+            "NotasVespertinas": [], "NotasExtraordinarias": [],
+        }
+
+        with patch.object(titulos, "CACHE_DIR", self.cache_dir):
+            main([
+                "1980-01-02", "--endpoint", "notas", "--outdir", self.tmpdir.name,
+                "--cache-dir", "none",
+            ])
+
+        mock_sidof.assert_called_once()
 
 
 if __name__ == "__main__":
