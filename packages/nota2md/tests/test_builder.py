@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from dofjson import dofweb
+import dofjson
 
 from nota2md.builder import fetch_daily_legal_provisions, fetch_nota, legal_provisions, titulo_siguiente
 
@@ -17,6 +17,18 @@ HTML_NOTA = {
         "<body><div><h1 class='Titulo_1'><span>CONVENIO de Coordinación</span></h1>"
         "<div class='Texto'><span>Cuerpo del convenio.</span></div></div></body>"
     ),
+}
+
+# A note SIDOF has no record of at all, recovered from the DOF website (see
+# dofjson.dofweb): no codDiario/codEdicion/pagina, so only the HTML path can
+# build it.
+WEB_NOTA = {
+    "codNota": 4997808,
+    "fecha": "03-03-1999",
+    "titulo": "DECRETO por el que se concede permiso...",
+    "cadenaContenido": "<HTML><BODY><p>Cuerpo del decreto.</p></BODY></HTML>",
+    "existeHtml": "S",
+    "fuente": dofjson.FUENTE_WEB,
 }
 
 
@@ -39,55 +51,38 @@ class TestTituloSiguiente(unittest.TestCase):
 
 
 class TestFetchNota(unittest.TestCase):
-    """SIDOF is missing whole days (see dofjson.dofweb), and the notes on them
-    have no SIDOF record at all — the DOF's website is the only source."""
+    """fetch_nota() is a thin wrapper over dofjson.get_nota() — the
+    package's unified entry point for SIDOF + the DOF website fallback (see
+    dofjson.api). The fallback behaviour itself is tested there; here it's
+    only checked that this wrapper delegates to it and returns what it
+    returns."""
 
-    WEB_NOTA = {
-        "codNota": 4997808,
-        "fecha": "03-03-1999",
-        "titulo": "DECRETO por el que se concede permiso...",
-        "cadenaContenido": "<HTML><BODY><p>Cuerpo del decreto.</p></BODY></HTML>",
-        "existeHtml": "S",
-        "fuente": dofweb.FUENTE,
-    }
+    @patch("nota2md.builder.dofjson.get_nota")
+    def test_delegates_to_the_unified_dofjson_entry_point(self, mock_get_nota):
+        mock_get_nota.return_value = {"codNota": 1, "cadenaContenido": "<p>x</p>"}
 
-    @patch("nota2md.builder.dofweb.get_nota")
-    @patch("nota2md.builder.client.get_nota")
-    def test_prefers_sidof_when_it_has_the_note(self, mock_sidof, mock_web):
-        mock_sidof.return_value = {"Nota": {"codNota": 1, "cadenaContenido": "<p>x</p>"}}
+        nota = fetch_nota(1)
 
-        self.assertEqual(fetch_nota(1)["codNota"], 1)
-        mock_web.assert_not_called()
+        mock_get_nota.assert_called_once_with(1)
+        self.assertEqual(nota, mock_get_nota.return_value)
 
-    @patch("nota2md.builder.dofweb.get_nota")
-    @patch("nota2md.builder.client.get_nota")
-    def test_falls_back_to_the_website_when_sidof_lacks_the_note(self, mock_sidof, mock_web):
-        # SIDOF answers an empty list, not an error, for a codNota it lacks.
-        mock_sidof.return_value = {"messageCode": 200, "response": "OK", "Nota": []}
-        mock_web.return_value = {"Nota": self.WEB_NOTA}
-
-        nota = fetch_nota(4997808)
-
-        mock_web.assert_called_once_with(4997808)
-        self.assertEqual(nota["fuente"], dofweb.FUENTE)
-
-    @patch("nota2md.builder.dofweb.get_nota")
-    @patch("nota2md.builder.client.get_nota")
-    def test_raises_when_neither_source_has_the_note(self, mock_sidof, mock_web):
-        mock_sidof.return_value = {"Nota": []}
-        mock_web.return_value = {"Nota": []}
+    @patch("nota2md.builder.dofjson.get_nota")
+    def test_propagates_the_error_when_neither_source_has_the_note(self, mock_get_nota):
+        mock_get_nota.side_effect = ValueError("nota 999999999 does not exist in SIDOF nor in dof.gob.mx")
 
         with self.assertRaises(ValueError):
             fetch_nota(999999999)
 
 
 class TestFetchDailyLegalProvisions(unittest.TestCase):
+    """Same as TestFetchNota: fetch_daily_legal_provisions() only delegates
+    to dofjson.get_notas() now — see dofjson.api for the fallback tests."""
+
     FECHA = dt.date(2026, 7, 15)
 
-    @patch("nota2md.builder.dofweb.get_notas")
-    @patch("nota2md.builder.client.get_notas")
-    def test_prefers_sidof_when_it_has_notes(self, mock_sidof, mock_web):
-        mock_sidof.return_value = {
+    @patch("nota2md.builder.dofjson.get_notas")
+    def test_delegates_to_the_unified_dofjson_entry_point(self, mock_get_notas):
+        mock_get_notas.return_value = {
             "NotasMatutinas": [{"codNota": 1, "titulo": "Nota A"}],
             "NotasVespertinas": [],
             "NotasExtraordinarias": [],
@@ -95,57 +90,8 @@ class TestFetchDailyLegalProvisions(unittest.TestCase):
 
         notas = fetch_daily_legal_provisions(self.FECHA)
 
-        self.assertEqual(notas["NotasMatutinas"], [{"codNota": 1, "titulo": "Nota A"}])
-        mock_web.assert_not_called()
-
-    @patch("nota2md.builder.dofweb.get_notas")
-    @patch("nota2md.builder.client.get_notas")
-    def test_drops_titleless_stub_entries(self, mock_sidof, mock_web):
-        mock_sidof.return_value = {
-            "NotasMatutinas": [
-                {"codNota": 1, "titulo": "Nota A"},
-                {"codNota": 2},  # title-less stub/twin
-            ],
-            "NotasVespertinas": [],
-            "NotasExtraordinarias": [],
-        }
-
-        notas = fetch_daily_legal_provisions(self.FECHA)
-
-        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [1])
-
-    @patch("nota2md.builder.dofweb.get_notas")
-    @patch("nota2md.builder.client.get_notas")
-    def test_falls_back_to_the_website_when_sidof_has_nothing(self, mock_sidof, mock_web):
-        # SIDOF answers every list empty, not an error, for a day it lacks.
-        mock_sidof.return_value = {
-            "NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": [],
-        }
-        mock_web.return_value = {
-            "NotasMatutinas": [{"codNota": 3, "titulo": "Nota recuperada"}],
-            "NotasVespertinas": [],
-            "NotasExtraordinarias": [],
-            "fuente": dofweb.FUENTE,
-        }
-
-        notas = fetch_daily_legal_provisions(self.FECHA)
-
-        mock_web.assert_called_once_with(self.FECHA)
-        self.assertEqual(notas["fuente"], dofweb.FUENTE)
-        self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [3])
-
-    @patch("nota2md.builder.dofweb.get_notas")
-    @patch("nota2md.builder.client.get_notas")
-    def test_returns_empty_when_neither_source_published_that_day(self, mock_sidof, mock_web):
-        vacio = {"NotasMatutinas": [], "NotasVespertinas": [], "NotasExtraordinarias": []}
-        mock_sidof.return_value = dict(vacio)
-        mock_web.return_value = {**vacio, "edicionesSinIndice": []}
-
-        notas = fetch_daily_legal_provisions(self.FECHA)
-
-        self.assertEqual(notas["NotasMatutinas"], [])
-        self.assertEqual(notas["NotasVespertinas"], [])
-        self.assertEqual(notas["NotasExtraordinarias"], [])
+        mock_get_notas.assert_called_once_with(self.FECHA)
+        self.assertEqual(notas, mock_get_notas.return_value)
 
 
 class TestLegalProvisions(unittest.TestCase):
@@ -160,7 +106,7 @@ class TestLegalProvisions(unittest.TestCase):
         with self.assertRaises(ValueError):
             legal_provisions(1, self.outdir, source="xml", nota=HTML_NOTA)
 
-    @patch("nota2md.builder.client.download_nota_imagenes")
+    @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_html_path_converts_cadena_contenido(self, mock_download):
         dest = legal_provisions(5793655, self.outdir, source="auto", nota=HTML_NOTA)
 
@@ -176,7 +122,7 @@ class TestLegalProvisions(unittest.TestCase):
             legal_provisions(1, self.outdir, source="html", nota=nota)
 
     @patch("dof2md.converter.convert_images_to_markdown")
-    @patch("nota2md.builder.client.download_nota_imagenes")
+    @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_image_path_ocrs_and_cuts_to_the_note(self, mock_download, mock_convert):
         image_only = {
             "codNota": 200,
@@ -217,7 +163,7 @@ class TestLegalProvisions(unittest.TestCase):
         self.assertNotIn("SUP 036", text)
 
     @patch("dof2md.converter.convert_to_markdown")
-    @patch("nota2md.builder.client.download_nota_pdf")
+    @patch("nota2md.builder.dofjson.download_nota_pdf")
     def test_pdf_path_ocrs_note_pdf_and_cuts(self, mock_download_pdf, mock_convert):
         nota = {
             "codNota": 300,
@@ -256,11 +202,9 @@ class TestLegalProvisions(unittest.TestCase):
         self.assertIn("Cuerpo del acuerdo.", text)
         self.assertNotIn("NOM-042-NUCL", text)
 
-    @patch("nota2md.builder.dofweb.get_nota")
-    @patch("nota2md.builder.client.get_nota")
-    def test_builds_a_note_sidof_does_not_have_from_the_website(self, mock_sidof, mock_web):
-        mock_sidof.return_value = {"Nota": []}
-        mock_web.return_value = {"Nota": TestFetchNota.WEB_NOTA}
+    @patch("nota2md.builder.dofjson.get_nota")
+    def test_builds_a_note_sidof_does_not_have_from_the_website(self, mock_get_nota):
+        mock_get_nota.return_value = WEB_NOTA
 
         dest = legal_provisions(4997808, self.outdir)
 
@@ -274,12 +218,12 @@ class TestLegalProvisions(unittest.TestCase):
             with self.subTest(source=source):
                 with self.assertRaises(ValueError) as ctx:
                     legal_provisions(
-                        4997808, self.outdir, source=source, nota=TestFetchNota.WEB_NOTA
+                        4997808, self.outdir, source=source, nota=WEB_NOTA
                     )
-                self.assertIn(dofweb.FUENTE, str(ctx.exception))
+                self.assertIn(dofjson.FUENTE_WEB, str(ctx.exception))
 
     @patch("dof2md.converter.convert_images_to_markdown")
-    @patch("nota2md.builder.client.download_nota_imagenes")
+    @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_keep_pages_writes_full_uncut_copy(self, mock_download, mock_convert):
         image_only = {
             "codNota": 200, "titulo": "T", "codEdicion": "MAT",
@@ -301,7 +245,31 @@ class TestLegalProvisions(unittest.TestCase):
             "full page text",
         )
 
-    @patch("nota2md.builder.client.download_nota_imagenes")
+    @patch("dof2md.converter.convert_images_to_markdown")
+    @patch("nota2md.builder.dofjson.get_notas")
+    @patch("nota2md.builder.dofjson.download_nota_imagenes")
+    def test_fetches_notas_del_dia_through_the_unified_dofjson_entry_point(
+        self, mock_download, mock_get_notas, mock_convert
+    ):
+        # legal_provisions() must not fetch the day's index straight off
+        # dofjson.sidof itself when notas_del_dia isn't supplied — that
+        # would skip dofjson.get_notas()'s dofweb fallback (issue #104),
+        # the same bug class fetch_daily_legal_provisions() was fixed for.
+        image_only = {
+            "codNota": 200, "titulo": "T", "codEdicion": "MAT",
+            "fecha": "15-07-2026", "cadenaContenido": "",
+        }
+        mock_download.return_value = [self.outdir / "nota-200-p1.jpg"]
+        mock_get_notas.return_value = {"NotasMatutinas": [{"codNota": 200, "titulo": "T"}]}
+        mock_convert.side_effect = lambda paths, md_path, **kw: md_path.write_text(
+            "## T\n\ncontenido\n", encoding="utf-8"
+        )
+
+        legal_provisions(200, self.outdir, source="image", nota=image_only)
+
+        mock_get_notas.assert_called_once_with(dt.date(2026, 7, 15))
+
+    @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_reuses_an_already_entered_converter_instead_of_the_default_path(
         self, mock_download
     ):
@@ -323,6 +291,22 @@ class TestLegalProvisions(unittest.TestCase):
             [self.outdir / "nota-200-p1.jpg"], self.outdir, "nota-200.md", "T", None,
             min_confidence=0.6, keep_pages=False, keep_mineru_output=False,
         )
+
+
+class TestOnlyUsesTheUnifiedDofjsonApi(unittest.TestCase):
+    """nota2md must reach SIDOF/dofweb functionality only through dofjson
+    itself (issue #104) -- never dofjson.sidof or dofjson.dofweb directly.
+    A mechanical, import-level guard: it would catch a future call site that
+    reintroduces `from dofjson import sidof, dofweb`, even one no other
+    test happens to patch/exercise."""
+
+    def test_builder_module_never_imported_sidof_or_dofweb_by_name(self):
+        import nota2md.builder as builder_module
+
+        self.assertFalse(hasattr(builder_module, "sidof"))
+        self.assertFalse(hasattr(builder_module, "client"))
+        self.assertFalse(hasattr(builder_module, "dofweb"))
+        self.assertTrue(hasattr(builder_module, "dofjson"))
 
 
 if __name__ == "__main__":
