@@ -14,7 +14,6 @@ from dofjson.api import (
     FUENTE_SIDOF,
     RESPALDO_OPCIONES,
     consultar_respaldo,
-    download_dof_assets,
     download_nota,
     download_nota_imagen_o_pdf,
     download_nota_imagenes,
@@ -388,10 +387,6 @@ class TestGetNotasCacheDir(unittest.TestCase):
 
         mock_sidof.assert_called_once_with(self.FECHA)
         self.assertEqual([n["codNota"] for n in notas["NotasMatutinas"]], [9])
-
-    def test_download_dof_assets_is_reachable_from_api(self):
-        from dofjson import titulos
-        self.assertIs(download_dof_assets, titulos.download_dof_assets)
 
 
 class TestConsultarRespaldo(unittest.TestCase):

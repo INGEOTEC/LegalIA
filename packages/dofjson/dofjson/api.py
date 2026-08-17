@@ -52,7 +52,7 @@ from dofjson.notas import (
     infer_paginas,
     quita_notas_sin_titulo
 )
-from dofjson.titulos import download_dof_assets, nota_del_dia_en_cache
+from dofjson.titulos import nota_del_dia_en_cache
 
 FUENTE_SIDOF = "sidof"
 FUENTE_WEB = dofweb.FUENTE
