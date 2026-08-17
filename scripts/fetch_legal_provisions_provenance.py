@@ -13,7 +13,7 @@ from nota2md import (
     download_legal_provisions_titles
 )
 from dofjson.titulos import download_dof_assets, _LISTAS_NOTAS, FUENTE_PREDETERMINADA
-from dofjson.client import download_nota_imagen_o_pdf
+from dofjson import download_nota_imagen_o_pdf
 
 PATH = 'drive/MyDrive/DATA/legal_provisions'
 PATH = 'legal_provisions'

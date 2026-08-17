@@ -42,11 +42,16 @@ dofjson.download_nota_pdf(4997808, outdir)
 they try SIDOF first and fall back to the website automatically, so a
 caller (in this package or another one, like `nota2md`) never risks only
 ever calling `sidof` and missing the legal provisions/days that live on
-the website instead. Every other function below has no equivalent on the
-website at all (no per-legal-provision images, PDFs, page numbers,
-economic indicators, or edition metadata exist there), so `dofjson`
-re-exports them as plain passthroughs to `sidof` — reachable from the same
-one name either way.
+the website instead. `download_nota(codNota)`, `download_nota_imagenes(codNota)`,
+`download_nota_pdf(codNota)` and `download_nota_imagen_o_pdf(codNota)` (below)
+still only ever fetch from SIDOF — the website carries no per-legal-provision
+images, PDFs or page numbers — but they still resolve a bare `codNota`
+through `get_nota()`'s own fallback, so a legal provision SIDOF has no
+record of at all raises a clear error instead of crashing on a missing
+field; `get_diario`, `get_indicadores`, `get_imagenes`, `download_pdf` and
+`download_imagen` are the ones with genuinely nothing to resolve, and are
+plain passthroughs to `sidof`. Either way, every one of them is reachable
+straight off `dofjson`.
 
 This is an experimental package for evaluating whether this service is a
 viable alternative (or complement) to `dof2md`'s PDF download + Markdown

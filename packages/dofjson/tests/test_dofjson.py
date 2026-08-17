@@ -19,6 +19,33 @@ class TestUnifiedEntryPoints(unittest.TestCase):
         self.assertIs(dofjson.get_notas, api.get_notas)
 
 
+class TestApiDownloadEntryPoints(unittest.TestCase):
+    """download_nota()/download_nota_imagenes()/download_nota_pdf()/
+    download_nota_imagen_o_pdf() are defined in dofjson.api itself, not
+    dofjson.sidof -- resolving a bare codNota still needs get_nota()'s own
+    SIDOF-then-dofweb fallback (to raise a clear error for a dofweb-only
+    note instead of crashing later), and dofjson.sidof has no business
+    calling back into dofjson.api to get that -- see dofjson.api's own
+    module docstring."""
+
+    NOMBRES = (
+        "download_nota",
+        "download_nota_imagenes",
+        "download_nota_pdf",
+        "download_nota_imagen_o_pdf",
+    )
+
+    def test_every_one_is_the_api_function_itself(self):
+        for nombre in self.NOMBRES:
+            with self.subTest(nombre=nombre):
+                self.assertIs(getattr(dofjson, nombre), getattr(api, nombre))
+
+    def test_dofjson_sidof_does_not_define_any_of_them(self):
+        for nombre in self.NOMBRES:
+            with self.subTest(nombre=nombre):
+                self.assertFalse(hasattr(sidof, nombre))
+
+
 class TestSidofPassthroughEntryPoints(unittest.TestCase):
     """These have no dofweb equivalent to fall back to at all, so dofjson
     re-exports dofjson.sidof's own function object directly."""
@@ -29,10 +56,6 @@ class TestSidofPassthroughEntryPoints(unittest.TestCase):
         "get_imagenes",
         "download_pdf",
         "download_imagen",
-        "download_nota",
-        "download_nota_imagenes",
-        "download_nota_pdf",
-        "download_nota_imagen_o_pdf",
     )
 
     def test_every_passthrough_is_the_sidof_function_itself(self):
@@ -60,6 +83,7 @@ class TestDofjsonSurface(unittest.TestCase):
     def test_all_lists_exactly_the_exported_names(self):
         esperado = {
             "get_nota", "get_notas", "FUENTE_WEB",
+            *TestApiDownloadEntryPoints.NOMBRES,
             *TestSidofPassthroughEntryPoints.PASSTHROUGHS,
             *TestNotasPassthroughEntryPoints.PASSTHROUGHS,
         }
