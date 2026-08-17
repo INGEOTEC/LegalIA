@@ -278,16 +278,7 @@ def download_nota_imagen_o_pdf(
         return imagenes_existentes
 
     if nota is None:
-<<<<<<< HEAD:packages/dofjson/dofjson/sidof.py
         nota = _resolver_nota(cod_nota)
-=======
-        nota = get_nota(cod_nota)["Nota"]
-
-    edicion_existente = outdir / f"edicion-{nota['codDiario']}.pdf"
-    if edicion_existente.exists():
-        return [edicion_existente]
-
->>>>>>> origin/master:packages/dofjson/dofjson/client.py
     try:
         return download_nota_imagenes(cod_nota, outdir, nota=nota)
     except (ValueError, requests.HTTPError):
