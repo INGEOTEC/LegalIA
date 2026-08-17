@@ -32,13 +32,13 @@ see BatchConverter's own docstring.
 import datetime as dt
 from pathlib import Path
 
-from dofjson import client, dofweb
+import dofjson
 
 from nota2md.html_converter import html_to_markdown
 
 # Which per-edition list in a get_notas() response holds a note, keyed by its
-# codEdicion. Mirrors dofjson.client._EDICION_LISTAS (kept local so nota2md
-# doesn't reach into dofjson's private names).
+# codEdicion. Mirrors dofjson.notas.EDICION_LISTAS (kept local rather than
+# imported, since dofjson.notas isn't part of dofjson's own unified surface).
 _EDICION_LISTAS = {
     "MAT": "NotasMatutinas",
     "VES": "NotasVespertinas",
@@ -65,46 +65,20 @@ def titulo_siguiente(nota: dict, notas_del_dia: dict) -> str | None:
 
 def fetch_nota(cod_nota: int) -> dict:
     """A note's get_nota() record, from SIDOF when it has it and from the DOF
-    website when it does not.
-
-    SIDOF answers `{"Nota": []}` for a codNota it lacks — not an error — so an
-    empty record is what sends the lookup to dofweb.get_nota(). A note found
-    there says so in its `fuente`, and carries no codDiario/codEdicion/pagina:
-    only the HTML path can build it (see the module docstring)."""
-    nota = client.get_nota(cod_nota).get("Nota")
-    if isinstance(nota, dict) and nota:
-        return nota
-
-    nota = dofweb.get_nota(cod_nota).get("Nota")
-    if isinstance(nota, dict) and nota:
-        return nota
-
-    raise ValueError(
-        f"nota {cod_nota} does not exist in SIDOF nor in {dofweb.FUENTE}"
-    )
+    website when it does not — see dofjson.get_nota(), the package's unified
+    entry point for both sources. A note found there says so in its
+    `fuente`, and carries no codDiario/codEdicion/pagina: only the HTML path
+    can build it (see the module docstring)."""
+    return dofjson.get_nota(cod_nota)
 
 
 def fetch_daily_legal_provisions(date: dt.date) -> dict:
     """`date`'s notes index — title, codNota, codEdicion, pagina... one entry
     per note, split into NotasMatutinas/NotasVespertinas/NotasExtraordinarias
     — from SIDOF, falling back to the DOF website when SIDOF has nothing for
-    that day. Title-less stub entries (see dofjson.client.quita_notas_sin_titulo)
-    are dropped either way, so what is left is real, browsable notes.
-
-    SIDOF answers with every list empty both for a day with no edition
-    (weekends, holidays) and for a handful of days it has simply lost outright
-    — the two look identical on their own (see dofjson.archivo's module
-    docstring), so an empty SIDOF answer is always checked against the DOF
-    website before being taken to mean nothing was published.
-    """
-    notas = client.quita_notas_sin_titulo(client.get_notas(date))
-    if any(notas.get(clave) for clave in _EDICION_LISTAS.values()):
-        return notas
-
-    alterno = dofweb.get_notas(date)
-    if dofweb.hay_publicacion(alterno):
-        return client.quita_notas_sin_titulo(alterno)
-    return notas
+    that day. See dofjson.get_notas(), the package's unified entry point for
+    both sources."""
+    return dofjson.get_notas(date)
 
 
 def legal_provisions(
@@ -175,21 +149,21 @@ def legal_provisions(
         md_path.write_text(html_to_markdown(nota["cadenaContenido"]) + "\n", encoding="utf-8")
         return md_path
 
-    if nota.get("fuente") == dofweb.FUENTE:
+    if nota.get("fuente") == dofjson.FUENTE_WEB:
         raise ValueError(
-            f"nota {cod_nota} was recovered from {dofweb.FUENTE} because SIDOF "
+            f"nota {cod_nota} was recovered from {dofjson.FUENTE_WEB} because SIDOF "
             f"does not have it; the {source!r} path needs SIDOF's codDiario and "
             f"page numbers, so only source='html' can build this note"
         )
 
     if source == "pdf":
-        path_or_paths = client.download_nota_pdf(cod_nota, outdir, nota=nota)
+        path_or_paths = dofjson.download_nota_pdf(cod_nota, outdir, nota=nota)
     else:
-        path_or_paths = client.download_nota_imagenes(cod_nota, outdir, nota=nota)
+        path_or_paths = dofjson.download_nota_imagenes(cod_nota, outdir, nota=nota)
 
     if notas_del_dia is None:
         fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
-        notas_del_dia = client.get_notas(fecha)
+        notas_del_dia = dofjson.get_notas(fecha)
     titulo = nota.get("titulo", "")
     titulo_sig = titulo_siguiente(nota, notas_del_dia)
 
