@@ -90,7 +90,7 @@ def consultar_respaldo(fecha: dt.date, respaldo: str) -> bool:
     return fecha.weekday() < 5
 
 
-def get_nota(cod_nota: int) -> dict:
+def get_nota(cod_nota: int, fecha: dt.date | None = None) -> dict:
     """A note by its codNota, from SIDOF or — when SIDOF has no record of it
     at all — the DOF website (see dofjson.dofweb).
 
@@ -100,13 +100,18 @@ def get_nota(cod_nota: int) -> dict:
     SIDOF answers ``{"Nota": []}``, not an error, for a codNota it lacks —
     that empty answer is what sends the lookup to the website. Raises
     ValueError if neither source has the note.
+
+    `fecha` is forwarded to dofweb.get_nota() as-is: for some codigos (seen
+    from 1999-2000), the website can only resolve a note when its date is
+    given alongside it (see issue #109) — pass it when it is already known
+    (e.g. from get_notas()) to recover those notes too.
     """
     nota = sidof.get_nota(cod_nota).get("Nota")
     if isinstance(nota, dict) and nota:
         nota["fuente"] = FUENTE_SIDOF
         return nota
 
-    nota = dofweb.get_nota(cod_nota).get("Nota")
+    nota = dofweb.get_nota(cod_nota, fecha=fecha).get("Nota")
     if isinstance(nota, dict) and nota:
         return nota
 

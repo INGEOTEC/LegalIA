@@ -1,4 +1,5 @@
 import argparse
+import datetime as dt
 import json
 from pathlib import Path
 
@@ -11,6 +12,12 @@ def parse_args(argv=None):
         "note by its codNota, from its HTML content or by OCR'ing its scanned page(s)."
     )
     parser.add_argument("cod_nota", type=int, help="The note's codNota")
+    parser.add_argument(
+        "--fecha", type=dt.date.fromisoformat, default=None, metavar="YYYY-MM-DD",
+        help="The note's publication date. Some codigos (seen from 1999-2000) the "
+        "DOF website only resolves when given alongside their own date (issue "
+        "#109/#111) — pass it when it is already known.",
+    )
     parser.add_argument(
         "--source", choices=["auto", "html", "image", "pdf"], default="auto",
         help="Where to build the Markdown from: 'auto' (HTML when the note has it, "
@@ -51,6 +58,7 @@ def main(argv=None):
         args.cod_nota,
         Path(args.outdir),
         source=args.source,
+        fecha=args.fecha,
         notas_del_dia=notas_del_dia,
         min_confidence=args.min_confidence,
         keep_pages=args.keep_pages,
