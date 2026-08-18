@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import tempfile
 import unittest
@@ -25,11 +26,23 @@ class TestCli(unittest.TestCase):
             5793655,
             self.outdir,
             source="auto",
+            fecha=None,
             notas_del_dia=None,
             min_confidence=0.6,
             keep_pages=False,
             keep_mineru_output=False,
         )
+
+    @patch("nota2md.cli.legal_provisions")
+    def test_main_passes_fecha_for_codigos_the_website_needs_it_for(self, mock_build):
+        # See issue #109/#111: some 1999-2000 codigos only resolve on the
+        # DOF website alongside their own date.
+        mock_build.return_value = self.outdir / "nota-4920760.md"
+
+        main(["4920760", "--fecha", "2000-02-29", "--outdir", str(self.outdir)])
+
+        _, kwargs = mock_build.call_args
+        self.assertEqual(kwargs["fecha"], dt.date(2000, 2, 29))
 
     @patch("nota2md.cli.legal_provisions")
     def test_main_passes_source_and_loads_notas_file(self, mock_build):

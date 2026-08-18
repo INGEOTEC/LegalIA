@@ -113,7 +113,7 @@ class TestGetNota(unittest.TestCase):
 
         nota = get_nota(4997808)
 
-        mock_web.assert_called_once_with(4997808)
+        mock_web.assert_called_once_with(4997808, fecha=None)
         self.assertEqual(nota["fuente"], dofweb.FUENTE)
 
     @patch("dofjson.api.dofweb.get_nota")
@@ -124,6 +124,18 @@ class TestGetNota(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             get_nota(999999999)
+
+    @patch("dofjson.api.dofweb.get_nota")
+    @patch("dofjson.api.sidof.get_nota")
+    def test_passes_fecha_through_to_the_website_fallback(self, mock_sidof, mock_web):
+        # Some codigos (1999-2000) only resolve on the website when their
+        # date is given alongside them (see issue #109/#111).
+        mock_sidof.return_value = {"messageCode": 200, "response": "OK", "Nota": []}
+        mock_web.return_value = {"Nota": WEB_NOTA}
+
+        get_nota(4920760, fecha=dt.date(2000, 2, 29))
+
+        mock_web.assert_called_once_with(4920760, fecha=dt.date(2000, 2, 29))
 
 
 class TestGetNotas(unittest.TestCase):

@@ -63,7 +63,7 @@ class TestFetchNota(unittest.TestCase):
 
         nota = fetch_nota(1)
 
-        mock_get_nota.assert_called_once_with(1)
+        mock_get_nota.assert_called_once_with(1, fecha=None)
         self.assertEqual(nota, mock_get_nota.return_value)
 
     @patch("nota2md.builder.dofjson.get_nota")
@@ -72,6 +72,14 @@ class TestFetchNota(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             fetch_nota(999999999)
+
+    @patch("nota2md.builder.dofjson.get_nota")
+    def test_passes_fecha_through_to_the_unified_dofjson_entry_point(self, mock_get_nota):
+        mock_get_nota.return_value = {"codNota": 4920760, "cadenaContenido": "<p>x</p>"}
+
+        fetch_nota(4920760, fecha=dt.date(2000, 2, 29))
+
+        mock_get_nota.assert_called_once_with(4920760, fecha=dt.date(2000, 2, 29))
 
 
 class TestFetchDailyLegalProvisions(unittest.TestCase):
@@ -210,6 +218,17 @@ class TestLegalProvisions(unittest.TestCase):
 
         self.assertEqual(dest, self.outdir / "nota-4997808.md")
         self.assertIn("Cuerpo del decreto.", dest.read_text(encoding="utf-8"))
+
+    @patch("nota2md.builder.dofjson.get_nota")
+    def test_passes_fecha_through_when_fetching_the_note_itself(self, mock_get_nota):
+        # A codigo the DOF website only resolves alongside its own date
+        # (issue #109/#111) — legal_provisions() must forward it to
+        # fetch_nota() when it has to fetch the note itself (no `nota` given).
+        mock_get_nota.return_value = WEB_NOTA
+
+        legal_provisions(4997808, self.outdir, fecha=dt.date(2000, 2, 29))
+
+        mock_get_nota.assert_called_once_with(4997808, fecha=dt.date(2000, 2, 29))
 
     def test_ocr_paths_reject_a_note_that_only_the_website_has(self):
         """Those notes carry no codDiario or page numbers — the OCR paths start
