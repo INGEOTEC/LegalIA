@@ -63,13 +63,17 @@ def titulo_siguiente(nota: dict, notas_del_dia: dict) -> str | None:
     return None
 
 
-def fetch_nota(cod_nota: int) -> dict:
+def fetch_nota(cod_nota: int, fecha: dt.date | None = None) -> dict:
     """A note's get_nota() record, from SIDOF when it has it and from the DOF
     website when it does not — see dofjson.get_nota(), the package's unified
     entry point for both sources. A note found there says so in its
     `fuente`, and carries no codDiario/codEdicion/pagina: only the HTML path
-    can build it (see the module docstring)."""
-    return dofjson.get_nota(cod_nota)
+    can build it (see the module docstring).
+
+    `fecha` is forwarded to dofjson.get_nota() as-is, for the codigos
+    (1999-2000) the website only resolves alongside their own date (issue
+    #109/#111) — pass it when it is already known."""
+    return dofjson.get_nota(cod_nota, fecha=fecha)
 
 
 def fetch_daily_legal_provisions(date: dt.date) -> dict:
@@ -86,6 +90,7 @@ def legal_provisions(
     outdir: str | Path,
     source: str = "auto",
     *,
+    fecha: dt.date | None = None,
     nota: dict | None = None,
     notas_del_dia: dict | None = None,
     min_confidence: float = 0.6,
@@ -109,7 +114,10 @@ def legal_provisions(
     note; "auto" never selects "pdf" — it is opt-in. Pass `nota` to reuse an
     already-fetched get_nota() note, and `notas_del_dia` to supply the per-day
     index (e.g. a saved notas JSON) instead of fetching it — the OCR paths need
-    it to find the next note's title (the cut boundary). `keep_pages` also
+    it to find the next note's title (the cut boundary). `fecha` is forwarded
+    to fetch_nota() when `nota` is not already given — needed for the
+    codigos (1999-2000) the DOF website only resolves alongside their own
+    date (issue #109/#111). `keep_pages` also
     writes the uncut, full OCR output next to the result as
     ``nota-{cod_nota}.full.md``. `keep_mineru_output` (OCR paths only) keeps
     mineru's own raw output — otherwise thrown away with its temp dir — under
@@ -138,7 +146,7 @@ def legal_provisions(
     md_path = outdir / f"nota-{cod_nota}.md"
 
     if nota is None:
-        nota = fetch_nota(cod_nota)
+        nota = fetch_nota(cod_nota, fecha=fecha)
 
     if source == "html" or (source == "auto" and nota.get("cadenaContenido")):
         if not nota.get("cadenaContenido"):
