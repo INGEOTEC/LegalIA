@@ -29,6 +29,7 @@ import re
 import time
 import unicodedata
 from dataclasses import dataclass
+from datetime import datetime
 from difflib import SequenceMatcher
 from pathlib import Path
 from urllib.parse import urljoin
@@ -314,6 +315,169 @@ def _formatea_parrafo(parrafo: str) -> str:
     return parrafo
 
 
+# --- Editorial commentary removal ("N. DE E." / "NOTA N") --------------
+#
+# The SCJN's own Markdown mixes two things a reform-annotated paragraph can
+# carry: a reform annotation with a real DOF counterpart ("(REFORMADO,
+# D.O.F. <date>)" — kept, see reconstruct_legal_provisions and issue #52),
+# and the SCJN's own editorial aside, which it marks "N. DE E." (Nota de
+# Editor) or, for a sibling convention citing external DOF fee-update
+# agreements, "NOTA N" — neither ever published by the DOF itself. Issue
+# #114's sweep of the 3,548 snapshots already crawled for `leyes` found this
+# in 91% of them (~85k marker occurrences) and catalogued how it is placed:
+#
+#   - Three ways the marker itself is spelled, all SCJN's own typos of
+#     "N. DE E.": missing a period, doubling one, or splitting one across a
+#     space ("N DE E", "N. DE. E", "N. DE . E"). The sibling "NOTA N" is
+#     only ever this marker when spelled in full caps — a lowercase/mixed
+#     "Nota N" is `ligie`'s tariff schedule citing its own explanatory notes
+#     ("Nota 2 del Capítulo 22"), real legal text no DOF/SCJN divide applies
+#     to, never an SCJN insertion.
+#   - Three ways the note is placed relative to real text: (a) an entire
+#     `[...]`/`(...)` paragraph of its own; (b) embedded inside a reform
+#     annotation's own parenthesis, which resumes with ", D.O.F. <date>)"
+#     right after it; (c) trailing bare after a reform annotation has
+#     already closed, running to the end of that docx paragraph (SCJN's own
+#     "N. DE E." is not always bracketed at all).
+#   - One no-marker case (Fase 0 finding 3): an unmarked, all-caps bracket
+#     ("[REPUBLICADAS]", "[ANTES ARTÍCULO 57]"). The one thing that rules out
+#     treating "any bracket" as editorial is that real legal text also uses
+#     them — tariff formulas and chemical nomenclature — but every instance
+#     of those in the corpus is either letter-free or mixed-case, never a
+#     bare run of upper-case words, so requiring both traits (all-caps *and*
+#     at least one 3+ letter word) tells the two apart without a formula-
+#     specific pattern to maintain.
+
+_MARCADOR_N_DE_E = re.compile(r"N\.?\s*DE\.?\s*\.?\s*E\.?\b", re.I)
+# Case-sensitive on purpose — see the section docstring's `ligie` case.
+_MARCADOR_NOTA = re.compile(r"NOTA\s+\d+\b")
+_CORCHETE = re.compile(r"\[([^\[\]]*)\]")
+_PALABRA_LARGA = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]{3,}")
+_ANOTACION_REANUDA = re.compile(r",\s*D\.O\.F\.", re.I)
+
+
+def _empieza_con_marcador(texto: str) -> bool:
+    despojado = texto.lstrip()
+    return bool(_MARCADOR_N_DE_E.match(despojado) or _MARCADOR_NOTA.match(despojado))
+
+
+def _es_nota_editorial(contenido: str) -> bool:
+    """Whether one `[...]` bracket's content is SCJN editorial commentary —
+    its own marker, or (no marker) an all-caps run with an actual word in
+    it, never a tariff/chemical bracket (see the section docstring)."""
+    if _empieza_con_marcador(contenido):
+        return True
+    if not _PALABRA_LARGA.search(contenido):
+        return False
+    letras = [c for c in contenido if c.isalpha()]
+    return all(c.isupper() for c in letras)
+
+
+def _marcadores_sueltos(texto: str):
+    """Every bare (not inside a `[...]`) occurrence of the marker in
+    `texto`, oldest-first — a `[...]` bracket's own content is handled by
+    `_es_nota_editorial` instead, so it is excluded here."""
+    corchetes = [(m.start(), m.end()) for m in _CORCHETE.finditer(texto)]
+
+    def en_corchete(pos: int) -> bool:
+        return any(inicio <= pos < fin for inicio, fin in corchetes)
+
+    candidatos = [
+        m
+        for patron in (_MARCADOR_N_DE_E, _MARCADOR_NOTA)
+        for m in patron.finditer(texto)
+        if not en_corchete(m.start())
+    ]
+    return sorted(candidatos, key=lambda m: m.start())
+
+
+def _quita_marcador_suelto(texto: str) -> str:
+    """`texto` with its first bare marker (see `_marcadores_sueltos`)
+    removed, if any.
+
+    A bare marker always runs to the end of its own paragraph — SCJN never
+    gives it a closing delimiter of its own to bound it, *unless* it sits
+    inside a reform annotation's still-open parenthesis (a positive paren
+    balance right before it) whose own opening was real annotation text
+    ("(REFORMADO N. DE E. ..., D.O.F. ...)"): there, the annotation resumes
+    right after the note with its own ", D.O.F. <date>)" field, which is
+    kept. When that open parenthesis instead belongs to the note itself
+    (nothing but whitespace between it and the marker, e.g. "(N. DE E.,
+    ..." or "(NOTA 1: ..."), the note still runs to the paragraph's end —
+    only a real annotation verb before the marker bounds it early.
+    """
+    candidatos = _marcadores_sueltos(texto)
+    if not candidatos:
+        return texto
+    m = candidatos[0]
+    antes = texto[: m.start()]
+    balance = antes.count("(") - antes.count(")")
+    if balance > 0:
+        apertura = antes.rfind("(")
+        if antes[apertura + 1 :].strip():
+            resto = texto[m.start() :]
+            reanuda = _ANOTACION_REANUDA.search(resto)
+            if reanuda is not None:
+                inicio = m.start()
+                if antes.rstrip().endswith(("(", "[")):
+                    inicio = len(antes.rstrip()) - 1
+                return texto[:inicio].rstrip() + resto[reanuda.start() :]
+        else:
+            return antes[:apertura].rstrip()
+    return antes.rstrip()
+
+
+def _quita_notas_editoriales(nucleo: str) -> str:
+    if len(nucleo) >= 2 and nucleo[0] in "([" and nucleo[-1] in ")]":
+        if _empieza_con_marcador(nucleo[1:-1].lstrip()):
+            return ""
+
+    piezas = []
+    cursor = 0
+    cambios = False
+    for m in _CORCHETE.finditer(nucleo):
+        if not _es_nota_editorial(m.group(1)):
+            continue
+        cambios = True
+        antes = nucleo[cursor : m.start()].rstrip(" ")
+        if antes.endswith(":") and nucleo[m.end() : m.end() + 1] == ".":
+            antes = antes[:-1]  # the note's own closing "." now dangles after ":"
+        piezas.append(antes)
+        cursor = m.end()
+    piezas.append(nucleo[cursor:])
+    resultado = "".join(piezas) if cambios else nucleo
+
+    sin_suelto = _quita_marcador_suelto(resultado)
+    if sin_suelto != resultado:
+        cambios = True
+        resultado = sin_suelto
+
+    return resultado.strip() if cambios else nucleo
+
+
+def quita_notas_editoriales(parrafo: str) -> str:
+    """`parrafo` with every SCJN editorial insertion removed (see the
+    section docstring above) — a paragraph that turns out to be *only* one
+    such insertion comes back empty, rather than as a blank paragraph.
+
+    Takes the already-bolded output of `_formatea_parrafo` just as readily
+    as a raw docx paragraph: `scripts/repara_notas_editoriales_scjn.py`
+    (issue #114's Paso 5) reprocesses paragraphs of files a previous crawl
+    already wrote, where a whole-paragraph editorial insertion is already
+    wrapped in its own "**...**" (`_es_titular` bolds every all-caps
+    paragraph, editorial or not) — stripped and restored around the result
+    so a second pass over already-clean output is a no-op, byte for byte.
+    """
+    negrita = parrafo.startswith("**") and parrafo.endswith("**") and len(parrafo) > 4
+    nucleo = parrafo[2:-2] if negrita else parrafo
+    resultado = _quita_notas_editoriales(nucleo)
+    if resultado == nucleo:
+        return parrafo
+    if not resultado:
+        return ""
+    return f"**{resultado}**" if negrita else resultado
+
+
 def docx_a_markdown(contenido: bytes) -> str:
     """A reform row's .docx, reformatted into the same light Markdown
     nota2md's other sources use: a heading for "Al margen un sello"/
@@ -321,6 +485,11 @@ def docx_a_markdown(contenido: bytes) -> str:
     bolded lead for an "Artículo N"/ordinal/list-marker paragraph — see the
     section docstring above for why this doesn't share code with
     nota2md.texto_vigente's own (very similar-looking) PDF conversion.
+
+    Every paragraph is also stripped of the SCJN's own editorial asides
+    before formatting (`quita_notas_editoriales`, see issue #114) — the
+    result is meant to read as if it had been reconstructed from the DOF's
+    own notes, which never carried them.
 
     python-docx is only needed here — the extra that pulls it in
     (``pip install nota2md[scjn]``) is optional, same as dof2md is for the
@@ -330,6 +499,7 @@ def docx_a_markdown(contenido: bytes) -> str:
 
     documento = docx.Document(io.BytesIO(contenido))
     parrafos = [p.text.strip() for p in documento.paragraphs]
+    parrafos = [quita_notas_editoriales(p) for p in parrafos if p]
     bloques = [_formatea_parrafo(p) for p in parrafos if p]
     return "\n\n".join(bloques) + "\n"
 
@@ -413,3 +583,137 @@ def descarga_ordenamiento(
         destino.write_text(f"{_cabecera(candidato.titulo, fila)}\n\n{markdown}", encoding="utf-8")
         escritos.append(destino)
     return list(reversed(escritos))
+
+
+# --- Fase 2: match each snapshot to the codNota that published it ------
+#
+# `descarga_ordenamiento` only knows the SCJN's own view of an instrument: a
+# publication date per snapshot, nothing that ties back to a DOF `codNota`.
+# `download_legal_provisions_provenance_ids` already knows the other half —
+# an instrument's own `historial`, the `codNota` of every reform it is known
+# to have, oldest first — so pairing the two by date recovers the missing
+# link, the same way leyesmx.dof.enlaza_agrupadas pairs a Diputados decree
+# with the DOF note that published it. This is a narrower problem than that
+# one: the instrument is already fixed (crawled by its own name), so there is
+# no title to compare — only whether a candidate codNota is actually part of
+# *this* instrument's own historial, and, when several share one date (see
+# issue #105 Fase 0 findings 3-4), which one.
+
+
+def _fecha(cadena: str) -> datetime:
+    return datetime.strptime(cadena, "%d-%m-%Y")
+
+
+_CABECERA_CAMPO = re.compile(r"^([a-z_]+):\s*(.*)$")
+
+
+def lee_cabecera(archivo: Path) -> dict:
+    """The provenance header `_cabecera` writes at the top of `archivo`, back
+    as a dict (`fuente`, `ordenamiento`, `fecha_publicacion`, and whichever of
+    `fecha_expedicion`/`categoria` that snapshot's row had) — reading back a
+    file a previous crawl run already wrote, without re-fetching it."""
+    texto = archivo.read_text(encoding="utf-8")
+    lineas = texto.split("\n")
+    campos = {}
+    for linea in lineas[1:]:
+        if linea.strip() == "---":
+            break
+        m = _CABECERA_CAMPO.match(linea)
+        if m:
+            campos[m.group(1)] = m.group(2)
+    return campos
+
+
+@dataclass
+class VersionInstrumento:
+    """One SCJN snapshot already on disk: its own publication date and the
+    file `descarga_ordenamiento` wrote it to."""
+
+    fecha_publicacion: str
+    archivo: Path
+
+
+def _orden_repeticion(version: "VersionInstrumento") -> int:
+    """The `-N` suffix `descarga_ordenamiento` appends to the 2nd+ file of a
+    repeated `fecha_publicacion` (see its own docstring), as a sort key: 1
+    for a plain `<fecha>.md` (no suffix), N for `<fecha>-N.md`. `fecha` is
+    known already (the header, not the filename, is the source of truth),
+    so only the part of the stem after it is a repetition suffix — the
+    date's own dashes never get mistaken for one."""
+    resto = version.archivo.stem[len(version.fecha_publicacion) :]
+    return int(resto[1:]) if resto else 1
+
+
+def versiones_de_directorio(outdir: Path) -> list[VersionInstrumento]:
+    """Every snapshot `descarga_ordenamiento` has already written to
+    `outdir`, oldest first — read back from each file's own header rather
+    than re-crawling, so a later Fase 2 pass can run over a crawl's output
+    independently of the crawl itself."""
+    versiones = [
+        VersionInstrumento(lee_cabecera(archivo)["fecha_publicacion"], archivo)
+        for archivo in outdir.glob("*.md")
+    ]
+    return sorted(versiones, key=lambda v: (_fecha(v.fecha_publicacion), _orden_repeticion(v)))
+
+
+@dataclass
+class VersionEnlazada:
+    """One SCJN snapshot together with the `codNota` of the DOF note that
+    published it, when that note is confirmed to be part of this
+    instrument's own historial — `codNota` is None when no such note was
+    found for its date."""
+
+    fecha_publicacion: str
+    codNota: int | None
+    archivo: Path
+
+
+def enlaza_historial(
+    versiones: list[VersionInstrumento], historial: list[int], porf: dict
+) -> list[VersionEnlazada]:
+    """Pair every SCJN snapshot of one instrument with the codNota of the DOF
+    note that published it.
+
+    `historial` is this instrument's own `historial` from
+    `download_legal_provisions_provenance_ids`'s entry for it — the codNota
+    it is already known to have, oldest first. `porf` groups by fecha every
+    dofjson title record worth considering (see
+    `leyesmx.dof.notas_por_fecha` / `dofjson.download_legal_provisions_titles`)
+    — it only needs to cover the dates `versiones` themselves carry, and it
+    is fine for it to hold notes unrelated to this instrument: only a
+    candidate that is also in `historial` is ever actually linked, so an
+    unrelated same-day note never gets mistaken for this instrument's own.
+
+    A date with no candidate at all (or whose only candidates already belong
+    to another of this instrument's own snapshots, or aren't in `historial`)
+    comes back with `codNota=None`, not dropped: a missing link is a fact
+    about the source worth surfacing, not an error — same rule
+    `enlaza_agrupadas` follows.
+
+    When more than one of `historial`'s codNota share a date — issue #105's
+    Fase 0 found up to 4 same-day reforms on the CPEUM — there is no title to
+    break the tie with, so it is resolved positionally instead: both
+    `versiones` and `historial` are already oldest-first, so the Nth
+    snapshot of a repeated date claims the Nth (still unclaimed) codNota of
+    that date. A historial codNota left over after every same-date snapshot
+    has claimed one (Fase 0 finding 4: a treaty's historial can list more
+    codNota than the SCJN kept snapshots for) is simply never claimed.
+    """
+    orden_historial = {cod: i for i, cod in enumerate(historial)}
+    en_historial = set(historial)
+    usados: set[int] = set()
+    enlazadas = []
+    for version in versiones:
+        candidatos = sorted(
+            (
+                n["codNota"]
+                for n in porf.get(version.fecha_publicacion, [])
+                if n["codNota"] in en_historial and n["codNota"] not in usados
+            ),
+            key=lambda cod: orden_historial[cod],
+        )
+        cod = candidatos[0] if candidatos else None
+        if cod is not None:
+            usados.add(cod)
+        enlazadas.append(VersionEnlazada(version.fecha_publicacion, cod, version.archivo))
+    return enlazadas
