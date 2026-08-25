@@ -286,6 +286,136 @@ class TestDocxAMarkdown(unittest.TestCase):
 
         self.assertEqual(markdown, "Primer párrafo.\n\nSegundo párrafo.\n")
 
+    def test_quita_la_nota_editorial_embebida_en_una_anotacion_de_reforma(self):
+        contenido = _docx_bytes(
+            ["(REFORMADO [N. DE E. ESTE PÁRRAFO], D.O.F. 19 DE DICIEMBRE DE 2017)"]
+        )
+
+        markdown = scjn.docx_a_markdown(contenido)
+
+        self.assertEqual(
+            markdown, "**(REFORMADO, D.O.F. 19 DE DICIEMBRE DE 2017)**\n"
+        )
+
+    def test_omite_por_completo_un_parrafo_que_es_solo_nota_editorial(self):
+        contenido = _docx_bytes(
+            [
+                "Artículo 1o.- Se decreta la disposición de prueba.",
+                "",
+                '[N. DE E. TRANSITORIO DEL "DECRETO POR EL QUE SE REFORMA".]',
+                "",
+                "Artículo 2o.- Otra disposición.",
+            ]
+        )
+
+        markdown = scjn.docx_a_markdown(contenido)
+
+        self.assertNotIn("N. DE E.", markdown)
+        self.assertIn("**Artículo 1o.-** Se decreta la disposición de prueba.", markdown)
+        self.assertIn("**Artículo 2o.-** Otra disposición.", markdown)
+
+
+class TestQuitaNotasEditoriales(unittest.TestCase):
+    def test_quita_la_nota_embebida_dentro_de_una_anotacion_de_reforma(self):
+        self.assertEqual(
+            scjn.quita_notas_editoriales(
+                "(REFORMADO [N. DE E. ESTE PÁRRAFO], D.O.F. 19 DE DICIEMBRE DE 2017)"
+            ),
+            "(REFORMADO, D.O.F. 19 DE DICIEMBRE DE 2017)",
+        )
+
+    def test_quita_la_nota_embebida_con_variante_n_de_punto_e(self):
+        self.assertEqual(
+            scjn.quita_notas_editoriales(
+                "(ADICIONADA [N. DE . E. REUBICADA], D.O.F. 15 DE JUNIO DE 2007)"
+            ),
+            "(ADICIONADA, D.O.F. 15 DE JUNIO DE 2007)",
+        )
+
+    def test_deja_vacio_un_parrafo_que_es_enteramente_nota_editorial(self):
+        self.assertEqual(
+            scjn.quita_notas_editoriales(
+                '[N. DE E. TRANSITORIO DEL "DECRETO POR EL QUE SE REFORMA".]'
+            ),
+            "",
+        )
+
+    def test_deja_vacio_un_parrafo_con_el_marcador_nota_n(self):
+        self.assertEqual(
+            scjn.quita_notas_editoriales(
+                "[NOTA 1. DE CONFORMIDAD CON EL ACUERDO EMITIDO POR EL CONSEJO.]"
+            ),
+            "",
+        )
+
+    def test_quita_un_corchete_sin_marcador_pero_todo_en_mayusculas(self):
+        self.assertEqual(
+            scjn.quita_notas_editoriales(
+                "(REUBICADO [ANTES ARTICULO 57], D.O.F. 23 DE ENERO DE 2004)"
+            ),
+            "(REUBICADO, D.O.F. 23 DE ENERO DE 2004)",
+        )
+
+    def test_no_toca_una_formula_arancelaria_entre_corchetes(self):
+        parrafo = "El resultado de la fórmula [(S/365)+V * (I + D)] se aplica."
+        self.assertEqual(scjn.quita_notas_editoriales(parrafo), parrafo)
+
+    def test_no_toca_un_nombre_quimico_entre_corchetes(self):
+        parrafo = "Se entiende por [4-nitro-3-(trifluorometil)fenilo] la substancia."
+        self.assertEqual(scjn.quita_notas_editoriales(parrafo), parrafo)
+
+    def test_no_confunde_la_nota_n_con_una_cita_de_nota_arancelaria(self):
+        parrafo = "Mezclas previstas en la Nota 1 b) de este Capítulo."
+        self.assertEqual(scjn.quita_notas_editoriales(parrafo), parrafo)
+
+    def test_quita_el_marcador_suelto_que_sigue_a_una_anotacion_ya_cerrada(self):
+        self.assertEqual(
+            scjn.quita_notas_editoriales(
+                "(ADICIONADA, D.O.F. 14 DE NOVIEMBRE DE 2013) N. DE E. SÓLO EN "
+                "CUANTO AL CONTENIDO, PORQUE DEL ANÁLISIS DEL TEXTO ORIGINAL "
+                "PUBLICADO EL 2 DE AGOSTO DE 2006, SE APRECIA LA EXISTENCIA DE "
+                "ESTA FRACCIÓN."
+            ),
+            "(ADICIONADA, D.O.F. 14 DE NOVIEMBRE DE 2013)",
+        )
+
+    def test_quita_el_marcador_suelto_embebido_antes_de_que_la_anotacion_reanude(self):
+        self.assertEqual(
+            scjn.quita_notas_editoriales(
+                "(REFORMADO N. DE E. ESTE PÁRRAFO, D.O.F. 21 DE FEBRERO DE 2018)"
+            ),
+            "(REFORMADO, D.O.F. 21 DE FEBRERO DE 2018)",
+        )
+
+    def test_deja_vacio_un_parrafo_envuelto_en_parentesis_sin_marcador_de_corchete(self):
+        self.assertEqual(
+            scjn.quita_notas_editoriales(
+                "(NOTA 1: EL PLENO DE LA SUPREMA CORTE DECLARÓ LA INVALIDEZ.)"
+            ),
+            "",
+        )
+
+    def test_quita_la_nota_entre_parentesis_que_sigue_a_texto_real_en_el_mismo_parrafo(self):
+        self.assertEqual(
+            scjn.quita_notas_editoriales(
+                "Artículo 58.- La música oficial del Himno Nacional es la "
+                "siguiente: (N. DE E., VÉASE D.O.F. 8 DE FEBRERO DE 1984)"
+            ),
+            "Artículo 58.- La música oficial del Himno Nacional es la siguiente:",
+        )
+
+    def test_conserva_la_negrita_de_un_parrafo_ya_formateado_al_limpiarlo(self):
+        self.assertEqual(
+            scjn.quita_notas_editoriales(
+                "**(REFORMADA [N. DE E. ADICIONADA], D.O.F. 15 DE ENERO DE 2026)**"
+            ),
+            "**(REFORMADA, D.O.F. 15 DE ENERO DE 2026)**",
+        )
+
+    def test_es_un_no_op_sobre_un_parrafo_ya_limpio(self):
+        parrafo = "**(REFORMADA, D.O.F. 15 DE ENERO DE 2026)**"
+        self.assertEqual(scjn.quita_notas_editoriales(parrafo), parrafo)
+
 
 class TestSlugInstrumento(unittest.TestCase):
     def test_usa_abrev_cuando_esta_disponible(self):
@@ -430,6 +560,143 @@ class TestDescargaOrdenamiento(unittest.TestCase):
         segunda = (self.outdir / "14-06-2024-2.md").read_text(encoding="utf-8")
         self.assertIn("Version A.", primera)
         self.assertIn("Version B.", segunda)
+
+
+class TestLeeCabecera(unittest.TestCase):
+    def test_lee_los_campos_de_la_cabecera_de_procedencia(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            archivo = Path(tmp) / "22-01-1994.md"
+            archivo.write_text(
+                "---\n"
+                "fuente: scjn\n"
+                "ordenamiento: LEY DE AMNISTIA\n"
+                "fecha_publicacion: 22-01-1994\n"
+                "fecha_expedicion: 21-01-1994\n"
+                "categoria: LEY\n"
+                "---\n\n"
+                "**TEXTO ORIGINAL.**\n",
+                encoding="utf-8",
+            )
+
+            campos = scjn.lee_cabecera(archivo)
+
+            self.assertEqual(campos["fuente"], "scjn")
+            self.assertEqual(campos["ordenamiento"], "LEY DE AMNISTIA")
+            self.assertEqual(campos["fecha_publicacion"], "22-01-1994")
+            self.assertEqual(campos["fecha_expedicion"], "21-01-1994")
+            self.assertEqual(campos["categoria"], "LEY")
+
+    def test_no_lee_mas_alla_del_cierre_de_la_cabecera(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            archivo = Path(tmp) / "x.md"
+            archivo.write_text(
+                "---\nfecha_publicacion: 22-01-1994\n---\n\nordenamiento: no es esto\n",
+                encoding="utf-8",
+            )
+
+            campos = scjn.lee_cabecera(archivo)
+
+            self.assertEqual(campos, {"fecha_publicacion": "22-01-1994"})
+
+
+class TestVersionesDeDirectorio(unittest.TestCase):
+    def test_regresa_las_versiones_ordenadas_por_fecha_oldest_first(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            outdir = Path(tmp)
+            for nombre, fecha in [
+                ("14-06-2024.md", "14-06-2024"),
+                ("22-01-1994.md", "22-01-1994"),
+            ]:
+                (outdir / nombre).write_text(
+                    f"---\nfecha_publicacion: {fecha}\n---\n\ntexto\n", encoding="utf-8"
+                )
+
+            versiones = scjn.versiones_de_directorio(outdir)
+
+            self.assertEqual(
+                [v.fecha_publicacion for v in versiones], ["22-01-1994", "14-06-2024"]
+            )
+
+    def test_desempata_fechas_repetidas_por_nombre_de_archivo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            outdir = Path(tmp)
+            for nombre in ["14-06-2024-2.md", "14-06-2024.md"]:
+                (outdir / nombre).write_text(
+                    "---\nfecha_publicacion: 14-06-2024\n---\n\ntexto\n", encoding="utf-8"
+                )
+
+            versiones = scjn.versiones_de_directorio(outdir)
+
+            self.assertEqual(
+                [v.archivo.name for v in versiones], ["14-06-2024.md", "14-06-2024-2.md"]
+            )
+
+
+class TestEnlazaHistorial(unittest.TestCase):
+    def _version(self, fecha: str, nombre: str = None) -> scjn.VersionInstrumento:
+        return scjn.VersionInstrumento(fecha, Path(nombre or f"{fecha}.md"))
+
+    def test_enlaza_por_fecha_cuando_el_codnota_esta_en_el_historial(self):
+        versiones = [self._version("22-01-1994"), self._version("14-06-2024")]
+        historial = [100, 200]
+        porf = {
+            "22-01-1994": [{"codNota": 100, "titulo": "x"}],
+            "14-06-2024": [{"codNota": 200, "titulo": "y"}],
+        }
+
+        enlazadas = scjn.enlaza_historial(versiones, historial, porf)
+
+        self.assertEqual([v.codNota for v in enlazadas], [100, 200])
+
+    def test_deja_sin_enlazar_una_fecha_sin_candidato(self):
+        versiones = [self._version("22-01-1994")]
+
+        enlazadas = scjn.enlaza_historial(versiones, [100], {})
+
+        self.assertIsNone(enlazadas[0].codNota)
+
+    def test_no_enlaza_un_candidato_ajeno_al_historial_de_este_instrumento(self):
+        versiones = [self._version("22-01-1994")]
+        # The date has a note, but it belongs to some other instrument's reform.
+        porf = {"22-01-1994": [{"codNota": 999, "titulo": "otra ley"}]}
+
+        enlazadas = scjn.enlaza_historial(versiones, [100], porf)
+
+        self.assertIsNone(enlazadas[0].codNota)
+
+    def test_resuelve_fechas_repetidas_posicionalmente(self):
+        versiones = [
+            self._version("14-06-2024", "14-06-2024.md"),
+            self._version("14-06-2024", "14-06-2024-2.md"),
+        ]
+        historial = [100, 200]
+        porf = {
+            "14-06-2024": [
+                {"codNota": 100, "titulo": "a"},
+                {"codNota": 200, "titulo": "b"},
+            ]
+        }
+
+        enlazadas = scjn.enlaza_historial(versiones, historial, porf)
+
+        self.assertEqual([v.codNota for v in enlazadas], [100, 200])
+
+    def test_codnota_de_historial_sin_snapshot_correspondiente_queda_sin_reclamar(self):
+        # Issue #105 Fase 0 finding 4: a treaty's historial can list more
+        # codNota than the SCJN kept snapshots for.
+        versiones = [self._version("14-06-2024")]
+        historial = [100, 200]
+        porf = {
+            "14-06-2024": [
+                {"codNota": 100, "titulo": "a"},
+                {"codNota": 200, "titulo": "b"},
+            ]
+        }
+
+        enlazadas = scjn.enlaza_historial(versiones, historial, porf)
+
+        self.assertEqual(len(enlazadas), 1)
+        self.assertEqual(enlazadas[0].codNota, 100)
 
 
 if __name__ == "__main__":

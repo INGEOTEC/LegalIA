@@ -26,6 +26,59 @@ tell an unchanged collection from a changed one by comparing bytes rather than
 guessing — and what makes `--verificar` meaningful. It exits non-zero when
 anything differs.
 
+## `fetch_scjn_legislacion.py` / `enlaza_scjn_legislacion.py`
+
+Fase 1 and Fase 2 of the SCJN crawl plan in issue #105: recover, from
+[legislacion.scjn.gob.mx](https://legislacion.scjn.gob.mx/Buscador/), the
+reform-dated Markdown snapshots of a law/reglamento/tratado that
+`nota2md.legal_provisions` would otherwise have to OCR — see
+`packages/nota2md/nota2md/scjn.py` for why this is a legitimate source (each
+snapshot is a consolidated-text-as-of-that-reform, not just a summary) and
+why it is never mistaken for an official DOF/SIDOF Markdown (`fuente: scjn`
+header on every file).
+
+```bash
+./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion                     # Fase 1: crawl
+python -c "from nota2md import download_legal_provisions_titles as d; d('titulos.jsonl.gz')"
+./scripts/enlaza_scjn_legislacion.py --outdir scjn-legislacion --titulos titulos.jsonl.gz  # Fase 2: match
+```
+
+`fetch_scjn_legislacion.py` covers `leyes`, `reglamentos` and `tratados` only
+— the SCJN does not catalogue NOM technical standards as ordenamientos of
+their own (issue #105's Fase 0). It is resumable at two levels — a file
+already on disk is left alone, and, per collection, the index of the last
+instrumento fully attempted is checkpointed to
+`<outdir>/<coleccion>/.progreso.json` and cleared once that collection
+finishes, so a run killed partway (crash, network drop, Ctrl-C) picks back up
+right after that index instead of re-walking every already-done
+instrumento's reform table from the top (`--reiniciar` discards the
+checkpoint and sweeps the collection from the beginning again) — and
+rate-limited (`--espera`, default 1s) against this unofficial site's own
+session-scoped URLs.
+
+`enlaza_scjn_legislacion.py` then pairs each already-downloaded snapshot with
+the `codNota` of the DOF note that published it, by date, against
+`download_legal_provisions_provenance_ids`'s own `historial` for that
+instrument — writing an `indice.json` per instrument directory. Needs a
+dofjson titles dataset (`codNota`+`titulo`+`fecha`, built once via
+`nota2md.download_legal_provisions_titles`) to look up each historial
+`codNota`'s own date.
+
+## `repara_notas_editoriales_scjn.py`
+
+A one-time re-process of what `fetch_scjn_legislacion.py` already
+downloaded before `nota2md.scjn.docx_a_markdown` started stripping the
+SCJN's own editorial commentary ("N. DE E." / "NOTA N", see issue #114) at
+crawl time. Rewrites each snapshot's body in place, `quita_notas_editoriales`
+applied paragraph by paragraph; its provenance header is left untouched, so
+an already-built `indice.json` (Fase 2) stays valid — nothing here re-crawls
+the SCJN or re-links a `codNota`.
+
+```bash
+./scripts/repara_notas_editoriales_scjn.py --outdir scjn-legislacion --dry-run   # report only
+./scripts/repara_notas_editoriales_scjn.py --outdir scjn-legislacion
+```
+
 ## `reparar_notas_archivo.py`
 
 Refills the days SIDOF lost into the published
