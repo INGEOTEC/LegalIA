@@ -157,6 +157,27 @@ class TestEligeCandidato(unittest.TestCase):
 
         self.assertIsNone(scjn.elige_candidato(candidatos, "CÓDIGO Civil Federal"))
 
+    def test_ccf_ignora_el_nombre_anterior_al_elegir_el_candidato_renombrado(self):
+        candidatos = [
+            self._candidato(
+                "CÓDIGO DE CONDUCTA DE LA AGENCIA FEDERAL DE AVIACIÓN CIVIL",
+                "FEDERAL",
+                "VIGENTE",
+            ),
+            self._candidato(
+                "CODIGO CIVIL FEDERAL -ANTES CODIGO CIVIL PARA EL DISTRITO FEDERAL EN "
+                "MATERIA COMUN Y PARA TODA LA REPUBLICA EN MATERIA FEDERAL -",
+                "FEDERAL",
+                "VIGENTE",
+            ),
+        ]
+
+        elegido = scjn.elige_candidato(candidatos, "CÓDIGO Civil Federal")
+
+        self.assertIsNotNone(elegido)
+        self.assertTrue(elegido.titulo.startswith("CODIGO CIVIL FEDERAL -ANTES"))
+        self.assertFalse(elegido.sospechoso)
+
     def test_lopgjdf_rechaza_el_reglamento_de_la_ley_buscada(self):
         candidatos = [
             self._candidato(
@@ -205,6 +226,13 @@ class TestRatioSimilitudYGuardas(unittest.TestCase):
 
     def test_es_acuerdo_interno_no_marca_una_ley_cualquiera(self):
         self.assertFalse(scjn.es_acuerdo_interno("LEY FEDERAL DEL TRABAJO"))
+
+    def test_ratio_similitud_ignora_el_sufijo_de_nombre_anterior(self):
+        titulo = (
+            "CODIGO CIVIL FEDERAL -ANTES CODIGO CIVIL PARA EL DISTRITO FEDERAL EN "
+            "MATERIA COMUN Y PARA TODA LA REPUBLICA EN MATERIA FEDERAL -"
+        )
+        self.assertEqual(scjn.ratio_similitud(titulo, "Código Civil Federal"), 1.0)
 
     def test_grupo_instrumento_reconoce_ley_codigo_y_reglamento(self):
         self.assertEqual(scjn.grupo_instrumento("LEY FEDERAL DEL TRABAJO"), "ley")

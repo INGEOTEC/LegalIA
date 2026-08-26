@@ -164,6 +164,7 @@ _ACUERDO_INTERNO = re.compile(
 )
 _GRUPO_LEY = re.compile(r"^(ley|c[oó]digo)\b", re.I)
 _GRUPO_REGLAMENTO = re.compile(r"^reglamento\b", re.I)
+_NOMBRE_ANTERIOR = re.compile(r"\s*-\s*ANTES\b.*$", re.I)
 
 # Below UMBRAL_MINIMO the best candidate left is rejected outright (`ccf`'s
 # 0.436: a title that shares only stray words with what was searched).
@@ -181,7 +182,17 @@ def ratio_similitud(titulo: str, nombre: str) -> float:
     `SequenceMatcher` ratio `elige_candidato` picks its winner by, exposed
     so `scripts/audita_scjn_legislacion.py` can recompute it offline against
     whatever `ordenamiento` a past crawl already saved to a snapshot's own
-    header, without needing to re-crawl anything."""
+    header, without needing to re-crawl anything.
+
+    A renamed ordenamiento's SCJN title also carries its own former name, as
+    a trailing ``-ANTES <título anterior>-`` (confirmed live re-crawling
+    `ccf`: "CODIGO CIVIL FEDERAL -ANTES CODIGO CIVIL PARA EL DISTRITO
+    FEDERAL...-" scores 0.270 against the catalogue's "Código Civil
+    Federal" with the suffix counted in, below even the worst of the 5
+    confirmed wrong-document cases — `UMBRAL_MINIMO_SIMILITUD` would reject
+    the *correct* document). Stripped before comparing, so a rename never
+    counts against the title that is actually current."""
+    titulo = _NOMBRE_ANTERIOR.sub("", titulo)
     return SequenceMatcher(None, _normaliza(titulo), _normaliza(nombre)).ratio()
 
 
