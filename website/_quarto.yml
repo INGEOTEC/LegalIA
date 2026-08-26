@@ -27,6 +27,8 @@ website:
         text: DOF Titles
       - href: pages/tools.ipynb
         text: Tools
+      - href: pages/dof2md.ipynb
+        text: dof2md
       - href: pages/references.qmd
         text: References
       - href: https://github.com/INGEOTEC/LegalIA/issues/views/8351

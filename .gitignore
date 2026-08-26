@@ -31,8 +31,8 @@ packages/dof2md/output/
 
 # Titles dataset downloaded by dofjson.titulos.download_legal_provisions_titles when rendering
 # the DOF Titles page (local only, never committed)
-/website/explorations/titulos.jsonl.gz
-/website/explorations/organigrama.json
+/website/pages/titulos.jsonl.gz
+/website/pages/organigrama.json
 
 # Legislative history built by `leyesmx` (local only). It lives solely in the
 # historial-legislativo release; see leyesmx.historial.descarga_historial.
