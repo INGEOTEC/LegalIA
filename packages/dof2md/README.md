@@ -1,7 +1,21 @@
 # dof2md
 
-Downloads editions of Mexico's official gazette (DOF, Diario Oficial de la
-Federación) as PDF and converts them to Markdown.
+Converts a PDF or a set of scanned page images from Mexico's official
+gazette (DOF, *Diario Oficial de la Federación*) — or any other document —
+into Markdown, optionally cropped down to a single note. It's a wrapper
+around [mineru](https://github.com/opendatalab/MinerU) for the OCR/layout
+analysis itself; `dof2md`'s own contribution is:
+
+- Keeping mineru's `mineru-api` server warm across a batch of documents,
+  instead of paying its startup (and model-loading) cost once per document.
+- Stitching the OCR of a list of page images (several scanned pages of the
+  same note) into one continuous Markdown document.
+- Rewriting the raw HTML tables mineru falls back to (rowspan/colspan) into
+  Markdown tables, so the output is Markdown all the way through.
+- Cropping the result down to a single note, by locating its title and the
+  next note's title in the OCR'd text — useful because a scanned page
+  usually holds the tail of one note and the head of the next.
+- Downloading a DOF edition's PDF directly, by date and edition.
 
 Part of the [LegalIA](https://github.com/INGEOTEC/LegalIA) monorepo.
 
@@ -13,22 +27,74 @@ pip install -e ".[test]"
 
 ## Usage
 
+### CLI
+
+`dof2md` takes exactly one input source — a date, a local PDF, or a set of
+local page images — and converts it to Markdown, unless `--download-only`
+is given with a date, in which case it stops after the download.
+
+Given a date, it downloads that edition's PDF from the DOF site and converts
+it:
+
 ```bash
 dof2md 2010-01-05                     # morning edition (default)
 dof2md 2010-01-05 --edition VES       # evening edition
 dof2md 2010-01-05 --outdir my_folder  # output directory
 ```
 
-Generates `<date>-<edition>.pdf` and `<date>-<edition>.md` in the output directory.
+`--download-only` stops after the download, without converting — useful
+when only the PDF itself is needed (e.g. to archive it, or convert it
+later with `--pdf`):
 
-## Batch conversion (`BatchConverter`)
+```bash
+dof2md 2010-01-05 --download-only     # writes only 05012010-MAT.pdf
+```
 
-`dof2md` has no notion of what a "note" is or where a document came from —
-`convert_to_markdown`/`convert_images_to_markdown` work on any PDF or set of
-scanned page images, DOF or not. `BatchConverter` builds on top of them to
-convert many documents in one run, keeping a single `mineru-api` server warm
-across the whole batch instead of paying its startup (and model-loading)
-cost once per document:
+This writes `<date>-<edition>.pdf` and `<date>-<edition>.md` to the output
+directory. Since one edition's PDF holds every note published that day,
+`--titulo`/`--titulo-siguiente` crop the resulting Markdown down to just one
+note — its own title, and the next note's title, as they appear in the
+gazette's own index:
+
+```bash
+dof2md 2010-01-05 \
+    --titulo "ACUERDO por el que se..." \
+    --titulo-siguiente "DECRETO por el que se..."
+```
+
+Title matching is fuzzy (OCR text rarely matches an index title exactly), so
+a match below `--min-confidence` (default `0.6`) is treated as not found and
+the crop falls back to keeping more text rather than dropping content. Other
+flags:
+
+- `--keep-pages` — also keep the uncropped Markdown, as
+  `<outdir>/<pdf stem>.full.md`.
+- `--keep-mineru-output` — keep mineru's own raw output (layout/model JSON,
+  rendered PDFs...) in `<outdir>/<pdf stem>_mineru/` instead of discarding
+  it; useful when a conversion looks wrong and mineru's own read of the page
+  is the first thing worth inspecting.
+
+A date always downloads from the DOF site; to convert a document you already
+have, use `--pdf` or `--images` instead — no download involved:
+
+```bash
+dof2md --pdf edicion.pdf   # a local PDF
+
+dof2md --images pagina-1.jpg pagina-2.jpg \
+    --filename out.md      # scanned pages, in order
+```
+
+`--filename` sets the output Markdown's name; with `--pdf` it defaults to
+the PDF's own name (`edicion.pdf` → `edicion.md`), but with `--images` it's
+required, since a set of images has no single name to derive one from.
+`--titulo`/`--titulo-siguiente` and the other flags above work the same way
+regardless of the input source.
+
+### Python: batch conversion
+
+Converting many documents in one run is where mineru's startup cost starts
+to matter. `BatchConverter` keeps a single `mineru-api` server warm across
+the whole batch instead of restarting it per document:
 
 ```python
 from dof2md import BatchConverter
@@ -45,13 +111,10 @@ with BatchConverter() as convert:
 
 Each call takes a single PDF path, or a list of image paths for a document
 spanning several scanned pages, and writes the result to `outdir/filename`.
-Two optional positional arguments, `titulo`/`titulo_siguiente`, slice the
-OCR'd Markdown down to the text between them (see
-[`dof2md.cutter.cut_markdown_by_titles`](dof2md/cutter.py)) — useful when a
-page or PDF holds more than the one document of interest, e.g. a DOF page
-shared with the notes right before and after it. Left out, the whole
-conversion is kept as-is, on the assumption that the whole document is what
-was asked for.
+The same `titulo`/`titulo_siguiente`, `min_confidence`, `keep_pages` and
+`keep_mineru_output` options the CLI exposes are also its keyword
+arguments — see `BatchConverter.__call__`'s docstring for the full
+signature.
 
 `nota2md.legal_provisions` accepts an already-`__enter__`'d `BatchConverter`
 as its own `converter` parameter, so a batch of DOF legal provisions can
