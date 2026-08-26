@@ -31,7 +31,12 @@ import sys
 from pathlib import Path
 
 from nota2md import download_legal_provisions_provenance_ids
-from nota2md.scjn import enlaza_historial, slug_instrumento, versiones_de_directorio
+from nota2md.scjn import (
+    enlaza_historial,
+    lee_cabecera,
+    slug_instrumento,
+    versiones_de_directorio,
+)
 
 COLECCIONES = ("leyes", "reglamentos", "tratados")
 
@@ -47,6 +52,22 @@ def carga_porf(titulos: Path) -> dict:
             nota = json.loads(linea)
             porf.setdefault(nota["fecha"], []).append(nota)
     return porf
+
+
+def _confianza(archivo: Path) -> dict:
+    """The `ratio_similitud`/`sospechoso` fields `nota2md.scjn._cabecera`
+    writes into a snapshot's own header (issue #115), read back into
+    `indice.json` so a packaging step can quarantine `sospechoso` entries
+    without re-reading every snapshot file itself. Both come back `None`
+    for a snapshot a crawl wrote before issue #115 added them — an older
+    corpus is not re-crawled just to backfill this; `audita_scjn_legislacion.py`
+    recomputes the ratio offline for exactly that case."""
+    campos = lee_cabecera(archivo)
+    ratio = campos.get("ratio_similitud")
+    return {
+        "ratio_similitud": float(ratio) if ratio is not None else None,
+        "sospechoso": (campos.get("sospechoso") == "true") if "sospechoso" in campos else None,
+    }
 
 
 def enlaza_coleccion(coleccion: str, outdir: Path, porf: dict) -> None:
@@ -65,6 +86,7 @@ def enlaza_coleccion(coleccion: str, outdir: Path, porf: dict) -> None:
                 "archivo": v.archivo.name,
                 "fecha_publicacion": v.fecha_publicacion,
                 "codNota": v.codNota,
+                **_confianza(v.archivo),
             }
             for v in enlazadas
         ]
