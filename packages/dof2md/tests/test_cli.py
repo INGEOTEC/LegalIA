@@ -44,6 +44,10 @@ class TestParseArgs(unittest.TestCase):
         args = parse_args(["2010-01-05", "--outdir", "/tmp/my_dof"])
         self.assertEqual(args.outdir, "/tmp/my_dof")
 
+    def test_download_only_flag(self):
+        args = parse_args(["2010-01-05", "--download-only"])
+        self.assertTrue(args.download_only)
+
     def test_title_cropping_flags(self):
         args = parse_args([
             "2010-01-05",
@@ -75,6 +79,24 @@ class TestMain(unittest.TestCase):
                 Path(tmpdir) / "05012010-MAT.pdf", Path(tmpdir), "05012010-MAT.md", None, None,
                 min_confidence=0.6, keep_pages=False, keep_mineru_output=False,
             )
+
+    @patch("dof2md.cli.BatchConverter")
+    @patch("dof2md.cli.download_pdf")
+    def test_main_download_only_skips_conversion(self, mock_download, mock_batch_converter):
+        mock_convert = mock_batch_converter.return_value.__enter__.return_value
+        with tempfile.TemporaryDirectory() as tmpdir:
+            main(["2010-01-05", "--outdir", tmpdir, "--download-only"])
+
+            mock_download.assert_called_once()
+            mock_batch_converter.assert_not_called()
+            mock_convert.assert_not_called()
+
+    def test_main_download_only_requires_a_date(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pdf_path = Path(tmpdir) / "edicion.pdf"
+            pdf_path.write_bytes(b"%PDF-1.4")
+            with self.assertRaises(SystemExit):
+                main(["--pdf", str(pdf_path), "--download-only"])
 
     def test_main_invalid_date_exits_with_error(self):
         with self.assertRaises(SystemExit):

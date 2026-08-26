@@ -30,8 +30,8 @@ pip install -e ".[test]"
 ### CLI
 
 `dof2md` takes exactly one input source — a date, a local PDF, or a set of
-local page images — and always converts it to Markdown; there's no
-download-only mode.
+local page images — and converts it to Markdown, unless `--download-only`
+is given with a date, in which case it stops after the download.
 
 Given a date, it downloads that edition's PDF from the DOF site and converts
 it:
@@ -40,6 +40,14 @@ it:
 dof2md 2010-01-05                     # morning edition (default)
 dof2md 2010-01-05 --edition VES       # evening edition
 dof2md 2010-01-05 --outdir my_folder  # output directory
+```
+
+`--download-only` stops after the download, without converting — useful
+when only the PDF itself is needed (e.g. to archive it, or convert it
+later with `--pdf`):
+
+```bash
+dof2md 2010-01-05 --download-only     # writes only 05012010-MAT.pdf
 ```
 
 This writes `<date>-<edition>.pdf` and `<date>-<edition>.md` to the output
