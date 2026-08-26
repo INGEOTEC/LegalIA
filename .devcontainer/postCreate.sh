@@ -31,9 +31,17 @@ sudo apt-get install -y --no-install-recommends \
 	&& sudo apt update \
 	&& sudo apt install gh -y
 
-# curl -LsSf https://astral.sh/uv/install.sh | sh
-python -m pip install --upgrade pip
-python -m pip install -e 'packages/dof2md[test]'
-python -m pip install -e 'packages/dofjson[test]'
-python -m pip install -e 'packages/nota2md[test]'
-python -m pip install -r requirements.txt
+# Instalar uv y usarlo para instalar los paquetes con el Python del sistema
+# del contenedor (--system), sin crear un virtualenv: todo ya corre aislado
+# dentro del propio docker, así que un venv sería una capa extra innecesaria.
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.local/bin:$PATH"
+
+# La imagen base deja site-packages y /usr/local/bin como propiedad de root,
+# pero el devcontainer corre como el usuario "vscode": sin esto, uv falla
+# con "Permission denied" al instalar en el Python del sistema.
+sudo chown -R "$(id -u):$(id -g)" \
+	"$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')" \
+	/usr/local/bin /usr/local/share /usr/local/etc
+
+bash .devcontainer/python.sh
