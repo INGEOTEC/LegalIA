@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ingeotec.github.io/LegalIA/pages/tools.html</loc>
-    <lastmod>2026-07-31T12:25:56.359Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ingeotec.github.io/LegalIA/pages/titles.html</loc>
-    <lastmod>2026-07-31T12:25:56.359Z</lastmod>
-  </url>
-  <url>
     <loc>https://ingeotec.github.io/LegalIA/index.html</loc>
-    <lastmod>2026-07-31T12:25:56.327Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ingeotec.github.io/LegalIA/pages/dataset.html</loc>
-    <lastmod>2026-07-31T12:25:56.327Z</lastmod>
+    <lastmod>2026-08-26T19:26:26.704Z</lastmod>
   </url>
   <url>
     <loc>https://ingeotec.github.io/LegalIA/pages/references.html</loc>
-    <lastmod>2026-07-31T12:25:56.327Z</lastmod>
+    <lastmod>2026-08-26T19:26:26.704Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ingeotec.github.io/LegalIA/pages/dataset.html</loc>
+    <lastmod>2026-08-26T19:26:26.704Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ingeotec.github.io/LegalIA/pages/titles.html</loc>
+    <lastmod>2026-08-26T19:26:26.739Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ingeotec.github.io/LegalIA/pages/tools.html</loc>
+    <lastmod>2026-08-26T19:26:26.740Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ingeotec.github.io/LegalIA/pages/dof2md.html</loc>
+    <lastmod>2026-08-26T19:26:26.704Z</lastmod>
   </url>
 </urlset>

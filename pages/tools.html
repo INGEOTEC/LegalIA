@@ -78,7 +78,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-9668d51bcb43f24061cbc39c7cf7f6df.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-15b7c4a5ef1133b45a72edd940cf6f53.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -147,6 +147,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Tools</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../pages/dof2md.html"> 
+<span class="menu-text">dof2md</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../pages/references.html"> 
 <span class="menu-text">References</span></a>
   </li>  
@@ -182,7 +186,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#step-2-selecting-one-note" id="toc-step-2-selecting-one-note" class="nav-link" data-scroll-target="#step-2-selecting-one-note"><span class="header-section-number">3</span> Step 2: selecting one note</a></li>
   <li><a href="#step-3-from-html-to-markdown" id="toc-step-3-from-html-to-markdown" class="nav-link" data-scroll-target="#step-3-from-html-to-markdown"><span class="header-section-number">4</span> Step 3: from HTML to Markdown</a></li>
   <li><a href="#when-there-is-no-html-the-scanned-decades" id="toc-when-there-is-no-html-the-scanned-decades" class="nav-link" data-scroll-target="#when-there-is-no-html-the-scanned-decades"><span class="header-section-number">5</span> When there is no HTML: the scanned decades</a></li>
-  <li><a href="#and-dof2md" id="toc-and-dof2md" class="nav-link" data-scroll-target="#and-dof2md"><span class="header-section-number">6</span> And dof2md?</a></li>
   
   </ul>
 </nav>
@@ -214,7 +217,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div>
   <div class="abstract">
     <div class="block-title">Abstract</div>
-    <p>This walkthrough shows how the LegalIA toolchain turns one note of the Diario Oficial de la Federación into clean Markdown. Using the gazette’s open-data service we download the summary of every note published on one day, select a single note from that list, and build its Markdown from the official HTML — three steps, two small packages: dofjson and nota2md. The third package of the repository, dof2md, is only needed when a note exists solely as scanned page images, so it appears here only in passing.</p>
+    <p>This walkthrough shows how the LegalIA toolchain turns one note of the Diario Oficial de la Federación into clean Markdown. Using the gazette’s open-data service we download the summary of every note published on one day, select a single note from that list, and build its Markdown from the official HTML — three steps, two small packages: dofjson and nota2md. The third package of the repository, dof2md, is only needed when a note exists solely as scanned page images; it has its own dedicated page.</p>
   </div>
 </div>
 
@@ -242,10 +245,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="dof2md" class="level3 unnumbered unlisted front">
 <h3 class="unnumbered unlisted anchored" data-anchor-id="dof2md">dof2md</h3>
-<p>Operates at the coarsest grain: downloads a <em>complete edition</em> of the gazette as PDF and converts it — OCR included — to Markdown.</p>
+<p>Operates at the coarsest grain: downloads a <em>complete edition</em> of the gazette as PDF and converts it — OCR included — to Markdown. See its own <a href="../pages/dof2md.html">dedicated page</a> for a worked example.</p>
 </section>
 </div>
-<p>It is worth stating upfront which of the three this tour actually requires. For a modern note, the DOF publishes its full text as HTML, and the path from identifier to Markdown involves only <a href="https://pypi.org/project/dofjson/">dofjson</a> (to talk to the service) and <a href="https://pypi.org/project/nota2md/">nota2md</a> (to convert the HTML). <a href="https://pypi.org/project/dof2md/">dof2md</a> never enters the picture; it is the heavy artillery that <code>nota2md</code> borrows when a note predates the HTML era and survives only as scanned images. We therefore explain it only superficially, at the end.</p>
+<p>It is worth stating upfront which of the three this tour actually requires. For a modern note, the DOF publishes its full text as HTML, and the path from identifier to Markdown involves only <a href="https://pypi.org/project/dofjson/">dofjson</a> (to talk to the service) and <a href="https://pypi.org/project/nota2md/">nota2md</a> (to convert the HTML). <a href="https://pypi.org/project/dof2md/">dof2md</a> never enters the picture; it is the heavy artillery that <code>nota2md</code> borrows when a note predates the HTML era and survives only as scanned images. Its own <a href="../pages/dof2md.html">dedicated page</a> uses it directly, on its own.</p>
 <p>The packages are available on PyPI. If you are running this notebook outside the repository — on <a href="https://colab.research.google.com/">Google Colab</a>, for instance — uncomment the following cell:</p>
 <div id="cell-1" class="cell" data-execution_count="1">
 <details class="code-fold">
@@ -256,23 +259,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="step-1-every-note-of-one-day" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="step-1-every-note-of-one-day"><span class="header-section-number">2</span> Step 1: every note of one day</h2>
-<p>The gazette’s open-data service is organized around dates and identifiers. <code>dofjson.client.get_notas</code> takes a date and returns the day’s summary: one list of notes per edition (morning, evening, extraordinary), each note a dictionary of metadata. We ask for July 15, 2026:</p>
+<p>The gazette’s open-data service is organized around dates and identifiers. <code>dofjson.get_notas</code> takes a date and returns the day’s summary: one list of notes per edition (morning, evening, extraordinary), each note a dictionary of metadata. We ask for July 15, 2026:</p>
 <div id="cell-3" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> datetime <span class="im">as</span> dt</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson <span class="im">import</span> client</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> dofjson</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>day <span class="op">=</span> dt.date(<span class="dv">2026</span>, <span class="dv">7</span>, <span class="dv">15</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>notas <span class="op">=</span> client.get_notas(day)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>notas <span class="op">=</span> dofjson.get_notas(day)</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>{k: <span class="bu">len</span>(v) <span class="cf">for</span> k, v <span class="kw">in</span> notas.items() <span class="cf">if</span> <span class="bu">isinstance</span>(v, <span class="bu">list</span>)}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display" data-execution_count="2">
 <pre><code>{'NotasExtraordinarias': 0,
  'imagenesDiario': 1,
  'NotasVespertinas': 0,
- 'NotasMatutinas': 69,
+ 'NotasMatutinas': 57,
  'audioSumario': 1}</code></pre>
 </div>
 </div>
@@ -280,7 +283,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="cell-5" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>notas <span class="op">=</span> client.quita_notas_sin_titulo(notas)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>notas <span class="op">=</span> dofjson.quita_notas_sin_titulo(notas)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>manana <span class="op">=</span> notas[<span class="st">"NotasMatutinas"</span>]</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(manana)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -396,11 +399,11 @@ has HTML  : S
 title     : Acuerdo número 07/07/26 por el que se establecen los calendarios escolares para el ciclo lectivo 2026-2027, aplicables e…</code></pre>
 </div>
 </div>
-<p>Because <code>existeHtml</code> is <code>"S"</code>, the service can hand us the note’s full text directly. <code>dofjson.client.get_nota</code> fetches that detail record; the HTML lives in its <code>cadenaContenido</code> field. It is official, but it is not pretty:</p>
+<p>Because <code>existeHtml</code> is <code>"S"</code>, the service can hand us the note’s full text directly. <code>dofjson.get_nota</code> fetches that detail record; the HTML lives in its <code>cadenaContenido</code> field. It is official, but it is not pretty:</p>
 <div id="cell-11" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>detalle <span class="op">=</span> client.get_nota(cod_nota)[<span class="st">"Nota"</span>]</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>detalle <span class="op">=</span> dofjson.get_nota(cod_nota)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(detalle[<span class="st">"cadenaContenido"</span>][:<span class="dv">400</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -410,15 +413,15 @@ title     : Acuerdo número 07/07/26 por el que se establecen los calendarios es
 </section>
 <section id="step-3-from-html-to-markdown" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="step-3-from-html-to-markdown"><span class="header-section-number">4</span> Step 3: from HTML to Markdown</h2>
-<p>This is where <code>nota2md</code> takes over. Its single entry point, <code>build_nota_markdown</code>, receives the <code>codNota</code>, an output directory and a <code>source</code> argument that selects the conversion path: <code>"html"</code> (what we use here), <code>"image"</code> or <code>"pdf"</code> for the OCR routes, or <code>"auto"</code> to let the package decide — it prefers HTML whenever the note has it. The function fetches whatever it needs through <code>dofjson</code> on its own; passing the day’s index we already downloaded merely saves a request:</p>
+<p>This is where <code>nota2md</code> takes over. Its single entry point, <code>legal_provisions</code>, receives the <code>codNota</code>, an output directory and a <code>source</code> argument that selects the conversion path: <code>"html"</code> (what we use here), <code>"image"</code> or <code>"pdf"</code> for the OCR routes, or <code>"auto"</code> to let the package decide — it prefers HTML whenever the note has it. The function fetches whatever it needs through <code>dofjson</code> on its own; passing the day’s index we already downloaded merely saves a request:</p>
 <div id="cell-13" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nota2md.builder <span class="im">import</span> build_nota_markdown</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nota2md <span class="im">import</span> legal_provisions</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>md_path <span class="op">=</span> build_nota_markdown(cod_nota, Path(<span class="st">"output"</span>), source<span class="op">=</span><span class="st">"html"</span>, notas_del_dia<span class="op">=</span>notas)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>md_path <span class="op">=</span> legal_provisions(cod_nota, Path(<span class="st">"output"</span>), source<span class="op">=</span><span class="st">"html"</span>, notas_del_dia<span class="op">=</span>notas)</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>md_path</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display" data-execution_count="7">
@@ -451,11 +454,7 @@ Que la Ley General de Educación (LGE) dispone que corresponde de manera exclusi
 </section>
 <section id="when-there-is-no-html-the-scanned-decades" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="when-there-is-no-html-the-scanned-decades"><span class="header-section-number">5</span> When there is no HTML: the scanned decades</h2>
-<p>The HTML path covers the recent decades, but the archive reaches back to 1917 — and, as the <a href="../pages/titles.html">exploration of the titles</a> showed, most of that history predates the electronic gazette. For those notes <code>existeHtml</code> is <code>"N"</code> and the service offers only the scanned images of the printed pages. <code>nota2md</code> handles this case with the same entry point: called with <code>source="image"</code> (or <code>"pdf"</code>), it downloads the note’s page images, determines which pages the note spans, and runs them through an OCR pipeline before cutting out the note’s own text. That OCR machinery is not its own — it is borrowed, lazily, from <code>dof2md</code>.</p>
-</section>
-<section id="and-dof2md" class="level2" data-number="6">
-<h2 data-number="6" class="anchored" data-anchor-id="and-dof2md"><span class="header-section-number">6</span> And dof2md?</h2>
-<p>As promised, only superficially: <code>dof2md</code> downloads a complete edition of the DOF as PDF and converts it to Markdown with a document-analysis OCR pipeline (<a href="https://github.com/opendatalab/MinerU">MinerU</a>), including the recovery of tables. It is the right tool when the unit of interest is the whole day rather than the individual note, and it is the dependency that gives <code>nota2md</code> its OCR route for the scanned decades. For the journey of this page — one modern note, from identifier to Markdown — it was, as anticipated, never needed.</p>
+<p>The HTML path covers the recent decades, but the archive reaches back to 1917 — and, as the <a href="../pages/titles.html">exploration of the titles</a> showed, most of that history predates the electronic gazette. For those notes <code>existeHtml</code> is <code>"N"</code> and the service offers only the scanned images of the printed pages. <code>nota2md</code> handles this case with the same entry point: called with <code>source="image"</code> (or <code>"pdf"</code>), it downloads the note’s page images, determines which pages the note spans, and runs them through an OCR pipeline before cutting out the note’s own text. That OCR machinery is not its own — it is borrowed, lazily, from <code>dof2md</code>, which has its own <a href="../pages/dof2md.html">dedicated page</a>.</p>
 </section>
 
 

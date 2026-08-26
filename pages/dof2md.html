@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="dcterms.date" content="2026-08-26">
 
-<title>References – LegalIA</title>
+<title>dof2md: OCR for the Official Gazette – LegalIA</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,26 +24,42 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
 }
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
+</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -93,7 +110,7 @@ div.csl-indent {
 
 </head>
 
-<body class="nav-fixed fullcontent quarto-light">
+<body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -127,11 +144,11 @@ div.csl-indent {
 <span class="menu-text">Tools</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../pages/dof2md.html"> 
+    <a class="nav-link active" href="../pages/dof2md.html" aria-current="page"> 
 <span class="menu-text">dof2md</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="../pages/references.html" aria-current="page"> 
+    <a class="nav-link" href="../pages/references.html"> 
 <span class="menu-text">References</span></a>
   </li>  
   <li class="nav-item">
@@ -156,14 +173,25 @@ div.csl-indent {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-dof2md-does" id="toc-what-dof2md-does" class="nav-link active" data-scroll-target="#what-dof2md-does"><span class="header-section-number">1</span> What dof2md does</a></li>
+  <li><a href="#a-real-edition-converted" id="toc-a-real-edition-converted" class="nav-link" data-scroll-target="#a-real-edition-converted"><span class="header-section-number">2</span> A real edition, converted</a></li>
+  <li><a href="#from-the-command-line" id="toc-from-the-command-line" class="nav-link" data-scroll-target="#from-the-command-line"><span class="header-section-number">3</span> From the command line</a></li>
+  
+  </ul>
+</nav>
+    </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">References</h1>
-<p class="subtitle lead">Publications that support the LegalIA project</p>
+<h1 class="title">dof2md: OCR for the Official Gazette</h1>
+<p class="subtitle lead">Turning a DOF edition’s PDF straight into Markdown</p>
 </div>
 
 
@@ -171,52 +199,151 @@ div.csl-indent {
 <div class="quarto-title-meta">
 
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">August 26, 2026</p>
+    </div>
+  </div>
   
     
   </div>
   
+<div>
+  <div class="abstract">
+    <div class="block-title">Abstract</div>
+    <p>dof2md is the LegalIA package that never looks at a “note” at all: given a PDF or a set of scanned page images from Mexico’s Official Gazette — DOF, for Diario Oficial de la Federación, its Spanish name — it produces Markdown, optionally cropped down to a single note by title. It is, underneath, a wrapper around mineru for the OCR and layout analysis; this page shows it converting a real, current edition end to end, and explains what dof2md adds on top of mineru itself.</p>
+  </div>
+</div>
 
 
 </header>
 
 
-<p>The following publications by the members of the research team inform the project’s design and support its feasibility: they cover natural language processing techniques for Spanish, the construction of specialized language resources, and the regulatory dimension of artificial intelligence in the legal domain.</p>
-<div id="refs" class="references csl-bib-body hanging-indent" role="list">
-<div id="ref-Graff2026IALegal" class="csl-entry" role="listitem">
-Graff, Mario, and Jersain Zadamig Llamas Covarrubias. 2026. <em><span class="nocase">La Inteligencia Artificial en el <span>Á</span>mbito Legal</span></em>. Under review.
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="https://colab.research.google.com/github/INGEOTEC/LegalIA/blob/master/website/pages/dof2md.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" class="img-fluid figure-img"></a></p>
+<figcaption>Open in Colab</figcaption>
+</figure>
 </div>
-<div id="ref-Graff2020EvoMSA:Analysis" class="csl-entry" role="listitem">
-Graff, Mario, Sabino Miranda-Jiménez, Eric S. Tellez, and Daniela Moctezuma. 2020. <span>“<span class="nocase">EvoMSA: A Multilingual Evolutionary Approach for Sentiment Analysis</span>.”</span> <em>Computational Intelligence Magazine</em> 15 (1): 76–88. <a href="http://arxiv.org/abs/1812.02307">http://arxiv.org/abs/1812.02307</a>.
+<p>The packages are available on PyPI. If you are running this notebook outside the repository — on <a href="https://colab.research.google.com/">Google Colab</a>, for instance — uncomment the following cell:</p>
+<div id="cell-1" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># %pip install dof2md</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
-<div id="ref-Graff2022AData" class="csl-entry" role="listitem">
-Graff, Mario, Daniela Moctezuma, Sabino Miranda-Jiménez, and Eric S. Tellez. 2022. <span>“<span class="nocase">A Python Library for Exploratory Data Analysis and Knowledge Discovery on Twitter Data</span>.”</span> <em>Computers <span>&amp;</span> Geosciences</em> 159 (February). <a href="http://arxiv.org/abs/2009.01826">http://arxiv.org/abs/2009.01826</a>.
+<section id="what-dof2md-does" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="what-dof2md-does"><span class="header-section-number">1</span> What dof2md does</h2>
+<p><a href="https://pypi.org/project/dof2md/">dof2md</a> operates at the coarsest grain of the three LegalIA packages that work with the gazette: it has no notion of which note a page belongs to, only of pages. Given a PDF — a whole DOF edition, or any other document — or an ordered list of scanned page images, it produces Markdown. It is, underneath, a wrapper around <a href="https://github.com/opendatalab/MinerU">mineru</a> for the OCR and layout analysis itself; that should be explicit rather than implied. On top of mineru, dof2md adds:</p>
+<ul>
+<li>Keeping mineru’s own <code>mineru-api</code> server warm across a batch of documents, instead of paying its startup (and model-loading) cost once per document.</li>
+<li>Stitching the OCR of a list of page images — several scanned pages of the same note — into one continuous Markdown document.</li>
+<li>Rewriting the raw HTML tables mineru falls back to (rowspan/colspan) into Markdown tables.</li>
+<li>Cropping the result down to a single note, by locating its title and the next note’s title in the OCR’d text — useful because a scanned page usually holds the tail of one note and the head of the next.</li>
+<li>Downloading a DOF edition’s PDF directly, by date and edition.</li>
+</ul>
+<p>It is only needed directly for notes that predate the HTML era of the gazette (pre-1999-ish) and survive only as scanned images — <code>nota2md</code> borrows it lazily for that OCR path, as shown in <a href="../pages/tools.html#when-there-is-no-html-the-scanned-decades">From the gazette to Markdown</a>. Used on its own, as here, it never talks to <code>dofjson</code> or <code>nota2md</code> at all.</p>
+</section>
+<section id="a-real-edition-converted" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="a-real-edition-converted"><span class="header-section-number">2</span> A real edition, converted</h2>
+<p>On June 16, 2026, the DOF’s evening edition (<code>VES</code>) carried a single decree: administrative measures for the venues of the 2026 FIFA World Cup in Mexico City and the Guadalajara metropolitan area. At four pages it is one of the shortest editions in the gazette’s recent archive, and, being a current edition, its PDF already carries the pages’ own text rather than only a scan of them, which keeps mineru’s OCR pass short. That makes it a fast, realistic example of dof2md converting a complete edition, with <code>dofjson</code>/<code>nota2md</code> and their note lookups nowhere in the picture:</p>
+<div id="cell-4" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> datetime <span class="im">as</span> dt</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dof2md.downloader <span class="im">import</span> build_url, download_pdf</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>date <span class="op">=</span> dt.date(<span class="dv">2026</span>, <span class="dv">6</span>, <span class="dv">16</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>url, filename <span class="op">=</span> build_url(date, <span class="st">"VES"</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>Path(<span class="st">"output"</span>).mkdir(exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>pdf_path <span class="op">=</span> Path(<span class="st">"output"</span>) <span class="op">/</span> filename</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>download_pdf(url, pdf_path)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>pdf_path</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<pre><code>PosixPath('output/16062026-VES.pdf')</code></pre>
 </div>
-<div id="ref-Graff2025BoW" class="csl-entry" role="listitem">
-Graff, Mario, Daniela Moctezuma, and Eric S. Téllez. 2025. <span>“<span class="nocase">Bag-of-Word approach is not dead: A performance analysis on a myriad of text classification challenges</span>.”</span> <em>Natural Language Processing Journal</em> 11: 100154. <a href="https://doi.org/10.1016/j.nlp.2025.100154">https://doi.org/10.1016/j.nlp.2025.100154</a>.
 </div>
-<div id="ref-LlamasCovarrubias2022Enfoques" class="csl-entry" role="listitem">
-Llamas Covarrubias, Jersain Zadamig, Olivia Andrea Mendoza Enríquez, and Mario Graff Guerrero. 2022. <span>“<span class="nocase">Enfoques regulatorios para la Inteligencia Artificial (IA)</span>.”</span> <em>Revista Chilena de Derecho</em> 49 (3): 31–62. <a href="https://doi.org/10.7764/R.493.2">https://doi.org/10.7764/R.493.2</a>.
+<p><code>BatchConverter</code> is dof2md’s entry point — the Python name behind the <code>dof2md</code> command — and it keeps mineru’s server warm, which only pays off across a batch; for a single document it still runs the same OCR/layout pipeline underneath:</p>
+<div id="cell-6" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dof2md <span class="im">import</span> BatchConverter</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> BatchConverter() <span class="im">as</span> convert:</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    md_path <span class="op">=</span> convert(pdf_path, <span class="st">"output"</span>, <span class="st">"16062026-VES.md"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>md_path</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>2026-08-26 19:02:04.751 | INFO     | mineru.cli.client:run_planned_task:832 - Submitting batch 1/1 | 1 document, 4 pages in this batch | 4 pages total | task#1 [16062026-VES]
+2026-08-26 19:02:41.182 | INFO     | mineru.cli.client:run_planned_task:883 - Completed batch 1/1 | Processed 4/4 pages | 1 of 1 batch finished | task#1 [16062026-VES]</code></pre>
 </div>
-<div id="ref-Tellez2017AAnalysis" class="csl-entry" role="listitem">
-Tellez, Eric S., Sabino Miranda-Jiménez, Mario Graff, Daniela Moctezuma, Oscar S. Siordia, and Elio A. Villaseñor. 2017. <span>“<span class="nocase">A case study of Spanish text transformations for twitter sentiment analysis</span>.”</span> <em>Expert Systems with Applications</em> 81: 457–71. <a href="https://doi.org/10.1016/j.eswa.2017.03.071">https://doi.org/10.1016/j.eswa.2017.03.071</a>.
-</div>
-<div id="ref-Tellez2017ATwitter" class="csl-entry" role="listitem">
-Tellez, Eric S., Sabino Miranda-Jiménez, Mario Graff, Daniela Moctezuma, Ranyart R. Suárez, and Oscar S. Siordia. 2017. <span>“<span class="nocase">A simple approach to multilingual polarity classification in Twitter</span>.”</span> <em>Pattern Recognition Letters</em> 94: 68–74. <a href="https://doi.org/10.1016/j.patrec.2017.05.024">https://doi.org/10.1016/j.patrec.2017.05.024</a>.
-</div>
-<div id="ref-Tellez2023Regionalized" class="csl-entry" role="listitem">
-Tellez, Eric S., Daniela Moctezuma, Sabino Miranda, Mario Graff, and Guillermo Ruiz. 2023. <span>“<span class="nocase">Regionalized models for Spanish language variations based on Twitter</span>.”</span> <em>Language Resources and Evaluation</em> 57. <a href="https://doi.org/10.1007/s10579-023-09640-9">https://doi.org/10.1007/s10579-023-09640-9</a>.
-</div>
-<div id="ref-Tellez2018AnOptimization" class="csl-entry" role="listitem">
-Tellez, Eric S., Daniela Moctezuma, Sabino Miranda-Jiménez, and Mario Graff. 2018. <span>“<span class="nocase">An automated text categorization framework based on hyperparameter optimization</span>.”</span> <em>Knowledge-Based Systems</em> 149 (June): 110–23. <a href="https://doi.org/10.1016/J.KNOSYS.2018.03.003">https://doi.org/10.1016/J.KNOSYS.2018.03.003</a>.
-</div>
-<div id="ref-Tellez2026Fundamentos" class="csl-entry" role="listitem">
-Tellez, Eric S., Guillermo Ruiz, Daniela Moctezuma, and Mario Graff. 2026. <em><span class="nocase">Fundamentos de Inteligencia Artificial</span></em>. Under review.
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>PosixPath('output/16062026-VES.md')</code></pre>
 </div>
 </div>
+<p>The result is one continuous Markdown document — the cover page’s own index of contents, then the decree’s text:</p>
+<div id="cell-8" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(md_path.read_text(encoding<span class="op">=</span><span class="st">"utf-8"</span>)[:<span class="dv">1200</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>![](16062026-VES_images/3ca9bcd469bd7ec19708ed49de120329e3e58f07effde3441ab4b752411fada7.jpg)
+
+# DIARIO OFICIAL DE LA FEDERACION
+
+ORGANO DEL GOBIERNO CONSTITUCIONAL DE LOS ESTADOS UNIDOS MEXICANOS
+
+No. de publicación: 159/2026
+
+Ciudad de México, martes 16 de junio de 2026
+
+## EDICION VESPERTINA CONTENIDO
+
+PODER EJECUTIVO
+
+PRESIDENCIA DE LA REPUBLICA
+
+Decreto por el que se establecen diversas medidas administrativas en el marco de los eventos relativos a la Copa Mundial de la FIFA 2026, a celebrarse en la Ciudad de México y en la zona metropolitana de Guadalajara, Jalisco. ....
+
+# PODER EJECUTIVO
+
+# PRESIDENCIA DE LA REPUBLICA
+
+DECRETO por el que se establecen diversas medidas administrativas en el marco de los eventos relativos a la Copa Mundial de la FIFA 2026, a celebrarse en la Ciudad de México y en la zona metropolitana de Guadalajara, Jalisco.
+
+Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+CLAUDIA SHEINBAUM PARDO, Presidenta de los Estados Unidos Mexicanos, en ejercicio de la facultad que me confiere el artículo 89, fracción I, de la Constitución Política de los Estados Unidos Mexicanos; con fundamento en los artí</code></pre>
+</div>
+</div>
+<p>This edition carries a single note, so nothing needed cropping. A typical edition carries dozens, and the same call accepts a <code>titulo</code> and <code>titulo_siguiente</code> to keep only the text between them — the note’s own title and the next note’s, as they appear in the gazette’s index. See the <a href="https://github.com/INGEOTEC/LegalIA/tree/master/packages/dof2md">package README</a> for that full example, worked with a scanned page holding two notes back to back, and for <code>min_confidence</code>, <code>keep_pages</code> and the other options <code>BatchConverter.__call__</code> accepts.</p>
+</section>
+<section id="from-the-command-line" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="from-the-command-line"><span class="header-section-number">3</span> From the command line</h2>
+<p><code>--download-only</code> stops after fetching the edition’s PDF, without converting it — useful when only the PDF itself is needed right now:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dof2md</span> 2026-06-16 <span class="at">--edition</span> VES <span class="at">--download-only</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Once the PDF is sitting in <code>output/</code>, <code>--pdf</code> converts that same file, with no download involved:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dof2md</span> <span class="at">--pdf</span> output/16062026-VES.pdf <span class="at">--filename</span> local-copy.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>And since downloading an edition and converting it is the common case, the <code>dof2md</code> CLI folds both steps above into a single command:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dof2md</span> 2026-06-16 <span class="at">--edition</span> VES</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>--titulo</code>/<code>--titulo-siguiente</code> crop the result to one note the same way <code>BatchConverter</code> does above, regardless of which command produced the PDF; see the <a href="https://github.com/INGEOTEC/LegalIA/tree/master/packages/dof2md">package README</a> for the full flag reference, including <code>--images</code> for a set of scanned pages already on disk.</p>
+</section>
 
 
+<div id="quarto-appendix" class="default"><section id="methodological-note" class="level2 unnumbered appendix"><h2 class="anchored quarto-appendix-heading">Methodological note</h2><div class="quarto-appendix-contents">
 
-</main> <!-- /main -->
+<p>This page is a Jupyter notebook executed at render time; the PDF converted above is the DOF’s own evening edition of June 16, 2026 (<code>16062026-VES.pdf</code>), downloaded fresh from <code>https://www.dof.gob.mx</code>. The package is documented in its own README in the <a href="https://github.com/INGEOTEC/LegalIA/tree/master/packages/dof2md">repository</a>.</p>
+<p>This page was written by the LegalIA team together with Claude, Anthropic’s coding assistant, through <a href="https://claude.com/claude-code">Claude Code</a>: the assistant helped design and implement dof2md itself, along with its test suite. As with the rest of the project, the authors reviewed and validated every change before it was committed.</p>
+
+
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";

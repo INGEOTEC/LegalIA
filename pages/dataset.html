@@ -77,7 +77,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-9668d51bcb43f24061cbc39c7cf7f6df.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-15b7c4a5ef1133b45a72edd940cf6f53.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -144,6 +144,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li class="nav-item">
     <a class="nav-link" href="../pages/tools.html"> 
 <span class="menu-text">Tools</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../pages/dof2md.html"> 
+<span class="menu-text">dof2md</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../pages/references.html"> 
@@ -295,7 +299,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>table.tail(<span class="dv">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>115 assets, spanning 1917–2026-06: 109 closed years, 6 months of the year under way (59 MB total).</code></pre>
+<pre><code>116 assets, spanning 1917–2026-07: 109 closed years, 7 months of the year under way (59 MB total).</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="2">
 <div>
@@ -313,60 +317,60 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<th data-quarto-table-cell-role="th">107</th>
-<td>notas-2024.tgz</td>
-<td>2024</td>
-<td>year</td>
-<td>1.09</td>
-</tr>
-<tr class="even">
 <th data-quarto-table-cell-role="th">108</th>
 <td>notas-2025.tgz</td>
 <td>2025</td>
 <td>year</td>
 <td>1.08</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <th data-quarto-table-cell-role="th">109</th>
 <td>notas-2026-01.tgz</td>
 <td>2026-01</td>
 <td>month</td>
 <td>0.05</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <th data-quarto-table-cell-role="th">110</th>
 <td>notas-2026-02.tgz</td>
 <td>2026-02</td>
 <td>month</td>
 <td>0.07</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <th data-quarto-table-cell-role="th">111</th>
 <td>notas-2026-03.tgz</td>
 <td>2026-03</td>
 <td>month</td>
 <td>0.09</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <th data-quarto-table-cell-role="th">112</th>
 <td>notas-2026-04.tgz</td>
 <td>2026-04</td>
 <td>month</td>
 <td>0.09</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <th data-quarto-table-cell-role="th">113</th>
 <td>notas-2026-05.tgz</td>
 <td>2026-05</td>
 <td>month</td>
 <td>0.09</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <th data-quarto-table-cell-role="th">114</th>
 <td>notas-2026-06.tgz</td>
 <td>2026-06</td>
 <td>month</td>
 <td>0.11</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">115</th>
+<td>notas-2026-07.tgz</td>
+<td>2026-07</td>
+<td>month</td>
+<td>0.10</td>
 </tr>
 </tbody>
 </table>
@@ -393,16 +397,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="downloading-every-title-in-the-archive" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="downloading-every-title-in-the-archive"><span class="header-section-number">5</span> Downloading every title in the archive</h2>
-<p>Beyond browsing one release asset at a time, <code>dofjson</code> ships a <code>--titulos</code> mode that builds a compact <code>codNota</code> + <code>titulo</code> + <code>fecha</code> dataset out of every note ever published: it downloads each <code>notas-archivo</code> asset straight into memory and reads its daily JSON indexes without ever writing them to disk, keeping only those three fields from every note (<code>titulo</code> is Spanish for “title”, <code>fecha</code> for “date”) — <code>codNota</code> to fetch the note’s full content later (<code>dofjson.client.get_nota</code>), <code>titulo</code> for exploratory analysis of the titles themselves with other techniques (in the spirit of <a href="../pages/titles.html">DOF Titles</a>), and <code>fecha</code> to place each title in time. The result is a single gzip-compressed JSONL file — the 1.2 million-plus notes in the table above fit in a few tens of MB, small enough to move to a Colab GPU runtime for experiments.</p>
+<p>Beyond browsing one release asset at a time, <code>dofjson</code> ships a <code>--titulos</code> mode that builds a compact <code>codNota</code> + <code>titulo</code> + <code>fecha</code> dataset out of every note ever published: it downloads each <code>notas-archivo</code> asset straight into memory and reads its daily JSON indexes without ever writing them to disk, keeping only those three fields from every note (<code>titulo</code> is Spanish for “title”, <code>fecha</code> for “date”) — <code>codNota</code> to fetch the note’s full content later (<code>dofjson.get_nota</code>), <code>titulo</code> for exploratory analysis of the titles themselves with other techniques (in the spirit of <a href="../pages/titles.html">DOF Titles</a>), and <code>fecha</code> to place each title in time. The result is a single gzip-compressed JSONL file — the 1.2 million-plus notes in the table above fit in a few tens of MB, small enough to move to a Colab GPU runtime for experiments.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dofjson</span> <span class="at">--titulos</span>                    <span class="co"># -&gt; titulos/titulos.jsonl.gz</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>or directly from Python, with <code>dofjson.titulos.download_titulos</code>:</p>
+<p>or directly from Python, with <code>dofjson.titulos.download_legal_provisions_titles</code>:</p>
 <div id="cell-14" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson.titulos <span class="im">import</span> download_titulos</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson.titulos <span class="im">import</span> download_legal_provisions_titles</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>titulos <span class="op">=</span> Path(<span class="st">"titulos.jsonl.gz"</span>)</span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> titulos.exists():</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    download_titulos(titulos, log<span class="op">=</span><span class="kw">lambda</span> x: <span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    download_legal_provisions_titles(titulos, log<span class="op">=</span><span class="kw">lambda</span> x: <span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In the following line, the first title is retrieved. These titles are not sorted globally by the <code>codNota</code> field; the ordering applies only at the day level.</p>
 <div id="cell-16" class="cell" data-execution_count="4">
@@ -410,9 +414,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="bu">next</span>(lee_titulos(titulos))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
-<pre><code>{'codNota': 4434476,
- 'titulo': 'CIRCULAR nº. 164, relativa a los asuntos que se traten por telégrafo con esta Secretaría',
- 'fecha': '23-03-1917',
+<pre><code>{'codNota': 4430696,
+ 'titulo': 'ES ACEPTADO por esta Secretaría el nombramiento del C. Lic. Agustín Ruiz Olloqui, como adscrito a la Notaría nº 9 de esta ciudad',
+ 'fecha': '02-01-1917',
  'codOrgaUno': 'PE'}</code></pre>
 </div>
 </div>
