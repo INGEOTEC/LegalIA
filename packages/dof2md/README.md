@@ -29,8 +29,12 @@ pip install -e ".[test]"
 
 ### CLI
 
-Given a date, `dof2md` downloads that edition's PDF and converts it to
-Markdown:
+`dof2md` takes exactly one input source — a date, a local PDF, or a set of
+local page images — and always converts it to Markdown; there's no
+download-only mode.
+
+Given a date, it downloads that edition's PDF from the DOF site and converts
+it:
 
 ```bash
 dof2md 2010-01-05                     # morning edition (default)
@@ -61,6 +65,22 @@ flags:
   rendered PDFs...) in `<outdir>/<pdf stem>_mineru/` instead of discarding
   it; useful when a conversion looks wrong and mineru's own read of the page
   is the first thing worth inspecting.
+
+A date always downloads from the DOF site; to convert a document you already
+have, use `--pdf` or `--images` instead — no download involved:
+
+```bash
+dof2md --pdf edicion.pdf   # a local PDF
+
+dof2md --images pagina-1.jpg pagina-2.jpg \
+    --filename out.md      # scanned pages, in order
+```
+
+`--filename` sets the output Markdown's name; with `--pdf` it defaults to
+the PDF's own name (`edicion.pdf` → `edicion.md`), but with `--images` it's
+required, since a set of images has no single name to derive one from.
+`--titulo`/`--titulo-siguiente` and the other flags above work the same way
+regardless of the input source.
 
 ### Python: batch conversion
 
