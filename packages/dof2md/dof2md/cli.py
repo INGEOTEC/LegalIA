@@ -11,12 +11,32 @@ from dof2md.downloader import build_url, download_pdf
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(
-        description="Download a DOF (Mexico's official gazette) edition as PDF and convert it to Markdown."
+        description="Convert a DOF (Mexico's official gazette) edition, or any local PDF or "
+        "set of scanned page images, to Markdown."
     )
-    parser.add_argument("date", help="Edition date, format YYYY-MM-DD (e.g. 2010-01-05)")
+    parser.add_argument(
+        "date", nargs="?", default=None,
+        help="Edition date, format YYYY-MM-DD (e.g. 2010-01-05) — downloads that edition's "
+        "PDF from the DOF site and converts it. Omit when using --pdf/--images instead.",
+    )
     parser.add_argument(
         "--edition", choices=["MAT", "VES"], default="MAT",
-        help="Edition: MAT (morning, default) or VES (evening) — matches the DOF site's own file naming",
+        help="Edition: MAT (morning, default) or VES (evening) — matches the DOF site's own "
+        "file naming. Only applies to a date.",
+    )
+    parser.add_argument(
+        "--pdf", default=None,
+        help="Convert this local PDF file instead of downloading one by date.",
+    )
+    parser.add_argument(
+        "--images", nargs="+", default=None, metavar="PATH",
+        help="Convert this ordered list of scanned page image files (one note spanning "
+        "several pages) instead of downloading a PDF by date.",
+    )
+    parser.add_argument(
+        "--filename", default=None,
+        help="Output Markdown filename. Defaults to the date/edition, or the --pdf file's own "
+        "name; required with --images, since there's no single input name to derive one from.",
     )
     parser.add_argument("--outdir", default="output", help="Output directory (default: output/)")
     parser.add_argument(
@@ -48,34 +68,59 @@ def parse_args(argv=None):
 
 def main(argv=None):
     args = parse_args(argv)
-    try:
-        date = dt.datetime.strptime(args.date, "%Y-%m-%d").date()
-    except ValueError:
-        sys.exit(f"Invalid date: {args.date}. Use YYYY-MM-DD format.")
 
-    url, filename = build_url(date, args.edition)
+    sources_given = sum(x is not None for x in (args.date, args.pdf, args.images))
+    if sources_given != 1:
+        sys.exit("Provide exactly one of: a date (to download a DOF edition), --pdf, or --images.")
+
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
-    pdf_path = outdir / filename
-    md_filename = pdf_path.with_suffix(".md").name
+    pdf_path = None
 
-    print(f"Downloading: {url}")
-    download_pdf(url, pdf_path)
-    print(f"PDF saved to: {pdf_path}")
+    if args.date is not None:
+        try:
+            date = dt.datetime.strptime(args.date, "%Y-%m-%d").date()
+        except ValueError:
+            sys.exit(f"Invalid date: {args.date}. Use YYYY-MM-DD format.")
+
+        url, filename = build_url(date, args.edition)
+        pdf_path = outdir / filename
+        md_filename = args.filename or pdf_path.with_suffix(".md").name
+
+        print(f"Downloading: {url}")
+        download_pdf(url, pdf_path)
+        print(f"PDF saved to: {pdf_path}")
+        path_or_paths = pdf_path
+    elif args.pdf is not None:
+        pdf_path = Path(args.pdf)
+        if not pdf_path.is_file():
+            sys.exit(f"--pdf file not found: {pdf_path}")
+        md_filename = args.filename or pdf_path.with_suffix(".md").name
+        path_or_paths = pdf_path
+    else:
+        if args.filename is None:
+            sys.exit("--filename is required with --images (there's no single input name to derive one from).")
+        image_paths = [Path(p) for p in args.images]
+        missing = [p for p in image_paths if not p.is_file()]
+        if missing:
+            sys.exit(f"--images file(s) not found: {', '.join(str(p) for p in missing)}")
+        md_filename = args.filename
+        path_or_paths = image_paths
 
     print("Converting to Markdown (mineru)...")
     try:
         with BatchConverter() as convert:
             md_path = convert(
-                pdf_path, outdir, md_filename, args.titulo, args.titulo_siguiente,
+                path_or_paths, outdir, md_filename, args.titulo, args.titulo_siguiente,
                 min_confidence=args.min_confidence,
                 keep_pages=args.keep_pages,
                 keep_mineru_output=args.keep_mineru_output,
             )
     except subprocess.TimeoutExpired:
+        hint = f" The partial PDF is at {pdf_path}." if args.date is not None else ""
         sys.exit(
             f"Conversion timed out after {DEFAULT_TIMEOUT_SECONDS}s. "
-            f"This edition may be unusually large; the partial PDF is at {pdf_path}."
+            f"This document may be unusually large.{hint}"
         )
     print(f"Markdown saved to: {md_path}")
 
