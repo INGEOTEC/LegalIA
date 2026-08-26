@@ -106,6 +106,142 @@ class TestEligeCandidato(unittest.TestCase):
 
         self.assertEqual(elegido.url, "correcto")
 
+    # --- issue #115: 5 documento-equivocado cases confirmed by manual audit
+
+    def test_marca_no_sospechoso_un_candidato_de_alta_similitud(self):
+        candidatos = [self._candidato("LEY FEDERAL DEL TRABAJO", "FEDERAL", "VIGENTE")]
+
+        elegido = scjn.elige_candidato(candidatos, "Ley Federal del Trabajo")
+
+        self.assertIsNotNone(elegido)
+        self.assertFalse(elegido.sospechoso)
+        self.assertGreater(elegido.ratio, scjn.UMBRAL_CONFIANZA_SIMILITUD)
+
+    def test_lsint_rechaza_un_acuerdo_administrativo_del_pleno_como_unico_candidato(self):
+        # https://github.com/INGEOTEC/LegalIA/issues/115 hallazgo C: the
+        # SCJN's search for "LEY de Seguridad Interior" returned no law at
+        # all, only its own Pleno acuerdo mentioning the name.
+        candidatos = [
+            self._candidato(
+                "ACUERDO GENERAL NÚMERO 3/2018 DEL PLENO DE LA SUPREMA CORTE DE JUSTICIA "
+                "DE LA NACIÓN",
+                "FEDERAL",
+                "VIGENTE",
+            )
+        ]
+
+        self.assertIsNone(scjn.elige_candidato(candidatos, "LEY de Seguridad Interior"))
+
+    def test_lisr_rechaza_un_acuerdo_administrativo_del_pleno_como_unico_candidato(self):
+        candidatos = [
+            self._candidato(
+                "ACUERDO GENERAL NÚMERO 11/2015 DEL PLENO DE LA SUPREMA CORTE DE JUSTICIA "
+                "DE LA NACIÓN",
+                "FEDERAL",
+                "VIGENTE",
+            )
+        ]
+
+        self.assertIsNone(
+            scjn.elige_candidato(candidatos, "LEY del Impuesto sobre la Renta")
+        )
+
+    def test_ccf_rechaza_un_candidato_por_debajo_del_piso_de_similitud(self):
+        candidatos = [
+            self._candidato(
+                "CÓDIGO DE CONDUCTA DE LA AGENCIA FEDERAL DE AVIACIÓN CIVIL",
+                "FEDERAL",
+                "VIGENTE",
+            )
+        ]
+
+        self.assertIsNone(scjn.elige_candidato(candidatos, "CÓDIGO Civil Federal"))
+
+    def test_ccf_ignora_el_nombre_anterior_al_elegir_el_candidato_renombrado(self):
+        candidatos = [
+            self._candidato(
+                "CÓDIGO DE CONDUCTA DE LA AGENCIA FEDERAL DE AVIACIÓN CIVIL",
+                "FEDERAL",
+                "VIGENTE",
+            ),
+            self._candidato(
+                "CODIGO CIVIL FEDERAL -ANTES CODIGO CIVIL PARA EL DISTRITO FEDERAL EN "
+                "MATERIA COMUN Y PARA TODA LA REPUBLICA EN MATERIA FEDERAL -",
+                "FEDERAL",
+                "VIGENTE",
+            ),
+        ]
+
+        elegido = scjn.elige_candidato(candidatos, "CÓDIGO Civil Federal")
+
+        self.assertIsNotNone(elegido)
+        self.assertTrue(elegido.titulo.startswith("CODIGO CIVIL FEDERAL -ANTES"))
+        self.assertFalse(elegido.sospechoso)
+
+    def test_lopgjdf_rechaza_el_reglamento_de_la_ley_buscada(self):
+        candidatos = [
+            self._candidato(
+                "REGLAMENTO DE LA LEY ORGÁNICA DE LA PROCURADURÍA GENERAL DE JUSTICIA "
+                "DEL DISTRITO FEDERAL",
+                "FEDERAL",
+                "VIGENTE",
+            )
+        ]
+
+        self.assertIsNone(
+            scjn.elige_candidato(
+                candidatos,
+                "LEY Orgánica de la Procuraduría General de Justicia del Distrito Federal",
+            )
+        )
+
+    def test_lfd_marca_sospechoso_en_vez_de_rechazar_una_ley_distinta_de_nombre_parecido(self):
+        # Zone grise (issue #115, plan de acción punto 3): "LEY Federal de
+        # Derechos" and "LEY FEDERAL DE LOS DERECHOS DEL CONTRIBUYENTE" are
+        # two real, different laws — not resolvable by text alone, so this
+        # is flagged for manual review rather than silently accepted or
+        # rejected.
+        candidatos = [
+            self._candidato(
+                "LEY FEDERAL DE LOS DERECHOS DEL CONTRIBUYENTE", "FEDERAL", "VIGENTE"
+            )
+        ]
+
+        elegido = scjn.elige_candidato(candidatos, "LEY Federal de Derechos")
+
+        self.assertIsNotNone(elegido)
+        self.assertTrue(elegido.sospechoso)
+        self.assertGreaterEqual(elegido.ratio, scjn.UMBRAL_MINIMO_SIMILITUD)
+        self.assertLess(elegido.ratio, scjn.UMBRAL_CONFIANZA_SIMILITUD)
+
+
+class TestRatioSimilitudYGuardas(unittest.TestCase):
+    def test_es_acuerdo_interno_detecta_un_acuerdo_general_del_pleno(self):
+        self.assertTrue(
+            scjn.es_acuerdo_interno(
+                "ACUERDO GENERAL NÚMERO 3/2018 DEL PLENO DE LA SUPREMA CORTE DE JUSTICIA "
+                "DE LA NACIÓN"
+            )
+        )
+
+    def test_es_acuerdo_interno_no_marca_una_ley_cualquiera(self):
+        self.assertFalse(scjn.es_acuerdo_interno("LEY FEDERAL DEL TRABAJO"))
+
+    def test_ratio_similitud_ignora_el_sufijo_de_nombre_anterior(self):
+        titulo = (
+            "CODIGO CIVIL FEDERAL -ANTES CODIGO CIVIL PARA EL DISTRITO FEDERAL EN "
+            "MATERIA COMUN Y PARA TODA LA REPUBLICA EN MATERIA FEDERAL -"
+        )
+        self.assertEqual(scjn.ratio_similitud(titulo, "Código Civil Federal"), 1.0)
+
+    def test_grupo_instrumento_reconoce_ley_codigo_y_reglamento(self):
+        self.assertEqual(scjn.grupo_instrumento("LEY FEDERAL DEL TRABAJO"), "ley")
+        self.assertEqual(scjn.grupo_instrumento("CÓDIGO Civil Federal"), "ley")
+        self.assertEqual(
+            scjn.grupo_instrumento("REGLAMENTO DE LA LEY ADUANERA"), "reglamento"
+        )
+        self.assertIsNone(scjn.grupo_instrumento("Convenio 107 OIT"))
+
 
 TABLA_REFORMAS = """
 <table>

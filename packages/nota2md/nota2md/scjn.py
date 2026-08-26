@@ -28,7 +28,7 @@ import io
 import re
 import time
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -93,12 +93,18 @@ class Candidato:
     """One ordenamiento the SCJN's search returned: its own title as
     highlighted in the results list, the (session-scoped) URL of its detail
     page, and the Ámbito/Vigencia the results page already shows before
-    opening that page at all."""
+    opening that page at all.
+
+    `ratio`/`sospechoso` are filled in by `elige_candidato` once it has
+    picked a winner (see issue #115) — a candidate straight out of `buscar`
+    carries neither, since there is no `nombre` to compare it against yet."""
 
     titulo: str
     url: str
     ambito: str | None
     vigencia: str | None
+    ratio: float | None = None
+    sospechoso: bool | None = None
 
 
 def _candidato(a, url: str) -> Candidato:
@@ -141,6 +147,80 @@ def _normaliza(texto: str) -> str:
     return re.sub(r"\s+", " ", texto).strip().lower()
 
 
+# --- Fase 3 (issue #115): guard against a wrong-document match ---------
+#
+# `elige_candidato` narrowing by Ámbito/Vigencia (issue #105's Fase 0 finding
+# 5) resolves *most* of "searching by name alone can return something
+# unrelated", but not all of it — issue #115's manual audit of the already-
+# crawled corpus found 5 leyes/reglamentos where the SCJN's search returned,
+# and the crawler saved, a document with nothing to do with the catalogue
+# entry it was searching for. No single similarity threshold catches all 5
+# (a title that merely contains the searched name as a substring — e.g. a
+# reglamento of the searched-for ley — scores as high as a genuine match), so
+# this is three separate guards, each aimed at one shape of the problem:
+
+_ACUERDO_INTERNO = re.compile(
+    r"PLENO DE LA (SUPREMA CORTE|SCJN)|ACUERDO GENERAL N[ÚU]MERO\s+\d+/\d{4}", re.I
+)
+_GRUPO_LEY = re.compile(r"^(ley|c[oó]digo)\b", re.I)
+_GRUPO_REGLAMENTO = re.compile(r"^reglamento\b", re.I)
+_NOMBRE_ANTERIOR = re.compile(r"\s*-\s*ANTES\b.*$", re.I)
+
+# Below UMBRAL_MINIMO the best candidate left is rejected outright (`ccf`'s
+# 0.436: a title that shares only stray words with what was searched).
+# Between the two, a candidate is kept but flagged `sospechoso` (`lfd`'s
+# 0.676: "LEY Federal de Derechos" vs "LEY FEDERAL DE LOS DERECHOS DEL
+# CONTRIBUYENTE" — a real but *different* law, not resolvable by text alone
+# without risking false rejections on legitimate near-duplicate titles).
+UMBRAL_MINIMO_SIMILITUD = 0.55
+UMBRAL_CONFIANZA_SIMILITUD = 0.75
+
+
+def ratio_similitud(titulo: str, nombre: str) -> float:
+    """How closely a candidate's own `titulo` matches the catalogue's
+    `nombre` for it, accent/case/whitespace-insensitive — the same
+    `SequenceMatcher` ratio `elige_candidato` picks its winner by, exposed
+    so `scripts/audita_scjn_legislacion.py` can recompute it offline against
+    whatever `ordenamiento` a past crawl already saved to a snapshot's own
+    header, without needing to re-crawl anything.
+
+    A renamed ordenamiento's SCJN title also carries its own former name, as
+    a trailing ``-ANTES <título anterior>-`` (confirmed live re-crawling
+    `ccf`: "CODIGO CIVIL FEDERAL -ANTES CODIGO CIVIL PARA EL DISTRITO
+    FEDERAL...-" scores 0.270 against the catalogue's "Código Civil
+    Federal" with the suffix counted in, below even the worst of the 5
+    confirmed wrong-document cases — `UMBRAL_MINIMO_SIMILITUD` would reject
+    the *correct* document). Stripped before comparing, so a rename never
+    counts against the title that is actually current."""
+    titulo = _NOMBRE_ANTERIOR.sub("", titulo)
+    return SequenceMatcher(None, _normaliza(titulo), _normaliza(nombre)).ratio()
+
+
+def es_acuerdo_interno(titulo: str) -> bool:
+    """Whether `titulo` is one of the SCJN's own internal administrative
+    agreements (a Pleno "ACUERDO GENERAL") rather than an ordenamiento of
+    the catalogue's own three collections — `lisr`/`lsint`'s failure mode:
+    the search returned no actual law as a candidate, only an unrelated
+    SCJN acuerdo that happened to mention the searched name in its own long
+    title, and nothing in Ámbito/Vigencia/similarity tells those apart from
+    a genuine (if oddly worded) match."""
+    return bool(_ACUERDO_INTERNO.search(titulo))
+
+
+def grupo_instrumento(texto: str) -> str | None:
+    """"ley" or "reglamento" when `texto` unambiguously starts with one of
+    those (a LEY/CÓDIGO is never the REGLAMENTO of itself, or vice versa),
+    None when it starts with neither (a tratado's name, mostly) — used to
+    reject `lopgjdf`'s failure mode: a reglamento's title can score high on
+    pure text similarity against the ley it regulates, since it literally
+    contains that ley's own name."""
+    if _GRUPO_LEY.match(texto):
+        return "ley"
+    if _GRUPO_REGLAMENTO.match(texto):
+        return "reglamento"
+    return None
+
+
 def elige_candidato(candidatos: list[Candidato], nombre: str) -> Candidato | None:
     """The candidate that best matches `nombre` among the SCJN's own search
     results for it — see issue #105's Fase 0 finding 5: searching by name
@@ -153,17 +233,42 @@ def elige_candidato(candidatos: list[Candidato], nombre: str) -> Candidato | Non
     preference ever discards the only candidate(s) on offer — an abrogated
     law is still worth crawling its own reform history.
 
-    Returns None (rather than raising) when `candidatos` is empty, so a
-    batch crawl can log a miss and move on to the next instrument."""
-    if not candidatos:
+    Before any of that, two hard exclusions (issue #115, see the section
+    docstring above) drop candidates that are never a legitimate match
+    regardless of Ámbito/Vigencia/similarity: the SCJN's own internal
+    acuerdos (`es_acuerdo_interno`), and — only when `nombre` itself
+    unambiguously names a ley/código or a reglamento — a candidate of the
+    opposite kind (`grupo_instrumento`). Unlike the Ámbito/Vigencia
+    preference, these two never fall back to "keep everyone" when they
+    would empty the list: a document of the wrong kind is worse than no
+    document at all.
+
+    The winner returned then also needs to clear `UMBRAL_MINIMO_SIMILITUD`
+    on `ratio_similitud`, or this returns None the same as "no candidates"
+    — and comes back flagged `sospechoso` when it clears that floor but not
+    `UMBRAL_CONFIANZA_SIMILITUD`, for a caller to route to manual review
+    instead of trusting outright.
+
+    Returns None (rather than raising) when `candidatos` is empty (or every
+    candidate got excluded by the two hard exclusions above), so a batch
+    crawl can log a miss and move on to the next instrument."""
+    excluidos = [c for c in candidatos if not es_acuerdo_interno(c.titulo)]
+    grupo_objetivo = grupo_instrumento(nombre)
+    if grupo_objetivo is not None:
+        excluidos = [
+            c for c in excluidos if grupo_instrumento(c.titulo) in (None, grupo_objetivo)
+        ]
+    if not excluidos:
         return None
-    federales = [c for c in candidatos if c.ambito == "FEDERAL"] or candidatos
+
+    federales = [c for c in excluidos if c.ambito == "FEDERAL"] or excluidos
     vigentes = [c for c in federales if c.vigencia == "VIGENTE"] or federales
-    objetivo = _normaliza(nombre)
-    return max(
-        vigentes,
-        key=lambda c: SequenceMatcher(None, _normaliza(c.titulo), objetivo).ratio(),
-    )
+    elegido = max(vigentes, key=lambda c: ratio_similitud(c.titulo, nombre))
+
+    ratio = ratio_similitud(elegido.titulo, nombre)
+    if ratio < UMBRAL_MINIMO_SIMILITUD:
+        return None
+    return replace(elegido, ratio=ratio, sospechoso=ratio < UMBRAL_CONFIANZA_SIMILITUD)
 
 
 @dataclass
@@ -514,20 +619,27 @@ def slug_instrumento(entrada: dict) -> str:
     return slug or "instrumento"
 
 
-def _cabecera(nombre: str, fila: FilaReforma) -> str:
+def _cabecera(candidato: Candidato, fila: FilaReforma) -> str:
     """The provenance header every file this writes carries, so it is never
     mistaken for Markdown built from the DOF's own notes (see the module
-    docstring)."""
+    docstring). `ratio_similitud`/`sospechoso` (issue #115) record how
+    confident `elige_candidato` was that `candidato` is genuinely the
+    instrument that was searched for, so a later audit
+    (`scripts/audita_scjn_legislacion.py`) can prioritize review without
+    recomputing anything the crawl already knows."""
     lineas = [
         "---",
         "fuente: scjn",
-        f"ordenamiento: {nombre}",
+        f"ordenamiento: {candidato.titulo}",
         f"fecha_publicacion: {fila.fecha_publicacion}",
     ]
     if fila.fecha_expedicion:
         lineas.append(f"fecha_expedicion: {fila.fecha_expedicion}")
     if fila.categoria:
         lineas.append(f"categoria: {fila.categoria}")
+    if candidato.ratio is not None:
+        lineas.append(f"ratio_similitud: {candidato.ratio:.3f}")
+        lineas.append(f"sospechoso: {'true' if candidato.sospechoso else 'false'}")
     lineas.append("---")
     return "\n".join(lineas)
 
@@ -580,7 +692,7 @@ def descarga_ordenamiento(
         contenido = descarga_docx(sesion, fila.url_docx, referer_detalle)
         time.sleep(espera)
         markdown = docx_a_markdown(contenido)
-        destino.write_text(f"{_cabecera(candidato.titulo, fila)}\n\n{markdown}", encoding="utf-8")
+        destino.write_text(f"{_cabecera(candidato, fila)}\n\n{markdown}", encoding="utf-8")
         escritos.append(destino)
     return list(reversed(escritos))
 

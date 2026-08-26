@@ -20,7 +20,21 @@ finishes; a run killed partway (crash, network drop, Ctrl-C) resumes right
 after that index instead of re-walking every already-done instrumento's
 reform table from the top — pass ``--reiniciar`` to discard that checkpoint
 and sweep the collection from the beginning again (e.g. after the upstream
-catalogue itself changed). Rate-limited:
+catalogue itself changed).
+
+A third, narrower case: issue #115's manual audit confirmed 5 instrumentos
+(ccf, lisr, lsint, lfd, lopgjdf) where the SCJN search returned, and a past
+crawl saved, the wrong document entirely — `elige_candidato` gained guards
+against this, but the wrong snapshots already on disk are still there,
+untouched, since the per-file skip above has no notion of a snapshot being
+*wrong*. ``--reintenta SLUG`` (repeatable, `nota2md.scjn.slug_instrumento`)
+re-bajas exactly the named instrumentos: their existing snapshots (and
+stale `indice.json`) are deleted first so they are genuinely re-fetched
+against the fixed `elige_candidato`, while every instrumento not named is
+skipped without touching the SCJN at all — a full collection is ~600
+instrumentos, and there is no need to re-walk the other ~595 that were never
+wrong just to verify a fix aimed at 5. Leaves the collection's own
+``.progreso.json`` checkpoint untouched either way. Rate-limited:
 `--espera` seconds between requests, since this is an unofficial site with
 no public API (the same posture as leyesmx.diputados/dofjson.dofweb
 elsewhere in this repo) — a single ley or reglamento search-then-detail-
@@ -29,6 +43,8 @@ the SCJN scopes a detail page's own URL to the session that requested it.
 
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion --coleccion tratados
+    ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion --coleccion leyes \
+        --reintenta ccf --reintenta lisr --reintenta lsint --reintenta lfd --reintenta lopgjdf
 
 Needs the "scjn" extra installed (``pip install packages/nota2md[scjn]``) for
 python-docx.
@@ -70,21 +86,43 @@ def _guarda_progreso(outdir: Path, coleccion: str, indice: int) -> None:
     archivo.write_text(json.dumps({"indice": indice}), encoding="utf-8")
 
 
-def rastrea_coleccion(coleccion: str, outdir: Path, espera: float, *, reiniciar: bool = False) -> None:
+def rastrea_coleccion(
+    coleccion: str,
+    outdir: Path,
+    espera: float,
+    *,
+    reiniciar: bool = False,
+    reintenta: set[str] | None = None,
+) -> None:
     instrumentos = download_legal_provisions_provenance_ids(coleccion)
     print(f"{coleccion}: {len(instrumentos)} instrumento(s)", file=sys.stderr)
-    inicio = 0 if reiniciar else _lee_progreso(outdir, coleccion)
-    if inicio:
+    if reintenta is not None:
         print(
-            f"  reanudando en el instrumento {inicio + 1}/{len(instrumentos)} "
-            "(progreso guardado de una corrida anterior)",
+            f"  --reintenta: solo se re-bajaran {sorted(reintenta)}; el resto se "
+            "asume ya bajado y no se toca la SCJN",
             file=sys.stderr,
         )
+        inicio = 0
+    else:
+        inicio = 0 if reiniciar else _lee_progreso(outdir, coleccion)
+        if inicio:
+            print(
+                f"  reanudando en el instrumento {inicio + 1}/{len(instrumentos)} "
+                "(progreso guardado de una corrida anterior)",
+                file=sys.stderr,
+            )
     for i, entrada in enumerate(instrumentos, 1):
         if i <= inicio:
             continue
+        slug = slug_instrumento(entrada)
+        if reintenta is not None and slug not in reintenta:
+            continue
         nombre = entrada["nombre"]
-        destino = outdir / coleccion / slug_instrumento(entrada)
+        destino = outdir / coleccion / slug
+        if reintenta is not None:
+            for archivo in destino.glob("*.md"):
+                archivo.unlink()
+            (destino / "indice.json").unlink(missing_ok=True)
         print(f"[{coleccion} {i}/{len(instrumentos)}] {nombre}", file=sys.stderr)
         sesion = nueva_sesion()
         try:
@@ -94,9 +132,11 @@ def rastrea_coleccion(coleccion: str, outdir: Path, espera: float, *, reiniciar:
         else:
             if not escritos:
                 print(f"  aviso: sin resultados en la SCJN para {nombre!r}", file=sys.stderr)
-        _guarda_progreso(outdir, coleccion, i)
+        if reintenta is None:
+            _guarda_progreso(outdir, coleccion, i)
         time.sleep(espera)
-    _archivo_progreso(outdir, coleccion).unlink(missing_ok=True)
+    if reintenta is None:
+        _archivo_progreso(outdir, coleccion).unlink(missing_ok=True)
 
 
 def main(argv=None) -> int:
@@ -121,10 +161,24 @@ def main(argv=None) -> int:
         action="store_true",
         help="ignora el progreso guardado de una corrida anterior y rastrea la coleccion desde el principio",
     )
+    p.add_argument(
+        "--reintenta",
+        action="append",
+        metavar="SLUG",
+        help=(
+            "repetible; slug_instrumento (nota2md.scjn.slug_instrumento, p.ej. ccf, "
+            "lisr) a re-descargar desde cero: se borran sus snapshots existentes y su "
+            "indice.json y se re-bajan; todo instrumento cuyo slug no este en la lista "
+            "se salta sin tocar la SCJN. No mezclar con --reiniciar."
+        ),
+    )
     args = p.parse_args(argv)
 
+    reintenta = set(args.reintenta) if args.reintenta else None
     for coleccion in args.coleccion or COLECCIONES:
-        rastrea_coleccion(coleccion, args.outdir, args.espera, reiniciar=args.reiniciar)
+        rastrea_coleccion(
+            coleccion, args.outdir, args.espera, reiniciar=args.reiniciar, reintenta=reintenta
+        )
     return 0
 
 
