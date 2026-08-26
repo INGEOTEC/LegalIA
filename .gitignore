@@ -48,3 +48,6 @@ packages/dof2md/output/
 /.quarto/
 **/*.quarto_ipynb
 scripts/legal_provisions/
+scripts/scjn/
+scripts/titulos.json.gz
+scripts/organigrama.json
