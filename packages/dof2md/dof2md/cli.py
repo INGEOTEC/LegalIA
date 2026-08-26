@@ -40,6 +40,11 @@ def parse_args(argv=None):
     )
     parser.add_argument("--outdir", default="output", help="Output directory (default: output/)")
     parser.add_argument(
+        "--download-only", action="store_true",
+        help="Download the edition's PDF and stop there, without converting it to Markdown. "
+        "Only valid with a date.",
+    )
+    parser.add_argument(
         "--titulo", default=None,
         help="Title of the note to keep — crops the converted Markdown down to just that note "
         "(the whole edition's Markdown is kept by default). Combine with --titulo-siguiente.",
@@ -72,6 +77,8 @@ def main(argv=None):
     sources_given = sum(x is not None for x in (args.date, args.pdf, args.images))
     if sources_given != 1:
         sys.exit("Provide exactly one of: a date (to download a DOF edition), --pdf, or --images.")
+    if args.download_only and args.date is None:
+        sys.exit("--download-only only applies to a date (--pdf/--images are already local).")
 
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
@@ -90,6 +97,8 @@ def main(argv=None):
         print(f"Downloading: {url}")
         download_pdf(url, pdf_path)
         print(f"PDF saved to: {pdf_path}")
+        if args.download_only:
+            return
         path_or_paths = pdf_path
     elif args.pdf is not None:
         pdf_path = Path(args.pdf)
