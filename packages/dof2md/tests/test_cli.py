@@ -13,6 +13,11 @@ class TestParseArgs(unittest.TestCase):
         self.assertEqual(args.date, "2010-01-05")
         self.assertEqual(args.edition, "MAT")
         self.assertEqual(args.outdir, "output")
+        self.assertIsNone(args.titulo)
+        self.assertIsNone(args.titulo_siguiente)
+        self.assertEqual(args.min_confidence, 0.6)
+        self.assertFalse(args.keep_pages)
+        self.assertFalse(args.keep_mineru_output)
 
     def test_evening_edition(self):
         args = parse_args(["2010-01-05", "--edition", "VES"])
@@ -26,11 +31,25 @@ class TestParseArgs(unittest.TestCase):
         args = parse_args(["2010-01-05", "--outdir", "/tmp/my_dof"])
         self.assertEqual(args.outdir, "/tmp/my_dof")
 
+    def test_title_cropping_flags(self):
+        args = parse_args([
+            "2010-01-05",
+            "--titulo", "ACUERDO por el que...",
+            "--titulo-siguiente", "DECRETO por el que...",
+            "--min-confidence", "0.8",
+            "--keep-pages",
+        ])
+        self.assertEqual(args.titulo, "ACUERDO por el que...")
+        self.assertEqual(args.titulo_siguiente, "DECRETO por el que...")
+        self.assertEqual(args.min_confidence, 0.8)
+        self.assertTrue(args.keep_pages)
+
 
 class TestMain(unittest.TestCase):
-    @patch("dof2md.cli.convert_to_markdown")
+    @patch("dof2md.cli.BatchConverter")
     @patch("dof2md.cli.download_pdf")
-    def test_main_orchestrates_download_and_conversion(self, mock_download, mock_convert):
+    def test_main_orchestrates_download_and_conversion(self, mock_download, mock_batch_converter):
+        mock_convert = mock_batch_converter.return_value.__enter__.return_value
         with tempfile.TemporaryDirectory() as tmpdir:
             main(["2010-01-05", "--outdir", tmpdir])
 
@@ -40,25 +59,46 @@ class TestMain(unittest.TestCase):
             self.assertEqual(pdf_path_arg, Path(tmpdir) / "05012010-MAT.pdf")
 
             mock_convert.assert_called_once_with(
-                Path(tmpdir) / "05012010-MAT.pdf", Path(tmpdir) / "05012010-MAT.md",
-                keep_mineru_output=False,
+                Path(tmpdir) / "05012010-MAT.pdf", Path(tmpdir), "05012010-MAT.md", None, None,
+                min_confidence=0.6, keep_pages=False, keep_mineru_output=False,
             )
 
     def test_main_invalid_date_exits_with_error(self):
         with self.assertRaises(SystemExit):
             main(["not-a-date"])
 
-    @patch("dof2md.cli.convert_to_markdown")
+    @patch("dof2md.cli.BatchConverter")
     @patch("dof2md.cli.download_pdf")
-    def test_main_passes_keep_mineru_output_flag(self, mock_download, mock_convert):
+    def test_main_passes_keep_mineru_output_flag(self, mock_download, mock_batch_converter):
+        mock_convert = mock_batch_converter.return_value.__enter__.return_value
         with tempfile.TemporaryDirectory() as tmpdir:
             main(["2010-01-05", "--outdir", tmpdir, "--keep-mineru-output"])
 
             self.assertTrue(mock_convert.call_args.kwargs["keep_mineru_output"])
 
-    @patch("dof2md.cli.convert_to_markdown")
+    @patch("dof2md.cli.BatchConverter")
     @patch("dof2md.cli.download_pdf")
-    def test_main_exits_clearly_when_conversion_times_out(self, mock_download, mock_convert):
+    def test_main_passes_title_cropping_flags(self, mock_download, mock_batch_converter):
+        mock_convert = mock_batch_converter.return_value.__enter__.return_value
+        with tempfile.TemporaryDirectory() as tmpdir:
+            main([
+                "2010-01-05", "--outdir", tmpdir,
+                "--titulo", "ACUERDO por el que...",
+                "--titulo-siguiente", "DECRETO por el que...",
+                "--min-confidence", "0.8",
+                "--keep-pages",
+            ])
+
+            args, kwargs = mock_convert.call_args
+            self.assertEqual(args[3], "ACUERDO por el que...")
+            self.assertEqual(args[4], "DECRETO por el que...")
+            self.assertEqual(kwargs["min_confidence"], 0.8)
+            self.assertTrue(kwargs["keep_pages"])
+
+    @patch("dof2md.cli.BatchConverter")
+    @patch("dof2md.cli.download_pdf")
+    def test_main_exits_clearly_when_conversion_times_out(self, mock_download, mock_batch_converter):
+        mock_convert = mock_batch_converter.return_value.__enter__.return_value
         mock_convert.side_effect = subprocess.TimeoutExpired(cmd="mineru", timeout=3600)
         with tempfile.TemporaryDirectory() as tmpdir:
             with self.assertRaises(SystemExit):
