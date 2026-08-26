@@ -1,12 +1,28 @@
+import io
+import json
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import docx
 import requests
 
 from nota2md import scjn
+
+
+def _hacer_tgz(archivos: dict) -> bytes:
+    """Build an in-memory tarball from {member_name: raw_bytes_or_str},
+    same helper shape as packages/nota2md/tests/test_utils.py's own."""
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+        for nombre, contenido in archivos.items():
+            data = contenido if isinstance(contenido, bytes) else contenido.encode("utf-8")
+            info = tarfile.TarInfo(name=nombre)
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    return buf.getvalue()
 
 PAGINA_BUSQUEDA = (
     '<html><body><form id="aspnetForm" action="Paginas/Buscar.aspx">'
@@ -621,6 +637,7 @@ class TestDescargaOrdenamiento(unittest.TestCase):
 
         original = escritos[0].read_text(encoding="utf-8")
         self.assertIn("fuente: scjn", original)
+        self.assertIn("nombre_buscado: Ley de Amnistia", original)
         self.assertIn("ordenamiento: LEY DE AMNISTIA", original)
         self.assertIn("fecha_publicacion: 22-01-1994", original)
         self.assertIn("categoria: LEY", original)
@@ -696,6 +713,22 @@ class TestDescargaOrdenamiento(unittest.TestCase):
         segunda = (self.outdir / "14-06-2024-2.md").read_text(encoding="utf-8")
         self.assertIn("Version A.", primera)
         self.assertIn("Version B.", segunda)
+
+
+class TestCabecera(unittest.TestCase):
+    def test_incluye_el_nombre_buscado_junto_con_el_ordenamiento_elegido(self):
+        candidato = scjn.Candidato(
+            titulo="LEY DE AMNISTIA", url="u", ambito="FEDERAL", vigencia="VIGENTE"
+        )
+        fila = scjn.FilaReforma(
+            fecha_publicacion="22-01-1994", fecha_expedicion=None, categoria=None,
+            url_docx="d",
+        )
+
+        cabecera = scjn._cabecera(candidato, fila, "Ley de Amnistia")
+
+        self.assertIn("nombre_buscado: Ley de Amnistia", cabecera)
+        self.assertIn("ordenamiento: LEY DE AMNISTIA", cabecera)
 
 
 class TestLeeCabecera(unittest.TestCase):
@@ -833,6 +866,361 @@ class TestEnlazaHistorial(unittest.TestCase):
 
         self.assertEqual(len(enlazadas), 1)
         self.assertEqual(enlazadas[0].codNota, 100)
+
+
+class TestTitleMentionsName(unittest.TestCase):
+    def test_reconoce_mencion_explicita_case_e_acento_insensible(self):
+        self.assertTrue(
+            scjn._title_mentions_name(
+                "Ley Federal del Trabajo",
+                "DECRETO por el que se reforma la ley federal del trabajo",
+            )
+        )
+
+    def test_no_reconoce_una_ley_distinta(self):
+        self.assertFalse(
+            scjn._title_mentions_name(
+                "Ley Federal del Trabajo",
+                "DECRETO por el que se reforma el Codigo Fiscal de la Federacion",
+            )
+        )
+
+    def test_no_se_deja_engañar_por_palabras_cortas_compartidas(self):
+        # "Ley"/"del"/"de" son demasiado cortas para contar por si solas.
+        self.assertFalse(
+            scjn._title_mentions_name(
+                "Ley Federal del Trabajo",
+                "DECRETO por el que se reforma la Ley de Amparo",
+            )
+        )
+
+    def test_exige_todas_las_palabras_significativas_del_nombre(self):
+        self.assertFalse(
+            scjn._title_mentions_name(
+                "Ley Federal de los Derechos del Contribuyente",
+                "DECRETO por el que se reforma la Ley Federal del Trabajo",
+            )
+        )
+
+    def test_no_confirma_con_una_sola_palabra_significativa_aunque_aparezca(self):
+        # "LEY de Amparo" solo deja "Amparo" tras el filtro de palabras
+        # cortas — una sola palabra, por comun que sea en textos legales,
+        # no basta como mencion explicita: cualquier decreto que la use de
+        # paso convertiria esto en una busqueda de palabra clave, no en una
+        # mencion del ordenamiento.
+        self.assertFalse(
+            scjn._title_mentions_name(
+                "Ley de Amparo",
+                "DECRETO por el que se reforma el Reglamento de la Ley de Amparo",
+            )
+        )
+
+
+class TestCrossCheckByTitleMention(unittest.TestCase):
+    def _enlazada(self, fecha: str, codNota: int | None) -> scjn.VersionEnlazada:
+        return scjn.VersionEnlazada(fecha, codNota, Path(f"{fecha}.md"))
+
+    def test_confirmado_cuando_el_unico_candidato_por_titulo_es_el_del_historial(self):
+        enlazadas = [self._enlazada("22-01-1994", 100)]
+        porf = {"22-01-1994": [{"codNota": 100, "titulo": "Ley Federal del Trabajo"}]}
+
+        resultados = scjn.cross_check_by_title_mention(enlazadas, "Ley Federal del Trabajo", porf)
+
+        self.assertEqual(resultados[0].status, "confirmed")
+        self.assertEqual(resultados[0].title_candidates, [100])
+
+    def test_desacuerdo_cuando_el_candidato_por_titulo_difiere_del_historial(self):
+        # Issue #115 hallazgo C: el enlace por historial puede estar
+        # apuntando al documento equivocado — este es el caso que se debe
+        # dejar en evidencia, no resolver en silencio.
+        enlazadas = [self._enlazada("22-01-1994", 999)]
+        porf = {
+            "22-01-1994": [
+                {"codNota": 999, "titulo": "DECRETO sobre otro asunto"},
+                {"codNota": 100, "titulo": "DECRETO que reforma la Ley Federal del Trabajo"},
+            ]
+        }
+
+        resultados = scjn.cross_check_by_title_mention(enlazadas, "Ley Federal del Trabajo", porf)
+
+        self.assertEqual(resultados[0].status, "disagreement")
+        self.assertEqual(resultados[0].historial_match, 999)
+        self.assertEqual(resultados[0].title_candidates, [100])
+
+    def test_revelado_cuando_el_historial_no_tenia_enlace_pero_el_titulo_si(self):
+        enlazadas = [self._enlazada("22-01-1994", None)]
+        porf = {"22-01-1994": [{"codNota": 100, "titulo": "Ley Federal del Trabajo"}]}
+
+        resultados = scjn.cross_check_by_title_mention(enlazadas, "Ley Federal del Trabajo", porf)
+
+        self.assertEqual(resultados[0].status, "revealed")
+        self.assertEqual(resultados[0].title_candidates, [100])
+
+    def test_ambiguo_cuando_varias_notas_del_dia_mencionan_el_nombre(self):
+        enlazadas = [self._enlazada("22-01-1994", 100)]
+        porf = {
+            "22-01-1994": [
+                {"codNota": 100, "titulo": "Ley Federal del Trabajo primer decreto"},
+                {"codNota": 200, "titulo": "Ley Federal del Trabajo segundo decreto"},
+            ]
+        }
+
+        resultados = scjn.cross_check_by_title_mention(enlazadas, "Ley Federal del Trabajo", porf)
+
+        self.assertEqual(resultados[0].status, "ambiguous")
+        self.assertEqual(sorted(resultados[0].title_candidates), [100, 200])
+
+    def test_ninguno_cuando_nada_ese_dia_menciona_el_nombre(self):
+        enlazadas = [self._enlazada("22-01-1994", 100)]
+        porf = {"22-01-1994": [{"codNota": 100, "titulo": "DECRETO sin relacion"}]}
+
+        resultados = scjn.cross_check_by_title_mention(enlazadas, "Ley Federal del Trabajo", porf)
+
+        self.assertEqual(resultados[0].status, "none")
+        self.assertEqual(resultados[0].title_candidates, [])
+
+
+class TestAddedBlocksYOverlapScore(unittest.TestCase):
+    def test_detecta_un_parrafo_nuevo_entre_dos_versiones(self):
+        anterior = "Articulo 1.- Texto original.\n\nArticulo 2.- Otro texto."
+        nuevo = "Articulo 1.- Texto original.\n\nArticulo 2.- Texto modificado por la reforma."
+
+        agregados = scjn._added_blocks(anterior, nuevo)
+
+        self.assertEqual(len(agregados), 1)
+        self.assertIn("modificado", agregados[0])
+
+    def test_no_marca_nada_agregado_cuando_las_versiones_son_iguales(self):
+        texto = "Articulo 1.- Texto original.\n\nArticulo 2.- Otro texto."
+
+        self.assertEqual(scjn._added_blocks(texto, texto), [])
+
+    def test_score_es_uno_cuando_el_candidato_cubre_todo_lo_agregado(self):
+        agregados = ["articulo 2 texto modificado por la reforma"]
+        candidato = "decreto que reforma el articulo 2 texto modificado por la reforma"
+
+        self.assertEqual(scjn._overlap_score(agregados, candidato), 1.0)
+
+    def test_score_es_cero_sin_relacion_alguna(self):
+        agregados = ["articulo 2 texto modificado por la reforma"]
+        candidato = "decreto sobre un asunto completamente distinto"
+
+        self.assertEqual(scjn._overlap_score(agregados, candidato), 0.0)
+
+    def test_score_es_cero_sin_nada_agregado(self):
+        self.assertEqual(scjn._overlap_score([], "cualquier texto"), 0.0)
+
+    def test_distingue_candidatos_que_solo_difieren_en_un_numero_corto(self):
+        # Una reforma que solo cambia una tasa/monto/plazo corto (menos de 4
+        # digitos) no debe volverse invisible para el score.
+        agregados = ["se establece una tasa de 20 por ciento"]
+        candidato_correcto = "decreto que fija la tasa en 20 por ciento"
+        candidato_equivocado = "decreto que fija la tasa en 15 por ciento"
+
+        score_correcto = scjn._overlap_score(agregados, candidato_correcto)
+        score_equivocado = scjn._overlap_score(agregados, candidato_equivocado)
+
+        self.assertGreater(score_correcto, score_equivocado)
+
+
+class TestAgrupaCandidatosPorFecha(unittest.TestCase):
+    def _enlazada(self, fecha: str, codNota: int | None) -> scjn.VersionEnlazada:
+        return scjn.VersionEnlazada(fecha, codNota, Path(f"{fecha}.md"))
+
+    def _check(self, fecha: str, historial_match, title_candidates, status) -> scjn.TitleMentionCheck:
+        return scjn.TitleMentionCheck(fecha, historial_match, title_candidates, status)
+
+    def test_une_los_candidatos_de_dos_snapshots_que_comparten_fecha(self):
+        # Issue #105 Fase 0: hasta 4 reformas de la CPEUM comparten una
+        # misma fecha de publicacion — ninguna debe perder sus propios
+        # candidatos por culpa de la otra.
+        enlazadas = [
+            self._enlazada("14-06-2024", 1001),
+            self._enlazada("14-06-2024", 1002),
+        ]
+        verificaciones = [
+            self._check("14-06-2024", 1001, [2001], "confirmed"),
+            self._check("14-06-2024", 1002, [], "none"),
+        ]
+
+        agrupado = scjn.agrupa_candidatos_por_fecha(enlazadas, verificaciones)
+
+        self.assertEqual(agrupado["14-06-2024"], [1001, 1002, 2001])
+
+    def test_una_sola_version_por_fecha_no_pierde_su_propio_candidato(self):
+        enlazadas = [self._enlazada("22-01-1994", 100)]
+        verificaciones = [self._check("22-01-1994", 100, [], "none")]
+
+        agrupado = scjn.agrupa_candidatos_por_fecha(enlazadas, verificaciones)
+
+        self.assertEqual(agrupado, {"22-01-1994": [100]})
+
+
+class TestConfirmByContentDiff(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.outdir = Path(self.tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def _snapshot(self, fecha: str, cuerpo: str, sufijo: str = "") -> scjn.VersionInstrumento:
+        archivo = self.outdir / f"{fecha}{sufijo}.md"
+        archivo.write_text(f"---\nfecha_publicacion: {fecha}\n---\n\n{cuerpo}", encoding="utf-8")
+        return scjn.VersionInstrumento(fecha, archivo)
+
+    def test_la_primera_version_no_tiene_confirmacion_por_no_tener_version_previa(self):
+        versiones = [self._snapshot("22-01-1994", "Articulo 1.- Texto original.")]
+
+        resultados = scjn.confirm_by_content_diff(versiones, {}, {})
+
+        self.assertEqual(len(resultados), 1)
+        self.assertIsNone(resultados[0].confirmed_codNota)
+        self.assertIsNone(resultados[0].score)
+
+    def test_confirma_el_candidato_cuyo_texto_cubre_el_cambio_observado(self):
+        versiones = [
+            self._snapshot("22-01-1994", "Articulo 1.- Texto original.\n\nArticulo 2.- Antes."),
+            self._snapshot(
+                "14-06-2024",
+                "Articulo 1.- Texto original.\n\nArticulo 2.- Reformado por decreto especial.",
+            ),
+        ]
+        candidatos_por_fecha = {"14-06-2024": [100, 200]}
+        markdown_por_codNota = {
+            100: "DECRETO sin relacion con nada de esto.",
+            200: "DECRETO por el que se reforma el articulo 2 para quedar reformado por decreto especial.",
+        }
+
+        resultados = scjn.confirm_by_content_diff(
+            versiones, candidatos_por_fecha, markdown_por_codNota
+        )
+
+        self.assertEqual(resultados[1].confirmed_codNota, 200)
+        self.assertGreaterEqual(resultados[1].score, scjn.UMBRAL_CONFIRMACION_DIFF)
+
+    def test_no_confirma_por_debajo_del_umbral_pero_reporta_el_mejor_score(self):
+        versiones = [
+            self._snapshot("22-01-1994", "Articulo 1.- Texto original."),
+            self._snapshot("14-06-2024", "Articulo 1.- Texto con cambios sustanciales agregados."),
+        ]
+        candidatos_por_fecha = {"14-06-2024": [100]}
+        markdown_por_codNota = {100: "DECRETO que apenas menciona cambios de pasada."}
+
+        resultados = scjn.confirm_by_content_diff(
+            versiones, candidatos_por_fecha, markdown_por_codNota
+        )
+
+        self.assertIsNone(resultados[1].confirmed_codNota)
+        self.assertIsNotNone(resultados[1].score)
+        self.assertLess(resultados[1].score, scjn.UMBRAL_CONFIRMACION_DIFF)
+
+    def test_score_none_cuando_ningun_candidato_tiene_texto_disponible(self):
+        # Issue #127: sin texto disponible, el enlace se queda tal como lo
+        # dejaron #124/#126 — ni bloqueado ni degradado.
+        versiones = [
+            self._snapshot("22-01-1994", "Articulo 1.- Texto original."),
+            self._snapshot("14-06-2024", "Articulo 1.- Texto modificado."),
+        ]
+        candidatos_por_fecha = {"14-06-2024": [100]}
+
+        resultados = scjn.confirm_by_content_diff(versiones, candidatos_por_fecha, {})
+
+        self.assertIsNone(resultados[1].confirmed_codNota)
+        self.assertIsNone(resultados[1].score)
+
+    def test_lista_vacia_de_versiones_no_falla(self):
+        self.assertEqual(scjn.confirm_by_content_diff([], {}, {}), [])
+
+    def test_no_confirma_el_mismo_codnota_para_dos_reformas_del_mismo_dia(self):
+        # Confirmado en vivo sobre ccf/27-12-1983: dos decretos reales y
+        # distintos ese dia, con texto que se superpone lo bastante como
+        # para que el candidato del primero tambien anote el mejor score
+        # del segundo — sin exclusividad, ambos "roban" el mismo codNota y
+        # el segundo pierde su propio enlace, ya correcto, de #124/#126.
+        v1 = "Decreto especial primero segundo aplicado aqui mismo."
+        v2 = v1 + "\n\nOtro parrafo decreto especial primero segundo mencionado de nuevo hoy."
+        versiones = [
+            self._snapshot("01-01-1980", "Texto original sin relacion alguna."),
+            self._snapshot("27-12-1983", v1, sufijo=""),
+            self._snapshot("27-12-1983", v2, sufijo="-2"),
+        ]
+        candidatos_por_fecha = {"27-12-1983": [1001, 1002]}
+        markdown_por_codNota = {
+            1001: "DECRETO que aplica un cambio especial primero segundo parrafo mencionado.",
+            1002: "DECRETO que aplica un cambio especial primero segundo aqui mismo "
+            "parrafo mencionado nuevo hoy ademas otras cosas.",
+        }
+
+        resultados = scjn.confirm_by_content_diff(
+            versiones, candidatos_por_fecha, markdown_por_codNota
+        )
+
+        primera, segunda = resultados[1], resultados[2]
+        self.assertEqual(primera.confirmed_codNota, 1002)
+        self.assertEqual(segunda.confirmed_codNota, 1001)
+
+
+class TestDownloadScjnLeyesCorpus(unittest.TestCase):
+    @patch("nota2md.scjn.requests.get")
+    def test_lanza_key_error_cuando_el_release_no_tiene_leyes_tgz(self, mock_get):
+        mock_get.return_value = Mock(json=lambda: {"assets": []}, raise_for_status=Mock())
+
+        with self.assertRaises(KeyError):
+            scjn.download_scjn_leyes_corpus()
+
+    @patch("nota2md.scjn.requests.get")
+    def test_une_indice_con_el_markdown_de_cada_snapshot(self, mock_get):
+        indice = [
+            {"archivo": "22-01-1994.md", "codNota": 100, "ratio_similitud": 0.9,
+             "sospechoso": False, "title_candidates": [100], "title_check_status": "confirmed",
+             "content_diff_confirmed_codNota": None, "content_diff_score": None},
+        ]
+        contenido = _hacer_tgz({
+            "cpeum/indice.json": json.dumps(indice),
+            "cpeum/22-01-1994.md": "**TEXTO ORIGINAL.**",
+        })
+        respuestas = [
+            Mock(json=lambda: {"assets": [
+                {"name": "leyes.tgz", "browser_download_url": "https://x/leyes.tgz"}
+            ]}, raise_for_status=Mock()),
+            Mock(content=contenido, raise_for_status=Mock()),
+        ]
+        mock_get.side_effect = respuestas
+
+        resultado = scjn.download_scjn_leyes_corpus()
+
+        self.assertEqual(len(resultado), 1)
+        self.assertEqual(resultado[0]["slug"], "cpeum")
+        self.assertEqual(len(resultado[0]["snapshots"]), 1)
+        snap = resultado[0]["snapshots"][0]
+        self.assertEqual(snap["codNota"], 100)
+        self.assertEqual(snap["title_check_status"], "confirmed")
+        self.assertEqual(snap["markdown"], "**TEXTO ORIGINAL.**")
+
+    @patch("nota2md.scjn.requests.get")
+    def test_instrumento_sin_indice_json_regresa_snapshots_sin_enlace_en_vez_de_omitirse(
+        self, mock_get
+    ):
+        # Fase 2 (issue #105) pendiente para este instrumento: hay
+        # snapshots pero enlaza_scjn_legislacion.py no ha corrido para el.
+        contenido = _hacer_tgz({"lfea/01-01-2012.md": "**TEXTO ORIGINAL.**"})
+        respuestas = [
+            Mock(json=lambda: {"assets": [
+                {"name": "leyes.tgz", "browser_download_url": "https://x/leyes.tgz"}
+            ]}, raise_for_status=Mock()),
+            Mock(content=contenido, raise_for_status=Mock()),
+        ]
+        mock_get.side_effect = respuestas
+
+        resultado = scjn.download_scjn_leyes_corpus()
+
+        self.assertEqual(len(resultado), 1)
+        self.assertEqual(resultado[0]["slug"], "lfea")
+        snap = resultado[0]["snapshots"][0]
+        self.assertEqual(snap["archivo"], "01-01-2012.md")
+        self.assertIsNone(snap["codNota"])
+        self.assertEqual(snap["markdown"], "**TEXTO ORIGINAL.**")
 
 
 if __name__ == "__main__":
