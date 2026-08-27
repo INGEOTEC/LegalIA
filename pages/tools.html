@@ -245,7 +245,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="dof2md" class="level3 unnumbered unlisted front">
 <h3 class="unnumbered unlisted anchored" data-anchor-id="dof2md">dof2md</h3>
-<p>Operates at the coarsest grain: downloads a <em>complete edition</em> of the gazette as PDF and converts it — OCR included — to Markdown. See its own <a href="../pages/dof2md.html">dedicated page</a> for a worked example.</p>
+<p>Operates at the coarsest grain: converts a <em>complete edition</em>’s PDF (or a set of scanned page images) to Markdown via OCR. See its own <a href="../pages/dof2md.html">dedicated page</a> for a worked example.</p>
 </section>
 </div>
 <p>It is worth stating upfront which of the three this tour actually requires. For a modern note, the DOF publishes its full text as HTML, and the path from identifier to Markdown involves only <a href="https://pypi.org/project/dofjson/">dofjson</a> (to talk to the service) and <a href="https://pypi.org/project/nota2md/">nota2md</a> (to convert the HTML). <a href="https://pypi.org/project/dof2md/">dof2md</a> never enters the picture; it is the heavy artillery that <code>nota2md</code> borrows when a note predates the HTML era and survives only as scanned images. Its own <a href="../pages/dof2md.html">dedicated page</a> uses it directly, on its own.</p>
