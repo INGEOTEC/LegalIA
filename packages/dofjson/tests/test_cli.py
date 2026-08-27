@@ -1,3 +1,4 @@
+import datetime as dt
 import io
 import json
 import tarfile
@@ -167,6 +168,30 @@ class TestCli(unittest.TestCase):
     def test_main_imagen_requires_edicion(self):
         with self.assertRaises(SystemExit):
             main(["--imagen", "19800102-02-U-000", "--outdir", self.tmpdir.name])
+
+    @patch("dofjson.api.download_edicion_pdf")
+    def test_main_downloads_pdf_by_edicion_date(self, mock_download_edicion_pdf):
+        mock_download_edicion_pdf.return_value = Path(self.tmpdir.name) / "edicion-208439.pdf"
+
+        main([
+            "--pdf-edicion", "16-06-2026", "--edicion", "VES",
+            "--outdir", self.tmpdir.name,
+        ])
+
+        mock_download_edicion_pdf.assert_called_once_with(
+            dt.date(2026, 6, 16), "VES", Path(self.tmpdir.name)
+        )
+
+    def test_main_pdf_edicion_requires_edicion(self):
+        with self.assertRaises(SystemExit):
+            main(["--pdf-edicion", "16-06-2026", "--outdir", self.tmpdir.name])
+
+    def test_main_pdf_edicion_invalid_date(self):
+        with self.assertRaises(SystemExit):
+            main([
+                "--pdf-edicion", "2026-06-16", "--edicion", "VES",
+                "--outdir", self.tmpdir.name,
+            ])
 
 
 class TestCliCacheDir(unittest.TestCase):

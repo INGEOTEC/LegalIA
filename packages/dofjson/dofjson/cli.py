@@ -42,6 +42,12 @@ def parse_args(argv=None):
         "get codDiario from get_nota's response, along with pagina/paginaHasta to locate the note)",
     )
     parser.add_argument(
+        "--pdf-edicion", metavar="DD-MM-YYYY",
+        help="Download the PDF of a whole edition by date (format DD-MM-YYYY, e.g. "
+        "16-07-2026) and --edicion, resolving codDiario from get_diario() first "
+        "(dofjson.download_edicion_pdf). Requires --edicion.",
+    )
+    parser.add_argument(
         "--imagenes-diario", type=int,
         help="Fetch the per-page scanned image listing for a whole edition by its codDiario",
     )
@@ -157,6 +163,21 @@ def main(argv=None):
         outdir.mkdir(parents=True, exist_ok=True)
         dest = outdir / f"{args.pdf_diario}.pdf"
         sidof.download_pdf(args.pdf_diario, dest)
+        print(f"Saved to: {dest}")
+        return
+
+    if args.pdf_edicion is not None:
+        if not args.edicion:
+            sys.exit("--pdf-edicion requires --edicion")
+        try:
+            date = dt.datetime.strptime(args.pdf_edicion, "%d-%m-%Y").date()
+        except ValueError:
+            sys.exit(f"Invalid date: {args.pdf_edicion}. Use DD-MM-YYYY format.")
+        outdir.mkdir(parents=True, exist_ok=True)
+        try:
+            dest = api.download_edicion_pdf(date, args.edicion, outdir)
+        except ValueError as exc:
+            sys.exit(str(exc))
         print(f"Saved to: {dest}")
         return
 
