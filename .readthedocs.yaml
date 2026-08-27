@@ -4,6 +4,10 @@ build:
   os: "ubuntu-22.04"
   tools:
     python: "3.12"
+  apt_packages:
+    # `dot`, for sphinx.ext.graphviz's architecture-flow diagram on the
+    # index page (see docs/requirements.txt).
+    - graphviz
   jobs:
     post_install:
       # --no-deps: dof2md never imports mineru in-process (see

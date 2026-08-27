@@ -31,7 +31,12 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.graphviz",
 ]
+
+# Render the architecture-flow diagram (index.rst) as inline SVG rather than
+# a linked PNG, so it stays crisp at any zoom and matches the page background.
+graphviz_output_format = "svg"
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
