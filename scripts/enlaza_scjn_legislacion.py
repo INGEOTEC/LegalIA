@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 """Match every SCJN snapshot `fetch_scjn_legislacion.py` already downloaded
 to the `codNota` of the DOF note that published it — Fase 2 of the crawl plan
-in issue #105.
+in issue #105, corrected by issue #123 to never consult Diputados' own
+reform history at all.
 
 For each instrument `download_legal_provisions_provenance_ids(coleccion)`
-knows about, its own `historial` (the `codNota` of its reforms, oldest first)
-is paired by publication date against the snapshots already sitting under
+knows about, only its `nombre` is used — never its `historial` — to find,
+for every snapshot already sitting under
 ``<outdir>/<coleccion>/<abrev-o-nombre>/`` (see
-`nota2md.scjn.versiones_de_directorio`), using a dofjson titles dataset
-(`dofjson.download_legal_provisions_titles`) for the fecha of every candidate
-codNota — see `nota2md.scjn.enlaza_historial` for how ties and misses are
+`nota2md.scjn.versiones_de_directorio`), which same-day DOF note (a dofjson
+titles dataset, `dofjson.download_legal_provisions_titles`) explicitly names
+the instrument in its own title (issue #126,
+`nota2md.scjn.title_candidates_por_fecha`) — see
+`nota2md.scjn.enlaza_por_titulo` for how same-day ties and misses are
 resolved. Writes one ``indice.json`` per instrument directory, listing each
-snapshot's own file, `fecha_publicacion`, and the `codNota` matched to it
-(``null`` when no match was found).
-
-Each entry also carries an independent cross-check of that link (issue #126,
-`nota2md.scjn.cross_check_by_title_mention`): every same-day codNota whose
-own title explicitly names the instrument (`title_candidates`), and how that
-compares to the historial-based link (`title_check_status` — "confirmed",
-"disagreement", "revealed", "ambiguous" or "none"). A "disagreement" — the
-historial-based link and the sole title-mentioning candidate point to
-different codNota — is also printed as a warning, since it is exactly the
-class of case issue #115 asked to be reviewable by hand.
+snapshot's own file, `fecha_publicacion`, the `codNota` matched to it
+(``null`` when no match was found), every same-day candidate that named the
+instrument (`title_candidates`), and how that pool was resolved
+(`title_link_status` — "linked", "none", "claimed" or "ambiguous", see
+`nota2md.scjn.title_link_status`). An "ambiguous" date — more than one
+same-day codNota names the instrument, with nothing but content diff able to
+break the tie — is also printed as a warning, since it is exactly the class
+of case issue #115 asked to be reviewable by hand.
 
 With ``--content-diff``, each entry also gets a content-diff confirmation
 (issue #127, `nota2md.scjn.confirm_by_content_diff`): the candidate codNota
-(among `codNota` and `title_candidates`) whose own DOF text best accounts
-for what actually changed between this snapshot and the previous one
+(among that date's `title_candidates`) whose own DOF text best accounts for
+what actually changed between this snapshot and the previous one
 (``content_diff_confirmed_codNota``, ``content_diff_score``) — only for
 candidates with digital DOF text; this fetches each candidate's own note
 via `dofjson` (caching it under ``--cache-notas``, on top of the titles
@@ -55,12 +55,12 @@ from pathlib import Path
 from nota2md import download_legal_provisions_provenance_ids
 from nota2md.builder import fetch_nota, legal_provisions
 from nota2md.scjn import (
-    agrupa_candidatos_por_fecha,
     confirm_by_content_diff,
-    cross_check_by_title_mention,
-    enlaza_historial,
+    enlaza_por_titulo,
     lee_cabecera,
     slug_instrumento,
+    title_candidates_por_fecha,
+    title_link_status,
     versiones_de_directorio,
 )
 
@@ -71,7 +71,7 @@ def carga_porf(titulos: Path) -> dict:
     """Every dofjson title record in `titulos` (a gzipped JSONL from
     `dofjson.download_legal_provisions_titles`), grouped by `fecha` — the
     same shape `leyesmx.dof.notas_por_fecha` builds, reused here as
-    `enlaza_historial`'s own `porf` argument."""
+    `title_candidates_por_fecha`'s own `porf` argument."""
     porf: dict[str, list] = {}
     with gzip.open(titulos, "rt", encoding="utf-8") as f:
         for linea in f:
@@ -123,14 +123,12 @@ def _texto_html(cod_nota: int, cache_dir: Path, cache: dict) -> str | None:
 
 
 def _confirmaciones_por_contenido(
-    versiones, enlazadas, verificaciones, cache_dir: Path, cache_notas: dict
+    versiones, candidatos_por_fecha: dict, cache_dir: Path, cache_notas: dict
 ):
     """One `nota2md.scjn.ContentDiffConfirmation` per `versiones` entry
-    (issue #127) — the candidate codNota set per date is the caller's own
-    union of #124/#126's signals (`nota2md.scjn.agrupa_candidatos_por_fecha`),
-    fetched lazily and cached via `_texto_html`."""
-    candidatos_por_fecha = agrupa_candidatos_por_fecha(enlazadas, verificaciones)
-
+    (issue #127), against `candidatos_por_fecha`
+    (`nota2md.scjn.title_candidates_por_fecha`'s own output — the same pool
+    `enlaza_por_titulo` used), fetched lazily and cached via `_texto_html`."""
     todos_los_candidatos = sorted({c for cs in candidatos_por_fecha.values() for c in cs})
     markdown_por_codNota = {}
     for cod in todos_los_candidatos:
@@ -158,24 +156,27 @@ def enlaza_coleccion(
         versiones = versiones_de_directorio(destino)
         if not versiones:
             continue
-        enlazadas = enlaza_historial(versiones, entrada["historial"], porf)
-        verificaciones = cross_check_by_title_mention(enlazadas, entrada["nombre"], porf)
+        candidatos_por_fecha = title_candidates_por_fecha(
+            (v.fecha_publicacion for v in versiones), entrada["nombre"], porf
+        )
+        enlazadas = enlaza_por_titulo(versiones, candidatos_por_fecha)
 
         confirmaciones = None
         if cache_notas_dir is not None:
             confirmaciones = _confirmaciones_por_contenido(
-                versiones, enlazadas, verificaciones, cache_notas_dir, cache_notas
+                versiones, candidatos_por_fecha, cache_notas_dir, cache_notas
             )
 
         indice = []
-        for idx, (v, chk) in enumerate(zip(enlazadas, verificaciones)):
+        for idx, v in enumerate(enlazadas):
+            candidatos_dia = candidatos_por_fecha.get(v.fecha_publicacion, [])
             entrada_indice = {
                 "archivo": v.archivo.name,
                 "fecha_publicacion": v.fecha_publicacion,
                 "codNota": v.codNota,
                 **_confianza(v.archivo),
-                "title_candidates": chk.title_candidates,
-                "title_check_status": chk.status,
+                "title_candidates": candidatos_dia,
+                "title_link_status": title_link_status(v.codNota, candidatos_dia),
             }
             if confirmaciones is not None:
                 entrada_indice["content_diff_confirmed_codNota"] = (
@@ -192,13 +193,14 @@ def enlaza_coleccion(
             f"{enlazados}/{len(enlazadas)} enlazadas",
             file=sys.stderr,
         )
-        for chk in verificaciones:
-            if chk.status == "disagreement":
+        for v in enlazadas:
+            candidatos_dia = candidatos_por_fecha.get(v.fecha_publicacion, [])
+            if v.codNota is None and len(candidatos_dia) > 1:
                 print(
-                    f"  aviso: {entrada['nombre']!r} {chk.fecha_publicacion}: "
-                    f"enlaza_historial dice codNota={chk.historial_match}, pero el "
-                    f"titulo de codNota={chk.title_candidates[0]} tambien menciona "
-                    "el nombre explicitamente — revisar a mano (issue #115/#126)",
+                    f"  aviso: {entrada['nombre']!r} {v.fecha_publicacion}: "
+                    f"varios codNota mencionan el nombre ese dia ({candidatos_dia}) — "
+                    "ninguno se enlaza por titulo solo, revisar a mano o esperar el "
+                    "diff de contenido (issue #115/#126/#127)",
                     file=sys.stderr,
                 )
 
@@ -222,7 +224,7 @@ def main(argv=None) -> int:
     p.add_argument(
         "--content-diff", action="store_true",
         help=(
-            "ademas del enlace por historial y por titulo, confirma por diff de "
+            "ademas del enlace por titulo, confirma por diff de "
             "contenido (issue #127) — descarga y cachea el texto DOF de cada "
             "candidato via dofjson, asi que agrega llamadas de red; requiere "
             "--cache-notas"

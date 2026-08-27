@@ -727,19 +727,24 @@ def descarga_ordenamiento(
     return list(reversed(escritos))
 
 
-# --- Fase 2: match each snapshot to the codNota that published it ------
+# --- issue #123/#126: match each snapshot to the codNota that published it,
+# by title mention alone --------------------------------------------------
 #
 # `descarga_ordenamiento` only knows the SCJN's own view of an instrument: a
 # publication date per snapshot, nothing that ties back to a DOF `codNota`.
-# `download_legal_provisions_provenance_ids` already knows the other half —
-# an instrument's own `historial`, the `codNota` of every reform it is known
-# to have, oldest first — so pairing the two by date recovers the missing
-# link, the same way leyesmx.dof.enlaza_agrupadas pairs a Diputados decree
-# with the DOF note that published it. This is a narrower problem than that
-# one: the instrument is already fixed (crawled by its own name), so there is
-# no title to compare — only whether a candidate codNota is actually part of
-# *this* instrument's own historial, and, when several share one date (see
-# issue #105 Fase 0 findings 3-4), which one.
+# Issue #105's original design paired that date against Diputados'
+# `historial` (`download_legal_provisions_provenance_ids`'s own list of
+# codNota for the instrument) — but issue #123's corrected goal is for the
+# SCJN, plus the DOF's own title dataset, to be the *only* source once an
+# instrument's `nombre` has picked which one to crawl: `historial` is never
+# consulted here, not even as a tie-breaker or a fallback. The only thing
+# borrowed from Diputados is `nombre` itself, used for two things: searching
+# the SCJN (`buscar`) and, here, testing which same-day DOF note's own title
+# actually names the instrument. Two SCJN-dated snapshots can share a
+# `fecha_publicacion` (issue #105's Fase 0 found up to 4 on the CPEUM alone),
+# so this also has to resolve same-day exclusivity: once an earlier snapshot
+# of that date has claimed a candidate, a later one sharing the date never
+# claims it again.
 
 
 def _fecha(cadena: str) -> datetime:
@@ -801,83 +806,6 @@ def versiones_de_directorio(outdir: Path) -> list[VersionInstrumento]:
     return sorted(versiones, key=lambda v: (_fecha(v.fecha_publicacion), _orden_repeticion(v)))
 
 
-@dataclass
-class VersionEnlazada:
-    """One SCJN snapshot together with the `codNota` of the DOF note that
-    published it, when that note is confirmed to be part of this
-    instrument's own historial — `codNota` is None when no such note was
-    found for its date."""
-
-    fecha_publicacion: str
-    codNota: int | None
-    archivo: Path
-
-
-def enlaza_historial(
-    versiones: list[VersionInstrumento], historial: list[int], porf: dict
-) -> list[VersionEnlazada]:
-    """Pair every SCJN snapshot of one instrument with the codNota of the DOF
-    note that published it.
-
-    `historial` is this instrument's own `historial` from
-    `download_legal_provisions_provenance_ids`'s entry for it — the codNota
-    it is already known to have, oldest first. `porf` groups by fecha every
-    dofjson title record worth considering (see
-    `leyesmx.dof.notas_por_fecha` / `dofjson.download_legal_provisions_titles`)
-    — it only needs to cover the dates `versiones` themselves carry, and it
-    is fine for it to hold notes unrelated to this instrument: only a
-    candidate that is also in `historial` is ever actually linked, so an
-    unrelated same-day note never gets mistaken for this instrument's own.
-
-    A date with no candidate at all (or whose only candidates already belong
-    to another of this instrument's own snapshots, or aren't in `historial`)
-    comes back with `codNota=None`, not dropped: a missing link is a fact
-    about the source worth surfacing, not an error — same rule
-    `enlaza_agrupadas` follows.
-
-    When more than one of `historial`'s codNota share a date — issue #105's
-    Fase 0 found up to 4 same-day reforms on the CPEUM — there is no title to
-    break the tie with, so it is resolved positionally instead: both
-    `versiones` and `historial` are already oldest-first, so the Nth
-    snapshot of a repeated date claims the Nth (still unclaimed) codNota of
-    that date. A historial codNota left over after every same-date snapshot
-    has claimed one (Fase 0 finding 4: a treaty's historial can list more
-    codNota than the SCJN kept snapshots for) is simply never claimed.
-    """
-    orden_historial = {cod: i for i, cod in enumerate(historial)}
-    en_historial = set(historial)
-    usados: set[int] = set()
-    enlazadas = []
-    for version in versiones:
-        candidatos = sorted(
-            (
-                n["codNota"]
-                for n in porf.get(version.fecha_publicacion, [])
-                if n["codNota"] in en_historial and n["codNota"] not in usados
-            ),
-            key=lambda cod: orden_historial[cod],
-        )
-        cod = candidatos[0] if candidatos else None
-        if cod is not None:
-            usados.add(cod)
-        enlazadas.append(VersionEnlazada(version.fecha_publicacion, cod, version.archivo))
-    return enlazadas
-
-
-# --- issue #126: cross-validate the historial-based link by title mention --
-#
-# `enlaza_historial` only ever checks that a same-day codNota is *in* the
-# instrument's own Diputados historial — issue #115's Hallazgo C is exactly
-# the case that leaves unguarded: a wrong SCJN document whose date happens to
-# line up with the correct historial links just as confidently as a right
-# one, with nothing in the resulting percentage to tell the two apart. The
-# check below is independent of Diputados' historial entirely: for the same
-# date, does some other candidate codNota's own *title* explicitly name this
-# instrument? That is a second source of truth that can confirm a link
-# `enlaza_historial` already made, surface one it missed, or — the case this
-# exists for — flag a date where the two disagree, for a human to look at
-# (issue #115's own ask), instead of either one silently overriding the other.
-
 _TITLE_MEANINGFUL_WORD = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]{4,}")
 
 
@@ -892,13 +820,13 @@ def _title_mentions_name(nombre: str, titulo: str) -> bool:
     import, since nota2md carries no dependency on leyesmx.
 
     A `nombre` left with fewer than 2 meaningful words (e.g. "LEY de
-    Amparo" — only "Amparo" survives the filter) never counts as
-    mentioned, even when that lone word does appear: a single common legal
-    term is too weak a signal on its own, and would otherwise turn this
-    into a blanket keyword search matching any unrelated same-day note that
-    happens to use it in passing. Those instruments simply get no
-    cross-check from this function (`cross_check_by_title_mention` reports
-    `status="none"` for them) rather than an unreliable one."""
+    Amparo" — only "Amparo" survives the filter) never counts as mentioned,
+    even when that lone word does appear: a single common legal term is too
+    weak a signal on its own, and would otherwise turn this into a blanket
+    keyword search matching any unrelated same-day note that happens to use
+    it in passing. Those instruments simply get no candidate at all from
+    `title_candidates_por_fecha` (`status="none"`) rather than an unreliable
+    one."""
     palabras = _TITLE_MEANINGFUL_WORD.findall(_normaliza(nombre))
     if len(palabras) < 2:
         return False
@@ -906,68 +834,95 @@ def _title_mentions_name(nombre: str, titulo: str) -> bool:
     return all(palabra in titulo_normalizado for palabra in palabras)
 
 
+def title_candidates_por_fecha(fechas, nombre: str, porf: dict) -> dict[str, list[int]]:
+    """Every same-day DOF codNota whose own title explicitly names `nombre`
+    (`_title_mentions_name`), grouped by `fecha_publicacion` — the *only*
+    source of candidate codNota this module uses for a reform's own link
+    (issue #123's corrected design: Diputados' `historial` is never
+    consulted, here or anywhere downstream of it). `fechas` only needs to
+    cover the dates actually worth checking (typically the ones
+    `versiones_de_directorio` returns for this instrument); `porf` groups by
+    fecha every dofjson title record worth considering (see
+    `leyesmx.dof.notas_por_fecha` / `dofjson.download_legal_provisions_titles`).
+
+    A date absent from `porf` entirely comes back with an empty candidate
+    list, same as a date where no same-day note mentions the name — both
+    read downstream as "nothing to link this date", not an error."""
+    return {
+        fecha: sorted(
+            n["codNota"] for n in porf.get(fecha, []) if _title_mentions_name(nombre, n["titulo"])
+        )
+        for fecha in dict.fromkeys(fechas)
+    }
+
+
 @dataclass
-class TitleMentionCheck:
-    """One SCJN-dated snapshot's independent cross-check of its
-    `enlaza_historial` link, by explicit mention of the instrument's own name
-    in a candidate codNota's title (issue #126) — a second source of truth
-    that does not depend on whether that codNota happens to sit in
-    Diputados' own historial.
-
-    `title_candidates` is every same-day codNota whose own title explicitly
-    names the instrument (see `_title_mentions_name`), oldest source order
-    not implied — just the raw list, since more than one such candidate on
-    one date is itself a fact worth keeping, not resolving by guesswork.
-
-    `status` is one of:
-    - "confirmed": exactly one title candidate, and it is `historial_match`.
-    - "disagreement": exactly one title candidate, `historial_match` is
-      known, and they differ — issue #115's own case: the historial-based
-      link may be the wrong document, or the title-mentioning note may be
-      an unrelated same-day coincidence; either way, worth a human's look.
-    - "revealed": exactly one title candidate, but `historial_match` is
-      None — a link the historial-based method missed entirely.
-    - "ambiguous": more than one title candidate; none can be preferred by
-      title alone, so none is chosen.
-    - "none": no candidate that day mentions the instrument's name at all.
-    """
+class VersionEnlazada:
+    """One SCJN snapshot together with the `codNota` of the DOF note that
+    published it, when `title_candidates_por_fecha` left exactly one
+    same-day candidate for its date and no earlier same-day snapshot has
+    already claimed it (`enlaza_por_titulo`) — `codNota` is None otherwise
+    (no candidate, more than one, or already claimed), left for issue #127's
+    content diff to resolve when it can."""
 
     fecha_publicacion: str
-    historial_match: int | None
-    title_candidates: list[int]
-    status: str
+    codNota: int | None
+    archivo: Path
 
 
-def cross_check_by_title_mention(
-    enlazadas: list[VersionEnlazada], nombre: str, porf: dict
-) -> list[TitleMentionCheck]:
-    """`enlazadas` (already-linked snapshots from `enlaza_historial`), each
-    with its own independent `TitleMentionCheck` — see that dataclass for
-    what `status` means. `nombre` is the instrument's own catalogue name
-    (the same argument `descarga_ordenamiento`/`buscar` were called with);
-    `porf` is the same date-grouped dofjson title records `enlaza_historial`
-    itself takes."""
-    resultados = []
-    for version in enlazadas:
+def enlaza_por_titulo(
+    versiones: list[VersionInstrumento], candidatos_por_fecha: dict[str, list[int]]
+) -> list[VersionEnlazada]:
+    """Pair every SCJN snapshot of one instrument with the codNota of the DOF
+    note that published it, using only `candidatos_por_fecha`
+    (`title_candidates_por_fecha`'s own output) — Diputados' historial is
+    never consulted, here or anywhere in this module.
+
+    A date whose candidate pool (after excluding any codNota already claimed
+    by an earlier same-day snapshot) is empty or has more than one entry
+    comes back with `codNota=None`: title mention alone cannot pick a winner
+    without risking a wrong pick, and a missing link is a fact about the
+    source worth surfacing, not an error.
+
+    When two snapshots share a date and its pool has exactly one candidate
+    (issue #105's Fase 0 found up to 4 same-day reforms on the CPEUM), only
+    the first — `versiones` is already oldest-first — claims it; the second
+    sees an empty remaining pool and stays unlinked, the same same-date
+    exclusivity `confirm_by_content_diff` (#127) already enforces on its own
+    `usados_por_fecha`."""
+    usados: set[int] = set()
+    enlazadas = []
+    for version in versiones:
         candidatos = [
-            n["codNota"]
-            for n in porf.get(version.fecha_publicacion, [])
-            if _title_mentions_name(nombre, n["titulo"])
+            cod
+            for cod in candidatos_por_fecha.get(version.fecha_publicacion, [])
+            if cod not in usados
         ]
-        if not candidatos:
-            status = "none"
-        elif len(candidatos) > 1:
-            status = "ambiguous"
-        elif version.codNota is None:
-            status = "revealed"
-        elif candidatos[0] == version.codNota:
-            status = "confirmed"
-        else:
-            status = "disagreement"
-        resultados.append(
-            TitleMentionCheck(version.fecha_publicacion, version.codNota, candidatos, status)
-        )
-    return resultados
+        cod = candidatos[0] if len(candidatos) == 1 else None
+        if cod is not None:
+            usados.add(cod)
+        enlazadas.append(VersionEnlazada(version.fecha_publicacion, cod, version.archivo))
+    return enlazadas
+
+
+def title_link_status(codNota: int | None, candidatos: list[int]) -> str:
+    """How `enlaza_por_titulo` resolved one snapshot's own date, for
+    `indice.json`/manual audit:
+
+    - "linked": it has a `codNota`.
+    - "none": no same-day candidate names the instrument at all.
+    - "claimed": the date's one candidate was already taken by an earlier
+      same-day snapshot.
+    - "ambiguous": more than one same-day candidate names the instrument,
+      with nothing but content diff (#127) able to break the tie.
+    """
+    if codNota is not None:
+        return "linked"
+    if not candidatos:
+        return "none"
+    if len(candidatos) == 1:
+        return "claimed"
+    return "ambiguous"
 
 
 # --- issue #127: confirm the reform-codNota link by content diff ----------
@@ -1068,27 +1023,6 @@ class ContentDiffConfirmation:
     score: float | None
 
 
-def agrupa_candidatos_por_fecha(
-    enlazadas: list[VersionEnlazada], verificaciones: list[TitleMentionCheck]
-) -> dict[str, list[int]]:
-    """The per-date candidate codNota pool `confirm_by_content_diff`'s own
-    `candidatos_por_fecha` argument should hold — for every date, the union
-    of `enlaza_historial`'s own `codNota` and `cross_check_by_title_mention`'s
-    `title_candidates`, across every `enlazadas`/`verificaciones` entry that
-    shares that date, not just one of them: more than one SCJN snapshot can
-    share a `fecha_publicacion` (`enlaza_historial`'s own docstring: up to 4
-    on the CPEUM alone), and losing one entry's own candidates here would
-    silently reintroduce the exact same-day ambiguity this sub-issue (#127)
-    exists to resolve."""
-    resultado: dict[str, set[int]] = {}
-    for v, chk in zip(enlazadas, verificaciones):
-        candidatos = set(chk.title_candidates)
-        if v.codNota is not None:
-            candidatos.add(v.codNota)
-        resultado.setdefault(v.fecha_publicacion, set()).update(candidatos)
-    return {fecha: sorted(cods) for fecha, cods in resultado.items()}
-
-
 def confirm_by_content_diff(
     versiones: list[VersionInstrumento],
     candidatos_por_fecha: dict[str, list[int]],
@@ -1096,29 +1030,29 @@ def confirm_by_content_diff(
 ) -> list[ContentDiffConfirmation]:
     """One `ContentDiffConfirmation` per entry of `versiones` (oldest first,
     as `versiones_de_directorio` already returns them) — always the same
-    length, so a caller can `zip` this against `versiones`/`enlaza_historial`/
-    `cross_check_by_title_mention`'s own per-version results.
+    length, so a caller can `zip` this against `versiones`/`enlaza_por_titulo`'s
+    own per-version results.
 
     `candidatos_por_fecha` is every codNota worth checking for a given
-    `fecha_publicacion` — the caller's own union of #124/#126's signals
-    (typically `enlaza_historial`'s `codNota` plus `cross_check_by_title_mention`'s
-    `title_candidates`, deduplicated). `markdown_por_codNota` is each of
-    those candidates' own DOF Markdown, already fetched by the caller
-    (never fetched here — this module does no network I/O) and present
-    only for candidates that actually have digital text; a candidate absent
-    from it is simply skipped, not treated as disqualifying.
+    `fecha_publicacion` — typically `title_candidates_por_fecha`'s own
+    output (issue #126), the same dict `enlaza_por_titulo` itself takes.
+    `markdown_por_codNota` is each of those candidates' own DOF Markdown,
+    already fetched by the caller (never fetched here — this module does no
+    network I/O) and present only for candidates that actually have digital
+    text; a candidate absent from it is simply skipped, not treated as
+    disqualifying.
 
     Two snapshots can share a `fecha_publicacion` (up to 4 on the CPEUM
-    alone, per `enlaza_historial`'s own docstring) — a codNota already
+    alone, per `enlaza_por_titulo`'s own docstring) — a codNota already
     confirmed for an earlier same-day entry is excluded from every later
     one sharing that date, the same one-codNota-per-snapshot exclusivity
-    `enlaza_historial` itself already enforces via its own `usados` set.
+    `enlaza_por_titulo` itself already enforces via its own `usados` set.
     Without this, two distinct same-day reforms with genuinely overlapping
     decree text (confirmed live on `ccf`'s 27-12-1983, two companion
     decrees both amending the Código Civil and Código de Procedimientos
     Civiles) can otherwise both score highest against the same one
     candidate, silently claiming it twice and discarding the other
-    snapshot's own already-correct historial-based link for no reason.
+    snapshot's own already-correct title-based link for no reason.
     """
     if not versiones:
         return []
@@ -1185,7 +1119,7 @@ def download_scjn_leyes_corpus(timeout: int = 60) -> list[dict]:
     packaged, each as ``{"slug": ..., "snapshots": [...]}`` — one entry per
     snapshot, each carrying its own `indice.json` fields (`fecha_publicacion`,
     `codNota`, `ratio_similitud`, `sospechoso`, `title_candidates`,
-    `title_check_status`, `content_diff_confirmed_codNota`,
+    `title_link_status`, `content_diff_confirmed_codNota`,
     `content_diff_score`) plus its own Markdown body as `markdown`.
 
     An instrument crawled but never linked (`scripts/enlaza_scjn_legislacion.py`

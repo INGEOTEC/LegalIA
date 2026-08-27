@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Offline audit of the corpus `fetch_scjn_legislacion.py` already crawled —
-issue #115's "Hallazgo C": `enlaza_historial` (Fase 2) only checks that a
-snapshot's date is in the right instrument's `historial`, never that the
-document itself really is that instrument. A wrong document whose date
-happens to line up with the correct `historial` links just fine, with no
-sign of the mistake in any enlazamiento percentage.
+issue #115's "Hallazgo C": Fase 2's original `enlaza_historial` only checked
+that a snapshot's date was in the right instrument's Diputados `historial`,
+never that the document itself really was that instrument. A wrong document
+whose date happened to line up with the correct `historial` linked just
+fine, with no sign of the mistake in any enlazamiento percentage — issue
+#123 later replaced that design with `nota2md.scjn.enlaza_por_titulo`
+(matching only by same-day title mention, never by `historial`), but this
+offline audit — recomputing `elige_candidato`'s own guards against an
+already-crawled corpus — is unaffected by which linking function runs
+afterwards.
 
 This never re-crawls the SCJN. The title `elige_candidato` chose for each
 instrument is already sitting in the `ordenamiento:` field of every snapshot

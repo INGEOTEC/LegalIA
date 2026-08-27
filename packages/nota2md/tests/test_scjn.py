@@ -801,71 +801,96 @@ class TestVersionesDeDirectorio(unittest.TestCase):
             )
 
 
-class TestEnlazaHistorial(unittest.TestCase):
+class TestTitleCandidatesPorFecha(unittest.TestCase):
+    def test_agrupa_por_fecha_solo_los_codnota_cuyo_titulo_menciona_el_nombre(self):
+        porf = {
+            "22-01-1994": [
+                {"codNota": 100, "titulo": "DECRETO que reforma la Ley Federal del Trabajo"},
+                {"codNota": 999, "titulo": "DECRETO sobre otro asunto"},
+            ],
+        }
+
+        agrupado = scjn.title_candidates_por_fecha(
+            ["22-01-1994"], "Ley Federal del Trabajo", porf
+        )
+
+        self.assertEqual(agrupado, {"22-01-1994": [100]})
+
+    def test_una_fecha_sin_registros_en_porf_regresa_lista_vacia(self):
+        agrupado = scjn.title_candidates_por_fecha(["22-01-1994"], "Ley Federal del Trabajo", {})
+
+        self.assertEqual(agrupado, {"22-01-1994": []})
+
+    def test_no_repite_fechas_duplicadas_en_el_resultado(self):
+        porf = {"14-06-2024": [{"codNota": 100, "titulo": "Ley de Amnistia"}]}
+
+        agrupado = scjn.title_candidates_por_fecha(
+            ["14-06-2024", "14-06-2024"], "Ley de Amnistia", porf
+        )
+
+        self.assertEqual(list(agrupado.keys()), ["14-06-2024"])
+
+
+class TestEnlazaPorTitulo(unittest.TestCase):
     def _version(self, fecha: str, nombre: str = None) -> scjn.VersionInstrumento:
         return scjn.VersionInstrumento(fecha, Path(nombre or f"{fecha}.md"))
 
-    def test_enlaza_por_fecha_cuando_el_codnota_esta_en_el_historial(self):
+    def test_enlaza_cuando_hay_exactamente_un_candidato_esa_fecha(self):
         versiones = [self._version("22-01-1994"), self._version("14-06-2024")]
-        historial = [100, 200]
-        porf = {
-            "22-01-1994": [{"codNota": 100, "titulo": "x"}],
-            "14-06-2024": [{"codNota": 200, "titulo": "y"}],
-        }
+        candidatos_por_fecha = {"22-01-1994": [100], "14-06-2024": [200]}
 
-        enlazadas = scjn.enlaza_historial(versiones, historial, porf)
+        enlazadas = scjn.enlaza_por_titulo(versiones, candidatos_por_fecha)
 
         self.assertEqual([v.codNota for v in enlazadas], [100, 200])
 
     def test_deja_sin_enlazar_una_fecha_sin_candidato(self):
         versiones = [self._version("22-01-1994")]
 
-        enlazadas = scjn.enlaza_historial(versiones, [100], {})
+        enlazadas = scjn.enlaza_por_titulo(versiones, {})
 
         self.assertIsNone(enlazadas[0].codNota)
 
-    def test_no_enlaza_un_candidato_ajeno_al_historial_de_este_instrumento(self):
+    def test_deja_sin_enlazar_una_fecha_con_varios_candidatos_ambiguos(self):
+        # Sin historial que desempate, el titulo solo no puede elegir entre
+        # varios candidatos del mismo dia — issue #127's content diff es lo
+        # unico que puede resolver este caso.
         versiones = [self._version("22-01-1994")]
-        # The date has a note, but it belongs to some other instrument's reform.
-        porf = {"22-01-1994": [{"codNota": 999, "titulo": "otra ley"}]}
+        candidatos_por_fecha = {"22-01-1994": [100, 200]}
 
-        enlazadas = scjn.enlaza_historial(versiones, [100], porf)
+        enlazadas = scjn.enlaza_por_titulo(versiones, candidatos_por_fecha)
 
         self.assertIsNone(enlazadas[0].codNota)
 
-    def test_resuelve_fechas_repetidas_posicionalmente(self):
+    def test_el_primer_snapshot_del_dia_reclama_el_unico_candidato_y_el_segundo_queda_sin_enlazar(
+        self,
+    ):
+        # Dos snapshots de un mismo dia, pero el titulo solo revela un
+        # candidato para esa fecha: solo el primero (oldest-first) lo
+        # reclama, el segundo se queda sin enlazar en vez de reclamarlo
+        # tambien.
         versiones = [
             self._version("14-06-2024", "14-06-2024.md"),
             self._version("14-06-2024", "14-06-2024-2.md"),
         ]
-        historial = [100, 200]
-        porf = {
-            "14-06-2024": [
-                {"codNota": 100, "titulo": "a"},
-                {"codNota": 200, "titulo": "b"},
-            ]
-        }
+        candidatos_por_fecha = {"14-06-2024": [100]}
 
-        enlazadas = scjn.enlaza_historial(versiones, historial, porf)
+        enlazadas = scjn.enlaza_por_titulo(versiones, candidatos_por_fecha)
 
-        self.assertEqual([v.codNota for v in enlazadas], [100, 200])
+        self.assertEqual([v.codNota for v in enlazadas], [100, None])
 
-    def test_codnota_de_historial_sin_snapshot_correspondiente_queda_sin_reclamar(self):
-        # Issue #105 Fase 0 finding 4: a treaty's historial can list more
-        # codNota than the SCJN kept snapshots for.
-        versiones = [self._version("14-06-2024")]
-        historial = [100, 200]
-        porf = {
-            "14-06-2024": [
-                {"codNota": 100, "titulo": "a"},
-                {"codNota": 200, "titulo": "b"},
-            ]
-        }
 
-        enlazadas = scjn.enlaza_historial(versiones, historial, porf)
+class TestTitleLinkStatus(unittest.TestCase):
+    def test_enlazado_cuando_hay_codnota(self):
+        self.assertEqual(scjn.title_link_status(100, [100]), "linked")
 
-        self.assertEqual(len(enlazadas), 1)
-        self.assertEqual(enlazadas[0].codNota, 100)
+    def test_ninguno_sin_candidatos(self):
+        self.assertEqual(scjn.title_link_status(None, []), "none")
+
+    def test_reclamado_cuando_el_unico_candidato_ya_fue_tomado(self):
+        self.assertEqual(scjn.title_link_status(None, [100]), "claimed")
+
+    def test_ambiguo_con_varios_candidatos(self):
+        self.assertEqual(scjn.title_link_status(None, [100, 200]), "ambiguous")
 
 
 class TestTitleMentionsName(unittest.TestCase):
@@ -916,70 +941,6 @@ class TestTitleMentionsName(unittest.TestCase):
         )
 
 
-class TestCrossCheckByTitleMention(unittest.TestCase):
-    def _enlazada(self, fecha: str, codNota: int | None) -> scjn.VersionEnlazada:
-        return scjn.VersionEnlazada(fecha, codNota, Path(f"{fecha}.md"))
-
-    def test_confirmado_cuando_el_unico_candidato_por_titulo_es_el_del_historial(self):
-        enlazadas = [self._enlazada("22-01-1994", 100)]
-        porf = {"22-01-1994": [{"codNota": 100, "titulo": "Ley Federal del Trabajo"}]}
-
-        resultados = scjn.cross_check_by_title_mention(enlazadas, "Ley Federal del Trabajo", porf)
-
-        self.assertEqual(resultados[0].status, "confirmed")
-        self.assertEqual(resultados[0].title_candidates, [100])
-
-    def test_desacuerdo_cuando_el_candidato_por_titulo_difiere_del_historial(self):
-        # Issue #115 hallazgo C: el enlace por historial puede estar
-        # apuntando al documento equivocado — este es el caso que se debe
-        # dejar en evidencia, no resolver en silencio.
-        enlazadas = [self._enlazada("22-01-1994", 999)]
-        porf = {
-            "22-01-1994": [
-                {"codNota": 999, "titulo": "DECRETO sobre otro asunto"},
-                {"codNota": 100, "titulo": "DECRETO que reforma la Ley Federal del Trabajo"},
-            ]
-        }
-
-        resultados = scjn.cross_check_by_title_mention(enlazadas, "Ley Federal del Trabajo", porf)
-
-        self.assertEqual(resultados[0].status, "disagreement")
-        self.assertEqual(resultados[0].historial_match, 999)
-        self.assertEqual(resultados[0].title_candidates, [100])
-
-    def test_revelado_cuando_el_historial_no_tenia_enlace_pero_el_titulo_si(self):
-        enlazadas = [self._enlazada("22-01-1994", None)]
-        porf = {"22-01-1994": [{"codNota": 100, "titulo": "Ley Federal del Trabajo"}]}
-
-        resultados = scjn.cross_check_by_title_mention(enlazadas, "Ley Federal del Trabajo", porf)
-
-        self.assertEqual(resultados[0].status, "revealed")
-        self.assertEqual(resultados[0].title_candidates, [100])
-
-    def test_ambiguo_cuando_varias_notas_del_dia_mencionan_el_nombre(self):
-        enlazadas = [self._enlazada("22-01-1994", 100)]
-        porf = {
-            "22-01-1994": [
-                {"codNota": 100, "titulo": "Ley Federal del Trabajo primer decreto"},
-                {"codNota": 200, "titulo": "Ley Federal del Trabajo segundo decreto"},
-            ]
-        }
-
-        resultados = scjn.cross_check_by_title_mention(enlazadas, "Ley Federal del Trabajo", porf)
-
-        self.assertEqual(resultados[0].status, "ambiguous")
-        self.assertEqual(sorted(resultados[0].title_candidates), [100, 200])
-
-    def test_ninguno_cuando_nada_ese_dia_menciona_el_nombre(self):
-        enlazadas = [self._enlazada("22-01-1994", 100)]
-        porf = {"22-01-1994": [{"codNota": 100, "titulo": "DECRETO sin relacion"}]}
-
-        resultados = scjn.cross_check_by_title_mention(enlazadas, "Ley Federal del Trabajo", porf)
-
-        self.assertEqual(resultados[0].status, "none")
-        self.assertEqual(resultados[0].title_candidates, [])
-
-
 class TestAddedBlocksYOverlapScore(unittest.TestCase):
     def test_detecta_un_parrafo_nuevo_entre_dos_versiones(self):
         anterior = "Articulo 1.- Texto original.\n\nArticulo 2.- Otro texto."
@@ -1021,39 +982,6 @@ class TestAddedBlocksYOverlapScore(unittest.TestCase):
         score_equivocado = scjn._overlap_score(agregados, candidato_equivocado)
 
         self.assertGreater(score_correcto, score_equivocado)
-
-
-class TestAgrupaCandidatosPorFecha(unittest.TestCase):
-    def _enlazada(self, fecha: str, codNota: int | None) -> scjn.VersionEnlazada:
-        return scjn.VersionEnlazada(fecha, codNota, Path(f"{fecha}.md"))
-
-    def _check(self, fecha: str, historial_match, title_candidates, status) -> scjn.TitleMentionCheck:
-        return scjn.TitleMentionCheck(fecha, historial_match, title_candidates, status)
-
-    def test_une_los_candidatos_de_dos_snapshots_que_comparten_fecha(self):
-        # Issue #105 Fase 0: hasta 4 reformas de la CPEUM comparten una
-        # misma fecha de publicacion — ninguna debe perder sus propios
-        # candidatos por culpa de la otra.
-        enlazadas = [
-            self._enlazada("14-06-2024", 1001),
-            self._enlazada("14-06-2024", 1002),
-        ]
-        verificaciones = [
-            self._check("14-06-2024", 1001, [2001], "confirmed"),
-            self._check("14-06-2024", 1002, [], "none"),
-        ]
-
-        agrupado = scjn.agrupa_candidatos_por_fecha(enlazadas, verificaciones)
-
-        self.assertEqual(agrupado["14-06-2024"], [1001, 1002, 2001])
-
-    def test_una_sola_version_por_fecha_no_pierde_su_propio_candidato(self):
-        enlazadas = [self._enlazada("22-01-1994", 100)]
-        verificaciones = [self._check("22-01-1994", 100, [], "none")]
-
-        agrupado = scjn.agrupa_candidatos_por_fecha(enlazadas, verificaciones)
-
-        self.assertEqual(agrupado, {"22-01-1994": [100]})
 
 
 class TestConfirmByContentDiff(unittest.TestCase):
@@ -1173,7 +1101,7 @@ class TestDownloadScjnLeyesCorpus(unittest.TestCase):
     def test_une_indice_con_el_markdown_de_cada_snapshot(self, mock_get):
         indice = [
             {"archivo": "22-01-1994.md", "codNota": 100, "ratio_similitud": 0.9,
-             "sospechoso": False, "title_candidates": [100], "title_check_status": "confirmed",
+             "sospechoso": False, "title_candidates": [100], "title_link_status": "linked",
              "content_diff_confirmed_codNota": None, "content_diff_score": None},
         ]
         contenido = _hacer_tgz({
@@ -1195,7 +1123,7 @@ class TestDownloadScjnLeyesCorpus(unittest.TestCase):
         self.assertEqual(len(resultado[0]["snapshots"]), 1)
         snap = resultado[0]["snapshots"][0]
         self.assertEqual(snap["codNota"], 100)
-        self.assertEqual(snap["title_check_status"], "confirmed")
+        self.assertEqual(snap["title_link_status"], "linked")
         self.assertEqual(snap["markdown"], "**TEXTO ORIGINAL.**")
 
     @patch("nota2md.scjn.requests.get")
