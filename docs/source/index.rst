@@ -19,10 +19,14 @@ the Mexican context. Its first target is the *Diario Oficial de la
 Federación* (DOF), Mexico's official gazette: more than 1.2 million legal
 provisions published without interruption since 1917.
 
-This site is the developer documentation — installation and the public API
-of each package. For the project's research-facing site (datasets, findings,
-worked examples), see `the LegalIA website
-<https://ingeotec.github.io/LegalIA/>`_.
+**This site is developer documentation**: how each package's code is put
+together, and its full API — public and private — for anyone extending or
+debugging it. It is not a usage guide; for that (installing and using a
+package as-is, worked examples, datasets, findings) see `the LegalIA website
+<https://ingeotec.github.io/LegalIA/>`_, including
+`website/pages/dof2md.ipynb
+<https://github.com/INGEOTEC/LegalIA/blob/master/website/pages/dof2md.ipynb>`_
+for ``dof2md`` specifically.
 
 Each package under ``packages/<name>/`` has its own ``pyproject.toml``,
 version, and PyPI release, and builds on the ones before it in this read
@@ -32,8 +36,8 @@ moment; ``dofjson``, ``nota2md`` and ``leyesmx`` get their own page once each
 is similarly stable (see `issue #119
 <https://github.com/INGEOTEC/LegalIA/issues/119>`_).
 
-Quickstart: dof2md
-===================
+dof2md's architecture
+======================
 
 :py:mod:`dof2md` converts a PDF or a set of scanned page images to Markdown
 via OCR (`mineru <https://github.com/opendatalab/MinerU>`_). It has no
@@ -41,52 +45,52 @@ notion of a "note"/legal provision, and no download of its own — getting a
 whole DOF edition's PDF by date and edition is
 :py:func:`dofjson.download_edicion_pdf`'s job.
 
-Installing dof2md
-^^^^^^^^^^^^^^^^^^
+Both entry points — the ``dof2md`` command line (:py:mod:`dof2md.cli`) and
+:py:class:`~dof2md.BatchConverter` (:py:mod:`dof2md.batch`) used directly
+from Python — go through the same pipeline below.
+:py:class:`~dof2md.mineru_server.MineruServer` keeps a single ``mineru-api``
+process warm across a batch instead of paying its startup cost per document;
+:py:mod:`dof2md.converter` shells out to it, :py:mod:`dof2md.tables`
+rewrites mineru's raw HTML table fallback into Markdown tables, and
+:py:mod:`dof2md.cutter` optionally crops the result down to one note by
+title.
 
-.. code-block:: bash
+.. graphviz::
+   :alt: dof2md's conversion pipeline, from entry points to Markdown output.
 
-    pip install -e ".[test]"
+   digraph dof2md_flow {
+       rankdir=LR;
+       fontname="sans-serif";
+       node [fontname="sans-serif", fontsize=11, shape=box, style="rounded,filled",
+             fillcolor="#f4f4f4", color="#888888"];
+       edge [fontname="sans-serif", fontsize=9, color="#888888"];
 
-Converting a document
-^^^^^^^^^^^^^^^^^^^^^^
+       cli [label="cli.py\n(dof2md command)"];
+       batch [label="batch.py\nBatchConverter"];
+       server [label="mineru_server.py\nMineruServer"];
+       mineru [label="mineru CLI\n(external OCR/layout)", style="rounded,dashed", fillcolor="#ffffff"];
+       converter [label="converter.py\nconvert_to_markdown()\nconvert_images_to_markdown()"];
+       tables [label="tables.py\nhtml_tables_to_markdown()"];
+       cutter [label="cutter.py\ncut_markdown_by_titles()\n(optional, if titulo given)"];
+       output [label="Markdown output", shape=note, style=filled, fillcolor="#ffffff"];
 
-From the command line, ``dof2md`` takes exactly one input source — a local
-PDF or a set of local page images — and converts it to Markdown:
+       cli -> batch;
+       batch -> server [label="__enter__ / __exit__"];
+       server -> converter [label="MINERU_API_URL", style=dashed];
+       batch -> converter [label="__call__"];
+       converter -> mineru [label="subprocess"];
+       converter -> tables [label="rewrite HTML tables"];
+       tables -> batch [label="Markdown"];
+       batch -> cutter [label="titulo given"];
+       cutter -> output;
+       batch -> output [label="titulo omitted"];
+   }
 
-.. code-block:: bash
-
-    dof2md --pdf edicion.pdf   # a local PDF
-
-    dof2md --images pagina-1.jpg pagina-2.jpg \
-        --filename out.md      # scanned pages, in order
-
-From Python, :py:class:`~dof2md.BatchConverter` keeps a single ``mineru-api``
-server warm across a batch of documents instead of restarting it per
-document:
-
-.. code-block:: python
-
-    from dof2md import BatchConverter
-
-    jobs = [
-        ("a.pdf", "output", "a.md"),
-        (["b-p1.jpg", "b-p2.jpg"], "output", "b.md"),
-    ]
-
-    with BatchConverter() as convert:
-        for path_or_paths, outdir, filename in jobs:
-            convert(path_or_paths, outdir, filename)
-
-See :doc:`dof2md_api` for the full API, including title-based cropping down
-to a single note and mineru output-retention options.
-
-Running the tests
-^^^^^^^^^^^^^^^^^^
-
-.. code-block:: bash
-
-    pytest packages/dof2md -q
+See :doc:`dof2md_api` for the full module-by-module API, ordered to match
+the diagram above, including title-based cropping and mineru
+output-retention options. Usage examples (CLI, :py:class:`~dof2md.BatchConverter`)
+live on `the LegalIA website's dof2md page
+<https://ingeotec.github.io/LegalIA/>`_, not here.
 
 API
 ===
