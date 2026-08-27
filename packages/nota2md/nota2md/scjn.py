@@ -184,10 +184,12 @@ UMBRAL_CONFIANZA_SIMILITUD = 0.75
 def ratio_similitud(titulo: str, nombre: str) -> float:
     """How closely a candidate's own `titulo` matches the catalogue's
     `nombre` for it, accent/case/whitespace-insensitive — the same
-    `SequenceMatcher` ratio `elige_candidato` picks its winner by, exposed
-    so `scripts/audita_scjn_legislacion.py` can recompute it offline against
-    whatever `ordenamiento` a past crawl already saved to a snapshot's own
-    header, without needing to re-crawl anything.
+    `SequenceMatcher` ratio `elige_candidato` picks its winner by, and that
+    `_cabecera` recomputes to decide whether `nombre_buscado` is worth
+    writing (issue #132). Exposed too so `scripts/empaqueta_scjn_leyes.py`
+    can classify an already-crawled snapshot's confidence offline, against
+    whatever `ordenamiento` a past crawl already saved to its own header,
+    without needing to re-crawl anything.
 
     A renamed ordenamiento's SCJN title also carries its own former name, as
     a trailing ``-ANTES <título anterior>-`` (confirmed live re-crawling
@@ -768,20 +770,29 @@ def _cabecera(candidato: Candidato, fila: FilaReforma, nombre_buscado: str) -> s
     mistaken for Markdown built from the DOF's own notes (see the module
     docstring). `ratio_similitud`/`sospechoso` (issue #115) record how
     confident `elige_candidato` was that `candidato` is genuinely the
-    instrument that was searched for, so a later audit
-    (`scripts/audita_scjn_legislacion.py`) can prioritize review without
-    recomputing anything the crawl already knows.
+    instrument that was searched for.
 
     `nombre_buscado` is the exact `nombre` `descarga_ordenamiento` was called
     with — the SCJN's own search has no fixed per-document URL (its `?q=`
     token is scoped to the session that generated it, see the module
     docstring), so this and `ordenamiento` together are the only way to
     reproduce by hand, later, how this particular file was reached (issue
-    #124)."""
+    #124). Written only when `ratio_similitud(candidato.titulo,
+    nombre_buscado) < 1.0` — i.e. when the title `elige_candidato` picked is
+    not, after normalizing (accents/case/whitespace), identical to what was
+    searched for; when it is, `ordenamiento` alone already says everything
+    `nombre_buscado` would add. That makes the mere presence of
+    `nombre_buscado` in a snapshot the signal that its title is worth a
+    second look — `grep -l nombre_buscado: <coleccion>/**/*.md` finds it
+    directly, without needing `catalogo.json` or a separate offline pass
+    (issue #132, retiring `scripts/audita_scjn_legislacion.py`)."""
     lineas = [
         "---",
         "fuente: scjn",
-        f"nombre_buscado: {nombre_buscado}",
+    ]
+    if ratio_similitud(candidato.titulo, nombre_buscado) < 1.0:
+        lineas.append(f"nombre_buscado: {nombre_buscado}")
+    lineas += [
         f"ordenamiento: {candidato.titulo}",
         f"fecha_publicacion: {fila.fecha_publicacion}",
     ]
@@ -906,7 +917,10 @@ def lee_cabecera(archivo: Path) -> dict:
     snapshot's row had) — reading back a file a previous crawl run already
     wrote, without re-fetching it. `nombre_buscado` is absent on a file a
     crawl wrote before issue #124 added it, same as `ratio_similitud`/
-    `sospechoso` for issue #115."""
+    `sospechoso` for issue #115 — and, since issue #132, also absent on a
+    file whose `ordenamiento` was already identical to what was searched
+    for, which is not a missing field but `_cabecera` declining to write a
+    redundant one."""
     texto = archivo.read_text(encoding="utf-8")
     lineas = texto.split("\n")
     campos = {}

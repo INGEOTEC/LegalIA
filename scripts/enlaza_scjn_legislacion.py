@@ -106,8 +106,8 @@ def _confianza(archivo: Path) -> dict:
     `indice.json` so a packaging step can quarantine `sospechoso` entries
     without re-reading every snapshot file itself. Both come back `None`
     for a snapshot a crawl wrote before issue #115 added them — an older
-    corpus is not re-crawled just to backfill this; `audita_scjn_legislacion.py`
-    recomputes the ratio offline for exactly that case."""
+    corpus is not re-crawled just to backfill this; only `--reintenta`
+    (`fetch_scjn_legislacion.py`) does, by re-downloading the instrument."""
     campos = lee_cabecera(archivo)
     ratio = campos.get("ratio_similitud")
     return {

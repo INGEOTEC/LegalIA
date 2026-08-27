@@ -85,13 +85,12 @@ def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
 
 
 def _clasifica(nombre_catalogo: str, ordenamiento_guardado: str, ratio: float) -> str:
-    """The same #115 confidence classification `scripts/audita_scjn_legislacion.py`
-    already computes (`confiable`/`sospechoso`/`bajo_umbral`/`acuerdo_interno`/
-    `grupo_incompatible`) — kept as its own small copy, built from the same
-    public `nota2md.scjn` primitives that script uses, rather than importing
-    across scripts: there is no precedent for that in this repo, and the
-    logic itself is thin enough that duplicating it here is cheaper than
-    inventing a shared module for #128 alone."""
+    """The #115 confidence classification (`confiable`/`sospechoso`/
+    `bajo_umbral`/`acuerdo_interno`/`grupo_incompatible`), built from the
+    public `nota2md.scjn` primitives rather than importing it from another
+    script: there is no precedent for that in this repo, and the logic
+    itself is thin enough that a small copy here is cheaper than inventing a
+    shared module for #128 alone."""
     if es_acuerdo_interno(ordenamiento_guardado):
         return "acuerdo_interno"
     grupo_nombre = grupo_instrumento(nombre_catalogo)
