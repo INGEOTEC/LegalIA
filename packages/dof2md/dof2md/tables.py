@@ -38,6 +38,9 @@ class _TableParser(HTMLParser):
         self._cell_attrs: dict = {}
 
     def handle_starttag(self, tag, attrs):
+        """Open a new row on `<tr>`, a new cell (recording its attrs, for
+        rowspan/colspan) on `<td>`/`<th>`, and turn `<br>` inside a cell into
+        a space so wrapped lines don't run together."""
         tag = tag.lower()
         if tag == "tr":
             self._row = []
@@ -48,6 +51,8 @@ class _TableParser(HTMLParser):
             self._cell.append(" ")
 
     def handle_endtag(self, tag):
+        """Close the current cell into `self._row` on `</td>`/`</th>`, and
+        the current row into `self.rows` on `</tr>`."""
         tag = tag.lower()
         if tag in ("td", "th") and self._cell is not None and self._row is not None:
             self._row.append(("".join(self._cell), self._cell_attrs))
@@ -57,11 +62,14 @@ class _TableParser(HTMLParser):
             self._row = None
 
     def handle_data(self, data):
+        """Append text content to the currently-open cell, if any."""
         if self._cell is not None:
             self._cell.append(data)
 
 
 def _parse_rows(fragment: str) -> list[list[tuple[str, dict]]]:
+    """Parse a single ``<table>…</table>`` fragment into `_TableParser`'s row
+    structure."""
     parser = _TableParser()
     parser.feed(fragment)
     parser.close()
@@ -69,6 +77,8 @@ def _parse_rows(fragment: str) -> list[list[tuple[str, dict]]]:
 
 
 def _span(attrs: dict, name: str) -> int:
+    """Read `attrs[name]` (`rowspan`/`colspan`) as a positive int, defaulting
+    to 1 when it is missing or not a valid integer."""
     try:
         return max(1, int(attrs.get(name, 1)))
     except (TypeError, ValueError):
@@ -76,6 +86,8 @@ def _span(attrs: dict, name: str) -> int:
 
 
 def _clean_cell(text: str) -> str:
+    """Collapse a cell's whitespace to single spaces and escape `|` so it
+    can't be mistaken for a Markdown table column separator."""
     return re.sub(r"\s+", " ", text).strip().replace("|", r"\|")
 
 
@@ -102,6 +114,8 @@ def _grid(rows: list[list[tuple[str, dict]]]) -> list[list[str]]:
 
 
 def _render(rows: list[list[tuple[str, dict]]]) -> str:
+    """Render `_grid(rows)` as a GitHub Markdown table (first row as the
+    header), or `""` if the table has no rows/columns."""
     grid = _grid(rows)
     if not grid or not grid[0]:
         return ""
