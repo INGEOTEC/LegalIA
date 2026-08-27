@@ -834,9 +834,29 @@ def _title_mentions_name(nombre: str, titulo: str) -> bool:
     return all(palabra in titulo_normalizado for palabra in palabras)
 
 
+_DECRETO_O_LEY = re.compile(r"^(?:decreto|ley)\b", re.I)
+
+
+def _title_opens_with_decreto_or_ley(titulo: str) -> bool:
+    """Whether `titulo`'s own first word is "DECRETO" or "LEY", case-
+    insensitive — the fallback `title_candidates_por_fecha` reaches for
+    when no same-day title names the instrument at all (`_title_mentions_name`
+    finds nothing). A reform decree does not always spell out every law it
+    amends in its own title: `ccf`'s 14-11-2025, "DECRETO por el que se
+    reforman diversas disposiciones de diversos ordenamientos legales, en
+    materia de homologación normativa relativa al Código Nacional de
+    Procedimientos Civiles y Familiares", reforms the Código Civil Federal in
+    its own artículo primero without "Código Civil Federal" ever appearing in
+    the title. But every DOF publication that actually reforms or enacts
+    something still opens with one of these two words, unlike an "ACUERDO"/
+    "AVISO"/"RESOLUCIÓN", which never is one — so a same-day note that opens
+    with neither is not worth considering even as a weak fallback."""
+    return bool(_DECRETO_O_LEY.match(titulo.strip()))
+
+
 def title_candidates_por_fecha(fechas, nombre: str, porf: dict) -> dict[str, list[int]]:
     """Every same-day DOF codNota whose own title explicitly names `nombre`
-    (`_title_mentions_name`), grouped by `fecha_publicacion` — the *only*
+    (`_title_mentions_name`), grouped by `fecha_publicacion` — the primary
     source of candidate codNota this module uses for a reform's own link
     (issue #123's corrected design: Diputados' `historial` is never
     consulted, here or anywhere downstream of it). `fechas` only needs to
@@ -845,15 +865,30 @@ def title_candidates_por_fecha(fechas, nombre: str, porf: dict) -> dict[str, lis
     fecha every dofjson title record worth considering (see
     `leyesmx.dof.notas_por_fecha` / `dofjson.download_legal_provisions_titles`).
 
+    When no same-day title names the instrument at all, this falls back to
+    every same-day codNota whose own title opens with "DECRETO" or "LEY"
+    (`_title_opens_with_decreto_or_ley`) — a reform's own title does not
+    always spell out every law it amends (see that helper's own docstring
+    for `ccf`'s 14-11-2025 case). The fallback only ever fills in an
+    otherwise-empty pool for a date; it never adds candidates on top of an
+    already-found explicit mention.
+
     A date absent from `porf` entirely comes back with an empty candidate
-    list, same as a date where no same-day note mentions the name — both
-    read downstream as "nothing to link this date", not an error."""
-    return {
-        fecha: sorted(
-            n["codNota"] for n in porf.get(fecha, []) if _title_mentions_name(nombre, n["titulo"])
+    list, same as a date where no same-day note mentions the name or opens
+    with DECRETO/LEY — both read downstream as "nothing to link this date",
+    not an error."""
+    resultado = {}
+    for fecha in dict.fromkeys(fechas):
+        notas_dia = porf.get(fecha, [])
+        candidatos = sorted(
+            n["codNota"] for n in notas_dia if _title_mentions_name(nombre, n["titulo"])
         )
-        for fecha in dict.fromkeys(fechas)
-    }
+        if not candidatos:
+            candidatos = sorted(
+                n["codNota"] for n in notas_dia if _title_opens_with_decreto_or_ley(n["titulo"])
+            )
+        resultado[fecha] = candidatos
+    return resultado
 
 
 @dataclass
