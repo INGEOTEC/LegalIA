@@ -668,7 +668,9 @@ class TestDescargaOrdenamiento(unittest.TestCase):
 
         original = escritos[0].read_text(encoding="utf-8")
         self.assertIn("fuente: scjn", original)
-        self.assertIn("nombre_buscado: Ley de Amnistia", original)
+        # "Ley de Amnistia" normalizes identical to "LEY DE AMNISTIA" -- ratio
+        # 1.0, so nombre_buscado is redundant with ordenamiento (issue #132).
+        self.assertNotIn("nombre_buscado:", original)
         self.assertIn("ordenamiento: LEY DE AMNISTIA", original)
         self.assertIn("fecha_publicacion: 22-01-1994", original)
         self.assertIn("categoria: LEY", original)
@@ -822,7 +824,30 @@ class TestDescargaOrdenamiento(unittest.TestCase):
 
 
 class TestCabecera(unittest.TestCase):
-    def test_incluye_el_nombre_buscado_junto_con_el_ordenamiento_elegido(self):
+    def test_incluye_el_nombre_buscado_cuando_difiere_del_ordenamiento_elegido(self):
+        candidato = scjn.Candidato(
+            titulo="LEY GENERAL DEL SISTEMA DE MEDIOS DE IMPUGNACION EN MATERIA ELECTORAL",
+            url="u", ambito="FEDERAL", vigencia="VIGENTE",
+        )
+        fila = scjn.FilaReforma(
+            fecha_publicacion="22-01-1994", fecha_expedicion=None, categoria=None,
+            url_docx="d",
+        )
+
+        cabecera = scjn._cabecera(
+            candidato, fila, "LEY General de los Medios de Impugnación en Materia Electoral"
+        )
+
+        self.assertIn(
+            "nombre_buscado: LEY General de los Medios de Impugnación en Materia Electoral",
+            cabecera,
+        )
+        self.assertIn(
+            "ordenamiento: LEY GENERAL DEL SISTEMA DE MEDIOS DE IMPUGNACION EN MATERIA ELECTORAL",
+            cabecera,
+        )
+
+    def test_omite_el_nombre_buscado_cuando_es_igual_al_ordenamiento_tras_normalizar(self):
         candidato = scjn.Candidato(
             titulo="LEY DE AMNISTIA", url="u", ambito="FEDERAL", vigencia="VIGENTE"
         )
@@ -831,9 +856,10 @@ class TestCabecera(unittest.TestCase):
             url_docx="d",
         )
 
+        # Differs only in case/accents from "titulo" -- ratio_similitud is 1.0.
         cabecera = scjn._cabecera(candidato, fila, "Ley de Amnistia")
 
-        self.assertIn("nombre_buscado: Ley de Amnistia", cabecera)
+        self.assertNotIn("nombre_buscado:", cabecera)
         self.assertIn("ordenamiento: LEY DE AMNISTIA", cabecera)
 
 
