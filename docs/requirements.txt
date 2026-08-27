@@ -6,3 +6,9 @@
 sphinx>=7
 furo
 requests>=2.31
+
+# sphinx.ext.graphviz (the architecture-flow diagram on the index page) is
+# built into Sphinx itself; it needs the `dot` binary on PATH at build time,
+# installed via build.apt_packages in .readthedocs.yaml. Chosen over
+# sphinxcontrib-mermaid so the rendered docs need no client-side JS/CDN to
+# display the diagram — dot renders it to inline SVG at build time.

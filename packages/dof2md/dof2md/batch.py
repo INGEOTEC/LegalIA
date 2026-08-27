@@ -38,9 +38,13 @@ class BatchConverter:
     """
 
     def __init__(self):
+        """Create an unstarted converter; call `__enter__` (or use as a
+        context manager) before calling it."""
         self._server: MineruServer | None = None
 
     def __enter__(self) -> "BatchConverter":
+        """Start a persistent `mineru-api` server, unless one is already
+        reachable via MINERU_API_URL, and return `self`."""
         import os
 
         if _MINERU_API_URL_ENV_VAR not in os.environ:
@@ -49,6 +53,7 @@ class BatchConverter:
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
+        """Stop the `mineru-api` server started by `__enter__`, if any."""
         if self._server is not None:
             self._server.stop()
             self._server = None
@@ -66,6 +71,15 @@ class BatchConverter:
         keep_mineru_output: bool = False,
         timeout: float = DEFAULT_TIMEOUT_SECONDS,
     ) -> Path:
+        """Convert one document — `path_or_paths` a single PDF path, or a
+        list of image paths for a document spanning several scanned pages —
+        to Markdown, written to `outdir/filename`, and return that path.
+
+        `titulo`/`titulo_siguiente`, `min_confidence` and `keep_pages` are
+        forwarded to `cutter.cut_markdown_by_titles` to crop the result down
+        to a single note; left as `None` (the default), the whole conversion
+        is kept as-is. `keep_mineru_output` and `timeout` are forwarded to
+        `converter.convert_to_markdown`/`convert_images_to_markdown`."""
         outdir = Path(outdir)
         outdir.mkdir(parents=True, exist_ok=True)
         dest = outdir / filename

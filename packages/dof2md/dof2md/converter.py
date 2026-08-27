@@ -1,3 +1,11 @@
+"""Shell out to mineru to OCR a PDF or a set of scanned page images into
+Markdown, then rewrite its raw HTML table fallback into Markdown tables (see
+dof2md.tables).
+
+Reuses an already-running mineru-api server via MINERU_API_URL when one is
+set (see dof2md.mineru_server), so a batch of documents shares one warm
+server instead of each call starting and stopping its own.
+"""
 import contextlib
 import os
 import shutil
@@ -33,6 +41,8 @@ def _mineru_out_dir(md_path: Path, keep_mineru_output: bool):
 
 
 def _require_mineru() -> None:
+    """Raise RuntimeError with an actionable message if the `mineru` CLI
+    isn't on PATH, instead of letting `subprocess.run` fail opaquely."""
     if shutil.which("mineru") is None:
         raise RuntimeError(
             "'mineru' is required to convert documents but isn't installed. "
