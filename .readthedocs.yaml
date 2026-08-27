@@ -1,0 +1,21 @@
+version: 2
+
+build:
+  os: "ubuntu-22.04"
+  tools:
+    python: "3.12"
+  jobs:
+    post_install:
+      # --no-deps: dof2md never imports mineru in-process (see
+      # docs/source/conf.py) — it only shells out to the mineru-api CLI —
+      # so pulling in the full mineru[pipeline] dependency (and its
+      # libgl1/opencv system dependency, see .github/workflows/test.yml)
+      # would only slow the docs build down for nothing.
+      - pip install --no-deps -e packages/dof2md
+
+sphinx:
+  configuration: docs/source/conf.py
+
+python:
+  install:
+    - requirements: docs/requirements.txt
