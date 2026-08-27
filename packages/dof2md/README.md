@@ -15,7 +15,6 @@ analysis itself; `dof2md`'s own contribution is:
 - Cropping the result down to a single note, by locating its title and the
   next note's title in the OCR'd text — useful because a scanned page
   usually holds the tail of one note and the head of the next.
-- Downloading a DOF edition's PDF directly, by date and edition.
 
 Part of the [LegalIA](https://github.com/INGEOTEC/LegalIA) monorepo.
 
@@ -29,35 +28,32 @@ pip install -e ".[test]"
 
 ### CLI
 
-`dof2md` takes exactly one input source — a date, a local PDF, or a set of
-local page images — and converts it to Markdown, unless `--download-only`
-is given with a date, in which case it stops after the download.
-
-Given a date, it downloads that edition's PDF from the DOF site and converts
-it:
-
-```bash
-dof2md 2010-01-05                     # morning edition (default)
-dof2md 2010-01-05 --edition VES       # evening edition
-dof2md 2010-01-05 --outdir my_folder  # output directory
-```
-
-`--download-only` stops after the download, without converting — useful
-when only the PDF itself is needed (e.g. to archive it, or convert it
-later with `--pdf`):
+`dof2md` takes exactly one input source — a local PDF or a set of local page
+images — and converts it to Markdown. It never downloads anything itself;
+get the PDF first (e.g. `dofjson.download_edicion_pdf` for a whole DOF
+edition by date and edition, see the
+[dofjson README](https://github.com/INGEOTEC/LegalIA/tree/master/packages/dofjson)),
+then convert it:
 
 ```bash
-dof2md 2010-01-05 --download-only     # writes only 05012010-MAT.pdf
+dof2md --pdf edicion.pdf   # a local PDF
+
+dof2md --images pagina-1.jpg pagina-2.jpg \
+    --filename out.md      # scanned pages, in order
 ```
 
-This writes `<date>-<edition>.pdf` and `<date>-<edition>.md` to the output
-directory. Since one edition's PDF holds every note published that day,
+`--filename` sets the output Markdown's name; with `--pdf` it defaults to
+the PDF's own name (`edicion.pdf` → `edicion.md`), but with `--images` it's
+required, since a set of images has no single name to derive one from.
+`--outdir` sets the output directory (default: `output/`).
+
+Since one edition's PDF holds every note published that day,
 `--titulo`/`--titulo-siguiente` crop the resulting Markdown down to just one
 note — its own title, and the next note's title, as they appear in the
 gazette's own index:
 
 ```bash
-dof2md 2010-01-05 \
+dof2md --pdf edicion.pdf \
     --titulo "ACUERDO por el que se..." \
     --titulo-siguiente "DECRETO por el que se..."
 ```
@@ -73,22 +69,6 @@ flags:
   rendered PDFs...) in `<outdir>/<pdf stem>_mineru/` instead of discarding
   it; useful when a conversion looks wrong and mineru's own read of the page
   is the first thing worth inspecting.
-
-A date always downloads from the DOF site; to convert a document you already
-have, use `--pdf` or `--images` instead — no download involved:
-
-```bash
-dof2md --pdf edicion.pdf   # a local PDF
-
-dof2md --images pagina-1.jpg pagina-2.jpg \
-    --filename out.md      # scanned pages, in order
-```
-
-`--filename` sets the output Markdown's name; with `--pdf` it defaults to
-the PDF's own name (`edicion.pdf` → `edicion.md`), but with `--images` it's
-required, since a set of images has no single name to derive one from.
-`--titulo`/`--titulo-siguiente` and the other flags above work the same way
-regardless of the input source.
 
 ### Python: batch conversion
 

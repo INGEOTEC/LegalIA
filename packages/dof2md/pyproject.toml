@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dof2md"
-description = "Download editions of Mexico's official gazette (DOF) as PDF and convert them to Markdown."
+description = "Convert a PDF or a set of scanned page images to Markdown via OCR."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 # 3.10 for the PEP 604 unions (`X | None`) the package evaluates at import:
