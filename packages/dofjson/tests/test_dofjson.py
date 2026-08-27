@@ -33,6 +33,7 @@ class TestApiDownloadEntryPoints(unittest.TestCase):
         "download_nota_imagenes",
         "download_nota_pdf",
         "download_nota_imagen_o_pdf",
+        "download_edicion_pdf",
     )
 
     def test_every_one_is_the_api_function_itself(self):

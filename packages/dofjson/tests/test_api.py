@@ -14,6 +14,7 @@ from dofjson.api import (
     FUENTE_SIDOF,
     RESPALDO_OPCIONES,
     consultar_respaldo,
+    download_edicion_pdf,
     download_nota,
     download_nota_imagen_o_pdf,
     download_nota_imagenes,
@@ -422,6 +423,106 @@ class TestConsultarRespaldo(unittest.TestCase):
 
     def test_options_are_exactly_the_three_documented(self):
         self.assertEqual(RESPALDO_OPCIONES, ("habiles", "todos", "nunca"))
+
+
+class TestDownloadEdicionPdf(unittest.TestCase):
+    FECHA = dt.date(2026, 7, 16)
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.outdir = Path(self.tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_diario")
+    def test_downloads_the_requested_edition(self, mock_get_diario, mock_download_pdf):
+        mock_get_diario.return_value = {
+            "messageCode": 200, "response": "OK", "Extraordinaria": None, "Vespertina": None,
+            "Matutina": [{"codDiario": 328525, "codSeccion": "UNICA"}],
+        }
+        mock_download_pdf.side_effect = lambda cod_diario, dest, **kw: dest.write_bytes(b"%PDF-edicion")
+
+        dest = download_edicion_pdf(self.FECHA, "MAT", self.outdir)
+
+        mock_get_diario.assert_called_once_with(self.FECHA)
+        mock_download_pdf.assert_called_once_with(328525, self.outdir / "edicion-328525.pdf", timeout=60)
+        self.assertEqual(dest, self.outdir / "edicion-328525.pdf")
+
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_diario")
+    def test_resolves_the_codDiario_shared_by_a_multi_section_edition(
+        self, mock_get_diario, mock_download_pdf
+    ):
+        mock_get_diario.return_value = {
+            "messageCode": 200, "response": "OK",
+            "Vespertina": [
+                {"codDiario": 281500, "codSeccion": "PRIMERA"},
+                {"codDiario": 281500, "codSeccion": "SEGUNDA"},
+            ],
+            "Matutina": None, "Extraordinaria": None,
+        }
+        mock_download_pdf.side_effect = lambda cod_diario, dest, **kw: dest.write_bytes(b"%PDF-edicion")
+
+        dest = download_edicion_pdf(self.FECHA, "VES", self.outdir)
+
+        mock_download_pdf.assert_called_once_with(281500, self.outdir / "edicion-281500.pdf", timeout=60)
+        self.assertEqual(dest, self.outdir / "edicion-281500.pdf")
+
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_diario")
+    def test_raises_when_the_requested_edition_was_not_published(
+        self, mock_get_diario, mock_download_pdf
+    ):
+        mock_get_diario.return_value = {
+            "messageCode": 200, "response": "OK", "Extraordinaria": None, "Vespertina": None,
+            "Matutina": [{"codDiario": 328525, "codSeccion": "UNICA"}],
+        }
+
+        with self.assertRaises(ValueError):
+            download_edicion_pdf(self.FECHA, "VES", self.outdir)
+        mock_download_pdf.assert_not_called()
+
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_diario")
+    def test_a_day_entirely_outside_sidof_coverage_raises_clearly(
+        self, mock_get_diario, mock_download_pdf
+    ):
+        # get_diario() 404s outright for a day with no edition at all (as
+        # opposed to an ordinary response with that one key null/missing).
+        response = Mock(status_code=404)
+        mock_get_diario.side_effect = requests.exceptions.HTTPError(response=response)
+
+        with self.assertRaises(ValueError):
+            download_edicion_pdf(self.FECHA, "MAT", self.outdir)
+        mock_download_pdf.assert_not_called()
+
+    @patch("dofjson.api.sidof.get_diario")
+    def test_a_non_404_http_error_propagates(self, mock_get_diario):
+        response = Mock(status_code=500)
+        mock_get_diario.side_effect = requests.exceptions.HTTPError(response=response)
+
+        with self.assertRaises(requests.exceptions.HTTPError):
+            download_edicion_pdf(self.FECHA, "MAT", self.outdir)
+
+    def test_rejects_an_unknown_edicion(self):
+        with self.assertRaises(ValueError):
+            download_edicion_pdf(self.FECHA, "XXX", self.outdir)
+
+    @patch("dofjson.api.sidof.download_pdf")
+    @patch("dofjson.api.sidof.get_diario")
+    def test_reuses_the_cached_edicion_across_calls(self, mock_get_diario, mock_download_pdf):
+        mock_get_diario.return_value = {
+            "Matutina": [{"codDiario": 328525, "codSeccion": "UNICA"}],
+            "Vespertina": None, "Extraordinaria": None,
+        }
+        mock_download_pdf.side_effect = lambda cod_diario, dest, **kw: dest.write_bytes(b"%PDF-edicion")
+
+        download_edicion_pdf(self.FECHA, "MAT", self.outdir)
+        download_edicion_pdf(self.FECHA, "MAT", self.outdir)
+
+        mock_download_pdf.assert_called_once()
 
 
 class TestResolverNotaGuardsAgainstDofwebOnlyNotes(unittest.TestCase):
