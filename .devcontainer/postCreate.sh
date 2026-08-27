@@ -18,7 +18,8 @@ sudo apt-get install -y --no-install-recommends \
 	libgbm1 \
 	libxkbcommon0 \
 	libasound2t64 \
-	fonts-liberation
+	fonts-liberation \
+	graphviz
 
 # Instalar GitHub CLI (gh) desde el repositorio oficial para tener la versión más reciente
 (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
