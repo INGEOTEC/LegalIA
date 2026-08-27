@@ -830,6 +830,64 @@ class TestTitleCandidatesPorFecha(unittest.TestCase):
 
         self.assertEqual(list(agrupado.keys()), ["14-06-2024"])
 
+    def test_recae_en_decreto_o_ley_del_dia_cuando_ninguna_mencion_explicita(self):
+        # ccf's 14-11-2025: the reforming decree's own title never spells
+        # out "Codigo Civil Federal" -- only its articulo primero does.
+        porf = {
+            "14-11-2025": [
+                {
+                    "codNota": 100,
+                    "titulo": (
+                        "DECRETO por el que se reforman diversas disposiciones de "
+                        "diversos ordenamientos legales, en materia de homologacion "
+                        "normativa relativa al Codigo Nacional de Procedimientos "
+                        "Civiles y Familiares"
+                    ),
+                },
+                {"codNota": 999, "titulo": "AVISO sobre otro asunto"},
+            ],
+        }
+
+        agrupado = scjn.title_candidates_por_fecha(["14-11-2025"], "Codigo Civil Federal", porf)
+
+        self.assertEqual(agrupado, {"14-11-2025": [100]})
+
+    def test_no_recae_en_el_respaldo_cuando_ya_hay_mencion_explicita(self):
+        porf = {
+            "22-01-1994": [
+                {"codNota": 100, "titulo": "DECRETO que reforma la Ley Federal del Trabajo"},
+                {"codNota": 200, "titulo": "LEY de otro ordenamiento"},
+            ],
+        }
+
+        agrupado = scjn.title_candidates_por_fecha(
+            ["22-01-1994"], "Ley Federal del Trabajo", porf
+        )
+
+        self.assertEqual(agrupado, {"22-01-1994": [100]})
+
+    def test_lista_vacia_cuando_tampoco_hay_decreto_o_ley_ese_dia(self):
+        porf = {"14-11-2025": [{"codNota": 999, "titulo": "AVISO sobre otro asunto"}]}
+
+        agrupado = scjn.title_candidates_por_fecha(["14-11-2025"], "Codigo Civil Federal", porf)
+
+        self.assertEqual(agrupado, {"14-11-2025": []})
+
+
+class TestTituloEmpiezaConDecretoOLey(unittest.TestCase):
+    def test_reconoce_decreto_case_insensible(self):
+        self.assertTrue(scjn._title_opens_with_decreto_or_ley("decreto por el que se reforma"))
+
+    def test_reconoce_ley(self):
+        self.assertTrue(scjn._title_opens_with_decreto_or_ley("LEY de Amparo"))
+
+    def test_no_reconoce_acuerdo(self):
+        self.assertFalse(scjn._title_opens_with_decreto_or_ley("ACUERDO por el que se emite"))
+
+    def test_no_se_deja_enganar_por_una_palabra_que_solo_empieza_igual(self):
+        # "LEYES" no es "LEY" -- el limite de palabra evita el falso positivo.
+        self.assertFalse(scjn._title_opens_with_decreto_or_ley("LEYES secundarias"))
+
 
 class TestEnlazaPorTitulo(unittest.TestCase):
     def _version(self, fecha: str, nombre: str = None) -> scjn.VersionInstrumento:

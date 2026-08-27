@@ -30,6 +30,10 @@ issue #115 confirmed by hand all fall in one of those two, or below
 `bajo_umbral`); `sospechoso` is the zone `elige_candidato` itself declines to
 resolve by text alone and flags for a human instead.
 
+Needs each requested collection's own ``catalogo.json`` (`extract_scjn_titles.py`)
+already written under ``<outdir>/<coleccion>/``:
+
+    ./scripts/extract_scjn_titles.py --outdir scjn-legislacion
     ./scripts/audita_scjn_legislacion.py --outdir scjn-legislacion
     ./scripts/audita_scjn_legislacion.py --outdir scjn-legislacion --coleccion tratados --json auditoria.json
 """
@@ -43,7 +47,6 @@ from pathlib import Path
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
 
-from nota2md import download_legal_provisions_provenance_ids  # noqa: E402
 from nota2md.scjn import (  # noqa: E402
     UMBRAL_CONFIANZA_SIMILITUD,
     UMBRAL_MINIMO_SIMILITUD,
@@ -56,6 +59,19 @@ from nota2md.scjn import (  # noqa: E402
 )
 
 COLECCIONES = ("leyes", "reglamentos", "tratados")
+
+
+def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
+    """The `nombre`(+`abrev`) catalogue `extract_scjn_titles.py` already
+    wrote for `coleccion` -- Diputados' `historial` never reaches this
+    script (issue #123)."""
+    archivo = outdir / coleccion / "catalogo.json"
+    if not archivo.is_file():
+        raise SystemExit(
+            f"{archivo} no existe -- corre primero "
+            f"./scripts/extract_scjn_titles.py --outdir {outdir} --coleccion {coleccion}"
+        )
+    return json.loads(archivo.read_text(encoding="utf-8"))
 
 
 @dataclass
@@ -91,7 +107,7 @@ def clasifica(nombre_catalogo: str, ordenamiento_guardado: str, ratio: float) ->
 
 
 def audita_coleccion(coleccion: str, outdir: Path) -> list[Hallazgo]:
-    instrumentos = download_legal_provisions_provenance_ids(coleccion)
+    instrumentos = _load_catalog(outdir, coleccion)
     print(f"{coleccion}: {len(instrumentos)} instrumento(s) en el catalogo", file=sys.stderr)
     hallazgos = []
     for entrada in instrumentos:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Crawl the SCJN Buscador for every ley, reglamento and tratado that
-`download_legal_provisions_provenance_ids` already knows about, and save each
+`extract_scjn_titles.py`'s own catalogue already knows about, and save each
 one's reform-dated snapshots as Markdown under
 ``<outdir>/<coleccion>/<abrev-o-nombre>/<fecha_publicacion>.md`` — Fase 1 of
 the crawl plan in issue #105.
@@ -41,6 +41,12 @@ elsewhere in this repo) — a single ley or reglamento search-then-detail-
 then-per-row walk cannot be parallelized across instruments either, since
 the SCJN scopes a detail page's own URL to the session that requested it.
 
+Needs each requested collection's own ``catalogo.json`` already written by
+``extract_scjn_titles.py`` under ``<outdir>/<coleccion>/`` (issue #123: this
+never calls `download_legal_provisions_provenance_ids` itself, so Diputados'
+`historial` never reaches it).
+
+    ./scripts/extract_scjn_titles.py --outdir scjn-legislacion
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion --coleccion tratados
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion --coleccion leyes \
@@ -56,10 +62,25 @@ import sys
 import time
 from pathlib import Path
 
-from nota2md import download_legal_provisions_provenance_ids
-from nota2md.scjn import descarga_ordenamiento, nueva_sesion, slug_instrumento
+# Run straight from a clone, without `pip install -e packages/nota2md` first.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
+
+from nota2md.scjn import descarga_ordenamiento, nueva_sesion, slug_instrumento  # noqa: E402
 
 COLECCIONES = ("leyes", "reglamentos", "tratados")
+
+
+def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
+    """The `nombre`(+`abrev`) catalogue `extract_scjn_titles.py` already
+    wrote for `coleccion` -- Diputados' `historial` never reaches this
+    script (issue #123)."""
+    archivo = outdir / coleccion / "catalogo.json"
+    if not archivo.is_file():
+        raise SystemExit(
+            f"{archivo} no existe -- corre primero "
+            f"./scripts/extract_scjn_titles.py --outdir {outdir} --coleccion {coleccion}"
+        )
+    return json.loads(archivo.read_text(encoding="utf-8"))
 
 
 def _archivo_progreso(outdir: Path, coleccion: str) -> Path:
@@ -67,10 +88,10 @@ def _archivo_progreso(outdir: Path, coleccion: str) -> Path:
 
 
 def _lee_progreso(outdir: Path, coleccion: str) -> int:
-    """The 1-based index (in `download_legal_provisions_provenance_ids`'s own
-    order) of the last instrumento a previous, interrupted run of
-    `coleccion` fully attempted — 0 when there is no checkpoint (first run,
-    or a collection that already finished and had its checkpoint cleared).
+    """The 1-based index (in `catalogo.json`'s own order, see `_load_catalog`)
+    of the last instrumento a previous, interrupted run of `coleccion` fully
+    attempted — 0 when there is no checkpoint (first run, or a collection
+    that already finished and had its checkpoint cleared).
     A malformed/unreadable checkpoint is treated the same as none, rather
     than raising: worst case a finished instrumento gets re-attempted, which
     `descarga_ordenamiento`'s own file-level skip already makes cheap."""
@@ -94,7 +115,7 @@ def rastrea_coleccion(
     reiniciar: bool = False,
     reintenta: set[str] | None = None,
 ) -> None:
-    instrumentos = download_legal_provisions_provenance_ids(coleccion)
+    instrumentos = _load_catalog(outdir, coleccion)
     print(f"{coleccion}: {len(instrumentos)} instrumento(s)", file=sys.stderr)
     if reintenta is not None:
         print(
