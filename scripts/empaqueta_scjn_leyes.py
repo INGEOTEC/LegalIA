@@ -36,6 +36,11 @@ carrying issue #115/#126/#127's confidence signals alongside each snapshot's
 `codNota`. An instrument crawled but not yet linked is still packaged (its
 raw snapshots, no `indice.json`) rather than held back; the manifest calls
 that out explicitly instead of hiding it.
+
+Needs `leyes`' own ``catalogo.json`` (`extract_scjn_titles.py`), already
+written under ``<outdir>/leyes/``, to list every instrument the Diputados
+catalogue names — including one never crawled at all (Fase 1 pendiente,
+issue #124), which the manifest lists rather than silently omits.
 """
 
 import argparse
@@ -52,7 +57,6 @@ from pathlib import Path
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
 
-from nota2md import download_legal_provisions_provenance_ids  # noqa: E402
 from nota2md.scjn import (  # noqa: E402
     UMBRAL_CONFIANZA_SIMILITUD,
     UMBRAL_MINIMO_SIMILITUD,
@@ -65,6 +69,19 @@ from nota2md.scjn import (  # noqa: E402
 )
 
 COLECCION = "leyes"
+
+
+def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
+    """The `nombre`(+`abrev`) catalogue `extract_scjn_titles.py` already
+    wrote for `coleccion` -- Diputados' `historial` never reaches this
+    script (issue #123)."""
+    archivo = outdir / coleccion / "catalogo.json"
+    if not archivo.is_file():
+        raise SystemExit(
+            f"{archivo} no existe -- corre primero "
+            f"./scripts/extract_scjn_titles.py --outdir {outdir} --coleccion {coleccion}"
+        )
+    return json.loads(archivo.read_text(encoding="utf-8"))
 
 
 def _clasifica(nombre_catalogo: str, ordenamiento_guardado: str, ratio: float) -> str:
@@ -112,7 +129,7 @@ def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]
     the manifest, plus the catalogue names of the ones never crawled at all
     (issue #124's Fase 1 pendiente) — returned separately, since a
     never-crawled instrument has nothing on disk to classify or link."""
-    instrumentos = download_legal_provisions_provenance_ids(COLECCION)
+    instrumentos = _load_catalog(outdir, COLECCION)
     resumenes = []
     nunca_rastreados = []
     for entrada in instrumentos:
@@ -154,7 +171,11 @@ def _archivos_corpus(outdir: Path) -> list[Path]:
     own snapshot `.md` files and its `indice.json` (when it has one) —
     `<outdir>/leyes/`'s own `.progreso.json` checkpoint
     (`fetch_scjn_legislacion.py`'s in-progress-run bookkeeping) sits one
-    level above any instrument directory, so this glob never reaches it."""
+    level above any instrument directory, so this glob never reaches it. Nor
+    does it reach an instrument's own `_cache_notas/` (the DOF notes
+    `enlaza_scjn_legislacion.py` fetched to confirm content diffs, cached one
+    level *below* the instrument directory) — `*/*` matches exactly two path
+    segments, never three, so those never end up in the tarball."""
     base = outdir / COLECCION
     return sorted(p for p in base.glob("*/*") if p.is_file())
 
