@@ -58,13 +58,35 @@ python -c "from nota2md import download_legal_provisions_titles as d; d('titulos
 
 Every other script below reads `<outdir>/<coleccion>/catalogo.json` instead
 of calling `download_legal_provisions_provenance_ids` itself — this is the
-only script that does. It writes that file: each instrument's own `nombre`
-and (when the collection has one) `abrev`, nothing else — Diputados'
-`historial` never reaches it, and the `historial-legislativo` release is
-downloaded once per collection instead of once per script. Re-run it to
-refresh the catalogue (e.g. after Diputados adds a new instrument); every
-downstream script fails fast, naming the exact command to run, if it hasn't
-been run yet.
+only script that does. It writes that file: each instrument's own `nombre`,
+(when the collection has one) `abrev`, and `actualizado` — Diputados'
+`historial` itself never reaches downstream scripts, and the
+`historial-legislativo` release is downloaded once per collection instead of
+once per script. Re-run it to refresh the catalogue (e.g. after Diputados
+adds a new instrument); every downstream script fails fast, naming the exact
+command to run, if it hasn't been run yet.
+
+Two fields exist to close coverage gaps a crawl alone cannot (issue #124's
+follow-up, "Dos casos disparadores" — a catalogue entry the SCJN's search
+returns nothing at all for):
+
+- **`actualizado`** — the ISO date of the instrument's own most recent
+  reform (Diputados' `historial`'s own last `codNota`, resolved via
+  `dofjson`; one extra request per instrument, so a run of this script is
+  noticeably slower/more network-bound than before). `fetch_scjn_legislacion.py`
+  uses it to skip re-searching the SCJN, on a refresh, for an instrument
+  nothing has changed on since the collection's own last full crawl — see
+  that script's own section below.
+- **`nombre_scjn`** — an optional manual override: the exact string to
+  search the SCJN with instead of `nombre`, for the rare instrument the
+  SCJN's own full-text search never finds under Diputados' exact wording.
+  Nothing in this script ever sets it — it is added by hand to
+  `catalogo.json` — but a re-run now reads back whatever `catalogo.json`
+  already exists and carries every entry's own `nombre_scjn` forward
+  instead of overwriting the file from scratch, so a manual override
+  survives a refresh. Applied so far to `lisipl` (`abrev`), whose `nombre`
+  carries a 250+ character trailing parenthetical alternate name the SCJN's
+  search never matches.
 
 ### `fetch_scjn_legislacion.py`
 
@@ -82,6 +104,33 @@ unofficial site's own session-scoped URLs. `--reintenta SLUG` (repeatable)
 re-downloads only the named instrumentos from scratch, for fixing a handful
 of wrong-document matches (issue #115) without re-walking a whole
 collection.
+
+Two more mechanisms (issue #124's follow-up) close the case a previous crawl
+found nothing at all for — driven entirely by `catalogo.json` fields
+`extract_scjn_titles.py` writes, nothing to pass on this script's own command
+line:
+
+- **Manual override** — when a catalogue entry carries `nombre_scjn`, it is
+  searched instead of `nombre`.
+- **Incremental refresh** — once a collection has been crawled
+  start-to-finish, that date is recorded to
+  `<outdir>/<coleccion>/.rastreo_completo.json`. A later refresh skips an
+  instrumento without touching the SCJN only when it already has a snapshot
+  on disk *and* its own `actualizado` is no later than that checkpoint — an
+  instrumento with no snapshot yet is always retried, so a law the SCJN has
+  not indexed yet keeps getting retried automatically on every refresh,
+  with nothing to configure by hand once the SCJN catches up.
+  `--reiniciar` bypasses this skip too.
+
+Issue #140 fixed two rough edges found running the above for real. The
+incremental refresh does nothing, silently, if `catalogo.json` was never
+extracted with `actualizado` on it (extracted before that field existed, or
+hand-edited) — a run now warns on stderr, once per collection, when it sees
+zero `actualizado` entries, naming the exact `extract_scjn_titles.py`
+command to fix it. And a large instrumento's own crawl — confirmed live
+against the CPEUM, 301 rows across 31 grid pages — used to print nothing at
+all while it ran, indistinguishable from a hung process; it now narrates
+one line per grid page and per row as it goes.
 
 ### `enlaza_scjn_legislacion.py`
 

@@ -30,6 +30,7 @@ import re
 import tarfile
 import time
 import unicodedata
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import datetime
 from difflib import SequenceMatcher
@@ -313,7 +314,12 @@ def _filas_de_pagina(html: str, base_url: str) -> list["FilaReforma"]:
 
 
 def filas_de_reforma(
-    sesion: requests.Session, detail_url: str, referer: str, *, espera: float = 1.0
+    sesion: requests.Session,
+    detail_url: str,
+    referer: str,
+    *,
+    espera: float = 1.0,
+    on_pagina: Callable[[int, int], None] | None = None,
 ) -> tuple[list[FilaReforma], str]:
     """Every reform row of the instrument at `detail_url`, most recent first
     (the SCJN's own order — see `descarga_ordenamiento`, which reverses this
@@ -327,12 +333,22 @@ def filas_de_reforma(
     (`__EVENTTARGET=pagerGridReformas`, `__EVENTARGUMENT=PN<n>`), resubmitting
     the *detail* page's own `aspnetForm` fields (not the search page's) each
     time, since every postback returns a fresh `__VIEWSTATE` the next page
-    request must carry forward."""
+    request must carry forward.
+
+    Issue #140: walking a multi-page grid like the CPEUM's is ~31 real
+    requests with nothing else to show for it until the very last one comes
+    back — indistinguishable from a hung process. `on_pagina`, when given,
+    is called with (`pagina_actual`, `total_paginas`) after each page is
+    fetched (1-based, so the first call is always `(1, total_paginas)`) —
+    only when there is more than one page to begin with, since a single-page
+    instrument (the common case) has nothing worth narrating."""
     r = sesion.get(detail_url, headers={"Referer": referer}, timeout=20)
     soup = BeautifulSoup(r.text, "html.parser")
     filas = _filas_de_pagina(r.text, r.url)
     m_total = _TOTAL_PAGINAS.search(r.text)
     total_paginas = int(m_total.group(1)) if m_total else 1
+    if on_pagina is not None and total_paginas > 1:
+        on_pagina(1, total_paginas)
     for n in range(1, total_paginas):
         time.sleep(espera)
         form = soup.find("form", id="aspnetForm")
@@ -342,6 +358,8 @@ def filas_de_reforma(
         r = sesion.post(detail_url, data=campos, headers={"Referer": detail_url}, timeout=30)
         soup = BeautifulSoup(r.text, "html.parser")
         filas.extend(_filas_de_pagina(r.text, r.url))
+        if on_pagina is not None:
+            on_pagina(n + 1, total_paginas)
     return filas, r.url
 
 
@@ -640,6 +658,111 @@ def slug_instrumento(entrada: dict) -> str:
     return slug or "instrumento"
 
 
+# --- issue #124 (follow-up): closing the catalogue's own coverage gaps ----
+#
+# Two catalogue entries the coverage sweep above never finds anything for,
+# each for a different reason. `lisipl`: Diputados' own `nombre` for it
+# carries a 250+ character trailing parenthetical alternate name that the
+# SCJN's full-text search never matches, even though the SCJN's own title
+# for it scores 0.774 on `ratio_similitud` against that `nombre` — above
+# UMBRAL_CONFIANZA_SIMILITUD — once it is actually found by a different
+# search string. `lfca`: a brand-new law (DOF 2026-05-24) the SCJN has not
+# indexed at all yet — confirmed live, searching its own name (or even just
+# "Cine y el Audiovisual") returns nothing; not a title mismatch.
+#
+# search_name/merge_catalog_overrides are Mecanismo 1: an optional
+# `nombre_scjn` override a human can add to one catalogue entry (applied to
+# `lisipl`, not `lfca` — its gap is indexing lag, not a different title),
+# which `extract_scjn_titles.py` now preserves across its own refreshes
+# instead of overwriting the whole file blindly, and which
+# `fetch_scjn_legislacion.py` searches with in place of `nombre`.
+#
+# instrument_up_to_date/iso_date_from_note are Mecanismo 2: an `actualizado`
+# field (the ISO date of an instrument's own most recent reform, read from
+# Diputados' `historial` via dofjson) that lets a refresh run skip
+# re-searching the SCJN for an instrument nothing has changed on since the
+# collection's own last full crawl. This is the safety net for a case like
+# `lfca`: nothing needs to be typed by hand — a brand-new law's `actualizado`
+# is newer than any previous full crawl, so it keeps getting retried on
+# every refresh, automatically, until the SCJN catches up.
+
+
+def search_name(entry: dict) -> str:
+    """The string to actually search the SCJN with for one catalogue entry:
+    its manual `nombre_scjn` override when present, Diputados' own `nombre`
+    otherwise. `nombre` itself is never touched by this — it stays what
+    `enlaza_por_titulo`/`title_candidates_por_fecha` compare against DOF
+    titles (issue #126), and what a caller shows in its own progress
+    output; only the string handed to `buscar` changes."""
+    return entry.get("nombre_scjn") or entry["nombre"]
+
+
+def catalog_key(entry: dict) -> str:
+    """The key two catalogue entries from separate runs are considered the
+    same instrument by: `abrev` when the collection gives one (leyes,
+    reglamentos), `nombre` otherwise (tratados) — the same precedence
+    `slug_instrumento` already uses to pick a directory name."""
+    return entry.get("abrev") or entry["nombre"]
+
+
+def merge_catalog_overrides(catalog: list[dict], previous_catalog: list[dict] | None) -> list[dict]:
+    """`catalog` (a fresh projection of Diputados' own instruments) with
+    each entry's own `nombre_scjn` carried over from whichever entry of
+    `previous_catalog` it corresponds to (`catalog_key`), when that
+    previous entry had one.
+
+    `extract_scjn_titles.py` used to overwrite `catalogo.json` from scratch
+    on every run — there was nowhere to keep a manual override, and even a
+    hand-edited one would vanish on the next refresh. This is what makes it
+    survive instead: a fresh run only ever adds or updates what Diputados
+    itself gives (`nombre`, `abrev`, `actualizado`), and only ever keeps —
+    never invents — `nombre_scjn`.
+
+    `previous_catalog` being empty or None (first run, no `catalogo.json`
+    yet) returns `catalog` unchanged."""
+    if not previous_catalog:
+        return catalog
+    previous_by_key = {catalog_key(entry): entry for entry in previous_catalog}
+    merged = []
+    for entry in catalog:
+        previous = previous_by_key.get(catalog_key(entry))
+        if previous and previous.get("nombre_scjn"):
+            entry = {**entry, "nombre_scjn": previous["nombre_scjn"]}
+        merged.append(entry)
+    return merged
+
+
+def iso_date_from_note(note: dict) -> str | None:
+    """`note`'s own `fecha` (dofjson's `DD-MM-YYYY`, the shape
+    `nota2md.builder.fetch_nota` returns it in) as ISO `YYYY-MM-DD`, or None
+    when `note` carries no `fecha` at all."""
+    fecha = note.get("fecha")
+    if not fecha:
+        return None
+    return datetime.strptime(fecha, "%d-%m-%Y").date().isoformat()
+
+
+def instrument_up_to_date(directory: Path, updated: str | None, corpus_date: str | None) -> bool:
+    """Whether the instrument crawled into `directory` can be skipped on a
+    refresh run without touching the SCJN at all: it already has at least
+    one snapshot on disk, and its own `updated` (`catalogo.json`'s
+    `actualizado`, an ISO date) is no later than `corpus_date` (the ISO
+    date this collection was last crawled start-to-finish) — plain string
+    comparison, since both are ISO `YYYY-MM-DD`.
+
+    An instrument with no snapshot on disk yet is never skipped, regardless
+    of `updated`/`corpus_date`: "nothing downloaded" is never mistaken for
+    "already up to date" — the safety net for an instrument the SCJN has
+    not indexed at all yet (see the section docstring above, `lfca`): every
+    refresh keeps retrying it until the SCJN catches up, with nothing to
+    configure by hand."""
+    if corpus_date is None or not updated:
+        return False
+    if not any(directory.glob("*.md")):
+        return False
+    return updated <= corpus_date
+
+
 def _cabecera(candidato: Candidato, fila: FilaReforma, nombre_buscado: str) -> str:
     """The provenance header every file this writes carries, so it is never
     mistaken for Markdown built from the DOF's own notes (see the module
@@ -674,7 +797,12 @@ def _cabecera(candidato: Candidato, fila: FilaReforma, nombre_buscado: str) -> s
 
 
 def descarga_ordenamiento(
-    sesion: requests.Session, nombre: str, outdir: Path, *, espera: float = 1.0
+    sesion: requests.Session,
+    nombre: str,
+    outdir: Path,
+    *,
+    espera: float = 1.0,
+    on_progreso: Callable[[str], None] | None = None,
 ) -> list[Path]:
     """Every reform-dated snapshot the SCJN has for `nombre`, written as
     ``outdir/<fecha_publicacion>.md`` — `outdir` is already the instrument's
@@ -697,20 +825,37 @@ def descarga_ordenamiento(
     looks unrelated (see `elige_candidato`): a batch crawl over a whole
     collection is expected to log that miss and keep going, not stop at the
     first one.
+
+    Issue #140: a caller crawling a whole collection only ever sees one line
+    per instrumento, so a large one (again, the CPEUM) walking its own
+    multi-page reform grid or downloading many rows in a row goes silent for
+    as long as that takes. `on_progreso`, when given, is called with a
+    ready-to-print message: forwarded from `filas_de_reforma`'s own
+    `on_pagina` while walking the grid, then once per row (only when there
+    is more than one) while downloading — a caller owns how/where that
+    message is shown (`fetch_scjn_legislacion.py` prints it to stderr).
     """
     candidatos, referer_busqueda = buscar(sesion, nombre)
     candidato = elige_candidato(candidatos, nombre)
     if candidato is None:
         return []
 
+    on_pagina = (
+        (lambda actual, total: on_progreso(f"grid de reformas: pagina {actual}/{total}"))
+        if on_progreso is not None
+        else None
+    )
     filas, referer_detalle = filas_de_reforma(
-        sesion, candidato.url, referer_busqueda, espera=espera
+        sesion, candidato.url, referer_busqueda, espera=espera, on_pagina=on_pagina
     )
     outdir.mkdir(parents=True, exist_ok=True)
 
     escritos = []
     repeticiones: dict[str, int] = {}
-    for fila in filas:
+    total_filas = len(filas)
+    for indice, fila in enumerate(filas, 1):
+        if on_progreso is not None and total_filas > 1:
+            on_progreso(f"fila {indice}/{total_filas}")
         repeticiones[fila.fecha_publicacion] = repeticiones.get(fila.fecha_publicacion, 0) + 1
         orden = repeticiones[fila.fecha_publicacion]
         sufijo = f"-{orden}" if orden > 1 else ""

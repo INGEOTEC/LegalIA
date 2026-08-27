@@ -345,6 +345,37 @@ class TestFilasDeReforma(unittest.TestCase):
         # The detail page's own __VIEWSTATE is resubmitted, not the search page's.
         self.assertEqual(kwargs["data"]["__VIEWSTATE"], "estado1")
 
+    def test_llama_on_pagina_una_vez_por_pagina_cuando_hay_mas_de_una(self):
+        detail_url = "https://legislacion.scjn.gob.mx/Buscador/Paginas/wfOrdenamientoDetalle.aspx?q=1"
+        sesion = Mock()
+        sesion.get.return_value = Mock(
+            text=f"<html><body>{TABLA_REFORMAS_PAGINA1}</body></html>", url=detail_url
+        )
+        sesion.post.return_value = Mock(
+            text=f"<html><body>{TABLA_REFORMAS_PAGINA2}</body></html>", url=detail_url
+        )
+        avances = []
+
+        scjn.filas_de_reforma(
+            sesion, detail_url, "busqueda-url", espera=0, on_pagina=lambda a, t: avances.append((a, t))
+        )
+
+        self.assertEqual(avances, [(1, 2), (2, 2)])
+
+    def test_no_llama_on_pagina_cuando_solo_hay_una_pagina(self):
+        sesion = Mock()
+        sesion.get.return_value = Mock(
+            text=f"<html><body>{TABLA_REFORMAS}</body></html>",
+            url="https://legislacion.scjn.gob.mx/Buscador/Paginas/wfOrdenamientoDetalle.aspx?q=1",
+        )
+        avances = []
+
+        scjn.filas_de_reforma(
+            sesion, "detalle-url", "busqueda-url", on_pagina=lambda a, t: avances.append((a, t))
+        )
+
+        self.assertEqual(avances, [])
+
 
 TABLA_REFORMAS_FECHAS_DUPLICADAS = """
 <table>
@@ -713,6 +744,81 @@ class TestDescargaOrdenamiento(unittest.TestCase):
         segunda = (self.outdir / "14-06-2024-2.md").read_text(encoding="utf-8")
         self.assertIn("Version A.", primera)
         self.assertIn("Version B.", segunda)
+
+    def test_llama_on_progreso_por_fila_y_por_pagina_del_grid(self):
+        sesion = Mock()
+        sesion.get.return_value = Mock(text=PAGINA_BUSQUEDA, url=scjn.BASE_URL)
+        sesion.post.return_value = Mock(
+            text=_pagina_resultados(
+                _candidato_html(
+                    "LEY DE AMNISTIA", "FEDERAL", "VIGENTE",
+                    "wfOrdenamientoDetalle.aspx?q=xyz",
+                )
+            ),
+            url=scjn.BASE_URL + "resultados",
+        )
+
+        def get_side_effect(url, headers=None, timeout=None):
+            if "wfOrdenamientoDetalle" in url:
+                return Mock(text=f"<html><body>{TABLA_REFORMAS}</body></html>", url=url)
+            if "descarga" in url:
+                return Mock(content=_docx_bytes(["Texto."]), headers={"content-type": "x"})
+            raise AssertionError(f"unexpected GET {url}")
+
+        sesion.get.side_effect = lambda url, headers=None, timeout=None: (
+            Mock(text=PAGINA_BUSQUEDA, url=scjn.BASE_URL)
+            if url == scjn.BASE_URL
+            else get_side_effect(url, headers, timeout)
+        )
+        avances = []
+
+        scjn.descarga_ordenamiento(
+            sesion, "Ley de Amnistia", self.outdir, espera=0, on_progreso=avances.append
+        )
+
+        # Both rows of TABLA_REFORMAS (no pagination -- grid never narrated),
+        # each announced before its own download is attempted.
+        self.assertEqual(avances, ["fila 1/2", "fila 2/2"])
+
+    def test_no_llama_on_progreso_por_fila_con_una_sola_fila(self):
+        sesion = Mock()
+        sesion.get.return_value = Mock(text=PAGINA_BUSQUEDA, url=scjn.BASE_URL)
+        sesion.post.return_value = Mock(
+            text=_pagina_resultados(
+                _candidato_html(
+                    "LEY DE AMNISTIA", "FEDERAL", "VIGENTE",
+                    "wfOrdenamientoDetalle.aspx?q=xyz",
+                )
+            ),
+            url=scjn.BASE_URL + "resultados",
+        )
+        tabla_una_fila = (
+            "<table><tr><td>"
+            "Fecha de publicación: 14/06/2024 Fecha de expedición: 10/06/2024\n"
+            "Categoría: DECRETO No. y sección de Publicación: 5\n"
+            '<a href="descarga1.docx">Ver texto completo de la última publicación</a>'
+            "</td></tr></table>"
+        )
+
+        def get_side_effect(url, headers=None, timeout=None):
+            if "wfOrdenamientoDetalle" in url:
+                return Mock(text=f"<html><body>{tabla_una_fila}</body></html>", url=url)
+            if "descarga" in url:
+                return Mock(content=_docx_bytes(["Texto."]), headers={"content-type": "x"})
+            raise AssertionError(f"unexpected GET {url}")
+
+        sesion.get.side_effect = lambda url, headers=None, timeout=None: (
+            Mock(text=PAGINA_BUSQUEDA, url=scjn.BASE_URL)
+            if url == scjn.BASE_URL
+            else get_side_effect(url, headers, timeout)
+        )
+        avances = []
+
+        scjn.descarga_ordenamiento(
+            sesion, "Ley de Amnistia", self.outdir, espera=0, on_progreso=avances.append
+        )
+
+        self.assertEqual(avances, [])
 
 
 class TestCabecera(unittest.TestCase):
@@ -1207,6 +1313,103 @@ class TestDownloadScjnLeyesCorpus(unittest.TestCase):
         self.assertEqual(snap["archivo"], "01-01-2012.md")
         self.assertIsNone(snap["codNota"])
         self.assertEqual(snap["markdown"], "**TEXTO ORIGINAL.**")
+
+
+class TestSearchName(unittest.TestCase):
+    def test_usa_nombre_scjn_cuando_esta_presente(self):
+        entrada = {"nombre": "IMPUESTO sobre Servicios... (LEY que...)", "nombre_scjn": "LEY DEL IMPUESTO..."}
+        self.assertEqual(scjn.search_name(entrada), "LEY DEL IMPUESTO...")
+
+    def test_recae_en_nombre_sin_override(self):
+        entrada = {"nombre": "LEY de Amparo"}
+        self.assertEqual(scjn.search_name(entrada), "LEY de Amparo")
+
+
+class TestCatalogKey(unittest.TestCase):
+    def test_usa_abrev_cuando_esta_disponible(self):
+        self.assertEqual(scjn.catalog_key({"abrev": "ccf", "nombre": "Codigo Civil Federal"}), "ccf")
+
+    def test_recae_en_nombre_sin_abrev(self):
+        self.assertEqual(scjn.catalog_key({"nombre": "Convenio 107 OIT"}), "Convenio 107 OIT")
+
+
+class TestMergeCatalogOverrides(unittest.TestCase):
+    def test_conserva_nombre_scjn_de_la_entrada_correspondiente(self):
+        nuevo = [{"nombre": "IMPUESTO sobre Servicios...", "abrev": "lisipl"}]
+        previo = [
+            {"nombre": "IMPUESTO sobre Servicios...", "abrev": "lisipl", "nombre_scjn": "LEY DEL IMPUESTO..."}
+        ]
+
+        fusionado = scjn.merge_catalog_overrides(nuevo, previo)
+
+        self.assertEqual(fusionado[0]["nombre_scjn"], "LEY DEL IMPUESTO...")
+        # nombre/abrev are the freshly re-downloaded ones, untouched.
+        self.assertEqual(fusionado[0]["nombre"], "IMPUESTO sobre Servicios...")
+
+    def test_no_inventa_nombre_scjn_para_una_entrada_sin_override_previo(self):
+        nuevo = [{"nombre": "LEY de Amparo", "abrev": "la"}]
+        previo = [{"nombre": "LEY de Amparo", "abrev": "la"}]
+
+        fusionado = scjn.merge_catalog_overrides(nuevo, previo)
+
+        self.assertNotIn("nombre_scjn", fusionado[0])
+
+    def test_empareja_por_abrev_aunque_el_nombre_cambie_de_forma(self):
+        nuevo = [{"nombre": "LEY Federal de Cine y el Audiovisual", "abrev": "lfca"}]
+        previo = [{"nombre": "LEY de Cine (nombre distinto)", "abrev": "lfca", "nombre_scjn": "X"}]
+
+        fusionado = scjn.merge_catalog_overrides(nuevo, previo)
+
+        self.assertEqual(fusionado[0]["nombre_scjn"], "X")
+
+    def test_catalogo_previo_none_regresa_el_nuevo_intacto(self):
+        nuevo = [{"nombre": "LEY de Amparo", "abrev": "la"}]
+        self.assertEqual(scjn.merge_catalog_overrides(nuevo, None), nuevo)
+
+    def test_catalogo_previo_vacio_regresa_el_nuevo_intacto(self):
+        nuevo = [{"nombre": "LEY de Amparo", "abrev": "la"}]
+        self.assertEqual(scjn.merge_catalog_overrides(nuevo, []), nuevo)
+
+
+class TestIsoDateFromNote(unittest.TestCase):
+    def test_convierte_fecha_dd_mm_yyyy_a_iso(self):
+        self.assertEqual(scjn.iso_date_from_note({"fecha": "24-05-2026"}), "2026-05-24")
+
+    def test_regresa_none_sin_fecha(self):
+        self.assertIsNone(scjn.iso_date_from_note({}))
+
+
+class TestInstrumentoUpToDate(unittest.TestCase):
+    def test_no_salta_sin_fecha_de_corpus(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            destino = Path(tmp)
+            (destino / "01-01-2020.md").write_text("x")
+            self.assertFalse(scjn.instrument_up_to_date(destino, "2020-01-01", None))
+
+    def test_no_salta_sin_snapshots_en_disco(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            destino = Path(tmp)  # vacio -- nunca se le encontro nada en la SCJN
+            self.assertFalse(scjn.instrument_up_to_date(destino, "2020-01-01", "2026-01-01"))
+
+    def test_no_salta_sin_actualizado_en_el_catalogo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            destino = Path(tmp)
+            (destino / "01-01-2020.md").write_text("x")
+            self.assertFalse(scjn.instrument_up_to_date(destino, None, "2026-01-01"))
+
+    def test_salta_cuando_ya_tiene_snapshots_y_esta_al_dia(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            destino = Path(tmp)
+            (destino / "01-01-2020.md").write_text("x")
+            self.assertTrue(scjn.instrument_up_to_date(destino, "2020-01-01", "2026-01-01"))
+
+    def test_no_salta_cuando_actualizado_es_posterior_al_corpus(self):
+        # Caso lfca (issue #124): una ley reformada despues del ultimo
+        # rastreo completo se re-intenta en cada refresh.
+        with tempfile.TemporaryDirectory() as tmp:
+            destino = Path(tmp)
+            (destino / "01-01-2020.md").write_text("x")
+            self.assertFalse(scjn.instrument_up_to_date(destino, "2026-05-24", "2026-01-01"))
 
 
 if __name__ == "__main__":
