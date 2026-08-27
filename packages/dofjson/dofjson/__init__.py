@@ -2,7 +2,7 @@
 and for the notas-archivo release (this module's own `notas_de_tgz`, issue
 #103) -- see tests/test_dofjson.py for the surface this locks in."""
 
-__version__ = "0.6.0"
+__version__ = "0.5.0"
 
 from dofjson import dofweb
 from dofjson.api import (
