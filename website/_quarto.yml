@@ -33,6 +33,8 @@ website:
         text: References
       - href: https://github.com/INGEOTEC/LegalIA/issues/views/8351
         text: Research
+      - href: https://legalia.readthedocs.io/
+        text: Docs
     right:
       - icon: github
         href: https://github.com/INGEOTEC/LegalIA

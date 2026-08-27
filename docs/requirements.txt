@@ -1,0 +1,8 @@
+# Build-time dependencies for the Sphinx docs, kept separate from any
+# package's own pyproject.toml. dof2md itself is installed --no-deps by
+# .readthedocs.yaml (it never imports mineru in-process, only shells out to
+# mineru-api — see docs/source/conf.py), so its own runtime need for
+# `requests` is repeated here explicitly.
+sphinx>=7
+furo
+requests>=2.31

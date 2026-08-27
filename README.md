@@ -1,10 +1,17 @@
 # LegalIA
 
+[![Documentation Status](https://readthedocs.org/projects/legalia/badge/?version=latest)](https://legalia.readthedocs.io/en/latest/?badge=latest)
+
 A monorepo of Python packages for the analysis of legal texts in the Mexican
 context, developed by [INGEOTEC](https://github.com/INGEOTEC). Its first
 target is the *Diario Oficial de la Federación* (DOF), Mexico's official
 gazette: more than 1.2 million legal provisions published without interruption
 since 1917.
+
+Developer documentation (installation and the public API of each package)
+is on [Read the Docs](https://legalia.readthedocs.io/); this README and the
+[project website](https://ingeotec.github.io/LegalIA/) stay focused on a
+quick start and research-facing results, respectively.
 
 ## Packages
 
