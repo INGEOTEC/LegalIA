@@ -101,6 +101,7 @@ dofjson.download_edicion_pdf(dt.date(2026, 6, 16), "VES", outdir)
 ```bash
 pip install -e "packages/dofjson[test]"
 dofjson 2026-07-16 --endpoint notas --outdir output
+dofjson --pdf-edicion 16-06-2026 --edicion VES --outdir output
 ```
 
 ## Building a local archive of daily indexes (`--archivo`)
