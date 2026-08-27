@@ -25,7 +25,9 @@ matched by date to a codNota (issue #105's Fase 2, not yet built).
 """
 
 import io
+import json
 import re
+import tarfile
 import time
 import unicodedata
 from dataclasses import dataclass, replace
@@ -36,6 +38,8 @@ from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
+
+from nota2md.leyes import normaliza_para_comparar
 
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LegalIA-scjn-crawler/1.0)"}
 BASE_URL = "https://legislacion.scjn.gob.mx/Buscador/"
@@ -599,6 +603,23 @@ def docx_a_markdown(contenido: bytes) -> str:
     python-docx is only needed here — the extra that pulls it in
     (``pip install nota2md[scjn]``) is optional, same as dof2md is for the
     OCR paths in nota2md.builder.
+
+    Issue #125 evaluated replacing this with a public docx→Markdown package
+    (pandoc via pypandoc's ``gfm`` writer, and mammoth) against real SCJN
+    reform docx (e.g. "LEY de Firma Electrónica Avanzada", "LEY de la Casa
+    de Moneda de México"): both failed on the two things this module is
+    actually for. Neither strips the SCJN's own "N. DE E."/"NOTA N"
+    insertions — both pass them straight through (mammoth even markdown-
+    escapes the periods in them: ``N\\. DE E\\.``), which issue #114 found in
+    91% of snapshots. And neither reconstructs any paragraph structure at
+    all — no heading, no bold lead — because the source docx itself carries
+    none (see the module docstring), so both would need this exact per-
+    paragraph classification layered back on top of their own output anyway.
+    Pulling raw paragraph text out of a docx (``python-docx``, which this
+    already uses) was never the hard part of this module; both packages
+    would only ever replace that one trivial step, never the editorial-
+    note-stripping or classification that is the actual work — so there is
+    nothing to gain by switching. Kept as is.
     """
     import docx
 
@@ -619,17 +640,25 @@ def slug_instrumento(entrada: dict) -> str:
     return slug or "instrumento"
 
 
-def _cabecera(candidato: Candidato, fila: FilaReforma) -> str:
+def _cabecera(candidato: Candidato, fila: FilaReforma, nombre_buscado: str) -> str:
     """The provenance header every file this writes carries, so it is never
     mistaken for Markdown built from the DOF's own notes (see the module
     docstring). `ratio_similitud`/`sospechoso` (issue #115) record how
     confident `elige_candidato` was that `candidato` is genuinely the
     instrument that was searched for, so a later audit
     (`scripts/audita_scjn_legislacion.py`) can prioritize review without
-    recomputing anything the crawl already knows."""
+    recomputing anything the crawl already knows.
+
+    `nombre_buscado` is the exact `nombre` `descarga_ordenamiento` was called
+    with — the SCJN's own search has no fixed per-document URL (its `?q=`
+    token is scoped to the session that generated it, see the module
+    docstring), so this and `ordenamiento` together are the only way to
+    reproduce by hand, later, how this particular file was reached (issue
+    #124)."""
     lineas = [
         "---",
         "fuente: scjn",
+        f"nombre_buscado: {nombre_buscado}",
         f"ordenamiento: {candidato.titulo}",
         f"fecha_publicacion: {fila.fecha_publicacion}",
     ]
@@ -692,24 +721,30 @@ def descarga_ordenamiento(
         contenido = descarga_docx(sesion, fila.url_docx, referer_detalle)
         time.sleep(espera)
         markdown = docx_a_markdown(contenido)
-        destino.write_text(f"{_cabecera(candidato, fila)}\n\n{markdown}", encoding="utf-8")
+        cabecera = _cabecera(candidato, fila, nombre)
+        destino.write_text(f"{cabecera}\n\n{markdown}", encoding="utf-8")
         escritos.append(destino)
     return list(reversed(escritos))
 
 
-# --- Fase 2: match each snapshot to the codNota that published it ------
+# --- issue #123/#126: match each snapshot to the codNota that published it,
+# by title mention alone --------------------------------------------------
 #
 # `descarga_ordenamiento` only knows the SCJN's own view of an instrument: a
 # publication date per snapshot, nothing that ties back to a DOF `codNota`.
-# `download_legal_provisions_provenance_ids` already knows the other half —
-# an instrument's own `historial`, the `codNota` of every reform it is known
-# to have, oldest first — so pairing the two by date recovers the missing
-# link, the same way leyesmx.dof.enlaza_agrupadas pairs a Diputados decree
-# with the DOF note that published it. This is a narrower problem than that
-# one: the instrument is already fixed (crawled by its own name), so there is
-# no title to compare — only whether a candidate codNota is actually part of
-# *this* instrument's own historial, and, when several share one date (see
-# issue #105 Fase 0 findings 3-4), which one.
+# Issue #105's original design paired that date against Diputados'
+# `historial` (`download_legal_provisions_provenance_ids`'s own list of
+# codNota for the instrument) — but issue #123's corrected goal is for the
+# SCJN, plus the DOF's own title dataset, to be the *only* source once an
+# instrument's `nombre` has picked which one to crawl: `historial` is never
+# consulted here, not even as a tie-breaker or a fallback. The only thing
+# borrowed from Diputados is `nombre` itself, used for two things: searching
+# the SCJN (`buscar`) and, here, testing which same-day DOF note's own title
+# actually names the instrument. Two SCJN-dated snapshots can share a
+# `fecha_publicacion` (issue #105's Fase 0 found up to 4 on the CPEUM alone),
+# so this also has to resolve same-day exclusivity: once an earlier snapshot
+# of that date has claimed a candidate, a later one sharing the date never
+# claims it again.
 
 
 def _fecha(cadena: str) -> datetime:
@@ -721,9 +756,12 @@ _CABECERA_CAMPO = re.compile(r"^([a-z_]+):\s*(.*)$")
 
 def lee_cabecera(archivo: Path) -> dict:
     """The provenance header `_cabecera` writes at the top of `archivo`, back
-    as a dict (`fuente`, `ordenamiento`, `fecha_publicacion`, and whichever of
-    `fecha_expedicion`/`categoria` that snapshot's row had) — reading back a
-    file a previous crawl run already wrote, without re-fetching it."""
+    as a dict (`fuente`, `nombre_buscado`, `ordenamiento`,
+    `fecha_publicacion`, and whichever of `fecha_expedicion`/`categoria` that
+    snapshot's row had) — reading back a file a previous crawl run already
+    wrote, without re-fetching it. `nombre_buscado` is absent on a file a
+    crawl wrote before issue #124 added it, same as `ratio_similitud`/
+    `sospechoso` for issue #115."""
     texto = archivo.read_text(encoding="utf-8")
     lineas = texto.split("\n")
     campos = {}
@@ -768,64 +806,369 @@ def versiones_de_directorio(outdir: Path) -> list[VersionInstrumento]:
     return sorted(versiones, key=lambda v: (_fecha(v.fecha_publicacion), _orden_repeticion(v)))
 
 
+_TITLE_MEANINGFUL_WORD = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]{4,}")
+
+
+def _title_mentions_name(nombre: str, titulo: str) -> bool:
+    """Whether `titulo` (some other same-day DOF note's own title) explicitly
+    names the instrument `nombre` refers to: every one of `nombre`'s own
+    meaningful words (4+ letters, so "LEY"/"DEL"/"DE" never count on their
+    own) must appear in `titulo`, case/accent-insensitive. Mirrors the same
+    "does this title name that instrument" question
+    `leyesmx.dof.similitud_nombre` answers for regulations with no decree
+    title of their own — kept as nota2md's own small copy rather than an
+    import, since nota2md carries no dependency on leyesmx.
+
+    A `nombre` left with fewer than 2 meaningful words (e.g. "LEY de
+    Amparo" — only "Amparo" survives the filter) never counts as mentioned,
+    even when that lone word does appear: a single common legal term is too
+    weak a signal on its own, and would otherwise turn this into a blanket
+    keyword search matching any unrelated same-day note that happens to use
+    it in passing. Those instruments simply get no candidate at all from
+    `title_candidates_por_fecha` (`status="none"`) rather than an unreliable
+    one."""
+    palabras = _TITLE_MEANINGFUL_WORD.findall(_normaliza(nombre))
+    if len(palabras) < 2:
+        return False
+    titulo_normalizado = _normaliza(titulo)
+    return all(palabra in titulo_normalizado for palabra in palabras)
+
+
+def title_candidates_por_fecha(fechas, nombre: str, porf: dict) -> dict[str, list[int]]:
+    """Every same-day DOF codNota whose own title explicitly names `nombre`
+    (`_title_mentions_name`), grouped by `fecha_publicacion` — the *only*
+    source of candidate codNota this module uses for a reform's own link
+    (issue #123's corrected design: Diputados' `historial` is never
+    consulted, here or anywhere downstream of it). `fechas` only needs to
+    cover the dates actually worth checking (typically the ones
+    `versiones_de_directorio` returns for this instrument); `porf` groups by
+    fecha every dofjson title record worth considering (see
+    `leyesmx.dof.notas_por_fecha` / `dofjson.download_legal_provisions_titles`).
+
+    A date absent from `porf` entirely comes back with an empty candidate
+    list, same as a date where no same-day note mentions the name — both
+    read downstream as "nothing to link this date", not an error."""
+    return {
+        fecha: sorted(
+            n["codNota"] for n in porf.get(fecha, []) if _title_mentions_name(nombre, n["titulo"])
+        )
+        for fecha in dict.fromkeys(fechas)
+    }
+
+
 @dataclass
 class VersionEnlazada:
     """One SCJN snapshot together with the `codNota` of the DOF note that
-    published it, when that note is confirmed to be part of this
-    instrument's own historial — `codNota` is None when no such note was
-    found for its date."""
+    published it, when `title_candidates_por_fecha` left exactly one
+    same-day candidate for its date and no earlier same-day snapshot has
+    already claimed it (`enlaza_por_titulo`) — `codNota` is None otherwise
+    (no candidate, more than one, or already claimed), left for issue #127's
+    content diff to resolve when it can."""
 
     fecha_publicacion: str
     codNota: int | None
     archivo: Path
 
 
-def enlaza_historial(
-    versiones: list[VersionInstrumento], historial: list[int], porf: dict
+def enlaza_por_titulo(
+    versiones: list[VersionInstrumento], candidatos_por_fecha: dict[str, list[int]]
 ) -> list[VersionEnlazada]:
     """Pair every SCJN snapshot of one instrument with the codNota of the DOF
-    note that published it.
+    note that published it, using only `candidatos_por_fecha`
+    (`title_candidates_por_fecha`'s own output) — Diputados' historial is
+    never consulted, here or anywhere in this module.
 
-    `historial` is this instrument's own `historial` from
-    `download_legal_provisions_provenance_ids`'s entry for it — the codNota
-    it is already known to have, oldest first. `porf` groups by fecha every
-    dofjson title record worth considering (see
-    `leyesmx.dof.notas_por_fecha` / `dofjson.download_legal_provisions_titles`)
-    — it only needs to cover the dates `versiones` themselves carry, and it
-    is fine for it to hold notes unrelated to this instrument: only a
-    candidate that is also in `historial` is ever actually linked, so an
-    unrelated same-day note never gets mistaken for this instrument's own.
+    A date whose candidate pool (after excluding any codNota already claimed
+    by an earlier same-day snapshot) is empty or has more than one entry
+    comes back with `codNota=None`: title mention alone cannot pick a winner
+    without risking a wrong pick, and a missing link is a fact about the
+    source worth surfacing, not an error.
 
-    A date with no candidate at all (or whose only candidates already belong
-    to another of this instrument's own snapshots, or aren't in `historial`)
-    comes back with `codNota=None`, not dropped: a missing link is a fact
-    about the source worth surfacing, not an error — same rule
-    `enlaza_agrupadas` follows.
-
-    When more than one of `historial`'s codNota share a date — issue #105's
-    Fase 0 found up to 4 same-day reforms on the CPEUM — there is no title to
-    break the tie with, so it is resolved positionally instead: both
-    `versiones` and `historial` are already oldest-first, so the Nth
-    snapshot of a repeated date claims the Nth (still unclaimed) codNota of
-    that date. A historial codNota left over after every same-date snapshot
-    has claimed one (Fase 0 finding 4: a treaty's historial can list more
-    codNota than the SCJN kept snapshots for) is simply never claimed.
-    """
-    orden_historial = {cod: i for i, cod in enumerate(historial)}
-    en_historial = set(historial)
+    When two snapshots share a date and its pool has exactly one candidate
+    (issue #105's Fase 0 found up to 4 same-day reforms on the CPEUM), only
+    the first — `versiones` is already oldest-first — claims it; the second
+    sees an empty remaining pool and stays unlinked, the same same-date
+    exclusivity `confirm_by_content_diff` (#127) already enforces on its own
+    `usados_por_fecha`."""
     usados: set[int] = set()
     enlazadas = []
     for version in versiones:
-        candidatos = sorted(
-            (
-                n["codNota"]
-                for n in porf.get(version.fecha_publicacion, [])
-                if n["codNota"] in en_historial and n["codNota"] not in usados
-            ),
-            key=lambda cod: orden_historial[cod],
-        )
-        cod = candidatos[0] if candidatos else None
+        candidatos = [
+            cod
+            for cod in candidatos_por_fecha.get(version.fecha_publicacion, [])
+            if cod not in usados
+        ]
+        cod = candidatos[0] if len(candidatos) == 1 else None
         if cod is not None:
             usados.add(cod)
         enlazadas.append(VersionEnlazada(version.fecha_publicacion, cod, version.archivo))
     return enlazadas
+
+
+def title_link_status(codNota: int | None, candidatos: list[int]) -> str:
+    """How `enlaza_por_titulo` resolved one snapshot's own date, for
+    `indice.json`/manual audit:
+
+    - "linked": it has a `codNota`.
+    - "none": no same-day candidate names the instrument at all.
+    - "claimed": the date's one candidate was already taken by an earlier
+      same-day snapshot.
+    - "ambiguous": more than one same-day candidate names the instrument,
+      with nothing but content diff (#127) able to break the tie.
+    """
+    if codNota is not None:
+        return "linked"
+    if not candidatos:
+        return "none"
+    if len(candidatos) == 1:
+        return "claimed"
+    return "ambiguous"
+
+
+# --- issue #127: confirm the reform-codNota link by content diff ----------
+#
+# #126's title mention is still just text similarity: it says a same-day
+# note plausibly concerns this instrument, not that its content is what
+# actually changed. The SCJN gives, at each date, the *whole* law's text
+# (never a diff) — so the change a reform made between two consecutive
+# SCJN-dated snapshots has to be computed here, and then checked against
+# each candidate codNota's own DOF text: whichever candidate's own content
+# actually accounts for that change is confirmed with certainty, resolving
+# the ambiguous, same-day-multiple-candidate cases #126 alone cannot. This
+# is only possible for a codNota with digital DOF text (`cadenaContenido`)
+# — never a reason to fall back to OCR just for one more confidence signal
+# — and the diff itself is never kept: only whether a candidate was
+# confirmed this way, alongside the score that decided it.
+
+# A reform that only changes a short number or date (a tasa, monto, plazo
+# or fecha — common in Mexican decrees) leaves a diff whose only real
+# content is a token shorter than 4 letters; requiring 4+ letters alone
+# would make that change invisible to `_overlap_score`, letting two
+# candidates that differ only in which number they restate score
+# identically. Digits are matched at any length (first alternative) so
+# "10" vs "20" still tells two otherwise-similar candidates apart.
+_PALABRA_DIFF = re.compile(r"\d+(?:[.,]\d+)?|\w{4,}")
+
+
+def _cuerpo_de_snapshot(archivo: Path) -> str:
+    """`archivo`'s own body, with the provenance header `_cabecera` wrote at
+    its top stripped off — the same header/body split
+    `scripts/repara_notas_editoriales_scjn.py` already uses, so a diff
+    between two snapshots never mistakes a header field (e.g. a different
+    `ratio_similitud`) for a change in the law's own text."""
+    return archivo.read_text(encoding="utf-8").partition("\n\n")[2]
+
+
+def _added_blocks(anterior: str, nuevo: str) -> list[str]:
+    """`nuevo`'s own paragraph-level blocks (already run through
+    `normaliza_para_comparar`) that are not already in `anterior` — a
+    block-granularity diff via `SequenceMatcher.get_opcodes`, so a
+    paragraph that merely got reflowed (same words, different line breaks)
+    is not mistaken for a change. This approximates what a reform between
+    two consecutive SCJN-dated snapshots actually changed in the law's full
+    text; it is never persisted, only used to score candidates below."""
+    bloques_antes = [normaliza_para_comparar(b) for b in anterior.split("\n\n") if b.strip()]
+    bloques_despues = [normaliza_para_comparar(b) for b in nuevo.split("\n\n") if b.strip()]
+    sm = SequenceMatcher(None, bloques_antes, bloques_despues, autojunk=False)
+    agregados = []
+    for tag, _, _, j1, j2 in sm.get_opcodes():
+        if tag in ("insert", "replace"):
+            agregados.extend(bloques_despues[j1:j2])
+    return agregados
+
+
+def _overlap_score(bloques_agregados: list[str], texto_candidato_normalizado: str) -> float:
+    """How much of what `_added_blocks` says changed also shows up in
+    `texto_candidato_normalizado` (a candidate codNota's own DOF text,
+    already run through `normaliza_para_comparar`): the fraction of the
+    added blocks' own meaningful words (4+ letters) that also appear in
+    it. 1.0 when everything that changed is accounted for by this one
+    candidate's own text; 0.0 when nothing changed to compare against, or
+    when the candidate's text shares none of it."""
+    palabras_agregadas = set(_PALABRA_DIFF.findall(" ".join(bloques_agregados)))
+    if not palabras_agregadas:
+        return 0.0
+    palabras_candidato = set(_PALABRA_DIFF.findall(texto_candidato_normalizado))
+    return len(palabras_agregadas & palabras_candidato) / len(palabras_agregadas)
+
+
+#: Below this fraction of the diff's own words found in a candidate's text,
+#: the match is treated as coincidental rather than confirmed — kept
+#: deliberately higher than #126's title-mention bar (which only needs to
+#: single out one plausible candidate) since this signal is meant to give
+#: *certainty*, not just plausibility.
+UMBRAL_CONFIRMACION_DIFF = 0.6
+
+
+@dataclass
+class ContentDiffConfirmation:
+    """One SCJN-dated snapshot's content-diff confirmation (issue #127).
+
+    `confirmed_codNota` is the candidate whose own DOF text best accounts
+    for what changed between this snapshot and the previous one, when its
+    score clears `UMBRAL_CONFIRMACION_DIFF`; None otherwise — including
+    when this is the instrument's very first (oldest) snapshot, which has
+    no previous version to diff against at all.
+
+    `score` is that best candidate's own overlap score even when it did
+    NOT clear the threshold (so a near-miss is visible, not indistinguishable
+    from "nothing to compare"), and is None only when no candidate for this
+    date had any DOF text available to compare in the first place — the
+    case issue #127 says must leave the link exactly as #124/#126 already
+    settled it, neither blocked nor degraded.
+    """
+
+    fecha_publicacion: str
+    confirmed_codNota: int | None
+    score: float | None
+
+
+def confirm_by_content_diff(
+    versiones: list[VersionInstrumento],
+    candidatos_por_fecha: dict[str, list[int]],
+    markdown_por_codNota: dict[int, str],
+) -> list[ContentDiffConfirmation]:
+    """One `ContentDiffConfirmation` per entry of `versiones` (oldest first,
+    as `versiones_de_directorio` already returns them) — always the same
+    length, so a caller can `zip` this against `versiones`/`enlaza_por_titulo`'s
+    own per-version results.
+
+    `candidatos_por_fecha` is every codNota worth checking for a given
+    `fecha_publicacion` — typically `title_candidates_por_fecha`'s own
+    output (issue #126), the same dict `enlaza_por_titulo` itself takes.
+    `markdown_por_codNota` is each of those candidates' own DOF Markdown,
+    already fetched by the caller (never fetched here — this module does no
+    network I/O) and present only for candidates that actually have digital
+    text; a candidate absent from it is simply skipped, not treated as
+    disqualifying.
+
+    Two snapshots can share a `fecha_publicacion` (up to 4 on the CPEUM
+    alone, per `enlaza_por_titulo`'s own docstring) — a codNota already
+    confirmed for an earlier same-day entry is excluded from every later
+    one sharing that date, the same one-codNota-per-snapshot exclusivity
+    `enlaza_por_titulo` itself already enforces via its own `usados` set.
+    Without this, two distinct same-day reforms with genuinely overlapping
+    decree text (confirmed live on `ccf`'s 27-12-1983, two companion
+    decrees both amending the Código Civil and Código de Procedimientos
+    Civiles) can otherwise both score highest against the same one
+    candidate, silently claiming it twice and discarding the other
+    snapshot's own already-correct title-based link for no reason.
+    """
+    if not versiones:
+        return []
+    resultados = [ContentDiffConfirmation(versiones[0].fecha_publicacion, None, None)]
+    usados_por_fecha: dict[str, set[int]] = {}
+    for anterior, actual in zip(versiones, versiones[1:]):
+        agregados = _added_blocks(
+            _cuerpo_de_snapshot(anterior.archivo), _cuerpo_de_snapshot(actual.archivo)
+        )
+        usados = usados_por_fecha.setdefault(actual.fecha_publicacion, set())
+        candidatos = candidatos_por_fecha.get(actual.fecha_publicacion, [])
+        mejor_cod, mejor_score = None, 0.0
+        tiene_texto = False
+        for cod in candidatos:
+            if cod in usados:
+                continue
+            texto = markdown_por_codNota.get(cod)
+            if texto is None:
+                continue
+            tiene_texto = True
+            score = _overlap_score(agregados, normaliza_para_comparar(texto))
+            if score > mejor_score:
+                mejor_cod, mejor_score = cod, score
+        confirmado = mejor_cod if mejor_score >= UMBRAL_CONFIRMACION_DIFF else None
+        if confirmado is not None:
+            usados.add(confirmado)
+        resultados.append(
+            ContentDiffConfirmation(
+                actual.fecha_publicacion, confirmado, mejor_score if tiene_texto else None
+            )
+        )
+    return resultados
+
+
+# --- issue #128: download the packaged corpus (release loader) -----------
+#
+# `scripts/empaqueta_scjn_leyes.py` packages every already-crawled+linked
+# `leyes` instrument (snapshots plus `indice.json`, carrying #115/#126/#127's
+# confidence signals) into the `scjn-leyes` release's own `leyes.tgz` — see
+# that script for why publishing it is, and stays, a deliberate manual step,
+# never automated. This is that release's own reader, same shape as
+# `nota2md.utils.download_legal_provisions_provenance_ids` (download the
+# tarball straight into memory, nothing touches disk) but kept as its own
+# small copy rather than sharing code with it: the two releases have
+# different tags, different asset layouts, and no caller in common.
+
+_SCJN_LEYES_RELEASE = "scjn-leyes"
+_SCJN_LEYES_RELEASES_API = (
+    f"https://api.github.com/repos/INGEOTEC/LegalIA/releases/tags/{_SCJN_LEYES_RELEASE}"
+)
+
+
+def _assets_scjn_leyes(timeout: int = 30) -> dict[str, str]:
+    """Every asset of the `scjn-leyes` release, name -> download URL."""
+    response = requests.get(_SCJN_LEYES_RELEASES_API, headers=_HEADERS, timeout=timeout)
+    response.raise_for_status()
+    return {
+        asset["name"]: asset["browser_download_url"] for asset in response.json()["assets"]
+    }
+
+
+def download_scjn_leyes_corpus(timeout: int = 60) -> list[dict]:
+    """Every `leyes` instrument the SCJN-based corpus (issue #128) has
+    packaged, each as ``{"slug": ..., "snapshots": [...]}`` — one entry per
+    snapshot, each carrying its own `indice.json` fields (`fecha_publicacion`,
+    `codNota`, `ratio_similitud`, `sospechoso`, `title_candidates`,
+    `title_link_status`, `content_diff_confirmed_codNota`,
+    `content_diff_score`) plus its own Markdown body as `markdown`.
+
+    An instrument crawled but never linked (`scripts/enlaza_scjn_legislacion.py`
+    has not run for it yet — Fase 2 pendiente) is still packaged with its raw
+    snapshots; each of those comes back with only `archivo`/`codNota=None`/
+    `markdown` set, no confidence fields, rather than being dropped.
+
+    Downloads the `leyes.tgz` asset into memory; nothing touches disk.
+    Raises `KeyError` while the `scjn-leyes` release does not exist yet —
+    expected before a human has read
+    `scripts/empaqueta_scjn_leyes.py`'s own manifest and published it by
+    hand (this corpus has no automated publish path, on purpose — see that
+    script). Not re-exported from `nota2md/__init__.py`: this stays
+    `nota2md.scjn`-internal infrastructure until something like issue #117
+    integrates it into `legal_provisions`.
+    """
+    urls = _assets_scjn_leyes(timeout)
+    if "leyes.tgz" not in urls:
+        raise KeyError(
+            "el release 'scjn-leyes' no publica el asset 'leyes.tgz' todavia — "
+            "ver issue #128: este corpus solo se publica a mano, tras revision humana"
+        )
+
+    response = requests.get(urls["leyes.tgz"], headers=_HEADERS, timeout=timeout)
+    response.raise_for_status()
+
+    with tarfile.open(fileobj=io.BytesIO(response.content), mode="r:gz") as tar:
+        miembros = {m.name: tar.extractfile(m).read() for m in tar if m.isfile()}
+
+    por_instrumento: dict[str, dict] = {}
+    for nombre, contenido in miembros.items():
+        slug, _, archivo = nombre.partition("/")
+        datos = por_instrumento.setdefault(slug, {"indice": None, "cuerpos": {}})
+        if archivo == "indice.json":
+            datos["indice"] = json.loads(contenido)
+        else:
+            datos["cuerpos"][archivo] = contenido.decode("utf-8")
+
+    resultado = []
+    for slug, datos in sorted(por_instrumento.items()):
+        cuerpos, indice = datos["cuerpos"], datos["indice"]
+        if indice is not None:
+            snapshots = [
+                {**entrada, "markdown": cuerpos.get(entrada["archivo"])} for entrada in indice
+            ]
+        else:
+            snapshots = [
+                {"archivo": nombre, "codNota": None, "markdown": texto}
+                for nombre, texto in sorted(cuerpos.items())
+            ]
+        resultado.append({"slug": slug, "snapshots": snapshots})
+    return resultado
