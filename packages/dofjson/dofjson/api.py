@@ -254,6 +254,46 @@ def _edicion_pdf_cacheada(cod_diario: int, outdir: Path, timeout: int = 60) -> P
     return dest
 
 
+#: get_diario()'s own key for each edition, keyed by the MAT/VES/EXT codes
+#: used everywhere else in this package (EDICION_LISTAS, codEdicion...).
+_EDICION_DIARIO_KEYS = {"MAT": "Matutina", "VES": "Vespertina", "EXT": "Extraordinaria"}
+
+
+def download_edicion_pdf(date: dt.date, edicion: str, outdir: Path, timeout: int = 60) -> Path:
+    """Download a whole DOF edition's PDF by date and edition (MAT/VES/EXT),
+    resolving its codDiario from sidof.get_diario() first -- the piece
+    dof2md.downloader used to fake by guessing a www.dof.gob.mx filename
+    from the date instead (see issue #134). Cached in `outdir` via
+    _edicion_pdf_cacheada(), same as download_nota_pdf()'s own edition
+    fetch, so calling this again for the same edition does not re-download
+    it.
+
+    Raises ValueError when `edicion` is not one of MAT/VES/EXT, or when
+    that edition was not published on `date`. get_diario() reports either
+    case without ever handing back a PDF -- a missing edition is a null (or
+    absent) key in an otherwise ordinary response, and a date entirely
+    outside SIDOF's coverage 404s -- so there is no %PDF-shaped response to
+    run sidof.download_pdf()'s own validity check against; this is that
+    check's counterpart, one step earlier.
+    """
+    if edicion not in _EDICION_DIARIO_KEYS:
+        raise ValueError(f"edicion must be one of {tuple(_EDICION_DIARIO_KEYS)}, not {edicion!r}")
+
+    try:
+        diario = sidof.get_diario(date)
+    except requests.exceptions.HTTPError as exc:
+        if exc.response is None or exc.response.status_code != 404:
+            raise
+        diario = {}
+
+    secciones = diario.get(_EDICION_DIARIO_KEYS[edicion])
+    if not secciones:
+        raise ValueError(f"no {edicion} edition was published on {date}")
+
+    cod_diario = secciones[0]["codDiario"]
+    return _edicion_pdf_cacheada(cod_diario, outdir, timeout=timeout)
+
+
 def download_nota_pdf(cod_nota: int, outdir: Path, nota: dict | None = None) -> Path:
     """Download a note as its OWN PDF: fetches the whole edition's PDF and
     slices out only the page(s) the note occupies (see

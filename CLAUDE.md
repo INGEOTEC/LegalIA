@@ -32,9 +32,11 @@ build on each other in this sequence.
   `download_legal_provisions_titles` (re-exported from `dofjson.titulos`).
   Also has an experimental Akoma Ntoso (OASIS LegalDocML) converter in
   `nota2md/akoma_ntoso.py`.
-- **`dof2md`** — downloads a whole DOF edition as PDF and OCRs it to Markdown
-  via `mineru`. Has no notion of "note"/"legal provision" — works on any
-  PDF or scanned images. `BatchConverter` keeps one `mineru-api` server warm
+- **`dof2md`** — OCRs a PDF or a set of scanned images to Markdown via
+  `mineru`. Has no notion of "note"/"legal provision", and no download of
+  its own — it only ever converts a PDF/images already on disk; getting a
+  whole DOF edition's PDF by date and edition is `dofjson.download_edicion_pdf`'s
+  job now (issue #134). `BatchConverter` keeps one `mineru-api` server warm
   across a batch instead of paying startup cost per document; `nota2md`'s
   image/PDF OCR paths accept an already-`__enter__`'d instance via their own
   `converter` parameter. Only needed as `nota2md`'s OCR fallback for legal

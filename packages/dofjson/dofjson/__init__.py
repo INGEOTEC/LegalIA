@@ -2,10 +2,11 @@
 and for the notas-archivo release (this module's own `notas_de_tgz`, issue
 #103) -- see tests/test_dofjson.py for the surface this locks in."""
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 from dofjson import dofweb
 from dofjson.api import (
+    download_edicion_pdf,
     download_nota,
     download_nota_imagen_o_pdf,
     download_nota_imagenes,
@@ -35,6 +36,7 @@ __all__ = [
     "download_nota_imagenes",
     "download_nota_pdf",
     "download_nota_imagen_o_pdf",
+    "download_edicion_pdf",
     "get_diario",
     "get_indicadores",
     "get_imagenes",
