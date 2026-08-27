@@ -32,9 +32,11 @@ build on each other in this sequence.
   `download_legal_provisions_titles` (re-exported from `dofjson.titulos`).
   Also has an experimental Akoma Ntoso (OASIS LegalDocML) converter in
   `nota2md/akoma_ntoso.py`.
-- **`dof2md`** — downloads a whole DOF edition as PDF and OCRs it to Markdown
-  via `mineru`. Has no notion of "note"/"legal provision" — works on any
-  PDF or scanned images. `BatchConverter` keeps one `mineru-api` server warm
+- **`dof2md`** — OCRs a PDF or a set of scanned images to Markdown via
+  `mineru`. Has no notion of "note"/"legal provision", and no download of
+  its own — it only ever converts a PDF/images already on disk; getting a
+  whole DOF edition's PDF by date and edition is `dofjson.download_edicion_pdf`'s
+  job now (issue #134). `BatchConverter` keeps one `mineru-api` server warm
   across a batch instead of paying startup cost per document; `nota2md`'s
   image/PDF OCR paths accept an already-`__enter__`'d instance via their own
   `converter` parameter. Only needed as `nota2md`'s OCR fallback for legal
@@ -56,30 +58,6 @@ Read them back via `download_legal_provisions_provenance_ids` /
 
 ## Commands
 
-Install a package editable with its test deps, then run its tests — same
-pattern for all four packages:
-
-```bash
-pip install -e "packages/dofjson[test]"
-pytest packages/dofjson
-```
-
-Cross-package dependencies for local dev (siblings aren't auto-installed
-editable):
-
-```bash
-pip install -e packages/dofjson              # nota2md, leyesmx, dof2md all need it
-pip install -e packages/dof2md                # only for nota2md's image/PDF OCR paths
-pip install -e "packages/nota2md[test]"
-```
-
-Run a single test file or test:
-
-```bash
-pytest packages/nota2md/tests/test_builder.py
-pytest packages/nota2md/tests/test_builder.py::test_some_case
-```
-
 Two test files make real network calls and are excluded from routine runs
 (CI's `test.yml` does include them by default — check before assuming a
 failure there is unrelated):
@@ -88,34 +66,6 @@ failure there is unrelated):
 pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
     --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py
 ```
-
-Repo-level scripts (`scripts/*.py`) add `packages/dofjson` to the import path
-themselves and run straight from a clone with just `requests`:
-
-```bash
-./scripts/empaqueta_historial.py --datos packages/leyesmx/data --outdir historial   # pack historial-legislativo tarballs (byte-reproducible)
-./scripts/reparar_notas_archivo.py --anios 1999,2006 --dry-run                       # patch notas-archivo days SIDOF lost
-```
-
-## CI (`.github/workflows/`)
-
-- **`test.yml`** — matrix over the four packages × Python 3.10/3.11/3.12, on
-  push to `main` and on PRs. `dof2md`/`nota2md` need `libgl1 libglib2.0-0`
-  (mineru's opencv) as a system dep.
-- **`notas-archivo.yml`** — monthly (1st), downloads the previous month's DOF
-  index via `dofjson --archivo` and uploads it as an asset of the
-  `notas-archivo` release; on Jan 1 it rolls the whole closed year into one
-  yearly asset instead and deletes the 12 monthly ones.
-- **`reformas.yml`** — monthly (2nd, after `notas-archivo.yml`), rebuilds the
-  legislative history in a scratch dir and re-uploads only the
-  `historial-legislativo` assets whose bytes actually changed (tarballs are
-  byte-reproducible — gzip mtime 0, sorted members — so a byte diff means a
-  real diff).
-- **`publish-pypi.yml`** — tag-triggered (`<pkg>-v*`) or manual, one package
-  at a time.
-- **`website.yml`** — publishes `website/` (Quarto) to `gh-pages` on push to
-  `master`; rendering uses frozen execution results (`website/_freeze`), so
-  it needs neither Python nor local data.
 
 ## Git workflow: branches, issues and PRs
 

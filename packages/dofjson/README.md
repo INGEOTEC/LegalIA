@@ -53,10 +53,9 @@ field; `get_diario`, `get_indicadores`, `get_imagenes`, `download_pdf` and
 plain passthroughs to `sidof`. Either way, every one of them is reachable
 straight off `dofjson`.
 
-This is an experimental package for evaluating whether this service is a
-viable alternative (or complement) to `dof2md`'s PDF download + Markdown
-conversion pipeline — legal provisions already come with structured HTML
-content, which may be easier to work with than OCR'd PDFs.
+This is an experimental package for evaluating whether this service's
+structured HTML is a viable alternative (or complement) to OCR'ing the PDF
+`dof2md` converts to Markdown.
 
 On top of the raw endpoints, `dofjson` offers legal-provision-scoped
 downloads that resolve a legal provision's page span (`infer_paginas`) and
@@ -82,6 +81,20 @@ fetch it in whichever form you want:
   without HTML needs into one `outdir`, so that a later
   `nota2md.legal_provisions(codNota, outdir, source="image"|"pdf")` call
   against that same directory only has to OCR and cut — never re-download.
+
+`download_edicion_pdf(date, edicion, outdir)` downloads a *whole edition's*
+PDF given only its date and edition (`MAT`/`VES`/`EXT`) — no `codNota`
+needed. It resolves the edition's `codDiario` from `get_diario(date)` first,
+then downloads and caches the PDF the same way `download_nota_pdf` caches
+the edition it slices notes out of; a second call for the same edition
+reuses the file already on disk. This is what `dof2md` used to do itself,
+against `www.dof.gob.mx`, before its PDF download was retired in favor of
+this function (issue #134) — `dof2md` today only ever converts a PDF or
+image set already on disk.
+
+```python
+dofjson.download_edicion_pdf(dt.date(2026, 6, 16), "VES", outdir)
+```
 
 ## Usage
 
