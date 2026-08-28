@@ -5,7 +5,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from nota2md.cli import main
+from nota2md import cache
+from nota2md.cli import main, parse_args
+from nota2md.cli import _resolver_cache_dir
 
 
 class TestCli(unittest.TestCase):
@@ -31,6 +33,9 @@ class TestCli(unittest.TestCase):
             min_confidence=0.6,
             keep_pages=False,
             keep_mineru_output=False,
+            instrumento=None,
+            cache_dir=cache.SIN_CACHE_DIR,
+            refrescar=False,
         )
 
     @patch("nota2md.cli.legal_provisions")
@@ -63,6 +68,39 @@ class TestCli(unittest.TestCase):
         self.assertEqual(kwargs["min_confidence"], 0.8)
         self.assertTrue(kwargs["keep_pages"])
         self.assertTrue(kwargs["keep_mineru_output"])
+
+    @patch("nota2md.cli.legal_provisions")
+    def test_main_pasa_las_banderas_de_la_ruta_scjn(self, mock_build):
+        mock_build.return_value = self.outdir / "lfca-05-01-1999.md"
+
+        main([
+            "4967917", "--source", "dof", "--instrumento", "lfca",
+            "--cache-dir", str(self.outdir), "--refrescar",
+            "--outdir", str(self.outdir),
+        ])
+
+        _, kwargs = mock_build.call_args
+        self.assertEqual(kwargs["source"], "dof")
+        self.assertEqual(kwargs["instrumento"], "lfca")
+        self.assertEqual(kwargs["cache_dir"], self.outdir)
+        self.assertTrue(kwargs["refrescar"])
+
+    def test_source_dof_es_una_opcion_valida(self):
+        self.assertEqual(parse_args(["1"]).source, "auto")
+        self.assertEqual(parse_args(["1", "--source", "dof"]).source, "dof")
+
+
+class TestResolverCacheDir(unittest.TestCase):
+    """--cache-dir sigue la misma convención que `dofjson.cli`."""
+
+    def test_no_dado_deja_que_nota2md_use_su_propio_default(self):
+        self.assertIs(_resolver_cache_dir(None), cache.SIN_CACHE_DIR)
+
+    def test_none_salta_la_cache_por_completo(self):
+        self.assertIsNone(_resolver_cache_dir("none"))
+
+    def test_una_ruta_se_usa_tal_cual(self):
+        self.assertEqual(_resolver_cache_dir("/tmp/mia"), Path("/tmp/mia"))
 
 
 if __name__ == "__main__":

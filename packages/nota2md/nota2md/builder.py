@@ -1,7 +1,15 @@
-"""Build the Markdown of a single DOF note, identified by its codNota.
+"""Build the Markdown of a single legal provision, identified by its codNota.
 
-Three sources feed the same output, and legal_provisions() picks between them:
+Four sources feed the same output, and legal_provisions() picks between them:
 
+* **SCJN** — the default, and the only one that is not the DOF's own text:
+  when the `scjn-leyes` release (issue #128) covers this codNota with a link
+  we are certain of, the result is the SCJN's consolidated text of the *whole
+  law* as it read right after this reform, instead of the reform decree the
+  DOF published (issue #117). It is read from a per-law tarball — no SIDOF
+  request at all — and written with its ``fuente: scjn`` header intact,
+  because the SCJN is not an official source of legal text. ``source="dof"``
+  turns this path off and goes to the original source.
 * **HTML** — when the note carries digital text (``cadenaContenido``), it is
   converted directly with html_converter.html_to_markdown(). This is the
   preferred path: clean, already scoped to the one note, and needs no OCR.
@@ -30,10 +38,13 @@ mineru-api server instead of each OCR path starting and stopping its own —
 see BatchConverter's own docstring.
 """
 import datetime as dt
+import warnings
 from pathlib import Path
 
 import dofjson
+import requests
 
+from nota2md.cache import SIN_CACHE_DIR
 from nota2md.html_converter import html_to_markdown
 
 # Which per-edition list in a get_notas() response holds a note, keyed by its
@@ -85,6 +96,40 @@ def fetch_daily_legal_provisions(date: dt.date) -> dict:
     return dofjson.get_notas(date)
 
 
+def _snapshot_scjn(cod_nota, instrumento, cache_dir, refrescar):
+    """The SCJN's consolidated law text for `cod_nota`, or None when there is
+    none to be had — including when the release itself cannot be reached.
+
+    The SCJN path is an improvement over reconstructing the law from the DOF,
+    not a hard dependency of building a note: an asset not published yet
+    (`KeyError`) or a network failure while reading the index must not turn a
+    `legal_provisions` call that would otherwise have succeeded into a
+    traceback. Both fall back to the DOF path, but with `warnings.warn` so the
+    fallback is never silent. A `ValueError` — the ambiguous codNota of issue
+    #117's D4 — does propagate: that one is answerable, by passing
+    `instrumento`, and guessing on the caller's behalf is exactly what it is
+    there to prevent."""
+    from nota2md.scjn import snapshot_de_codNota
+
+    try:
+        return snapshot_de_codNota(
+            cod_nota, instrumento=instrumento, cache_dir=cache_dir, refrescar=refrescar
+        )
+    except KeyError as exc:
+        warnings.warn(
+            f"el release 'scjn-leyes' no responde por el codNota {cod_nota} "
+            f"({exc}); se usa el DOF como fuente",
+            stacklevel=3,
+        )
+    except requests.RequestException as exc:
+        warnings.warn(
+            f"no se pudo leer el corpus de la SCJN para el codNota {cod_nota} "
+            f"({exc}); se usa el DOF como fuente",
+            stacklevel=3,
+        )
+    return None
+
+
 def legal_provisions(
     cod_nota: int,
     outdir: str | Path,
@@ -97,18 +142,37 @@ def legal_provisions(
     keep_pages: bool = False,
     keep_mineru_output: bool = False,
     converter=None,
+    instrumento: str | None = None,
+    cache_dir=SIN_CACHE_DIR,
+    refrescar: bool = False,
 ) -> Path:
-    """Build the Markdown for `cod_nota` and write it to
-    ``outdir/nota-{cod_nota}.md``; return that path.
+    """Build the Markdown for `cod_nota` and write it into `outdir`; return
+    that path.
 
-    `source` picks how the note becomes Markdown:
+    `source` picks where the Markdown comes from:
 
-    * "auto"  — HTML when the note has it (``cadenaContenido``), otherwise the
-      scanned-image OCR path.
-    * "html"  — force the HTML path.
+    * "auto"  — the SCJN's consolidated text of the whole law as it read right
+      after this reform, when the `scjn-leyes` release covers `cod_nota` with a
+      link we are certain of (issue #117); otherwise the DOF: HTML when the
+      note has it (``cadenaContenido``), else the scanned-image OCR path.
+    * "dof"   — skip the SCJN entirely and build from the original source (the
+      DOF/SIDOF), picking HTML-or-image the way "auto" used to.
+    * "html"  — force the HTML path (a DOF path, so the SCJN is skipped too).
     * "image" — force OCR of the note's scanned page image(s).
     * "pdf"   — force OCR of the note's own PDF (the edition PDF sliced to the
       note's pages, via dofjson.download_nota_pdf).
+
+    A note built from the SCJN is written as ``outdir/{slug}-{fecha}.md``,
+    with its ``fuente: scjn`` provenance header intact — the SCJN is not an
+    official source of legal text, and whoever reads the result has to be able
+    to tell that from the file alone. Every DOF path keeps writing
+    ``outdir/nota-{cod_nota}.md``, unchanged.
+
+    `instrumento` (a law's slug) picks which law is meant when one decree
+    reformed several at once; without it that case raises `ValueError` listing
+    the candidates. `cache_dir`/`refrescar` control the on-disk cache of the
+    release assets the SCJN path reads — see `nota2md.cache`; `cache_dir=None`
+    skips the cache entirely. All three are ignored by the DOF paths.
 
     "image" and "pdf" both OCR with dof2md and then slice the result to the one
     note; "auto" never selects "pdf" — it is opt-in. Pass `nota` to reuse an
@@ -136,13 +200,29 @@ def legal_provisions(
     dof2md's own convert_images_to_markdown()/convert_to_markdown() manage
     whatever server they individually need.
     """
-    if source not in ("auto", "html", "image", "pdf"):
+    if source not in ("auto", "dof", "html", "image", "pdf"):
         raise ValueError(
-            f"source must be 'auto', 'html', 'image' or 'pdf', got {source!r}"
+            f"source must be 'auto', 'dof', 'html', 'image' or 'pdf', got {source!r}"
         )
 
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
+
+    if source == "auto":
+        snapshot = _snapshot_scjn(cod_nota, instrumento, cache_dir, refrescar)
+        if snapshot is not None:
+            slug, archivo, markdown = snapshot
+            # `archivo` already carries issue #113's `-N` suffix for a law
+            # reformed twice on one date, so `<slug>-<fecha>.md` is unique.
+            destino = outdir / f"{slug}-{archivo}"
+            destino.write_text(markdown, encoding="utf-8")
+            return destino
+
+    # Every remaining path is the DOF's own. "dof" only ever meant "not the
+    # SCJN": from here on it picks HTML-or-image exactly as "auto" does.
+    if source == "dof":
+        source = "auto"
+
     md_path = outdir / f"nota-{cod_nota}.md"
 
     if nota is None:

@@ -20,10 +20,12 @@ that (the SCJN's own site marks its editorial insertions as "N. DE E." —
 Nota de Editor). Every Markdown file this writes is therefore tagged with a
 `fuente: scjn` header, so it is never mistaken for text reconstructed from
 the DOF's own notes — see nota2md.leyes.reconstruct_legal_provisions, the
-DOF-only equivalent this crawl is meant to eventually stand in for once
-matched by date to a codNota (issue #105's Fase 2, not yet built).
+DOF-only equivalent this crawl stands in for once matched by date to a
+codNota — which `legal_provisions` now does by default, through this
+module's `snapshot_de_codNota` (issue #117).
 """
 
+import gzip
 import io
 import json
 import re
@@ -40,6 +42,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
+from nota2md.cache import SIN_CACHE_DIR, bytes_de_asset, resuelve_cache_dir
 from nota2md.leyes import normaliza_para_comparar
 
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LegalIA-scjn-crawler/1.0)"}
@@ -1294,23 +1297,116 @@ def confirm_by_content_diff(
     return resultados
 
 
-# --- issue #128: download the packaged corpus (release loader) -----------
+# --- issues #128/#117: read the packaged corpus (release loaders) --------
 #
 # `scripts/empaqueta_scjn_leyes.py` packages every already-crawled+linked
 # `leyes` instrument (snapshots plus `indice.json`, carrying #115/#126/#127's
 # confidence signals, plus the DOF notes each link was decided against) into
 # one `<slug>.tgz` asset per law of the `scjn-leyes` release — see
 # that script for why publishing it is, and stays, a deliberate manual step,
-# never automated. This is that release's own reader, same shape as
-# `nota2md.utils.download_legal_provisions_provenance_ids` (download the
-# tarball straight into memory, nothing touches disk) but kept as its own
-# small copy rather than sharing code with it: the two releases have
+# never automated. These are that release's own readers, same shape as
+# `nota2md.utils.download_legal_provisions_provenance_ids` but kept as their
+# own small copy rather than sharing code with it: the two releases have
 # different tags, different asset layouts, and no caller in common.
+#
+# Three of them, in the order a caller reaches for them:
+# `download_scjn_leyes_index` (the reverse index, a few hundred KB),
+# `snapshot_de_codNota` (one reform's consolidated law text, what
+# `legal_provisions` dispatches to) and `download_scjn_leyes_corpus` (a whole
+# law, snapshots and links, for auditing the corpus itself). All three read
+# through `nota2md.cache` -- on-disk by default, straight into memory with
+# `cache_dir=None`.
 
 _SCJN_LEYES_RELEASE = "scjn-leyes"
 _SCJN_LEYES_RELEASES_API = (
     f"https://api.github.com/repos/INGEOTEC/LegalIA/releases/tags/{_SCJN_LEYES_RELEASE}"
 )
+
+#: The one collection the corpus covers today. Carried inside
+#: `indice-global.json.gz` so adding `reglamentos`/`normas`/`tratados` later is
+#: not a breaking change to its readers — see issue #117, "Fuera de alcance".
+COLECCION_SCJN_LEYES = "leyes"
+
+#: The reverse index published alongside the per-law tarballs: the union of
+#: every `indice.json`, inverted by codNota and stripped of all text, so
+#: resolving "which law does this codNota reform" costs a few hundred KB
+#: instead of the 380 MB the whole corpus weighs.
+ASSET_INDICE_GLOBAL = "indice-global.json.gz"
+
+
+def construye_indice_global(
+    instrumentos: list[dict], generado: str, coleccion: str = COLECCION_SCJN_LEYES
+) -> tuple[dict, dict]:
+    """The `indice-global.json.gz` payload for `instrumentos`, plus the counts
+    the packaging manifest reports — see `ASSET_INDICE_GLOBAL`.
+
+    Each entry of `instrumentos` is ``{"slug", "nombre", "asset", "indice"}``,
+    where `indice` is that law's own `indice.json` (empty/absent for a law
+    crawled but never linked). The result is::
+
+        {"generado", "coleccion",
+         "instrumentos": {slug: {"nombre", "asset", "snapshots"}},
+         "codNota": {"4967917": [{"slug", "archivo", "title_link_status",
+                                  "content_diff_confirmed_codNota",
+                                  "content_diff_score"}]}}
+
+    Two shapes here are deliberate, not incidental:
+
+    * The `codNota` keys are **strings** — JSON has no integer keys. Readers
+      (`download_scjn_leyes_index`) convert them back to `int` on load.
+    * Each value is a **list**, not a single object: one decree routinely
+      reforms several laws at once, and collapsing that into a dict would
+      silently keep whichever law happened to be packaged last. Leaving it a
+      list is what lets `snapshot_de_codNota` raise on the ambiguity instead
+      of guessing (issue #117, D4).
+
+    Only snapshots with a `codNota` actually linked make it in (D2): the index
+    is the list of what we *know*, so an `ambiguous` or `unlinked` snapshot is
+    counted in the returned tally and left out of the payload.
+    """
+    entradas_instrumentos: dict[str, dict] = {}
+    por_cod_nota: dict[str, list[dict]] = {}
+    conteos = {"linked": 0, "ambiguous": 0, "unlinked": 0, "sin_indice": 0}
+
+    for instrumento in sorted(instrumentos, key=lambda i: i["slug"]):
+        slug = instrumento["slug"]
+        indice = instrumento.get("indice") or []
+        entradas_instrumentos[slug] = {
+            "nombre": instrumento["nombre"],
+            "asset": instrumento.get("asset") or f"{slug}.tgz",
+            "snapshots": len(indice) or instrumento.get("snapshots", 0),
+        }
+        if not indice:
+            conteos["sin_indice"] += 1
+            continue
+
+        for entrada in indice:
+            cod = entrada.get("codNota")
+            if cod is None:
+                # `title_link_status` says *why* it is not linked when
+                # enlaza_scjn_legislacion.py got that far; a snapshot from
+                # before that field existed is simply unlinked.
+                estado = entrada.get("title_link_status", "unlinked")
+                conteos[estado] = conteos.get(estado, 0) + 1
+                continue
+            conteos["linked"] += 1
+            por_cod_nota.setdefault(str(cod), []).append({
+                "slug": slug,
+                "archivo": entrada["archivo"],
+                "title_link_status": entrada.get("title_link_status"),
+                "content_diff_confirmed_codNota": entrada.get(
+                    "content_diff_confirmed_codNota"
+                ),
+                "content_diff_score": entrada.get("content_diff_score"),
+            })
+
+    indice_global = {
+        "generado": generado,
+        "coleccion": coleccion,
+        "instrumentos": entradas_instrumentos,
+        "codNota": {cod: por_cod_nota[cod] for cod in sorted(por_cod_nota, key=int)},
+    }
+    return indice_global, conteos
 
 
 def _assets_scjn_leyes(timeout: int = 30) -> dict[str, str]:
@@ -1322,7 +1418,140 @@ def _assets_scjn_leyes(timeout: int = 30) -> dict[str, str]:
     }
 
 
-def download_scjn_leyes_corpus(slug: str, timeout: int = 60) -> dict:
+def _url_de_asset(nombre: str, timeout: int) -> str:
+    """The download URL of `nombre` in the `scjn-leyes` release.
+
+    Raises `KeyError` while the release does not publish that asset yet —
+    expected before a human has read `scripts/empaqueta_scjn_leyes.py`'s own
+    manifest and published it by hand (this corpus has no automated publish
+    path, on purpose — see that script)."""
+    urls = _assets_scjn_leyes(timeout)
+    if nombre not in urls:
+        raise KeyError(
+            f"el release '{_SCJN_LEYES_RELEASE}' no publica el asset '{nombre}' "
+            "todavia — ver issue #128: este corpus solo se publica a mano, tras "
+            "revision humana"
+        )
+    return urls[nombre]
+
+
+def _bytes_de_asset(nombre: str, cache_dir, refrescar: bool, timeout: int) -> bytes:
+    """`nombre`'s bytes, off the on-disk cache when there is one (see
+    `nota2md.cache`) and straight into memory when there is not.
+
+    The release index is only consulted when the asset is not already
+    cached: a cache hit costs no HTTP request at all, which is the whole
+    point of caching a corpus that is only ever republished by hand."""
+    directorio = resuelve_cache_dir(cache_dir)
+    if directorio is not None:
+        ruta = directorio / _SCJN_LEYES_RELEASE / nombre
+        if ruta.exists() and not refrescar:
+            return ruta.read_bytes()
+    return bytes_de_asset(
+        _SCJN_LEYES_RELEASE, nombre, _url_de_asset(nombre, timeout),
+        cache_dir=cache_dir, refrescar=refrescar, timeout=timeout,
+    )
+
+
+#: `download_scjn_leyes_index`'s in-process memo, keyed by which cache
+#: directory it was read through ("" for no cache). A batch of thousands of
+#: `legal_provisions` calls must not re-read (let alone re-download and
+#: re-decompress) the same index once per note.
+_MEMO_INDICE_GLOBAL: dict[str, dict] = {}
+
+
+def download_scjn_leyes_index(
+    *, cache_dir=SIN_CACHE_DIR, refrescar: bool = False, timeout: int = 60
+) -> dict:
+    """The `scjn-leyes` release's reverse index (`ASSET_INDICE_GLOBAL`), as the
+    dict `construye_indice_global` wrote — except that its `codNota` keys come
+    back as `int`, not the strings JSON forced them into.
+
+    Memoized per cache directory for the life of the process, so resolving a
+    whole batch of notes reads the file once. `refrescar=True` bypasses both
+    the memo and the on-disk cache and re-downloads.
+
+    Raises `KeyError` while the asset is not published yet (see
+    `_url_de_asset`); `legal_provisions` treats that as "no coverage" rather
+    than letting it propagate.
+    """
+    directorio = resuelve_cache_dir(cache_dir)
+    clave = str(directorio) if directorio is not None else ""
+    if not refrescar and clave in _MEMO_INDICE_GLOBAL:
+        return _MEMO_INDICE_GLOBAL[clave]
+
+    contenido = _bytes_de_asset(ASSET_INDICE_GLOBAL, cache_dir, refrescar, timeout)
+    indice = json.loads(gzip.decompress(contenido).decode("utf-8"))
+    indice["codNota"] = {int(cod): entradas for cod, entradas in indice["codNota"].items()}
+    _MEMO_INDICE_GLOBAL[clave] = indice
+    return indice
+
+
+def snapshot_de_codNota(
+    cod_nota: int,
+    *,
+    instrumento: str | None = None,
+    cache_dir=SIN_CACHE_DIR,
+    refrescar: bool = False,
+    timeout: int = 60,
+) -> tuple[str, str, str] | None:
+    """The consolidated law text the SCJN holds for the reform `cod_nota`
+    enacted, as ``(slug, archivo, markdown)`` — or None when the release's
+    reverse index has no entry for it.
+
+    `archivo` is the snapshot's own file name inside the tarball
+    (``DD-MM-YYYY.md``, with issue #113's `-N` suffix when a law was reformed
+    more than once on the same date); `markdown` is that file's text, its
+    `fuente: scjn` provenance header included.
+
+    None here is not an error, just "not covered": only snapshots with a
+    `codNota` we are actually certain of are in the index at all (issue #117,
+    D2), and the caller is expected to fall back to the DOF — which is what
+    `legal_provisions` does.
+
+    A `cod_nota` whose decree reformed several laws at once has several
+    entries. Pass `instrumento` (a slug) to say which one is wanted;
+    without it, that raises `ValueError` listing the candidates rather than
+    silently returning one of them (D4).
+    """
+    indice = download_scjn_leyes_index(
+        cache_dir=cache_dir, refrescar=refrescar, timeout=timeout
+    )
+    candidatos = indice["codNota"].get(int(cod_nota), [])
+
+    if instrumento is not None:
+        candidatos = [c for c in candidatos if c["slug"] == instrumento]
+        if not candidatos:
+            raise ValueError(
+                f"el codNota {cod_nota} no reforma el instrumento {instrumento!r} "
+                "segun el indice del release 'scjn-leyes'"
+            )
+    if not candidatos:
+        return None
+    if len(candidatos) > 1:
+        nombres = ", ".join(
+            f"{c['slug']} ({indice['instrumentos'].get(c['slug'], {}).get('nombre', '?')})"
+            for c in candidatos
+        )
+        raise ValueError(
+            f"el codNota {cod_nota} reforma mas de un instrumento: {nombres}. "
+            "Pasa instrumento=<slug> para elegir uno"
+        )
+
+    candidato = candidatos[0]
+    slug, archivo = candidato["slug"], candidato["archivo"]
+    contenido = _bytes_de_asset(f"{slug}.tgz", cache_dir, refrescar, timeout)
+    with tarfile.open(fileobj=io.BytesIO(contenido), mode="r:gz") as tar:
+        # Every member is prefixed with `<slug>/` so the tarball unpacks
+        # anywhere -- see scripts/empaqueta_scjn_leyes.py.
+        miembro = tar.extractfile(tar.getmember(f"{slug}/{archivo}"))
+        markdown = miembro.read().decode("utf-8")
+    return slug, archivo, markdown
+
+
+def download_scjn_leyes_corpus(
+    slug: str, timeout: int = 60, *, cache_dir=SIN_CACHE_DIR, refrescar: bool = False
+) -> dict:
     """One `leyes` instrument of the SCJN-based corpus (issue #128), by its
     own `slug`, as ``{"slug": ..., "snapshots": [...]}`` — one entry per
     snapshot, each carrying its own `indice.json` fields (`fecha_publicacion`,
@@ -1338,29 +1567,20 @@ def download_scjn_leyes_corpus(slug: str, timeout: int = 60) -> dict:
     snapshots; each of those comes back with only `archivo`/`codNota=None`/
     `markdown`/`notas={}` set, no confidence fields, rather than being dropped.
 
-    Downloads only that law's own `<slug>.tgz` asset into memory (the
-    release has one per law, not one for the whole collection — bringing
-    down 380 MB to read a single law would be absurd); nothing touches disk.
-    Raises `KeyError` while the `scjn-leyes` release does not publish that
-    asset yet — expected before a human has read
+    Reads only that law's own `<slug>.tgz` asset (the release has one per
+    law, not one for the whole collection — bringing down 380 MB to read a
+    single law would be absurd), off the on-disk cache when there is one and
+    straight into memory when `cache_dir=None` says there is not — see
+    `nota2md.cache` for how `cache_dir`/`refrescar` resolve. Raises
+    `KeyError` while the `scjn-leyes` release does not publish that asset
+    yet — expected before a human has read
     `scripts/empaqueta_scjn_leyes.py`'s own manifest and published it by
     hand (this corpus has no automated publish path, on purpose — see that
-    script). Not re-exported from `nota2md/__init__.py`: this stays
-    `nota2md.scjn`-internal infrastructure until something like issue #117
-    integrates it into `legal_provisions`.
+    script).
     """
-    asset = f"{slug}.tgz"
-    urls = _assets_scjn_leyes(timeout)
-    if asset not in urls:
-        raise KeyError(
-            f"el release 'scjn-leyes' no publica el asset '{asset}' todavia — "
-            "ver issue #128: este corpus solo se publica a mano, tras revision humana"
-        )
+    contenido = _bytes_de_asset(f"{slug}.tgz", cache_dir, refrescar, timeout)
 
-    response = requests.get(urls[asset], headers=_HEADERS, timeout=timeout)
-    response.raise_for_status()
-
-    with tarfile.open(fileobj=io.BytesIO(response.content), mode="r:gz") as tar:
+    with tarfile.open(fileobj=io.BytesIO(contenido), mode="r:gz") as tar:
         miembros = {m.name: tar.extractfile(m).read() for m in tar if m.isfile()}
 
     indice = None
