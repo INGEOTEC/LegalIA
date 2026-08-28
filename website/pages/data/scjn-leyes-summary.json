@@ -1,0 +1,5268 @@
+{
+ "collection": "leyes",
+ "catalogue_entries": 316,
+ "instruments_with_directory": 315,
+ "never_crawled": [
+  "ORDENANZA General de la Armada"
+ ],
+ "snapshots": 3724,
+ "linked_by_title": 2474,
+ "content_diff_confirmed": 2634,
+ "title_link_status": {
+  "linked": 2474,
+  "ambiguous": 1166,
+  "none": 68,
+  "claimed": 16
+ },
+ "title_link_status_by_confirmation": {
+  "linked|unconfirmed": 635,
+  "ambiguous|unconfirmed": 373,
+  "none|unconfirmed": 68,
+  "linked|confirmed": 1839,
+  "ambiguous|confirmed": 793,
+  "claimed|unconfirmed": 14,
+  "claimed|confirmed": 2
+ },
+ "snapshots_by_source": {
+  "dof": 2,
+  "scjn": 3722
+ },
+ "snapshots_per_year": {
+  "1889": 1,
+  "1917": 2,
+  "1921": 1,
+  "1923": 1,
+  "1926": 1,
+  "1927": 1,
+  "1928": 5,
+  "1929": 1,
+  "1931": 4,
+  "1932": 5,
+  "1933": 8,
+  "1934": 17,
+  "1935": 10,
+  "1936": 4,
+  "1937": 4,
+  "1938": 5,
+  "1939": 3,
+  "1940": 10,
+  "1941": 4,
+  "1942": 10,
+  "1943": 8,
+  "1944": 11,
+  "1945": 10,
+  "1946": 11,
+  "1947": 8,
+  "1948": 6,
+  "1949": 5,
+  "1950": 4,
+  "1951": 9,
+  "1952": 3,
+  "1953": 1,
+  "1954": 5,
+  "1955": 2,
+  "1956": 2,
+  "1957": 1,
+  "1959": 1,
+  "1960": 6,
+  "1961": 2,
+  "1962": 3,
+  "1963": 8,
+  "1964": 1,
+  "1965": 3,
+  "1966": 8,
+  "1967": 8,
+  "1968": 3,
+  "1969": 4,
+  "1970": 8,
+  "1971": 5,
+  "1972": 11,
+  "1973": 5,
+  "1974": 30,
+  "1975": 20,
+  "1976": 10,
+  "1977": 6,
+  "1978": 12,
+  "1979": 7,
+  "1980": 19,
+  "1981": 21,
+  "1982": 26,
+  "1983": 28,
+  "1984": 15,
+  "1985": 21,
+  "1986": 45,
+  "1987": 17,
+  "1988": 17,
+  "1989": 13,
+  "1990": 17,
+  "1991": 21,
+  "1992": 40,
+  "1993": 56,
+  "1994": 34,
+  "1995": 43,
+  "1996": 54,
+  "1997": 24,
+  "1998": 36,
+  "1999": 50,
+  "2000": 43,
+  "2001": 26,
+  "2002": 52,
+  "2003": 53,
+  "2004": 56,
+  "2005": 83,
+  "2006": 103,
+  "2007": 72,
+  "2008": 66,
+  "2009": 97,
+  "2010": 67,
+  "2011": 118,
+  "2012": 157,
+  "2013": 113,
+  "2014": 167,
+  "2015": 106,
+  "2016": 123,
+  "2017": 93,
+  "2018": 178,
+  "2019": 81,
+  "2020": 85,
+  "2021": 165,
+  "2022": 138,
+  "2023": 139,
+  "2024": 175,
+  "2025": 176,
+  "2026": 51
+ },
+ "unidentified_per_year": {
+  "1889": 1,
+  "1926": 1,
+  "1927": 1,
+  "1928": 5,
+  "1929": 1,
+  "1931": 1,
+  "1932": 1,
+  "1933": 3,
+  "1934": 10,
+  "1935": 7,
+  "1936": 4,
+  "1937": 1,
+  "1938": 4,
+  "1939": 1,
+  "1940": 5,
+  "1941": 1,
+  "1942": 2,
+  "1943": 1,
+  "1944": 2,
+  "1946": 5,
+  "1947": 7,
+  "1948": 3,
+  "1949": 1,
+  "1950": 2,
+  "1951": 5,
+  "1954": 1,
+  "1955": 1,
+  "1957": 1,
+  "1960": 2,
+  "1965": 2,
+  "1966": 3,
+  "1967": 3,
+  "1968": 1,
+  "1970": 5,
+  "1971": 4,
+  "1972": 3,
+  "1974": 1,
+  "1975": 1,
+  "1976": 2,
+  "1978": 1,
+  "1980": 1,
+  "1981": 5,
+  "1982": 3,
+  "1983": 5,
+  "1984": 1,
+  "1985": 1,
+  "1986": 6,
+  "1987": 3,
+  "1988": 4,
+  "1990": 1,
+  "1991": 5,
+  "1992": 7,
+  "1993": 11,
+  "1994": 5,
+  "1995": 5,
+  "1996": 3,
+  "1997": 2,
+  "1998": 7,
+  "1999": 6,
+  "2000": 2,
+  "2001": 5,
+  "2002": 6,
+  "2003": 7,
+  "2004": 2,
+  "2005": 11,
+  "2006": 6,
+  "2007": 7,
+  "2008": 10,
+  "2009": 12,
+  "2010": 8,
+  "2011": 12,
+  "2012": 10,
+  "2013": 19,
+  "2014": 10,
+  "2015": 15,
+  "2016": 13,
+  "2017": 11,
+  "2018": 16,
+  "2019": 2,
+  "2020": 5,
+  "2021": 8,
+  "2022": 13,
+  "2023": 21,
+  "2024": 20,
+  "2025": 12,
+  "2026": 5
+ },
+ "confidence": {
+  "cpeum": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ccf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ccom": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "cjm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "cfpc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "cff": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "cmpp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "cnpcf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "cnpp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "cpf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "egdf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lisipl": {
+   "motivo": "bajo_umbral",
+   "ratio": 0.041666666666666664
+  },
+  "ladua": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lagra": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "laassp": {
+   "motivo": "confiable",
+   "ratio": 0.9925925925925926
+  },
+  "laero": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lan": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lacp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lamn": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lamni": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lamp": {
+   "motivo": "confiable",
+   "ratio": 0.9956709956709957
+  },
+  "laam": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "larefam": {
+   "motivo": "confiable",
+   "ratio": 0.9803921568627451
+  },
+  "lasoc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lapp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "larcp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lac": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "laat": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lbio": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lbogm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcec": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcpaf": {
+   "motivo": "confiable",
+   "ratio": 0.9896907216494846
+  },
+  "lcpro": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcjpjf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lce": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcmopfih": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcid": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ldrs": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ldsc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ldsca": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ldefam": {
+   "motivo": "confiable",
+   "ratio": 0.9767441860465116
+  },
+  "ldfefm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ldparm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lemefam": {
+   "motivo": "confiable",
+   "ratio": 0.9790209790209791
+  },
+  "len": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lec": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lexp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lei": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfea": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfrcf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfcc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfiv": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfll": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfaar": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfi": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgeo": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lical": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lif-2026": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lih": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lic": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lisf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lie": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lansi": {
+   "motivo": "confiable",
+   "ratio": 0.9864253393665159
+  },
+  "lcmm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcnbv": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcne": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcndh": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "less": {
+   "motivo": "confiable",
+   "ratio": 0.9736842105263158
+  },
+  "lepecfe": {
+   "motivo": "confiable",
+   "ratio": 0.9929078014184397
+  },
+  "lepepm": {
+   "motivo": "confiable",
+   "ratio": 0.9827586206896551
+  },
+  "lfgr": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgn": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lpf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ldpam": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lhheum": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ligie-2022": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lins": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsar": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lmigra": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lmin": {
+   "motivo": "confiable",
+   "ratio": 0.9333333333333333
+  },
+  "lnac": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lncm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lopsrm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "log": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lplan": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lpte": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lperc": {
+   "motivo": "confiable",
+   "ratio": 0.9894736842105263
+  },
+  "lpo": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lpab": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lpcinecdi": {
+   "motivo": "confiable",
+   "ratio": 0.9908256880733946
+  },
+  "lpeam": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lpdusf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lpue": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lram": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lrcdn": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsint": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsn": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsrlip": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsss": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ltf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ltfccg": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "luc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lvzmm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lvgc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lviv": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lbm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ldofgg": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfmped": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "liva": {
+   "motivo": "confiable",
+   "ratio": 0.9714285714285714
+  },
+  "lieps": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lisr": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lissfam": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lissste": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lifnvt": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lifnct": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "limj": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "linpi": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lmv": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lrpv": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lse": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsh": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lss": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsat": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsem": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lspm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lspcapf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsnieg": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsniimsp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsprem": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lmtr": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfcdo": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfafe": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfar": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfca": {
+   "motivo": "sospechoso",
+   "ratio": 0.676923076923077
+  },
+  "lfce": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfcpo": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfcp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfdeapd": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfdefp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfd": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgdp": {
+   "motivo": "confiable",
+   "ratio": 0.9655172413793104
+  },
+  "lffaosc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfjs": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfep": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfdc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lftse": {
+   "motivo": "confiable",
+   "ratio": 0.975
+  },
+  "lfprh": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfpa": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfpca": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfpccs": {
+   "motivo": "confiable",
+   "ratio": 0.9921259842519685
+  },
+  "lfppi": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfpc": {
+   "motivo": "confiable",
+   "ratio": 0.9873417721518988
+  },
+  "lfpdppp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfppcpcia": {
+   "motivo": "confiable",
+   "ratio": 0.9952153110047847
+  },
+  "lfremsp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfra": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfrpe": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfrsp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfrm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfsa": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfsv": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfsp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfvv": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfzee": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfda": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfisan": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lft": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfcpq": {
+   "motivo": "confiable",
+   "ratio": 0.9964912280701754
+  },
+  "lfcsq": {
+   "motivo": "confiable",
+   "ratio": 0.9955156950672646
+  },
+  "lffmaa": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lffpmn": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfaebsp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfpiorpi": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfppipp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfped": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfpsdmh": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfmzaah": {
+   "motivo": "confiable",
+   "ratio": 0.9933774834437086
+  },
+  "lgamvlv": {
+   "motivo": "confiable",
+   "ratio": 0.9852941176470589
+  },
+  "lgag": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lga": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgahotdu": {
+   "motivo": "confiable",
+   "ratio": 0.9939393939393939
+  },
+  "lgb": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgbn": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgcc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgcs": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgcg": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgcfd": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgcdc": {
+   "motivo": "confiable",
+   "ratio": 0.9887640449438202
+  },
+  "lgdlpi": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgdfs": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgds": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgec": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lge": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lges": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgipe": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgaas": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgdnna": {
+   "motivo": "confiable",
+   "ratio": 0.9914529914529915
+  },
+  "lgmime": {
+   "motivo": "confiable",
+   "ratio": 0.9076923076923077
+  },
+  "lgmasc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgmsv": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgoaac": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgpp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgpas": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgpsacdii": {
+   "motivo": "confiable",
+   "ratio": 0.9947643979057592
+  },
+  "lgpc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgpdppso": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgra": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgs": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgsc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgsm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgtoc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgtaip": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgt": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgv": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgvs": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgeepa": {
+   "motivo": "confiable",
+   "ratio": 0.9922480620155039
+  },
+  "lgsmime": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgsna": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgsnsp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgscmm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgmde": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgmdfp": {
+   "motivo": "confiable",
+   "ratio": 0.9965635738831615
+  },
+  "lgmhcti": {
+   "motivo": "confiable",
+   "ratio": 0.9864864864864865
+  },
+  "lgct": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgappcea": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgdocia": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgimh": {
+   "motivo": "confiable",
+   "ratio": 0.984375
+  },
+  "lgipd": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgpsvd": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgpgir": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lgpist": {
+   "motivo": "confiable",
+   "ratio": 0.9872340425531915
+  },
+  "lgpisdme": {
+   "motivo": "confiable",
+   "ratio": 0.9948979591836735
+  },
+  "lgpsedmtp": {
+   "motivo": "confiable",
+   "ratio": 0.9968454258675079
+  },
+  "lgpsdms": {
+   "motivo": "confiable",
+   "ratio": 0.9945652173913043
+  },
+  "lmeum": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lnep": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lned": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lnmascmp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lnrd": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lnsijpa": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lnetb": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lnuf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "loapf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "loam": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lopdc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lopgjdf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "louaaan": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "louam": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lounam": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lota": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lonf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "loshf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lobb": {
+   "motivo": "confiable",
+   "ratio": 0.972972972972973
+  },
+  "lobnce": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lobnosp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lobnefaa": {
+   "motivo": "confiable",
+   "ratio": 0.9925925925925926
+  },
+  "locfcrl": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "locg": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "loefam": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "loinah": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "loipn": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lopjf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "loscm": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lotfja": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcnp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ldvuma": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ldcmpme": {
+   "motivo": "confiable",
+   "ratio": 0.9939393939393939
+  },
+  "ldcpdch": {
+   "motivo": "confiable",
+   "ratio": 0.992
+  },
+  "lfiiedb": {
+   "motivo": "sospechoso",
+   "ratio": 0.577259475218659
+  },
+  "lupdecr": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "liispcen": {
+   "motivo": "confiable",
+   "ratio": 0.995260663507109
+  },
+  "lcacsam": {
+   "motivo": "confiable",
+   "ratio": 0.9936305732484076
+  },
+  "lcacsefam": {
+   "motivo": "confiable",
+   "ratio": 0.9947643979057592
+  },
+  "lppddhp": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "ltpcpimcp": {
+   "motivo": "confiable",
+   "ratio": 0.9955156950672646
+  },
+  "ltosf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lrascap": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lraf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lritf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lrsic": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lmccbdc": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lfgfaga": {
+   "motivo": "confiable",
+   "ratio": 0.9942857142857143
+  },
+  "linbal": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "laem": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "luach": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "luefa": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lrmnyut": {
+   "motivo": "confiable",
+   "ratio": 0.9972451790633609
+  },
+  "lccaif": {
+   "motivo": "confiable",
+   "ratio": 0.9838187702265372
+  },
+  "lccbid": {
+   "motivo": "confiable",
+   "ratio": 0.9802631578947368
+  },
+  "lrfv-art76": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lrart76-fracvi": {
+   "motivo": "confiable",
+   "ratio": 0.9955156950672646
+  },
+  "lrfxiiib-art123": {
+   "motivo": "confiable",
+   "ratio": 0.988929889298893
+  },
+  "lrfxviii-art73": {
+   "motivo": "confiable",
+   "ratio": 0.9948979591836735
+  },
+  "lrfiyii-art105": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lrart27-mn": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lrart3-mmce": {
+   "motivo": "confiable",
+   "ratio": 0.9858156028368794
+  },
+  "lrart5-prof": {
+   "motivo": "confiable",
+   "ratio": 0.9535864978902954
+  },
+  "lrart6-mdr": {
+   "motivo": "confiable",
+   "ratio": 0.9898305084745763
+  },
+  "lrsf": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lcaaa": {
+   "motivo": "confiable",
+   "ratio": 0.9941520467836257
+  },
+  "lcs": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lebhn": {
+   "motivo": "confiable",
+   "ratio": 0.9906542056074766
+  },
+  "latime": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lsct": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "lrpcap": {
+   "motivo": "confiable",
+   "ratio": 0.9922480620155039
+  },
+  "pef-2026": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "reg-diputados": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "reg-senado": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  },
+  "rgic": {
+   "motivo": "confiable",
+   "ratio": 1.0
+  }
+ },
+ "instruments": [
+  {
+   "slug": "cpeum",
+   "nombre": "CONSTITUCIÓN Política de los Estados Unidos Mexicanos",
+   "snapshots": 300,
+   "linked": 177,
+   "diff_confirmed": 165,
+   "fuentes": {
+    "scjn": 300
+   },
+   "first_year": 1917,
+   "last_year": 2026
+  },
+  {
+   "slug": "cpf",
+   "nombre": "CÓDIGO Penal Federal",
+   "snapshots": 166,
+   "linked": 119,
+   "diff_confirmed": 118,
+   "fuentes": {
+    "scjn": 166
+   },
+   "first_year": 1931,
+   "last_year": 2026
+  },
+  {
+   "slug": "lgs",
+   "nombre": "LEY General de Salud",
+   "snapshots": 146,
+   "linked": 83,
+   "diff_confirmed": 82,
+   "fuentes": {
+    "scjn": 146
+   },
+   "first_year": 1984,
+   "last_year": 2026
+  },
+  {
+   "slug": "cff",
+   "nombre": "CÓDIGO Fiscal de la Federación",
+   "snapshots": 118,
+   "linked": 49,
+   "diff_confirmed": 61,
+   "fuentes": {
+    "scjn": 118
+   },
+   "first_year": 1981,
+   "last_year": 2026
+  },
+  {
+   "slug": "lfd",
+   "nombre": "LEY Federal de Derechos",
+   "snapshots": 92,
+   "linked": 44,
+   "diff_confirmed": 56,
+   "fuentes": {
+    "scjn": 92
+   },
+   "first_year": 1981,
+   "last_year": 2025
+  },
+  {
+   "slug": "loapf",
+   "nombre": "LEY Orgánica de la Administración Pública Federal",
+   "snapshots": 82,
+   "linked": 70,
+   "diff_confirmed": 71,
+   "fuentes": {
+    "scjn": 82
+   },
+   "first_year": 1976,
+   "last_year": 2026
+  },
+  {
+   "slug": "ccom",
+   "nombre": "CÓDIGO de Comercio",
+   "snapshots": 74,
+   "linked": 55,
+   "diff_confirmed": 32,
+   "fuentes": {
+    "scjn": 74
+   },
+   "first_year": 1889,
+   "last_year": 2026
+  },
+  {
+   "slug": "ccf",
+   "nombre": "CÓDIGO Civil Federal",
+   "snapshots": 62,
+   "linked": 42,
+   "diff_confirmed": 37,
+   "fuentes": {
+    "scjn": 62
+   },
+   "first_year": 1928,
+   "last_year": 2025
+  },
+  {
+   "slug": "lieps",
+   "nombre": "LEY del Impuesto Especial sobre Producción y Servicios",
+   "snapshots": 60,
+   "linked": 27,
+   "diff_confirmed": 49,
+   "fuentes": {
+    "scjn": 60
+   },
+   "first_year": 1980,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfpc",
+   "nombre": "LEY Federal de Protección al Consumidor",
+   "snapshots": 57,
+   "linked": 56,
+   "diff_confirmed": 34,
+   "fuentes": {
+    "scjn": 57
+   },
+   "first_year": 1992,
+   "last_year": 2025
+  },
+  {
+   "slug": "lft",
+   "nombre": "LEY Federal del Trabajo",
+   "snapshots": 55,
+   "linked": 43,
+   "diff_confirmed": 39,
+   "fuentes": {
+    "scjn": 55
+   },
+   "first_year": 1970,
+   "last_year": 2026
+  },
+  {
+   "slug": "liva",
+   "nombre": "LEY del Impuesto al Valor Agregado",
+   "snapshots": 54,
+   "linked": 25,
+   "diff_confirmed": 42,
+   "fuentes": {
+    "scjn": 54
+   },
+   "first_year": 1978,
+   "last_year": 2021
+  },
+  {
+   "slug": "lic",
+   "nombre": "LEY de Instituciones de Crédito",
+   "snapshots": 53,
+   "linked": 40,
+   "diff_confirmed": 48,
+   "fuentes": {
+    "scjn": 53
+   },
+   "first_year": 1990,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgeepa",
+   "nombre": "LEY General del Equilibrio Ecológico y la Protección al Ambiente",
+   "snapshots": 53,
+   "linked": 39,
+   "diff_confirmed": 38,
+   "fuentes": {
+    "scjn": 53
+   },
+   "first_year": 1988,
+   "last_year": 2026
+  },
+  {
+   "slug": "lvgc",
+   "nombre": "LEY de Vías Generales de Comunicación",
+   "snapshots": 51,
+   "linked": 34,
+   "diff_confirmed": 24,
+   "fuentes": {
+    "scjn": 51
+   },
+   "first_year": 1940,
+   "last_year": 2025
+  },
+  {
+   "slug": "locg",
+   "nombre": "LEY Orgánica del Congreso General de los Estados Unidos Mexicanos",
+   "snapshots": 47,
+   "linked": 41,
+   "diff_confirmed": 40,
+   "fuentes": {
+    "scjn": 47
+   },
+   "first_year": 1999,
+   "last_year": 2025
+  },
+  {
+   "slug": "lss",
+   "nombre": "LEY del Seguro Social",
+   "snapshots": 44,
+   "linked": 18,
+   "diff_confirmed": 38,
+   "fuentes": {
+    "scjn": 44
+   },
+   "first_year": 1995,
+   "last_year": 2026
+  },
+  {
+   "slug": "lmeum",
+   "nombre": "LEY Monetaria de los Estados Unidos Mexicanos",
+   "snapshots": 44,
+   "linked": 26,
+   "diff_confirmed": 14,
+   "fuentes": {
+    "scjn": 44
+   },
+   "first_year": 1931,
+   "last_year": 2026
+  },
+  {
+   "slug": "ladua",
+   "nombre": "LEY Aduanera",
+   "snapshots": 40,
+   "linked": 8,
+   "diff_confirmed": 19,
+   "fuentes": {
+    "scjn": 40
+   },
+   "first_year": 1995,
+   "last_year": 2025
+  },
+  {
+   "slug": "lcf",
+   "nombre": "LEY de Coordinación Fiscal",
+   "snapshots": 40,
+   "linked": 19,
+   "diff_confirmed": 35,
+   "fuentes": {
+    "scjn": 40
+   },
+   "first_year": 1978,
+   "last_year": 2024
+  },
+  {
+   "slug": "reg-diputados",
+   "nombre": "REGLAMENTO de la Cámara de Diputados",
+   "snapshots": 40,
+   "linked": 28,
+   "diff_confirmed": 30,
+   "fuentes": {
+    "scjn": 40
+   },
+   "first_year": 2010,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfisan",
+   "nombre": "LEY Federal del Impuesto sobre Automóviles Nuevos",
+   "snapshots": 34,
+   "linked": 14,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 34
+   },
+   "first_year": 1996,
+   "last_year": 2025
+  },
+  {
+   "slug": "lifnvt",
+   "nombre": "LEY del Instituto del Fondo Nacional de la Vivienda para los Trabajadores",
+   "snapshots": 31,
+   "linked": 24,
+   "diff_confirmed": 30,
+   "fuentes": {
+    "scjn": 31
+   },
+   "first_year": 1972,
+   "last_year": 2025
+  },
+  {
+   "slug": "lftse",
+   "nombre": "LEY Federal de los Trabajadores al Servicio del Estado, Reglamentaria del Apartado B) del Artículo 123 Constitucional",
+   "snapshots": 31,
+   "linked": 19,
+   "diff_confirmed": 23,
+   "fuentes": {
+    "scjn": 31
+   },
+   "first_year": 1963,
+   "last_year": 2026
+  },
+  {
+   "slug": "reg-senado",
+   "nombre": "REGLAMENTO del Senado de la República",
+   "snapshots": 31,
+   "linked": 16,
+   "diff_confirmed": 19,
+   "fuentes": {
+    "scjn": 31
+   },
+   "first_year": 2010,
+   "last_year": 2024
+  },
+  {
+   "slug": "lgoaac",
+   "nombre": "LEY General de Organizaciones y Actividades Auxiliares del Crédito",
+   "snapshots": 28,
+   "linked": 21,
+   "diff_confirmed": 25,
+   "fuentes": {
+    "scjn": 28
+   },
+   "first_year": 1985,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgsm",
+   "nombre": "LEY General de Sociedades Mercantiles",
+   "snapshots": 28,
+   "linked": 25,
+   "diff_confirmed": 24,
+   "fuentes": {
+    "scjn": 28
+   },
+   "first_year": 1934,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgamvlv",
+   "nombre": "LEY General de Acceso de las Mujeres a una Vida Libre de Violencias",
+   "snapshots": 27,
+   "linked": 2,
+   "diff_confirmed": 26,
+   "fuentes": {
+    "scjn": 27
+   },
+   "first_year": 2007,
+   "last_year": 2026
+  },
+  {
+   "slug": "lgtoc",
+   "nombre": "LEY General de Títulos y Operaciones de Crédito",
+   "snapshots": 27,
+   "linked": 18,
+   "diff_confirmed": 19,
+   "fuentes": {
+    "scjn": 27
+   },
+   "first_year": 1932,
+   "last_year": 2024
+  },
+  {
+   "slug": "lissste",
+   "nombre": "LEY del Instituto de Seguridad y Servicios Sociales de los Trabajadores del Estado",
+   "snapshots": 26,
+   "linked": 14,
+   "diff_confirmed": 16,
+   "fuentes": {
+    "scjn": 26
+   },
+   "first_year": 2007,
+   "last_year": 2026
+  },
+  {
+   "slug": "lgvs",
+   "nombre": "LEY General de Vida Silvestre",
+   "snapshots": 26,
+   "linked": 23,
+   "diff_confirmed": 22,
+   "fuentes": {
+    "scjn": 26
+   },
+   "first_year": 2000,
+   "last_year": 2025
+  },
+  {
+   "slug": "lebhn",
+   "nombre": "LEY sobre el Escudo, la Bandera y el Himno Nacionales",
+   "snapshots": 26,
+   "linked": 20,
+   "diff_confirmed": 20,
+   "fuentes": {
+    "scjn": 26
+   },
+   "first_year": 1984,
+   "last_year": 2025
+  },
+  {
+   "slug": "lperc",
+   "nombre": "LEY de Premios, Estímulos y Recompensas Civiles",
+   "snapshots": 25,
+   "linked": 21,
+   "diff_confirmed": 24,
+   "fuentes": {
+    "scjn": 25
+   },
+   "first_year": 1975,
+   "last_year": 2024
+  },
+  {
+   "slug": "lgdnna",
+   "nombre": "LEY General de los Derechos de Niñas, Niños y Adolescentes",
+   "snapshots": 24,
+   "linked": 22,
+   "diff_confirmed": 21,
+   "fuentes": {
+    "scjn": 24
+   },
+   "first_year": 2014,
+   "last_year": 2026
+  },
+  {
+   "slug": "lcndh",
+   "nombre": "LEY de la Comisión Nacional de los Derechos Humanos",
+   "snapshots": 23,
+   "linked": 11,
+   "diff_confirmed": 17,
+   "fuentes": {
+    "scjn": 23
+   },
+   "first_year": 1992,
+   "last_year": 2024
+  },
+  {
+   "slug": "lfprh",
+   "nombre": "LEY Federal de Presupuesto y Responsabilidad Hacendaria",
+   "snapshots": 21,
+   "linked": 16,
+   "diff_confirmed": 18,
+   "fuentes": {
+    "scjn": 21
+   },
+   "first_year": 2006,
+   "last_year": 2026
+  },
+  {
+   "slug": "lgp",
+   "nombre": "LEY General de Población",
+   "snapshots": 21,
+   "linked": 17,
+   "diff_confirmed": 18,
+   "fuentes": {
+    "scjn": 21
+   },
+   "first_year": 1974,
+   "last_year": 2025
+  },
+  {
+   "slug": "lagra",
+   "nombre": "LEY Agraria",
+   "snapshots": 20,
+   "linked": 1,
+   "diff_confirmed": 17,
+   "fuentes": {
+    "scjn": 20
+   },
+   "first_year": 1992,
+   "last_year": 2025
+  },
+  {
+   "slug": "ligie-2022",
+   "nombre": "LEY de los Impuestos Generales de Importación y de Exportación",
+   "snapshots": 20,
+   "linked": 11,
+   "diff_confirmed": 13,
+   "fuentes": {
+    "scjn": 20
+   },
+   "first_year": 2022,
+   "last_year": 2026
+  },
+  {
+   "slug": "lfcdo",
+   "nombre": "LEY Federal contra la Delincuencia Organizada",
+   "snapshots": 20,
+   "linked": 19,
+   "diff_confirmed": 18,
+   "fuentes": {
+    "scjn": 20
+   },
+   "first_year": 1996,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfped",
+   "nombre": "LEY Federal para Prevenir y Eliminar la Discriminación",
+   "snapshots": 20,
+   "linked": 15,
+   "diff_confirmed": 17,
+   "fuentes": {
+    "scjn": 20
+   },
+   "first_year": 2003,
+   "last_year": 2025
+  },
+  {
+   "slug": "lmigra",
+   "nombre": "LEY de Migración",
+   "snapshots": 19,
+   "linked": 3,
+   "diff_confirmed": 17,
+   "fuentes": {
+    "scjn": 19
+   },
+   "first_year": 2011,
+   "last_year": 2026
+  },
+  {
+   "slug": "lfep",
+   "nombre": "LEY Federal de las Entidades Paraestatales",
+   "snapshots": 19,
+   "linked": 16,
+   "diff_confirmed": 18,
+   "fuentes": {
+    "scjn": 19
+   },
+   "first_year": 1986,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgimh",
+   "nombre": "LEY General para la Igualdad Sustantiva entre Mujeres y Hombres",
+   "snapshots": 19,
+   "linked": 2,
+   "diff_confirmed": 18,
+   "fuentes": {
+    "scjn": 19
+   },
+   "first_year": 2006,
+   "last_year": 2026
+  },
+  {
+   "slug": "lcpaf",
+   "nombre": "LEY de Caminos, Puentes y Autotransporte Federal",
+   "snapshots": 18,
+   "linked": 16,
+   "diff_confirmed": 16,
+   "fuentes": {
+    "scjn": 18
+   },
+   "first_year": 1993,
+   "last_year": 2025
+  },
+  {
+   "slug": "ldrs",
+   "nombre": "LEY de Desarrollo Rural Sustentable",
+   "snapshots": 18,
+   "linked": 11,
+   "diff_confirmed": 14,
+   "fuentes": {
+    "scjn": 18
+   },
+   "first_year": 2001,
+   "last_year": 2024
+  },
+  {
+   "slug": "lie",
+   "nombre": "LEY de Inversión Extranjera",
+   "snapshots": 18,
+   "linked": 9,
+   "diff_confirmed": 17,
+   "fuentes": {
+    "scjn": 18
+   },
+   "first_year": 1993,
+   "last_year": 2024
+  },
+  {
+   "slug": "ldpam",
+   "nombre": "LEY de los Derechos de las Personas Adultas Mayores",
+   "snapshots": 18,
+   "linked": 12,
+   "diff_confirmed": 17,
+   "fuentes": {
+    "scjn": 18
+   },
+   "first_year": 2002,
+   "last_year": 2024
+  },
+  {
+   "slug": "lsar",
+   "nombre": "LEY de los Sistemas de Ahorro para el Retiro",
+   "snapshots": 18,
+   "linked": 13,
+   "diff_confirmed": 16,
+   "fuentes": {
+    "scjn": 18
+   },
+   "first_year": 1996,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgpas",
+   "nombre": "LEY General de Pesca y Acuacultura Sustentables",
+   "snapshots": 18,
+   "linked": 13,
+   "diff_confirmed": 14,
+   "fuentes": {
+    "scjn": 18
+   },
+   "first_year": 2007,
+   "last_year": 2024
+  },
+  {
+   "slug": "lfafe",
+   "nombre": "LEY Federal de Armas de Fuego y Explosivos",
+   "snapshots": 17,
+   "linked": 14,
+   "diff_confirmed": 16,
+   "fuentes": {
+    "scjn": 17
+   },
+   "first_year": 1972,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfrsp",
+   "nombre": "LEY Federal de Responsabilidades de los Servidores Públicos",
+   "snapshots": 17,
+   "linked": 13,
+   "diff_confirmed": 16,
+   "fuentes": {
+    "scjn": 17
+   },
+   "first_year": 1982,
+   "last_year": 2024
+  },
+  {
+   "slug": "lfda",
+   "nombre": "LEY Federal del Derecho de Autor",
+   "snapshots": 16,
+   "linked": 13,
+   "diff_confirmed": 15,
+   "fuentes": {
+    "scjn": 16
+   },
+   "first_year": 1996,
+   "last_year": 2026
+  },
+  {
+   "slug": "lgcfd",
+   "nombre": "LEY General de Cultura Física y Deporte",
+   "snapshots": 16,
+   "linked": 13,
+   "diff_confirmed": 12,
+   "fuentes": {
+    "scjn": 16
+   },
+   "first_year": 2013,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgds",
+   "nombre": "LEY General de Desarrollo Social",
+   "snapshots": 16,
+   "linked": 7,
+   "diff_confirmed": 11,
+   "fuentes": {
+    "scjn": 16
+   },
+   "first_year": 2004,
+   "last_year": 2026
+  },
+  {
+   "slug": "lgpgir",
+   "nombre": "LEY General para la Prevención y Gestión Integral de los Residuos",
+   "snapshots": 16,
+   "linked": 16,
+   "diff_confirmed": 15,
+   "fuentes": {
+    "scjn": 16
+   },
+   "first_year": 2003,
+   "last_year": 2026
+  },
+  {
+   "slug": "cjm",
+   "nombre": "CÓDIGO de Justicia Militar",
+   "snapshots": 15,
+   "linked": 13,
+   "diff_confirmed": 11,
+   "fuentes": {
+    "scjn": 15
+   },
+   "first_year": 1933,
+   "last_year": 2025
+  },
+  {
+   "slug": "cfpc",
+   "nombre": "CÓDIGO Federal de Procedimientos Civiles",
+   "snapshots": 15,
+   "linked": 12,
+   "diff_confirmed": 13,
+   "fuentes": {
+    "scjn": 15
+   },
+   "first_year": 1943,
+   "last_year": 2023
+  },
+  {
+   "slug": "lac",
+   "nombre": "LEY de Aviación Civil",
+   "snapshots": 15,
+   "linked": 11,
+   "diff_confirmed": 12,
+   "fuentes": {
+    "scjn": 15
+   },
+   "first_year": 1995,
+   "last_year": 2025
+  },
+  {
+   "slug": "lih",
+   "nombre": "LEY de Ingresos sobre Hidrocarburos",
+   "snapshots": 15,
+   "linked": 5,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 15
+   },
+   "first_year": 2014,
+   "last_year": 2025
+  },
+  {
+   "slug": "loefam",
+   "nombre": "LEY Orgánica del Ejército y Fuerza Aérea Mexicanos",
+   "snapshots": 15,
+   "linked": 14,
+   "diff_confirmed": 14,
+   "fuentes": {
+    "scjn": 15
+   },
+   "first_year": 1986,
+   "last_year": 2025
+  },
+  {
+   "slug": "cnpp",
+   "nombre": "CÓDIGO Nacional de Procedimientos Penales",
+   "snapshots": 14,
+   "linked": 14,
+   "diff_confirmed": 13,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 2014,
+   "last_year": 2025
+  },
+  {
+   "slug": "lacp",
+   "nombre": "LEY de Ahorro y Crédito Popular",
+   "snapshots": 14,
+   "linked": 11,
+   "diff_confirmed": 13,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 2001,
+   "last_year": 2025
+  },
+  {
+   "slug": "lcnbv",
+   "nombre": "LEY de la Comisión Nacional Bancaria y de Valores",
+   "snapshots": 14,
+   "linked": 7,
+   "diff_confirmed": 12,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 1995,
+   "last_year": 2022
+  },
+  {
+   "slug": "lpdusf",
+   "nombre": "LEY de Protección y Defensa al Usuario de Servicios Financieros",
+   "snapshots": 14,
+   "linked": 11,
+   "diff_confirmed": 13,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 1999,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfpca",
+   "nombre": "LEY Federal de Procedimiento Contencioso Administrativo",
+   "snapshots": 14,
+   "linked": 12,
+   "diff_confirmed": 12,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 2005,
+   "last_year": 2026
+  },
+  {
+   "slug": "lgbn",
+   "nombre": "LEY General de Bienes Nacionales",
+   "snapshots": 14,
+   "linked": 12,
+   "diff_confirmed": 13,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 2004,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgcc",
+   "nombre": "LEY General de Cambio Climático",
+   "snapshots": 14,
+   "linked": 11,
+   "diff_confirmed": 13,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 2012,
+   "last_year": 2024
+  },
+  {
+   "slug": "lgt",
+   "nombre": "LEY General de Turismo",
+   "snapshots": 14,
+   "linked": 10,
+   "diff_confirmed": 10,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 2009,
+   "last_year": 2025
+  },
+  {
+   "slug": "lccaif",
+   "nombre": "LEY que Establece Bases para la Ejecución en México, por el Poder Ejecutivo Federal, del Convenio Constitutivo de la Asociación Internacional de Fomento",
+   "snapshots": 14,
+   "linked": 14,
+   "diff_confirmed": 11,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 1960,
+   "last_year": 2025
+  },
+  {
+   "slug": "lccbid",
+   "nombre": "LEY que Establece Bases para la Ejecución en México, por el Poder Ejecutivo Federal, del Convenio Constitutivo del Banco Interamericano de Desarrollo",
+   "snapshots": 14,
+   "linked": 11,
+   "diff_confirmed": 9,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 1959,
+   "last_year": 2014
+  },
+  {
+   "slug": "rgic",
+   "nombre": "REGLAMENTO para el Gobierno Interior del Congreso General de los Estados Unidos Mexicanos",
+   "snapshots": 14,
+   "linked": 8,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 14
+   },
+   "first_year": 1934,
+   "last_year": 2010
+  },
+  {
+   "slug": "lopsrm",
+   "nombre": "LEY de Obras Públicas y Servicios Relacionados con las Mismas",
+   "snapshots": 13,
+   "linked": 11,
+   "diff_confirmed": 12,
+   "fuentes": {
+    "scjn": 13
+   },
+   "first_year": 2000,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfmzaah",
+   "nombre": "LEY Federal sobre Monumentos y Zonas Arqueológicos, Artísticos e Históricos",
+   "snapshots": 13,
+   "linked": 7,
+   "diff_confirmed": 10,
+   "fuentes": {
+    "scjn": 13
+   },
+   "first_year": 1972,
+   "last_year": 2025
+  },
+  {
+   "slug": "lan",
+   "nombre": "LEY de Aguas Nacionales",
+   "snapshots": 12,
+   "linked": 11,
+   "diff_confirmed": 11,
+   "fuentes": {
+    "scjn": 12
+   },
+   "first_year": 1992,
+   "last_year": 2025
+  },
+  {
+   "slug": "lins",
+   "nombre": "LEY de los Institutos Nacionales de Salud",
+   "snapshots": 12,
+   "linked": 11,
+   "diff_confirmed": 11,
+   "fuentes": {
+    "scjn": 12
+   },
+   "first_year": 2000,
+   "last_year": 2022
+  },
+  {
+   "slug": "lplan",
+   "nombre": "LEY de Planeación",
+   "snapshots": 12,
+   "linked": 0,
+   "diff_confirmed": 11,
+   "fuentes": {
+    "scjn": 12
+   },
+   "first_year": 1983,
+   "last_year": 2026
+  },
+  {
+   "slug": "lviv",
+   "nombre": "LEY de Vivienda",
+   "snapshots": 12,
+   "linked": 2,
+   "diff_confirmed": 11,
+   "fuentes": {
+    "scjn": 12
+   },
+   "first_year": 2006,
+   "last_year": 2026
+  },
+  {
+   "slug": "lissfam",
+   "nombre": "LEY del Instituto de Seguridad Social para las Fuerzas Armadas Mexicanas",
+   "snapshots": 12,
+   "linked": 12,
+   "diff_confirmed": 11,
+   "fuentes": {
+    "scjn": 12
+   },
+   "first_year": 2003,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgdlpi",
+   "nombre": "LEY General de Derechos Lingüísticos de los Pueblos Indígenas",
+   "snapshots": 12,
+   "linked": 3,
+   "diff_confirmed": 10,
+   "fuentes": {
+    "scjn": 12
+   },
+   "first_year": 2003,
+   "last_year": 2023
+  },
+  {
+   "slug": "laero",
+   "nombre": "LEY de Aeropuertos",
+   "snapshots": 11,
+   "linked": 1,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 11
+   },
+   "first_year": 1995,
+   "last_year": 2025
+  },
+  {
+   "slug": "larefam",
+   "nombre": "LEY de Ascensos y Recompensas del Ejército, Fuerza Aérea y Guardia Nacional",
+   "snapshots": 11,
+   "linked": 3,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 11
+   },
+   "first_year": 2003,
+   "last_year": 2025
+  },
+  {
+   "slug": "lmv",
+   "nombre": "LEY del Mercado de Valores",
+   "snapshots": 11,
+   "linked": 7,
+   "diff_confirmed": 10,
+   "fuentes": {
+    "scjn": 11
+   },
+   "first_year": 2005,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgcg",
+   "nombre": "LEY General de Contabilidad Gubernamental",
+   "snapshots": 11,
+   "linked": 9,
+   "diff_confirmed": 10,
+   "fuentes": {
+    "scjn": 11
+   },
+   "first_year": 2008,
+   "last_year": 2026
+  },
+  {
+   "slug": "lgmime",
+   "nombre": "LEY General de los Medios de Impugnación en Materia Electoral",
+   "snapshots": 11,
+   "linked": 10,
+   "diff_confirmed": 9,
+   "fuentes": {
+    "scjn": 11
+   },
+   "first_year": 1996,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgsmime",
+   "nombre": "LEY General del Sistema de Medios de Impugnación en Materia Electoral",
+   "snapshots": 11,
+   "linked": 9,
+   "diff_confirmed": 10,
+   "fuentes": {
+    "scjn": 11
+   },
+   "first_year": 1996,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgipd",
+   "nombre": "LEY General para la Inclusión de las Personas con Discapacidad",
+   "snapshots": 11,
+   "linked": 7,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 11
+   },
+   "first_year": 2011,
+   "last_year": 2024
+  },
+  {
+   "slug": "egdf",
+   "nombre": "ESTATUTO de Gobierno del Distrito Federal",
+   "snapshots": 10,
+   "linked": 10,
+   "diff_confirmed": 9,
+   "fuentes": {
+    "scjn": 10
+   },
+   "first_year": 1994,
+   "last_year": 2014
+  },
+  {
+   "slug": "lamp",
+   "nombre": "LEY de Amparo, Reglamentaria de los artículos 103 y 107 de la Constitución Política de los Estados Unidos Mexicanos",
+   "snapshots": 10,
+   "linked": 8,
+   "diff_confirmed": 9,
+   "fuentes": {
+    "scjn": 10
+   },
+   "first_year": 2013,
+   "last_year": 2025
+  },
+  {
+   "slug": "lasoc",
+   "nombre": "LEY de Asistencia Social",
+   "snapshots": 10,
+   "linked": 8,
+   "diff_confirmed": 9,
+   "fuentes": {
+    "scjn": 10
+   },
+   "first_year": 2004,
+   "last_year": 2024
+  },
+  {
+   "slug": "limj",
+   "nombre": "LEY del Instituto Mexicano de la Juventud",
+   "snapshots": 10,
+   "linked": 6,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 10
+   },
+   "first_year": 1999,
+   "last_year": 2024
+  },
+  {
+   "slug": "lsm",
+   "nombre": "LEY del Servicio Militar",
+   "snapshots": 10,
+   "linked": 9,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 10
+   },
+   "first_year": 1940,
+   "last_year": 2022
+  },
+  {
+   "slug": "lfca",
+   "nombre": "LEY Federal de Cine y el Audiovisual",
+   "snapshots": 10,
+   "linked": 9,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "dof": 1,
+    "scjn": 9
+   },
+   "first_year": 1992,
+   "last_year": 2026
+  },
+  {
+   "slug": "lfdefp",
+   "nombre": "LEY Federal de Defensoría Pública",
+   "snapshots": 10,
+   "linked": 9,
+   "diff_confirmed": 9,
+   "fuentes": {
+    "scjn": 10
+   },
+   "first_year": 1998,
+   "last_year": 2024
+  },
+  {
+   "slug": "lgpc",
+   "nombre": "LEY General de Protección Civil",
+   "snapshots": 10,
+   "linked": 7,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 10
+   },
+   "first_year": 2012,
+   "last_year": 2023
+  },
+  {
+   "slug": "lfi",
+   "nombre": "LEY de Fondos de Inversión",
+   "snapshots": 9,
+   "linked": 4,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 9
+   },
+   "first_year": 2001,
+   "last_year": 2025
+  },
+  {
+   "slug": "lisr",
+   "nombre": "LEY del Impuesto sobre la Renta",
+   "snapshots": 9,
+   "linked": 7,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 9
+   },
+   "first_year": 2013,
+   "last_year": 2024
+  },
+  {
+   "slug": "lsnieg",
+   "nombre": "LEY del Sistema Nacional de Información Estadística y Geográfica",
+   "snapshots": 9,
+   "linked": 7,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 9
+   },
+   "first_year": 2008,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfpa",
+   "nombre": "LEY Federal de Procedimiento Administrativo",
+   "snapshots": 9,
+   "linked": 7,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 9
+   },
+   "first_year": 1994,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgra",
+   "nombre": "LEY General de Responsabilidades Administrativas",
+   "snapshots": 9,
+   "linked": 8,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 9
+   },
+   "first_year": 2016,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgv",
+   "nombre": "LEY General de Víctimas",
+   "snapshots": 9,
+   "linked": 7,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 9
+   },
+   "first_year": 2013,
+   "last_year": 2024
+  },
+  {
+   "slug": "ldcmpme",
+   "nombre": "LEY para el Desarrollo de la Competitividad de la Micro, Pequeña y Mediana Empresa",
+   "snapshots": 9,
+   "linked": 9,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 9
+   },
+   "first_year": 2002,
+   "last_year": 2023
+  },
+  {
+   "slug": "lrsf",
+   "nombre": "LEY Reglamentaria del Servicio Ferroviario",
+   "snapshots": 9,
+   "linked": 9,
+   "diff_confirmed": 8,
+   "fuentes": {
+    "scjn": 9
+   },
+   "first_year": 1995,
+   "last_year": 2025
+  },
+  {
+   "slug": "lcm",
+   "nombre": "LEY de Concursos Mercantiles",
+   "snapshots": 8,
+   "linked": 6,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 2000,
+   "last_year": 2025
+  },
+  {
+   "slug": "less",
+   "nombre": "LEY de la Economía Social y Solidaria",
+   "snapshots": 8,
+   "linked": 8,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 2012,
+   "last_year": 2025
+  },
+  {
+   "slug": "lncm",
+   "nombre": "LEY de Navegación y Comercio Marítimos",
+   "snapshots": 8,
+   "linked": 8,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 2006,
+   "last_year": 2025
+  },
+  {
+   "slug": "lbm",
+   "nombre": "LEY del Banco de México",
+   "snapshots": 8,
+   "linked": 4,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 1993,
+   "last_year": 2014
+  },
+  {
+   "slug": "lgdp",
+   "nombre": "LEY Federal de Deuda Pública",
+   "snapshots": 8,
+   "linked": 2,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 1976,
+   "last_year": 2018
+  },
+  {
+   "slug": "lffaosc",
+   "nombre": "LEY Federal de Fomento a las Actividades Realizadas por Organizaciones de la Sociedad Civil",
+   "snapshots": 8,
+   "linked": 7,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 2004,
+   "last_year": 2024
+  },
+  {
+   "slug": "lfcpq",
+   "nombre": "LEY Federal para el Control de Precursores Químicos, Productos Químicos Esenciales y Máquinas para Elaborar Cápsulas, Tabletas y/o Comprimidos",
+   "snapshots": 8,
+   "linked": 6,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 1997,
+   "last_year": 2023
+  },
+  {
+   "slug": "lfaebsp",
+   "nombre": "LEY Federal para la Administración y Enajenación de Bienes del Sector Público",
+   "snapshots": 8,
+   "linked": 7,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 2002,
+   "last_year": 2024
+  },
+  {
+   "slug": "lgcdc",
+   "nombre": "LEY General de Cultura y Derechos Culturales",
+   "snapshots": 8,
+   "linked": 4,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 2017,
+   "last_year": 2026
+  },
+  {
+   "slug": "lgipe",
+   "nombre": "LEY General de Instituciones y Procedimientos Electorales",
+   "snapshots": 8,
+   "linked": 5,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 2014,
+   "last_year": 2026
+  },
+  {
+   "slug": "lrsic",
+   "nombre": "LEY para Regular las Sociedades de Información Crediticia",
+   "snapshots": 8,
+   "linked": 6,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 2002,
+   "last_year": 2024
+  },
+  {
+   "slug": "lrfiyii-art105",
+   "nombre": "LEY Reglamentaria de las Fracciones I y II del Artículo 105 de la Constitución Política de los Estados Unidos Mexicanos",
+   "snapshots": 8,
+   "linked": 7,
+   "diff_confirmed": 7,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 1995,
+   "last_year": 2025
+  },
+  {
+   "slug": "lcs",
+   "nombre": "LEY Sobre el Contrato de Seguro",
+   "snapshots": 8,
+   "linked": 6,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 8
+   },
+   "first_year": 1935,
+   "last_year": 2013
+  },
+  {
+   "slug": "laam",
+   "nombre": "LEY de Ascensos de la Armada de México",
+   "snapshots": 7,
+   "linked": 7,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 2004,
+   "last_year": 2025
+  },
+  {
+   "slug": "lce",
+   "nombre": "LEY de Comercio Exterior",
+   "snapshots": 7,
+   "linked": 5,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1993,
+   "last_year": 2026
+  },
+  {
+   "slug": "lexp",
+   "nombre": "LEY de Expropiación",
+   "snapshots": 7,
+   "linked": 1,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1936,
+   "last_year": 2012
+  },
+  {
+   "slug": "lmin",
+   "nombre": "LEY de Minería",
+   "snapshots": 7,
+   "linked": 2,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1992,
+   "last_year": 2023
+  },
+  {
+   "slug": "lpab",
+   "nombre": "LEY de Protección al Ahorro Bancario",
+   "snapshots": 7,
+   "linked": 4,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1999,
+   "last_year": 2022
+  },
+  {
+   "slug": "lpue",
+   "nombre": "LEY de Puertos",
+   "snapshots": 7,
+   "linked": 1,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1993,
+   "last_year": 2020
+  },
+  {
+   "slug": "lsat",
+   "nombre": "LEY del Servicio de Administración Tributaria",
+   "snapshots": 7,
+   "linked": 5,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1995,
+   "last_year": 2018
+  },
+  {
+   "slug": "lsem",
+   "nombre": "LEY del Servicio Exterior Mexicano",
+   "snapshots": 7,
+   "linked": 3,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1994,
+   "last_year": 2018
+  },
+  {
+   "slug": "lffmaa",
+   "nombre": "LEY Federal para el Fomento de la Microindustria y la Actividad Artesanal",
+   "snapshots": 7,
+   "linked": 3,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1988,
+   "last_year": 2023
+  },
+  {
+   "slug": "lgdfs",
+   "nombre": "LEY General de Desarrollo Forestal Sustentable",
+   "snapshots": 7,
+   "linked": 4,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 2018,
+   "last_year": 2024
+  },
+  {
+   "slug": "lgpsacdii",
+   "nombre": "LEY General de Prestación de Servicios para la Atención, Cuidado y Desarrollo Integral Infantil",
+   "snapshots": 7,
+   "linked": 6,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 2011,
+   "last_year": 2024
+  },
+  {
+   "slug": "lgmdfp",
+   "nombre": "LEY General en Materia de Desaparición Forzada de Personas, Desaparición Cometida por Particulares y del Sistema Nacional de Búsqueda de Personas",
+   "snapshots": 7,
+   "linked": 5,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 2017,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgpsedmtp",
+   "nombre": "LEY General para Prevenir, Sancionar y Erradicar los Delitos en Materia de Trata de Personas y para la Protección y Asistencia a las Víctimas de estos Delitos",
+   "snapshots": 7,
+   "linked": 6,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 2012,
+   "last_year": 2025
+  },
+  {
+   "slug": "lonf",
+   "nombre": "LEY Orgánica de Nacional Financiera",
+   "snapshots": 7,
+   "linked": 5,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1986,
+   "last_year": 2014
+  },
+  {
+   "slug": "loshf",
+   "nombre": "LEY Orgánica de Sociedad Hipotecaria Federal",
+   "snapshots": 7,
+   "linked": 5,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 2001,
+   "last_year": 2024
+  },
+  {
+   "slug": "lobnosp",
+   "nombre": "LEY Orgánica del Banco Nacional de Obras y Servicios Públicos",
+   "snapshots": 7,
+   "linked": 4,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1986,
+   "last_year": 2024
+  },
+  {
+   "slug": "ltosf",
+   "nombre": "LEY para la Transparencia y Ordenamiento de los Servicios Financieros",
+   "snapshots": 7,
+   "linked": 5,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 2007,
+   "last_year": 2025
+  },
+  {
+   "slug": "lrascap",
+   "nombre": "LEY para Regular las Actividades de las Sociedades Cooperativas de Ahorro y Préstamo",
+   "snapshots": 7,
+   "linked": 4,
+   "diff_confirmed": 6,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 2009,
+   "last_year": 2025
+  },
+  {
+   "slug": "lmccbdc",
+   "nombre": "LEY que Aprueba la Adhesión de México al Convenio Constitutivo del Banco de Desarrollo del Caribe y su Ejecución",
+   "snapshots": 7,
+   "linked": 7,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 7
+   },
+   "first_year": 1982,
+   "last_year": 2014
+  },
+  {
+   "slug": "lapp",
+   "nombre": "LEY de Asociaciones Público Privadas",
+   "snapshots": 6,
+   "linked": 5,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 2012,
+   "last_year": 2025
+  },
+  {
+   "slug": "larcp",
+   "nombre": "LEY de Asociaciones Religiosas y Culto Público",
+   "snapshots": 6,
+   "linked": 5,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 1992,
+   "last_year": 2025
+  },
+  {
+   "slug": "ldefam",
+   "nombre": "LEY de Disciplina del Ejército, Fuerza Aérea y Guardia Nacional",
+   "snapshots": 6,
+   "linked": 1,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 1926,
+   "last_year": 2025
+  },
+  {
+   "slug": "lei",
+   "nombre": "LEY de Extradición Internacional",
+   "snapshots": 6,
+   "linked": 5,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 1975,
+   "last_year": 2021
+  },
+  {
+   "slug": "lisf",
+   "nombre": "LEY de Instituciones de Seguros y de Fianzas",
+   "snapshots": 6,
+   "linked": 3,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 2013,
+   "last_year": 2025
+  },
+  {
+   "slug": "lsn",
+   "nombre": "LEY de Seguridad Nacional",
+   "snapshots": 6,
+   "linked": 4,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 2005,
+   "last_year": 2025
+  },
+  {
+   "slug": "ltfccg",
+   "nombre": "LEY de Transparencia y de Fomento a la Competencia en el Crédito Garantizado",
+   "snapshots": 6,
+   "linked": 4,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 2002,
+   "last_year": 2014
+  },
+  {
+   "slug": "lgahotdu",
+   "nombre": "LEY General de Asentamientos Humanos, Ordenamiento Territorial y Desarrollo Urbano",
+   "snapshots": 6,
+   "linked": 5,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 2016,
+   "last_year": 2024
+  },
+  {
+   "slug": "lge",
+   "nombre": "LEY General de Educación",
+   "snapshots": 6,
+   "linked": 3,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 2019,
+   "last_year": 2026
+  },
+  {
+   "slug": "lgsc",
+   "nombre": "LEY General de Sociedades Cooperativas",
+   "snapshots": 6,
+   "linked": 6,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 1994,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgmde",
+   "nombre": "LEY General en Materia de Delitos Electorales",
+   "snapshots": 6,
+   "linked": 5,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 2014,
+   "last_year": 2021
+  },
+  {
+   "slug": "lgpsdms",
+   "nombre": "LEY General para Prevenir y Sancionar los Delitos en Materia de Secuestro, Reglamentaria de la fracción XXI del artículo 73 de la Constitución Política de los Estados Unidos Mexicanos",
+   "snapshots": 6,
+   "linked": 5,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 2010,
+   "last_year": 2021
+  },
+  {
+   "slug": "lobb",
+   "nombre": "LEY Orgánica del Banco del Bienestar",
+   "snapshots": 6,
+   "linked": 2,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 2001,
+   "last_year": 2019
+  },
+  {
+   "slug": "lobnce",
+   "nombre": "LEY Orgánica del Banco Nacional de Comercio Exterior",
+   "snapshots": 6,
+   "linked": 3,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 1986,
+   "last_year": 2024
+  },
+  {
+   "slug": "lrfxiiib-art123",
+   "nombre": "LEY Reglamentaria de la Fracción XIII Bis del Apartado B, del Artículo 123 de la Constitución Política de los Estados Unidos Mexicanos",
+   "snapshots": 6,
+   "linked": 4,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 1983,
+   "last_year": 2025
+  },
+  {
+   "slug": "lrart5-prof",
+   "nombre": "LEY Reglamentaria del Artículo 5o. Constitucional, relativo al ejercicio de las profesiones en la Ciudad de México",
+   "snapshots": 6,
+   "linked": 4,
+   "diff_confirmed": 5,
+   "fuentes": {
+    "scjn": 6
+   },
+   "first_year": 1945,
+   "last_year": 2018
+  },
+  {
+   "slug": "cmpp",
+   "nombre": "CÓDIGO Militar de Procedimientos Penales",
+   "snapshots": 5,
+   "linked": 4,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2016,
+   "last_year": 2025
+  },
+  {
+   "slug": "lemefam",
+   "nombre": "LEY de Educación Militar del Ejército, Fuerza Aérea y Guardia Nacional",
+   "snapshots": 5,
+   "linked": 2,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2005,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfrcf",
+   "nombre": "LEY de Fiscalización y Rendición de Cuentas de la Federación",
+   "snapshots": 5,
+   "linked": 4,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2016,
+   "last_year": 2026
+  },
+  {
+   "slug": "lfll",
+   "nombre": "LEY de Fomento para la Lectura y el Libro",
+   "snapshots": 5,
+   "linked": 4,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2008,
+   "last_year": 2023
+  },
+  {
+   "slug": "lspm",
+   "nombre": "LEY del Servicio Postal Mexicano",
+   "snapshots": 5,
+   "linked": 4,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 1986,
+   "last_year": 2023
+  },
+  {
+   "slug": "lsprem",
+   "nombre": "LEY del Sistema Público de Radiodifusión del Estado Mexicano",
+   "snapshots": 5,
+   "linked": 4,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2014,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfce",
+   "nombre": "LEY Federal de Competencia Económica",
+   "snapshots": 5,
+   "linked": 4,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2014,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfcp",
+   "nombre": "LEY Federal de Correduría Pública",
+   "snapshots": 5,
+   "linked": 3,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 1992,
+   "last_year": 2012
+  },
+  {
+   "slug": "lfrpe",
+   "nombre": "LEY Federal de Responsabilidad Patrimonial del Estado",
+   "snapshots": 5,
+   "linked": 4,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2004,
+   "last_year": 2023
+  },
+  {
+   "slug": "lfsa",
+   "nombre": "LEY Federal de Sanidad Animal",
+   "snapshots": 5,
+   "linked": 5,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2007,
+   "last_year": 2024
+  },
+  {
+   "slug": "lfsv",
+   "nombre": "LEY Federal de Sanidad Vegetal",
+   "snapshots": 5,
+   "linked": 5,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 1994,
+   "last_year": 2022
+  },
+  {
+   "slug": "lfpsdmh",
+   "nombre": "LEY Federal para Prevenir y Sancionar los Delitos Cometidos en Materia de Hidrocarburos",
+   "snapshots": 5,
+   "linked": 4,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2016,
+   "last_year": 2021
+  },
+  {
+   "slug": "lgcs",
+   "nombre": "LEY General de Comunicación Social",
+   "snapshots": 5,
+   "linked": 4,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2018,
+   "last_year": 2024
+  },
+  {
+   "slug": "lgct",
+   "nombre": "LEY General para el Control del Tabaco",
+   "snapshots": 5,
+   "linked": 4,
+   "diff_confirmed": 4,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 2008,
+   "last_year": 2022
+  },
+  {
+   "slug": "lopgjdf",
+   "nombre": "LEY Orgánica de la Procuraduría General de Justicia del Distrito Federal",
+   "snapshots": 5,
+   "linked": 3,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 5
+   },
+   "first_year": 1996,
+   "last_year": 2011
+  },
+  {
+   "slug": "cnpcf",
+   "nombre": "CÓDIGO Nacional de Procedimientos Civiles y Familiares",
+   "snapshots": 4,
+   "linked": 4,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2023,
+   "last_year": 2026
+  },
+  {
+   "slug": "lpf",
+   "nombre": "LEY de la Policía Federal",
+   "snapshots": 4,
+   "linked": 4,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2009,
+   "last_year": 2025
+  },
+  {
+   "slug": "lnac",
+   "nombre": "LEY de Nacionalidad",
+   "snapshots": 4,
+   "linked": 0,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 1998,
+   "last_year": 2012
+  },
+  {
+   "slug": "luc",
+   "nombre": "LEY de Uniones de Crédito",
+   "snapshots": 4,
+   "linked": 2,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2008,
+   "last_year": 2025
+  },
+  {
+   "slug": "ldofgg",
+   "nombre": "LEY del Diario Oficial de la Federación y Gacetas Gubernamentales",
+   "snapshots": 4,
+   "linked": 4,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 1986,
+   "last_year": 2019
+  },
+  {
+   "slug": "lfmped",
+   "nombre": "LEY del Fondo Mexicano del Petróleo para la Estabilización y el Desarrollo",
+   "snapshots": 4,
+   "linked": 4,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2014,
+   "last_year": 2025
+  },
+  {
+   "slug": "linpi",
+   "nombre": "LEY del Instituto Nacional de los Pueblos Indígenas",
+   "snapshots": 4,
+   "linked": 4,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2018,
+   "last_year": 2023
+  },
+  {
+   "slug": "lrpv",
+   "nombre": "LEY del Registro Público Vehicular",
+   "snapshots": 4,
+   "linked": 3,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2004,
+   "last_year": 2021
+  },
+  {
+   "slug": "lfppi",
+   "nombre": "LEY Federal de Protección a la Propiedad Industrial",
+   "snapshots": 4,
+   "linked": 4,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2020,
+   "last_year": 2026
+  },
+  {
+   "slug": "lfsp",
+   "nombre": "LEY Federal de Seguridad Privada",
+   "snapshots": 4,
+   "linked": 4,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2006,
+   "last_year": 2011
+  },
+  {
+   "slug": "lfcsq",
+   "nombre": "LEY Federal para el Control de Sustancias Químicas Susceptibles de Desvío para la Fabricación de Armas Químicas",
+   "snapshots": 4,
+   "linked": 3,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2009,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfpiorpi",
+   "nombre": "LEY Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita",
+   "snapshots": 4,
+   "linked": 3,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2012,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfppipp",
+   "nombre": "LEY Federal para la Protección a Personas que Intervienen en el Procedimiento Penal",
+   "snapshots": 4,
+   "linked": 3,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2012,
+   "last_year": 2021
+  },
+  {
+   "slug": "lga",
+   "nombre": "LEY General de Archivos",
+   "snapshots": 4,
+   "linked": 4,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2018,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgpp",
+   "nombre": "LEY General de Partidos Políticos",
+   "snapshots": 4,
+   "linked": 4,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2014,
+   "last_year": 2023
+  },
+  {
+   "slug": "lned",
+   "nombre": "LEY Nacional de Extinción de Dominio",
+   "snapshots": 4,
+   "linked": 3,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2019,
+   "last_year": 2025
+  },
+  {
+   "slug": "lobnefaa",
+   "nombre": "LEY Orgánica del Banco Nacional del Ejército, Fuerza Aérea y Armada",
+   "snapshots": 4,
+   "linked": 2,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 1986,
+   "last_year": 2014
+  },
+  {
+   "slug": "loinah",
+   "nombre": "LEY Orgánica del Instituto Nacional de Antropología e Historia",
+   "snapshots": 4,
+   "linked": 2,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 1939,
+   "last_year": 2015
+  },
+  {
+   "slug": "lppddhp",
+   "nombre": "LEY para la Protección de Personas Defensoras de Derechos Humanos y Periodistas",
+   "snapshots": 4,
+   "linked": 3,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2012,
+   "last_year": 2022
+  },
+  {
+   "slug": "lraf",
+   "nombre": "LEY para Regular las Agrupaciones Financieras",
+   "snapshots": 4,
+   "linked": 2,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2014,
+   "last_year": 2025
+  },
+  {
+   "slug": "lritf",
+   "nombre": "LEY para Regular las Instituciones de Tecnología Financiera",
+   "snapshots": 4,
+   "linked": 2,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2018,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfgfaga",
+   "nombre": "LEY que Crea el Fondo de Garantía y Fomento para la Agricultura, Ganadería y Avicultura",
+   "snapshots": 4,
+   "linked": 2,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 1954,
+   "last_year": 2012
+  },
+  {
+   "slug": "lrart6-mdr",
+   "nombre": "LEY Reglamentaria del artículo 6o., párrafo primero, de la Constitución Política de los Estados Unidos Mexicanos, en materia del Derecho de Réplica",
+   "snapshots": 4,
+   "linked": 3,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2015,
+   "last_year": 2025
+  },
+  {
+   "slug": "lcaaa",
+   "nombre": "LEY sobre Cámaras Agrícolas, que en lo sucesivo se denominarán Asociaciones Agrícolas",
+   "snapshots": 4,
+   "linked": 1,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 1932,
+   "last_year": 2012
+  },
+  {
+   "slug": "lrpcap",
+   "nombre": "LEY sobre Refugiados, Protección Complementaria y Asilo Político",
+   "snapshots": 4,
+   "linked": 3,
+   "diff_confirmed": 3,
+   "fuentes": {
+    "scjn": 4
+   },
+   "first_year": 2011,
+   "last_year": 2022
+  },
+  {
+   "slug": "lbogm",
+   "nombre": "LEY de Bioseguridad de Organismos Genéticamente Modificados",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2005,
+   "last_year": 2022
+  },
+  {
+   "slug": "lcec",
+   "nombre": "LEY de Cámaras Empresariales y sus Confederaciones",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2005,
+   "last_year": 2019
+  },
+  {
+   "slug": "lcid",
+   "nombre": "LEY de Cooperación Internacional para el Desarrollo",
+   "snapshots": 3,
+   "linked": 2,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2011,
+   "last_year": 2020
+  },
+  {
+   "slug": "ldfefm",
+   "nombre": "LEY de Disciplina Financiera de las Entidades Federativas y los Municipios",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2016,
+   "last_year": 2022
+  },
+  {
+   "slug": "lfea",
+   "nombre": "LEY de Firma Electrónica Avanzada",
+   "snapshots": 3,
+   "linked": 2,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2012,
+   "last_year": 2025
+  },
+  {
+   "slug": "lansi",
+   "nombre": "LEY de la Agencia Nacional de Seguridad Industrial y de Protección al Medio Ambiente del Sector Hidrocarburos",
+   "snapshots": 3,
+   "linked": 2,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2014,
+   "last_year": 2022
+  },
+  {
+   "slug": "lcmm",
+   "nombre": "LEY de la Casa de Moneda de México",
+   "snapshots": 3,
+   "linked": 2,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 1986,
+   "last_year": 2022
+  },
+  {
+   "slug": "lfgr",
+   "nombre": "LEY de la Fiscalía General de la República",
+   "snapshots": 3,
+   "linked": 0,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2021,
+   "last_year": 2025
+  },
+  {
+   "slug": "lhheum",
+   "nombre": "LEY de los Husos Horarios en los Estados Unidos Mexicanos",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2022,
+   "last_year": 2022
+  },
+  {
+   "slug": "lvzmm",
+   "nombre": "LEY de Vertimientos en las Zonas Marinas Mexicanas",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2014,
+   "last_year": 2025
+  },
+  {
+   "slug": "lifnct",
+   "nombre": "LEY del Instituto del Fondo Nacional para el Consumo de los Trabajadores",
+   "snapshots": 3,
+   "linked": 2,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2006,
+   "last_year": 2024
+  },
+  {
+   "slug": "lspcapf",
+   "nombre": "LEY del Servicio Profesional de Carrera en la Administración Pública Federal",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2003,
+   "last_year": 2006
+  },
+  {
+   "slug": "lfdeapd",
+   "nombre": "LEY Federal de Declaración Especial de Ausencia para Personas Desaparecidas",
+   "snapshots": 3,
+   "linked": 1,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2018,
+   "last_year": 2024
+  },
+  {
+   "slug": "lfppcpcia",
+   "nombre": "Ley Federal de Protección del Patrimonio Cultural de los Pueblos y Comunidades Indígenas y Afromexicanas",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2022,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfra",
+   "nombre": "LEY Federal de Responsabilidad Ambiental",
+   "snapshots": 3,
+   "linked": 2,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2013,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfvv",
+   "nombre": "LEY Federal de Variedades Vegetales",
+   "snapshots": 3,
+   "linked": 2,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 1996,
+   "last_year": 2022
+  },
+  {
+   "slug": "lgmsv",
+   "nombre": "LEY General de Movilidad y Seguridad Vial",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2022,
+   "last_year": 2023
+  },
+  {
+   "slug": "lgpist",
+   "nombre": "LEY General para Prevenir, Investigar y Sancionar la Tortura y Otros Tratos o Penas Crueles, Inhumanos o Degradantes",
+   "snapshots": 3,
+   "linked": 2,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2017,
+   "last_year": 2022
+  },
+  {
+   "slug": "lnmascmp",
+   "nombre": "LEY Nacional de Mecanismos Alternativos de Solución de Controversias en Materia Penal",
+   "snapshots": 3,
+   "linked": 1,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2014,
+   "last_year": 2024
+  },
+  {
+   "slug": "lnsijpa",
+   "nombre": "LEY Nacional del Sistema Integral de Justicia Penal para Adolescentes",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2016,
+   "last_year": 2022
+  },
+  {
+   "slug": "lopdc",
+   "nombre": "LEY Orgánica de la Procuraduría de la Defensa del Contribuyente",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2006,
+   "last_year": 2022
+  },
+  {
+   "slug": "lota",
+   "nombre": "LEY Orgánica de los Tribunales Agrarios",
+   "snapshots": 3,
+   "linked": 2,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 1992,
+   "last_year": 1998
+  },
+  {
+   "slug": "lotfja",
+   "nombre": "LEY Orgánica del Tribunal Federal de Justicia Administrativa",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2016,
+   "last_year": 2025
+  },
+  {
+   "slug": "liispcen",
+   "nombre": "LEY para Impulsar el Incremento Sostenido de la Productividad y la Competitividad de la Economía Nacional",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2015,
+   "last_year": 2024
+  },
+  {
+   "slug": "lcacsefam",
+   "nombre": "LEY para la Comprobación, Ajuste y Cómputo de Servicios en el Ejército y Fuerza Aérea Mexicanos",
+   "snapshots": 3,
+   "linked": 3,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 2006,
+   "last_year": 2024
+  },
+  {
+   "slug": "linbal",
+   "nombre": "LEY que crea el Instituto Nacional de Bellas Artes y Literatura",
+   "snapshots": 3,
+   "linked": 1,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 1946,
+   "last_year": 2015
+  },
+  {
+   "slug": "lrart27-mn",
+   "nombre": "LEY Reglamentaria del Artículo 27 Constitucional en Materia Nuclear",
+   "snapshots": 3,
+   "linked": 1,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 1985,
+   "last_year": 2012
+  },
+  {
+   "slug": "lsct",
+   "nombre": "LEY sobre la Celebración de Tratados",
+   "snapshots": 3,
+   "linked": 2,
+   "diff_confirmed": 2,
+   "fuentes": {
+    "scjn": 3
+   },
+   "first_year": 1992,
+   "last_year": 2025
+  },
+  {
+   "slug": "ldsca",
+   "nombre": "LEY de Desarrollo Sustentable de la Caña de Azúcar",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2005,
+   "last_year": 2025
+  },
+  {
+   "slug": "len",
+   "nombre": "LEY de Educación Naval",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2019,
+   "last_year": 2023
+  },
+  {
+   "slug": "lec",
+   "nombre": "LEY de Energía para el Campo",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2002,
+   "last_year": 2012
+  },
+  {
+   "slug": "lfaar",
+   "nombre": "LEY de Fondos de Aseguramiento Agropecuario y Rural",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2005,
+   "last_year": 2025
+  },
+  {
+   "slug": "log",
+   "nombre": "LEY de Organizaciones Ganaderas",
+   "snapshots": 2,
+   "linked": 1,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1999,
+   "last_year": 2012
+  },
+  {
+   "slug": "lpcinecdi",
+   "nombre": "LEY de Protección al Comercio y la Inversión de Normas Extranjeras que Contravengan el Derecho Internacional",
+   "snapshots": 2,
+   "linked": 1,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1996,
+   "last_year": 2012
+  },
+  {
+   "slug": "lram",
+   "nombre": "LEY de Recompensas de la Armada de México",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1985,
+   "last_year": 2021
+  },
+  {
+   "slug": "lrcdn",
+   "nombre": "LEY de Responsabilidad Civil por Daños Nucleares",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1974,
+   "last_year": 2025
+  },
+  {
+   "slug": "lsp",
+   "nombre": "LEY de Sistemas de Pagos",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2002,
+   "last_year": 2025
+  },
+  {
+   "slug": "lsrlip",
+   "nombre": "LEY de Sociedades de Responsabilidad Limitada de Interés Público",
+   "snapshots": 2,
+   "linked": 1,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1934,
+   "last_year": 2012
+  },
+  {
+   "slug": "lsss",
+   "nombre": "LEY de Sociedades de Solidaridad Social",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1976,
+   "last_year": 2018
+  },
+  {
+   "slug": "lfar",
+   "nombre": "LEY Federal de Austeridad Republicana",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2019,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfcpo",
+   "nombre": "LEY Federal de Consulta Popular",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2014,
+   "last_year": 2021
+  },
+  {
+   "slug": "lfpccs",
+   "nombre": "LEY Federal de Producción, Certificación y Comercio de Semillas",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2007,
+   "last_year": 2018
+  },
+  {
+   "slug": "lfpdppp",
+   "nombre": "LEY Federal de Protección de Datos Personales en Posesión de los Particulares",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfzee",
+   "nombre": "LEY Federal de Zonas Económicas Especiales",
+   "snapshots": 2,
+   "linked": 1,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2016,
+   "last_year": 2024
+  },
+  {
+   "slug": "lfm",
+   "nombre": "LEY Federal del Mar",
+   "snapshots": 2,
+   "linked": 0,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1986,
+   "last_year": 1986
+  },
+  {
+   "slug": "lgb",
+   "nombre": "LEY General de Bibliotecas",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2021,
+   "last_year": 2023
+  },
+  {
+   "slug": "lgpdppso",
+   "nombre": "LEY General de Protección de Datos Personales en Posesión de Sujetos Obligados",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgsna",
+   "nombre": "LEY General del Sistema Nacional Anticorrupción",
+   "snapshots": 2,
+   "linked": 1,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2016,
+   "last_year": 2021
+  },
+  {
+   "slug": "lgpsvd",
+   "nombre": "LEY General para la Prevención Social de la Violencia y la Delincuencia",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2012,
+   "last_year": 2021
+  },
+  {
+   "slug": "lnep",
+   "nombre": "LEY Nacional de Ejecución Penal",
+   "snapshots": 2,
+   "linked": 1,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2016,
+   "last_year": 2024
+  },
+  {
+   "slug": "lnuf",
+   "nombre": "LEY Nacional sobre el Uso de la Fuerza",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2019,
+   "last_year": 2024
+  },
+  {
+   "slug": "lopjf",
+   "nombre": "LEY Orgánica del Poder Judicial de la Federación",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2024,
+   "last_year": 2025
+  },
+  {
+   "slug": "loscm",
+   "nombre": "LEY Orgánica del Seminario de Cultura Mexicana",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1949,
+   "last_year": 2022
+  },
+  {
+   "slug": "lcnp",
+   "nombre": "LEY para Conservar la Neutralidad del País",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1939,
+   "last_year": 2018
+  },
+  {
+   "slug": "lcacsam",
+   "nombre": "LEY para la Comprobación, Ajuste y Cómputo de Servicios de la Armada de México",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2004,
+   "last_year": 2009
+  },
+  {
+   "slug": "luach",
+   "nombre": "LEY que crea la Universidad Autónoma Chapingo",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1974,
+   "last_year": 1977
+  },
+  {
+   "slug": "lrmnyut",
+   "nombre": "LEY que Declara Reservas Mineras Nacionales los Yacimientos de Uranio, Torio y las demás Substancias de las cuales se Obtengan Isótopos Hendibles que puedan Producir Energía Nuclear",
+   "snapshots": 2,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 1950,
+   "last_year": 1972
+  },
+  {
+   "slug": "lrart76-fracvi",
+   "nombre": "LEY Reglamentaria de la fracción VI del artículo 76 de la Constitución Política de los Estados Unidos Mexicanos",
+   "snapshots": 2,
+   "linked": 2,
+   "diff_confirmed": 1,
+   "fuentes": {
+    "scjn": 2
+   },
+   "first_year": 2007,
+   "last_year": 2025
+  },
+  {
+   "slug": "lisipl",
+   "nombre": "IMPUESTO sobre Servicios Expresamente Declarados de Interés Público por Ley, en los que Intervengan Empresas Concesionarias de Bienes del Dominio Directo de la Nación (LEY que establece, reforma y adiciona las disposiciones relativas a diversos impuestos)",
+   "snapshots": 1,
+   "linked": 0,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1968,
+   "last_year": 1968
+  },
+  {
+   "slug": "laassp",
+   "nombre": "LEY de Adquisiciones, Arrendamientos y Servicios del Sector Público",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lamn",
+   "nombre": "LEY de Amnistía",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1994,
+   "last_year": 1994
+  },
+  {
+   "slug": "lamni",
+   "nombre": "LEY de Amnistía",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1994,
+   "last_year": 1994
+  },
+  {
+   "slug": "laat",
+   "nombre": "LEY de Ayuda Alimentaria para los Trabajadores",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2011,
+   "last_year": 2011
+  },
+  {
+   "slug": "lbio",
+   "nombre": "LEY de Biocombustibles",
+   "snapshots": 1,
+   "linked": 0,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lcpro",
+   "nombre": "LEY de Capitalización del Procampo",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2001,
+   "last_year": 2001
+  },
+  {
+   "slug": "lcjpjf",
+   "nombre": "LEY de Carrera Judicial del Poder Judicial de la Federación",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lcmopfih",
+   "nombre": "LEY de Contribución de Mejoras por Obras Públicas Federales de Infraestructura Hidráulica",
+   "snapshots": 1,
+   "linked": 0,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1990,
+   "last_year": 1990
+  },
+  {
+   "slug": "ldsc",
+   "nombre": "LEY de Desarrollo Sustentable de la Cafeticultura",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "ldparm",
+   "nombre": "LEY de Disciplina para el Personal de la Armada de México",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2002,
+   "last_year": 2002
+  },
+  {
+   "slug": "lfcc",
+   "nombre": "LEY de Fomento a la Confianza Ciudadana",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2020,
+   "last_year": 2020
+  },
+  {
+   "slug": "lfiv",
+   "nombre": "LEY de Fomento a la Industria Vitivinícola",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2018,
+   "last_year": 2018
+  },
+  {
+   "slug": "lgeo",
+   "nombre": "LEY de Geotermia",
+   "snapshots": 1,
+   "linked": 0,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lical",
+   "nombre": "LEY de Infraestructura de la Calidad",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2020,
+   "last_year": 2020
+  },
+  {
+   "slug": "lif-2026",
+   "nombre": "LEY de Ingresos de la Federación para el Ejercicio Fiscal de 2026",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lcne",
+   "nombre": "LEY de la Comisión Nacional de Energía",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lepecfe",
+   "nombre": "LEY de la Empresa Pública del Estado, Comisión Federal de Electricidad",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lepepm",
+   "nombre": "LEY de la Empresa Pública del Estado, Petróleos Mexicanos",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgn",
+   "nombre": "LEY de la Guardia Nacional",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lpte",
+   "nombre": "LEY de Planeación y Transición Energética",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lpo",
+   "nombre": "LEY de Productos Orgánicos",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2006,
+   "last_year": 2006
+  },
+  {
+   "slug": "lpeam",
+   "nombre": "LEY de Protección del Espacio Aéreo Mexicano",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2023,
+   "last_year": 2023
+  },
+  {
+   "slug": "lsint",
+   "nombre": "LEY de Seguridad Interior",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2017,
+   "last_year": 2017
+  },
+  {
+   "slug": "ltf",
+   "nombre": "LEY de Tesorería de la Federación",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2015,
+   "last_year": 2015
+  },
+  {
+   "slug": "lse",
+   "nombre": "LEY del Sector Eléctrico",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lsh",
+   "nombre": "LEY del Sector Hidrocarburos",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lsniimsp",
+   "nombre": "LEY del Sistema Nacional de Investigación e Inteligencia en Materia de Seguridad Pública",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lmtr",
+   "nombre": "LEY en Materia de Telecomunicaciones y Radiodifusión",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lfjs",
+   "nombre": "LEY Federal de Juegos y Sorteos",
+   "snapshots": 1,
+   "linked": 0,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1947,
+   "last_year": 1947
+  },
+  {
+   "slug": "lfdc",
+   "nombre": "LEY Federal de los Derechos del Contribuyente",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2005,
+   "last_year": 2005
+  },
+  {
+   "slug": "lfremsp",
+   "nombre": "LEY Federal de Remuneraciones de los Servidores Públicos",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2021,
+   "last_year": 2021
+  },
+  {
+   "slug": "lfrm",
+   "nombre": "LEY Federal de Revocación de Mandato",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2021,
+   "last_year": 2021
+  },
+  {
+   "slug": "lffpmn",
+   "nombre": "LEY Federal para el Fomento y Protección del Maíz Nativo",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2020,
+   "last_year": 2020
+  },
+  {
+   "slug": "lgag",
+   "nombre": "LEY General de Aguas",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgec",
+   "nombre": "LEY General de Economía Circular",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2026,
+   "last_year": 2026
+  },
+  {
+   "slug": "lges",
+   "nombre": "LEY General de Educación Superior",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2021,
+   "last_year": 2021
+  },
+  {
+   "slug": "lgaas",
+   "nombre": "LEY General de la Alimentación Adecuada y Sostenible",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2024,
+   "last_year": 2024
+  },
+  {
+   "slug": "lgmasc",
+   "nombre": "LEY General de Mecanismos Alternativos de Solución de Controversias",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2024,
+   "last_year": 2024
+  },
+  {
+   "slug": "lgtaip",
+   "nombre": "LEY General de Transparencia y Acceso a la Información Pública",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgsnsp",
+   "nombre": "LEY General del Sistema Nacional de Seguridad Pública",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lgscmm",
+   "nombre": "LEY General del Sistema para la Carrera de las Maestras y los Maestros",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2019,
+   "last_year": 2019
+  },
+  {
+   "slug": "lgmhcti",
+   "nombre": "LEY General en materia de Humanidades, Ciencias, Tecnologías e Innovación",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2023,
+   "last_year": 2023
+  },
+  {
+   "slug": "lgappcea",
+   "nombre": "LEY General para la Atención y Protección a Personas con la Condición del Espectro Autista",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2015,
+   "last_year": 2015
+  },
+  {
+   "slug": "lgdocia",
+   "nombre": "LEY General para la Detección Oportuna del Cáncer en la Infancia y la Adolescencia",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2021,
+   "last_year": 2021
+  },
+  {
+   "slug": "lgpisdme",
+   "nombre": "Ley General para Prevenir, Investigar y Sancionar los Delitos en Materia de Extorsión, Reglamentaria de la fracción XXI del artículo 73 de la Constitución Política de los Estados Unidos Mexicanos",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "lnrd",
+   "nombre": "LEY Nacional del Registro de Detenciones",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2019,
+   "last_year": 2019
+  },
+  {
+   "slug": "lnetb",
+   "nombre": "LEY Nacional para Eliminar Trámites Burocráticos",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "loam",
+   "nombre": "LEY Orgánica de la Armada de México",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  },
+  {
+   "slug": "louaaan",
+   "nombre": "LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2006,
+   "last_year": 2006
+  },
+  {
+   "slug": "louam",
+   "nombre": "LEY Orgánica de la Universidad Autónoma Metropolitana",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1973,
+   "last_year": 1973
+  },
+  {
+   "slug": "lounam",
+   "nombre": "LEY Orgánica de la Universidad Nacional Autónoma de México",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1945,
+   "last_year": 1945
+  },
+  {
+   "slug": "locfcrl",
+   "nombre": "LEY Orgánica del Centro Federal de Conciliación y Registro Laboral",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2020,
+   "last_year": 2020
+  },
+  {
+   "slug": "loipn",
+   "nombre": "LEY Orgánica del Instituto Politécnico Nacional",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1981,
+   "last_year": 1981
+  },
+  {
+   "slug": "ldvuma",
+   "nombre": "LEY para Determinar el Valor de la Unidad de Medida y Actualización",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2016,
+   "last_year": 2016
+  },
+  {
+   "slug": "ldcpdch",
+   "nombre": "LEY para el Diálogo, la Conciliación y la Paz Digna en Chiapas",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1995,
+   "last_year": 1995
+  },
+  {
+   "slug": "lfiiedb",
+   "nombre": "LEY para el Fomento de la Inversión en Infraestructura Estratégica para el Desarrollo con Bienestar",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "dof": 1
+   },
+   "first_year": 2026,
+   "last_year": 2026
+  },
+  {
+   "slug": "lupdecr",
+   "nombre": "LEY para el uso y protección de la denominación y del emblema de la Cruz Roja",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2007,
+   "last_year": 2007
+  },
+  {
+   "slug": "ltpcpimcp",
+   "nombre": "LEY para la Transparencia, Prevención y Combate de Prácticas Indebidas en Materia de Contratación de Publicidad",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2021,
+   "last_year": 2021
+  },
+  {
+   "slug": "laem",
+   "nombre": "LEY que crea la Agencia Espacial Mexicana",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2010,
+   "last_year": 2010
+  },
+  {
+   "slug": "luefa",
+   "nombre": "LEY que Crea la Universidad del Ejército y Fuerza Aérea",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1975,
+   "last_year": 1975
+  },
+  {
+   "slug": "lrfv-art76",
+   "nombre": "LEY Reglamentaria de la Fracción V del Artículo 76 de la Constitución General de la República",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1978,
+   "last_year": 1978
+  },
+  {
+   "slug": "lrfxviii-art73",
+   "nombre": "LEY Reglamentaria de la Fracción XVIII del Artículo 73 Constitucional, en lo que se Refiere a la Facultad del Congreso para Dictar Reglas para Determinar el Valor Relativo de la Moneda Extranjera",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 1982,
+   "last_year": 1982
+  },
+  {
+   "slug": "lrart3-mmce",
+   "nombre": "LEY Reglamentaria del Artículo 3o. de la Constitución Política de los Estados Unidos Mexicanos, en materia de Mejora Continua de la Educación",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2019,
+   "last_year": 2019
+  },
+  {
+   "slug": "latime",
+   "nombre": "LEY Sobre la Aprobación de Tratados Internacionales en Materia Económica",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2004,
+   "last_year": 2004
+  },
+  {
+   "slug": "pef-2026",
+   "nombre": "PRESUPUESTO de Egresos de la Federación para el Ejercicio Fiscal 2026",
+   "snapshots": 1,
+   "linked": 1,
+   "diff_confirmed": 0,
+   "fuentes": {
+    "scjn": 1
+   },
+   "first_year": 2025,
+   "last_year": 2025
+  }
+ ]
+}
