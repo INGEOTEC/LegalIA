@@ -243,20 +243,18 @@ script never calls `gh`, and no workflow should ever call it and then
 publish on its own. Read `MANIFEST.md` in full before running the `gh
 release create`/`upload` command the script prints.
 
-## `repara_notas_editoriales_scjn.py`
+### Retirado: `repara_notas_editoriales_scjn.py`
 
-A one-time re-process of what `fetch_scjn_legislacion.py` already
-downloaded before `nota2md.scjn.docx_a_markdown` started stripping the
-SCJN's own editorial commentary ("N. DE E." / "NOTA N", see issue #114) at
-crawl time. Rewrites each snapshot's body in place, `quita_notas_editoriales`
-applied paragraph by paragraph; its provenance header is left untouched, so
-an already-built `indice.json` (Fase 2) stays valid — nothing here re-crawls
-the SCJN or re-links a `codNota`.
-
-```bash
-./scripts/repara_notas_editoriales_scjn.py --outdir scjn-legislacion --dry-run   # report only
-./scripts/repara_notas_editoriales_scjn.py --outdir scjn-legislacion
-```
+Issue #129 retired the one-time `repara_notas_editoriales_scjn.py` that used
+to live here. It re-processed what `fetch_scjn_legislacion.py` had downloaded
+*before* `nota2md.scjn.docx_a_markdown` started stripping the SCJN's own
+editorial commentary ("N. DE E." / "NOTA N", issue #114) at crawl time —
+a migration, not a step of the pipeline. Run over the whole published corpus
+its `--dry-run` now reports `0 parrafo(s) de nota editorial se quitarian en 0
+archivo(s)`: it has nothing left to repair anywhere, and every snapshot a new
+crawl writes is already stripped at the source. `quita_notas_editoriales`
+stays idempotent over already-clean, already-bolded output, so re-running the
+repair was never the thing keeping the corpus correct.
 
 ## `reparar_notas_archivo.py`
 
