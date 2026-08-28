@@ -25,6 +25,8 @@ website:
         text: Dataset
       - href: pages/titles.ipynb
         text: DOF Titles
+      - href: pages/leyes.ipynb
+        text: Federal Laws
       - href: pages/tools.ipynb
         text: Tools
       - href: pages/dof2md.ipynb
