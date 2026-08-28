@@ -67,6 +67,24 @@ pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
     --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py
 ```
 
+The website's notebooks are committed without their outputs, via an
+`nbstripout` clean filter (`.gitattributes` maps `*.ipynb` to it). The filter
+itself lives in `.git/config`, which is not versioned. The devcontainer
+installs it for you (`.devcontainer/postCreate.sh`); a clone outside the
+container has to do it once — otherwise notebook outputs get committed and
+the pack grows by megabytes per commit (`website/pages/titles.ipynb` alone
+was 7.7 MB with outputs, 42 KB without):
+
+```bash
+pip install nbstripout
+nbstripout --install --attributes .gitattributes
+```
+
+Stripping outputs is safe for the site: `quarto render` reads the executed
+results from the committed `website/_freeze/` cache, not from the notebooks.
+A clone that skips the install is not broken — an undefined filter is a
+pass-through — it just stops shrinking what it commits.
+
 ## Git workflow: branches, issues and PRs
 
 - A branch is created to work on one particular issue. It is created only at

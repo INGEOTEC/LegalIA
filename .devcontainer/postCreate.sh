@@ -46,3 +46,17 @@ sudo chown -R "$(id -u):$(id -g)" \
 	/usr/local/bin /usr/local/share /usr/local/etc
 
 bash .devcontainer/python.sh
+
+# The nbstripout clean filter strips notebook outputs on commit, but it lives
+# in .git/config, which is not versioned — so a fresh container has the
+# package (requirements.txt) and .gitattributes without the filter that maps
+# them together, and would commit outputs again. Installing it here makes
+# every container get it once (re-running it is a no-op). The "|| true" keeps
+# a missing .git from failing container creation under "set -e": the filter is
+# a convenience, not something the container needs in order to work.
+nbstripout --install --attributes .gitattributes || true
+
+# .gitattributes also maps *.ipynb to a "ipynb" diff driver, which --install
+# does not define: without this, git diff on a notebook falls back to diffing
+# the raw JSON.
+git config diff.ipynb.textconv "nbstripout -t" || true

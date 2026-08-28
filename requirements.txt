@@ -10,3 +10,7 @@ pandas
 google-colab-cli
 jupyter-kernel-client<1.0.0
 tqdm
+# Clean filter that strips notebook outputs on commit (see CLAUDE.md). Needed
+# in the container because that is where the website notebooks get edited;
+# the filter itself still has to be installed per clone into .git/config.
+nbstripout
