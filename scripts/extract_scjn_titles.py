@@ -12,8 +12,8 @@ instrument's `nombre` matters, to search the SCJN
 place in the SCJN pipeline that calls
 `download_legal_provisions_provenance_ids`: every other script
 (`fetch_scjn_legislacion.py`, `enlaza_scjn_legislacion.py`,
-`audita_scjn_legislacion.py`, `empaqueta_scjn_leyes.py`) reads the catalogue
-this writes instead, so `historial` never reaches them, and the
+`empaqueta_scjn_leyes.py`) reads the catalogue this writes instead, so
+`historial` never reaches them, and the
 `historial-legislativo` release is downloaded once per collection, not once
 per script.
 

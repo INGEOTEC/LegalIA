@@ -28,7 +28,7 @@ tell an unchanged collection from a changed one by comparing bytes rather than
 guessing — and what makes `--verificar` meaningful. It exits non-zero when
 anything differs.
 
-## SCJN pipeline: `extract_scjn_titles.py` → `fetch_scjn_legislacion.py` → `enlaza_scjn_legislacion.py` → `audita_scjn_legislacion.py` / `empaqueta_scjn_leyes.py`
+## SCJN pipeline: `extract_scjn_titles.py` → `fetch_scjn_legislacion.py` → `enlaza_scjn_legislacion.py` → `empaqueta_scjn_leyes.py`
 
 Recovers, from [legislacion.scjn.gob.mx](https://legislacion.scjn.gob.mx/Buscador/),
 the reform-dated Markdown snapshots of a law/reglamento/tratado that
@@ -50,7 +50,6 @@ the original #105 design).
 python -c "from nota2md import download_legal_provisions_titles as d; d('titulos.jsonl.gz')"
 ./scripts/enlaza_scjn_legislacion.py --outdir scjn-legislacion --titulos titulos.jsonl.gz  # Fase 2: match
 
-./scripts/audita_scjn_legislacion.py --outdir scjn-legislacion                     # offline audit
 ./scripts/empaqueta_scjn_leyes.py --outdir scjn-legislacion --destino leyes-release  # leyes only: package
 ```
 
@@ -156,15 +155,15 @@ since a weaker link is never what you actually want:
 Needs a dofjson titles dataset (`codNota`+`titulo`+`fecha`, built once via
 `nota2md.download_legal_provisions_titles`) to find each same-day candidate.
 
-### `audita_scjn_legislacion.py`
-
-Offline audit (issue #115): recomputes, from each instrument's already-saved
-snapshot header, how well the SCJN document `elige_candidato` picked matches
-the Diputados catalogue's own `nombre` for it — no re-crawl. Prints every
-instrument sorted least- to most-confident (`acuerdo_interno`/
-`grupo_incompatible`/`bajo_umbral` are near-certain wrong-document matches;
-`sospechoso` is the zone worth a human look), and can also write the full
-list as JSON (`--json`).
+Issue #132 retired the offline `audita_scjn_legislacion.py` script that used
+to exist here: `_cabecera` now writes `nombre_buscado` only when it differs
+from `ordenamiento` after normalizing (accents/case/whitespace), so a
+snapshot whose title is worth a second look is visible directly in the file
+— `grep -l nombre_buscado: scjn-legislacion/**/*.md` finds the same
+instruments that script used to print, without recomputing anything or
+needing `catalogo.json` at hand. `ratio_similitud`/`sospechoso` (issue #115)
+are unaffected and still always present, giving the magnitude of how far
+off a flagged title is.
 
 ### `empaqueta_scjn_leyes.py`
 
