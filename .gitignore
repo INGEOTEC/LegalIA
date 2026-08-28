@@ -49,5 +49,6 @@ packages/dof2md/output/
 **/*.quarto_ipynb
 scripts/legal_provisions/
 scripts/scjn/
+scripts/leyes-release/
 scripts/titulos.json.gz
 scripts/organigrama.json
