@@ -30,6 +30,14 @@ editor de abrogación pegada al inicio. Esa ley, además, ya no aparece en el
 catálogo de Diputados (`catalogo.json` solo trae `lfca`, con `historial`
 vacío), así que ni el crawl ni el enlace la alcanzan por la vía normal.
 
+**Esa última fila se descarta.** Es el único error real de la SCJN en este
+caso, y es peor que un snapshot viejo: está fechada el día en que se publicó
+`lfca` y su nota de editor anuncia la nueva ley, pero su cuerpo es el
+articulado de la ley abrogada. Dejarla sería tener, dentro del corpus de
+`lfca`, un snapshot que reclama la fecha de la ley nueva y trae el texto de
+la vieja — exactamente la confusión que este directorio existe para evitar.
+El texto del DOF es el único snapshot que esa fecha debe tener.
+
 De ahí que el corpus de `lfca` se construya en dos mitades:
 
 1. **Historia (reformas) = ley abrogada, vía SCJN.** Se llama
@@ -37,16 +45,20 @@ De ahí que el corpus de `lfca` se construya en dos mitades:
    —el mismo código del crawl general, sin modificarlo— con
    ``destino = <outdir>/leyes/lfca/``. Deja los snapshots nombrados por fecha
    (``DD-MM-YYYY.md``) y con la cabecera SCJN de siempre, que registra en
-   `nombre_buscado` que se buscaron por el nombre de la ley abrogada.
+   `nombre_buscado` que se buscaron por el nombre de la ley abrogada. De ahí
+   se descarta la fila del 22-05-2026 (ver arriba); solo se borran archivos
+   con `fuente: scjn`, así que volver a correr el script nunca toca el
+   snapshot del DOF que él mismo escribió antes.
 2. **Texto vigente = DOF.** La ley actual se publicó con **`codNota`
    5788357** (DOF 22-05-2026) y se convierte con `nota2md.legal_provisions`
    por la ruta HTML (la nota trae `cadenaContenido`; no hace falta OCR).
 
 **Nombre de archivo.** El mismo formato que el resto del corpus SCJN: la
-fecha de publicación, ``DD-MM-YYYY.md``. Como el 22-05-2026 ya lo ocupa la
-fila de abrogación que bajó el paso 1, el texto vigente usa el mismo sufijo
-``-2`` que `descarga_ordenamiento` aplica a dos filas del mismo día, para no
-romper `versiones_de_directorio`: ``22-05-2026-2.md``.
+fecha de publicación, ``DD-MM-YYYY.md``. Descartada la fila de abrogación,
+nada más reclama el 22-05-2026, así que el texto vigente queda como
+``22-05-2026.md``, sin el sufijo ``-N`` que `descarga_ordenamiento` aplica a
+dos filas del mismo día. (Ese sufijo se sigue respetando si la fecha
+estuviera ocupada, para no romper `versiones_de_directorio`.)
 
 **Cabecera.** Es lo único que cambia. El archivo que viene del DOF **no**
 lleva el bloque `fuente: scjn` / `nombre_buscado` / `ordenamiento` /
@@ -151,7 +163,37 @@ ABREV = "lfca"
 NOMBRE_ABROGADA = "LEY FEDERAL DE CINEMATOGRAFIA"
 #: The DOF note that enacted `lfca` itself (22-05-2026).
 COD_NOTA_VIGENTE = 5788357
+#: The day `lfca` was published — and the date of the SCJN's own last row for
+#: the abrogated law, which is discarded (see `descarta_fila_de_abrogacion`).
+FECHA_ABROGACION = "22-05-2026"
 MOTIVO = "la SCJN no indexa esta ley (issue #144); texto tomado del DOF"
+
+
+def descarta_fila_de_abrogacion(destino: Path) -> list[Path]:
+    """Delete whatever the SCJN's own last row for the abrogated law left in
+    `destino` for `FECHA_ABROGACION`, and say which files those were.
+
+    That row is the one real error the SCJN makes here, and it is worse than
+    a stale snapshot: it is dated the day `lfca` was published and its
+    editorial note announces `lfca`'s enactment, but its body is the *old*
+    1992 text of the LEY FEDERAL DE CINEMATOGRAFIA. Kept, it would sit in
+    this corpus as a snapshot that claims the new law's date while carrying
+    the abrogated law's articles — the exact confusion this whole directory
+    exists to avoid. The DOF's own text (`COD_NOTA_VIGENTE`) is the only
+    snapshot that date should have, and it takes the date's plain filename
+    (no `-N` suffix) since nothing else claims it any more.
+
+    Only `fuente: scjn` files are ever removed, so re-running this script
+    never touches the DOF snapshot it wrote itself on a previous run."""
+    descartados = []
+    for archivo in sorted(destino.glob("*.md")):
+        campos = lee_cabecera(archivo)
+        if campos.get("fecha_publicacion") == FECHA_ABROGACION and (
+            campos.get("fuente") == "scjn"
+        ):
+            archivo.unlink()
+            descartados.append(archivo)
+    return descartados
 
 
 def _cabecera_dof(nota: dict) -> str:
@@ -178,10 +220,11 @@ def _cabecera_dof(nota: dict) -> str:
 
 def escribe_texto_vigente(destino: Path) -> Path:
     """`COD_NOTA_VIGENTE`'s own DOF Markdown, written into `destino` under
-    the snapshot naming the rest of the corpus uses (its publication date,
-    `DD-MM-YYYY.md`, with `descarga_ordenamiento`'s own `-N` suffix when the
-    date is already taken — here, by the abrogation row the SCJN itself has
-    for the same day)."""
+    the snapshot naming the rest of the corpus uses: its publication date,
+    `DD-MM-YYYY.md`. `descarga_ordenamiento`'s own `-N` suffix is still
+    honoured if the date were somehow already taken, but with the SCJN's own
+    abrogation row discarded (`descarta_fila_de_abrogacion`) nothing else
+    claims 22-05-2026, so this is the plain `22-05-2026.md`."""
     nota = fetch_nota(COD_NOTA_VIGENTE)
     fecha = nota["fecha"]
     destino.mkdir(parents=True, exist_ok=True)
@@ -288,7 +331,18 @@ def main(argv=None) -> int:
             "el corpus quedaria solo con el texto vigente del DOF",
             file=sys.stderr,
         )
-    print(f"  {len(escritos)} snapshot(s) de la ley abrogada", file=sys.stderr)
+    descartados = descarta_fila_de_abrogacion(destino)
+    for archivo in descartados:
+        print(
+            f"  descartado {archivo.name}: la fila del {FECHA_ABROGACION} de la SCJN "
+            "anuncia la abrogacion pero trae el texto de la ley vieja",
+            file=sys.stderr,
+        )
+    # Counted off disk, not off `escritos`: on a re-run `descarga_ordenamiento`
+    # also reports back the file it skipped for 22-05-2026, which by then is
+    # the DOF's own snapshot, not a row of the abrogated law.
+    de_scjn = sum(1 for a in destino.glob("*.md") if lee_cabecera(a).get("fuente") == "scjn")
+    print(f"  {de_scjn} snapshot(s) de la ley abrogada", file=sys.stderr)
 
     print(f"[2/3] DOF: codNota {COD_NOTA_VIGENTE} (el texto vigente)", file=sys.stderr)
     archivo_dof = escribe_texto_vigente(destino)
