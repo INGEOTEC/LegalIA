@@ -29,7 +29,11 @@ on the project's [website](https://ingeotec.github.io/LegalIA/).
 
 ## Quick start
 
-`nota2md` has five entry points, all re-exported off the package itself.
+`nota2md` has seven entry points, all re-exported off the package itself.
+Note that `legal_provisions` answers from the SCJN's consolidated law texts
+by default when the `scjn-leyes` release covers the `codNota`, and only goes
+to the DOF otherwise — `source="dof"` forces the original source. See
+[`packages/nota2md`](packages/nota2md#the-scjn-path--a-laws-consolidated-text-at-each-reform).
 
 For a modern legal provision, only `dofjson` and `nota2md` are needed —
 `dof2md` stays in the background, as `nota2md`'s OCR fallback for legal
@@ -59,7 +63,7 @@ The same round trip is available from the command line:
 
 ```bash
 dofjson 2026-07-15 --outdir output     # -> output/15072026-notas.json
-nota2md 5793639 --outdir output        # -> output/nota-5793639.md
+nota2md 5793639 --source dof --outdir output   # -> output/nota-5793639.md
 ```
 
 ### `download_legal_provisions_provenance_ids` and `reconstruct_legal_provisions` — a law's current text from its reform history

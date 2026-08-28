@@ -220,7 +220,20 @@ count, plus each instrument's asset name, compressed size and DOF-note
 count; issue #115's ratio/classification is gone from it — the titles were
 reviewed and fixed by hand) and a `SHA256SUMS.txt` with
 one line per asset — same pattern as `empaqueta_historial.py`.
-`nota2md.scjn.download_scjn_leyes_corpus(slug)` reads one law back. Both
+
+Alongside the tarballs it writes **`indice-global.json.gz`** (issue #117):
+the union of every `indice.json`, inverted by `codNota` and stripped of all
+text, so `nota2md` can answer "which law does this decree reform, and which
+snapshot is it" for a few hundred KB instead of the corpus' 380 MB. Only
+snapshots with a `codNota` we are certain of go in; the manifest reports how
+many entered and how many stayed out by motive (`ambiguous`, `unlinked`,
+`sin_indice`). `--sin-indice-global` skips writing it. **This asset has to be
+re-uploaded every time any law changes** — it is the union of all of them, so
+one updated law makes the published index stale, and a stale index resolves a
+`codNota` to a snapshot file that is no longer in the tarball.
+
+`nota2md.download_scjn_leyes_corpus(slug)` reads one law back and
+`nota2md.download_scjn_leyes_index()` reads the reverse index. Both
 paths default to where the corpus actually lives today (`--outdir
 scripts/scjn`, `--destino scripts/scjn/leyes-release`), so the usual run
 takes no arguments at all.

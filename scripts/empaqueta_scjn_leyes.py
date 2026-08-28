@@ -21,9 +21,10 @@ should ever call it and then publish on its own.
     ./scripts/empaqueta_scjn_leyes.py
     less scripts/scjn/leyes-release/MANIFEST.md   # read it. all of it.
 
-    # first publish — the release itself, with the two small text assets:
+    # first publish — the release itself, with the small text assets and the
+    # reverse index (issue #117) every reader resolves a codNota against:
     cd scripts/scjn/leyes-release
-    gh release create scjn-leyes MANIFEST.md SHA256SUMS.txt \\
+    gh release create scjn-leyes MANIFEST.md SHA256SUMS.txt indice-global.json.gz \\
         --repo INGEOTEC/LegalIA --title "SCJN — leyes" --notes-file MANIFEST.md
 
     # then the ~315 per-law tarballs, in batches (gh takes many paths at
@@ -33,9 +34,11 @@ should ever call it and then publish on its own.
     ls *.tgz | xargs -n 20 gh release upload scjn-leyes \\
         --repo INGEOTEC/LegalIA --clobber
 
-    # a later run only has to re-upload the laws that changed:
-    gh release upload scjn-leyes lft.tgz SHA256SUMS.txt MANIFEST.md \\
-        --repo INGEOTEC/LegalIA --clobber
+    # a later run only has to re-upload the laws that changed -- but always
+    # the reverse index with them: it is the union of every indice.json, so
+    # any change to any law makes the published one stale.
+    gh release upload scjn-leyes lft.tgz indice-global.json.gz \\
+        SHA256SUMS.txt MANIFEST.md --repo INGEOTEC/LegalIA --clobber
 
 ## What goes in each tarball
 
@@ -78,6 +81,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
 
 from nota2md.scjn import (  # noqa: E402
+    ASSET_INDICE_GLOBAL,
+    construye_indice_global,
     slug_instrumento,
     versiones_de_directorio,
 )
@@ -109,7 +114,10 @@ class ResumenInstrumento:
 
     `asset`/`bytes_comprimidos` are filled in by `empaqueta` once the
     instrument's own tarball exists; `notas_dof` is how many DOF notes
-    (`notas/nota-<cod>.md`) travelled inside it."""
+    (`notas/nota-<cod>.md`) travelled inside it. `indice` is the instrument's
+    own `indice.json`, already parsed — kept on the summary so
+    `escribe_indice_global` builds the reverse index off the same read this
+    one did, rather than walking every instrument's directory a second time."""
 
     slug: str
     nombre: str
@@ -119,6 +127,7 @@ class ResumenInstrumento:
     notas_dof: int = 0
     asset: str | None = None
     bytes_comprimidos: int = 0
+    indice: list[dict] | None = None
 
 
 def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]:
@@ -139,6 +148,7 @@ def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]
 
         porcentaje = None
         confirmados = 0
+        indice = None
         indice_path = destino / "indice.json"
         if indice_path.is_file():
             indice = json.loads(indice_path.read_text(encoding="utf-8"))
@@ -156,6 +166,7 @@ def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]
                 confirmados_por_contenido=confirmados,
                 notas_dof=len(list((destino / "notas").glob("nota-*.md")))
                 if (destino / "notas").is_dir() else 0,
+                indice=indice,
             )
         )
     return resumenes, nunca_rastreados
@@ -206,6 +217,47 @@ def empaqueta(outdir: Path, destino: Path, resumenes: list[ResumenInstrumento]) 
         resumen.bytes_comprimidos = salida.stat().st_size
 
 
+def escribe_indice_global(
+    destino: Path, resumenes: list[ResumenInstrumento], generado: str
+) -> dict:
+    """Write `indice-global.json.gz` next to the tarballs and return the tally
+    of what went in — the reverse index `codNota -> instrumento` a consumer
+    needs to answer "which law does this decree reform" without downloading
+    380 MB of corpus (issue #117, Paso 1).
+
+    Written like every other asset here: gzip stamped with mtime 0, keys in
+    sorted order (`construye_indice_global` sorts by slug and, numerically, by
+    codNota), so an unchanged corpus re-packages to the same bytes except for
+    its own `generado` stamp — the same caveat `MANIFEST.md` already carries,
+    and the reason the tarballs are the byte-identical ones.
+
+    Like the tarballs, this asset is **published by hand**: it has to be
+    re-uploaded whenever the corpus changes, or a reader will resolve codigos
+    against a corpus that no longer matches — the same manual step issue #148
+    has to respect when it starts updating law by law.
+    """
+    indice, conteos = construye_indice_global(
+        [
+            {
+                "slug": r.slug,
+                "nombre": r.nombre,
+                "asset": r.asset or f"{r.slug}.tgz",
+                "snapshots": r.total_snapshots,
+                "indice": r.indice,
+            }
+            for r in resumenes
+        ],
+        generado=generado,
+    )
+    crudo = json.dumps(indice, ensure_ascii=False, sort_keys=False).encode("utf-8")
+    salida = destino / ASSET_INDICE_GLOBAL
+    with open(salida, "wb") as bruto, \
+            gzip.GzipFile(filename="", mode="wb", fileobj=bruto, mtime=0) as gz:
+        gz.write(crudo)
+    conteos["bytes_comprimidos"] = salida.stat().st_size
+    return conteos
+
+
 def sha256(ruta: Path) -> str:
     return hashlib.sha256(ruta.read_bytes()).hexdigest()
 
@@ -219,7 +271,9 @@ def _tamano(bytes_: int) -> str:
 
 
 def _formatea_manifiesto(
-    resumenes: list[ResumenInstrumento], nunca_rastreados: list[str]
+    resumenes: list[ResumenInstrumento],
+    nunca_rastreados: list[str],
+    conteos_indice: dict | None = None,
 ) -> str:
     ordenados = sorted(resumenes, key=lambda r: r.nombre)
     total_catalogo = len(resumenes) + len(nunca_rastreados)
@@ -265,6 +319,33 @@ def _formatea_manifiesto(
             f"| `{r.asset}` | {_tamano(r.bytes_comprimidos)} | {r.notas_dof} |"
         )
     lineas.append("")
+
+    if conteos_indice is not None:
+        # Lo que el índice inverso sí sabe, y lo que dejó fuera y por qué: una
+        # entrada sin `codNota` de certeza no entra (issue #117, D2), así que
+        # el total de aquí es siempre menor que el de snapshots empaquetados.
+        fuera = {
+            clave: valor for clave, valor in conteos_indice.items()
+            if clave not in ("linked", "bytes_comprimidos")
+        }
+        lineas.append(f"## Índice inverso — `{ASSET_INDICE_GLOBAL}` (#117)")
+        lineas.append("")
+        lineas.append(
+            f"{conteos_indice['linked']} snapshot(s) con `codNota` de certeza en el "
+            f"índice; {_tamano(conteos_indice['bytes_comprimidos'])} comprimido."
+        )
+        lineas.append("")
+        lineas.append("Fuera del índice, por motivo:")
+        lineas.append("")
+        lineas.extend(f"- `{clave}`: {valor}" for clave, valor in sorted(fuera.items()))
+        lineas.append("")
+        lineas.append(
+            f"Este asset se sube a mano igual que los tarballs — y hay que volver a "
+            f"subirlo cada vez que el corpus cambie, o `snapshot_de_codNota` "
+            f"resolverá contra un corpus que ya no corresponde."
+        )
+        lineas.append("")
+
     lineas.append(
         "**Antes de publicar**: lee esta tabla completa. Nada de este corpus se publica de "
         "forma automática — issue #128 — la decisión de que es seguro publicar es humana."
@@ -285,15 +366,28 @@ def main(argv=None) -> int:
         help="donde fetch_scjn_legislacion.py / enlaza_scjn_legislacion.py ya escribieron 'leyes'",
     )
     p.add_argument("--destino", type=Path, default=Path("scripts/scjn/leyes-release"))
+    p.add_argument(
+        "--sin-indice-global", action="store_true",
+        help=f"no escribir {ASSET_INDICE_GLOBAL} (el índice inverso "
+        "codNota -> instrumento, issue #117); por default se genera",
+    )
     args = p.parse_args(argv)
 
     args.destino.mkdir(parents=True, exist_ok=True)
+    generado = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     resumenes, nunca_rastreados = resume_coleccion(args.outdir)
     empaqueta(args.outdir, args.destino, resumenes)
 
+    conteos_indice = None
+    if not args.sin_indice_global:
+        conteos_indice = escribe_indice_global(args.destino, resumenes, generado)
+
     manifiesto = args.destino / "MANIFEST.md"
-    manifiesto.write_text(_formatea_manifiesto(resumenes, nunca_rastreados), encoding="utf-8")
+    manifiesto.write_text(
+        _formatea_manifiesto(resumenes, nunca_rastreados, conteos_indice),
+        encoding="utf-8",
+    )
 
     # One line per asset, in the format `sha256sum -c` accepts.
     sumas = args.destino / "SHA256SUMS.txt"
@@ -301,6 +395,10 @@ def main(argv=None) -> int:
         "".join(
             f"{sha256(args.destino / r.asset)}  {r.asset}\n"
             for r in sorted(resumenes, key=lambda r: r.slug)
+        )
+        + (
+            f"{sha256(args.destino / ASSET_INDICE_GLOBAL)}  {ASSET_INDICE_GLOBAL}\n"
+            if conteos_indice is not None else ""
         ),
         encoding="utf-8",
     )
@@ -311,7 +409,17 @@ def main(argv=None) -> int:
         f"{len(nunca_rastreados)} instrumento(s) sin rastrear (sin asset)",
         file=sys.stderr,
     )
-    print(f"-> {args.destino}/  (<slug>.tgz, MANIFEST.md, SHA256SUMS.txt)", file=sys.stderr)
+    if conteos_indice is not None:
+        print(
+            f"{ASSET_INDICE_GLOBAL}: {conteos_indice['linked']} codNota con certeza, "
+            f"{_tamano(conteos_indice['bytes_comprimidos'])}",
+            file=sys.stderr,
+        )
+    print(
+        f"-> {args.destino}/  (<slug>.tgz, {ASSET_INDICE_GLOBAL}, MANIFEST.md, "
+        "SHA256SUMS.txt)",
+        file=sys.stderr,
+    )
     print(
         "\nLee MANIFEST.md completo antes de publicar. Nada de este corpus se publica solo.",
         file=sys.stderr,

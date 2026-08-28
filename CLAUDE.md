@@ -24,14 +24,20 @@ build on each other in this sequence.
   never need to know which source actually answered (see `fuente` field).
   Also builds the compact `codNota`+`titulo`+`fecha` dataset of every legal
   provision ever published, read from the `notas-archivo` GitHub release.
-- **`nota2md`** — five entry points, all re-exported off the package:
-  `legal_provisions` (one DOF note → Markdown, from HTML/image/PDF source),
+- **`nota2md`** — seven entry points, all re-exported off the package:
+  `legal_provisions` (one note → Markdown; **by default the SCJN's
+  consolidated text of the whole law at that reform** when the `scjn-leyes`
+  release covers the `codNota`, else the DOF's own HTML/image/PDF source —
+  `source="dof"` forces the original source; issue #117),
   `reconstruct_legal_provisions` (a law's current text, replayed from its own
   reform decrees), `download_legal_provisions_provenance_ids` (a law's reform
   history, from the `historial-legislativo` release), `fetch_daily_legal_provisions`,
-  `download_legal_provisions_titles` (re-exported from `dofjson.titulos`).
-  Also has an experimental Akoma Ntoso (OASIS LegalDocML) converter in
-  `nota2md/akoma_ntoso.py`.
+  `download_legal_provisions_titles` (re-exported from `dofjson.titulos`),
+  `download_scjn_leyes_corpus`/`download_scjn_leyes_index` (the `scjn-leyes`
+  release's readers). Its release assets are cached on disk under
+  `nota2md.cache.CACHE_DIR` — `nota2md`'s own directory, deliberately not
+  `dofjson`'s. Also has an experimental Akoma Ntoso (OASIS LegalDocML)
+  converter in `nota2md/akoma_ntoso.py`.
 - **`dof2md`** — OCRs a PDF or a set of scanned images to Markdown via
   `mineru`. Has no notion of "note"/"legal provision", and no download of
   its own — it only ever converts a PDF/images already on disk; getting a
@@ -58,13 +64,14 @@ Read them back via `download_legal_provisions_provenance_ids` /
 
 ## Commands
 
-Two test files make real network calls and are excluded from routine runs
+Three test files make real network calls and are excluded from routine runs
 (CI's `test.yml` does include them by default — check before assuming a
 failure there is unrelated):
 
 ```bash
 pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
-    --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py
+    --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py \
+    --ignore=packages/nota2md/tests/test_scjn_release_red.py
 ```
 
 The website's notebooks are committed without their outputs, via an

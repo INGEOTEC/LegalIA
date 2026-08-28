@@ -1,16 +1,27 @@
 # nota2md
 
-Five entry points, all re-exported off the package itself
+> **v0.5.0 changes what `legal_provisions` returns by default.** A `codNota`
+> the [`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)
+> release covers now comes back as **the law's whole consolidated text at that
+> reform** (written to `outdir/{slug}-{fecha}.md`, `fuente: scjn` header
+> included), not as the reform decree the DOF published. Pass
+> `source="dof"` — or `--source dof` — for the previous behaviour, which is
+> unchanged in every other respect. See [the SCJN
+> path](#the-scjn-path--a-laws-consolidated-text-at-each-reform).
+
+Seven entry points, all re-exported off the package itself
 (`from nota2md import ...`), for Mexico's official gazette (DOF, Diario
 Oficial de la Federación) and the federal laws it publishes:
 
 | Entry point | Given | Returns/writes |
 |---|---|---|
-| [`legal_provisions`](#legal_provisions--a-single-dof-legal-provision-as-markdown) | a legal provision's `codNota` | its Markdown, written to `outdir/nota-{codNota}.md` |
+| [`legal_provisions`](#legal_provisions--a-single-dof-legal-provision-as-markdown) | a legal provision's `codNota` | the law's consolidated text at that reform, from the SCJN corpus (`outdir/{slug}-{fecha}.md`) — or, when the corpus does not cover it, the DOF's own Markdown (`outdir/nota-{codNota}.md`) |
 | [`reconstruct_legal_provisions`](#reconstruct_legal_provisions--a-laws-current-text-from-its-dof-legal-provisions) | a law's reform history (`codNota` list) | its current text, written to `outdir/ley-{codNota}.md` |
 | [`download_legal_provisions_provenance_ids`](#download_legal_provisions_provenance_ids--a-laws-reform-history) | a collection name (`"leyes"`, `"reglamentos"`, `"normas"`, `"tratados"`) | every instrument's reform history, in memory |
 | [`fetch_daily_legal_provisions`](#cutting-a-legal-provision-out-of-its-page) | a date | that day's browsable legal provisions (title, `codNota`, `codEdicion`...) |
 | [`download_legal_provisions_titles`](#download_legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` release) | every legal provision ever published, as `codNota`+`titulo`+`fecha`, written to a gzipped JSONL file |
+| [`download_scjn_leyes_corpus`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | a law's `slug` | every snapshot of that law in the `scjn-leyes` release, with its `codNota` links, in memory |
+| [`download_scjn_leyes_index`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (reads one small release asset) | the reverse index `codNota → (law, snapshot)`, in memory |
 
 They compose: `download_legal_provisions_provenance_ids` gets you the `codNota` list
 `reconstruct_legal_provisions` needs, and `reconstruct_legal_provisions` gets you a
@@ -36,10 +47,11 @@ Builds the Markdown of a **single DOF legal provision**, identified by its
 Where [`dof2md`](../dof2md) converts a whole edition PDF and
 [`dofjson`](../dofjson) is a thin client for SIDOF's JSON service,
 `legal_provisions` ties them together to produce the Markdown for one legal
-provision, from any of three sources:
+provision, from any of four sources:
 
 | Source | How | When |
 |---|---|---|
+| **SCJN** | Reads the law's consolidated text as it read right after this reform out of the `scjn-leyes` release — no DOF request at all. See [the SCJN path](#the-scjn-path--a-laws-consolidated-text-at-each-reform). | The default, whenever the corpus covers this `codNota` with a link we are certain of. `source="dof"` turns it off. |
 | **HTML** | Converts the legal provision's `cadenaContenido` HTML directly (a DOF-tailored BeautifulSoup converter). | The legal provision has digital text. Preferred: clean, already scoped to the one legal provision, no OCR. |
 | **Image** | Downloads the legal provision's scanned page image(s) via `dofjson`, OCRs them with `dof2md`/mineru, then slices out the one legal provision. | Image-only legal provisions — or any legal provision, when you want the certified scanned original. |
 | **PDF** | Downloads the legal provision's own PDF (the edition PDF sliced to the legal provision's pages, via `dofjson.download_nota_pdf`), OCRs it with `dof2md`/mineru, then slices out the one legal provision. | When you'd rather OCR a PDF than page images. |
@@ -90,11 +102,90 @@ for nota in fetch_daily_legal_provisions(dt.date(2026, 7, 15))["NotasMatutinas"]
     print(nota["codNota"], nota["titulo"])
 ```
 
+### The SCJN path — a law's consolidated text at each reform
+
+Since v0.5.0, `legal_provisions` answers **the whole law, not the reform
+decree**, whenever it can. The SCJN's Buscador keeps, for every reform of
+every federal law, a snapshot of the law's consolidated text exactly as it
+read right after that reform; those snapshots are crawled, matched to the DOF
+`codNota` that enacted them, and published as the
+[`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)
+release (315 laws, 3,724 snapshots). A `codNota` the release covers is
+answered straight out of it — which is what
+[`reconstruct_legal_provisions`](#reconstruct_legal_provisions--a-laws-current-text-from-its-dof-legal-provisions)
+otherwise has to *infer* by replaying every reform decree in order.
+
+**The SCJN is not an official source of legal text.** dof.gob.mx/SIDOF is.
+Every file this path writes therefore keeps the corpus' own provenance header
+(`fuente: scjn`, `ordenamiento`, `fecha_publicacion`, …) intact, and lands
+under a different name — so the file alone says where it came from:
+
+| | file written |
+|---|---|
+| SCJN path | `outdir/{slug}-{fecha}.md` (e.g. `lfca-05-01-1999.md`) |
+| every DOF path | `outdir/nota-{codNota}.md` (unchanged) |
+
+```python
+from nota2md import legal_provisions
+
+# default: the whole law at that reform, if the corpus covers this codNota
+legal_provisions(4967917, "output")                  # -> output/lfca-05-01-1999.md
+
+# the original source, always — DOF/SIDOF, with OCR/reconstruction as needed
+legal_provisions(4967917, "output", source="dof")    # -> output/nota-4967917.md
+```
+
+A `codNota` whose decree reformed several laws at once resolves to more than
+one law, and that raises `ValueError` listing the candidates rather than
+picking one; say which with `instrumento="<slug>"`. A `codNota` the corpus
+does not cover, an asset not published yet, or a network failure reading the
+release all fall back to the DOF path (the last two with a `warnings.warn`,
+so the fallback is never silent).
+
+Two readers of the release are exported for working with the corpus directly:
+
+```python
+from nota2md import download_scjn_leyes_corpus, download_scjn_leyes_index
+
+indice = download_scjn_leyes_index()          # codNota -> [{slug, archivo, ...}]
+lfca = download_scjn_leyes_corpus("lfca")     # every snapshot of one law
+```
+
+#### Cache
+
+The release assets the SCJN path reads are cached on disk, exactly as
+[`dofjson`](../dofjson) caches `notas-archivo`:
+
+```
+<CACHE_DIR>/scjn-leyes/indice-global.json.gz
+<CACHE_DIR>/scjn-leyes/<slug>.tgz
+```
+
+`CACHE_DIR` defaults to the OS per-user cache directory (`~/.cache/nota2md` on
+Linux), overridable with `$NOTA2MD_CACHE_DIR` or by reassigning
+`nota2md.cache.CACHE_DIR`. Per call, `cache_dir=<path>` names a directory,
+`cache_dir=None` skips the cache entirely (download into memory), and
+`refrescar=True` re-downloads — an asset already on disk is a hit **by file
+name, never revalidated**, since this corpus is only ever republished by hand.
+It is `nota2md`'s own directory, not `dofjson`'s: two releases, two
+lifecycles, so clearing one does not clear the other.
+
 ### Usage
 
 ```bash
-# HTML when available, otherwise OCR of the scanned page(s)
+# the law's consolidated text from the SCJN corpus when it covers this
+# codNota, otherwise the DOF (HTML when available, else OCR)
 nota2md 5793655 --outdir output
+
+# the original source only: DOF/SIDOF, never the SCJN
+nota2md 5793655 --source dof --outdir output
+
+# one decree, several laws: say which one
+nota2md 5793655 --instrumento lft --outdir output
+
+# cache: a directory of your own, or none at all
+nota2md 5793655 --cache-dir /mnt/datos/nota2md --outdir output
+nota2md 5793655 --cache-dir none --refrescar --outdir output
 
 # force the scanned-image + OCR path, sourcing the next legal provision's
 # title from a saved notas index (avoids an extra request; works offline)
@@ -110,7 +201,8 @@ Programmatically:
 ```python
 from nota2md import legal_provisions
 
-legal_provisions(5793655, "output")                 # -> output/nota-5793655.md
+legal_provisions(5793655, "output")                 # SCJN if covered, else DOF
+legal_provisions(5793655, "output", source="dof")   # -> output/nota-5793655.md
 ```
 
 The HTML path needs only `beautifulsoup4`; the image and PDF paths additionally
@@ -307,8 +399,14 @@ default run:
 
 ```bash
 pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
-    --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py
+    --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py \
+    --ignore=packages/nota2md/tests/test_scjn_release_red.py
 ```
+
+`tests/test_scjn_release_red.py` is the third of those: it reads the real
+`scjn-leyes` release end to end, which is the only way to catch a corpus
+re-packaged without re-uploading its `indice-global.json.gz` (a codNota then
+resolves to a snapshot file no longer in the law's tarball).
 
 ## Installation
 
