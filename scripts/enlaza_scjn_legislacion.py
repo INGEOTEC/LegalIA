@@ -21,10 +21,12 @@ resolved. Every entry also gets a content-diff confirmation (issue #127,
 date's `title_candidates`) whose own DOF text best accounts for what
 actually changed between this snapshot and the previous one
 (``content_diff_confirmed_codNota``, ``content_diff_score``) — only for
-candidates with digital DOF text, fetched via `dofjson` and cached under
-``<outdir>/<coleccion>/<abrev-o-nombre>/_cache_notas`` — each instrument's own
+candidates with digital DOF text, fetched via `dofjson` and saved under
+``<outdir>/<coleccion>/<abrev-o-nombre>/notas`` — each instrument's own
 subdirectory, alongside its `indice.json`, not a directory shared across
-instruments. This always runs — a codNota link is either
+instruments. Those notes are kept, not scratch: issue #128 ships them inside
+each instrument's own tarball, so the DOF text every link was decided against
+travels with the snapshots it was compared to. This always runs — a codNota link is either
 title-confirmed or it is not; there is no reason to ever settle for less
 than the strongest signal available.
 
@@ -152,7 +154,7 @@ def _texto_html(cod_nota: int, cache_dir: Path, cache: dict) -> str | None:
 
 
 def _confirmaciones_por_contenido(
-    versiones, candidatos_por_fecha: dict, cache_dir: Path, cache_notas: dict
+    versiones, candidatos_por_fecha: dict, directorio_notas: Path, cache_notas: dict
 ):
     """One `nota2md.scjn.ContentDiffConfirmation` per `versiones` entry
     (issue #127), against `candidatos_por_fecha`
@@ -161,7 +163,7 @@ def _confirmaciones_por_contenido(
     todos_los_candidatos = sorted({c for cs in candidatos_por_fecha.values() for c in cs})
     markdown_por_codNota = {}
     for cod in todos_los_candidatos:
-        texto = _texto_html(cod, cache_dir, cache_notas)
+        texto = _texto_html(cod, directorio_notas, cache_notas)
         if texto is not None:
             markdown_por_codNota[cod] = texto
 
@@ -188,7 +190,7 @@ def enlaza_coleccion(
         )
         enlazadas = enlaza_por_titulo(versiones, candidatos_por_fecha)
         confirmaciones = _confirmaciones_por_contenido(
-            versiones, candidatos_por_fecha, destino / "_cache_notas", cache_notas
+            versiones, candidatos_por_fecha, destino / "notas", cache_notas
         )
 
         indice = []

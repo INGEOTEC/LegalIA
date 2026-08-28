@@ -171,8 +171,8 @@ def _archivos_corpus(outdir: Path) -> list[Path]:
     `<outdir>/leyes/`'s own `.progreso.json` checkpoint
     (`fetch_scjn_legislacion.py`'s in-progress-run bookkeeping) sits one
     level above any instrument directory, so this glob never reaches it. Nor
-    does it reach an instrument's own `_cache_notas/` (the DOF notes
-    `enlaza_scjn_legislacion.py` fetched to confirm content diffs, cached one
+    does it reach an instrument's own `notas/` (the DOF notes
+    `enlaza_scjn_legislacion.py` fetched to confirm content diffs, saved one
     level *below* the instrument directory) — `*/*` matches exactly two path
     segments, never three, so those never end up in the tarball."""
     base = outdir / COLECCION

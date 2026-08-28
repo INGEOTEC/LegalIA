@@ -147,10 +147,11 @@ since a weaker link is never what you actually want:
    digital DOF text, whether its own content actually accounts for what
    changed between this SCJN snapshot and the previous one — resolving the
    `ambiguous` case title mention alone cannot. Needs each candidate's own
-   DOF Markdown, fetched via `dofjson` and cached under each instrument's own
-   `_cache_notas` subdirectory (`<outdir>/<coleccion>/<slug>/_cache_notas`,
-   created automatically) — next to that instrument's own `indice.json`, not
-   in a directory shared across instruments.
+   DOF Markdown, fetched via `dofjson` and saved under each instrument's own
+   `notas` subdirectory (`<outdir>/<coleccion>/<slug>/notas`, created
+   automatically) — next to that instrument's own `indice.json`, not in a
+   directory shared across instruments. Kept, not scratch: issue #128 ships
+   them inside each instrument's own tarball.
 
 Needs a dofjson titles dataset (`codNota`+`titulo`+`fecha`, built once via
 `nota2md.download_legal_provisions_titles`) to find each same-day candidate.
