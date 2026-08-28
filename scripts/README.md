@@ -165,6 +165,43 @@ needing `catalogo.json` at hand. `ratio_similitud`/`sospechoso` (issue #115)
 are unaffected and still always present, giving the magnitude of how far
 off a flagged title is.
 
+### Casos aislados: `construye_lfca.py` y `fetch_lfiiedb_dof.py`
+
+Two catalogue entries the SCJN does not index at all (issue #124's coverage
+gaps), each closed by its own single-law script rather than by a general
+mechanism. Both are **isolated**: they touch no catalogue, no checkpoint and
+no general script — they only write inside `<outdir>/leyes/<abrev>/` — and
+both run **after** `enlaza_scjn_legislacion.py`, since they own the last word
+on their own `indice.json` (the normal sweep would otherwise overwrite it).
+Each script's own module docstring carries the full, web-page-ready procedure;
+read it there.
+
+```bash
+./scripts/construye_lfca.py --outdir scripts/scjn --titulos titulos.jsonl.gz
+./scripts/fetch_lfiiedb_dof.py --outdir scripts/scjn
+```
+
+- **`construye_lfca.py`** (issue #144) — the reference case for *a new law
+  that abrogates another and is not indexed yet*. `lfca`'s corpus is built in
+  two halves: its reform history from the abrogated **LEY FEDERAL DE
+  CINEMATOGRAFIA**, which the SCJN *does* index (crawled with the existing
+  `descarga_ordenamiento`, unmodified), and its current text from the DOF
+  (`codNota` 5788357), converted with `nota2md.legal_provisions`. Linking uses
+  the abrogated law's name, since that is what appears in each reform decree's
+  DOF title. Its `indice.json` also carries an extra `fuente` field
+  (`"scjn"`/`"dof"`) on every entry — consumers must treat it as **optional**
+  (absent ⇒ `"scjn"`), since `enlaza_scjn_legislacion.py` never writes it.
+- **`fetch_lfiiedb_dof.py`** (issue #145) — the simpler case: a brand-new law
+  with no reform history at all. One `codNota` (5784517, DOF 09-04-2026), one
+  file, an `indice.json` whose link is known by construction instead of
+  inferred.
+
+Both write `fuente: dof` in the header of every file taken from the DOF —
+`grep -rl 'fuente: dof' scripts/scjn/` is how these exceptions are found. Each
+one disappears when the SCJN finally indexes its law: delete the directory,
+run `fetch_scjn_legislacion.py --reintenta <abrev>` plus
+`enlaza_scjn_legislacion.py`, and retire the script.
+
 ### `empaqueta_scjn_leyes.py`
 
 `leyes` only (issue #128): packages every crawled+linked instrument into a
