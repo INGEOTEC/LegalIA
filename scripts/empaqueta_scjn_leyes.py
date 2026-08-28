@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Package the SCJN-based `leyes` corpus (snapshots + codNota links, issue
-#123/#128) into a byte-reproducible tarball, plus a human-readable manifest
+"""Package the SCJN-based `leyes` corpus (snapshots + codNota links + the DOF
+notes each link was decided against, issue #123/#128) into one
+byte-reproducible tarball *per instrument*, plus a human-readable manifest
 and a checksum file — same tarball pattern as `scripts/empaqueta_historial.py`.
 
 ## Manual publish only — never automated
@@ -17,25 +18,41 @@ should ever call it and then publish on its own.
     ./scripts/empaqueta_scjn_leyes.py --outdir scjn-legislacion --destino leyes-release
     less leyes-release/MANIFEST.md   # read it. all of it. before the next line.
 
-    # first publish:
-    gh release create scjn-leyes leyes-release/leyes.tgz leyes-release/MANIFEST.md \\
-        leyes-release/SHA256SUMS.txt --repo INGEOTEC/LegalIA --title "SCJN — leyes" \\
+    # first publish — the release itself, with the two small text assets:
+    gh release create scjn-leyes leyes-release/MANIFEST.md leyes-release/SHA256SUMS.txt \\
+        --repo INGEOTEC/LegalIA --title "SCJN — leyes" \\
         --notes-file leyes-release/MANIFEST.md
 
-    # updating an existing one, after a later run:
-    gh release upload scjn-leyes leyes-release/leyes.tgz leyes-release/SHA256SUMS.txt \\
-        --repo INGEOTEC/LegalIA --clobber
+    # then the ~315 per-law tarballs, in batches (gh takes many paths at
+    # once, but a batch that fails mid-way is cheaper to retry than one run
+    # of 315). `--clobber` makes re-running after a network failure
+    # idempotent, so a batch can simply be repeated:
+    ls leyes-release/*.tgz | xargs -n 20 \\
+        gh release upload scjn-leyes --repo INGEOTEC/LegalIA --clobber
 
-## What goes in the tarball
+    # a later run only has to re-upload the laws that changed:
+    gh release upload scjn-leyes leyes-release/lft.tgz leyes-release/SHA256SUMS.txt \\
+        leyes-release/MANIFEST.md --repo INGEOTEC/LegalIA --clobber
 
-Every already-crawled `leyes` instrument directory under
-``<outdir>/leyes/<slug>/`` (as `fetch_scjn_legislacion.py` wrote them): each
-snapshot `.md` file with its own provenance header, and — when
-`enlaza_scjn_legislacion.py` has already run for it — its own `indice.json`,
-carrying issue #115/#126/#127's confidence signals alongside each snapshot's
-`codNota`. An instrument crawled but not yet linked is still packaged (its
-raw snapshots, no `indice.json`) rather than held back; the manifest calls
-that out explicitly instead of hiding it.
+## What goes in each tarball
+
+One `<slug>.tgz` per instrument, not one for the whole collection: a
+consumer almost always wants a single law, and an incremental update only
+has to re-upload the asset of the law that changed. Every member is
+prefixed with `<slug>/`, so a tarball can be unpacked anywhere without
+stepping on anything:
+
+    <slug>/<fecha>.md          the snapshots, with their provenance header
+    <slug>/indice.json         the codNota link + #115/#126/#127's signals
+    <slug>/notas/nota-<cod>.md the DOF text of every candidate considered
+
+The DOF notes travel *with* the snapshots on purpose: `notas/` is the text
+each link was decided against (#126/#127), so shipping both makes the link
+auditable without going back to the network.
+
+An instrument crawled but not yet linked is still packaged (its raw
+snapshots, no `indice.json`) rather than held back; the manifest calls that
+out explicitly instead of hiding it.
 
 Needs `leyes`' own ``catalogo.json`` (`extract_scjn_titles.py`), already
 written under ``<outdir>/leyes/``, to list every instrument the Diputados
@@ -112,7 +129,11 @@ class ResumenInstrumento:
     `confirmados_por_contenido` — issue #127's count of links given extra
     certainty by content diff). `porcentaje_enlazado` is None when the
     instrument was crawled (Fase 1) but never linked (Fase 2 pendiente, no
-    `indice.json` yet) — a fact the manifest calls out, not hides."""
+    `indice.json` yet) — a fact the manifest calls out, not hides.
+
+    `asset`/`bytes_comprimidos` are filled in by `empaqueta` once the
+    instrument's own tarball exists; `notas_dof` is how many DOF notes
+    (`notas/nota-<cod>.md`) travelled inside it."""
 
     slug: str
     nombre: str
@@ -121,6 +142,9 @@ class ResumenInstrumento:
     total_snapshots: int
     porcentaje_enlazado: float | None
     confirmados_por_contenido: int
+    notas_dof: int = 0
+    asset: str | None = None
+    bytes_comprimidos: int = 0
 
 
 def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]:
@@ -160,52 +184,68 @@ def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]
                 slug=slug, nombre=entrada["nombre"], motivo=motivo, ratio=ratio,
                 total_snapshots=len(versiones), porcentaje_enlazado=porcentaje,
                 confirmados_por_contenido=confirmados,
+                notas_dof=len(list((destino / "notas").glob("nota-*.md")))
+                if (destino / "notas").is_dir() else 0,
             )
         )
     return resumenes, nunca_rastreados
 
 
-def _archivos_corpus(outdir: Path) -> list[Path]:
-    """Every file worth shipping under `<outdir>/leyes/`: each instrument's
-    own snapshot `.md` files and its `indice.json` (when it has one) —
-    `<outdir>/leyes/`'s own `.progreso.json` checkpoint
-    (`fetch_scjn_legislacion.py`'s in-progress-run bookkeeping) sits one
-    level above any instrument directory, so this glob never reaches it. Nor
-    does it reach an instrument's own `_cache_notas/` (the DOF notes
-    `enlaza_scjn_legislacion.py` fetched to confirm content diffs, cached one
-    level *below* the instrument directory) — `*/*` matches exactly two path
-    segments, never three, so those never end up in the tarball."""
-    base = outdir / COLECCION
-    return sorted(p for p in base.glob("*/*") if p.is_file())
+def _archivos_instrumento(directorio: Path) -> list[Path]:
+    """Every file worth shipping for one instrument: its snapshot `.md`
+    files, its `indice.json` (when `enlaza_scjn_legislacion.py` has already
+    run for it) and its own `notas/nota-<cod>.md` — the DOF text each link
+    was decided against, which stopped being scratch the moment the link
+    became something to audit (issue #128). A hidden bookkeeping file (a
+    `.progreso.json`-style checkpoint) is never shipped."""
+    return sorted(
+        p for p in directorio.glob("**/*")
+        if p.is_file() and not any(parte.startswith(".") for parte in p.relative_to(directorio).parts)
+    )
 
 
-def empaqueta(outdir: Path, destino: Path) -> Path:
-    """Write `leyes.tgz`, byte-reproducibly — same pattern as
-    `scripts/empaqueta_historial.py` (gzip stamped mtime 0, members added in
-    sorted order, fixed ownership/mode), just walking
-    `<outdir>/leyes/<slug>/*` instead of a flat directory of JSON files."""
-    archivos = _archivos_corpus(outdir)
-    if not archivos:
+def empaqueta(outdir: Path, destino: Path, resumenes: list[ResumenInstrumento]) -> None:
+    """Write one `<slug>.tgz` per instrument, each byte-reproducibly — same
+    pattern as `scripts/empaqueta_historial.py` (gzip stamped mtime 0,
+    members added in sorted order, fixed ownership/mode); what changed for
+    #128 is the walk, not the recipe. Every member is prefixed with
+    `<slug>/` so the tarball unpacks anywhere without stepping on anything.
+
+    Fills each summary's `asset`/`bytes_comprimidos` in place, so the
+    manifest can report what was actually written."""
+    if not resumenes:
         raise SystemExit(f"{outdir / COLECCION} no tiene nada que empaquetar")
 
-    salida = destino / "leyes.tgz"
-    with open(salida, "wb") as bruto, \
-            gzip.GzipFile(filename="", mode="wb", fileobj=bruto, mtime=0) as gz, \
-            tarfile.open(fileobj=gz, mode="w") as tar:
-        for archivo in archivos:
-            datos = archivo.read_bytes()
-            info = tarfile.TarInfo(archivo.relative_to(outdir / COLECCION).as_posix())
-            info.size = len(datos)
-            info.mtime = 0
-            info.mode = 0o644
-            info.uid = info.gid = 0
-            info.uname = info.gname = ""
-            tar.addfile(info, io.BytesIO(datos))
-    return salida
+    for resumen in resumenes:
+        directorio = outdir / COLECCION / resumen.slug
+        salida = destino / f"{resumen.slug}.tgz"
+        with open(salida, "wb") as bruto, \
+                gzip.GzipFile(filename="", mode="wb", fileobj=bruto, mtime=0) as gz, \
+                tarfile.open(fileobj=gz, mode="w") as tar:
+            for archivo in _archivos_instrumento(directorio):
+                datos = archivo.read_bytes()
+                relativo = archivo.relative_to(directorio).as_posix()
+                info = tarfile.TarInfo(f"{resumen.slug}/{relativo}")
+                info.size = len(datos)
+                info.mtime = 0
+                info.mode = 0o644
+                info.uid = info.gid = 0
+                info.uname = info.gname = ""
+                tar.addfile(info, io.BytesIO(datos))
+        resumen.asset = salida.name
+        resumen.bytes_comprimidos = salida.stat().st_size
 
 
 def sha256(ruta: Path) -> str:
     return hashlib.sha256(ruta.read_bytes()).hexdigest()
+
+
+def _tamano(bytes_: int) -> str:
+    """A size a human reads at a glance in the manifest's own table — the
+    exact byte count is in the asset itself, not something to eyeball."""
+    if bytes_ >= 1024 * 1024:
+        return f"{bytes_ / (1024 * 1024):.1f} MB"
+    return f"{bytes_ / 1024:.0f} KB"
 
 
 def _formatea_manifiesto(
@@ -241,9 +281,9 @@ def _formatea_manifiesto(
     lineas.append("")
     lineas.append(
         "| ratio | clasificación | instrumento | slug | snapshots | % enlazado | "
-        "confirmados por contenido (#127) |"
+        "confirmados por contenido (#127) | asset | tamaño | notas DOF |"
     )
-    lineas.append("|---|---|---|---|---|---|---|")
+    lineas.append("|---|---|---|---|---|---|---|---|---|---|")
     for r in ordenados:
         # `ratio`/`motivo` are only None if a snapshot's own header were
         # missing `ordenamiento:` entirely — `_cabecera` always writes it,
@@ -253,7 +293,8 @@ def _formatea_manifiesto(
         porcentaje = f"{r.porcentaje_enlazado:.0%}" if r.porcentaje_enlazado is not None else "—"
         lineas.append(
             f"| {ratio} | {motivo} | {r.nombre} | `{r.slug}` | {r.total_snapshots} "
-            f"| {porcentaje} | {r.confirmados_por_contenido} |"
+            f"| {porcentaje} | {r.confirmados_por_contenido} "
+            f"| `{r.asset}` | {_tamano(r.bytes_comprimidos)} | {r.notas_dof} |"
         )
     lineas.append("")
 
@@ -285,20 +326,28 @@ def main(argv=None) -> int:
     args.destino.mkdir(parents=True, exist_ok=True)
 
     resumenes, nunca_rastreados = resume_coleccion(args.outdir)
-    tarball = empaqueta(args.outdir, args.destino)
+    empaqueta(args.outdir, args.destino, resumenes)
 
     manifiesto = args.destino / "MANIFEST.md"
     manifiesto.write_text(_formatea_manifiesto(resumenes, nunca_rastreados), encoding="utf-8")
 
+    # One line per asset, in the format `sha256sum -c` accepts.
     sumas = args.destino / "SHA256SUMS.txt"
-    sumas.write_text(f"{sha256(tarball)}  {tarball.name}\n", encoding="utf-8")
+    sumas.write_text(
+        "".join(
+            f"{sha256(args.destino / r.asset)}  {r.asset}\n"
+            for r in sorted(resumenes, key=lambda r: r.slug)
+        ),
+        encoding="utf-8",
+    )
 
-    print(f"leyes.tgz: {tarball.stat().st_size} bytes", file=sys.stderr)
+    total = sum(r.bytes_comprimidos for r in resumenes)
     print(
-        f"{len(resumenes)} instrumento(s) rastreado(s), {len(nunca_rastreados)} sin rastrear",
+        f"{len(resumenes)} asset(s) .tgz, {_tamano(total)} en total; "
+        f"{len(nunca_rastreados)} instrumento(s) sin rastrear (sin asset)",
         file=sys.stderr,
     )
-    print(f"-> {args.destino}/  (leyes.tgz, MANIFEST.md, SHA256SUMS.txt)", file=sys.stderr)
+    print(f"-> {args.destino}/  (<slug>.tgz, MANIFEST.md, SHA256SUMS.txt)", file=sys.stderr)
     print(
         "\nLee MANIFEST.md completo antes de publicar. Nada de este corpus se publica solo.",
         file=sys.stderr,

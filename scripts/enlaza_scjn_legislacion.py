@@ -22,7 +22,7 @@ date's `title_candidates`) whose own DOF text best accounts for what
 actually changed between this snapshot and the previous one
 (``content_diff_confirmed_codNota``, ``content_diff_score``) — only for
 candidates with digital DOF text, fetched via `dofjson` and cached under
-``<outdir>/<coleccion>/<abrev-o-nombre>/_cache_notas`` — each instrument's own
+``<outdir>/<coleccion>/<abrev-o-nombre>/notas`` — each instrument's own
 subdirectory, alongside its `indice.json`, not a directory shared across
 instruments. This always runs — a codNota link is either
 title-confirmed or it is not; there is no reason to ever settle for less
@@ -188,7 +188,7 @@ def enlaza_coleccion(
         )
         enlazadas = enlaza_por_titulo(versiones, candidatos_por_fecha)
         confirmaciones = _confirmaciones_por_contenido(
-            versiones, candidatos_por_fecha, destino / "_cache_notas", cache_notas
+            versiones, candidatos_por_fecha, destino / "notas", cache_notas
         )
 
         indice = []

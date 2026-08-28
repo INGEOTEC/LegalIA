@@ -1292,12 +1292,21 @@ class TestConfirmByContentDiff(unittest.TestCase):
 
 
 class TestDownloadScjnLeyesCorpus(unittest.TestCase):
+    @staticmethod
+    def _respuestas(asset: str, contenido: bytes) -> list:
+        return [
+            Mock(json=lambda: {"assets": [
+                {"name": asset, "browser_download_url": f"https://x/{asset}"}
+            ]}, raise_for_status=Mock()),
+            Mock(content=contenido, raise_for_status=Mock()),
+        ]
+
     @patch("nota2md.scjn.requests.get")
-    def test_lanza_key_error_cuando_el_release_no_tiene_leyes_tgz(self, mock_get):
+    def test_lanza_key_error_cuando_el_release_no_tiene_el_asset_de_esa_ley(self, mock_get):
         mock_get.return_value = Mock(json=lambda: {"assets": []}, raise_for_status=Mock())
 
         with self.assertRaises(KeyError):
-            scjn.download_scjn_leyes_corpus()
+            scjn.download_scjn_leyes_corpus("cpeum")
 
     @patch("nota2md.scjn.requests.get")
     def test_une_indice_con_el_markdown_de_cada_snapshot(self, mock_get):
@@ -1310,23 +1319,40 @@ class TestDownloadScjnLeyesCorpus(unittest.TestCase):
             "cpeum/indice.json": json.dumps(indice),
             "cpeum/22-01-1994.md": "**TEXTO ORIGINAL.**",
         })
-        respuestas = [
-            Mock(json=lambda: {"assets": [
-                {"name": "leyes.tgz", "browser_download_url": "https://x/leyes.tgz"}
-            ]}, raise_for_status=Mock()),
-            Mock(content=contenido, raise_for_status=Mock()),
-        ]
-        mock_get.side_effect = respuestas
+        mock_get.side_effect = self._respuestas("cpeum.tgz", contenido)
 
-        resultado = scjn.download_scjn_leyes_corpus()
+        resultado = scjn.download_scjn_leyes_corpus("cpeum")
 
-        self.assertEqual(len(resultado), 1)
-        self.assertEqual(resultado[0]["slug"], "cpeum")
-        self.assertEqual(len(resultado[0]["snapshots"]), 1)
-        snap = resultado[0]["snapshots"][0]
+        self.assertEqual(resultado["slug"], "cpeum")
+        self.assertEqual(len(resultado["snapshots"]), 1)
+        snap = resultado["snapshots"][0]
         self.assertEqual(snap["codNota"], 100)
         self.assertEqual(snap["title_link_status"], "linked")
         self.assertEqual(snap["markdown"], "**TEXTO ORIGINAL.**")
+
+    @patch("nota2md.scjn.requests.get")
+    def test_cada_snapshot_trae_el_texto_dof_de_los_candidatos_considerados(self, mock_get):
+        # Lo que hace auditable el enlace de #126/#127 sin volver a la red:
+        # el snapshot llega con el texto de cada candidato que se comparo,
+        # no solo con el codNota ganador.
+        indice = [
+            {"archivo": "22-01-1994.md", "codNota": 100, "title_candidates": [100, 101],
+             "content_diff_confirmed_codNota": 100, "content_diff_score": 0.8},
+            {"archivo": "01-01-1995.md", "codNota": None, "title_candidates": []},
+        ]
+        contenido = _hacer_tgz({
+            "lft/indice.json": json.dumps(indice),
+            "lft/22-01-1994.md": "**TEXTO ORIGINAL.**",
+            "lft/01-01-1995.md": "**REFORMA.**",
+            "lft/notas/nota-100.md": "DECRETO uno.",
+            "lft/notas/nota-101.md": "DECRETO dos.",
+        })
+        mock_get.side_effect = self._respuestas("lft.tgz", contenido)
+
+        snapshots = scjn.download_scjn_leyes_corpus("lft")["snapshots"]
+
+        self.assertEqual(snapshots[0]["notas"], {100: "DECRETO uno.", 101: "DECRETO dos."})
+        self.assertEqual(snapshots[1]["notas"], {})
 
     @patch("nota2md.scjn.requests.get")
     def test_instrumento_sin_indice_json_regresa_snapshots_sin_enlace_en_vez_de_omitirse(
@@ -1335,19 +1361,12 @@ class TestDownloadScjnLeyesCorpus(unittest.TestCase):
         # Fase 2 (issue #105) pendiente para este instrumento: hay
         # snapshots pero enlaza_scjn_legislacion.py no ha corrido para el.
         contenido = _hacer_tgz({"lfea/01-01-2012.md": "**TEXTO ORIGINAL.**"})
-        respuestas = [
-            Mock(json=lambda: {"assets": [
-                {"name": "leyes.tgz", "browser_download_url": "https://x/leyes.tgz"}
-            ]}, raise_for_status=Mock()),
-            Mock(content=contenido, raise_for_status=Mock()),
-        ]
-        mock_get.side_effect = respuestas
+        mock_get.side_effect = self._respuestas("lfea.tgz", contenido)
 
-        resultado = scjn.download_scjn_leyes_corpus()
+        resultado = scjn.download_scjn_leyes_corpus("lfea")
 
-        self.assertEqual(len(resultado), 1)
-        self.assertEqual(resultado[0]["slug"], "lfea")
-        snap = resultado[0]["snapshots"][0]
+        self.assertEqual(resultado["slug"], "lfea")
+        snap = resultado["snapshots"][0]
         self.assertEqual(snap["archivo"], "01-01-2012.md")
         self.assertIsNone(snap["codNota"])
         self.assertEqual(snap["markdown"], "**TEXTO ORIGINAL.**")
