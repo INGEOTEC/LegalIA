@@ -10,7 +10,14 @@ bibliography: references.bib
 
 execute:
   enabled: true
-  freeze: auto
+  # `true`, not `auto`: `auto` re-executes a notebook whose md5 differs from
+  # the one recorded in _freeze, and the md5 CI sees is not the one this
+  # working tree renders — the `nbstripout` clean filter rewrites the
+  # notebook on commit, so the committed blob never matches the freeze entry
+  # written from the local copy (with outputs). CI installs Quarto only, no
+  # Python and no notas-archivo/ data, so a re-execution there is a hard
+  # failure. Refresh results locally with `quarto render --no-freeze`.
+  freeze: true
 
 website:
   title: "LegalIA"

@@ -25,8 +25,10 @@ jobs:
         with:
           version: 1.9.38
 
-      # Execution results are frozen (website/_freeze), so rendering needs
-      # neither Python nor the local notas-archivo/ raw data.
+      # Execution results are frozen (website/_freeze, with `freeze: true` —
+      # see _quarto.yml), so rendering needs neither Python nor the local
+      # notas-archivo/ raw data. Any re-execution here is a failure, not a
+      # slow path.
       - uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: gh-pages
