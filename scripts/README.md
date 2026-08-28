@@ -186,9 +186,12 @@ read it there.
   two halves: its reform history from the abrogated **LEY FEDERAL DE
   CINEMATOGRAFIA**, which the SCJN *does* index (crawled with the existing
   `descarga_ordenamiento`, unmodified), and its current text from the DOF
-  (`codNota` 5788357), converted with `nota2md.legal_provisions`. Linking uses
-  the abrogated law's name, since that is what appears in each reform decree's
-  DOF title. Its `indice.json` also carries an extra `fuente` field
+  (`codNota` 5788357), converted with `nota2md.legal_provisions`. The SCJN's
+  own last row for the abrogated law is **discarded**: it is dated the day
+  `lfca` was published and announces its enactment, but its body is the old
+  1992 text — so 22-05-2026 ends up with exactly one snapshot, the DOF's.
+  Linking uses the abrogated law's name, since that is what appears in each
+  reform decree's DOF title. Its `indice.json` also carries an extra `fuente` field
   (`"scjn"`/`"dof"`) on every entry — consumers must treat it as **optional**
   (absent ⇒ `"scjn"`), since `enlaza_scjn_legislacion.py` never writes it.
 - **`fetch_lfiiedb_dof.py`** (issue #145) — the simpler case: a brand-new law
