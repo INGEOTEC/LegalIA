@@ -80,10 +80,22 @@ pip install nbstripout
 nbstripout --install --attributes .gitattributes
 ```
 
-Stripping outputs is safe for the site: `quarto render` reads the executed
-results from the committed `website/_freeze/` cache, not from the notebooks.
-A clone that skips the install is not broken — an undefined filter is a
-pass-through — it just stops shrinking what it commits.
+The site renders from the committed `website/_freeze/` cache, not from the
+notebooks, so stripping outputs costs the site nothing — but only because
+`_quarto.yml` sets `execute: freeze: true`. Under the default `freeze: auto`
+it silently breaks the publish workflow: `auto` compares the notebook's md5
+against the one stored in the freeze entry, and those can never agree once
+the clean filter is installed (the freeze is written from the local copy,
+which has outputs; git stores the stripped one). That is exactly how the
+`Publish website` run on the #150 merge failed — Quarto tried to execute
+`pages/titles.ipynb` on a runner with no Python.
+
+Consequence for local work: `quarto render` will *not* pick up edits to a
+notebook's code. Re-execute explicitly with `quarto render --no-freeze`
+(or `--no-freeze` on the single file) and commit the refreshed `_freeze/`.
+
+A clone that skips the `nbstripout` install is not broken — an undefined
+filter is a pass-through — it just stops shrinking what it commits.
 
 ## Git workflow: branches, issues and PRs
 
