@@ -86,6 +86,18 @@ class TestBuscarYCandidato(unittest.TestCase):
         # __VIEWSTATE and friends are resubmitted unchanged, like any WebForms POST.
         self.assertEqual(kwargs["data"]["__VIEWSTATE"], "abc")
 
+    def test_pide_el_tamano_de_pagina_mas_grande_del_grid_de_resultados(self):
+        sesion = Mock()
+        sesion.get.return_value = Mock(text=PAGINA_BUSQUEDA, url=scjn.BASE_URL)
+        sesion.post.return_value = Mock(text=_pagina_resultados(""), url=scjn.BASE_URL)
+
+        scjn.buscar(sesion, "Ley de Amnistia")
+
+        _, kwargs = sesion.post.call_args
+        self.assertEqual(
+            kwargs["data"]["ctl00$MainContentPlaceHolder$ucBusqueda1$ddlPageSize"], "50"
+        )
+
 
 class TestEligeCandidato(unittest.TestCase):
     def _candidato(self, titulo, ambito, vigencia, url="u"):

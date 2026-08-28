@@ -127,7 +127,19 @@ def _candidato(a, url: str) -> Candidato:
 
 def buscar(sesion: requests.Session, nombre: str) -> tuple[list[Candidato], str]:
     """Every ordenamiento the SCJN's search returns for `nombre`, and the
-    results page's own URL (the `Referer` a detail-page request needs)."""
+    results page's own URL (the `Referer` a detail-page request needs).
+
+    The results themselves come back in a paginated grid (`pagerGridLeyes`,
+    10 rows/page by default) that this never walks page by page — instead,
+    the search itself asks for the grid's own largest page size (50, its
+    `ddlPageSize` dropdown's highest option), so every result still arrives
+    in this one request. Confirmed live: "LEY del Impuesto sobre la Renta"
+    (issue #124) has 42 total hits, all 10 of page 1 pure ACUERDOs that only
+    mention the law in passing (`es_acuerdo_interno` excludes every one) —
+    the actual ordenamiento sits at position 14, invisible to a caller that
+    only ever reads page 1. 50 covers every case seen so far; an instrument
+    with more than 50 hits would still only be found by paginating the grid
+    for real, not attempted here."""
     r = sesion.get(BASE_URL, timeout=20)
     soup = BeautifulSoup(r.text, "html.parser")
     form = soup.find("form", id="aspnetForm")
@@ -135,6 +147,7 @@ def buscar(sesion: requests.Session, nombre: str) -> tuple[list[Candidato], str]
     data = _campos_formulario(form)
     data["ctl00$MainContentPlaceHolder$ucBusqueda1$txtPalabra"] = nombre
     data["ctl00$MainContentPlaceHolder$ucBusqueda1$cbxTitulo"] = "on"
+    data["ctl00$MainContentPlaceHolder$ucBusqueda1$ddlPageSize"] = "50"
     data["__EVENTTARGET"] = "ctl00$MainContentPlaceHolder$ucBusqueda1$btnBuscar"
     r2 = sesion.post(action_url, data=data, headers={"Referer": r.url}, timeout=30)
     soup2 = BeautifulSoup(r2.text, "html.parser")
