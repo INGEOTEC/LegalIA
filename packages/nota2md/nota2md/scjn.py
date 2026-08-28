@@ -1298,7 +1298,8 @@ def confirm_by_content_diff(
 #
 # `scripts/empaqueta_scjn_leyes.py` packages every already-crawled+linked
 # `leyes` instrument (snapshots plus `indice.json`, carrying #115/#126/#127's
-# confidence signals) into the `scjn-leyes` release's own `leyes.tgz` — see
+# confidence signals, plus the DOF notes each link was decided against) into
+# one `<slug>.tgz` asset per law of the `scjn-leyes` release — see
 # that script for why publishing it is, and stays, a deliberate manual step,
 # never automated. This is that release's own reader, same shape as
 # `nota2md.utils.download_legal_provisions_provenance_ids` (download the
@@ -1321,61 +1322,78 @@ def _assets_scjn_leyes(timeout: int = 30) -> dict[str, str]:
     }
 
 
-def download_scjn_leyes_corpus(timeout: int = 60) -> list[dict]:
-    """Every `leyes` instrument the SCJN-based corpus (issue #128) has
-    packaged, each as ``{"slug": ..., "snapshots": [...]}`` — one entry per
+def download_scjn_leyes_corpus(slug: str, timeout: int = 60) -> dict:
+    """One `leyes` instrument of the SCJN-based corpus (issue #128), by its
+    own `slug`, as ``{"slug": ..., "snapshots": [...]}`` — one entry per
     snapshot, each carrying its own `indice.json` fields (`fecha_publicacion`,
     `codNota`, `ratio_similitud`, `sospechoso`, `title_candidates`,
     `title_link_status`, `content_diff_confirmed_codNota`,
-    `content_diff_score`) plus its own Markdown body as `markdown`.
+    `content_diff_score`) plus its own Markdown body as `markdown` and, as
+    `notas`, the DOF text of every candidate that was considered for it
+    (``{codNota: markdown}``) — so the link can be audited without going
+    back to the network.
 
     An instrument crawled but never linked (`scripts/enlaza_scjn_legislacion.py`
     has not run for it yet — Fase 2 pendiente) is still packaged with its raw
     snapshots; each of those comes back with only `archivo`/`codNota=None`/
-    `markdown` set, no confidence fields, rather than being dropped.
+    `markdown`/`notas={}` set, no confidence fields, rather than being dropped.
 
-    Downloads the `leyes.tgz` asset into memory; nothing touches disk.
-    Raises `KeyError` while the `scjn-leyes` release does not exist yet —
-    expected before a human has read
+    Downloads only that law's own `<slug>.tgz` asset into memory (the
+    release has one per law, not one for the whole collection — bringing
+    down 380 MB to read a single law would be absurd); nothing touches disk.
+    Raises `KeyError` while the `scjn-leyes` release does not publish that
+    asset yet — expected before a human has read
     `scripts/empaqueta_scjn_leyes.py`'s own manifest and published it by
     hand (this corpus has no automated publish path, on purpose — see that
     script). Not re-exported from `nota2md/__init__.py`: this stays
     `nota2md.scjn`-internal infrastructure until something like issue #117
     integrates it into `legal_provisions`.
     """
+    asset = f"{slug}.tgz"
     urls = _assets_scjn_leyes(timeout)
-    if "leyes.tgz" not in urls:
+    if asset not in urls:
         raise KeyError(
-            "el release 'scjn-leyes' no publica el asset 'leyes.tgz' todavia — "
+            f"el release 'scjn-leyes' no publica el asset '{asset}' todavia — "
             "ver issue #128: este corpus solo se publica a mano, tras revision humana"
         )
 
-    response = requests.get(urls["leyes.tgz"], headers=_HEADERS, timeout=timeout)
+    response = requests.get(urls[asset], headers=_HEADERS, timeout=timeout)
     response.raise_for_status()
 
     with tarfile.open(fileobj=io.BytesIO(response.content), mode="r:gz") as tar:
         miembros = {m.name: tar.extractfile(m).read() for m in tar if m.isfile()}
 
-    por_instrumento: dict[str, dict] = {}
+    indice = None
+    cuerpos: dict[str, str] = {}
+    notas: dict[int, str] = {}
     for nombre, contenido in miembros.items():
-        slug, _, archivo = nombre.partition("/")
-        datos = por_instrumento.setdefault(slug, {"indice": None, "cuerpos": {}})
-        if archivo == "indice.json":
-            datos["indice"] = json.loads(contenido)
+        # Every member is prefixed with `<slug>/` so the tarball unpacks
+        # anywhere; the prefix carries no information the caller needs.
+        _, _, relativo = nombre.partition("/")
+        if relativo == "indice.json":
+            indice = json.loads(contenido)
+        elif relativo.startswith("notas/"):
+            cod = relativo[len("notas/nota-"):].removesuffix(".md")
+            notas[int(cod)] = contenido.decode("utf-8")
         else:
-            datos["cuerpos"][archivo] = contenido.decode("utf-8")
+            cuerpos[relativo] = contenido.decode("utf-8")
 
-    resultado = []
-    for slug, datos in sorted(por_instrumento.items()):
-        cuerpos, indice = datos["cuerpos"], datos["indice"]
-        if indice is not None:
-            snapshots = [
-                {**entrada, "markdown": cuerpos.get(entrada["archivo"])} for entrada in indice
-            ]
-        else:
-            snapshots = [
-                {"archivo": nombre, "codNota": None, "markdown": texto}
-                for nombre, texto in sorted(cuerpos.items())
-            ]
-        resultado.append({"slug": slug, "snapshots": snapshots})
-    return resultado
+    if indice is not None:
+        snapshots = [
+            {
+                **entrada,
+                "markdown": cuerpos.get(entrada["archivo"]),
+                "notas": {
+                    cod: notas[cod]
+                    for cod in entrada.get("title_candidates", [])
+                    if cod in notas
+                },
+            }
+            for entrada in indice
+        ]
+    else:
+        snapshots = [
+            {"archivo": nombre, "codNota": None, "markdown": texto, "notas": {}}
+            for nombre, texto in sorted(cuerpos.items())
+        ]
+    return {"slug": slug, "snapshots": snapshots}

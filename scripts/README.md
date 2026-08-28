@@ -148,7 +148,7 @@ since a weaker link is never what you actually want:
    changed between this SCJN snapshot and the previous one — resolving the
    `ambiguous` case title mention alone cannot. Needs each candidate's own
    DOF Markdown, fetched via `dofjson` and cached under each instrument's own
-   `_cache_notas` subdirectory (`<outdir>/<coleccion>/<slug>/_cache_notas`,
+   `notas` subdirectory (`<outdir>/<coleccion>/<slug>/notas`,
    created automatically) — next to that instrument's own `indice.json`, not
    in a directory shared across instruments.
 
@@ -207,11 +207,23 @@ run `fetch_scjn_legislacion.py --reintenta <abrev>` plus
 
 ### `empaqueta_scjn_leyes.py`
 
-`leyes` only (issue #128): packages every crawled+linked instrument into a
-byte-reproducible `leyes.tgz`, plus a `MANIFEST.md` ranking every instrument
-by confidence (issue #115's classification, `enlaza_scjn_legislacion.py`'s
-link percentage and content-diff-confirmed count) and a `SHA256SUMS.txt` —
-same pattern as `empaqueta_historial.py`. **Publishing is manual, always**:
+`leyes` only (issue #128): packages every crawled+linked instrument into its
+own byte-reproducible `<slug>.tgz` — one asset per law, not one for the
+collection, so a consumer downloads only the law it wants and an update only
+re-uploads the law that changed. Each tarball carries that instrument's
+snapshots, its `indice.json` and its `notas/nota-<cod>.md` (the DOF text
+every link was decided against, #126/#127), all prefixed with `<slug>/`.
+Also writes a `MANIFEST.md` listing every instrument by name
+(`enlaza_scjn_legislacion.py`'s link percentage and content-diff-confirmed
+count, plus each instrument's asset name, compressed size and DOF-note
+count; issue #115's ratio/classification is gone from it — the titles were
+reviewed and fixed by hand) and a `SHA256SUMS.txt` with
+one line per asset — same pattern as `empaqueta_historial.py`.
+`nota2md.scjn.download_scjn_leyes_corpus(slug)` reads one law back. Both
+paths default to where the corpus actually lives today (`--outdir
+scripts/scjn`, `--destino scripts/scjn/leyes-release`), so the usual run
+takes no arguments at all.
+**Publishing is manual, always**:
 the SCJN's search can return a wrong document entirely (issue #115), so this
 script never calls `gh`, and no workflow should ever call it and then
 publish on its own. Read `MANIFEST.md` in full before running the `gh

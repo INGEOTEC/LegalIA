@@ -268,7 +268,7 @@ def construye_indice(destino: Path, porf: dict, archivo_dof: Path) -> list[dict]
     )
     enlazadas = enlaza_por_titulo(versiones, candidatos_por_fecha)
     confirmaciones = _confirmaciones_por_contenido(
-        versiones, candidatos_por_fecha, destino / "_cache_notas", {}
+        versiones, candidatos_por_fecha, destino / "notas", {}
     )
 
     indice = []
