@@ -15,24 +15,27 @@ the publish step (a person running `gh` by hand) are deliberately kept
 apart: this script never calls `gh` itself, and no `.github/workflows/` file
 should ever call it and then publish on its own.
 
-    ./scripts/empaqueta_scjn_leyes.py --outdir scjn-legislacion --destino leyes-release
-    less leyes-release/MANIFEST.md   # read it. all of it. before the next line.
+    # Defaults: --outdir scripts/scjn, --destino scripts/scjn/leyes-release
+    # (the directories the corpus actually lives in today, both under the
+    # `scripts/scjn/` that .gitignore excludes).
+    ./scripts/empaqueta_scjn_leyes.py
+    less scripts/scjn/leyes-release/MANIFEST.md   # read it. all of it.
 
     # first publish — the release itself, with the two small text assets:
-    gh release create scjn-leyes leyes-release/MANIFEST.md leyes-release/SHA256SUMS.txt \\
-        --repo INGEOTEC/LegalIA --title "SCJN — leyes" \\
-        --notes-file leyes-release/MANIFEST.md
+    cd scripts/scjn/leyes-release
+    gh release create scjn-leyes MANIFEST.md SHA256SUMS.txt \\
+        --repo INGEOTEC/LegalIA --title "SCJN — leyes" --notes-file MANIFEST.md
 
     # then the ~315 per-law tarballs, in batches (gh takes many paths at
     # once, but a batch that fails mid-way is cheaper to retry than one run
     # of 315). `--clobber` makes re-running after a network failure
     # idempotent, so a batch can simply be repeated:
-    ls leyes-release/*.tgz | xargs -n 20 \\
-        gh release upload scjn-leyes --repo INGEOTEC/LegalIA --clobber
+    ls *.tgz | xargs -n 20 gh release upload scjn-leyes \\
+        --repo INGEOTEC/LegalIA --clobber
 
     # a later run only has to re-upload the laws that changed:
-    gh release upload scjn-leyes leyes-release/lft.tgz leyes-release/SHA256SUMS.txt \\
-        leyes-release/MANIFEST.md --repo INGEOTEC/LegalIA --clobber
+    gh release upload scjn-leyes lft.tgz SHA256SUMS.txt MANIFEST.md \\
+        --repo INGEOTEC/LegalIA --clobber
 
 ## What goes in each tarball
 
@@ -75,12 +78,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
 
 from nota2md.scjn import (  # noqa: E402
-    UMBRAL_CONFIANZA_SIMILITUD,
-    UMBRAL_MINIMO_SIMILITUD,
-    es_acuerdo_interno,
-    grupo_instrumento,
-    lee_cabecera,
-    ratio_similitud,
     slug_instrumento,
     versiones_de_directorio,
 )
@@ -101,30 +98,9 @@ def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
     return json.loads(archivo.read_text(encoding="utf-8"))
 
 
-def _clasifica(nombre_catalogo: str, ordenamiento_guardado: str, ratio: float) -> str:
-    """The #115 confidence classification (`confiable`/`sospechoso`/
-    `bajo_umbral`/`acuerdo_interno`/`grupo_incompatible`), built from the
-    public `nota2md.scjn` primitives rather than importing it from another
-    script: there is no precedent for that in this repo, and the logic
-    itself is thin enough that a small copy here is cheaper than inventing a
-    shared module for #128 alone."""
-    if es_acuerdo_interno(ordenamiento_guardado):
-        return "acuerdo_interno"
-    grupo_nombre = grupo_instrumento(nombre_catalogo)
-    grupo_titulo = grupo_instrumento(ordenamiento_guardado)
-    if grupo_nombre is not None and grupo_titulo is not None and grupo_nombre != grupo_titulo:
-        return "grupo_incompatible"
-    if ratio < UMBRAL_MINIMO_SIMILITUD:
-        return "bajo_umbral"
-    if ratio < UMBRAL_CONFIANZA_SIMILITUD:
-        return "sospechoso"
-    return "confiable"
-
-
 @dataclass
 class ResumenInstrumento:
-    """One instrument's own row in the manifest: how it was found
-    (`motivo`/`ratio`, issue #115's classification) and how much of it is
+    """One instrument's own row in the manifest: how much of it is
     actually linked to a codNota (`porcentaje_enlazado`, `total_snapshots`,
     `confirmados_por_contenido` — issue #127's count of links given extra
     certainty by content diff). `porcentaje_enlazado` is None when the
@@ -137,8 +113,6 @@ class ResumenInstrumento:
 
     slug: str
     nombre: str
-    motivo: str | None
-    ratio: float | None
     total_snapshots: int
     porcentaje_enlazado: float | None
     confirmados_por_contenido: int
@@ -163,10 +137,6 @@ def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]
             nunca_rastreados.append(entrada["nombre"])
             continue
 
-        ordenamiento = lee_cabecera(versiones[0].archivo).get("ordenamiento")
-        ratio = ratio_similitud(ordenamiento, entrada["nombre"]) if ordenamiento else None
-        motivo = _clasifica(entrada["nombre"], ordenamiento, ratio) if ordenamiento else None
-
         porcentaje = None
         confirmados = 0
         indice_path = destino / "indice.json"
@@ -181,7 +151,7 @@ def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]
 
         resumenes.append(
             ResumenInstrumento(
-                slug=slug, nombre=entrada["nombre"], motivo=motivo, ratio=ratio,
+                slug=slug, nombre=entrada["nombre"],
                 total_snapshots=len(versiones), porcentaje_enlazado=porcentaje,
                 confirmados_por_contenido=confirmados,
                 notas_dof=len(list((destino / "notas").glob("nota-*.md")))
@@ -251,7 +221,7 @@ def _tamano(bytes_: int) -> str:
 def _formatea_manifiesto(
     resumenes: list[ResumenInstrumento], nunca_rastreados: list[str]
 ) -> str:
-    ordenados = sorted(resumenes, key=lambda r: r.ratio if r.ratio is not None else -1.0)
+    ordenados = sorted(resumenes, key=lambda r: r.nombre)
     total_catalogo = len(resumenes) + len(nunca_rastreados)
 
     lineas = [
@@ -277,37 +247,27 @@ def _formatea_manifiesto(
         lineas.extend(f"- {r.nombre} (`{r.slug}`)" for r in sin_enlazar)
         lineas.append("")
 
-    lineas.append("## Clasificación de confianza (issue #115), del menos al más confiable")
+    # La clasificación de confianza de #115 (ratio/motivo) ya no aparece
+    # aquí: los títulos se revisaron y corrigieron a mano, así que ordenar
+    # por sospecha dejó de decir nada — la tabla va por nombre.
+    lineas.append("## Instrumentos empaquetados")
     lineas.append("")
     lineas.append(
-        "| ratio | clasificación | instrumento | slug | snapshots | % enlazado | "
+        "| instrumento | slug | snapshots | % enlazado | "
         "confirmados por contenido (#127) | asset | tamaño | notas DOF |"
     )
-    lineas.append("|---|---|---|---|---|---|---|---|---|---|")
+    lineas.append("|---|---|---|---|---|---|---|---|")
     for r in ordenados:
-        # `ratio`/`motivo` are only None if a snapshot's own header were
-        # missing `ordenamiento:` entirely — `_cabecera` always writes it,
-        # so this is defensive, not an expected case.
-        ratio = f"{r.ratio:.3f}" if r.ratio is not None else "—"
-        motivo = r.motivo if r.motivo is not None else "sin_ordenamiento"
         porcentaje = f"{r.porcentaje_enlazado:.0%}" if r.porcentaje_enlazado is not None else "—"
         lineas.append(
-            f"| {ratio} | {motivo} | {r.nombre} | `{r.slug}` | {r.total_snapshots} "
+            f"| {r.nombre} | `{r.slug}` | {r.total_snapshots} "
             f"| {porcentaje} | {r.confirmados_por_contenido} "
             f"| `{r.asset}` | {_tamano(r.bytes_comprimidos)} | {r.notas_dof} |"
         )
     lineas.append("")
-
-    por_motivo: dict[str, int] = {}
-    for r in resumenes:
-        por_motivo[r.motivo] = por_motivo.get(r.motivo, 0) + 1
-    lineas.append(f"Resumen por clasificación: {por_motivo}")
-    lineas.append("")
     lineas.append(
-        "**Antes de publicar**: lee esta tabla completa, empezando por lo menos confiable "
-        "(`acuerdo_interno`/`grupo_incompatible`/`bajo_umbral` son casi-certeza de documento "
-        "equivocado — issue #115). Nada de este corpus se publica de forma automática — "
-        "issue #128 — la decisión de que es seguro publicar es humana."
+        "**Antes de publicar**: lee esta tabla completa. Nada de este corpus se publica de "
+        "forma automática — issue #128 — la decisión de que es seguro publicar es humana."
     )
     return "\n".join(lineas) + "\n"
 
@@ -316,11 +276,15 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    # Los defaults son los directorios que el corpus usa hoy: `scripts/scjn`
+    # es donde fetch/enlaza ya escribieron `leyes/`, y el destino cuelga de
+    # ahi mismo — ambos bajo el `scripts/scjn/` que .gitignore excluye, para
+    # que ninguna corrida deje datos rastreables por git.
     p.add_argument(
-        "--outdir", type=Path, required=True,
+        "--outdir", type=Path, default=Path("scripts/scjn"),
         help="donde fetch_scjn_legislacion.py / enlaza_scjn_legislacion.py ya escribieron 'leyes'",
     )
-    p.add_argument("--destino", type=Path, default=Path("scjn-leyes"))
+    p.add_argument("--destino", type=Path, default=Path("scripts/scjn/leyes-release"))
     args = p.parse_args(argv)
 
     args.destino.mkdir(parents=True, exist_ok=True)
