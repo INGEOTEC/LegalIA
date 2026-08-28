@@ -213,12 +213,16 @@ collection, so a consumer downloads only the law it wants and an update only
 re-uploads the law that changed. Each tarball carries that instrument's
 snapshots, its `indice.json` and its `notas/nota-<cod>.md` (the DOF text
 every link was decided against, #126/#127), all prefixed with `<slug>/`.
-Also writes a `MANIFEST.md` ranking every instrument
-by confidence (issue #115's classification, `enlaza_scjn_legislacion.py`'s
-link percentage and content-diff-confirmed count, plus each instrument's
-asset name, compressed size and DOF-note count) and a `SHA256SUMS.txt` with
+Also writes a `MANIFEST.md` listing every instrument by name
+(`enlaza_scjn_legislacion.py`'s link percentage and content-diff-confirmed
+count, plus each instrument's asset name, compressed size and DOF-note
+count; issue #115's ratio/classification is gone from it — the titles were
+reviewed and fixed by hand) and a `SHA256SUMS.txt` with
 one line per asset — same pattern as `empaqueta_historial.py`.
-`nota2md.scjn.download_scjn_leyes_corpus(slug)` reads one law back.
+`nota2md.scjn.download_scjn_leyes_corpus(slug)` reads one law back. Both
+paths default to where the corpus actually lives today (`--outdir
+scripts/scjn`, `--destino scripts/scjn/leyes-release`), so the usual run
+takes no arguments at all.
 **Publishing is manual, always**:
 the SCJN's search can return a wrong document entirely (issue #115), so this
 script never calls `gh`, and no workflow should ever call it and then
