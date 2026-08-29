@@ -95,13 +95,29 @@ two additions and no change to what a plain full sweep does:
   Diputados does not give at all. It also prints the publication date of the
   `historial-legislativo` release `actualizado` itself comes from, so an
   empty list reads as "up to date as of *that* date", not "up to date with
-  today's DOF". Refresh `catalogo.json` with `extract_scjn_titles.py` first,
-  or the plan is computed against a stale catalogue.
+  today's DOF". It refreshes `catalogo.json` from Diputados first, since
+  planning against a stale catalogue answers a stale question
+  (``--sin-refrescar-catalogo`` opts out).
+- ``--actualiza`` runs the whole chain for exactly the instrumentos that plan
+  lists: crawl, link (`enlaza_scjn_legislacion.py`), and repackage their
+  assets (`empaqueta_scjn_leyes.py`). It recomputes the plan itself, so
+  there is nothing to copy between the two commands, and it exits with no
+  effects at all when nothing is pending — the expected case most of the
+  time. One law failing does not stop the rest: its `estado.json` is left
+  untouched so the next plan lists it again, and the run ends with a summary
+  and a non-zero exit status. The titles dataset the linking step needs is
+  downloaded to ``<outdir>/titulos.jsonl.gz`` if it is not there
+  (``--titulos`` points at your own).
 - ``--instrumento SLUG`` (repeatable) crawls only the named instrumentos and
-  touches the SCJN for nothing else. Unlike ``--reintenta``, which exists for
-  issue #115's "the SCJN returned the wrong document" case, this **deletes
-  nothing**: the snapshots already on disk stay, and only the reforms that
-  are new get downloaded.
+  touches the SCJN for nothing else — the manual escape hatch for one
+  specific law, underneath what ``--actualiza`` drives. Unlike
+  ``--reintenta``, which exists for issue #115's "the SCJN returned the
+  wrong document" case, this **deletes nothing**: the snapshots already on
+  disk stay, and only the reforms that are new get downloaded.
+
+Publishing is still not part of any of this (issue #115, Hallazgo C):
+``--actualiza`` stops once the assets are written, and a human reads
+``MANIFEST.md`` and runs ``gh release upload`` by hand.
 
 Either way, an instrumento that finishes crawling writes its own
 ``<outdir>/<coleccion>/<slug>/estado.json`` with the `actualizado` it was
@@ -110,10 +126,10 @@ that one law apart from the rest of the collection. That file ships inside
 the instrumento's own tarball (issue #128), so the release carries its own
 freshness metadata.
 
-    ./scripts/extract_scjn_titles.py --outdir scjn-legislacion --coleccion leyes
-    ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion --coleccion leyes --plan
-    ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion --coleccion leyes \\
-        --instrumento lft
+    # que hay que actualizar (no toca la SCJN):
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --plan
+    # actualizarlo (rastrea + enlaza + empaqueta, solo lo pendiente):
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --actualiza
 
 Needs each requested collection's own ``catalogo.json`` already written by
 ``extract_scjn_titles.py`` under ``<outdir>/<coleccion>/`` (issue #123: this
@@ -131,6 +147,7 @@ python-docx.
 """
 
 import argparse
+import importlib.util
 import json
 import sys
 import time
@@ -155,6 +172,9 @@ from nota2md.scjn import (  # noqa: E402
 from nota2md.utils import RELEASES_API  # noqa: E402
 
 COLECCIONES = ("leyes", "reglamentos", "tratados")
+#: The only collection with a per-instrument release to repackage into
+#: (`empaqueta_scjn_leyes.py`, issue #128).
+COLECCION_EMPAQUETABLE = "leyes"
 
 
 def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
@@ -222,6 +242,141 @@ def _imprime_avance(mensaje: str) -> None:
     Causa 2): indented under its instrumento's own `[coleccion i/N]` line so
     it reads as a sub-step, not another instrumento."""
     print(f"    {mensaje}", file=sys.stderr)
+
+
+def _script_hermano(nombre: str):
+    """Another `scripts/` script, imported by path so its own `main(argv)`
+    can be called in-process — `scripts/` is not a package, and the chain of
+    issue #148 is short enough that shelling out four subprocesses to run it
+    would only add ways for it to break silently.
+
+    Imported lazily, inside the functions that need it: `--plan` must stay
+    cheap and offline, and `enlaza_scjn_legislacion` pulls in
+    `nota2md.builder` (and its dependencies) just by being imported."""
+    ruta = Path(__file__).resolve().parent / f"{nombre}.py"
+    spec = importlib.util.spec_from_file_location(nombre, ruta)
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+def refresca_catalogo(outdir: Path, coleccion: str) -> None:
+    """Re-extract `coleccion`'s own `catalogo.json` from Diputados before
+    planning against it (issue #148). Without this the plan is computed
+    against whatever `actualizado` values were extracted last time, which is
+    exactly the question being asked — so it is the default, and
+    `--sin-refrescar-catalogo` is for when the catalogue was just refreshed
+    by hand and there is no reason to pay for it twice.
+
+    Touches Diputados and the DOF (one request per instrument), never the
+    SCJN — a `--plan` run is still SCJN-free."""
+    print(f"{coleccion}: refrescando catalogo.json desde Diputados...", file=sys.stderr)
+    _script_hermano("extract_scjn_titles").main(
+        ["--outdir", str(outdir), "--coleccion", coleccion]
+    )
+
+
+def _ruta_titulos(outdir: Path, ruta: Path | None) -> Path:
+    """The dofjson titles dataset `enlaza_scjn_legislacion.py` needs,
+    downloading it to `<outdir>/titulos.jsonl.gz` when `ruta` is not given
+    and nothing is there yet. `outdir` is already a gitignored scratch
+    directory (`scripts/scjn/`), so this leaves nothing git can see.
+
+    An existing file is reused as is, never re-downloaded: it is a large
+    asset, and a titles dataset that is a few days old only risks failing to
+    link a reform published in those few days, which the next run picks up."""
+    if ruta is not None:
+        if not ruta.is_file():
+            raise SystemExit(f"{ruta} no existe")
+        return ruta
+    destino = outdir / "titulos.jsonl.gz"
+    if not destino.is_file():
+        from dofjson import download_legal_provisions_titles
+
+        print(f"descargando el dataset de titulos del DOF -> {destino}", file=sys.stderr)
+        outdir.mkdir(parents=True, exist_ok=True)
+        download_legal_provisions_titles(destino)
+    return destino
+
+
+def actualiza_coleccion(
+    coleccion: str,
+    outdir: Path,
+    espera: float,
+    *,
+    destino: Path,
+    titulos: Path | None = None,
+    refresca: bool = True,
+    incluye_sin_actualizado: bool = False,
+    empaqueta: bool = True,
+) -> int:
+    """The whole issue #148 chain in one call: refresh the catalogue, work
+    out what is pending, and for each pending instrumento crawl it, link it
+    and — once, at the end — repackage the assets that changed. Returns how
+    many instrumentos failed, so a caller can make it the process's own exit
+    status.
+
+    One law failing does not stop the others: a crawl that raised or found
+    nothing leaves that instrumento's own `estado.json` untouched, so the
+    next `--plan` lists it again, and the run moves on to the next law. The
+    summary at the end says which ones need another try.
+
+    The titles dataset is parsed once and reused for every instrumento —
+    `enlaza_coleccion` takes it as an argument precisely so a chain like this
+    does not re-read a large gzip once per law.
+
+    Packaging only exists for `leyes` (`empaqueta_scjn_leyes.py`, issue
+    #128); the other collections stop after linking, which is said out loud
+    rather than silently skipped."""
+    if refresca:
+        refresca_catalogo(outdir, coleccion)
+    pendientes = planea_coleccion(
+        coleccion, outdir, incluye_sin_actualizado=incluye_sin_actualizado
+    )
+    if not pendientes:
+        print(f"{coleccion}: nada que actualizar; no se toca la SCJN", file=sys.stderr)
+        return 0
+
+    enlaza = _script_hermano("enlaza_scjn_legislacion")
+    porf = enlaza.carga_porf(_ruta_titulos(outdir, titulos))
+    cache_notas: dict = {}
+
+    listos, fallidos = [], []
+    for n, slug in enumerate(pendientes, 1):
+        print(f"\n== [{n}/{len(pendientes)}] {slug} ==", file=sys.stderr)
+        try:
+            if rastrea_coleccion(
+                coleccion, outdir, espera, instrumento={slug}
+            ):
+                raise RuntimeError("la SCJN no devolvio nada para este instrumento")
+            enlaza.enlaza_coleccion(coleccion, outdir, porf, cache_notas, instrumento={slug})
+        except Exception as exc:
+            print(f"  aviso: {slug} no se pudo actualizar: {exc}", file=sys.stderr)
+            fallidos.append(slug)
+        else:
+            listos.append(slug)
+
+    if listos and empaqueta and coleccion == COLECCION_EMPAQUETABLE:
+        print(f"\n== empaquetando {len(listos)} instrumento(s) ==", file=sys.stderr)
+        _script_hermano("empaqueta_scjn_leyes").main(
+            ["--outdir", str(outdir), "--destino", str(destino)]
+            + [arg for slug in listos for arg in ("--instrumento", slug)]
+        )
+    elif listos and empaqueta:
+        print(
+            f"\n{coleccion} no se empaqueta: el release por instrumento (issue #128) "
+            f"existe solo para '{COLECCION_EMPAQUETABLE}'",
+            file=sys.stderr,
+        )
+
+    print(f"\n{coleccion}: {len(listos)} actualizado(s), {len(fallidos)} fallido(s)", file=sys.stderr)
+    if fallidos:
+        print(
+            f"  vuelve a correr --actualiza para reintentar {sorted(fallidos)}: no se les "
+            "escribio estado.json, asi que el proximo plan los sigue listando",
+            file=sys.stderr,
+        )
+    return len(fallidos)
 
 
 def _fecha_release_historial() -> str | None:
@@ -314,10 +469,11 @@ def planea_coleccion(
         pendientes += [slug for slug, _ in sin_fecha]
     print(f"  {len(pendientes)} instrumento(s) por actualizar", file=sys.stderr)
     if pendientes:
+        # The whole chain, not the four steps: --actualiza recomputes this
+        # same plan, so there is nothing to copy across from here by hand.
         print(
-            "  ./scripts/fetch_scjn_legislacion.py --outdir "
-            f"{outdir} --coleccion {coleccion} "
-            + " ".join(f"--instrumento {slug}" for slug in pendientes),
+            "  python scripts/fetch_scjn_legislacion.py --outdir "
+            f"{outdir} --coleccion {coleccion} --actualiza",
             file=sys.stderr,
         )
     return pendientes
@@ -331,7 +487,12 @@ def rastrea_coleccion(
     reiniciar: bool = False,
     reintenta: set[str] | None = None,
     instrumento: set[str] | None = None,
-) -> None:
+) -> list[str]:
+    """Crawl `coleccion` and return the slugs whose crawl did not succeed —
+    the SCJN raised, or returned nothing at all for them. Failures were
+    already printed and skipped over rather than aborting the run; returning
+    them as well is what lets `actualiza_coleccion` (issue #148) tell which
+    laws are actually ready for the next step of the chain."""
     instrumentos = _load_catalog(outdir, coleccion)
     print(f"{coleccion}: {len(instrumentos)} instrumento(s)", file=sys.stderr)
     # Mecanismo 2 (issue #124's follow-up): the date this collection was last
@@ -383,6 +544,7 @@ def rastrea_coleccion(
                 file=sys.stderr,
             )
     saltados = 0
+    fallidos = []
     for i, entrada in enumerate(instrumentos, 1):
         if i <= inicio:
             continue
@@ -421,9 +583,11 @@ def rastrea_coleccion(
                 )
             except Exception as exc:
                 print(f"  aviso: {buscado!r} fallo: {exc}", file=sys.stderr)
+                fallidos.append(slug)
             else:
                 if not escritos:
                     print(f"  aviso: sin resultados en la SCJN para {buscado!r}", file=sys.stderr)
+                    fallidos.append(slug)
                 # Issue #148: record the `actualizado` this instrumento was
                 # actually crawled against -- the catalogue's value now, not
                 # today's date, so a later refresh compares like with like.
@@ -453,6 +617,7 @@ def rastrea_coleccion(
     if seleccion is None:
         _archivo_progreso(outdir, coleccion).unlink(missing_ok=True)
         _guarda_fecha_rastreo_completo(outdir, coleccion, date.today().isoformat())
+    return fallidos
 
 
 def main(argv=None) -> int:
@@ -511,6 +676,43 @@ def main(argv=None) -> int:
         ),
     )
     p.add_argument(
+        "--actualiza",
+        action="store_true",
+        help=(
+            "la cadena completa de issue #148 en un solo comando: refresca el catalogo, "
+            "calcula el plan, y para cada instrumento pendiente rastrea, enlaza y "
+            "reempaqueta su asset. Sale sin efectos cuando no hay pendientes"
+        ),
+    )
+    p.add_argument(
+        "--sin-refrescar-catalogo",
+        action="store_true",
+        help=(
+            "no vuelve a extraer catalogo.json de Diputados antes de planear "
+            "(--plan/--actualiza); usalo solo si acabas de correr extract_scjn_titles.py"
+        ),
+    )
+    p.add_argument(
+        "--titulos",
+        type=Path,
+        help=(
+            "dataset de dofjson.download_legal_provisions_titles para el paso de enlace "
+            "de --actualiza; por default se usa (y se descarga si falta) "
+            "<outdir>/titulos.jsonl.gz"
+        ),
+    )
+    p.add_argument(
+        "--destino",
+        type=Path,
+        default=Path("scripts/scjn/leyes-release"),
+        help="donde --actualiza reescribe los assets del release (default: %(default)s)",
+    )
+    p.add_argument(
+        "--sin-empaquetar",
+        action="store_true",
+        help="con --actualiza, se detiene despues de enlazar y no reescribe ningun asset",
+    )
+    p.add_argument(
         "--incluye-sin-actualizado",
         action="store_true",
         help=(
@@ -526,12 +728,29 @@ def main(argv=None) -> int:
             "del instrumento antes de rebajarlos (issue #115), el segundo no borra nada "
             "(issue #148). Elige cual de los dos casos es el tuyo."
         )
+    if args.plan and args.actualiza:
+        raise SystemExit("--plan solo dice que hay que hacer; --actualiza lo hace. Elige uno.")
     reintenta = set(args.reintenta) if args.reintenta else None
     instrumento = set(args.instrumento) if args.instrumento else None
+    fallidos = 0
     for coleccion in args.coleccion or COLECCIONES:
         if args.plan:
+            if not args.sin_refrescar_catalogo:
+                refresca_catalogo(coleccion=coleccion, outdir=args.outdir)
             planea_coleccion(
                 coleccion, args.outdir, incluye_sin_actualizado=args.incluye_sin_actualizado
+            )
+            continue
+        if args.actualiza:
+            fallidos += actualiza_coleccion(
+                coleccion,
+                args.outdir,
+                args.espera,
+                destino=args.destino,
+                titulos=args.titulos,
+                refresca=not args.sin_refrescar_catalogo,
+                incluye_sin_actualizado=args.incluye_sin_actualizado,
+                empaqueta=not args.sin_empaquetar,
             )
             continue
         rastrea_coleccion(
@@ -542,7 +761,9 @@ def main(argv=None) -> int:
             reintenta=reintenta,
             instrumento=instrumento,
         )
-    return 0
+    # Non-zero when --actualiza left work behind, so a caller (or a human
+    # reading `echo $?`) does not mistake a partial run for a clean one.
+    return 1 if fallidos else 0
 
 
 if __name__ == "__main__":
