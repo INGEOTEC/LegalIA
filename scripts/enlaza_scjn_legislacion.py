@@ -51,12 +51,19 @@ and a titles dataset already built:
 Only instrument directories `fetch_scjn_legislacion.py` already crawled are
 touched; a coleccion+instrumento pair with no directory yet is skipped
 silently — nothing to match until that instrument has been crawled.
+
+``--instrumento SLUG`` (repeatable, issue #148) narrows the run to the named
+instruments, so a single law refreshed by ``fetch_scjn_legislacion.py
+--instrumento`` can have its own `indice.json` and missing `notas/`
+regenerated without re-walking the whole collection. Each instrument it
+links records the date in its own `estado.json`.
 """
 
 import argparse
 import gzip
 import json
 import sys
+from datetime import date
 from pathlib import Path
 
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
@@ -66,6 +73,7 @@ from nota2md.builder import fetch_nota, legal_provisions  # noqa: E402
 from nota2md.scjn import (  # noqa: E402
     confirm_by_content_diff,
     enlaza_por_titulo,
+    escribe_estado,
     lee_cabecera,
     slug_instrumento,
     title_candidates_por_fecha,
@@ -175,8 +183,17 @@ def enlaza_coleccion(
     outdir: Path,
     porf: dict,
     cache_notas: dict,
+    instrumento: set[str] | None = None,
 ) -> None:
+    """Rebuild every instrument's `indice.json` for `coleccion`, or — when
+    `instrumento` names slugs (issue #148) — only those, so one refreshed law
+    can be re-linked without walking the other ~314."""
     instrumentos = _load_catalog(outdir, coleccion)
+    if instrumento is not None:
+        faltantes = instrumento - {slug_instrumento(e) for e in instrumentos}
+        if faltantes:
+            raise SystemExit(f"{sorted(faltantes)} no esta(n) en el catalogo de {coleccion}")
+        instrumentos = [e for e in instrumentos if slug_instrumento(e) in instrumento]
     print(f"{coleccion}: {len(instrumentos)} instrumento(s)", file=sys.stderr)
     for i, entrada in enumerate(instrumentos, 1):
         destino = outdir / coleccion / slug_instrumento(entrada)
@@ -211,6 +228,11 @@ def enlaza_coleccion(
         (destino / "indice.json").write_text(
             json.dumps(indice, ensure_ascii=False, indent=2), encoding="utf-8"
         )
+        # Issue #148: the `enlazado` half of this instrument's own
+        # estado.json -- `fetch_scjn_legislacion.py` owns `actualizado` and
+        # `rastreado`, and `escribe_estado` merges rather than overwrites so
+        # neither erases the other's record.
+        escribe_estado(destino, enlazado=date.today().isoformat())
         enlazados = sum(1 for v in enlazadas if v.codNota is not None)
         print(
             f"[{coleccion} {i}/{len(instrumentos)}] {entrada['nombre']}: "
@@ -245,12 +267,20 @@ def main(argv=None) -> int:
         "--coleccion", choices=COLECCIONES, action="append",
         help="repetible; por defecto las tres",
     )
+    p.add_argument(
+        "--instrumento", action="append", metavar="SLUG",
+        help=(
+            "repetible; slug_instrumento a re-enlazar, dejando el resto de la coleccion "
+            "intacto (issue #148)"
+        ),
+    )
     args = p.parse_args(argv)
 
     porf = carga_porf(args.titulos)
     cache_notas: dict = {}
+    instrumento = set(args.instrumento) if args.instrumento else None
     for coleccion in args.coleccion or COLECCIONES:
-        enlaza_coleccion(coleccion, args.outdir, porf, cache_notas)
+        enlaza_coleccion(coleccion, args.outdir, porf, cache_notas, instrumento=instrumento)
     return 0
 
 

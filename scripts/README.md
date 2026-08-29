@@ -53,6 +53,30 @@ python -c "from nota2md import download_legal_provisions_titles as d; d('titulos
 ./scripts/empaqueta_scjn_leyes.py --outdir scjn-legislacion --destino leyes-release  # leyes only: package
 ```
 
+**Keeping it up to date afterwards is two commands, not four** (issue #148).
+The first says what changed and touches the SCJN for nothing; the second runs
+the whole chain above for exactly those laws, and exits without effects when
+nothing is pending — the expected case most of the time:
+
+```bash
+python scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --plan
+python scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --actualiza
+```
+
+Then read `MANIFEST.md` — an incremental run lists the laws it actually
+rewrote in their own section, so it is a handful of rows — and publish by
+hand. That last step stays manual on purpose (issue #115, Hallazgo C):
+
+```bash
+cd scripts/scjn/leyes-release
+gh release upload scjn-leyes <slug>.tgz indice-global.json.gz \
+    SHA256SUMS.txt MANIFEST.md --repo INGEOTEC/LegalIA --clobber
+```
+
+The four assets travel together even when a single law changed:
+`indice-global.json.gz` is the union of every `indice.json`, so any change
+makes the published one stale.
+
 ### `extract_scjn_titles.py`
 
 Every other script below reads `<outdir>/<coleccion>/catalogo.json` instead
