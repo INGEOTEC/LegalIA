@@ -42,7 +42,12 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-from nota2md.cache import SIN_CACHE_DIR, bytes_de_asset, resuelve_cache_dir
+from nota2md.cache import (
+    SIN_CACHE_DIR,
+    asset_en_cache,
+    bytes_de_asset,
+    resuelve_cache_dir,
+)
 from nota2md.leyes import normaliza_para_comparar
 
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LegalIA-scjn-crawler/1.0)"}
@@ -1705,3 +1710,87 @@ def download_scjn_leyes_corpus(
             for nombre, texto in sorted(cuerpos.items())
         ]
     return {"slug": slug, "snapshots": snapshots}
+
+
+def scjn_leyes_slugs(timeout: int = 30) -> list[str]:
+    """Every law the `scjn-leyes` release publishes a tarball for, by slug.
+
+    Read off the release's own asset listing rather than off
+    `indice-global.json.gz`: a law crawled but not linked yet has a `.tgz`
+    and no index entry, and "download the corpus" means the tarballs, not
+    the ones the linking phase already got to.
+    """
+    return sorted(
+        nombre.removesuffix(".tgz")
+        for nombre in _assets_scjn_leyes(timeout)
+        if nombre.endswith(".tgz")
+    )
+
+
+def download_scjn_leyes_assets(
+    slugs: list[str] | None = None,
+    *,
+    cache_dir=SIN_CACHE_DIR,
+    refrescar: bool = False,
+    timeout: int = 60,
+    log=None,
+) -> list[tuple[Path, bool]]:
+    """Put the `scjn-leyes` release's assets on disk: the reverse index plus
+    one tarball per law, into ``<cache_dir>/scjn-leyes/``.
+
+    `slugs` picks which laws to fetch; None (the default) means every law the
+    release publishes. The index is always included — it is what
+    `legal_provisions` resolves a codNota through, and it costs a few hundred
+    KB against the corpus' 380 MB.
+
+    Returns one ``(path, downloaded)`` pair per asset, in the order they were
+    fetched, with `downloaded` False for an asset that was already cached —
+    matched by name and never revalidated, like every other read of this
+    release (see `nota2md.cache`). `refrescar=True` re-downloads regardless.
+
+    Unlike the release *readers*, this is the "materialize it on disk" verb,
+    so ``cache_dir=None`` is meaningless here and raises: downloading into
+    memory and discarding it is not something a caller can want.
+    """
+    directorio = resuelve_cache_dir(cache_dir)
+    if directorio is None:
+        raise ValueError(
+            "download_scjn_leyes_assets writes the release to disk; "
+            "cache_dir=None ('no cache') has nothing to write to"
+        )
+
+    # Named slugs give the asset names outright, so a fully cached re-run can
+    # skip the release listing too and cost no HTTP request at all; without
+    # them the listing *is* how "every law" is known, so it is unavoidable.
+    urls = None
+    if slugs is None:
+        urls = _assets_scjn_leyes(timeout)
+        nombres = [ASSET_INDICE_GLOBAL] + [
+            f"{slug}.tgz"
+            for slug in sorted(n.removesuffix(".tgz") for n in urls if n.endswith(".tgz"))
+        ]
+    else:
+        nombres = [ASSET_INDICE_GLOBAL] + [f"{slug}.tgz" for slug in slugs]
+
+    resultados = []
+    for i, nombre in enumerate(nombres, 1):
+        destino = directorio / _SCJN_LEYES_RELEASE / nombre
+        ya_estaba = destino.exists() and not refrescar
+        if ya_estaba:
+            ruta = destino
+        else:
+            if urls is None:
+                urls = _assets_scjn_leyes(timeout)
+            if nombre not in urls:
+                raise KeyError(
+                    f"el release '{_SCJN_LEYES_RELEASE}' no publica el asset '{nombre}'"
+                )
+            ruta = asset_en_cache(
+                _SCJN_LEYES_RELEASE, nombre, urls[nombre],
+                cache_dir=directorio, refrescar=refrescar, timeout=timeout,
+            )
+        if log is not None:
+            estado = "already cached" if ya_estaba else "downloaded"
+            log(f"[{i}/{len(nombres)}] {nombre}: {estado}")
+        resultados.append((ruta, not ya_estaba))
+    return resultados

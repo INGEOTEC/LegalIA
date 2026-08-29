@@ -187,6 +187,10 @@ nota2md 5793655 --instrumento lft --outdir output
 nota2md 5793655 --cache-dir /mnt/datos/nota2md --outdir output
 nota2md 5793655 --cache-dir none --refrescar --outdir output
 
+# fetch the whole SCJN corpus up front instead of asset by asset on demand
+# (see `nota2md download` below)
+nota2md download federal-laws
+
 # force the scanned-image + OCR path, sourcing the next legal provision's
 # title from a saved notas index (avoids an extra request; works offline)
 dofjson 2026-07-15 --outdir output          # writes 15072026-notas.json
@@ -323,6 +327,69 @@ download_legal_provisions_titles(Path("titulos.jsonl.gz"))
 ```bash
 dofjson --titulos --outdir output    # -> output/titulos.jsonl.gz
 ```
+
+## `nota2md download` — putting the releases on disk
+
+Everything above reads from two GitHub releases, downloading whatever it
+needs on the fly. `nota2md download` fetches them ahead of time instead, into
+the per-user cache directory each package already uses — so a notebook, a
+batch run or an offline session finds them already there, and no script has
+to be written first:
+
+```bash
+nota2md download federal-laws        # the scjn-leyes release (~380 MB, 315 laws)
+nota2md download gazette-metadata    # the notas-archivo release (~59 MB, 116 assets)
+nota2md download all                 # both, each into its own cache
+```
+
+`federal-laws` brings down the reverse index plus one tarball per law.
+`--slug` (repeatable) narrows it to the laws you actually want; the index
+always comes along, since it is what resolves a `codNota` to a law:
+
+```bash
+nota2md download federal-laws --slug lft --slug lfca
+```
+
+Both are **idempotent**: an asset already on disk is matched by file name and
+never revalidated, so a second run downloads nothing and finishes in
+milliseconds. Each line of output says which of the two happened, and a final
+line names the directory written to:
+
+```console
+$ nota2md download federal-laws --slug lfca
+[1/2] indice-global.json.gz: already cached
+[2/2] lfca.tgz: already cached
+scjn-leyes: 2 assets in /home/user/.cache/nota2md/scjn-leyes (0 downloaded, 2 already cached)
+```
+
+Pass `--refrescar` to re-download over what is there — the only way a release
+re-published under the same asset names reaches an already-populated cache.
+
+### Where the data lands
+
+The two releases keep **two separate cache directories**, one per package:
+they have different lifecycles, and clearing one must not clear the other.
+`nota2md download` does not merge them; `all` is a shorthand for two
+invocations, not a shared destination.
+
+| | `federal-laws` (`scjn-leyes`) | `gazette-metadata` (`notas-archivo`) |
+|---|---|---|
+| Package | `nota2md` | `dofjson` |
+| Linux | `~/.cache/nota2md/scjn-leyes/` | `~/.cache/dofjson/` |
+| macOS | `~/Library/Caches/nota2md/scjn-leyes/` | `~/Library/Caches/dofjson/` |
+| Windows | `%LOCALAPPDATA%\nota2md\Cache\scjn-leyes\` | `%LOCALAPPDATA%\dofjson\Cache\` |
+| Override | `$NOTA2MD_CACHE_DIR`, or `nota2md.cache.CACHE_DIR` | `dofjson.titulos.CACHE_DIR` |
+| Per-run override | `--cache-dir DIR` | `--cache-dir DIR` |
+
+`--cache-dir` therefore means a different thing on each subcommand — a
+`nota2md` directory on `federal-laws`, a `dofjson` one on `gazette-metadata`
+— which each subcommand's own `--help` says plainly. `--cache-dir none`
+(valid on `nota2md <codNota>`, where it means "skip the cache, download into
+memory") is rejected here: this verb exists to write the release to disk, and
+"no cache" has nowhere to write.
+
+From Python, the same two downloads are `nota2md.scjn.download_scjn_leyes_assets`
+and `dofjson.download_dof_assets`.
 
 ## `markdown_to_akoma_ntoso` — experimental Akoma Ntoso (OASIS LegalDocML) conversion
 
