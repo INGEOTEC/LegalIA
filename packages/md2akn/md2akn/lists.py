@@ -232,7 +232,17 @@ class ConstructorDeArticulo:
             # two are identical, so the decision has to wait for the next
             # block. `_descarga_pendientes` settles it one way and `cierra`
             # the other.
-            self._retenidos.append((bloque, self._pila[-1].ultimo_nodo))
+            nodo = self._pila[-1].ultimo_nodo
+            # An annotation immediately above a marker-less block describes
+            # *that block*, so it is claimed here rather than left waiting for
+            # the next marker. Waiting made the next fracción pull its span
+            # back over this block, which the current item had already claimed
+            # — 89 laws' worth of `overlapping-siblings` in #162's sweep. No
+            # pull-back is needed: the node opened before the annotation and
+            # `_descarga_pendientes` grows it past the block.
+            _, notas = self._pendientes.toma(nodo.start_char)
+            nodo.notes.extend(notas)
+            self._retenidos.append((bloque, nodo))
             return
         hijo = self._nuevo("content", self._articulo, bloque, None)
         if not self._vio_lista:

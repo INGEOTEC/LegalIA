@@ -1,0 +1,192 @@
+{
+  "coverage": 100.0,
+  "tree": {
+    "akn_type": "act",
+    "eId": "act",
+    "num": null,
+    "heading": null,
+    "refers_to": null,
+    "is_chapeau": false,
+    "is_tail": false,
+    "start": 52,
+    "end": 562,
+    "notes": [],
+    "children": [
+      {
+        "akn_type": "body",
+        "eId": "body",
+        "num": null,
+        "heading": null,
+        "refers_to": null,
+        "is_chapeau": false,
+        "is_tail": false,
+        "start": 52,
+        "end": 562,
+        "notes": [],
+        "children": [
+          {
+            "akn_type": "title",
+            "eId": "tit_PRIMERO",
+            "num": "PRIMERO",
+            "heading": "Disposiciones Generales",
+            "refers_to": null,
+            "is_chapeau": false,
+            "is_tail": false,
+            "start": 52,
+            "end": 419,
+            "notes": [],
+            "children": [
+              {
+                "akn_type": "chapter",
+                "eId": "tit_PRIMERO__cap_I",
+                "num": "I",
+                "heading": "Del Objeto",
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 97,
+                "end": 319,
+                "notes": [],
+                "children": [
+                  {
+                    "akn_type": "article",
+                    "eId": "tit_PRIMERO__cap_I__art_1o",
+                    "num": "1o",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 125,
+                    "end": 179,
+                    "notes": [],
+                    "children": []
+                  },
+                  {
+                    "akn_type": "article",
+                    "eId": "tit_PRIMERO__cap_I__art_2o",
+                    "num": "2o",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 181,
+                    "end": 319,
+                    "notes": [],
+                    "children": [
+                      {
+                        "akn_type": "content",
+                        "eId": "tit_PRIMERO__cap_I__art_2o__content_p",
+                        "num": null,
+                        "heading": null,
+                        "refers_to": null,
+                        "is_chapeau": true,
+                        "is_tail": false,
+                        "start": 181,
+                        "end": 244,
+                        "notes": [],
+                        "children": []
+                      },
+                      {
+                        "akn_type": "paragraph",
+                        "eId": "tit_PRIMERO__cap_I__art_2o__para_I",
+                        "num": "I",
+                        "heading": null,
+                        "refers_to": null,
+                        "is_chapeau": false,
+                        "is_tail": false,
+                        "start": 246,
+                        "end": 271,
+                        "notes": [],
+                        "children": []
+                      },
+                      {
+                        "akn_type": "paragraph",
+                        "eId": "tit_PRIMERO__cap_I__art_2o__para_II",
+                        "num": "II",
+                        "heading": null,
+                        "refers_to": null,
+                        "is_chapeau": false,
+                        "is_tail": false,
+                        "start": 273,
+                        "end": 319,
+                        "notes": [],
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "akn_type": "chapter",
+                "eId": "tit_PRIMERO__cap_II",
+                "num": "II",
+                "heading": "De las Autoridades",
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 321,
+                "end": 419,
+                "notes": [],
+                "children": [
+                  {
+                    "akn_type": "article",
+                    "eId": "tit_PRIMERO__cap_II__art_3o",
+                    "num": "3o",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 358,
+                    "end": 419,
+                    "notes": [],
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "akn_type": "section",
+            "eId": "sec_transitorios",
+            "num": "transitorios",
+            "heading": null,
+            "refers_to": "#transitorios",
+            "is_chapeau": false,
+            "is_tail": false,
+            "start": 421,
+            "end": 562,
+            "notes": [],
+            "children": [
+              {
+                "akn_type": "article",
+                "eId": "sec_transitorios__art_PRIMERO",
+                "num": "PRIMERO",
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 438,
+                "end": 502,
+                "notes": [],
+                "children": []
+              },
+              {
+                "akn_type": "article",
+                "eId": "sec_transitorios__art_SEGUNDO",
+                "num": "SEGUNDO",
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 504,
+                "end": 562,
+                "notes": [],
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

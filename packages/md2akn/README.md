@@ -170,6 +170,57 @@ Over the 315 laws of the SCJN corpus this reads **36,836 annotations, of which
 typo in the source itself (`13 DE AGOSTO **CE** 2009`), and it is kept with
 its `raw` rather than dropped.
 
+## Validation
+
+`validate(tree)` returns a `Report`: the structural invariants that broke, if
+any, and how much of the document the segmenter placed.
+
+```python
+from md2akn import parse_legal_provisions, validate
+
+rep = validate(parse_legal_provisions("lft/01-10-2024.md"))
+rep.ok            # no invariant broken
+rep.violations    # [Violation(rule, eId, detail), ...]
+rep.cobertura     # 100.0
+```
+
+The invariants are properties of *any* tree, never of one particular law: a
+child's span lies inside its parent's, siblings' spans are disjoint, `walk()`
+is document order, eIds are unique across the act, `node.parent.children`
+contains `node`, and the nesting is one the `ANIDAMIENTO` table allows. A law
+with no articles at all is not a violation — it is a *measurement*, and it
+belongs in a report rather than in a list of errors.
+
+**Coverage** is the percentage of non-whitespace characters the segmenter
+placed, where a character counts as placed when the innermost node containing
+it is one that may hold text of its own. Text sitting directly on the `body`
+is text no article or container claimed — that, and not "no leaf claims it",
+is what losing text means: a fracción's own introductory line has children
+under it and is not lost at all. The frontmatter is outside the denominator,
+since it is deliberately parsed into `meta` rather than into a node.
+
+### Against the SCJN corpus
+
+`scripts/md2akn_sweep.py` runs the whole thing over the 315 laws and writes a
+report sorted worst-metric-first. It is not a test and does not run in CI: it
+needs data this repository deliberately does not version. The current run:
+
+| | |
+|---|---|
+| laws parsed | 315 / 315, none raising |
+| coverage | **100.00 % median, 99.99 % mean, 99.45 % worst** — all 315 above 99 % |
+| invariant violations | **0**, across every law |
+| laws with no article recognized | 0 |
+| articles / fracciones / incisos | 53,740 / 65,318 / 7,657 |
+| sibling articles sharing a number | 498 (0.9 %) |
+| annotations, and unparsed ones | 36,838 / **0** |
+| throughput | 533 KB/s; the 1.89 MB worst case (`ligie-2022`) in 6.8 s |
+
+The threshold this was held to, fixed in issue #162 before it closed: **zero
+invariant violations, every law with at least one article, and ≥99 % coverage
+on ≥95 % of the laws.** The measured result clears it — 100 % of the laws are
+above 99 %, not 95 % of them.
+
 ## The spaCy layer
 
 The segmenter is a pipeline component, so it composes with anything else you

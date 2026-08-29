@@ -1,0 +1,164 @@
+{
+  "coverage": 92.4312,
+  "tree": {
+    "akn_type": "act",
+    "eId": "act",
+    "num": null,
+    "heading": null,
+    "refers_to": null,
+    "is_chapeau": false,
+    "is_tail": false,
+    "start": 0,
+    "end": 523,
+    "notes": [
+      {
+        "action": "F. DE E.",
+        "scope": null,
+        "date": "2011-03-03",
+        "source": null,
+        "raw": "**(F. DE E., D.O.F. 3 DE MARZO DE 2011)**"
+      }
+    ],
+    "children": [
+      {
+        "akn_type": "body",
+        "eId": "body",
+        "num": null,
+        "heading": null,
+        "refers_to": null,
+        "is_chapeau": false,
+        "is_tail": false,
+        "start": 0,
+        "end": 480,
+        "notes": [],
+        "children": [
+          {
+            "akn_type": "title",
+            "eId": "tit_PRIMERO",
+            "num": "PRIMERO",
+            "heading": null,
+            "refers_to": null,
+            "is_chapeau": false,
+            "is_tail": false,
+            "start": 0,
+            "end": 480,
+            "notes": [
+              {
+                "action": "REFORMADO",
+                "scope": "SU DENOMINACION",
+                "date": "2012-06-04",
+                "source": null,
+                "raw": "**(REFORMADA SU DENOMINACION, D.O.F. 4 DE JUNIO DE 2012)**"
+              }
+            ],
+            "children": [
+              {
+                "akn_type": "article",
+                "eId": "tit_PRIMERO__art_1o",
+                "num": "1o",
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 80,
+                "end": 241,
+                "notes": [
+                  {
+                    "action": "REFORMADO",
+                    "scope": "PRIMER PARRAFO",
+                    "date": "2011-06-10",
+                    "source": null,
+                    "raw": "**(REFORMADO PRIMER PARRAFO, D.O.F. 10 DE JUNIO DE 2011)**"
+                  }
+                ],
+                "children": []
+              },
+              {
+                "akn_type": "article",
+                "eId": "tit_PRIMERO__art_2o",
+                "num": "2o",
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 243,
+                "end": 297,
+                "notes": [
+                  {
+                    "action": "DEROGADO",
+                    "scope": null,
+                    "date": "1999-05-03",
+                    "source": null,
+                    "raw": "(DEROGADO, D.O.F. 3 DE MAYO DE 1999)"
+                  }
+                ],
+                "children": []
+              },
+              {
+                "akn_type": "article",
+                "eId": "tit_PRIMERO__art_3o",
+                "num": "3o",
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 299,
+                "end": 480,
+                "notes": [],
+                "children": [
+                  {
+                    "akn_type": "content",
+                    "eId": "tit_PRIMERO__art_3o__content_p",
+                    "num": null,
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": true,
+                    "is_tail": false,
+                    "start": 299,
+                    "end": 359,
+                    "notes": [],
+                    "children": []
+                  },
+                  {
+                    "akn_type": "paragraph",
+                    "eId": "tit_PRIMERO__art_3o__para_I",
+                    "num": "I",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 361,
+                    "end": 395,
+                    "notes": [],
+                    "children": []
+                  },
+                  {
+                    "akn_type": "paragraph",
+                    "eId": "tit_PRIMERO__art_3o__para_II",
+                    "num": "II",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 397,
+                    "end": 480,
+                    "notes": [
+                      {
+                        "action": "ADICIONADO",
+                        "scope": null,
+                        "date": "2002-12-30",
+                        "source": null,
+                        "raw": "**(ADICIONADA, D.O.F. 30 DE DICIEMBRE DE 2002)**"
+                      }
+                    ],
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

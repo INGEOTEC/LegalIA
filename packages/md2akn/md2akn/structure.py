@@ -279,6 +279,14 @@ class _Constructor:
             num if num is not None else akn_type,
         )
         inicio, notas = self._pendientes.toma(inicio)
+        # The pull-back may not escape the parent, so the parent comes back
+        # with it as far as it can. It cannot always: a law whose *title*
+        # carries an annotation (`(REFORMADA SU DENOMINACIÓN, …)`, written
+        # above the heading and so above the body) would drag the body back
+        # over the preamble. Where the parent stops, so does the pull-back —
+        # the annotation is still attached, only its characters stay with
+        # whoever already held them.
+        inicio = max(inicio, self._retrocede(padre, inicio))
         nodo = AknNode(
             akn_type, self._span(inicio, fin, eid), eId=eid, num=num, refers_to=refers_to,
             notes=notas,
@@ -432,8 +440,13 @@ class _Constructor:
         self._pendientes.agrega(
             parse_annotation(bloque.text, campos.get("cuerpo")), bloque.start
         )
+        # The open article is deliberately *not* grown over the annotation
+        # here. Whatever claims it — a fracción of this article, or the next
+        # article — pulls its own span back over it, and `_cierra_spans`
+        # grows the ancestors afterwards; growing the article eagerly as well
+        # made it overlap the sibling that then claimed the same characters
+        # (201 laws' worth of `overlapping-siblings` in #162's first sweep).
         if self._articulo is not None:
-            self._extiende(self._articulo, bloque.end)
             self._interior.marca_anotacion()
 
     def _bloque_nota_editorial(self, bloque, campos):
@@ -449,6 +462,40 @@ class _Constructor:
             self._extiende(self.conclusiones, bloque.end)
 
     # -- spans -----------------------------------------------------------
+
+    def _retrocede(self, nodo: AknNode, inicio: int) -> int:
+        """Grow `nodo` and its ancestors backwards to `inicio` where they can,
+        and return the earliest offset actually reached.
+
+        A node may only move back as far as its own previous sibling's end:
+        past that, growing it would make two siblings claim the same
+        characters. The chain stops at the first ancestor that cannot move,
+        since an ancestor that stays put pins everything under it.
+        """
+        cadena = []
+        actual = nodo
+        while actual is not None and actual.start_char > inicio:
+            cadena.append(actual)
+            actual = actual.parent
+
+        piso = inicio
+        for hijo in cadena[::-1]:
+            padre = hijo.parent
+            if padre is not None:
+                # `h is not hijo` matters: a container opens with an empty
+                # span, so without it a node counts as its own previous
+                # sibling and can never move.
+                previos = [
+                    h for h in padre.children
+                    if h is not hijo and h.end_char <= hijo.start_char
+                ]
+                if previos:
+                    piso = max(piso, max(h.end_char for h in previos))
+                piso = max(piso, padre.start_char)
+            if hijo.start_char <= piso:
+                return hijo.start_char
+            hijo.span = self._span(piso, hijo.end_char, hijo.eId)
+        return piso
 
     def _extiende(self, nodo: AknNode, fin: int):
         """Grow `nodo`'s span to `fin`, and every ancestor's with it — a

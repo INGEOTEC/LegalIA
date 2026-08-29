@@ -52,3 +52,6 @@ scripts/scjn/
 scripts/leyes-release/
 scripts/titulos.json.gz
 scripts/organigrama.json
+
+# md2akn's sweep report over the SCJN corpus (issue #162): data, never versioned
+scripts/md2akn-sweep/

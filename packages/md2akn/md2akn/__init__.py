@@ -39,6 +39,7 @@ from md2akn.model import (
     Annotation,
 )
 from md2akn.pipeline import parse_legal_provisions, parse_markdown
+from md2akn.validate import Report, Violation, validate
 
 __version__ = "0.1.0"
 
@@ -50,4 +51,7 @@ __all__ = [
     "AKN_TYPES",
     "REFERS_TO_TRANSITORIOS",
     "REFERS_TO_APARTADO",
+    "validate",
+    "Report",
+    "Violation",
 ]
