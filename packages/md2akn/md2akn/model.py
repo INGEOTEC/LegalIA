@@ -159,6 +159,20 @@ class AknNode:
     #: The document's frontmatter, set on the root `act` only (empty on
     #: every other node, and on an `act` whose file had none).
     meta: dict[str, str] = field(default_factory=dict, repr=False)
+    #: Set on a `content` child of an `article` that also has fracciones:
+    #: `is_chapeau` for the introduction that precedes them ("Artículo 4. Son
+    #: obligaciones:"), `is_tail` for a paragraph that follows the last one.
+    #:
+    #: They exist because Akoma Ntoso's `hierarchy` content model forbids
+    #: exactly this shape — an element has a flat `content` **or**
+    #: hierarchical children, never both — and a Mexican article routinely
+    #: has both. Since this package emits no XML it does not have to choose,
+    #: and keeps the article as it reads; the flags are what let a later XML
+    #: conversion make that choice knowingly rather than by position. See
+    #: #160, and `nota2md/akoma_ntoso.py`, which does have to choose and
+    #: therefore flattens.
+    is_chapeau: bool = False
+    is_tail: bool = False
     parent: "AknNode | None" = field(default=None, repr=False)
     children: list["AknNode"] = field(default_factory=list, repr=False)
     notes: list[Annotation] = field(default_factory=list, repr=False)

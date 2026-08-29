@@ -78,6 +78,27 @@ heading (`Art. 30,31.` — kept as one node with `num="30,31"`, since dividing
 the shared text between them is not possible without guessing), and container
 headings with or without bold, with the epigraph in the *following* block.
 
+Inside an article, the markers cannot be told apart in isolation and no
+pattern can fix that: `V.`, `X.`, `C.` and `D.` are valid Roman numerals *and*
+valid capital letters, `**A.**` is an inciso 14,834 times and an apartado in
+articles 2 and 123 of the Constitution, and a `1.` opening a block is a
+subinciso or a sentence that begins with a figure. What resolves almost all of
+it is **consecutiveness**: a list can only be *opened* by the first label of
+its series (`I`, `A`, `a`, `1`) and only *continued* by a label that comes
+after the previous one. A `V.` with no `I.` before it opens nothing; the `C.`
+in "El C. Primer Jefe" opens nothing.
+
+Continuation is monotonic rather than strictly successive, because three real
+things break strict succession and none is an error: repealed fracciones
+vanish and leave gaps (`III.` then `V.`), Latin suffixes insert `VII Bis.`
+between `VII.` and `VIII.`, and a second list in the same article restarts at
+`I.` — a new list, whose repeated labels the eId allocator disambiguates.
+
+A block with no marker belongs to the deepest open node when another item
+follows it, and is the article's own closing paragraph when the article ends
+instead. The two are identical in form, so the decision waits for the next
+block; `is_chapeau` and `is_tail` mark the result.
+
 A law's transitional provisions come out as **several sibling sections**, one
 per decree that added some — the `## Transitorios` marker opens the first and
 each `**D.O.F. 15 DE SEPTIEMBRE DE 2024.**` header opens another. They are

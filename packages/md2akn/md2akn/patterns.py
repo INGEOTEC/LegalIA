@@ -233,3 +233,29 @@ ANOTACION = re.compile(
     r"^[ \t]*(?:\*\*)?[ \t]*\((?P<cuerpo>[A-ZÁÉÍÓÚÑ][^)\n]*)\)[ \t]*(?:\*\*)?[ \t]*$",
     re.UNICODE,
 )
+
+
+# --------------------------------------------------------------------- #160
+
+#: A fracción/inciso/subinciso marker at the head of a block. Measured shapes
+#: and their counts over the 315 laws:
+#:
+#:     55398  **I.**      (bold Roman, the fracción)      9268  I.-
+#:      8198  **a)**      (bold inciso)                    929  a)
+#:     21416  1.          (unadorned digits)               364  **A.**
+#:
+#: Recognizing a marker is not the same as accepting one: the label this
+#: captures is only a list item if `md2akn.lists` can place it, which is what
+#: keeps `C.` in "El C. Primer Jefe" and the tariff schedules' tens of
+#: thousands of `1.` lines out of the tree.
+#:
+#: The separator is mandatory — a bare word at the head of a block is not a
+#: marker — and bold is optional on either side, since the corpus writes
+#: `**I.**`, `**I.` and `I.-` all three.
+MARCADOR_LISTA = re.compile(
+    r"^[ \t]*(?:\*\*)?[ \t]*"
+    r"(?P<etiqueta>[A-Za-z]+(?:[ \t]+(?i:" + SUFIJO_LATINO + r")\b(?:[ \t]+\d+)?)?|\d+)"
+    r"[ \t]*(?P<sep>\)|\.\-|\.|\-)"
+    r"(?:\*\*)?(?=[ \t]|$)",
+    re.UNICODE,
+)

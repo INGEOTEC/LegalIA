@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import re
 
+from md2akn.lists import ConstructorDeArticulo
 from md2akn.model import (
     REFERS_TO_APARTADO,
     REFERS_TO_TRANSITORIOS,
@@ -233,6 +234,7 @@ class _Constructor:
         #: Open containers, outermost first, as (rank, node).
         self._pila: list[tuple[int, AknNode]] = []
         self._articulo: AknNode | None = None
+        self._interior: ConstructorDeArticulo | None = None
         self._transitorios: AknNode | None = None
         self._pendiente_epigrafe: AknNode | None = None
 
@@ -295,6 +297,7 @@ class _Constructor:
             manejador = getattr(self, f"_bloque_{kind}", self._bloque_contenido)
             manejador(bloque, campos)
 
+        self._cierra_articulo()
         # An `act` always has a `body`, even an empty document's, so that
         # consumers never have to special-case its absence. It is created
         # last when nothing needed it earlier, which also keeps it after the
@@ -309,7 +312,7 @@ class _Constructor:
         # provisions are the tail of the law, and a container after them
         # belongs to a further decree's own text.
         self._transitorios = None
-        self._articulo = None
+        self._cierra_articulo()
         self._cierra_hasta(PRECEDENCIA[akn_type])
         refers_to = REFERS_TO_APARTADO if akn_type == "level" else None
         nodo = self._nuevo_nodo(
@@ -319,9 +322,26 @@ class _Constructor:
         self._pendiente_epigrafe = nodo
 
     def _bloque_articulo(self, bloque, campos):
+        self._cierra_articulo()
         self._articulo = self._nuevo_nodo(
             "article", bloque.start, bloque.end, num=campos["num"],
         )
+        self._interior = ConstructorDeArticulo(
+            self._articulo, self._eids, self._node_span, self._doc, PREFIJO_EID,
+        )
+        # The heading block is the article's own opening text -- "Artículo 4.
+        # Son obligaciones:" -- so it is placed as text, never examined for a
+        # list marker it cannot carry.
+        self._interior.agrega(bloque, es_marcador_estructural=True)
+
+    def _cierra_articulo(self):
+        """Finish the article that was open, if any: the list machine only
+        knows where the article's closing paragraphs are once something else
+        has started."""
+        if self._interior is not None:
+            self._interior.cierra()
+        self._articulo = None
+        self._interior = None
 
     def _bloque_articulo_ordinal(self, bloque, campos):
         # `**Primero.**` numbers a transitorio provision; outside
@@ -349,7 +369,7 @@ class _Constructor:
         # provisions -- never merged, since which decree a provision belongs
         # to is exactly what the separation records.
         self._pila.clear()
-        self._articulo = None
+        self._cierra_articulo()
         self._transitorios = None
         self._transitorios = self._nuevo_nodo(
             "section", bloque.start, bloque.end,
@@ -358,9 +378,10 @@ class _Constructor:
             padre=self._asegura_body(bloque.start),
         )
 
-    def _bloque_contenido(self, bloque, campos):
+    def _bloque_contenido(self, bloque, campos, es_marcador_estructural=False):
         if self._articulo is not None:
             self._extiende(self._articulo, bloque.end)
+            self._interior.agrega(bloque, es_marcador_estructural)
             return
         if self._pila or self._transitorios is not None or self.body is not None:
             destino = self._padre_contenedor(bloque.start)
@@ -378,8 +399,16 @@ class _Constructor:
     # Annotations and editorial notes are not nodes: their text belongs to
     # whatever node they precede, which is what keeps #162's coverage
     # invariant true. #161 turns the first kind into `AknNode.notes`.
-    _bloque_anotacion = _bloque_contenido
-    _bloque_nota_editorial = _bloque_contenido
+    #
+    # They are handed on as structural markers so that the list machine never
+    # examines one for a fracción label. `**(REFORMADO...` cannot match the
+    # marker pattern today, but a list broken by an annotation would be a
+    # silent, hard-to-find failure, and saying so here costs one argument.
+    def _bloque_anotacion(self, bloque, campos):
+        self._bloque_contenido(bloque, campos, es_marcador_estructural=True)
+
+    def _bloque_nota_editorial(self, bloque, campos):
+        self._bloque_contenido(bloque, campos, es_marcador_estructural=True)
 
     def _agrega_conclusiones(self, bloque):
         if self.conclusiones is None:
