@@ -227,12 +227,21 @@ MAX_EPIGRAFE = 200
 #: never a structural marker, so it is recognized only to be left as content.
 NOTA_EDITORIAL = re.compile(r"^[ \t]*(?:\*\*)?[ \t]*\((?:NOTA|Nota)[ \t]*:", re.UNICODE)
 
-#: A reform annotation, recognized here only so that #159 does not mistake
-#: one for a paragraph that closes an article. It is #161 that parses them.
+#: A reform annotation as a block of its own. Whether the parenthesis really
+#: is one is decided by `md2akn.annotations.es_anotacion` on the captured
+#: body, not here: the corpus writes plenty of other things in the same shape
+#: — `(NOTA: EL 22 DE JUNIO DE 2023, EL PLENO DE LA SUPREMA CORTE…)`,
+#: `(ARANCEL)`, `(VÉASE TABLA ANEXA)` — and none of them is a reform.
 ANOTACION = re.compile(
     r"^[ \t]*(?:\*\*)?[ \t]*\((?P<cuerpo>[A-ZÁÉÍÓÚÑ][^)\n]*)\)[ \t]*(?:\*\*)?[ \t]*$",
     re.UNICODE,
 )
+
+#: An annotation written *inside* an article's own heading rather than as a
+#: block of its own: `**ARTICULO 5.- (DEROGADO, D.O.F. 3 DE MAYO DE 1999)**`.
+#: 4,557 occurrences, almost all of them DEROGADO — which makes sense: a
+#: repealed article has no text left to put a block annotation above.
+ANOTACION_EN_LINEA = re.compile(r"\((?P<cuerpo>[A-ZÁÉÍÓÚÑ][^)\n]*)\)", re.UNICODE)
 
 
 # --------------------------------------------------------------------- #160

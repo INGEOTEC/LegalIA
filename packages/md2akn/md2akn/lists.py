@@ -130,6 +130,41 @@ def analiza_etiqueta(etiqueta: str) -> tuple[str, int] | None:
     return None
 
 
+class Pendientes:
+    """Annotations read but not yet attached to anything.
+
+    An annotation **precedes** the node it describes, so it has to wait for
+    that node to be created. It also carries the offset it was read at: the
+    node it lands on has its span pulled back to there, so that the
+    annotation's own text stays covered by the tree even though it produces
+    no node of its own (issue #161, and the coverage invariant of #162).
+
+    Shared between `md2akn.structure` and `ConstructorDeArticulo`, since
+    either may be the one to create the node that claims them.
+    """
+
+    __slots__ = ("notas", "inicio")
+
+    def __init__(self):
+        self.notas = []
+        self.inicio = None
+
+    def agrega(self, anotacion, inicio: int) -> None:
+        if self.inicio is None:
+            self.inicio = inicio
+        self.notas.append(anotacion)
+
+    def toma(self, inicio: int):
+        """``(start, annotations)`` for a node opening at `inicio`: the start
+        pulled back over whatever was held, and the held annotations. Empties
+        the holder."""
+        if not self.notas:
+            return inicio, []
+        notas, propio = self.notas, self.inicio
+        self.notas, self.inicio = [], None
+        return min(inicio, propio), notas
+
+
 class _Lista:
     """One open list: its series, the node its items hang off, and how far
     the numbering has got."""
@@ -151,8 +186,11 @@ class ConstructorDeArticulo:
     — which is exactly the state the ambiguity needs and a regex cannot have.
     """
 
-    def __init__(self, articulo: AknNode, eids, node_span, doc, prefijo_eid):
+    def __init__(self, articulo: AknNode, eids, node_span, doc, prefijo_eid,
+                 pendientes=None):
         self._articulo = articulo
+        self._pendientes = pendientes if pendientes is not None else Pendientes()
+        self._vio_anotacion = False
         self._eids = eids
         self._node_span = node_span
         self._doc = doc
@@ -161,8 +199,9 @@ class ConstructorDeArticulo:
         self._contenidos_iniciales: list[AknNode] = []
         self._vio_lista = False
         #: Text blocks seen after a list item, held until it is known whether
-        #: another item follows them -- see `_agrega_texto`.
-        self._pendientes: list[tuple[object, AknNode]] = []
+        #: another item follows them -- see `_agrega_texto`. Not to be
+        #: confused with `_pendientes`, which holds annotations.
+        self._retenidos: list[tuple[object, AknNode]] = []
 
     # -- placing a block -------------------------------------------------
 
@@ -193,7 +232,7 @@ class ConstructorDeArticulo:
             # two are identical, so the decision has to wait for the next
             # block. `_descarga_pendientes` settles it one way and `cierra`
             # the other.
-            self._pendientes.append((bloque, self._pila[-1].ultimo_nodo))
+            self._retenidos.append((bloque, self._pila[-1].ultimo_nodo))
             return
         hijo = self._nuevo("content", self._articulo, bloque, None)
         if not self._vio_lista:
@@ -202,9 +241,9 @@ class ConstructorDeArticulo:
     def _descarga_pendientes(self) -> None:
         """Another list item followed, so the held blocks did belong to the
         item they came after."""
-        for bloque, nodo in self._pendientes:
+        for bloque, nodo in self._retenidos:
             _extiende(nodo, bloque.end, self._node_span, self._doc)
-        self._pendientes.clear()
+        self._retenidos.clear()
 
     def _lista_para(self, serie, ordinal) -> _Lista | None:
         """The list this item belongs to: an open one it continues, or a new
@@ -292,13 +331,21 @@ class ConstructorDeArticulo:
         lista.ultimo_nodo = nodo
         self._vio_lista = True
 
+    def marca_anotacion(self) -> None:
+        """Told by the builder that an annotation was read inside this
+        article. It makes the article keep its `content` children even with
+        no list in it — otherwise the annotation would have no paragraph to
+        attach to and would drift onto the next article."""
+        self._vio_anotacion = True
+
     def _nuevo(self, akn_type, padre, bloque, num) -> AknNode:
         eid = self._eids.child(
             padre.eId, self._prefijo.get(akn_type, akn_type),
             num if num is not None else "p",
         )
-        nodo = AknNode(akn_type, self._node_span(self._doc, bloque.start, bloque.end, eid),
-                       eId=eid, num=num)
+        inicio, notas = self._pendientes.toma(bloque.start)
+        nodo = AknNode(akn_type, self._node_span(self._doc, inicio, bloque.end, eid),
+                       eId=eid, num=num, notes=notas)
         return padre.add(nodo)
 
     # -- closing ---------------------------------------------------------
@@ -311,22 +358,23 @@ class ConstructorDeArticulo:
         routinely has. An article of nothing but paragraphs needs no flags:
         there is no choice for a later XML conversion to make.
         """
-        if not self._vio_lista:
+        if not self._vio_lista and not self._vio_anotacion:
             # An article of nothing but paragraphs keeps no children at all:
             # its text is its own, there is no hierarchy to interleave it
             # with, and there is no choice for a later XML conversion to
             # make. Wrapping it in a single `content` twin of itself would
             # only double the tree.
             self._articulo.children.clear()
-            self._pendientes.clear()
+            self._retenidos.clear()
             return
-        for nodo in self._contenidos_iniciales:
-            nodo.is_chapeau = True
+        if self._vio_lista:
+            for nodo in self._contenidos_iniciales:
+                nodo.is_chapeau = True
         # Whatever is still held ends the article, so it is the article's
         # own closing text rather than more of the last fracción.
-        for bloque, _ in self._pendientes:
+        for bloque, _ in self._retenidos:
             self._nuevo("content", self._articulo, bloque, None).is_tail = True
-        self._pendientes.clear()
+        self._retenidos.clear()
 
 
 def _marcador(bloque) -> tuple[str | None, str | None]:

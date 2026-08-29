@@ -46,7 +46,8 @@ from __future__ import annotations
 
 import re
 
-from md2akn.lists import ConstructorDeArticulo
+from md2akn.annotations import es_anotacion, parse_annotation
+from md2akn.lists import ConstructorDeArticulo, Pendientes
 from md2akn.model import (
     REFERS_TO_APARTADO,
     REFERS_TO_TRANSITORIOS,
@@ -55,6 +56,7 @@ from md2akn.model import (
 )
 from md2akn.patterns import (
     ANOTACION,
+    ANOTACION_EN_LINEA,
     ARTICULO,
     ARTICULO_ORDINAL,
     CONCLUSIONES,
@@ -116,8 +118,9 @@ def clasifica(bloque) -> tuple[str, dict]:
 
     if NOTA_EDITORIAL.match(linea):
         return "nota_editorial", {}
-    if ANOTACION.match(linea):
-        return "anotacion", {}
+    m = ANOTACION.match(linea)
+    if m and es_anotacion(m.group("cuerpo")):
+        return "anotacion", {"cuerpo": m.group("cuerpo")}
     if TRANSITORIOS.match(linea):
         return "transitorios", {}
     if DOF_TRANSITORIOS.match(linea):
@@ -235,6 +238,9 @@ class _Constructor:
         self._pila: list[tuple[int, AknNode]] = []
         self._articulo: AknNode | None = None
         self._interior: ConstructorDeArticulo | None = None
+        #: Annotations read but not yet attached: an annotation precedes the
+        #: node it describes, so it waits for that node to exist.
+        self._pendientes = Pendientes()
         self._transitorios: AknNode | None = None
         self._pendiente_epigrafe: AknNode | None = None
 
@@ -272,8 +278,10 @@ class _Constructor:
             PREFIJO_EID.get(akn_type, akn_type),
             num if num is not None else akn_type,
         )
+        inicio, notas = self._pendientes.toma(inicio)
         nodo = AknNode(
             akn_type, self._span(inicio, fin, eid), eId=eid, num=num, refers_to=refers_to,
+            notes=notas,
         )
         return padre.add(nodo)
 
@@ -298,6 +306,10 @@ class _Constructor:
             manejador(bloque, campos)
 
         self._cierra_articulo()
+        # An annotation with no node after it — the last thing in the file —
+        # hangs off the act rather than being lost.
+        _, notas = self._pendientes.toma(self.act.start_char)
+        self.act.notes.extend(notas)
         # An `act` always has a `body`, even an empty document's, so that
         # consumers never have to special-case its absence. It is created
         # last when nothing needed it earlier, which also keeps it after the
@@ -328,7 +340,15 @@ class _Constructor:
         )
         self._interior = ConstructorDeArticulo(
             self._articulo, self._eids, self._node_span, self._doc, PREFIJO_EID,
+            self._pendientes,
         )
+        # An annotation written inside the heading itself belongs to the
+        # article, not to whatever comes next.
+        for m in ANOTACION_EN_LINEA.finditer(bloque.text.split("\n", 1)[0]):
+            if es_anotacion(m.group("cuerpo")):
+                self._articulo.notes.append(
+                    parse_annotation(m.group(0), m.group("cuerpo"))
+                )
         # The heading block is the article's own opening text -- "Artículo 4.
         # Son obligaciones:" -- so it is placed as text, never examined for a
         # list marker it cannot carry.
@@ -405,7 +425,16 @@ class _Constructor:
     # marker pattern today, but a list broken by an annotation would be a
     # silent, hard-to-find failure, and saying so here costs one argument.
     def _bloque_anotacion(self, bloque, campos):
-        self._bloque_contenido(bloque, campos, es_marcador_estructural=True)
+        # Annotations are not nodes and never appear in `walk()`. The block is
+        # held instead, and attaches to the next node created — which also
+        # pulls that node's span back to cover the annotation's own text, so
+        # the document stays fully covered.
+        self._pendientes.agrega(
+            parse_annotation(bloque.text, campos.get("cuerpo")), bloque.start
+        )
+        if self._articulo is not None:
+            self._extiende(self._articulo, bloque.end)
+            self._interior.marca_anotacion()
 
     def _bloque_nota_editorial(self, bloque, campos):
         self._bloque_contenido(bloque, campos, es_marcador_estructural=True)

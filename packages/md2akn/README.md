@@ -128,6 +128,48 @@ identifier. eIds are unique across the document: a law can legally restate the
 same fracción label under two separate "I. a X." lists, and the second
 claimant gets a `_2` suffix rather than a duplicate.
 
+## Annotations
+
+The SCJN's consolidated texts carry, between the articles, the notes that say
+which reform touched which part:
+
+```
+**(REFORMADO PRIMER PÁRRAFO, D.O.F. 10 DE JUNIO DE 2011)**
+
+**ARTICULO 1o.-** En los Estados Unidos Mexicanos …
+```
+
+Those are not nodes and never appear in `walk()`. They are read into
+`Annotation`s on the `notes` of the node that follows them — the node whose
+span is pulled back to cover the annotation's own text, so the document stays
+fully covered:
+
+| | |
+|---|---|
+| `action` | `REFORMADO` / `ADICIONADO` / `DEROGADO` / `REUBICADO` / `ACTUALIZADO` / `F. DE E.`, and the compounds (`REFORMADO Y REUBICADO`) |
+| `scope` | what was touched: `PRIMER PARRAFO`, `SU DENOMINACION`, `CON LOS ARTICULOS QUE LO INTEGRAN` |
+| `date` | the DOF date, as a `datetime.date` |
+| `source` | the instrument cited instead of, or besides, the date |
+| `raw` | the annotation's own text, always, parsed or not |
+
+Gender and number are folded (`REFORMADA` → `REFORMADO`): they agree with what
+was reformed and say nothing about the reform.
+
+Only a parenthesis whose head is one of those actions is an annotation. The
+corpus writes plenty of other things in the same shape — `(NOTA: EL 22 DE
+JUNIO DE 2023, EL PLENO DE LA SUPREMA CORTE…)`, `(ARANCEL)`, `(VÉASE TABLA
+ANEXA)` — and none of them is a reform; they stay text.
+
+In Akoma Ntoso terms this is the **passive** side of a modification
+(`lifecycle` / `passiveModifications`). No such XML is emitted — see below —
+but the information is here at the granularity someone would need to emit it.
+The **active** side, a DOF decree saying what *it* changed, is issue #163.
+
+Over the 315 laws of the SCJN corpus this reads **36,836 annotations, of which
+36,835 yield an action and a date or a source**; the one that does not is a
+typo in the source itself (`13 DE AGOSTO **CE** 2009`), and it is kept with
+its `raw` rather than dropped.
+
 ## The spaCy layer
 
 The segmenter is a pipeline component, so it composes with anything else you
