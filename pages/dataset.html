@@ -108,6 +108,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script type="text/javascript">
+window.PlotlyConfig = {MathJaxConfig: 'local'};
+if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}
+</script>
+<script type="module">import "https://cdn.plot.ly/plotly-3.3.1.min"</script>
+
 
 
 </head>
@@ -192,7 +198,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#how-the-archive-grows" id="toc-how-the-archive-grows" class="nav-link" data-scroll-target="#how-the-archive-grows"><span class="header-section-number">2</span> How the archive grows</a></li>
   <li><a href="#the-release-today" id="toc-the-release-today" class="nav-link" data-scroll-target="#the-release-today"><span class="header-section-number">3</span> The release today</a></li>
   <li><a href="#getting-the-raw-archive-yourself" id="toc-getting-the-raw-archive-yourself" class="nav-link" data-scroll-target="#getting-the-raw-archive-yourself"><span class="header-section-number">4</span> Getting the raw archive yourself</a></li>
-  <li><a href="#downloading-every-title-in-the-archive" id="toc-downloading-every-title-in-the-archive" class="nav-link" data-scroll-target="#downloading-every-title-in-the-archive"><span class="header-section-number">5</span> Downloading every title in the archive</a></li>
+  <li><a href="#what-can-actually-be-read" id="toc-what-can-actually-be-read" class="nav-link" data-scroll-target="#what-can-actually-be-read"><span class="header-section-number">5</span> What can actually be read</a></li>
+  <li><a href="#downloading-every-title-in-the-archive" id="toc-downloading-every-title-in-the-archive" class="nav-link" data-scroll-target="#downloading-every-title-in-the-archive"><span class="header-section-number">6</span> Downloading every title in the archive</a></li>
   
   </ul>
 </nav>
@@ -403,25 +410,358 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> xzf notas-2025.tgz</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>To extend a local copy going forward instead of downloading a fixed snapshot, <code>dofjson --archivo</code> is the same tool the monthly workflow runs, and it is resumable in the same way: interrupt it and rerun it, and it picks up only the days it is still missing.</p>
 </section>
-<section id="downloading-every-title-in-the-archive" class="level2" data-number="5">
-<h2 data-number="5" class="anchored" data-anchor-id="downloading-every-title-in-the-archive"><span class="header-section-number">5</span> Downloading every title in the archive</h2>
+<section id="what-can-actually-be-read" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="what-can-actually-be-read"><span class="header-section-number">5</span> What can actually be read</h2>
+<p>Every record above carries three flags — <code>existeHtml</code>, <code>existeImagen</code>, <code>existePdf</code> — saying which forms of the note the gazette actually holds. They are the first thing to check before any downstream work, because they decide <em>how</em> a note can be read at all: a note with HTML is converted directly by <a href="../pages/tools.html"><code>nota2md</code></a>’s default path, cleanly and cheaply; a note that exists only as scanned pages or as a PDF has to go through OCR, which is what <code>nota2md</code> borrows <a href="../pages/dof2md.html"><code>dof2md</code></a> for. And the answer changes drastically across the century.</p>
+<p>The flags are not in the titles dataset described below — that keeps only <code>codNota</code>, <code>titulo</code>, <code>fecha</code> and <code>codOrgaUno</code> — so this reads the release assets themselves. One command puts them all in the per-user cache (~59 MB, 116 assets; a second run downloads nothing):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">nota2md</span> download gazette-metadata</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>and the cell below aggregates every note in them. It is the slowest cell on this site — it parses all 1.2 million records, a few minutes — which is why the site renders this page from its frozen output rather than re-executing it.</p>
+<div id="cell-coverage-data" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Reading the three flags out of every cached asset, aggregated by decade</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> collections</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> datetime <span class="im">as</span> dt</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> dofjson</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson.titulos <span class="im">import</span> CACHE_DIR</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co"># `existeImagen` is not a clean "S"/"N" domain: 48 notes (all of them in the</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 2010s) carry "Y" instead. It reads as a data-entry variant of "S" -- those</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co"># notes all have HTML and a PDF as well, and nothing distinguishes them</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co"># otherwise -- so it is counted as present. What matters more than the</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># decision, on 48 records out of 1.2 million, is not assuming the domain is</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># binary and silently dropping them: compare against the truthy values</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co"># explicitly.</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>PRESENTE <span class="op">=</span> (<span class="st">"S"</span>, <span class="st">"Y"</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>FLAGS <span class="op">=</span> {<span class="st">"HTML"</span>: <span class="st">"existeHtml"</span>, <span class="st">"Scanned images"</span>: <span class="st">"existeImagen"</span>, <span class="st">"PDF"</span>: <span class="st">"existePdf"</span>}</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>por_decada <span class="op">=</span> collections.defaultdict(collections.Counter)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>sin_nada <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>pdf_sin_imagen <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>mas_antigua_pdf_sin_imagen <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> asset <span class="kw">in</span> <span class="bu">sorted</span>(Path(CACHE_DIR).glob(<span class="st">"*.tgz"</span>)):</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> nota <span class="kw">in</span> dofjson.notas_de_tgz(asset.read_bytes()):</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># The note's own `fecha`, not the day file it is packed in: 160 notes</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>        <span class="co"># disagree with their file, and for a handful the year does too.</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>        dia, mes, anio <span class="op">=</span> (<span class="bu">int</span>(x) <span class="cf">for</span> x <span class="kw">in</span> nota[<span class="st">"fecha"</span>].split(<span class="st">"-"</span>))</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>        decada <span class="op">=</span> anio <span class="op">//</span> <span class="dv">10</span> <span class="op">*</span> <span class="dv">10</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>        fila <span class="op">=</span> por_decada[decada]</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>        fila[<span class="st">"notes"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>        presentes <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> etiqueta, campo <span class="kw">in</span> FLAGS.items():</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> nota.get(campo) <span class="kw">in</span> PRESENTE:</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>                fila[etiqueta] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>                presentes <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> presentes <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>            fila[<span class="st">"none"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>            sin_nada <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Is the PDF series redundant with the images? Counted rather than</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>        <span class="co"># assumed -- it is not, and the figure keeps all three because of it.</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> nota.get(<span class="st">"existePdf"</span>) <span class="kw">in</span> PRESENTE <span class="kw">and</span> nota.get(<span class="st">"existeImagen"</span>) <span class="kw">not</span> <span class="kw">in</span> PRESENTE:</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>            fila[<span class="st">"pdf_only"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>            pdf_sin_imagen <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>            clave <span class="op">=</span> (dt.date(anio, mes, dia), nota[<span class="st">"codNota"</span>])</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> mas_antigua_pdf_sin_imagen <span class="kw">is</span> <span class="va">None</span> <span class="kw">or</span> clave <span class="op">&lt;</span> mas_antigua_pdf_sin_imagen:</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>                mas_antigua_pdf_sin_imagen <span class="op">=</span> clave</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>cobertura <span class="op">=</span> pd.DataFrame(</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>    [</span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"decade"</span>: d, <span class="st">"notes"</span>: c[<span class="st">"notes"</span>], <span class="st">"none"</span>: c[<span class="st">"none"</span>],</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>         <span class="st">"pdf_only"</span>: c[<span class="st">"pdf_only"</span>],</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>         <span class="op">**</span>{etiqueta: <span class="dv">100</span> <span class="op">*</span> c[etiqueta] <span class="op">/</span> c[<span class="st">"notes"</span>] <span class="cf">for</span> etiqueta <span class="kw">in</span> FLAGS}}</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> d, c <span class="kw">in</span> <span class="bu">sorted</span>(por_decada.items())</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>).set_index(<span class="st">"decade"</span>)</span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>cobertura[[<span class="st">"notes"</span>, <span class="op">*</span>FLAGS]].<span class="bu">round</span>(<span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div id="coverage-data" class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">notes</th>
+<th data-quarto-table-cell-role="th">HTML</th>
+<th data-quarto-table-cell-role="th">Scanned images</th>
+<th data-quarto-table-cell-role="th">PDF</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">decade</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1910</th>
+<td>8913</td>
+<td>0.0</td>
+<td>51.7</td>
+<td>0.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1920</th>
+<td>46968</td>
+<td>0.0</td>
+<td>99.1</td>
+<td>100.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1930</th>
+<td>41619</td>
+<td>0.0</td>
+<td>92.3</td>
+<td>100.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1940</th>
+<td>52391</td>
+<td>0.0</td>
+<td>99.1</td>
+<td>100.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1950</th>
+<td>51244</td>
+<td>0.0</td>
+<td>99.6</td>
+<td>100.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1960</th>
+<td>49634</td>
+<td>0.0</td>
+<td>99.1</td>
+<td>100.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1970</th>
+<td>66467</td>
+<td>61.1</td>
+<td>97.2</td>
+<td>100.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1980</th>
+<td>63565</td>
+<td>88.7</td>
+<td>98.2</td>
+<td>100.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1990</th>
+<td>107736</td>
+<td>98.9</td>
+<td>85.7</td>
+<td>99.9</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2000</th>
+<td>265131</td>
+<td>100.0</td>
+<td>99.5</td>
+<td>99.9</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2010</th>
+<td>323343</td>
+<td>99.9</td>
+<td>99.5</td>
+<td>99.6</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2020</th>
+<td>158279</td>
+<td>100.0</td>
+<td>99.9</td>
+<td>99.9</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="cell-fig-coverage" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.graph_objects <span class="im">as</span> go</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The site's validated categorical palette, in fixed assignment order -- the</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># same three hues, meaning the same three things, as on the other pages.</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>BLUE, GREEN, MAGENTA <span class="op">=</span> <span class="st">"#2a78d6"</span>, <span class="st">"#008300"</span>, <span class="st">"#e87ba4"</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>INK, MUTED, GRID <span class="op">=</span> <span class="st">"#52514e"</span>, <span class="st">"#898781"</span>, <span class="st">"#e1e0d9"</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>PLOTLY_FONT <span class="op">=</span> <span class="st">"system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Colour is never the only thing carrying identity: each series also has its</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co"># own marker shape and dash pattern, so the figure survives greyscale, print</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co"># and colour-vision deficiency -- and the table above it is the same data.</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>SERIES <span class="op">=</span> [</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"HTML"</span>, BLUE, <span class="st">"circle"</span>, <span class="st">"solid"</span>),</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"Scanned images"</span>, GREEN, <span class="st">"square"</span>, <span class="st">"dash"</span>),</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"PDF"</span>, MAGENTA, <span class="st">"diamond"</span>, <span class="st">"dot"</span>),</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>etiquetas <span class="op">=</span> [</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>d<span class="sc">}</span><span class="ss">s&lt;br&gt;&lt;span style='font-size:11px'&gt;</span><span class="sc">{</span>n<span class="sc">:,}</span><span class="ss">&lt;/span&gt;"</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> d, n <span class="kw">in</span> <span class="bu">zip</span>(cobertura.index, cobertura[<span class="st">"notes"</span>])</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> go.Figure()</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> nombre, color, simbolo, guion <span class="kw">in</span> SERIES:</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    fig.add_trace(</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>        go.Scatter(</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>            x<span class="op">=</span>etiquetas, y<span class="op">=</span>cobertura[nombre], name<span class="op">=</span>nombre, mode<span class="op">=</span><span class="st">"lines+markers"</span>,</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>            line<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span>color, width<span class="op">=</span><span class="dv">2</span>, dash<span class="op">=</span>guion),</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>            marker<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span>color, size<span class="op">=</span><span class="dv">9</span>, symbol<span class="op">=</span>simbolo,</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>                        line<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="dv">2</span>)),</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>            hovertemplate<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>nombre<span class="sc">}</span><span class="ss">: %</span><span class="ch">{{</span><span class="ss">y:.1f</span><span class="ch">}}</span><span class="ss">%&lt;extra&gt;&lt;/extra&gt;"</span>,</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>fig.update_layout(</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>    font<span class="op">=</span><span class="bu">dict</span>(family<span class="op">=</span>PLOTLY_FONT, size<span class="op">=</span><span class="dv">13</span>, color<span class="op">=</span>INK),</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>    paper_bgcolor<span class="op">=</span><span class="st">"white"</span>, plot_bgcolor<span class="op">=</span><span class="st">"white"</span>, height<span class="op">=</span><span class="dv">470</span>,</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># A roomier top margin than the site's other figures: this is the one</span></span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>    <span class="co"># with a horizontal legend sitting above the plot area, and 16px clips it.</span></span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>    margin<span class="op">=</span><span class="bu">dict</span>(l<span class="op">=</span><span class="dv">64</span>, r<span class="op">=</span><span class="dv">24</span>, t<span class="op">=</span><span class="dv">52</span>, b<span class="op">=</span><span class="dv">56</span>),</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>    hovermode<span class="op">=</span><span class="st">"x unified"</span>,</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>    hoverlabel<span class="op">=</span><span class="bu">dict</span>(bgcolor<span class="op">=</span><span class="st">"white"</span>, bordercolor<span class="op">=</span>GRID, font<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span>INK, size<span class="op">=</span><span class="dv">12</span>)),</span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>    legend<span class="op">=</span><span class="bu">dict</span>(font<span class="op">=</span><span class="bu">dict</span>(size<span class="op">=</span><span class="dv">12</span>, color<span class="op">=</span>INK), orientation<span class="op">=</span><span class="st">"h"</span>,</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>                yanchor<span class="op">=</span><span class="st">"bottom"</span>, y<span class="op">=</span><span class="fl">1.0</span>, xanchor<span class="op">=</span><span class="st">"left"</span>, x<span class="op">=</span><span class="dv">0</span>),</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>fig.update_xaxes(showgrid<span class="op">=</span><span class="va">False</span>, showline<span class="op">=</span><span class="va">False</span>, zeroline<span class="op">=</span><span class="va">False</span>, ticks<span class="op">=</span><span class="st">""</span>,</span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>                 tickfont<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span>MUTED), title_text<span class="op">=</span><span class="st">""</span>)</span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>fig.update_yaxes(<span class="bu">range</span><span class="op">=</span>[<span class="dv">0</span>, <span class="dv">103</span>], dtick<span class="op">=</span><span class="dv">25</span>, ticksuffix<span class="op">=</span><span class="st">"%"</span>, showgrid<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>                 gridcolor<span class="op">=</span>GRID, gridwidth<span class="op">=</span><span class="dv">1</span>, showline<span class="op">=</span><span class="va">False</span>, zeroline<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>                 ticks<span class="op">=</span><span class="st">""</span>, tickfont<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span>MUTED),</span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>                 title_text<span class="op">=</span><span class="st">"Notes with this form available"</span>,</span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a>                 title_font<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span>INK, size<span class="op">=</span><span class="dv">13</span>))</span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a><span class="co"># The one editorial point the eye should not have to hunt for.</span></span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>fig.add_annotation(</span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>etiquetas[<span class="dv">6</span>], y<span class="op">=</span><span class="fl">61.1</span>, text<span class="op">=</span><span class="st">"HTML begins"</span>, showarrow<span class="op">=</span><span class="va">True</span>, arrowhead<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>    arrowcolor<span class="op">=</span>MUTED, ax<span class="op">=-</span><span class="dv">4</span>, ay<span class="op">=</span><span class="dv">48</span>, font<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span>INK, size<span class="op">=</span><span class="dv">12</span>), xanchor<span class="op">=</span><span class="st">"left"</span>,</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>fig</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div id="fig-coverage" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>            <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_SVG"></script><script type="text/javascript">if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.3.1.min.js" integrity="sha256-4rD3fugVb/nVJYUv5Ky3v+fYXoouHaBSP20WIJuEiWg=" crossorigin="anonymous"></script>                <div id="5f12518d-d7c9-462a-88a9-26887c73046b" class="plotly-graph-div" style="height:470px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("5f12518d-d7c9-462a-88a9-26887c73046b")) {                    Plotly.newPlot(                        "5f12518d-d7c9-462a-88a9-26887c73046b",                        [{"hovertemplate":"HTML: %{y:.1f}%\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"#2a78d6","dash":"solid","width":2},"marker":{"color":"#2a78d6","line":{"color":"white","width":2},"size":9,"symbol":"circle"},"mode":"lines+markers","name":"HTML","x":["1910s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e8,913\u003c\u002fspan\u003e","1920s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e46,968\u003c\u002fspan\u003e","1930s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e41,619\u003c\u002fspan\u003e","1940s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e52,391\u003c\u002fspan\u003e","1950s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e51,244\u003c\u002fspan\u003e","1960s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e49,634\u003c\u002fspan\u003e","1970s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e66,467\u003c\u002fspan\u003e","1980s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e63,565\u003c\u002fspan\u003e","1990s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e107,736\u003c\u002fspan\u003e","2000s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e265,131\u003c\u002fspan\u003e","2010s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e323,343\u003c\u002fspan\u003e","2020s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e158,279\u003c\u002fspan\u003e"],"y":{"dtype":"f8","bdata":"AAAAAAAAAAB3KKDJEHFhP7606OjtrmM\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAjel2YoGNTkDwK+rb\u002fy5WQOXa3wCWt1hAhqtIBrz\u002fWEClEqu7rPxYQAAAAAAAAFlA"},"type":"scatter"},{"hovertemplate":"Scanned images: %{y:.1f}%\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"#008300","dash":"dash","width":2},"marker":{"color":"#008300","line":{"color":"white","width":2},"size":9,"symbol":"square"},"mode":"lines+markers","name":"Scanned images","x":["1910s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e8,913\u003c\u002fspan\u003e","1920s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e46,968\u003c\u002fspan\u003e","1930s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e41,619\u003c\u002fspan\u003e","1940s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e52,391\u003c\u002fspan\u003e","1950s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e51,244\u003c\u002fspan\u003e","1960s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e49,634\u003c\u002fspan\u003e","1970s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e66,467\u003c\u002fspan\u003e","1980s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e63,565\u003c\u002fspan\u003e","1990s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e107,736\u003c\u002fspan\u003e","2000s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e265,131\u003c\u002fspan\u003e","2010s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e323,343\u003c\u002fspan\u003e","2020s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e158,279\u003c\u002fspan\u003e"],"y":{"dtype":"f8","bdata":"BoKB80LVSUA\u002fvlu4RMhYQObMO6LDEVdADd\u002fQiqHEWEDKgFkjpehYQKiy6ZGvxFhANHceHvxPWEBHeybhm4tYQL9hXgGoblVA6gfxrA7jWEBt4YU7feBYQLo10jCx+VhA"},"type":"scatter"},{"hovertemplate":"PDF: %{y:.1f}%\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"#e87ba4","dash":"dot","width":2},"marker":{"color":"#e87ba4","line":{"color":"white","width":2},"size":9,"symbol":"diamond"},"mode":"lines+markers","name":"PDF","x":["1910s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e8,913\u003c\u002fspan\u003e","1920s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e46,968\u003c\u002fspan\u003e","1930s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e41,619\u003c\u002fspan\u003e","1940s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e52,391\u003c\u002fspan\u003e","1950s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e51,244\u003c\u002fspan\u003e","1960s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e49,634\u003c\u002fspan\u003e","1970s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e66,467\u003c\u002fspan\u003e","1980s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e63,565\u003c\u002fspan\u003e","1990s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e107,736\u003c\u002fspan\u003e","2000s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e265,131\u003c\u002fspan\u003e","2010s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e323,343\u003c\u002fspan\u003e","2020s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e158,279\u003c\u002fspan\u003e"],"y":{"dtype":"f8","bdata":"AAAAAAAAAAAAAAAAAABZQAAAAAAAAFlAAAAAAAAAWUAAAAAAAABZQAAAAAAAAFlAAAAAAAAAWUAAAAAAAABZQATc\u002fnMe+lhAmqRIWkD4WEBofWu2d+RYQM2MBxxC+lhA"},"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"},"margin":{"b":0,"l":0,"r":0,"t":30}}},"font":{"family":"system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif","size":13,"color":"#52514e"},"margin":{"l":64,"r":24,"t":52,"b":56},"hoverlabel":{"font":{"color":"#52514e","size":12},"bgcolor":"white","bordercolor":"#e1e0d9"},"legend":{"font":{"size":12,"color":"#52514e"},"orientation":"h","yanchor":"bottom","y":1.0,"xanchor":"left","x":0},"paper_bgcolor":"white","plot_bgcolor":"white","height":470,"hovermode":"x unified","xaxis":{"tickfont":{"color":"#898781"},"title":{"text":""},"showgrid":false,"showline":false,"zeroline":false,"ticks":""},"yaxis":{"tickfont":{"color":"#898781"},"title":{"font":{"color":"#52514e","size":13},"text":"Notes with this form available"},"range":[0,103],"dtick":25,"ticksuffix":"%","showgrid":true,"gridcolor":"#e1e0d9","gridwidth":1,"showline":false,"zeroline":false,"ticks":""},"annotations":[{"arrowcolor":"#898781","arrowhead":0,"ax":-4,"ay":48,"font":{"color":"#52514e","size":12},"showarrow":true,"text":"HTML begins","x":"1970s\u003cbr\u003e\u003cspan style='font-size:11px'\u003e66,467\u003c\u002fspan\u003e","xanchor":"left","y":61.1}]},                        {"responsive": true}                    ).then(function(){
+                            
+var gd = document.getElementById('5f12518d-d7c9-462a-88a9-26887c73046b');
+var x = new MutationObserver(function (mutations, observer) {{
+        var display = window.getComputedStyle(gd).display;
+        if (!display || display === 'none') {{
+            console.log([gd, 'removed!']);
+            Plotly.purge(gd);
+            observer.disconnect();
+        }}
+}});
+
+// Listen for the removal of the full notebook cells
+var notebookContainer = gd.closest('#notebook-container');
+if (notebookContainer) {{
+    x.observe(notebookContainer, {childList: true});
+}}
+
+// Listen for the clearing of the current output cell
+var outputEl = gd.closest('.output');
+if (outputEl) {{
+    x.observe(outputEl, {childList: true});
+}}
+
+                        })                };            </script>        </div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Share of each decade’s notes for which the gazette holds HTML, scanned images, or a PDF. The note count under each decade is the weight behind its percentages — the 1910s’ 51.7% is half of 8,913 notes, the 2010s’ of 323,343. Series are distinguished by marker shape and dash as well as colour; hover for exact values.
+</figcaption>
+</figure>
+</div>
+</div>
+<div id="cell-coverage-summary" class="cell" data-execution_count="5">
+<details class="code-fold">
+<summary>The numbers cited below, computed rather than written</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co"># A decade is "in the HTML era" at 1% or more, not at any non-zero value: a</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># few dozen stray records carry `existeHtml: "S"` in decades that are</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># otherwise entirely pre-digital, and taking the first non-zero decade would</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># put the boundary half a century too early.</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>UMBRAL_ERA_HTML <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>en_la_era <span class="op">=</span> cobertura[cobertura[<span class="st">"HTML"</span>] <span class="op">&gt;=</span> UMBRAL_ERA_HTML]</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>primer_html <span class="op">=</span> <span class="bu">int</span>(en_la_era.index.<span class="bu">min</span>())</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>antes <span class="op">=</span> cobertura.loc[: primer_html <span class="op">-</span> <span class="dv">10</span>]</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>sueltas <span class="op">=</span> <span class="bu">int</span>((antes[<span class="st">"HTML"</span>] <span class="op">/</span> <span class="dv">100</span> <span class="op">*</span> antes[<span class="st">"notes"</span>]).<span class="bu">round</span>().<span class="bu">sum</span>())</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>decada_vacia <span class="op">=</span> <span class="bu">int</span>(cobertura[<span class="st">"none"</span>].idxmax())</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>Markdown(</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"Three things the figure says. **The HTML era begins in the "</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>primer_html<span class="sc">}</span><span class="ss">s** — </span><span class="sc">{</span>cobertura<span class="sc">.</span>loc[primer_html, <span class="st">'HTML'</span>]<span class="sc">:.0f}</span><span class="ss">% of that "</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"decade's notes, against </span><span class="sc">{</span>sueltas<span class="sc">}</span><span class="ss"> stray records in the whole half-century "</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"before it — and is only effectively universal from the 2000s on. Before "</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"that boundary, every note is an OCR job. **The gap is in the imaging, not "</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"the HTML**: scanned images are near-complete for most of the century, but "</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"the </span><span class="sc">{</span>decada_vacia<span class="sc">}</span><span class="ss">s sit at "</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>cobertura<span class="sc">.</span>loc[decada_vacia, <span class="st">'Scanned images'</span>]<span class="sc">:.1f}</span><span class="ss">% and the 1990s dip to "</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>cobertura<span class="sc">.</span>loc[<span class="dv">1990</span>, <span class="st">'Scanned images'</span>]<span class="sc">:.1f}</span><span class="ss">%, which is why the PDF series "</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"is worth plotting separately rather than assumed to track it. And "</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"**</span><span class="sc">{</span>sin_nada<span class="sc">:,}</span><span class="ss"> notes have no content at all** — no HTML, no image, no PDF "</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"— every one of them in the </span><span class="sc">{</span>decada_vacia<span class="sc">}</span><span class="ss">s, where they are exactly the "</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"half of the decade that was never imaged. They exist in the index, with a "</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"title and a date, and no path to their text."</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div id="coverage-summary" class="cell-output cell-output-display cell-output-markdown" data-execution_count="5">
+<p>Three things the figure says. <strong>The HTML era begins in the 1970s</strong> — 61% of that decade’s notes, against 2 stray records in the whole half-century before it — and is only effectively universal from the 2000s on. Before that boundary, every note is an OCR job. <strong>The gap is in the imaging, not the HTML</strong>: scanned images are near-complete for most of the century, but the 1910s sit at 51.7% and the 1990s dip to 85.7%, which is why the PDF series is worth plotting separately rather than assumed to track it. And <strong>4,308 notes have no content at all</strong> — no HTML, no image, no PDF — every one of them in the 1910s, where they are exactly the half of the decade that was never imaged. They exist in the index, with a title and a date, and no path to their text.</p>
+</div>
+</div>
+<div id="cell-pdf-only-summary" class="cell" data-execution_count="6">
+<details class="code-fold">
+<summary>Why the PDF series is not redundant with the images</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>solo_pdf <span class="op">=</span> cobertura[<span class="st">"pdf_only"</span>].sort_values(ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>fecha_mas_antigua, cod_mas_antigua <span class="op">=</span> mas_antigua_pdf_sin_imagen</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>Markdown(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"The PDF series is not redundant with the images. **</span><span class="sc">{</span>pdf_sin_imagen<span class="sc">:,}</span><span class="ss"> "</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"notes have a PDF and no scanned image**, concentrated in the "</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span><span class="bu">int</span>(solo_pdf.index[<span class="dv">0</span>])<span class="sc">}</span><span class="ss">s (</span><span class="sc">{</span><span class="bu">int</span>(solo_pdf.iloc[<span class="dv">0</span>])<span class="sc">:,}</span><span class="ss">) and the "</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span><span class="bu">int</span>(solo_pdf.index[<span class="dv">1</span>])<span class="sc">}</span><span class="ss">s (</span><span class="sc">{</span><span class="bu">int</span>(solo_pdf.iloc[<span class="dv">1</span>])<span class="sc">:,}</span><span class="ss">), the oldest of them "</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"`codNota` </span><span class="sc">{</span>cod_mas_antigua<span class="sc">}</span><span class="ss">, published "</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>fecha_mas_antigua<span class="sc">:</span><span class="op">%-</span>d <span class="op">%</span>B <span class="op">%</span>Y<span class="sc">}</span><span class="ss">. A pipeline that treated </span><span class="ch">\"</span><span class="ss">has an image</span><span class="ch">\"</span><span class="ss"> "</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"as the OCR-eligibility test would drop every one of them."</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div id="pdf-only-summary" class="cell-output cell-output-display cell-output-markdown" data-execution_count="6">
+<p>The PDF series is not redundant with the images. <strong>25,500 notes have a PDF and no scanned image</strong>, concentrated in the 1990s (15,276) and the 1930s (3,214), the oldest of them <code>codNota</code> 4438455, published 26 November 1921. A pipeline that treated “has an image” as the OCR-eligibility test would drop every one of them.</p>
+</div>
+</div>
+<p>Read downstream, the three series are a routing table. A note the HTML series covers takes <code>legal_provisions</code>’ cheap path — <a href="../pages/tools.html"><code>nota2md</code></a> converts its HTML directly, no OCR and no page-boundary guessing. A note the HTML series misses but one of the other two covers is an OCR job: <code>nota2md</code> downloads the scanned pages, or the note’s own PDF sliced out of the edition, and runs them through <a href="../pages/dof2md.html"><code>dof2md</code></a>/mineru before cutting the note out of the page. A note none of the three covers cannot be built from this archive at all, whichever tool is pointed at it.</p>
+</section>
+<section id="downloading-every-title-in-the-archive" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="downloading-every-title-in-the-archive"><span class="header-section-number">6</span> Downloading every title in the archive</h2>
 <p>Beyond browsing one release asset at a time, <code>dofjson</code> ships a <code>--titulos</code> mode that builds a compact <code>codNota</code> + <code>titulo</code> + <code>fecha</code> dataset out of every note ever published: it downloads each <code>notas-archivo</code> asset straight into memory and reads its daily JSON indexes without ever writing them to disk, keeping only those three fields from every note (<code>titulo</code> is Spanish for “title”, <code>fecha</code> for “date”) — <code>codNota</code> to fetch the note’s full content later (<code>dofjson.get_nota</code>), <code>titulo</code> for exploratory analysis of the titles themselves with other techniques (in the spirit of <a href="../pages/titles.html">DOF Titles</a>), and <code>fecha</code> to place each title in time. The result is a single gzip-compressed JSONL file — the 1.2 million-plus notes in the table above fit in a few tens of MB, small enough to move to a Colab GPU runtime for experiments.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dofjson</span> <span class="at">--titulos</span>                    <span class="co"># -&gt; titulos/titulos.jsonl.gz</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dofjson</span> <span class="at">--titulos</span>                    <span class="co"># -&gt; titulos/titulos.jsonl.gz</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>or directly from Python, with <code>dofjson.titulos.download_legal_provisions_titles</code>:</p>
-<div id="cell-14" class="cell" data-execution_count="3">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson.titulos <span class="im">import</span> download_legal_provisions_titles</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>titulos <span class="op">=</span> Path(<span class="st">"titulos.jsonl.gz"</span>)</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> titulos.exists():</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    download_legal_provisions_titles(titulos, log<span class="op">=</span><span class="kw">lambda</span> x: <span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="cell-20" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson.titulos <span class="im">import</span> download_legal_provisions_titles</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>titulos <span class="op">=</span> Path(<span class="st">"titulos.jsonl.gz"</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> titulos.exists():</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    download_legal_provisions_titles(titulos, log<span class="op">=</span><span class="kw">lambda</span> x: <span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In the following line, the first title is retrieved. These titles are not sorted globally by the <code>codNota</code> field; the ordering applies only at the day level.</p>
-<div id="cell-16" class="cell" data-execution_count="4">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson.titulos <span class="im">import</span> lee_titulos</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="bu">next</span>(lee_titulos(titulos))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="4">
+<div id="cell-22" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dofjson.titulos <span class="im">import</span> lee_titulos</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="bu">next</span>(lee_titulos(titulos))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>{'codNota': 4430696,
  'titulo': 'ES ACEPTADO por esta Secretaría el nombramiento del C. Lic. Agustín Ruiz Olloqui, como adscrito a la Notaría nº 9 de esta ciudad',
  'fecha': '02-01-1917',
