@@ -50,11 +50,11 @@ class TestComponente(unittest.TestCase):
 
     def test_un_span_regresa_a_su_nodo(self):
         doc = get_nlp()(DOCUMENTO)
-        capitulo = doc.spans[SPAN_GROUP][2]
+        capitulo = doc._.akn_tree.find("cap_I")
 
-        self.assertIs(capitulo._.node, doc._.akn_tree.children[0].children[0])
-        self.assertEqual(capitulo._.akn_type, "content")
-        self.assertEqual(capitulo._.eId, "content_1")
+        self.assertIs(capitulo.span._.node, capitulo)
+        self.assertEqual(capitulo.span._.akn_type, "chapter")
+        self.assertEqual(capitulo.span._.eId, "cap_I")
 
     def test_en_un_rango_compartido_gana_el_nodo_mas_interno(self):
         # spaCy keys a Span's extensions by (name, start_char, end_char) --
@@ -64,19 +64,22 @@ class TestComponente(unittest.TestCase):
         # beats "the act that contains it".
         doc = get_nlp()(DOCUMENTO)
         act = doc._.akn_tree
-        body = act.children[0]
-        self.assertEqual((act.start_char, act.end_char), (body.start_char, body.end_char))
+        body, capitulo = act.children[0], act.find("cap_I")
+        self.assertEqual(
+            (act.start_char, act.end_char), (capitulo.start_char, capitulo.end_char)
+        )
 
-        self.assertIs(act.span._.node, body)
-        self.assertEqual(act.span._.akn_type, "body")
+        self.assertIs(act.span._.node, capitulo)
+        self.assertEqual(act.span._.akn_type, "chapter")
+        self.assertEqual(body.span._.akn_type, "chapter")
 
     def test_el_componente_no_guarda_estado_entre_documentos(self):
         nlp = get_nlp()
         uno = nlp("Uno.")
         dos = nlp("Dos.\n\nTres.")
 
-        self.assertEqual(len(uno._.akn_tree.children[0].children), 1)
-        self.assertEqual(len(dos._.akn_tree.children[0].children), 2)
+        self.assertEqual(uno._.akn_tree.text, "Uno.")
+        self.assertEqual(dos._.akn_tree.text, "Dos.\n\nTres.")
         self.assertIsNot(uno._.akn_tree, dos._.akn_tree)
 
 
@@ -101,12 +104,16 @@ class TestEficiencia(unittest.TestCase):
         self.assertEqual(get_nlp().max_length, MAX_LENGTH)
 
     def test_un_documento_de_mas_de_un_mega_no_revienta(self):
-        grande = "Un parrafo cualquiera de relleno.\n\n" * 60_000
+        # Long articles rather than many of them: what is under test is
+        # `nlp.max_length`, and a wide document exercises it at a fraction of
+        # the tree-building cost of a deep one.
+        cuerpo = "palabras de relleno " * 250
+        grande = f"**Artículo 1o.** {cuerpo}\n\n" * 250
         self.assertGreater(len(grande), 1_000_000)
 
         tree = md2akn.parse_markdown(grande)
 
-        self.assertEqual(len(tree.children[0].children), 60_000)
+        self.assertEqual(sum(1 for n in tree.walk() if n.akn_type == "article"), 250)
 
 
 class TestParseLegalProvisions(unittest.TestCase):
@@ -119,7 +126,7 @@ class TestParseLegalProvisions(unittest.TestCase):
 
         self.assertEqual(tree.akn_type, "act")
         self.assertEqual(tree.meta["fuente"], "scjn")
-        self.assertEqual(tree.children[0].children[0].text, "**CAPITULO I.**")
+        self.assertEqual(tree.find("cap_I").num, "I")
 
     def test_acepta_una_ruta_como_cadena(self):
         with tempfile.TemporaryDirectory() as tmp:

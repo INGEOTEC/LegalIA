@@ -1,6 +1,10 @@
-"""Frontmatter splitting, block scanning, and the placeholder tree of issue
-#158 — the layer that fixes the shape of the API before any structural rule
-exists."""
+"""Frontmatter splitting, block scanning, and the tree's document-wide
+invariants.
+
+The block scan and the frontmatter split are issue #158's; the tree they feed
+stopped being a flat run of `content` nodes once #159 supplied the structural
+rules, so what is checked here is what survives that change — coverage,
+ordering, unique eIds — and the rules themselves live in `test_structure.py`."""
 
 import unittest
 
@@ -78,7 +82,7 @@ class TestIterBlocks(unittest.TestCase):
         self.assertEqual(list(iter_blocks("\n\n   \n")), [])
 
 
-class TestArbolTrivial(unittest.TestCase):
+class TestArbol(unittest.TestCase):
     def setUp(self):
         self.doc = _NLP(CON_FRONTMATTER)
         self.tree, self.meta = segment(self.doc)
@@ -87,10 +91,10 @@ class TestArbolTrivial(unittest.TestCase):
         self.assertEqual(self.tree.akn_type, "act")
         self.assertEqual([h.akn_type for h in self.tree.children], ["body"])
 
-    def test_un_content_por_bloque(self):
+    def test_cada_bloque_llega_a_algun_nodo(self):
         cuerpo = self.tree.children[0]
-        self.assertEqual([h.akn_type for h in cuerpo.children], ["content"] * 3)
-        self.assertEqual(cuerpo.children[0].text, "**CAPITULO I.**")
+        self.assertEqual([h.akn_type for h in cuerpo.children], ["chapter"])
+        self.assertTrue(cuerpo.children[0].text.startswith("**CAPITULO I.**"))
 
     def test_el_frontmatter_queda_en_act_meta(self):
         self.assertEqual(self.tree.meta["ordenamiento"], "LEY FEDERAL DE CINEMATOGRAFIA")
@@ -126,12 +130,16 @@ class TestArbolTrivial(unittest.TestCase):
     def test_un_documento_sin_frontmatter_da_el_mismo_arbol(self):
         tree, meta = segment(_NLP("**CAPITULO I.**\n\nUno.\n"))
         self.assertEqual(meta, {})
-        self.assertEqual(len(tree.children[0].children), 2)
+        self.assertEqual([n.akn_type for n in tree.children], ["body"])
+        self.assertEqual([n.akn_type for n in tree.children[0].children], ["chapter"])
 
     def test_un_documento_vacio_no_revienta(self):
+        # An `act` always has a `body`, even an empty document's, so no
+        # consumer has to special-case its absence.
         tree, meta = segment(_NLP(""))
         self.assertEqual(tree.akn_type, "act")
         self.assertEqual(meta, {})
+        self.assertEqual([n.akn_type for n in tree.children], ["body"])
         self.assertEqual(tree.children[0].children, [])
 
 

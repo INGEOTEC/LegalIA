@@ -168,6 +168,11 @@ def build_tree(doc, meta_end: int, blocks: list[Block], meta: dict[str, str] | N
 def segment(doc) -> tuple[AknNode, dict[str, str]]:
     """`doc`'s tree and its frontmatter — the whole of what the spaCy
     pipeline component does, kept here so it can be exercised without one."""
+    # Imported here rather than at module scope: `md2akn.structure` reaches
+    # back for `node_span`, and a top-level import either way would be a
+    # cycle.
+    from md2akn.structure import build
+
     meta, meta_end = split_frontmatter(doc.text)
     blocks = list(iter_blocks(doc.text, meta_end))
-    return build_tree(doc, meta_end, blocks, meta), meta
+    return build(doc, meta, blocks), meta

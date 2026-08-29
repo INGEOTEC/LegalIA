@@ -57,6 +57,33 @@ expressed as an existing element plus `refers_to`, which is the same
 convention `nota2md.akoma_ntoso` already adopted — deliberately, so the two
 packages say the same thing even though they share no code.
 
+## What it recognizes
+
+The container hierarchy nests by **precedence rank** (`book` > `title` >
+`chapter` > `section` > `level`), not by any depth marker — the text has none.
+Meeting a container closes every open one of equal or lower rank, so a law
+that opens with `CAPÍTULO I` and only later reaches `TÍTULO PRIMERO` comes out
+with the chapter closed and hanging at the top of the body, which is what the
+document actually says. Numbering that restarts needs no special handling:
+`tit_PRIMERO__cap_I` and `tit_SEGUNDO__cap_I` are different paths. An article
+with no container hangs off `body` — many short laws have no chapters at all.
+
+Every pattern was written against counts measured over all 315 laws of the
+SCJN corpus, so the variation it covers is the variation that is there:
+`Artículo`/`ARTICULO`/`ARTÍCULO`/`Art.`, with and without bold (the oldest
+laws use none), ordinals (`1o.`, `1°`, `1º`), Latin suffixes in any case and
+joined by a space or a dash (`28 Bis`, `3° bis`, `103-Bis`, `3° Bis 1`),
+letter suffixes (`27-A`, and the CCF's `410 A`), two articles under one
+heading (`Art. 30,31.` — kept as one node with `num="30,31"`, since dividing
+the shared text between them is not possible without guessing), and container
+headings with or without bold, with the epigraph in the *following* block.
+
+A law's transitional provisions come out as **several sibling sections**, one
+per decree that added some — the `## Transitorios` marker opens the first and
+each `**D.O.F. 15 DE SEPTIEMBRE DE 2024.**` header opens another. They are
+never merged: which decree a provision belongs to is exactly what the
+separation records.
+
 ## The tree
 
 `parse_legal_provisions(path)` returns the root `AknNode`:
