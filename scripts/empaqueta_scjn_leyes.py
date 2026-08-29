@@ -50,7 +50,31 @@ stepping on anything:
 
     <slug>/<fecha>.md          the snapshots, with their provenance header
     <slug>/indice.json         the codNota link + #115/#126/#127's signals
+    <slug>/estado.json         when it was crawled/linked, and against which
+                               Diputados `actualizado` (issue #148)
     <slug>/notas/nota-<cod>.md the DOF text of every candidate considered
+
+`estado.json` travels with them so the release itself carries its own
+freshness metadata: which `actualizado` the published snapshots correspond
+to is then readable from the asset, with nothing to trust in local scratch.
+
+## Updating one law (issue #148)
+
+``--instrumento SLUG`` (repeatable) rewrites only the named instruments'
+tarballs and leaves every other `.tgz` already in `--destino` exactly as it
+is — the manifest says which ones were actually rewritten, so the human
+review before publishing is a handful of rows instead of 315. The manifest,
+`SHA256SUMS.txt` and `indice-global.json.gz` are always recomputed over the
+whole corpus, though: the reverse index is the union of every `indice.json`,
+so one law changing makes the published one stale.
+
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --plan
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes \\
+        --instrumento lft
+    ./scripts/enlaza_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes \\
+        --titulos titulos.jsonl.gz --instrumento lft
+    ./scripts/empaqueta_scjn_leyes.py --instrumento lft
+    less scripts/scjn/leyes-release/MANIFEST.md   # short now. still read it all.
 
 The DOF notes travel *with* the snapshots on purpose: `notas/` is the text
 each link was decided against (#126/#127), so shipping both makes the link
@@ -83,6 +107,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "no
 from nota2md.scjn import (  # noqa: E402
     ASSET_INDICE_GLOBAL,
     construye_indice_global,
+    lee_estado,
     slug_instrumento,
     versiones_de_directorio,
 )
@@ -128,6 +153,14 @@ class ResumenInstrumento:
     asset: str | None = None
     bytes_comprimidos: int = 0
     indice: list[dict] | None = None
+    #: This instrument's own `estado.json` (issue #148) — when it was last
+    #: crawled and linked, and against which Diputados `actualizado`. Shown
+    #: in the manifest so the human reviewing an incremental update can see
+    #: at a glance which laws the run actually refreshed.
+    estado: dict | None = None
+    #: Whether this run rewrote the instrument's own tarball. False for the
+    #: ones a `--instrumento` run left untouched and only re-listed.
+    reempaquetado: bool = True
 
 
 def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]:
@@ -167,6 +200,7 @@ def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]
                 notas_dof=len(list((destino / "notas").glob("nota-*.md")))
                 if (destino / "notas").is_dir() else 0,
                 indice=indice,
+                estado=lee_estado(destino) or None,
             )
         )
     return resumenes, nunca_rastreados
@@ -185,12 +219,25 @@ def _archivos_instrumento(directorio: Path) -> list[Path]:
     )
 
 
-def empaqueta(outdir: Path, destino: Path, resumenes: list[ResumenInstrumento]) -> None:
+def empaqueta(
+    outdir: Path,
+    destino: Path,
+    resumenes: list[ResumenInstrumento],
+    solo: set[str] | None = None,
+) -> None:
     """Write one `<slug>.tgz` per instrument, each byte-reproducibly — same
     pattern as `scripts/empaqueta_historial.py` (gzip stamped mtime 0,
     members added in sorted order, fixed ownership/mode); what changed for
     #128 is the walk, not the recipe. Every member is prefixed with
     `<slug>/` so the tarball unpacks anywhere without stepping on anything.
+
+    `solo` (issue #148) restricts the rewriting to the named slugs — the
+    incremental case, where one law changed and re-tarring the other ~314 is
+    pure work for a byte-identical result. Every other instrument keeps the
+    tarball already sitting in `destino` and is measured from it, so the
+    manifest and the checksums still describe the whole corpus; one that has
+    no tarball there yet is packaged regardless, since "skip it" would mean
+    publishing a manifest row for an asset that does not exist.
 
     Fills each summary's `asset`/`bytes_comprimidos` in place, so the
     manifest can report what was actually written."""
@@ -200,6 +247,11 @@ def empaqueta(outdir: Path, destino: Path, resumenes: list[ResumenInstrumento]) 
     for resumen in resumenes:
         directorio = outdir / COLECCION / resumen.slug
         salida = destino / f"{resumen.slug}.tgz"
+        if solo is not None and resumen.slug not in solo and salida.is_file():
+            resumen.asset = salida.name
+            resumen.bytes_comprimidos = salida.stat().st_size
+            resumen.reempaquetado = False
+            continue
         with open(salida, "wb") as bruto, \
                 gzip.GzipFile(filename="", mode="wb", fileobj=bruto, mtime=0) as gz, \
                 tarfile.open(fileobj=gz, mode="w") as tar:
@@ -304,19 +356,43 @@ def _formatea_manifiesto(
     # La clasificación de confianza de #115 (ratio/motivo) ya no aparece
     # aquí: los títulos se revisaron y corrigieron a mano, así que ordenar
     # por sospecha dejó de decir nada — la tabla va por nombre.
+    # Issue #148: on an incremental run only a handful of laws were actually
+    # rewritten, and those are the only rows a human has to read closely
+    # (¿la SCJN devolvió el documento correcto?, ¿bajó el % de enlace?).
+    # They get their own section above the full table, which stays complete
+    # because the checksums and the reverse index still cover everything.
+    reempaquetados = [r for r in ordenados if r.reempaquetado]
+    if len(reempaquetados) != len(ordenados):
+        lineas.append(f"## Actualizados en esta corrida ({len(reempaquetados)}, issue #148)")
+        lineas.append("")
+        lineas.append(
+            f"Los otros {len(ordenados) - len(reempaquetados)} instrumento(s) conservan el "
+            "`.tgz` que ya estaba en el destino; sólo se recalcularon el manifiesto, "
+            f"`SHA256SUMS.txt` y `{ASSET_INDICE_GLOBAL}`. **Sube sólo estos assets** "
+            f"(más `{ASSET_INDICE_GLOBAL}`, `SHA256SUMS.txt` y `MANIFEST.md`):"
+        )
+        lineas.append("")
+        lineas.extend(
+            f"- {r.nombre} (`{r.asset}`), rastreado "
+            f"{(r.estado or {}).get('rastreado', '—')}"
+            for r in reempaquetados
+        )
+        lineas.append("")
+
     lineas.append("## Instrumentos empaquetados")
     lineas.append("")
     lineas.append(
         "| instrumento | slug | snapshots | % enlazado | "
-        "confirmados por contenido (#127) | asset | tamaño | notas DOF |"
+        "confirmados por contenido (#127) | asset | tamaño | notas DOF | rastreado |"
     )
-    lineas.append("|---|---|---|---|---|---|---|---|")
+    lineas.append("|---|---|---|---|---|---|---|---|---|")
     for r in ordenados:
         porcentaje = f"{r.porcentaje_enlazado:.0%}" if r.porcentaje_enlazado is not None else "—"
         lineas.append(
             f"| {r.nombre} | `{r.slug}` | {r.total_snapshots} "
             f"| {porcentaje} | {r.confirmados_por_contenido} "
-            f"| `{r.asset}` | {_tamano(r.bytes_comprimidos)} | {r.notas_dof} |"
+            f"| `{r.asset}` | {_tamano(r.bytes_comprimidos)} | {r.notas_dof} "
+            f"| {(r.estado or {}).get('rastreado', '—')} |"
         )
     lineas.append("")
 
@@ -371,13 +447,30 @@ def main(argv=None) -> int:
         help=f"no escribir {ASSET_INDICE_GLOBAL} (el índice inverso "
         "codNota -> instrumento, issue #117); por default se genera",
     )
+    p.add_argument(
+        "--instrumento", action="append", metavar="SLUG",
+        help=(
+            "repetible; reescribe solo el .tgz de estos instrumentos (issue #148). El "
+            f"manifiesto, SHA256SUMS.txt y {ASSET_INDICE_GLOBAL} se recalculan siempre "
+            "completos: el indice inverso es la union de todos los indice.json, asi que "
+            "cualquier cambio en una ley deja obsoleto el publicado"
+        ),
+    )
     args = p.parse_args(argv)
 
     args.destino.mkdir(parents=True, exist_ok=True)
     generado = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     resumenes, nunca_rastreados = resume_coleccion(args.outdir)
-    empaqueta(args.outdir, args.destino, resumenes)
+    solo = set(args.instrumento) if args.instrumento else None
+    if solo is not None:
+        faltantes = solo - {r.slug for r in resumenes}
+        if faltantes:
+            raise SystemExit(
+                f"{sorted(faltantes)} no tiene(n) snapshots en {args.outdir / COLECCION} -- "
+                "corre primero ./scripts/fetch_scjn_legislacion.py --instrumento <slug>"
+            )
+    empaqueta(args.outdir, args.destino, resumenes, solo=solo)
 
     conteos_indice = None
     if not args.sin_indice_global:
@@ -404,6 +497,13 @@ def main(argv=None) -> int:
     )
 
     total = sum(r.bytes_comprimidos for r in resumenes)
+    reescritos = sum(1 for r in resumenes if r.reempaquetado)
+    if solo is not None:
+        print(
+            f"{reescritos} asset(s) .tgz reescrito(s): "
+            f"{sorted(r.slug for r in resumenes if r.reempaquetado)}",
+            file=sys.stderr,
+        )
     print(
         f"{len(resumenes)} asset(s) .tgz, {_tamano(total)} en total; "
         f"{len(nunca_rastreados)} instrumento(s) sin rastrear (sin asset)",
