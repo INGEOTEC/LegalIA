@@ -606,12 +606,15 @@ def quita_notas_editoriales(parrafo: str) -> str:
     such insertion comes back empty, rather than as a blank paragraph.
 
     Takes the already-bolded output of `_formatea_parrafo` just as readily
-    as a raw docx paragraph: `scripts/repara_notas_editoriales_scjn.py`
-    (issue #114's Paso 5) reprocesses paragraphs of files a previous crawl
-    already wrote, where a whole-paragraph editorial insertion is already
-    wrapped in its own "**...**" (`_es_titular` bolds every all-caps
-    paragraph, editorial or not) — stripped and restored around the result
-    so a second pass over already-clean output is a no-op, byte for byte.
+    as a raw docx paragraph — a whole-paragraph editorial insertion in an
+    already-written snapshot is wrapped in its own "**...**" (`_es_titular`
+    bolds every all-caps paragraph, editorial or not), stripped and restored
+    around the result so a second pass over already-clean output is a no-op,
+    byte for byte. That property is what let issue #114's Paso 5 repair, in
+    place, the snapshots an earlier crawl had written before this existed;
+    that one-time script (`scripts/repara_notas_editoriales_scjn.py`) was
+    retired in issue #129 once it ran to a no-op over the whole corpus, but
+    the idempotence it relied on is still worth keeping.
     """
     negrita = parrafo.startswith("**") and parrafo.endswith("**") and len(parrafo) > 4
     nucleo = parrafo[2:-2] if negrita else parrafo
@@ -1162,9 +1165,9 @@ _PALABRA_DIFF = re.compile(r"\d+(?:[.,]\d+)?|\w{4,}")
 
 def _cuerpo_de_snapshot(archivo: Path) -> str:
     """`archivo`'s own body, with the provenance header `_cabecera` wrote at
-    its top stripped off — the same header/body split
-    `scripts/repara_notas_editoriales_scjn.py` already uses, so a diff
-    between two snapshots never mistakes a header field (e.g. a different
+    its top stripped off — header and body are separated by the first blank
+    line, so a diff between two snapshots never mistakes a header field
+    (e.g. a different
     `ratio_similitud`) for a change in the law's own text."""
     return archivo.read_text(encoding="utf-8").partition("\n\n")[2]
 

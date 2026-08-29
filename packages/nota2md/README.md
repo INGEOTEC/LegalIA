@@ -241,6 +241,13 @@ that exists separately (`nota2md.texto_vigente`) only as independent ground
 truth to check reconstructions against, in `tests/test_leyes_44.py`, over 43
 real federal laws.
 
+The SCJN corpus becoming `legal_provisions`' default source (issue #117) does
+not retire this function (issue #129's audit): the corpus links 2,474 of its
+3,724 `leyes` snapshots to a codNota, only 526 of them pre-1999, and covers no
+reglamento, tratado or NOM at all — so replaying a law's own reform decrees
+remains the only route for everything it does not reach, as well as the
+independent cross-check on what it does.
+
 ```python
 from nota2md import reconstruct_legal_provisions
 

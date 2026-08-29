@@ -32,6 +32,16 @@ regardless of ``existeHtml``. dof2md.cutter is only imported once an OCR path
 actually runs (see _load_converter()), same as the rest of dof2md — it is an
 optional dependency, so the HTML-only path stays lightweight.
 
+Issue #129 asked whether the SCJN corpus, now that it is the default source,
+makes the OCR paths (and dof2md with them) obsolete for laws predating the
+DOF's HTML era. It does not, and the corpus itself is the evidence: of its
+3,724 `leyes` snapshots, 2,474 carry a codNota we are certain of, and only 526
+of those are pre-1999 — 365 pre-1999 law reforms are in the corpus with no
+certain codNota, and a codNota is what `legal_provisions` is asked for. For
+those, and for every instrument outside `leyes` (reglamentos, tratados, NOMs,
+and everything the SCJN does not catalogue at all), the image/PDF OCR path is
+still the only way to get a Markdown at all. Kept.
+
 Passing `converter` (a dof2md.BatchConverter already `__enter__`'d by the
 caller) lets a batch of legal_provisions() calls share one already-warm
 mineru-api server instead of each OCR path starting and stopping its own —

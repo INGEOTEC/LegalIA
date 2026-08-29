@@ -8,6 +8,12 @@ truth to check `reconstruct_legal_provisions()` (see nota2md.leyes) against —
 nothing in this module feeds into that function's own output, and it never
 reads this module's output either; the two are meant to be compared, not
 share a source.
+
+The module takes the PDF's pages as a list of strings (`limpia_texto_ley`) —
+it does not read the PDF itself. A `pdf_a_markdown()` wrapper that opened one
+with `pypdf` used to live here; issue #129's audit found it had no caller
+anywhere in the repo, and `pypdf` was never even declared as a dependency, so
+any call would have raised `ImportError`. Whoever needs pages hands them in.
 """
 
 import re
@@ -147,11 +153,3 @@ def limpia_texto_ley(paginas: list[str]) -> str:
 
     parrafos = [_formatea_parrafo(p) for p in _parrafos(texto)]
     return "\n\n".join(parrafos) + "\n"
-
-
-def pdf_a_markdown(pdf_path) -> str:
-    """`limpia_texto_ley()`, reading the pages straight out of a PDF file."""
-    from pypdf import PdfReader
-
-    paginas = [p.extract_text() for p in PdfReader(str(pdf_path)).pages]
-    return limpia_texto_ley(paginas)
