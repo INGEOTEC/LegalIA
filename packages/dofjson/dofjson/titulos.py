@@ -114,7 +114,9 @@ def listar_assets(timeout: int = 30) -> list[dict]:
     ]
 
 
-def download_dof_assets(cache_dir: Path | None = None, timeout: int = 60, log=print) -> list[Path]:
+def download_dof_assets(
+    cache_dir: Path | None = None, timeout: int = 60, log=print, *, refrescar: bool = False
+) -> list[Path]:
     """Download every notas-archivo `.tgz` asset into `cache_dir`, one per year/month.
 
     Assets already present in `cache_dir` (matched by file name) are kept
@@ -125,6 +127,10 @@ def download_dof_assets(cache_dir: Path | None = None, timeout: int = 60, log=pr
     `directorio_cache_predeterminado()` unless changed) — a directory for
     program data the user never had to name — so a caller who just wants
     the archive on disk somewhere reusable does not have to pick a path.
+
+    `refrescar=True` re-downloads over what is already there: these assets
+    are matched by name and never revalidated, so re-publishing the release
+    under the same names is otherwise invisible to a populated cache.
     """
     cache_dir = Path(cache_dir) if cache_dir is not None else CACHE_DIR
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -132,13 +138,13 @@ def download_dof_assets(cache_dir: Path | None = None, timeout: int = 60, log=pr
     paths = []
     for i, asset in enumerate(assets, 1):
         path = cache_dir / asset["name"]
-        if path.exists():
-            log(f"[{i}/{len(assets)}] {asset['name']}: ya en caché")
+        if path.exists() and not refrescar:
+            log(f"[{i}/{len(assets)}] {asset['name']}: already cached")
         else:
             response = requests.get(asset["url"], headers=_HEADERS, timeout=timeout)
             response.raise_for_status()
             path.write_bytes(response.content)
-            log(f"[{i}/{len(assets)}] {asset['name']}: descargado")
+            log(f"[{i}/{len(assets)}] {asset['name']}: downloaded")
         paths.append(path)
     return paths
 

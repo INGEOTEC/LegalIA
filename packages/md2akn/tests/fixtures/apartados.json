@@ -1,0 +1,138 @@
+{
+  "coverage": 100.0,
+  "tree": {
+    "akn_type": "act",
+    "eId": "act",
+    "num": null,
+    "heading": null,
+    "refers_to": null,
+    "is_chapeau": false,
+    "is_tail": false,
+    "start": 0,
+    "end": 417,
+    "notes": [],
+    "children": [
+      {
+        "akn_type": "body",
+        "eId": "body",
+        "num": null,
+        "heading": null,
+        "refers_to": null,
+        "is_chapeau": false,
+        "is_tail": false,
+        "start": 0,
+        "end": 417,
+        "notes": [],
+        "children": [
+          {
+            "akn_type": "article",
+            "eId": "art_123",
+            "num": "123",
+            "heading": null,
+            "refers_to": null,
+            "is_chapeau": false,
+            "is_tail": false,
+            "start": 0,
+            "end": 417,
+            "notes": [],
+            "children": [
+              {
+                "akn_type": "content",
+                "eId": "art_123__content_p",
+                "num": null,
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": true,
+                "is_tail": false,
+                "start": 0,
+                "end": 63,
+                "notes": [],
+                "children": []
+              },
+              {
+                "akn_type": "level",
+                "eId": "art_123__lvl_A",
+                "num": "A",
+                "heading": null,
+                "refers_to": "#apartado",
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 65,
+                "end": 231,
+                "notes": [],
+                "children": [
+                  {
+                    "akn_type": "paragraph",
+                    "eId": "art_123__lvl_A__para_I",
+                    "num": "I",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 112,
+                    "end": 167,
+                    "notes": [],
+                    "children": []
+                  },
+                  {
+                    "akn_type": "paragraph",
+                    "eId": "art_123__lvl_A__para_II",
+                    "num": "II",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 169,
+                    "end": 231,
+                    "notes": [],
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "akn_type": "level",
+                "eId": "art_123__lvl_B",
+                "num": "B",
+                "heading": null,
+                "refers_to": "#apartado",
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 233,
+                "end": 417,
+                "notes": [],
+                "children": [
+                  {
+                    "akn_type": "paragraph",
+                    "eId": "art_123__lvl_B__para_I",
+                    "num": "I",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 287,
+                    "end": 334,
+                    "notes": [],
+                    "children": []
+                  },
+                  {
+                    "akn_type": "paragraph",
+                    "eId": "art_123__lvl_B__para_II",
+                    "num": "II",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 336,
+                    "end": 417,
+                    "notes": [],
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

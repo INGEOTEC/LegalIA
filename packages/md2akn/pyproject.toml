@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "md2akn"
+description = "Segment a Mexican federal law's Markdown into a hierarchy labelled with Akoma Ntoso's vocabulary."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+# 3.10 for the PEP 604 unions (`X | None`) the package evaluates at import:
+# they sit in function signatures, so they run when the module is defined.
+requires-python = ">=3.10"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+# One dependency, on purpose (issue #158): this package's input is a Markdown
+# file on disk, so it needs nothing from dofjson/nota2md/dof2md — and taking
+# any of them would drag in the release downloads and mineru behind them.
+dependencies = [
+    "spacy>=3.4",
+]
+dynamic = ['version']
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/INGEOTEC/LegalIA/tree/main/packages/md2akn"
+
+[tool.setuptools.packages.find]
+include = ["md2akn", "md2akn.*"]
+
+[tool.setuptools.dynamic]
+version = {attr = 'md2akn.__version__'}

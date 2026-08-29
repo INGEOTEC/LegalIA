@@ -1,0 +1,190 @@
+{
+  "coverage": 100.0,
+  "tree": {
+    "akn_type": "act",
+    "eId": "act",
+    "num": null,
+    "heading": null,
+    "refers_to": null,
+    "is_chapeau": false,
+    "is_tail": false,
+    "start": 0,
+    "end": 570,
+    "notes": [],
+    "children": [
+      {
+        "akn_type": "body",
+        "eId": "body",
+        "num": null,
+        "heading": null,
+        "refers_to": null,
+        "is_chapeau": false,
+        "is_tail": false,
+        "start": 0,
+        "end": 570,
+        "notes": [],
+        "children": [
+          {
+            "akn_type": "article",
+            "eId": "art_4o",
+            "num": "4o",
+            "heading": null,
+            "refers_to": null,
+            "is_chapeau": false,
+            "is_tail": false,
+            "start": 0,
+            "end": 501,
+            "notes": [],
+            "children": [
+              {
+                "akn_type": "content",
+                "eId": "art_4o__content_p",
+                "num": null,
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": true,
+                "is_tail": false,
+                "start": 0,
+                "end": 51,
+                "notes": [],
+                "children": []
+              },
+              {
+                "akn_type": "paragraph",
+                "eId": "art_4o__para_I",
+                "num": "I",
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 53,
+                "end": 108,
+                "notes": [],
+                "children": []
+              },
+              {
+                "akn_type": "paragraph",
+                "eId": "art_4o__para_II",
+                "num": "II",
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 110,
+                "end": 395,
+                "notes": [],
+                "children": [
+                  {
+                    "akn_type": "point",
+                    "eId": "art_4o__para_II__point_a",
+                    "num": "a",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 198,
+                    "end": 245,
+                    "notes": [],
+                    "children": []
+                  },
+                  {
+                    "akn_type": "point",
+                    "eId": "art_4o__para_II__point_b",
+                    "num": "b",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 247,
+                    "end": 352,
+                    "notes": [],
+                    "children": [
+                      {
+                        "akn_type": "subpoint",
+                        "eId": "art_4o__para_II__point_b__subpoint_1",
+                        "num": "1",
+                        "heading": null,
+                        "refers_to": null,
+                        "is_chapeau": false,
+                        "is_tail": false,
+                        "start": 295,
+                        "end": 325,
+                        "notes": [],
+                        "children": []
+                      },
+                      {
+                        "akn_type": "subpoint",
+                        "eId": "art_4o__para_II__point_b__subpoint_2",
+                        "num": "2",
+                        "heading": null,
+                        "refers_to": null,
+                        "is_chapeau": false,
+                        "is_tail": false,
+                        "start": 327,
+                        "end": 352,
+                        "notes": [],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "akn_type": "point",
+                    "eId": "art_4o__para_II__point_c",
+                    "num": "c",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 354,
+                    "end": 395,
+                    "notes": [],
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "akn_type": "paragraph",
+                "eId": "art_4o__para_III",
+                "num": "III",
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 397,
+                "end": 452,
+                "notes": [],
+                "children": []
+              },
+              {
+                "akn_type": "content",
+                "eId": "art_4o__content_p_2",
+                "num": null,
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": true,
+                "start": 454,
+                "end": 501,
+                "notes": [],
+                "children": []
+              }
+            ]
+          },
+          {
+            "akn_type": "article",
+            "eId": "art_5o",
+            "num": "5o",
+            "heading": null,
+            "refers_to": null,
+            "is_chapeau": false,
+            "is_tail": false,
+            "start": 503,
+            "end": 570,
+            "notes": [],
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}

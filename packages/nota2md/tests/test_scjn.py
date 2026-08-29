@@ -1552,3 +1552,92 @@ class TestEstadoPorInstrumento(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestDescargaAssetsScjnLeyes(unittest.TestCase):
+    """`download_scjn_leyes_assets` (issue #155): the release materialized on
+    disk, and idempotent — a second run costs no download at all."""
+
+    URLS = {
+        "indice-global.json.gz": "https://x/indice-global.json.gz",
+        "lfca.tgz": "https://x/lfca.tgz",
+        "lft.tgz": "https://x/lft.tgz",
+    }
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.tmp = Path(self.tmpdir.name)
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    @patch("nota2md.cache.descarga", return_value=b"bytes")
+    @patch("nota2md.scjn._assets_scjn_leyes")
+    def test_sin_slugs_baja_el_indice_y_todos_los_tgz(self, mock_assets, mock_descarga):
+        mock_assets.return_value = dict(self.URLS)
+
+        resultados = scjn.download_scjn_leyes_assets(cache_dir=self.tmp)
+
+        self.assertEqual(
+            [ruta.name for ruta, _ in resultados],
+            ["indice-global.json.gz", "lfca.tgz", "lft.tgz"],
+        )
+        self.assertTrue(all(descargado for _, descargado in resultados))
+        self.assertEqual(mock_descarga.call_count, 3)
+
+    @patch("nota2md.cache.descarga", return_value=b"bytes")
+    @patch("nota2md.scjn._assets_scjn_leyes")
+    def test_slugs_acota_pero_el_indice_siempre_viene(self, mock_assets, mock_descarga):
+        mock_assets.return_value = dict(self.URLS)
+
+        resultados = scjn.download_scjn_leyes_assets(["lft"], cache_dir=self.tmp)
+
+        self.assertEqual(
+            [ruta.name for ruta, _ in resultados],
+            ["indice-global.json.gz", "lft.tgz"],
+        )
+
+    @patch("nota2md.cache.descarga", return_value=b"bytes")
+    @patch("nota2md.scjn._assets_scjn_leyes")
+    def test_la_segunda_corrida_no_baja_nada(self, mock_assets, mock_descarga):
+        mock_assets.return_value = dict(self.URLS)
+        scjn.download_scjn_leyes_assets(cache_dir=self.tmp)
+        mock_descarga.reset_mock()
+
+        resultados = scjn.download_scjn_leyes_assets(cache_dir=self.tmp)
+
+        self.assertFalse(any(descargado for _, descargado in resultados))
+        mock_descarga.assert_not_called()
+
+    @patch("nota2md.cache.descarga", return_value=b"bytes")
+    @patch("nota2md.scjn._assets_scjn_leyes")
+    def test_refrescar_vuelve_a_bajar(self, mock_assets, mock_descarga):
+        mock_assets.return_value = dict(self.URLS)
+        scjn.download_scjn_leyes_assets(cache_dir=self.tmp)
+        mock_descarga.reset_mock()
+
+        resultados = scjn.download_scjn_leyes_assets(cache_dir=self.tmp, refrescar=True)
+
+        self.assertTrue(all(descargado for _, descargado in resultados))
+        self.assertEqual(mock_descarga.call_count, 3)
+
+    @patch("nota2md.scjn._assets_scjn_leyes")
+    def test_cache_dir_none_no_tiene_donde_escribir(self, mock_assets):
+        mock_assets.return_value = dict(self.URLS)
+
+        with self.assertRaises(ValueError):
+            scjn.download_scjn_leyes_assets(cache_dir=None)
+
+    @patch("nota2md.cache.descarga", return_value=b"bytes")
+    @patch("nota2md.scjn._assets_scjn_leyes")
+    def test_un_slug_que_el_release_no_publica_es_un_error(self, mock_assets, _):
+        mock_assets.return_value = dict(self.URLS)
+
+        with self.assertRaises(KeyError):
+            scjn.download_scjn_leyes_assets(["no-existe"], cache_dir=self.tmp)
+
+    @patch("nota2md.scjn._assets_scjn_leyes")
+    def test_los_slugs_del_release_salen_de_sus_propios_assets(self, mock_assets):
+        mock_assets.return_value = dict(self.URLS)
+
+        self.assertEqual(scjn.scjn_leyes_slugs(), ["lfca", "lft"])
