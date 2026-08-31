@@ -2,7 +2,7 @@
 and for the notas-archivo release (this module's own `notas_de_tgz`, issue
 #103) -- see tests/test_dofjson.py for the surface this locks in."""
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 from dofjson import dofweb
 from dofjson.api import (
@@ -22,7 +22,13 @@ from dofjson.sidof import (
     get_imagenes,
     get_indicadores,
 )
-from dofjson.titulos import download_dof_assets, iterador_de_assets, notas_de_tgz
+from dofjson.titulos import (
+    download_dof_assets,
+    iterador_de_assets,
+    legal_provisions_titles,
+    notas_de_tgz,
+    organigrama,
+)
 
 #: dofweb's own source marker, re-exported so a caller checking a result's
 #: `fuente` never has to import dofjson.dofweb itself just for this constant.
@@ -46,5 +52,7 @@ __all__ = [
     "quita_notas_sin_titulo",
     "download_dof_assets",
     "iterador_de_assets",
+    "legal_provisions_titles",
+    "organigrama",
     "notas_de_tgz"
 ]

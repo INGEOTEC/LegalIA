@@ -85,6 +85,7 @@ class TestDofjsonSurface(unittest.TestCase):
         esperado = {
             "get_nota", "get_notas", "FUENTE_WEB",
             "download_dof_assets", "iterador_de_assets",
+            "legal_provisions_titles", "organigrama",
             "notas_de_tgz",
             *TestApiDownloadEntryPoints.NOMBRES,
             *TestSidofPassthroughEntryPoints.PASSTHROUGHS,

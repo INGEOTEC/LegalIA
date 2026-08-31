@@ -105,9 +105,9 @@ two additions and no change to what a plain full sweep does:
   effects at all when nothing is pending — the expected case most of the
   time. One law failing does not stop the rest: its `estado.json` is left
   untouched so the next plan lists it again, and the run ends with a summary
-  and a non-zero exit status. The titles dataset the linking step needs is
-  downloaded to ``<outdir>/titulos.jsonl.gz`` if it is not there
-  (``--titulos`` points at your own).
+  and a non-zero exit status. The DOF titles the linking step needs are
+  streamed from the notas-archivo cache (``nota2md download gazette-metadata``
+  populates it; ``--cache-dir`` points at your own directory).
 - ``--instrumento SLUG`` (repeatable) crawls only the named instrumentos and
   touches the SCJN for nothing else — the manual escape hatch for one
   specific law, underneath what ``--actualiza`` drives. Unlike
@@ -157,6 +157,7 @@ from pathlib import Path
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
 
+from dofjson.titulos import SIN_CACHE_DIR, legal_provisions_titles  # noqa: E402
 from nota2md.scjn import (  # noqa: E402
     ARCHIVO_ESTADO,
     PENDIENTE_CAMBIO,
@@ -276,36 +277,13 @@ def refresca_catalogo(outdir: Path, coleccion: str) -> None:
     )
 
 
-def _ruta_titulos(outdir: Path, ruta: Path | None) -> Path:
-    """The dofjson titles dataset `enlaza_scjn_legislacion.py` needs,
-    downloading it to `<outdir>/titulos.jsonl.gz` when `ruta` is not given
-    and nothing is there yet. `outdir` is already a gitignored scratch
-    directory (`scripts/scjn/`), so this leaves nothing git can see.
-
-    An existing file is reused as is, never re-downloaded: it is a large
-    asset, and a titles dataset that is a few days old only risks failing to
-    link a reform published in those few days, which the next run picks up."""
-    if ruta is not None:
-        if not ruta.is_file():
-            raise SystemExit(f"{ruta} no existe")
-        return ruta
-    destino = outdir / "titulos.jsonl.gz"
-    if not destino.is_file():
-        from dofjson import download_legal_provisions_titles
-
-        print(f"descargando el dataset de titulos del DOF -> {destino}", file=sys.stderr)
-        outdir.mkdir(parents=True, exist_ok=True)
-        download_legal_provisions_titles(destino)
-    return destino
-
-
 def actualiza_coleccion(
     coleccion: str,
     outdir: Path,
     espera: float,
     *,
     destino: Path,
-    titulos: Path | None = None,
+    cache_dir=SIN_CACHE_DIR,
     refresca: bool = True,
     incluye_sin_actualizado: bool = False,
     empaqueta: bool = True,
@@ -321,9 +299,10 @@ def actualiza_coleccion(
     next `--plan` lists it again, and the run moves on to the next law. The
     summary at the end says which ones need another try.
 
-    The titles dataset is parsed once and reused for every instrumento —
-    `enlaza_coleccion` takes it as an argument precisely so a chain like this
-    does not re-read a large gzip once per law.
+    The DOF titles are streamed once (issue #166) and the grouping reused for
+    every instrumento — `enlaza_coleccion` takes it as an argument precisely
+    so a chain like this does not walk the whole notas-archivo cache once per
+    law.
 
     Packaging only exists for `leyes` (`empaqueta_scjn_leyes.py`, issue
     #128); the other collections stop after linking, which is said out loud
@@ -338,7 +317,9 @@ def actualiza_coleccion(
         return 0
 
     enlaza = _script_hermano("enlaza_scjn_legislacion")
-    porf = enlaza.carga_porf(_ruta_titulos(outdir, titulos))
+    porf = enlaza.carga_porf(
+        legal_provisions_titles(cache_dir, log=lambda *_: None)
+    )
     cache_notas: dict = {}
 
     listos, fallidos = [], []
@@ -693,12 +674,14 @@ def main(argv=None) -> int:
         ),
     )
     p.add_argument(
-        "--titulos",
-        type=Path,
+        "--cache-dir",
+        default=None,
+        metavar="DIR",
         help=(
-            "dataset de dofjson.download_legal_provisions_titles para el paso de enlace "
-            "de --actualiza; por default se usa (y se descarga si falta) "
-            "<outdir>/titulos.jsonl.gz"
+            "directorio con los assets .tgz de notas-archivo de donde el paso de "
+            "enlace de --actualiza lee los titulos del DOF (poblalo con "
+            "`nota2md download gazette-metadata`); sin valor: "
+            "dofjson.titulos.CACHE_DIR; 'none': a memoria"
         ),
     )
     p.add_argument(
@@ -747,7 +730,9 @@ def main(argv=None) -> int:
                 args.outdir,
                 args.espera,
                 destino=args.destino,
-                titulos=args.titulos,
+                cache_dir=_script_hermano(
+                    "enlaza_scjn_legislacion"
+                )._resolver_cache_dir(args.cache_dir),
                 refresca=not args.sin_refrescar_catalogo,
                 incluye_sin_actualizado=args.incluye_sin_actualizado,
                 empaqueta=not args.sin_empaquetar,

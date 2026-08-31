@@ -8,8 +8,8 @@ For each instrument in `extract_scjn_titles.py`'s own catalogue for
 `coleccion`, only its `nombre` is used — Diputados' `historial` never
 reaches this script — to find, for every snapshot already sitting under
 ``<outdir>/<coleccion>/<abrev-o-nombre>/`` (see
-`nota2md.scjn.versiones_de_directorio`), which same-day DOF note (a dofjson
-titles dataset, `dofjson.download_legal_provisions_titles`) explicitly names
+`nota2md.scjn.versiones_de_directorio`), which same-day DOF note (the dofjson
+titles stream, `dofjson.legal_provisions_titles`) explicitly names
 the instrument in its own title (issue #126,
 `nota2md.scjn.title_candidates_por_fecha`) — or, when no same-day title names
 it at all, whichever same-day note opens with "DECRETO"/"LEY"
@@ -42,11 +42,11 @@ warning, since it is exactly the class of case issue #115 asked to be
 reviewable by hand.
 
 Needs each requested collection's own ``catalogo.json`` (`extract_scjn_titles.py`)
-and a titles dataset already built:
+and the notas-archivo cache populated (the DOF titles are streamed from it):
 
     ./scripts/extract_scjn_titles.py --outdir scjn-legislacion
-    python -c "from nota2md import download_legal_provisions_titles as d; d('titulos.jsonl.gz')"
-    ./scripts/enlaza_scjn_legislacion.py --outdir scjn-legislacion --titulos titulos.jsonl.gz
+    nota2md download gazette-metadata
+    ./scripts/enlaza_scjn_legislacion.py --outdir scjn-legislacion
 
 Only instrument directories `fetch_scjn_legislacion.py` already crawled are
 touched; a coleccion+instrumento pair with no directory yet is skipped
@@ -60,7 +60,6 @@ links records the date in its own `estado.json`.
 """
 
 import argparse
-import gzip
 import json
 import sys
 from datetime import date
@@ -69,6 +68,7 @@ from pathlib import Path
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
 
+from dofjson.titulos import SIN_CACHE_DIR, legal_provisions_titles  # noqa: E402
 from nota2md.builder import fetch_nota, legal_provisions  # noqa: E402
 from nota2md.scjn import (  # noqa: E402
     confirm_by_content_diff,
@@ -84,6 +84,17 @@ from nota2md.scjn import (  # noqa: E402
 COLECCIONES = ("leyes", "reglamentos", "tratados")
 
 
+def _resolver_cache_dir(valor: str | None):
+    """--cache-dir's value, resolved as dofjson's own CLI resolves it: not
+    given -> SIN_CACHE_DIR (dofjson.titulos.CACHE_DIR); 'none' -> None
+    (into memory); anything else -> that path."""
+    if valor is None:
+        return SIN_CACHE_DIR
+    if valor.lower() == "none":
+        return None
+    return Path(valor)
+
+
 def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
     """The `nombre`(+`abrev`) catalogue `extract_scjn_titles.py` already
     wrote for `coleccion` -- Diputados' `historial` never reaches this
@@ -97,16 +108,14 @@ def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
     return json.loads(archivo.read_text(encoding="utf-8"))
 
 
-def carga_porf(titulos: Path) -> dict:
-    """Every dofjson title record in `titulos` (a gzipped JSONL from
-    `dofjson.download_legal_provisions_titles`), grouped by `fecha` — the
-    same shape `leyesmx.dof.notas_por_fecha` builds, reused here as
-    `title_candidates_por_fecha`'s own `porf` argument."""
+def carga_porf(titulos) -> dict:
+    """Every dofjson title record in the `titulos` iterable (issue #166: the
+    stream `dofjson.legal_provisions_titles` yields, no longer a file), grouped
+    by `fecha` — the same shape `leyesmx.dof.notas_por_fecha` builds, reused
+    here as `title_candidates_por_fecha`'s own `porf` argument."""
     porf: dict[str, list] = {}
-    with gzip.open(titulos, "rt", encoding="utf-8") as f:
-        for linea in f:
-            nota = json.loads(linea)
-            porf.setdefault(nota["fecha"], []).append(nota)
+    for nota in titulos:
+        porf.setdefault(nota["fecha"], []).append(nota)
     return porf
 
 
@@ -260,8 +269,10 @@ def main(argv=None) -> int:
         help="donde fetch_scjn_legislacion.py ya escribio cada coleccion",
     )
     p.add_argument(
-        "--titulos", type=Path, required=True,
-        help="dataset de dofjson.download_legal_provisions_titles (gzip JSONL)",
+        "--cache-dir", default=None, metavar="DIR",
+        help="directorio con los assets .tgz de notas-archivo de donde se leen "
+             "los titulos del DOF (poblalo con `nota2md download gazette-metadata`); "
+             "sin valor: dofjson.titulos.CACHE_DIR; 'none': a memoria",
     )
     p.add_argument(
         "--coleccion", choices=COLECCIONES, action="append",
@@ -276,7 +287,9 @@ def main(argv=None) -> int:
     )
     args = p.parse_args(argv)
 
-    porf = carga_porf(args.titulos)
+    porf = carga_porf(
+        legal_provisions_titles(_resolver_cache_dir(args.cache_dir), log=lambda *_: None)
+    )
     cache_notas: dict = {}
     instrumento = set(args.instrumento) if args.instrumento else None
     for coleccion in args.coleccion or COLECCIONES:

@@ -103,9 +103,11 @@ def enlaza(reformas, notas) -> list[ReformaEnlazada]:
     """Pair every reform with the best-matching DOF note published that day.
 
     `notas` is any iterable of dofjson title records (see
-    `dofjson.titulos.download_legal_provisions_titles`). Grouping it costs one full pass, so
-    when linking many laws against the same dataset, group once with
-    `notas_por_fecha()` and call `enlaza_agrupadas()` per law instead.
+    `dofjson.titulos.legal_provisions_titles`). Grouping it costs one full
+    pass over the notas-archivo cache, so when linking many laws against the
+    same titles, group once with `notas_por_fecha()` and call
+    `enlaza_agrupadas()` per law instead — the stream is consumed by the
+    first pass and would have to be produced again for a second.
     """
     reformas = list(reformas)
     return enlaza_agrupadas(

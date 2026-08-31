@@ -266,296 +266,183 @@ class TestTitulosDeTgz(unittest.TestCase):
         )
 
 
-class TestDownloadTitulos(unittest.TestCase):
+class TestLegalProvisionsTitles(unittest.TestCase):
+    """The titles as a stream (issue #166): iterador_de_assets +
+    _proyectar_titulo, with nothing written to disk. It replaced
+    download_legal_provisions_titles, which materialized the same ~1.2 million
+    records as a third copy of the notas-archivo cache."""
+
     def setUp(self):
         self.tmpdir = tempfile.TemporaryDirectory()
+        self.cache_dir = Path(self.tmpdir.name) / "cache"
+        self.cache_dir.mkdir()
+        self.addCleanup(self.tmpdir.cleanup)
 
-    def tearDown(self):
-        self.tmpdir.cleanup()
+    def _cachea(self, nombre, miembros):
+        (self.cache_dir / nombre).write_bytes(hacer_tgz(miembros))
 
     @patch("dofjson.titulos.requests.get")
     @patch("dofjson.titulos.listar_assets")
-    def test_writes_one_jsonl_line_per_titled_nota(self, mock_listar_assets, mock_get):
-        mock_listar_assets.return_value = [
+    def test_proyecta_cada_nota_titulada_de_cada_asset(self, mock_listar, mock_get):
+        mock_listar.return_value = [
             {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
             {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
         ]
-        tgz_1980 = hacer_tgz({
-            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
-        })
-        tgz_1981 = hacer_tgz({
-            "1981/02011981-notas.json": dia({"codNota": 2, "titulo": "B", "fecha": "02-01-1981"})
-        })
-        mock_get.side_effect = [
-            Mock(content=tgz_1980, raise_for_status=Mock()),
-            Mock(content=tgz_1981, raise_for_status=Mock()),
-        ]
-
-        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        resultado = titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
-
-        self.assertEqual(resultado, dest)
-        with gzip.open(dest, "rt", encoding="utf-8") as f:
-            lineas = f.read().splitlines()
-        self.assertEqual(
-            [json.loads(l) for l in lineas],
-            [
-                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980", "codOrgaUno": None},
-                {"codNota": 2, "titulo": "B", "fecha": "02-01-1981", "codOrgaUno": None},
-            ],
-        )
-
-    @patch("dofjson.titulos.requests.get")
-    @patch("dofjson.titulos.listar_assets")
-    def test_fecha_carries_the_year_for_grouping(self, mock_listar_assets, mock_get):
-        """Every record keeps its fecha, so the flat output can be grouped by
-        the note's own publication year downstream (see titles_by_year)."""
-        mock_listar_assets.return_value = [
-            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
-            {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
-        ]
-        tgz_1980 = hacer_tgz({
-            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"}),
-            "1980/15061980-notas.json": dia({"codNota": 2, "titulo": "B", "fecha": "15-06-1980"}),
-        })
-        tgz_1981 = hacer_tgz({
-            "1981/03031981-notas.json": dia({"codNota": 3, "titulo": "C", "fecha": "03-03-1981"}),
-        })
-        mock_get.side_effect = [
-            Mock(content=tgz_1980, raise_for_status=Mock()),
-            Mock(content=tgz_1981, raise_for_status=Mock()),
-        ]
-
-        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
-
-        with gzip.open(dest, "rt", encoding="utf-8") as f:
-            registros = [json.loads(l) for l in f]
-
-        # Each record's year comes from its own fecha (DD-MM-YYYY).
-        self.assertTrue(all(r["fecha"] for r in registros))
-        por_anio = Counter(int(r["fecha"].split("-")[-1]) for r in registros)
-        self.assertEqual(por_anio, Counter({1980: 2, 1981: 1}))
-
-    @patch("dofjson.titulos.requests.get")
-    @patch("dofjson.titulos.listar_assets")
-    def test_downloaded_bytes_never_touch_disk(self, mock_listar_assets, mock_get):
-        mock_listar_assets.return_value = [
-            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
-        ]
-        tgz = hacer_tgz({
-            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
-        })
-        mock_get.return_value = Mock(content=tgz, raise_for_status=Mock())
-
-        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
-
-        archivos = sorted(p.name for p in Path(self.tmpdir.name).iterdir())
-        self.assertEqual(archivos, ["organigrama.json", "titulos.jsonl.gz"])
-
-    @patch("dofjson.titulos.requests.get")
-    @patch("dofjson.titulos.listar_assets")
-    def test_writes_organigrama_json_next_to_dest_by_default(self, mock_listar_assets, mock_get):
-        mock_listar_assets.return_value = [
-            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
-            {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
-        ]
-        tgz_1980 = hacer_tgz({
+        self._cachea("notas-1980.tgz", {
             "1980/02011980-notas.json": dia(
-                {
-                    "codNota": 1,
-                    "titulo": "A",
-                    "fecha": "02-01-1980",
-                    "codOrgaUno": "PEJ",
-                    "nombreCodOrgaUno": "PODER EJECUTIVO",
-                },
-                {
-                    "codNota": 2,
-                    "titulo": "B",
-                    "fecha": "02-01-1980",
-                    "codOrgaUno": "PJU",
-                    "nombreCodOrgaUno": "PODER JUDICIAL",
-                },
-            ),
+                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980", "codOrgaUno": "PEJ"}
+            )
         })
-        tgz_1981 = hacer_tgz({
-            "1981/03031981-notas.json": dia(
-                {
-                    "codNota": 3,
-                    "titulo": "C",
-                    "fecha": "03-03-1981",
-                    "codOrgaUno": "PEJ",
-                    "nombreCodOrgaUno": "PODER EJECUTIVO",
-                },
-            ),
+        self._cachea("notas-1981.tgz", {
+            "1981/02011981-notas.json": dia(
+                {"codNota": 2, "titulo": "B", "fecha": "02-01-1981"}
+            )
         })
-        mock_get.side_effect = [
-            Mock(content=tgz_1980, raise_for_status=Mock()),
-            Mock(content=tgz_1981, raise_for_status=Mock()),
-        ]
 
-        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
+        registros = list(titulos.legal_provisions_titles(
+            self.cache_dir, log=lambda *_: None
+        ))
 
-        organigrama_dest = Path(self.tmpdir.name) / "organigrama.json"
-        self.assertTrue(organigrama_dest.exists())
-        with open(organigrama_dest, encoding="utf-8") as f:
-            organigrama = json.load(f)
-        self.assertEqual(organigrama, {"PEJ": "PODER EJECUTIVO", "PJU": "PODER JUDICIAL"})
-
-    @patch("dofjson.titulos.requests.get")
-    @patch("dofjson.titulos.listar_assets")
-    def test_organigrama_dest_can_be_overridden(self, mock_listar_assets, mock_get):
-        mock_listar_assets.return_value = [
-            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
-        ]
-        tgz = hacer_tgz({
-            "1980/02011980-notas.json": dia(
-                {
-                    "codNota": 1,
-                    "titulo": "A",
-                    "fecha": "02-01-1980",
-                    "codOrgaUno": "PEJ",
-                    "nombreCodOrgaUno": "PODER EJECUTIVO",
-                },
-            ),
-        })
-        mock_get.return_value = Mock(content=tgz, raise_for_status=Mock())
-
-        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        organigrama_dest = Path(self.tmpdir.name) / "otro" / "mapa.json"
-        titulos.download_legal_provisions_titles(dest, organigrama_dest, log=lambda *_: None)
-
-        self.assertTrue(organigrama_dest.exists())
-        with open(organigrama_dest, encoding="utf-8") as f:
-            self.assertEqual(json.load(f), {"PEJ": "PODER EJECUTIVO"})
-        # The default location next to `dest` is untouched.
-        self.assertFalse((Path(self.tmpdir.name) / "organigrama.json").exists())
-
-
-class TestDownloadTitulosConCacheDir(unittest.TestCase):
-    def setUp(self):
-        self.tmpdir = tempfile.TemporaryDirectory()
-
-    def tearDown(self):
-        self.tmpdir.cleanup()
-
-    @patch("dofjson.titulos.requests.get")
-    @patch("dofjson.titulos.listar_assets")
-    def test_uses_download_dof_assets_and_reads_from_disk(self, mock_listar_assets, mock_get):
-        mock_listar_assets.return_value = [
-            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
-            {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
-        ]
-        tgz_1980 = hacer_tgz({
-            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
-        })
-        tgz_1981 = hacer_tgz({
-            "1981/02011981-notas.json": dia({"codNota": 2, "titulo": "B", "fecha": "02-01-1981"})
-        })
-        mock_get.side_effect = [
-            Mock(content=tgz_1980, raise_for_status=Mock()),
-            Mock(content=tgz_1981, raise_for_status=Mock()),
-        ]
-
-        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        cache_dir = Path(self.tmpdir.name) / "cache"
-        titulos.download_legal_provisions_titles(dest, cache_dir=cache_dir, log=lambda *_: None)
-
-        self.assertEqual(mock_get.call_count, 2)
-        self.assertTrue((cache_dir / "notas-1980.tgz").exists())
-        self.assertTrue((cache_dir / "notas-1981.tgz").exists())
-        with gzip.open(dest, "rt", encoding="utf-8") as f:
-            registros = [json.loads(l) for l in f]
         self.assertEqual(
             registros,
             [
-                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980", "codOrgaUno": None},
+                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980", "codOrgaUno": "PEJ"},
                 {"codNota": 2, "titulo": "B", "fecha": "02-01-1981", "codOrgaUno": None},
             ],
         )
 
     @patch("dofjson.titulos.requests.get")
     @patch("dofjson.titulos.listar_assets")
-    def test_does_not_redownload_assets_already_in_cache_dir(self, mock_listar_assets, mock_get):
-        mock_listar_assets.return_value = [
-            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
-        ]
-        cache_dir = Path(self.tmpdir.name) / "cache"
-        cache_dir.mkdir()
-        tgz = hacer_tgz({
-            "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
+    def test_con_el_cache_poblado_no_hace_ninguna_peticion(self, mock_listar, mock_get):
+        mock_listar.return_value = [{"name": "notas-1980.tgz", "url": "https://x/1980.tgz"}]
+        self._cachea("notas-1980.tgz", {
+            "1980/02011980-notas.json": dia(
+                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980"}
+            )
         })
-        (cache_dir / "notas-1980.tgz").write_bytes(tgz)
 
-        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_legal_provisions_titles(dest, cache_dir=cache_dir, log=lambda *_: None)
+        list(titulos.legal_provisions_titles(self.cache_dir, log=lambda *_: None))
 
         mock_get.assert_not_called()
-        with gzip.open(dest, "rt", encoding="utf-8") as f:
-            registros = [json.loads(l) for l in f]
+
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_descarta_las_notas_sin_titulo(self, mock_listar, mock_get):
+        mock_listar.return_value = [{"name": "notas-1980.tgz", "url": "https://x/1980.tgz"}]
+        self._cachea("notas-1980.tgz", {
+            "1980/02011980-notas.json": dia(
+                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980"},
+                {"codNota": 2, "fecha": "02-01-1980"},  # sin titulo: se descarta
+            )
+        })
+
+        registros = list(titulos.legal_provisions_titles(
+            self.cache_dir, log=lambda *_: None
+        ))
+
+        self.assertEqual([r["codNota"] for r in registros], [1])
+
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_conserva_la_fuente_de_un_dia_recuperado_del_sitio_del_dof(
+        self, mock_listar, mock_get
+    ):
+        mock_listar.return_value = [{"name": "notas-1980.tgz", "url": "https://x/1980.tgz"}]
+        contenido = dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
+        contenido["fuente"] = "dofweb"
+        self._cachea("notas-1980.tgz", {"1980/02011980-notas.json": contenido})
+
+        registro = next(titulos.legal_provisions_titles(
+            self.cache_dir, log=lambda *_: None
+        ))
+
+        self.assertEqual(registro["fuente"], "dofweb")
+
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_es_perezoso(self, mock_listar, mock_get):
+        """1.2 millones de notas: materializarlas todas no es opcion."""
+        mock_listar.return_value = [{"name": "notas-1980.tgz", "url": "https://x/1980.tgz"}]
+        self._cachea("notas-1980.tgz", {
+            "1980/02011980-notas.json": dia(
+                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980"},
+                {"codNota": 2, "titulo": "B", "fecha": "02-01-1980"},
+            )
+        })
+
+        primero = next(titulos.legal_provisions_titles(
+            self.cache_dir, log=lambda *_: None
+        ))
+
+        self.assertEqual(primero["codNota"], 1)
+
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_no_escribe_nada(self, mock_listar, mock_get):
+        mock_listar.return_value = [{"name": "notas-1980.tgz", "url": "https://x/1980.tgz"}]
+        self._cachea("notas-1980.tgz", {
+            "1980/02011980-notas.json": dia(
+                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980"}
+            )
+        })
+
+        list(titulos.legal_provisions_titles(self.cache_dir, log=lambda *_: None))
+
         self.assertEqual(
-            registros, [{"codNota": 1, "titulo": "A", "fecha": "02-01-1980", "codOrgaUno": None}]
+            sorted(p.name for p in Path(self.tmpdir.name).rglob("*")),
+            ["cache", "notas-1980.tgz"],
         )
 
+    @patch("dofjson.titulos.requests.get")
+    @patch("dofjson.titulos.listar_assets")
+    def test_el_organigrama_se_acumula_entre_assets(self, mock_listar, mock_get):
+        mock_listar.return_value = [
+            {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
+            {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
+        ]
+        self._cachea("notas-1980.tgz", {
+            "1980/02011980-notas.json": dia({
+                "codNota": 1, "titulo": "A", "fecha": "02-01-1980",
+                "codOrgaUno": "PEJ", "nombreCodOrgaUno": "PODER EJECUTIVO",
+            })
+        })
+        self._cachea("notas-1981.tgz", {
+            "1981/02011981-notas.json": dia({
+                "codNota": 2, "titulo": "B", "fecha": "02-01-1981",
+                "codOrgaUno": "PJU", "nombreCodOrgaUno": "PODER JUDICIAL",
+            })
+        })
 
-class TestLeeTitulos(unittest.TestCase):
-    """El lector de lo que escribe download_legal_provisions_titles. Antes leyesmx usaba
-    microtc.utils.tweet_iterator para esto: lee el mismo formato, pero importa
-    numpy sin declararlo, así que una instalación sin numpy falla en
-    `import microtc` y no en la llamada."""
+        acumulado = {}
+        list(titulos.legal_provisions_titles(
+            self.cache_dir, log=lambda *_: None, organigrama=acumulado
+        ))
+        self.assertEqual(acumulado, {"PEJ": "PODER EJECUTIVO", "PJU": "PODER JUDICIAL"})
 
-    def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.dest = Path(self.tmp.name) / "titulos.jsonl.gz"
-
-    def tearDown(self):
-        self.tmp.cleanup()
-
-    def escribe(self, lineas):
-        with gzip.open(self.dest, "wt", encoding="utf-8") as f:
-            f.write(lineas)
-
-    def test_lee_lo_que_download_legal_provisions_titles_escribe(self):
-        self.escribe('{"codNota": 1, "titulo": "DECRETO"}\n'
-                     '{"codNota": 2, "titulo": "ACUERDO"}\n')
-
+        # Y la funcion propia hace la misma pasada por su cuenta.
         self.assertEqual(
-            list(titulos.lee_titulos(self.dest)),
-            [{"codNota": 1, "titulo": "DECRETO"}, {"codNota": 2, "titulo": "ACUERDO"}],
+            titulos.organigrama(self.cache_dir, log=lambda *_: None), acumulado
         )
 
-    def test_conserva_los_acentos(self):
-        self.escribe('{"codNota": 1, "titulo": "Aclaración al Acuerdo"}\n')
+    def test_sin_cache_dir_usa_el_cache_del_paquete(self):
+        self._cachea("notas-1980.tgz", {
+            "1980/02011980-notas.json": dia(
+                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980"}
+            )
+        })
+        with patch.object(titulos, "CACHE_DIR", self.cache_dir), \
+                patch("dofjson.titulos.listar_assets", return_value=[
+                    {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"}
+                ]), patch("dofjson.titulos.requests.get") as mock_get:
+            registros = list(titulos.legal_provisions_titles(log=lambda *_: None))
 
-        self.assertEqual(next(titulos.lee_titulos(self.dest))["titulo"],
-                         "Aclaración al Acuerdo")
+        mock_get.assert_not_called()
+        self.assertEqual([r["codNota"] for r in registros], [1])
 
-    def test_ignora_las_lineas_en_blanco(self):
-        self.escribe('{"codNota": 1}\n\n{"codNota": 2}\n')
+    def test_son_las_entradas_publicas_de_dofjson(self):
+        self.assertIs(dofjson.legal_provisions_titles, titulos.legal_provisions_titles)
+        self.assertIs(dofjson.organigrama, titulos.organigrama)
 
-        self.assertEqual([n["codNota"] for n in titulos.lee_titulos(self.dest)], [1, 2])
-
-    def test_es_perezoso(self):
-        """1.2 millones de notas: cargarlas todas de golpe no es opción."""
-        self.escribe('{"codNota": 1}\n{"codNota": 2}\n')
-
-        self.assertEqual(next(titulos.lee_titulos(self.dest)), {"codNota": 1})
-
-    def test_ida_y_vuelta_con_download_legal_provisions_titles(self):
-        contenido = hacer_tgz({"1980/02011980-notas.json": dia(
-            {"codNota": 7, "titulo": "DECRETO", "fecha": "02-01-1980",
-             "codOrgaUno": "PE"})})
-        with patch("dofjson.titulos.listar_assets",
-                   return_value=[{"name": "notas-1980.tgz", "url": "https://x/a.tgz"}]), \
-             patch("dofjson.titulos.requests.get",
-                   return_value=Mock(content=contenido, raise_for_status=Mock())):
-            titulos.download_legal_provisions_titles(self.dest, log=lambda *_: None)
-
-        self.assertEqual(list(titulos.lee_titulos(self.dest)),
-                         [{"codNota": 7, "titulo": "DECRETO", "fecha": "02-01-1980",
-                           "codOrgaUno": "PE"}])
 
 
 class TestNotasDeTgz(unittest.TestCase):
@@ -685,10 +572,12 @@ class TestIteradorDeAssets(unittest.TestCase):
             Mock(content=tgz_1981, raise_for_status=Mock()),
         ]
 
-        resultado = list(titulos.iterador_de_assets(log=lambda *_: None))
+        resultado = list(
+            titulos.iterador_de_assets(cache_dir=None, log=lambda *_: None)
+        )
 
         self.assertEqual([n["codNota"] for n in resultado], [1, 2])
-        # Nothing downloaded touches disk when cache_dir is left as None.
+        # Nothing downloaded touches disk with an explicit cache_dir=None.
         mock_get.assert_called()
 
     @patch("dofjson.titulos.requests.get")
@@ -732,43 +621,36 @@ class TestIteradorDeAssets(unittest.TestCase):
         ]
 
         organigrama = {}
-        list(titulos.iterador_de_assets(log=lambda *_: None, organigrama=organigrama))
+        list(titulos.iterador_de_assets(
+            cache_dir=None, log=lambda *_: None, organigrama=organigrama
+        ))
 
         self.assertEqual(organigrama, {"PEJ": "PODER EJECUTIVO", "PJU": "PODER JUDICIAL"})
 
-    def test_is_the_dofjson_public_entry_point(self):
-        self.assertIs(dofjson.iterador_de_assets, titulos.iterador_de_assets)
-
-
-class TestDownloadLegalProvisionsTitlesUsesIteradorDeAssets(unittest.TestCase):
-    """download_legal_provisions_titles is built on iterador_de_assets +
-    _proyectar_titulo now -- these lock in that the public contract (the
-    JSONL it writes) did not change with that refactor."""
-
-    def setUp(self):
-        self.tmpdir = tempfile.TemporaryDirectory()
-
-    def tearDown(self):
-        self.tmpdir.cleanup()
-
     @patch("dofjson.titulos.requests.get")
     @patch("dofjson.titulos.listar_assets")
-    def test_drops_title_less_notes_that_iterador_de_assets_keeps(self, mock_listar, mock_get):
+    def test_sin_cache_dir_lee_el_cache_del_paquete(self, mock_listar, mock_get):
+        """Issue #166: the default is the package-wide CACHE_DIR, the same
+        convention get_notas()/download_archivo() follow -- so a caller who
+        already populated it (`nota2md download gazette-metadata`) iterates
+        the archive without naming a path."""
         mock_listar.return_value = [{"name": "notas-1980.tgz", "url": "https://x/1980.tgz"}]
-        contenido = hacer_tgz({
-            "1980/02011980-notas.json": dia(
-                {"codNota": 1, "titulo": "A", "fecha": "02-01-1980"},
-                {"codNota": 2, "fecha": "02-01-1980"},  # title-less: dropped
-            )
-        })
-        mock_get.return_value = Mock(content=contenido, raise_for_status=Mock())
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_dir = Path(tmp) / "cache"
+            cache_dir.mkdir()
+            (cache_dir / "notas-1980.tgz").write_bytes(hacer_tgz({
+                "1980/02011980-notas.json": dia(
+                    {"codNota": 1, "titulo": "A", "fecha": "02-01-1980"}
+                )
+            }))
+            with patch.object(titulos, "CACHE_DIR", cache_dir):
+                resultado = list(titulos.iterador_de_assets(log=lambda *_: None))
 
-        dest = Path(self.tmpdir.name) / "titulos.jsonl.gz"
-        titulos.download_legal_provisions_titles(dest, log=lambda *_: None)
+        mock_get.assert_not_called()
+        self.assertEqual([n["codNota"] for n in resultado], [1])
 
-        with gzip.open(dest, "rt", encoding="utf-8") as f:
-            registros = [json.loads(l) for l in f]
-        self.assertEqual([r["codNota"] for r in registros], [1])
+    def test_is_the_dofjson_public_entry_point(self):
+        self.assertIs(dofjson.iterador_de_assets, titulos.iterador_de_assets)
 
 
 class TestDirectorioCachePredeterminado(unittest.TestCase):

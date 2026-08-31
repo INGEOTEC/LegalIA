@@ -6,8 +6,31 @@ import json
 import sys
 from pathlib import Path
 
-from dofjson.titulos import lee_titulos
+from dofjson.titulos import SIN_CACHE_DIR, legal_provisions_titles
 from leyesmx import diputados, dof, normas, tratados
+
+
+def _titulos(args):
+    """The DOF titles as a fresh stream (issue #166).
+
+    Called once per pass: the stream is not re-iterable — every pass
+    re-reads the notas-archivo cache — so a caller that needs the titles
+    twice calls this again rather than keeping the generator around.
+    """
+    return legal_provisions_titles(
+        _resolver_cache_dir(args.cache_dir), log=lambda *_: None
+    )
+
+
+def _resolver_cache_dir(valor: str | None):
+    """--cache-dir's value, resolved the way dofjson's own CLI resolves it:
+    not given -> SIN_CACHE_DIR (dofjson.titulos.CACHE_DIR); 'none' -> None
+    (download into memory, nothing on disk); anything else -> that path."""
+    if valor is None:
+        return SIN_CACHE_DIR
+    if valor.lower() == "none":
+        return None
+    return Path(valor)
 
 
 def lista_de_codnota(enlazadas) -> list[int | None]:
@@ -15,8 +38,8 @@ def lista_de_codnota(enlazadas) -> list[int | None]:
 
     Only the codNota is stored: everything else about a note — its title, its
     date, its issuing branch — is already in the dataset that
-    `dofjson.titulos.download_legal_provisions_titles` builds, and is recovered by joining on
-    codNota. Keeping a copy here would only let the two drift apart.
+    `dofjson.titulos.legal_provisions_titles` streams, and is recovered by
+    joining on codNota. Keeping a copy here would only let the two drift apart.
 
     **Index N is reform N**, and index 0 is the law's original publication.
     Each entry is placed by its number rather than by position, so the
@@ -68,7 +91,7 @@ def todas_las_leyes(args) -> int:
     fechas = {r.fecha for rs in reformas_por_ley.values() for r in rs}
     print(f"agrupando el DOF por fecha ({len(fechas)} fechas distintas)…",
           file=sys.stderr)
-    porf = dof.notas_por_fecha(lee_titulos(str(args.titulos)), fechas)
+    porf = dof.notas_por_fecha(_titulos(args), fechas)
 
     catalogo, totales = [], {"reformas": 0, "con_nota": 0, "exactas": 0}
     for ley in leyes:
@@ -121,7 +144,7 @@ def todos_los_reglamentos(args) -> int:
     fechas = {r.fecha for reg in reglamentos for r in reg.reformas}
     print(f"agrupando el DOF por fecha ({len(fechas)} fechas distintas)…",
           file=sys.stderr)
-    porf = dof.notas_por_fecha(lee_titulos(str(args.titulos)), fechas)
+    porf = dof.notas_por_fecha(_titulos(args), fechas)
 
     catalogo, totales = [], {"reformas": 0, "con_nota": 0, "exactas": 0}
     for reg in reglamentos:
@@ -166,7 +189,7 @@ def todas_las_normas(args) -> int:
     tell.
     """
     destino_dir = args.out or Path("data/normas")
-    grupos = normas.agrupa(lee_titulos(str(args.titulos)))
+    grupos = normas.agrupa(_titulos(args))
     instrumentos, ambiguas = normas.resuelve_citas_parciales(grupos)
 
     _escribe({c: normas.historia(v) for c, v in instrumentos.items()},
@@ -199,7 +222,7 @@ def todos_los_tratados(args) -> int:
     note, which for most older ones is the truth rather than a miss.
     """
     destino_dir = args.out or Path("data/tratados")
-    decretos = tratados.decretos(lee_titulos(str(args.titulos)))
+    decretos = tratados.decretos(_titulos(args))
     print(f"decretos de tratado en el DOF: {len(decretos)}", file=sys.stderr)
 
     grupos = tratados.empareja(decretos)
@@ -225,19 +248,18 @@ def main(argv=None) -> int:
                         "'normas' for every Norma Oficial Mexicana, "
                         "'tratados' for every international treaty "
                         "(default: cpeum)")
-    p.add_argument("--titulos", type=Path, default=Path("titulos.jsonl.gz"),
-                   help="dataset from dofjson.titulos.download_legal_provisions_titles")
+    p.add_argument("--cache-dir", default=None, metavar="DIR",
+                   help="directory holding the notas-archivo .tgz assets the DOF "
+                        "titles are streamed from (populate it with `nota2md "
+                        "download gazette-metadata`). Not given: "
+                        "dofjson.titulos.CACHE_DIR; 'none': download them into "
+                        "memory instead of reading disk")
     p.add_argument("--out", type=Path, default=None,
                    help="output JSON (default: data/reformas/<ley>.json)")
     p.add_argument("--decretos", type=Path, default=None, metavar="DIR",
                    help="download from Diputados the decrees the DOF cannot "
                         "serve, as a fallback route to the primary source")
     args = p.parse_args(argv)
-
-    if not args.titulos.exists():
-        from dofjson.titulos import download_legal_provisions_titles
-        print(f"descargando títulos del DOF -> {args.titulos}", file=sys.stderr)
-        download_legal_provisions_titles(args.titulos, log=lambda *_: None)
 
     if args.ley == "todas":
         return todas_las_leyes(args)
@@ -249,7 +271,7 @@ def main(argv=None) -> int:
         return todos_los_tratados(args)
 
     reformas = diputados.parse_reformas(diputados.descarga(args.ley), args.ley)
-    enlazadas = dof.enlaza(reformas, lee_titulos(str(args.titulos)))
+    enlazadas = dof.enlaza(reformas, _titulos(args))
 
     destino = args.out or Path("data/reformas") / f"{args.ley}.json"
     escribe_json(enlazadas, destino)

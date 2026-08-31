@@ -72,7 +72,7 @@ so one law changing makes the published one stale.
     ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes \\
         --instrumento lft
     ./scripts/enlaza_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes \\
-        --titulos titulos.jsonl.gz --instrumento lft
+        --instrumento lft
     ./scripts/empaqueta_scjn_leyes.py --instrumento lft
     less scripts/scjn/leyes-release/MANIFEST.md   # short now. still read it all.
 

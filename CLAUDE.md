@@ -22,8 +22,10 @@ build on each other in this sequence.
   silently loses whole days (reports them as an empty, valid day, same as a
   Sunday); `dofjson.dofweb` recovers those from `www.dof.gob.mx` and callers
   never need to know which source actually answered (see `fuente` field).
-  Also builds the compact `codNota`+`titulo`+`fecha` dataset of every legal
-  provision ever published, read from the `notas-archivo` GitHub release.
+  Also streams the compact `codNota`+`titulo`+`fecha` record of every legal
+  provision ever published (`legal_provisions_titles`), off the on-disk cache
+  of the `notas-archivo` GitHub release — it writes no dataset of its own
+  (issue #166).
 - **`nota2md`** — seven entry points, all re-exported off the package:
   `legal_provisions` (one note → Markdown, `legal_provisions(codNota)` with no
   other argument writing into `nota2md.cache.CACHE_DIR` and returning the
@@ -34,7 +36,7 @@ build on each other in this sequence.
   `reconstruct_legal_provisions` (a law's current text, replayed from its own
   reform decrees), `download_legal_provisions_provenance_ids` (a law's reform
   history, from the `historial-legislativo` release), `fetch_daily_legal_provisions`,
-  `download_legal_provisions_titles` (re-exported from `dofjson.titulos`),
+  `legal_provisions_titles` (re-exported from `dofjson.titulos`),
   `download_scjn_leyes_corpus`/`download_scjn_leyes_index` (the `scjn-leyes`
   release's readers). Its release assets are cached on disk under
   `nota2md.cache.CACHE_DIR` — `nota2md`'s own directory, deliberately not
@@ -62,7 +64,8 @@ releases (`historial-legislativo`, `notas-archivo`) or are `.gitignore`d
 local scratch directories (`/output/`, `/notas-archivo/`,
 `packages/leyesmx/data/`, `scripts/scjn/`, `scripts/legal_provisions/`).
 Read them back via `download_legal_provisions_provenance_ids` /
-`download_legal_provisions_titles`, never by looking for a file in the repo.
+`legal_provisions_titles` (the latter over the cache `nota2md download
+gazette-metadata` populates), never by looking for a file in the repo.
 
 ## Commands
 

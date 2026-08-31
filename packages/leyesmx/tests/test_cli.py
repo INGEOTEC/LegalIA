@@ -1,9 +1,13 @@
+import argparse
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from leyesmx.cli import escribe_json
+from unittest.mock import patch
+
+from dofjson.titulos import SIN_CACHE_DIR
+from leyesmx.cli import _resolver_cache_dir, _titulos, escribe_json
 from leyesmx.dof import ReformaEnlazada
 
 
@@ -56,6 +60,33 @@ class TestEscribeJson(unittest.TestCase):
         escribe_json([enlazada(1, 111)], destino)
 
         self.assertTrue(destino.exists())
+
+
+class TestCacheDir(unittest.TestCase):
+    """--cache-dir replaced --titulos <ruta> (issue #166): the titles are a
+    stream over the notas-archivo cache now, not a file of their own."""
+
+    def _args(self, cache_dir):
+        return argparse.Namespace(cache_dir=cache_dir)
+
+    def test_sin_valor_usa_el_cache_del_paquete(self):
+        self.assertIs(_resolver_cache_dir(None), SIN_CACHE_DIR)
+
+    def test_none_baja_a_memoria(self):
+        self.assertIsNone(_resolver_cache_dir("none"))
+        self.assertIsNone(_resolver_cache_dir("NONE"))
+
+    def test_una_ruta_se_usa_tal_cual(self):
+        self.assertEqual(_resolver_cache_dir("/mnt/datos"), Path("/mnt/datos"))
+
+    def test_cada_pasada_pide_un_flujo_nuevo(self):
+        """El generador no es re-iterable: cada consumidor lo vuelve a pedir."""
+        with patch("leyesmx.cli.legal_provisions_titles") as mock_titulos:
+            _titulos(self._args(None))
+            _titulos(self._args(None))
+
+        self.assertEqual(mock_titulos.call_count, 2)
+        self.assertIs(mock_titulos.call_args.args[0], SIN_CACHE_DIR)
 
 
 if __name__ == "__main__":

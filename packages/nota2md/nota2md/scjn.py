@@ -1131,7 +1131,7 @@ def title_candidates_por_fecha(fechas, nombre: str, porf: dict) -> dict[str, lis
     cover the dates actually worth checking (typically the ones
     `versiones_de_directorio` returns for this instrument); `porf` groups by
     fecha every dofjson title record worth considering (see
-    `leyesmx.dof.notas_por_fecha` / `dofjson.download_legal_provisions_titles`).
+    `leyesmx.dof.notas_por_fecha` / `dofjson.legal_provisions_titles`).
 
     When no same-day title names the instrument at all, this falls back to
     every same-day codNota whose own title opens with "DECRETO" or "LEY"

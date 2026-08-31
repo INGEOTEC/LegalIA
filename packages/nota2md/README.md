@@ -24,7 +24,7 @@ Oficial de la Federación) and the federal laws it publishes:
 | [`reconstruct_legal_provisions`](#reconstruct_legal_provisions--a-laws-current-text-from-its-dof-legal-provisions) | a law's reform history (`codNota` list) | its current text, written to `outdir/ley-{codNota}.md` |
 | [`download_legal_provisions_provenance_ids`](#download_legal_provisions_provenance_ids--a-laws-reform-history) | a collection name (`"leyes"`, `"reglamentos"`, `"normas"`, `"tratados"`) | every instrument's reform history, in memory |
 | [`fetch_daily_legal_provisions`](#cutting-a-legal-provision-out-of-its-page) | a date | that day's browsable legal provisions (title, `codNota`, `codEdicion`...) |
-| [`download_legal_provisions_titles`](#download_legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` release) | every legal provision ever published, as `codNota`+`titulo`+`fecha`, written to a gzipped JSONL file |
+| [`legal_provisions_titles`](#legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` cache) | every legal provision ever published, as a stream of `codNota`+`titulo`+`fecha`+`codOrgaUno` records |
 | [`download_scjn_leyes_corpus`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | a law's `slug` | every snapshot of that law in the `scjn-leyes` release, with its `codNota` links, in memory |
 | [`download_scjn_leyes_index`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (reads one small release asset) | the reverse index `codNota → (law, snapshot)`, in memory |
 
@@ -319,24 +319,24 @@ reform count, dates...) with its own `historial`: the `codNota` of its reforms
 or decrees, oldest first, index 0 the original publication. That is exactly
 what `reconstruct_legal_provisions` expects as its own first argument.
 
-## `download_legal_provisions_titles` — every legal provision ever published, as titles
+## `legal_provisions_titles` — every legal provision ever published, as titles
 
 Implemented in [`dofjson.titulos`](../dofjson) and re-exported here so it sits
-alongside the rest of `nota2md`'s entry points. Builds a compact `codNota` +
-`titulo` + `fecha` + `codOrgaUno` dataset covering every legal provision
-published since 1917 (~1.2 million rows, a few tens of MB compressed), read
-straight from the `notas-archivo` release — nothing downloaded touches disk
-except the two result files:
-
-```python
-from pathlib import Path
-from nota2md import download_legal_provisions_titles
-
-download_legal_provisions_titles(Path("titulos.jsonl.gz"))
-```
+alongside the rest of `nota2md`'s entry points. Yields a compact `codNota` +
+`titulo` + `fecha` + `codOrgaUno` record for every legal provision published
+since 1917 (~1.2 million of them), streamed off the `notas-archivo` cache —
+nothing is written, and a populated cache means no network at all (issue
+#166; it used to write a `titulos.jsonl.gz` dataset):
 
 ```bash
-dofjson --titulos --outdir output    # -> output/titulos.jsonl.gz
+nota2md download gazette-metadata    # populate the cache, once
+```
+
+```python
+from nota2md import legal_provisions_titles
+
+for titulo in legal_provisions_titles():
+    ...
 ```
 
 ## `nota2md download` — putting the releases on disk
