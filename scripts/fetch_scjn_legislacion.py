@@ -81,12 +81,19 @@ rows across 31 grid pages -- used to go completely silent for as long as
 that took, indistinguishable from a hung process; `descarga_ordenamiento`'s
 `on_progreso` callback now narrates it, one line per grid page and per row.
 
-Issue #177 adds ``--api``: the same crawl, driven by the SCJN's own SCOW
-JSON API (`nota2md.scjn_api`) instead of the WebForms Buscador. It is a
-transition flag -- the WebForms path is still the default here, and the
-default only flips in issue #178, once a full re-crawl has been diffed
-against the corpus already on disk. Every mechanism described above keeps
-its meaning under ``--api``; two things are genuinely new:
+Issue #177 added ``--api``: the same crawl, driven by the SCJN's own SCOW
+JSON API (`nota2md.scjn_api`) instead of the WebForms Buscador. Issue #178
+re-crawled the whole `leyes` collection through it, diffed the result
+against the corpus this repo had already published, and **made it the
+default** -- ``--webforms`` is now the flag, and it only survives until the
+Fase 6 removal (issue #179). What the diff showed, over 315 instrumentos:
+270 identical in every respect, 0 that the new index cannot find and the
+old one could, 53 whose only change is a title cleaned of the HTML
+scraping's own spacing artifacts ("INTE RES PUBLICO", "LEY ,"), and two
+files the old crawler had saved from an entirely different ordenamiento
+(a Morelos state law under `lgeepa`, a Nuevo Leon one under `cpeum` --
+issue #115 Hallazgo C, found again). Every mechanism described above keeps
+its meaning under the API; two things are genuinely new:
 
 - an instrumento's `estado.json` records the `id_ordenamiento` the crawl
   resolved, so a later run skips the search step entirely and reads exactly
@@ -306,7 +313,7 @@ def actualiza_coleccion(
     refresca: bool = True,
     incluye_sin_actualizado: bool = False,
     empaqueta: bool = True,
-    api: bool = False,
+    api: bool = True,
 ) -> int:
     """The whole issue #148 chain in one call: refresh the catalogue, work
     out what is pending, and for each pending instrumento crawl it, link it
@@ -488,7 +495,7 @@ def rastrea_coleccion(
     reiniciar: bool = False,
     reintenta: set[str] | None = None,
     instrumento: set[str] | None = None,
-    api: bool = False,
+    api: bool = True,
 ) -> list[str]:
     """Crawl `coleccion` and return the slugs whose crawl did not succeed —
     the SCJN raised, or returned nothing at all for them. Failures were
@@ -707,12 +714,18 @@ def main(argv=None) -> int:
         "--api",
         action="store_true",
         help=(
-            "rastrea por la API JSON de /consulta/buscador (nota2md.scjn_api) en vez "
-            "del Buscador WebForms (issue #177). Todo lo demas -- estado.json, "
-            "--plan/--actualiza/--instrumento/--reintenta/--reiniciar, el skip por "
-            "archivo ya en disco -- conserva su significado. El default se voltea "
-            "hasta la Fase 5 (issue #178), despues de diferenciar un re-rastreo "
-            "completo contra el corpus en disco"
+            "sin efecto: la API ya es el default desde el issue #178. Se acepta para "
+            "que un comando escrito durante la transicion (issue #177) siga corriendo"
+        ),
+    )
+    p.add_argument(
+        "--webforms",
+        action="store_true",
+        help=(
+            "rastrea por el Buscador WebForms viejo en vez de la API (issue #178). "
+            "Bandera de transicion: el camino WebForms se retira en la Fase 6 "
+            "(issue #179). Solo tiene sentido para reproducir a mano lo que una "
+            "corrida anterior a la migracion produjo"
         ),
     )
     p.add_argument(
@@ -803,7 +816,7 @@ def main(argv=None) -> int:
                 refresca=not args.sin_refrescar_catalogo,
                 incluye_sin_actualizado=args.incluye_sin_actualizado,
                 empaqueta=not args.sin_empaquetar,
-                api=args.api,
+                api=not args.webforms,
             )
             continue
         rastrea_coleccion(
@@ -813,7 +826,7 @@ def main(argv=None) -> int:
             reiniciar=args.reiniciar,
             reintenta=reintenta,
             instrumento=instrumento,
-            api=args.api,
+            api=not args.webforms,
         )
     # Non-zero when --actualiza left work behind, so a caller (or a human
     # reading `echo $?`) does not mistake a partial run for a clean one.
