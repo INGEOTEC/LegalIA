@@ -39,6 +39,42 @@ def infer_paginas(nota: dict, notas_del_dia: dict) -> list[int]:
     return list(range(pagina_inicio, pagina_sig + 1))
 
 
+def notas_del_dia(notas: dict) -> list[dict]:
+    """Every note in a get_notas()-shaped response as one flat list, each note
+    carrying `edicion` ("MAT"/"VES"/"EXT") and the day's `fuente`.
+
+    Ordered edition-first (MAT, VES, EXT — the day's publication order), then
+    by `codNota` within an edition, so a reader goes through the day the way
+    the gazette itself is published.
+
+    `edicion` is taken from the bucket the note was sitting in, not from its
+    own `codEdicion`: a dofweb-recovered note does not always carry
+    `codEdicion`, and where both exist they agree. The day-level `fuente` is
+    copied onto each note, so a note taken out of the day's context still says
+    whether it came from SIDOF or dof.gob.mx — the same convention get_nota()
+    already follows per note.
+
+    Each entry is a shallow copy; the response passed in is left untouched.
+    Keys that are not one of the three edition lists (`fuente`, and anything
+    SIDOF adds later) are skipped rather than iterated, and an empty day — a
+    weekend, a holiday, a day SIDOF lost and dofweb confirmed empty — gives
+    back an empty list.
+    """
+    fuente = notas.get("fuente")
+    planas = []
+    for edicion, clave in EDICION_LISTAS.items():
+        lista = notas.get(clave)
+        if not isinstance(lista, list):
+            continue
+        for nota in sorted(lista, key=lambda n: n["codNota"]):
+            plana = dict(nota)
+            plana["edicion"] = edicion
+            if fuente is not None:
+                plana["fuente"] = fuente
+            planas.append(plana)
+    return planas
+
+
 def quita_notas_sin_titulo(notas_del_dia: dict) -> dict:
     """Drop notes with no `titulo` from a get_notas()-shaped response — SIDOF's
     or dofweb's, it makes no difference here — for building a clean per-day

@@ -104,10 +104,18 @@ and, when SIDOF has nothing for that day, from the DOF's own website:
 ```python
 from nota2md import fetch_daily_legal_provisions
 import datetime as dt
+import dofjson
 
-for nota in fetch_daily_legal_provisions(dt.date(2026, 7, 15))["NotasMatutinas"]:
-    print(nota["codNota"], nota["titulo"])
+notas = fetch_daily_legal_provisions(dt.date(2026, 7, 15))
+for nota in dofjson.legal_provisions_of_day(notas):
+    print(nota["edicion"], nota["codNota"], nota["titulo"])
 ```
+
+The index itself is keyed by edition
+(`NotasMatutinas`/`NotasVespertinas`/`NotasExtraordinarias`), so indexing one
+of those keys silently drops the rest of the day;
+`dofjson.legal_provisions_of_day()` flattens all three into one sequence in
+publication order, each note naming its own `edicion` (issue #169).
 
 ### The SCJN path — a law's consolidated text at each reform
 

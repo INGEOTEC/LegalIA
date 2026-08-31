@@ -13,8 +13,9 @@ from dofjson.api import (
     download_nota_pdf,
     get_nota,
     get_notas,
+    legal_provisions_of_day,
 )
-from dofjson.notas import infer_paginas, quita_notas_sin_titulo
+from dofjson.notas import infer_paginas, notas_del_dia, quita_notas_sin_titulo
 from dofjson.sidof import (
     download_imagen,
     download_pdf,
@@ -37,6 +38,8 @@ FUENTE_WEB = dofweb.FUENTE
 __all__ = [
     "get_nota",
     "get_notas",
+    "legal_provisions_of_day",
+    "notas_del_dia",
     "FUENTE_WEB",
     "download_nota",
     "download_nota_imagenes",
