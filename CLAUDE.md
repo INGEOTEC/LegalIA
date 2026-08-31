@@ -77,13 +77,14 @@ gazette-metadata` populates), never by looking for a file in the repo.
 
 ## Commands
 
-Three test files make real network calls and are excluded from routine runs
+Four test files make real network calls and are excluded from routine runs
 (CI's `test.yml` does include them by default — check before assuming a
 failure there is unrelated):
 
 ```bash
 pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
-    --ignore=packages/nota2md/tests/test_scjn_release_red.py
+    --ignore=packages/nota2md/tests/test_scjn_release_red.py \
+    --ignore=packages/nota2md/tests/test_scjn_api_red.py
 ```
 
 The website's notebooks are committed without their outputs, via an

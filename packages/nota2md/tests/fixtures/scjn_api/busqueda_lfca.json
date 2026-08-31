@@ -1,0 +1,35 @@
+{
+ "tamanio": 1,
+ "codigo": 200,
+ "mensaje": "Resultados encontrados",
+ "resultados": [
+  {
+   "idOrdenamiento": "188805",
+   "iweight": 33,
+   "ordenamiento": "<em>LEY</em> <em>FEDERAL</em> <em>DE</em> <em>CINE</em> <em>Y</em> <em>EL</em> <em>AUDIOVISUAL</em>",
+   "vigencia": "VIGENTE",
+   "estado": null,
+   "municipio": null,
+   "categoriaOrdenamiento": "LEY",
+   "ambito": "FEDERAL",
+   "pais": "MÉXICO",
+   "resumen": null,
+   "reformaId": "1",
+   "reformaExtracto": "LEY FEDERAL DE CINE Y EL AUDIOVISUAL.\r\n\r\nTRANSITORIOS:\r\nPRIMERO. EL PRESENTE DECRETO ENTRA EN VIGOR EL DIA SIGUIENTE AL DE SU PUBLICACION EN EL DIARIO OFICIAL DE LA FEDERACION.\r\n\r\nSEGUNDO. SE ABROGA LA LEY FEDERAL DE CINEMATOGRAFIA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACION EL 29 DE DICIEMBRE DE 1992.",
+   "materia": "ADMINISTRATIVO",
+   "fechaPublicado": "22/05/2026 00:00:00",
+   "totalResultadosArticulos": 1,
+   "articuloOrdenamientos": [
+    {
+     "vigencia": "VIGENTE",
+     "contenido": "LEY FEDERAL DE CINE Y EL AUDIOVISUAL\r\n\r\nTEXTO ORIGINAL.\r\n\r\nLey publicada en la Edición Vespertina del número 133/2026 del Diario Oficial de la Federación, el viernes 22 de mayo de 2026.\r\n\r\nAl margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.\r\n\r\nCLAUDIA SHEINBAUM PARDO, Presidenta de los Estados Unidos Mexicanos, a sus habitantes sabed:\r\n\r\nQue el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente\r\n\r\nDECRETO\r\n\r\n\"EL CONGRESO GENERAL DE LOS ESTADOS UNIDOS MEXICANOS, DECRETA:\r\n\r\nSE EXPIDE LA LEY FEDERAL DE CINE Y EL AUDIOVISUAL, Y SE ABROGA LA LEY FEDERAL DE CINEMATOGRAFÍA\r\n\r\nArtículo Único.- Se expide la Ley Federal de Cine y el Audiovisual, para quedar como sigue:\r\n\r\n\r\nLEY FEDERAL DE CINE Y EL AUDIOVISUAL",
+     "numero": 0,
+     "orden": 1,
+     "fechaActualizacion": "27/05/2026 13:07:01",
+     "id": 15014959,
+     "referencia": "ENCABEZADO"
+    }
+   ]
+  }
+ ]
+}
