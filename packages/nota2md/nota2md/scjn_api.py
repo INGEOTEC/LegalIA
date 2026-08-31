@@ -309,3 +309,114 @@ class ScjnApi:
             if not lote or len(filas) >= total:
                 return filas
             pagina += 1
+
+
+# --- Markdown writer (issue #175) ----------------------------------------
+#
+# Hard rule: the on-disk format does not change. `scripts/scjn/`'s whole
+# corpus, its `indice.json`, `empaqueta_scjn_leyes.py`, `snapshot_de_codNota`
+# and `legal_provisions(source="scjn")` all read what `scjn.descarga_ordenamiento`
+# writes today, and the migration is only auditable while a snapshot written
+# from the API can be diffed against the one the WebForms crawler wrote for
+# the same law and the same date.
+#
+# So the per-paragraph pipeline is literally `scjn`'s: split into paragraphs,
+# `quita_notas_editoriales`, `_formatea_parrafo`. Issue #173's question 3
+# settled that this is right rather than merely convenient — the API's own
+# `contenido` carries the "N. DE E." markers with the same spelling as the
+# .docx (181 of them in one CPEUM reform, 193 in one of the Código de
+# Comercio, against 0 in the corresponding file on disk, which is exactly the
+# stripping already having happened), so the logic is reused unchanged.
+#
+# `referencia`/`orden` are not used to shape the file. They are reliable
+# (issue #173: never empty over ~13 000 articles, `orden` always contiguous)
+# but their vocabulary is open — besides `ENCABEZADO`/`TÍTULO PRIMERO`/
+# `ARTÍCULO 1` it includes chapter names and the editorial `D.O.F. <fecha>`
+# rows, which are precisely what `quita_notas_editoriales` removes. An
+# article whose `referencia` is unexpected has to come out as the same
+# paragraph it does today, not as a differently-shaped file.
+
+from nota2md.scjn import (  # noqa: E402  (deliberately below the client)
+    _formatea_parrafo,
+    quita_notas_editoriales,
+    ratio_similitud,
+)
+
+_PARRAFOS = re.compile(r"\r\n|\n|\r")
+# A handful of `contenido` values are not plain text after all: the ENCABEZADO
+# of some laws opens with the SCJN's own inline markup
+# (`<p style='color:#7D2007;'></p> <br>LEY FEDERAL DEL TRABAJO`) — 6 tags over
+# the 5 319 articles surveyed, all in an ENCABEZADO, but they land on the
+# snapshot's very first line, so leaving them in makes every such file differ
+# from the .docx one. `<br>` and `</p>` end a paragraph the way a newline
+# does; the rest of a tag is dropped.
+_SALTO_HTML = re.compile(r"<\s*br\s*/?\s*>|</\s*p\s*>", re.I)
+_ETIQUETA_HTML = re.compile(r"<[^>]*>")
+
+
+def articulos_a_markdown(articulos: list[Articulo]) -> str:
+    """The reform's consolidated text as the same light Markdown
+    `scjn.docx_a_markdown` produces from the .docx: one blank-line-separated
+    paragraph per source paragraph, editorial asides removed, a heading for
+    "Al margen un sello"/"Transitorios", a bolded caption for an ALL-CAPS
+    line and a bolded lead for an "Artículo N"/ordinal/list-marker one."""
+    parrafos: list[str] = []
+    for articulo in articulos:
+        contenido = _ETIQUETA_HTML.sub("", _SALTO_HTML.sub("\n", articulo.contenido))
+        for parrafo in _PARRAFOS.split(contenido):
+            parrafo = parrafo.strip()
+            if parrafo:
+                parrafos.append(parrafo)
+    limpios = [quita_notas_editoriales(p) for p in parrafos]
+    bloques = [_formatea_parrafo(p) for p in limpios if p]
+    return "\n\n".join(bloques) + "\n"
+
+
+def cabecera(ordenamiento: Ordenamiento, reforma: Reforma, nombre_buscado: str) -> str:
+    """The same provenance header `scjn._cabecera` writes, key for key and in
+    the same order, with what the API gives for free appended after it —
+    never renaming or reordering one that is already there.
+
+    The added keys are spelled snake_case (`seccion_publicacion`,
+    `id_ordenamiento`, `reforma_id`) rather than in the API's own camelCase
+    because `scjn.lee_cabecera` only recognizes `^[a-z_]+:` — a camelCase key
+    would be written and then silently not read back, which is worse than not
+    writing it. `id_ordenamiento` is the one worth having: it makes the
+    instrument addressable by a stable id instead of a session URL, so a
+    later run can skip the search step entirely (issue #177)."""
+    lineas = [
+        "---",
+        "fuente: scjn",
+    ]
+    if ratio_similitud(ordenamiento.ordenamiento, nombre_buscado) < 1.0:
+        lineas.append(f"nombre_buscado: {nombre_buscado}")
+    lineas += [
+        f"ordenamiento: {ordenamiento.ordenamiento}",
+        f"fecha_publicacion: {reforma.fecha_publicacion}",
+    ]
+    if reforma.fecha_expedicion:
+        lineas.append(f"fecha_expedicion: {reforma.fecha_expedicion}")
+    if reforma.categoria:
+        lineas.append(f"categoria: {reforma.categoria}")
+    if ordenamiento.ratio is not None:
+        lineas.append(f"ratio_similitud: {ordenamiento.ratio:.3f}")
+        lineas.append(f"sospechoso: {'true' if ordenamiento.sospechoso else 'false'}")
+    if reforma.seccionPublicacion:
+        lineas.append(f"seccion_publicacion: {reforma.seccionPublicacion}")
+    if ordenamiento.materia:
+        lineas.append(f"materia: {ordenamiento.materia}")
+    lineas.append(f"id_ordenamiento: {ordenamiento.idOrdenamiento}")
+    lineas.append(f"reforma_id: {reforma.reformaId}")
+    lineas.append("---")
+    return "\n".join(lineas)
+
+
+def snapshot(
+    ordenamiento: Ordenamiento,
+    reforma: Reforma,
+    articulos: list[Articulo],
+    nombre_buscado: str,
+) -> str:
+    """A whole `<fecha_publicacion>.md` — header, blank line, body — exactly
+    as `descarga_ordenamiento` writes one."""
+    return f"{cabecera(ordenamiento, reforma, nombre_buscado)}\n\n{articulos_a_markdown(articulos)}"

@@ -130,3 +130,121 @@ class TestErrores(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestEscritor(unittest.TestCase):
+    """El formato en disco no cambia (issue #175): la verificación real es el
+    diff contra el corpus que el crawler viejo dejó, y estas pruebas fijan las
+    piezas de ese formato que no dependen de la red."""
+
+    def setUp(self):
+        from nota2md.scjn_api import Articulo, Ordenamiento, Reforma
+
+        self.ordenamiento = Ordenamiento(
+            idOrdenamiento="410",
+            ordenamiento="LEY FEDERAL DEL TRABAJO",
+            materia="SEGURIDAD SOCIAL, LABORAL",
+            ratio=1.0,
+            sospechoso=False,
+        )
+        self.reforma = Reforma(
+            reformaId=61,
+            fecha_publicacion="14-05-2026",
+            fecha_expedicion="13-05-2026",
+            categoria="DECRETO",
+            seccionPublicacion="124/2026",
+        )
+        self.Articulo = Articulo
+
+    def test_cabecera_conserva_orden_y_agrega_al_final(self):
+        from nota2md.scjn_api import cabecera
+
+        lineas = cabecera(self.ordenamiento, self.reforma, "LEY FEDERAL DEL TRABAJO").split("\n")
+        self.assertEqual(
+            lineas,
+            [
+                "---",
+                "fuente: scjn",
+                "ordenamiento: LEY FEDERAL DEL TRABAJO",
+                "fecha_publicacion: 14-05-2026",
+                "fecha_expedicion: 13-05-2026",
+                "categoria: DECRETO",
+                "ratio_similitud: 1.000",
+                "sospechoso: false",
+                "seccion_publicacion: 124/2026",
+                "materia: SEGURIDAD SOCIAL, LABORAL",
+                "id_ordenamiento: 410",
+                "reforma_id: 61",
+                "---",
+            ],
+        )
+
+    def test_lee_cabecera_lee_las_llaves_nuevas(self):
+        # `scjn.lee_cabecera` solo reconoce `^[a-z_]+:`, de ahí el snake_case.
+        from tempfile import TemporaryDirectory
+
+        from nota2md.scjn import lee_cabecera
+        from nota2md.scjn_api import snapshot
+
+        with TemporaryDirectory() as tmp:
+            archivo = Path(tmp) / "14-05-2026.md"
+            archivo.write_text(
+                # un nombre que de verdad difiere: `ratio_similitud` normaliza
+                # acentos y mayúsculas, así que "LEY Federal del Trabajo" da 1.0
+                snapshot(self.ordenamiento, self.reforma, [], "LEY Federal del Trabajo de 1970"),
+                encoding="utf-8",
+            )
+            campos = lee_cabecera(archivo)
+        self.assertEqual(campos["fuente"], "scjn")
+        self.assertEqual(campos["nombre_buscado"], "LEY Federal del Trabajo de 1970")
+        self.assertEqual(campos["id_ordenamiento"], "410")
+        self.assertEqual(campos["reforma_id"], "61")
+        self.assertEqual(campos["seccion_publicacion"], "124/2026")
+
+    def test_nombre_buscado_solo_cuando_el_titulo_difiere(self):
+        from nota2md.scjn_api import cabecera
+
+        igual = cabecera(self.ordenamiento, self.reforma, "LEY FEDERAL DEL TRABAJO")
+        self.assertNotIn("nombre_buscado", igual)
+
+    def test_mismo_markdown_que_el_camino_docx(self):
+        from nota2md.scjn_api import articulos_a_markdown
+
+        arts = [
+            self.Articulo(1, 1, "ENCABEZADO", "LEY FEDERAL DEL TRABAJO\r\n\r\nTEXTO ORIGINAL."),
+            self.Articulo(
+                2, 2, "ARTÍCULO 1", "Artículo 1o. La presente Ley es de observancia general."
+            ),
+        ]
+        self.assertEqual(
+            articulos_a_markdown(arts),
+            "**LEY FEDERAL DEL TRABAJO**\n\n**TEXTO ORIGINAL.**\n\n"
+            # el espacio queda dentro de las negritas porque el patrón de
+            # `_formatea_parrafo` lo captura — se conserva tal cual
+            "**Artículo 1o. **La presente Ley es de observancia general.\n",
+        )
+
+    def test_quita_el_html_inline_del_encabezado(self):
+        # El ENCABEZADO de algunas leyes abre con el markup propio de la SCJN;
+        # sin quitarlo, la primera línea de cada snapshot difiere del .docx.
+        from nota2md.scjn_api import articulos_a_markdown
+
+        arts = [
+            self.Articulo(
+                1,
+                1,
+                "ENCABEZADO",
+                "<p style='color:#7D2007;'></p> <br>LEY FEDERAL DEL TRABAJO",
+            )
+        ]
+        self.assertEqual(articulos_a_markdown(arts), "**LEY FEDERAL DEL TRABAJO**\n")
+
+    def test_quita_las_notas_editoriales_igual_que_el_docx(self):
+        # Issue #173, pregunta 3: la API trae los marcadores `N. DE E.` con la
+        # misma grafía que el .docx, así que `quita_notas_editoriales` se reusa.
+        from nota2md.scjn_api import articulos_a_markdown
+
+        arts = [
+            self.Articulo(1, 1, "ARTÍCULO 1", "[N. DE E. EN RELACION CON LA ENTRADA EN VIGOR.]")
+        ]
+        self.assertEqual(articulos_a_markdown(arts), "\n")
