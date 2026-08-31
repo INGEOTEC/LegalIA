@@ -11,7 +11,8 @@ Four sources feed the same output, and legal_provisions() picks between them:
   because the SCJN is not an official source of legal text. ``source="dof"``
   turns this path off and goes to the original source.
 * **HTML** — when the note carries digital text (``cadenaContenido``), it is
-  converted directly with html_converter.html_to_markdown(). This is the
+  converted directly with get_document(), the package's one note-to-Markdown
+  step (itself html_converter.html_to_markdown()). This is the
   preferred path: clean, already scoped to the one note, and needs no OCR.
   A note SIDOF does not have at all (see dofjson.dofweb: whole days are
   missing from its dataset) is looked up on the DOF's website instead, which
@@ -96,6 +97,39 @@ def fetch_nota(cod_nota: int, fecha: dt.date | None = None) -> dict:
     (1999-2000) the website only resolves alongside their own date (issue
     #109/#111) — pass it when it is already known."""
     return dofjson.get_nota(cod_nota, fecha=fecha)
+
+
+def get_document(cod_nota: int | None = None, fecha: dt.date | None = None,
+                 *, nota: dict | None = None) -> dict:
+    """The same record `dofjson.get_nota()` returns, but with
+    `cadenaContenido` holding the note's **Markdown** instead of its DOF HTML.
+
+    Every other key (`codNota`, `titulo`, `fecha`, `fuente`, `codDiario`, page
+    numbers...) is passed through untouched, so a `get_document` record can go
+    anywhere a `get_nota` one can — including as `legal_provisions`' own
+    already-fetched `nota` argument. This is the single note-to-Markdown step
+    of the package: nothing else pairs `cadenaContenido` with
+    html_to_markdown() by hand (issue #170).
+
+    Given `cod_nota`, the record is fetched with fetch_nota() — SIDOF, falling
+    back to the DOF website, with `fecha` forwarded for the 1999-2000 codigos
+    the website only resolves alongside their date (issue #109). Given a
+    record already in hand (`nota=`), the call is pure and offline; the dict
+    passed in is never mutated, a copy is returned.
+
+    A note with no digital text (scanned, pre-1999ish) comes back with
+    `cadenaContenido` left as it was — None or empty, and no error. It is not
+    silently OCR'd: OCR is dof2md's heavy path, and legal_provisions() already
+    owns the decision of when to take it.
+    """
+    if nota is None:
+        if cod_nota is None:
+            raise TypeError("get_document() necesita cod_nota o nota")
+        nota = fetch_nota(cod_nota, fecha=fecha)
+    documento = dict(nota)
+    if documento.get("cadenaContenido"):
+        documento["cadenaContenido"] = html_to_markdown(documento["cadenaContenido"])
+    return documento
 
 
 def fetch_daily_legal_provisions(date: dt.date) -> dict:
@@ -300,7 +334,8 @@ def legal_provisions(
                 f"nota {cod_nota} has no cadenaContenido; use source='image' or "
                 f"'pdf' to OCR its scanned page(s) instead"
             )
-        md_path.write_text(html_to_markdown(nota["cadenaContenido"]) + "\n", encoding="utf-8")
+        documento = get_document(nota=nota)
+        md_path.write_text(documento["cadenaContenido"] + "\n", encoding="utf-8")
         return md_path
 
     if nota.get("fuente") == dofjson.FUENTE_WEB:

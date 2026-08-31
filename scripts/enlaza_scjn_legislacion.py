@@ -69,7 +69,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
 
 from dofjson.titulos import SIN_CACHE_DIR, legal_provisions_titles  # noqa: E402
-from nota2md.builder import fetch_nota, legal_provisions  # noqa: E402
+from nota2md.builder import fetch_nota, get_document  # noqa: E402
 from nota2md.scjn import (  # noqa: E402
     confirm_by_content_diff,
     enlaza_por_titulo,
@@ -159,13 +159,17 @@ def _texto_html(cod_nota: int, cache_dir: Path, cache: dict) -> str | None:
         texto = ruta.read_text(encoding="utf-8")
         cache[cod_nota] = texto
         return texto
-    nota = fetch_nota(cod_nota)
-    if not nota.get("cadenaContenido"):
+    # get_document() is the package's one note-to-Markdown step (issue #170):
+    # the record comes back with cadenaContenido already converted, so this is
+    # both the "has digital text?" check and the conversion itself, with no
+    # second fetch and no html_to_markdown call spelled out here.
+    documento = get_document(nota=fetch_nota(cod_nota))
+    if not documento.get("cadenaContenido"):
         cache[cod_nota] = None
         return None
     cache_dir.mkdir(parents=True, exist_ok=True)
-    ruta = legal_provisions(cod_nota, cache_dir, source="html", nota=nota)
-    texto = ruta.read_text(encoding="utf-8")
+    texto = documento["cadenaContenido"] + "\n"
+    ruta.write_text(texto, encoding="utf-8")
     cache[cod_nota] = texto
     return texto
 

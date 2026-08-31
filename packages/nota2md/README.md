@@ -16,7 +16,7 @@
 > unchanged in every other respect. See [the SCJN
 > path](#the-scjn-path--a-laws-consolidated-text-at-each-reform).
 
-Seven entry points, all re-exported off the package itself
+Eight entry points, all re-exported off the package itself
 (`from nota2md import ...`), for Mexico's official gazette (DOF, Diario
 Oficial de la Federación) and the federal laws it publishes:
 
@@ -26,6 +26,7 @@ Oficial de la Federación) and the federal laws it publishes:
 | [`reconstruct_legal_provisions`](#reconstruct_legal_provisions--a-laws-current-text-from-its-dof-legal-provisions) | a law's reform history (`codNota` list) | its current text, written to `outdir/ley-{codNota}.md` |
 | [`download_legal_provisions_provenance_ids`](#download_legal_provisions_provenance_ids--a-laws-reform-history) | a collection name (`"leyes"`, `"reglamentos"`, `"normas"`, `"tratados"`) | every instrument's reform history, in memory |
 | [`fetch_daily_legal_provisions`](#cutting-a-legal-provision-out-of-its-page) | a date | that day's browsable legal provisions (title, `codNota`, `codEdicion`...) |
+| [`get_document`](#get_document--a-note-whose-text-is-already-markdown) | a legal provision's `codNota`, or a `get_nota` record already in hand | that same record, with `cadenaContenido` holding its **Markdown** instead of DOF HTML |
 | [`legal_provisions_titles`](#legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` cache) | every legal provision ever published, as a stream of `codNota`+`titulo`+`fecha`+`codOrgaUno` records |
 | [`download_scjn_leyes_corpus`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | a law's `slug` | every snapshot of that law in the `scjn-leyes` release, with its `codNota` links, in memory |
 | [`download_scjn_leyes_index`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (reads one small release asset) | the reverse index `codNota → (law, snapshot)`, in memory |
@@ -116,6 +117,38 @@ The index itself is keyed by edition
 of those keys silently drops the rest of the day;
 `dofjson.legal_provisions_of_day()` flattens all three into one sequence in
 publication order, each note naming its own `edicion` (issue #169).
+
+### `get_document` — a note whose text is already Markdown
+
+`dofjson.get_nota(codNota)` answers the note's record with its digital text
+in `cadenaContenido`, as DOF HTML. `get_document` is that same record with
+`cadenaContenido` holding the **Markdown** instead — every other key
+(`codNota`, `titulo`, `fecha`, `fuente`, `codDiario`, page numbers...) passed
+through untouched, so it can go anywhere a `get_nota` record can, including
+as `legal_provisions`' own `nota` argument:
+
+```python
+from nota2md import get_document
+
+documento = get_document(5793655)
+documento["titulo"]            # unchanged
+documento["cadenaContenido"]   # Markdown, not HTML
+```
+
+This is the package's single note-to-Markdown step (issue #170): the pairing
+of `cadenaContenido` with `html_to_markdown` is spelled out here and nowhere
+else. Given a record already in hand, the call is pure and offline, and the
+dict passed in is never mutated:
+
+```python
+documento = get_document(nota=fetch_nota(5793655))
+```
+
+A note with no digital text (scanned, pre-1999ish) comes back with
+`cadenaContenido` as it was — `None` or empty, and no error raised. It is not
+silently OCR'd: OCR is `dof2md`'s heavy path, and `legal_provisions` already
+owns the decision of when to take it. `html_to_markdown` itself stays public,
+as the string-to-string primitive this is built on.
 
 ### The SCJN path — a law's consolidated text at each reform
 
