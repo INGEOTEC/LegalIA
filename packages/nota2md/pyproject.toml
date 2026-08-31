@@ -20,6 +20,8 @@ classifiers = [
 # dependency so the HTML-only path stays lightweight.
 dependencies = [
     "beautifulsoup4>=4.9",
+    # 0.5 renombra el dataset de titulos a titulos.legal_provisions_titles,
+    # el flujo que nota2md re-exporta (issue #166).
     "dofjson>=0.5.0",
     # nota2md.cache's own release-asset cache (issue #117). Direct now, not
     # just transitively via dofjson: the two caches are separate directories

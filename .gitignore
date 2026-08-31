@@ -29,11 +29,6 @@ packages/dof2md/output/
 # Local output from nota2md / dofjson / ad-hoc runs (generated Markdown, PDFs, images)
 /output/
 
-# Titles dataset downloaded by dofjson.titulos.download_legal_provisions_titles when rendering
-# the DOF Titles page (local only, never committed)
-/website/pages/titulos.jsonl.gz
-/website/pages/organigrama.json
-
 # Legislative history built by `leyesmx` (local only). It lives solely in the
 # historial-legislativo release; see leyesmx.historial.descarga_historial.
 /packages/leyesmx/data/
@@ -50,8 +45,6 @@ packages/dof2md/output/
 scripts/legal_provisions/
 scripts/scjn/
 scripts/leyes-release/
-scripts/titulos.json.gz
-scripts/organigrama.json
 
 # md2akn's sweep report over the SCJN corpus (issue #162): data, never versioned
 scripts/md2akn-sweep/

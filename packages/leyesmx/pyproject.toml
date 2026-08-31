@@ -15,11 +15,11 @@ classifiers = [
 ]
 dependencies = [
     "requests>=2.31",
-    # 0.3 trae titulos.lee_titulos. Antes esto usaba
-    # microtc.utils.tweet_iterator, que lee el mismo formato pero
-    # arrastra numpy sin declararlo. 0.4 renombra download_titulos a
-    # download_legal_provisions_titles, que es el nombre que usa cli.py.
-    "dofjson>=0.4.1",
+    # 0.5 trae titulos.legal_provisions_titles, el flujo de titulos que
+    # cli.py consume, y con el se fue el dataset en disco que se leia antes
+    # (issue #166). Antes de 0.3 esto usaba microtc.utils.tweet_iterator,
+    # que lee el mismo formato pero arrastra numpy sin declararlo.
+    "dofjson>=0.5.0",
 ]
 dynamic = ['version']
 

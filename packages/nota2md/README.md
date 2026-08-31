@@ -1,11 +1,13 @@
 # nota2md
 
-> **v0.6.0 makes `legal_provisions`' `outdir` optional.** Left out, the
-> Markdown is written into `nota2md`'s own cache and its `Path` returned:
-> `legal_provisions(5773097)` → `<CACHE_DIR>/scjn-leyes/md/ccf-14-11-2025.md`
-> (issue #165). Passing an `outdir` behaves exactly as before.
+> **v0.5.0 changes what `legal_provisions` returns by default**, makes its
+> `outdir` optional, and replaces `download_legal_provisions_titles` with the
+> `legal_provisions_titles` stream (issues #117, #165, #166).
 >
-> **v0.5.0 changes what `legal_provisions` returns by default.** A `codNota`
+> Left out, `outdir` puts the Markdown in `nota2md`'s own cache and returns its
+> `Path`: `legal_provisions(5773097)` →
+> `<CACHE_DIR>/scjn-leyes/md/ccf-14-11-2025.md`. Passing an `outdir` behaves
+> exactly as before. And by default a `codNota`
 > the [`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)
 > release covers now comes back as **the law's whole consolidated text at that
 > reform** (written to `outdir/{slug}-{fecha}.md`, `fuente: scjn` header
@@ -125,7 +127,7 @@ Every file this path writes therefore keeps the corpus' own provenance header
 (`fuente: scjn`, `ordenamiento`, `fecha_publicacion`, …) intact, and lands
 under a different name — so the file alone says where it came from:
 
-| | file written | with no `outdir` (v0.6.0) |
+| | file written | with no `outdir` (v0.5.0) |
 |---|---|---|
 | SCJN path | `outdir/{slug}-{fecha}.md` (e.g. `lfca-05-01-1999.md`) | `<CACHE_DIR>/scjn-leyes/md/{slug}-{fecha}.md` |
 | every DOF path | `outdir/nota-{codNota}.md` (unchanged) | `<CACHE_DIR>/dof/nota-{codNota}.md` |
@@ -133,7 +135,7 @@ under a different name — so the file alone says where it came from:
 ```python
 from nota2md import legal_provisions
 
-# no outdir at all: written into nota2md's cache, path returned (v0.6.0)
+# no outdir at all: written into nota2md's cache, path returned (v0.5.0)
 legal_provisions(4967917)     # -> <CACHE_DIR>/scjn-leyes/md/lfca-05-01-1999.md
 
 # default: the whole law at that reform, if the corpus covers this codNota
