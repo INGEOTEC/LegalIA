@@ -523,3 +523,94 @@ def elige_ordenamiento(
     elegido.ratio = ratio
     elegido.sospechoso = ratio < UMBRAL_CONFIANZA_SIMILITUD
     return elegido
+
+
+# --- Whole-instrument crawl (issue #177) ---------------------------------
+
+from collections.abc import Callable  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+
+@dataclass
+class ResultadoCrawl:
+    """What one instrument's crawl produced: the snapshot paths (oldest
+    first, as `scjn.descarga_ordenamiento` returns them), the ordenamiento
+    that was picked, and the reforms the SCJN could not serve."""
+
+    escritos: list[Path]
+    ordenamiento: Ordenamiento | None
+    reformas_fallidas: list[str] = None  # type: ignore[assignment]
+
+    def __post_init__(self) -> None:
+        if self.reformas_fallidas is None:
+            self.reformas_fallidas = []
+
+
+def descarga_ordenamiento(
+    api: ScjnApi,
+    nombre: str,
+    outdir: Path,
+    *,
+    on_progreso: Callable[[str], None] | None = None,
+    id_ordenamiento: str | int | None = None,
+) -> ResultadoCrawl:
+    """Every reform-dated snapshot the SCJN has for `nombre`, written as
+    ``outdir/<fecha_publicacion>.md`` — the same contract as
+    `scjn.descarga_ordenamiento`, so `fetch_scjn_legislacion.py` keeps every
+    one of its resumption mechanisms:
+
+    - a file already on disk is left untouched and its reform not fetched,
+      which is what makes a crawl over hundreds of instruments resumable;
+    - two rows sharing a `fecha_publicacion` (39 dates on the CPEUM alone,
+      up to 4 decrees on one day) get `-2.md`, `-3.md`, … appended in the
+      SCJN's own most-recent-first row order;
+    - nothing found is an empty result, not an exception, so a batch crawl
+      logs the miss and keeps going;
+    - `on_progreso` narrates a large instrument (issue #140).
+
+    `id_ordenamiento`, when given, skips the search step entirely — the
+    structural win of the whole migration (issue #172): an instrument is
+    addressable by a stable id instead of a session-scoped URL, so a second
+    run costs one request less per law and can be audited against exactly
+    the document the first one read.
+
+    A reform the SCJN cannot serve is recorded in `reformas_fallidas` and
+    skipped; it never aborts the instrument. That is not hypothetical —
+    `lfd` has reforms answering HTTP 500 on every attempt (issue #173).
+    """
+    if id_ordenamiento is not None:
+        elegido = Ordenamiento(idOrdenamiento=str(id_ordenamiento), ordenamiento=nombre, ratio=1.0, sospechoso=False)
+    else:
+        elegido = elige_ordenamiento(api.search_ordenamiento(nombre), nombre)
+        if elegido is None:
+            return ResultadoCrawl([], None)
+
+    reformas = api.reformas_of_ordenamiento(elegido.idOrdenamiento)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    escritos: list[Path] = []
+    fallidas: list[str] = []
+    repeticiones: dict[str, int] = {}
+    total = len(reformas)
+    for indice, reforma in enumerate(reformas, 1):
+        if on_progreso is not None and total > 1:
+            on_progreso(f"reforma {indice}/{total}")
+        repeticiones[reforma.fecha_publicacion] = (
+            repeticiones.get(reforma.fecha_publicacion, 0) + 1
+        )
+        orden = repeticiones[reforma.fecha_publicacion]
+        sufijo = f"-{orden}" if orden > 1 else ""
+        destino = outdir / f"{reforma.fecha_publicacion}{sufijo}.md"
+        if destino.exists():
+            escritos.append(destino)
+            continue
+        try:
+            articulos = api.articulos_of_reforma(elegido.idOrdenamiento, reforma.reformaId)
+        except ScjnApiError as exc:
+            fallidas.append(f"{reforma.fecha_publicacion} (reformaId {reforma.reformaId}): {exc}")
+            if on_progreso is not None:
+                on_progreso(f"aviso: la SCJN no sirve la reforma {reforma.fecha_publicacion}")
+            continue
+        destino.write_text(snapshot(elegido, reforma, articulos, nombre), encoding="utf-8")
+        escritos.append(destino)
+    return ResultadoCrawl(list(reversed(escritos)), elegido, fallidas)

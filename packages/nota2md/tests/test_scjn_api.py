@@ -391,3 +391,102 @@ class TestSeleccion(unittest.TestCase):
 
     def test_sin_candidatos(self):
         self.assertIsNone(self.elige([], "LEY de lo que sea"))
+
+
+class TestCrawl(unittest.TestCase):
+    """El bucle de crawl por instrumento: `fetch_scjn_legislacion.py --api`
+    (issue #177) depende de que conserve, una por una, las propiedades de
+    `scjn.descarga_ordenamiento` de las que cuelgan sus mecanismos de
+    reanudación."""
+
+    def cliente(self, *, reformas, articulos=None, falla=()):
+        from nota2md.scjn_api import Articulo, Ordenamiento, Reforma, ScjnApiError
+
+        prueba = self
+
+        class ClienteFalso:
+            def __init__(self):
+                self.busquedas = 0
+
+            def search_ordenamiento(self, nombre, **kw):
+                self.busquedas += 1
+                return [
+                    Ordenamiento(
+                        idOrdenamiento="410", ordenamiento="LEY FEDERAL DEL TRABAJO"
+                    )
+                ]
+
+            def reformas_of_ordenamiento(self, id_ordenamiento):
+                return [Reforma(reformaId=r[0], fecha_publicacion=r[1]) for r in reformas]
+
+            def articulos_of_reforma(self, id_ordenamiento, id_reforma):
+                if id_reforma in falla:
+                    raise ScjnApiError("HTTP 500")
+                return articulos or [Articulo(1, 1, "ARTÍCULO 1", f"Texto de {id_reforma}.")]
+
+        prueba.Articulo = Articulo
+        return ClienteFalso()
+
+    def test_dos_reformas_del_mismo_dia_no_se_pisan(self):
+        from tempfile import TemporaryDirectory
+
+        from nota2md.scjn_api import descarga_ordenamiento
+
+        cliente = self.cliente(reformas=[(3, "01-05-2026"), (2, "01-05-2026"), (1, "01-04-1970")])
+        with TemporaryDirectory() as tmp:
+            resultado = descarga_ordenamiento(cliente, "LEY FEDERAL DEL TRABAJO", Path(tmp))
+            nombres = sorted(p.name for p in Path(tmp).glob("*.md"))
+        self.assertEqual(nombres, ["01-04-1970.md", "01-05-2026-2.md", "01-05-2026.md"])
+        # devueltos de la más antigua a la más reciente
+        self.assertEqual(resultado.escritos[0].name, "01-04-1970.md")
+
+    def test_un_archivo_ya_en_disco_no_se_vuelve_a_bajar(self):
+        from tempfile import TemporaryDirectory
+
+        from nota2md.scjn_api import descarga_ordenamiento
+
+        cliente = self.cliente(reformas=[(2, "02-01-2025"), (1, "01-04-1970")])
+        with TemporaryDirectory() as tmp:
+            ya = Path(tmp) / "01-04-1970.md"
+            ya.write_text("intacto", encoding="utf-8")
+            descarga_ordenamiento(cliente, "LEY FEDERAL DEL TRABAJO", Path(tmp))
+            self.assertEqual(ya.read_text(encoding="utf-8"), "intacto")
+
+    def test_una_reforma_que_falla_no_aborta_el_instrumento(self):
+        from tempfile import TemporaryDirectory
+
+        from nota2md.scjn_api import descarga_ordenamiento
+
+        cliente = self.cliente(
+            reformas=[(9, "02-01-2025"), (8, "21-05-1982"), (7, "31-12-1981")], falla={8}
+        )
+        with TemporaryDirectory() as tmp:
+            resultado = descarga_ordenamiento(cliente, "LEY FEDERAL DE DERECHOS", Path(tmp))
+            nombres = sorted(p.name for p in Path(tmp).glob("*.md"))
+        self.assertEqual(nombres, ["02-01-2025.md", "31-12-1981.md"])
+        self.assertEqual(len(resultado.reformas_fallidas), 1)
+        self.assertIn("21-05-1982", resultado.reformas_fallidas[0])
+
+    def test_un_id_ordenamiento_conocido_se_salta_la_busqueda(self):
+        from tempfile import TemporaryDirectory
+
+        from nota2md.scjn_api import descarga_ordenamiento
+
+        cliente = self.cliente(reformas=[(1, "01-04-1970")])
+        with TemporaryDirectory() as tmp:
+            resultado = descarga_ordenamiento(
+                cliente, "LEY FEDERAL DEL TRABAJO", Path(tmp), id_ordenamiento="410"
+            )
+        self.assertEqual(cliente.busquedas, 0)
+        self.assertEqual(resultado.ordenamiento.idOrdenamiento, "410")
+
+    def test_sin_candidato_devuelve_vacio_sin_levantar(self):
+        from tempfile import TemporaryDirectory
+
+        from nota2md.scjn_api import descarga_ordenamiento
+
+        cliente = self.cliente(reformas=[])
+        with TemporaryDirectory() as tmp:
+            resultado = descarga_ordenamiento(cliente, "CÓDIGO Civil Federal", Path(tmp))
+        self.assertEqual(resultado.escritos, [])
+        self.assertIsNone(resultado.ordenamiento)
