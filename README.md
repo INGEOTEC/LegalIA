@@ -57,6 +57,9 @@ cod_nota = notas["NotasMatutinas"][0]["codNota"]
 
 # The legal provision's Markdown, from its official HTML
 md_path = legal_provisions(cod_nota, Path("output"), source="html")
+
+# With no outdir at all: written into nota2md's cache, path returned
+md_path = legal_provisions(cod_nota)
 ```
 
 The same round trip is available from the command line:

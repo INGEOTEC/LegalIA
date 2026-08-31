@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 import requests
 
+from nota2md import cache
 from nota2md.builder import legal_provisions
 
 # The SCJN's own snapshot text, header and all -- what the corpus actually
@@ -189,3 +190,106 @@ class TestDespachador(unittest.TestCase):
             )
 
         self.assertEqual(destino.name, "lfca-05-01-1999.md")
+
+
+class TestSinOutdir(unittest.TestCase):
+    """`legal_provisions(codNota)` with no `outdir`: the note is materialized
+    inside `nota2md`'s cache and its path returned (issue #165)."""
+
+    def setUp(self):
+        self.cache_dir = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.cache_dir))
+
+    def _localizado(self, **kwargs):
+        """Patch the reverse index as if the release covered 4967917 with
+        `lfca/05-01-1999.md`."""
+        return patch(
+            "nota2md.scjn.localiza_codNota",
+            return_value=("lfca", "05-01-1999.md"),
+            **kwargs,
+        )
+
+    def _extraccion(self, **kwargs):
+        return patch(
+            "nota2md.scjn.markdown_de_snapshot",
+            return_value=SNAPSHOT_SCJN,
+            **kwargs,
+        )
+
+    def test_devuelve_la_ruta_en_el_cache_y_escribe_ahi(self):
+        with self._localizado(), self._extraccion():
+            destino = legal_provisions(4967917, cache_dir=self.cache_dir)
+
+        self.assertEqual(
+            destino, self.cache_dir / "scjn-leyes" / "md" / "lfca-05-01-1999.md"
+        )
+        self.assertTrue(destino.read_text().startswith("fuente: scjn"))
+
+    def test_la_segunda_llamada_no_abre_el_tarball(self):
+        with self._localizado(), self._extraccion():
+            primera = legal_provisions(4967917, cache_dir=self.cache_dir)
+
+        with self._localizado(), self._extraccion() as mock_md:
+            segunda = legal_provisions(4967917, cache_dir=self.cache_dir)
+
+        mock_md.assert_not_called()
+        self.assertEqual(primera, segunda)
+
+    def test_refrescar_vuelve_a_extraer_sobre_lo_que_ya_estaba(self):
+        with self._localizado(), self._extraccion():
+            legal_provisions(4967917, cache_dir=self.cache_dir)
+
+        with self._localizado(), self._extraccion() as mock_md:
+            legal_provisions(4967917, cache_dir=self.cache_dir, refrescar=True)
+
+        mock_md.assert_called_once()
+
+    def test_un_parcial_no_cuenta_como_acierto(self):
+        # Un proceso interrumpido a media escritura no puede dejar un Markdown
+        # truncado que la siguiente llamada de por bueno.
+        md = self.cache_dir / "scjn-leyes" / "md"
+        md.mkdir(parents=True)
+        (md / ("lfca-05-01-1999.md" + cache.SUFIJO_PARCIAL)).write_text("a medias")
+
+        with self._localizado(), self._extraccion() as mock_md:
+            destino = legal_provisions(4967917, cache_dir=self.cache_dir)
+
+        mock_md.assert_called_once()
+        self.assertEqual(destino.name, "lfca-05-01-1999.md")
+        self.assertTrue(destino.read_text().startswith("fuente: scjn"))
+
+    def test_sin_cache_y_sin_outdir_no_hay_donde_escribir(self):
+        with self._localizado() as mock_loc, self.assertRaises(ValueError):
+            legal_provisions(4967917, cache_dir=None)
+
+        # Y falla antes de tocar la red, no despues de bajar el indice.
+        mock_loc.assert_not_called()
+
+    def test_con_outdir_explicito_nada_cambia(self):
+        outdir = self.cache_dir / "salida"
+        with patch(
+            "nota2md.scjn.snapshot_de_codNota",
+            return_value=("lfca", "05-01-1999.md", SNAPSHOT_SCJN),
+        ), self._localizado() as mock_loc:
+            destino = legal_provisions(4967917, outdir, cache_dir=self.cache_dir)
+
+        mock_loc.assert_not_called()
+        self.assertEqual(destino, outdir / "lfca-05-01-1999.md")
+
+    def test_sin_cobertura_scjn_la_nota_del_dof_va_al_subdirectorio_dof(self):
+        with patch("nota2md.scjn.localiza_codNota", return_value=None), \
+                patch("nota2md.builder.fetch_nota", return_value=NOTA_HTML):
+            destino = legal_provisions(4967917, cache_dir=self.cache_dir)
+
+        self.assertEqual(destino, self.cache_dir / "dof" / "nota-4967917.md")
+        self.assertIn("Cuerpo del decreto", destino.read_text())
+
+    def test_source_dof_sin_outdir_tambien_va_al_subdirectorio_dof(self):
+        with self._localizado() as mock_loc, \
+                patch("nota2md.builder.fetch_nota", return_value=NOTA_HTML):
+            destino = legal_provisions(
+                4967917, source="dof", cache_dir=self.cache_dir
+            )
+
+        mock_loc.assert_not_called()
+        self.assertEqual(destino, self.cache_dir / "dof" / "nota-4967917.md")

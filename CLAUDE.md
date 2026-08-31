@@ -25,7 +25,9 @@ build on each other in this sequence.
   Also builds the compact `codNota`+`titulo`+`fecha` dataset of every legal
   provision ever published, read from the `notas-archivo` GitHub release.
 - **`nota2md`** — seven entry points, all re-exported off the package:
-  `legal_provisions` (one note → Markdown; **by default the SCJN's
+  `legal_provisions` (one note → Markdown, `legal_provisions(codNota)` with no
+  other argument writing into `nota2md.cache.CACHE_DIR` and returning the
+  `Path` (issue #165); **by default the SCJN's
   consolidated text of the whole law at that reform** when the `scjn-leyes`
   release covers the `codNota`, else the DOF's own HTML/image/PDF source —
   `source="dof"` forces the original source; issue #117),
