@@ -420,3 +420,106 @@ def snapshot(
     """A whole `<fecha_publicacion>.md` — header, blank line, body — exactly
     as `descarga_ordenamiento` writes one."""
     return f"{cabecera(ordenamiento, reforma, nombre_buscado)}\n\n{articulos_a_markdown(articulos)}"
+
+
+# --- Candidate selection (issue #176) ------------------------------------
+#
+# This is where a hurried migration can make things *worse*. Issue #115
+# found 5 instruments where the old search returned a different document
+# and the crawler saved it as if it were the right one, and the "file
+# already on disk" skip has no notion of a snapshot being *wrong*. So the
+# thresholds (`UMBRAL_MINIMO_SIMILITUD`, `UMBRAL_CONFIANZA_SIMILITUD`) and
+# the two hard exclusions (`es_acuerdo_interno`, `grupo_instrumento`) are
+# carried over unchanged from `scjn.elige_candidato`; only signals the old
+# results page did not have are added, each measured against those 5 cases
+# plus `lfca` and `lisipl` (the numbers are the comment on issue #176).
+
+from nota2md.scjn import (  # noqa: E402
+    UMBRAL_CONFIANZA_SIMILITUD,
+    UMBRAL_MINIMO_SIMILITUD,
+    es_acuerdo_interno,
+    grupo_instrumento,
+)
+
+# `categoriaOrdenamiento` is the API's own classification of the document
+# (`LEY`, `CODIGO`, `CONSTITUCION`, `REGLAMENTO`, `ACUERDO`, `TRATADO`, ...),
+# which the WebForms results page never showed. Mapping it onto
+# `grupo_instrumento`'s two groups turns a guess made by reading the title
+# into the SCJN's own answer for the same question — it is what rules out
+# `lopgjdf`'s reglamento without depending on how the title happens to read.
+_CATEGORIA_GRUPO = {
+    "LEY": "ley",
+    "CODIGO": "ley",
+    "CÓDIGO": "ley",
+    "CONSTITUCION": "ley",
+    "CONSTITUCIÓN": "ley",
+    "REGLAMENTO": "reglamento",
+}
+
+
+def grupo_de_categoria(categoria: str | None) -> str | None:
+    """`grupo_instrumento`'s answer, read off `categoriaOrdenamiento`
+    instead of off the title. None for a category that maps to neither
+    group (`ACUERDO`, `TRATADO`, `DECRETO`, ...), which never excludes
+    anyone — same posture as a title starting with neither word."""
+    return _CATEGORIA_GRUPO.get((categoria or "").strip().upper())
+
+
+def elige_ordenamiento(
+    candidatos: list[Ordenamiento], nombre: str
+) -> Ordenamiento | None:
+    """The candidate that best matches `nombre` among `BusquedaFrase`'s
+    results, or None when none of them plausibly is it — the same contract
+    as `scjn.elige_candidato`, so a batch crawl logs the miss and moves on.
+
+    Order of the filters, and why each one is where it is:
+
+    1. `es_acuerdo_interno` — an SCJN Pleno acuerdo is never a legitimate
+       match (`lisr`/`lsint`'s failure mode: the search returned no law at
+       all, only an acuerdo whose long title mentions the searched name).
+    2. `grupo_instrumento` **and** `grupo_de_categoria` — a ley/código is
+       never the reglamento of itself (`lopgjdf`). The second is new: the
+       API classifies the document itself, so a reglamento whose title
+       happens not to start with "reglamento" is still caught.
+    3. `ambito == "FEDERAL"` — `download_legal_provisions_provenance_ids`
+       only ever covers federal instruments. New here only in that it costs
+       nothing: the old crawler had to have opened the results page to read
+       it, and it is now a field of the hit.
+    4. `vigencia == "VIGENTE"`.
+
+    Filters 1–2 never fall back to "keep everyone": a document of the wrong
+    kind is worse than no document at all. Filters 3–4 always do — an
+    abrogated law is still worth crawling its own history, and `lopgjdf`
+    (ESTATAL, ABROGADO) would otherwise be dropped outright.
+
+    The winner is the highest `ratio_similitud`, with `iweight` — the API's
+    own relevance ranking — breaking a tie, and must still clear
+    `UMBRAL_MINIMO_SIMILITUD`; it comes back flagged `sospechoso` when it
+    clears that floor but not `UMBRAL_CONFIANZA_SIMILITUD`, for a caller to
+    route to manual review rather than trust outright."""
+    restantes = [c for c in candidatos if not es_acuerdo_interno(c.ordenamiento)]
+
+    grupo_objetivo = grupo_instrumento(nombre)
+    if grupo_objetivo is not None:
+        restantes = [
+            c
+            for c in restantes
+            if grupo_instrumento(c.ordenamiento) in (None, grupo_objetivo)
+            and grupo_de_categoria(c.categoriaOrdenamiento) in (None, grupo_objetivo)
+        ]
+    if not restantes:
+        return None
+
+    federales = [c for c in restantes if c.ambito == "FEDERAL"] or restantes
+    vigentes = [c for c in federales if c.vigencia == "VIGENTE"] or federales
+
+    elegido = max(
+        vigentes,
+        key=lambda c: (ratio_similitud(c.ordenamiento, nombre), c.iweight or 0),
+    )
+    ratio = ratio_similitud(elegido.ordenamiento, nombre)
+    if ratio < UMBRAL_MINIMO_SIMILITUD:
+        return None
+    elegido.ratio = ratio
+    elegido.sospechoso = ratio < UMBRAL_CONFIANZA_SIMILITUD
+    return elegido

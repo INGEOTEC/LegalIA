@@ -248,3 +248,146 @@ class TestEscritor(unittest.TestCase):
             self.Articulo(1, 1, "ARTÍCULO 1", "[N. DE E. EN RELACION CON LA ENTRADA EN VIGOR.]")
         ]
         self.assertEqual(articulos_a_markdown(arts), "\n")
+
+
+class TestSeleccion(unittest.TestCase):
+    """Los 5 instrumentos del issue #115 en los que el buscador viejo trajo
+    otro documento, reducidos a los candidatos que la API devuelve hoy para
+    cada uno (las corridas en vivo están documentadas en #176)."""
+
+    def candidato(self, titulo, **kw):
+        from nota2md.scjn_api import Ordenamiento
+
+        campos = {
+            "idOrdenamiento": kw.pop("id", "1"),
+            "ordenamiento": titulo,
+            "ambito": kw.pop("ambito", "FEDERAL"),
+            "vigencia": kw.pop("vigencia", "VIGENTE"),
+            "categoriaOrdenamiento": kw.pop("categoria", "LEY"),
+            "iweight": kw.pop("iweight", 10),
+        }
+        return Ordenamiento(**campos, **kw)
+
+    def elige(self, candidatos, nombre):
+        from nota2md.scjn_api import elige_ordenamiento
+
+        return elige_ordenamiento(candidatos, nombre)
+
+    def test_lisr_descarta_el_acuerdo_del_pleno(self):
+        elegido = self.elige(
+            [
+                self.candidato(
+                    "ACUERDO GENERAL NUMERO 11/2015 DEL PLENO DE LA SUPREMA CORTE DE JUSTICIA",
+                    categoria="ACUERDO (S)",
+                    iweight=200,
+                ),
+                self.candidato("LEY DEL IMPUESTO SOBRE LA RENTA", id="96834"),
+            ],
+            "LEY del Impuesto sobre la Renta",
+        )
+        self.assertEqual(elegido.idOrdenamiento, "96834")
+
+    def test_lopgjdf_descarta_el_reglamento_de_la_misma_ley(self):
+        # 0.894 de similitud y el mismo iweight que la ley: sin la exclusión
+        # por grupo es un empate que se puede perder.
+        elegido = self.elige(
+            [
+                self.candidato(
+                    "REGLAMENTO DE LA LEY ORGANICA DE LA PROCURADURIA GENERAL DE JUSTICIA DEL DISTRITO FEDERAL",
+                    categoria="REGLAMENTO",
+                    ambito="ESTATAL",
+                    vigencia="NO VIGENTE",
+                    iweight=139,
+                ),
+                self.candidato(
+                    "LEY ORGANICA DE LA PROCURADURIA GENERAL DE JUSTICIA DEL DISTRITO FEDERAL",
+                    id="2588",
+                    ambito="ESTATAL",
+                    vigencia="ABROGADO (A)",
+                    iweight=139,
+                ),
+            ],
+            "LEY Orgánica de la Procuraduría General de Justicia del Distrito Federal",
+        )
+        self.assertEqual(elegido.idOrdenamiento, "2588")
+
+    def test_la_categoria_atrapa_un_reglamento_que_el_titulo_no_delata(self):
+        # Señal nueva: `categoriaOrdenamiento` es la clasificación de la
+        # propia SCJN, y no depende de cómo empiece el título.
+        elegido = self.elige(
+            [
+                self.candidato(
+                    "DISPOSICIONES REGLAMENTARIAS DE LA LEY DE AGUAS NACIONALES",
+                    categoria="REGLAMENTO",
+                    iweight=500,
+                ),
+                self.candidato("LEY DE AGUAS NACIONALES", id="7"),
+            ],
+            "LEY de Aguas Nacionales",
+        )
+        self.assertEqual(elegido.idOrdenamiento, "7")
+
+    def test_ccf_no_pierde_contra_un_iweight_mucho_mayor(self):
+        # `iweight` solo desempata; nunca gana sobre la similitud de título.
+        elegido = self.elige(
+            [
+                self.candidato(
+                    "CODIGO CIVIL DEL DISTRITO FEDERAL Y TERRITORIO DE LA BAJA CALIFORNIA",
+                    categoria="CODIGO",
+                    vigencia="DEROGADO (A)",
+                    iweight=137,
+                ),
+                self.candidato(
+                    "CODIGO CIVIL FEDERAL -ANTES CODIGO CIVIL PARA EL DISTRITO FEDERAL-",
+                    id="641",
+                    categoria="CODIGO",
+                    iweight=37,
+                ),
+            ],
+            "CÓDIGO Civil Federal",
+        )
+        self.assertEqual(elegido.idOrdenamiento, "641")
+        self.assertFalse(elegido.sospechoso)
+
+    def test_iweight_desempata_una_similitud_identica(self):
+        elegido = self.elige(
+            [
+                self.candidato("LEY DE AGUAS NACIONALES", id="bajo", iweight=1),
+                self.candidato("LEY DE AGUAS NACIONALES", id="alto", iweight=99),
+            ],
+            "LEY de Aguas Nacionales",
+        )
+        self.assertEqual(elegido.idOrdenamiento, "alto")
+
+    def test_lopgjdf_estatal_abrogado_no_se_descarta(self):
+        # La preferencia por FEDERAL/VIGENTE nunca vacía la lista.
+        elegido = self.elige(
+            [
+                self.candidato(
+                    "LEY ORGANICA DE LA PROCURADURIA GENERAL DE JUSTICIA DEL DISTRITO FEDERAL",
+                    ambito="ESTATAL",
+                    vigencia="ABROGADO (A)",
+                )
+            ],
+            "LEY Orgánica de la Procuraduría General de Justicia del Distrito Federal",
+        )
+        self.assertIsNotNone(elegido)
+
+    def test_bajo_el_umbral_minimo_no_elige_nada(self):
+        self.assertIsNone(
+            self.elige(
+                [self.candidato("CODIGO DE CONDUCTA DE LA AGENCIA FEDERAL DE AVIACION CIVIL")],
+                "CÓDIGO Civil Federal",
+            )
+        )
+
+    def test_entre_los_dos_umbrales_queda_sospechoso(self):
+        elegido = self.elige(
+            [self.candidato("LEY FEDERAL DE LOS DERECHOS DEL CONTRIBUYENTE")],
+            "LEY Federal de Derechos",
+        )
+        self.assertTrue(elegido.sospechoso)
+        self.assertLess(elegido.ratio, 0.75)
+
+    def test_sin_candidatos(self):
+        self.assertIsNone(self.elige([], "LEY de lo que sea"))
