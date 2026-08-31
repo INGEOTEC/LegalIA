@@ -2,10 +2,9 @@
 
 An integration test, not a unit test: it downloads `indice-global.json.gz` and
 one law's own tarball over the network, so it is excluded from the routine
-run the same way `test_leyes_44.py` and `test_akoma_ntoso_red.py` are:
+run the same way `test_leyes_44.py` is:
 
     pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \\
-        --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py \\
         --ignore=packages/nota2md/tests/test_scjn_release_red.py
 
 What it is here to catch is the one thing no fabricated tarball can: that the
