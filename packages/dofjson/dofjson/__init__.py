@@ -22,7 +22,13 @@ from dofjson.sidof import (
     get_imagenes,
     get_indicadores,
 )
-from dofjson.titulos import download_dof_assets, iterador_de_assets, notas_de_tgz
+from dofjson.titulos import (
+    download_dof_assets,
+    iterador_de_assets,
+    legal_provisions_titles,
+    notas_de_tgz,
+    organigrama,
+)
 
 #: dofweb's own source marker, re-exported so a caller checking a result's
 #: `fuente` never has to import dofjson.dofweb itself just for this constant.
@@ -46,5 +52,7 @@ __all__ = [
     "quita_notas_sin_titulo",
     "download_dof_assets",
     "iterador_de_assets",
+    "legal_provisions_titles",
+    "organigrama",
     "notas_de_tgz"
 ]

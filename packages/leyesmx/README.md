@@ -30,15 +30,16 @@ python -m leyesmx --ley normas         # all 4,674 Normas Oficiales Mexicanas
 python -m leyesmx --ley tratados       # all 1,956 international treaties
 ```
 
-The first run downloads the titles dataset (~35 MB) unless `--titulos` points
-at an existing one.
+The DOF titles are streamed from the `notas-archivo` cache; populate it once
+with `nota2md download gazette-metadata` (`--cache-dir` points at a directory
+of your own, `--cache-dir none` downloads the assets into memory instead).
 
 ```python
+from dofjson import legal_provisions_titles
 from leyesmx import diputados, dof
-from dofjson.titulos import lee_titulos
 
 reformas = diputados.parse_reformas(diputados.descarga("cpeum"), "cpeum")
-enlazadas = dof.enlaza(reformas, lee_titulos("titulos.jsonl.gz"))
+enlazadas = dof.enlaza(reformas, legal_provisions_titles())
 ```
 
 ## The data
@@ -86,16 +87,16 @@ plain list of `codNota`:
 ```
 
 Only the codNota is stored. A legal provision's title, date and issuing
-branch already live in the dataset `dofjson.titulos.download_legal_provisions_titles`
-builds, and come back by joining on codNota — keeping a second copy here
+branch already live in the stream `dofjson.legal_provisions_titles`
+yields, and come back by joining on codNota — keeping a second copy here
 would only let the two drift apart:
 
 ```python
 import json
-from dofjson.titulos import lee_titulos
+from dofjson import legal_provisions_titles
 
 reformas = set(json.load(open("data/reformas/cpeum.json")))
-for nota in lee_titulos("titulos.jsonl.gz"):
+for nota in legal_provisions_titles():
     if nota["codNota"] in reformas:
         print(nota["fecha"], nota["titulo"])
 ```

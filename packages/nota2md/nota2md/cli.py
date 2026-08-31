@@ -81,7 +81,12 @@ def _agrega_argumentos_build(parser):
         help="Also keep mineru's own raw output (layout/model JSON, rendered PDFs...) "
         "under nota-<codNota>_mineru/, instead of discarding it (image/pdf paths only)",
     )
-    parser.add_argument("--outdir", default="output", help="Output directory (default: output/)")
+    parser.add_argument(
+        "--outdir", default=None,
+        help="Output directory. Omitted, the Markdown is written into nota2md's "
+        "own cache (scjn-leyes/md/ or dof/, see --cache-dir) and its path "
+        "printed — the caller does not have to pick a directory to get a note",
+    )
     return parser
 
 
@@ -290,7 +295,7 @@ def _main_build(args):
 
     dest = legal_provisions(
         args.cod_nota,
-        Path(args.outdir),
+        Path(args.outdir) if args.outdir else None,
         source=args.source,
         fecha=args.fecha,
         notas_del_dia=notas_del_dia,

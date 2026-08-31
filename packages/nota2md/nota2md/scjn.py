@@ -1131,7 +1131,7 @@ def title_candidates_por_fecha(fechas, nombre: str, porf: dict) -> dict[str, lis
     cover the dates actually worth checking (typically the ones
     `versiones_de_directorio` returns for this instrument); `porf` groups by
     fecha every dofjson title record worth considering (see
-    `leyesmx.dof.notas_por_fecha` / `dofjson.download_legal_provisions_titles`).
+    `leyesmx.dof.notas_por_fecha` / `dofjson.legal_provisions_titles`).
 
     When no same-day title names the instrument at all, this falls back to
     every same-day codNota whose own title opens with "DECRETO" or "LEY"
@@ -1580,6 +1580,73 @@ def download_scjn_leyes_index(
     return indice
 
 
+def localiza_codNota(
+    cod_nota: int,
+    *,
+    instrumento: str | None = None,
+    cache_dir=SIN_CACHE_DIR,
+    refrescar: bool = False,
+    timeout: int = 60,
+) -> tuple[str, str] | None:
+    """Which snapshot of which law the reform `cod_nota` enacted produced, as
+    ``(slug, archivo)`` — or None when the release's reverse index has no
+    entry for it.
+
+    The reverse-index half of `snapshot_de_codNota`, split out because it
+    answers *where* the text is without reading the law's tarball at all: a
+    caller that already has that snapshot materialized (see
+    `legal_provisions` with no `outdir`) needs the name and nothing else.
+
+    Raises `ValueError` for an ambiguous `cod_nota` exactly as
+    `snapshot_de_codNota` does — see its docstring.
+    """
+    indice = download_scjn_leyes_index(
+        cache_dir=cache_dir, refrescar=refrescar, timeout=timeout
+    )
+    candidatos = indice["codNota"].get(int(cod_nota), [])
+
+    if instrumento is not None:
+        candidatos = [c for c in candidatos if c["slug"] == instrumento]
+        if not candidatos:
+            raise ValueError(
+                f"el codNota {cod_nota} no reforma el instrumento {instrumento!r} "
+                "segun el indice del release 'scjn-leyes'"
+            )
+    if not candidatos:
+        return None
+    if len(candidatos) > 1:
+        nombres = ", ".join(
+            f"{c['slug']} ({indice['instrumentos'].get(c['slug'], {}).get('nombre', '?')})"
+            for c in candidatos
+        )
+        raise ValueError(
+            f"el codNota {cod_nota} reforma mas de un instrumento: {nombres}. "
+            "Pasa instrumento=<slug> para elegir uno"
+        )
+
+    candidato = candidatos[0]
+    return candidato["slug"], candidato["archivo"]
+
+
+def markdown_de_snapshot(
+    slug: str,
+    archivo: str,
+    *,
+    cache_dir=SIN_CACHE_DIR,
+    refrescar: bool = False,
+    timeout: int = 60,
+) -> str:
+    """The text of one snapshot, read out of its law's `<slug>.tgz` asset —
+    the tarball half of `snapshot_de_codNota`, for a caller that already
+    resolved `(slug, archivo)` with `localiza_codNota`."""
+    contenido = _bytes_de_asset(f"{slug}.tgz", cache_dir, refrescar, timeout)
+    with tarfile.open(fileobj=io.BytesIO(contenido), mode="r:gz") as tar:
+        # Every member is prefixed with `<slug>/` so the tarball unpacks
+        # anywhere -- see scripts/empaqueta_scjn_leyes.py.
+        miembro = tar.extractfile(tar.getmember(f"{slug}/{archivo}"))
+        return miembro.read().decode("utf-8")
+
+
 def snapshot_de_codNota(
     cod_nota: int,
     *,
@@ -1607,38 +1674,16 @@ def snapshot_de_codNota(
     without it, that raises `ValueError` listing the candidates rather than
     silently returning one of them (D4).
     """
-    indice = download_scjn_leyes_index(
-        cache_dir=cache_dir, refrescar=refrescar, timeout=timeout
+    ubicacion = localiza_codNota(
+        cod_nota, instrumento=instrumento, cache_dir=cache_dir,
+        refrescar=refrescar, timeout=timeout,
     )
-    candidatos = indice["codNota"].get(int(cod_nota), [])
-
-    if instrumento is not None:
-        candidatos = [c for c in candidatos if c["slug"] == instrumento]
-        if not candidatos:
-            raise ValueError(
-                f"el codNota {cod_nota} no reforma el instrumento {instrumento!r} "
-                "segun el indice del release 'scjn-leyes'"
-            )
-    if not candidatos:
+    if ubicacion is None:
         return None
-    if len(candidatos) > 1:
-        nombres = ", ".join(
-            f"{c['slug']} ({indice['instrumentos'].get(c['slug'], {}).get('nombre', '?')})"
-            for c in candidatos
-        )
-        raise ValueError(
-            f"el codNota {cod_nota} reforma mas de un instrumento: {nombres}. "
-            "Pasa instrumento=<slug> para elegir uno"
-        )
-
-    candidato = candidatos[0]
-    slug, archivo = candidato["slug"], candidato["archivo"]
-    contenido = _bytes_de_asset(f"{slug}.tgz", cache_dir, refrescar, timeout)
-    with tarfile.open(fileobj=io.BytesIO(contenido), mode="r:gz") as tar:
-        # Every member is prefixed with `<slug>/` so the tarball unpacks
-        # anywhere -- see scripts/empaqueta_scjn_leyes.py.
-        miembro = tar.extractfile(tar.getmember(f"{slug}/{archivo}"))
-        markdown = miembro.read().decode("utf-8")
+    slug, archivo = ubicacion
+    markdown = markdown_de_snapshot(
+        slug, archivo, cache_dir=cache_dir, refrescar=refrescar, timeout=timeout
+    )
     return slug, archivo, markdown
 
 

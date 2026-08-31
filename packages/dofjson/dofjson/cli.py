@@ -11,7 +11,11 @@ ENDPOINT_NAMES = ["diario", "notas", "indicadores"]
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(
-        description="Fetch DOF (Mexico's official gazette) data from the SIDOF open data JSON service."
+        description="Fetch DOF (Mexico's official gazette) data from the SIDOF "
+        "open data JSON service. To work with every legal provision ever "
+        "published, populate the notas-archivo cache instead (`nota2md download "
+        "gazette-metadata`, or dofjson.download_dof_assets) and stream it with "
+        "dofjson.legal_provisions_titles / dofjson.iterador_de_assets."
     )
     parser.add_argument(
         "date", nargs="?",
@@ -94,17 +98,8 @@ def parse_args(argv=None):
         "(only with --archivo; default: 0.5)",
     )
     parser.add_argument(
-        "--titulos", action="store_true",
-        help="Build a compact codNota+titulo+fecha dataset (gzipped JSONL) from "
-        "every note in the published notas-archivo GitHub release: downloads each "
-        "year/month asset straight into memory (nothing touches disk) and "
-        "keeps only codNota, titulo (title) and fecha (date). Small output, meant "
-        "for Colab GPU experiments.",
-    )
-    parser.add_argument(
         "--outdir", default=None,
-        help="Output directory (default: output/, notas-archivo/ with --archivo, "
-        "or titulos/ with --titulos)",
+        help="Output directory (default: output/, notas-archivo/ with --archivo)",
     )
     parser.add_argument(
         "--cache-dir", default=None,
@@ -134,16 +129,9 @@ def main(argv=None):
     args = parse_args(argv)
     if args.archivo:
         outdir_default = "notas-archivo"
-    elif args.titulos:
-        outdir_default = "titulos"
     else:
         outdir_default = "output"
     outdir = Path(args.outdir or outdir_default)
-
-    if args.titulos:
-        dest = outdir / "titulos.jsonl.gz"
-        titulos.download_legal_provisions_titles(dest)
-        return
 
     if args.archivo:
         try:

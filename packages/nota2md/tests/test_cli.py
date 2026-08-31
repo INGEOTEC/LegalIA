@@ -39,6 +39,16 @@ class TestCli(unittest.TestCase):
         )
 
     @patch("nota2md.cli.legal_provisions")
+    def test_sin_outdir_deja_que_el_builder_escriba_en_el_cache(self, mock_build):
+        # Issue #165: --outdir dejo de ser obligatorio; omitirlo es
+        # outdir=None, y la ruta resultante se imprime.
+        mock_build.return_value = self.outdir / "ccf-14-11-2025.md"
+
+        main(["5773097"])
+
+        self.assertIsNone(mock_build.call_args.args[1])
+
+    @patch("nota2md.cli.legal_provisions")
     def test_main_passes_fecha_for_codigos_the_website_needs_it_for(self, mock_build):
         # See issue #109/#111: some 1999-2000 codigos only resolve on the
         # DOF website alongside their own date.

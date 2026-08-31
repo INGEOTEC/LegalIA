@@ -47,8 +47,8 @@ the original #105 design).
 
 ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion                      # Fase 1: crawl
 
-python -c "from nota2md import download_legal_provisions_titles as d; d('titulos.jsonl.gz')"
-./scripts/enlaza_scjn_legislacion.py --outdir scjn-legislacion --titulos titulos.jsonl.gz  # Fase 2: match
+nota2md download gazette-metadata                                                  # DOF titles cache
+./scripts/enlaza_scjn_legislacion.py --outdir scjn-legislacion                     # Fase 2: match
 
 ./scripts/empaqueta_scjn_leyes.py --outdir scjn-legislacion --destino leyes-release  # leyes only: package
 ```
@@ -177,8 +177,9 @@ since a weaker link is never what you actually want:
    directory shared across instruments. Kept, not scratch: issue #128 ships
    them inside each instrument's own tarball.
 
-Needs a dofjson titles dataset (`codNota`+`titulo`+`fecha`, built once via
-`nota2md.download_legal_provisions_titles`) to find each same-day candidate.
+Needs the notas-archivo cache populated (`nota2md download gazette-metadata`):
+the DOF titles (`codNota`+`titulo`+`fecha`) are streamed off it with
+`dofjson.legal_provisions_titles` to find each same-day candidate.
 
 Issue #132 retired the offline `audita_scjn_legislacion.py` script that used
 to exist here: `_cabecera` now writes `nombre_buscado` only when it differs
@@ -202,7 +203,7 @@ Each script's own module docstring carries the full, web-page-ready procedure;
 read it there.
 
 ```bash
-./scripts/construye_lfca.py --outdir scripts/scjn --titulos titulos.jsonl.gz
+./scripts/construye_lfca.py --outdir scripts/scjn
 ./scripts/fetch_lfiiedb_dof.py --outdir scripts/scjn
 ```
 

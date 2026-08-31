@@ -218,7 +218,7 @@ it next to the date, so provenance can be audited after the fact:
 1999-03-09	sidof
 ```
 
-In the compact `--titulos` dataset the marker rides along on the legal
+In the compact `legal_provisions_titles` stream the marker rides along on the legal
 provisions it applies to: a legal provision carries `fuente` only when its
 day did *not* come from SIDOF, since repeating `"sidof"` on all ~1.2 million
 rows would cost more than it says.
@@ -269,50 +269,53 @@ inside the range where titles can actually be recovered.
 > and the bundled chain only on failure. Certificate verification is never
 > disabled.
 
-## Building a compact titulo dataset from the release (`--titulos`)
+## Every legal provision ever published, as titles (`legal_provisions_titles`)
 
-`dofjson --titulos` builds a small `codNota` + `titulo` + `fecha` dataset out
-of every legal provision ever published, sourced from the [`notas-archivo`
-GitHub release](https://github.com/INGEOTEC/LegalIA/releases/tag/notas-archivo)
+`dofjson.legal_provisions_titles()` yields a small `codNota` + `titulo` +
+`fecha` + `codOrgaUno` record for every legal provision ever published,
+sourced from the [`notas-archivo` GitHub
+release](https://github.com/INGEOTEC/LegalIA/releases/tag/notas-archivo)
 (one `notas-YYYY.tgz` per year, 1917 to last year, plus one
-`notas-YYYY-MM.tgz` per month of the current year). Each asset is downloaded
-straight into memory, its daily JSON indexes are read without ever writing
-them to disk, and only `codNota`/`titulo`/`fecha` are kept from every legal
-provision (`titulo` is Spanish for "title", `fecha` for "date") — `codNota`
-to fetch that legal provision's full content later, `titulo` for exploratory
-analysis of the titles themselves, `fecha` to place each title in time. The
-result is a single gzip-compressed JSONL file (~1.2 million legal provisions
-fit in a few tens of MB): small enough to move to a Colab GPU runtime for
-experiments.
+`notas-YYYY-MM.tgz` per month of the current year). Each asset's daily JSON
+indexes are read in turn and only those four fields kept from every titled
+legal provision (`titulo` is Spanish for "title", `fecha` for "date") —
+`codNota` to fetch that legal provision's full content later, `titulo` for
+exploratory analysis of the titles themselves, `fecha` to place each title in
+time, `codOrgaUno` to group by issuing branch.
+
+Nothing is written: this used to be a `titulos.jsonl.gz` file plus an
+`organigrama.json`, from before the asset cache and an iterator over it
+existed. Both do now, and the dataset was a third copy of ~1.2 million
+records that could quietly fall behind the release (issue #166). Populate the
+cache once and every pass afterwards is local:
 
 ```bash
-dofjson --titulos                    # -> titulos/titulos.jsonl.gz
-dofjson --titulos --outdir /content  # e.g. from a Colab notebook
+nota2md download gazette-metadata   # or: python -c "import dofjson; dofjson.download_dof_assets()"
 ```
 
 ```python
-import gzip, json
-with gzip.open("titulos/titulos.jsonl.gz", "rt", encoding="utf-8") as f:
-    notas = [json.loads(line) for line in f]
-# notas[0] == {"codNota": 4434476, "titulo": "CIRCULAR nº. 164, ...", "fecha": "23-03-1917"}
+import dofjson
+
+for titulo in dofjson.legal_provisions_titles():
+    ...
+# titulo == {"codNota": 4434476, "titulo": "CIRCULAR nº. 164, ...",
+#            "fecha": "23-03-1917", "codOrgaUno": None}
 ```
 
-Or use the function directly:
+`cache_dir` resolves as everywhere else in the package: left out it is the
+package-wide `dofjson.titulos.CACHE_DIR`, a directory reads that one, and an
+explicit `cache_dir=None` downloads every asset straight into memory without
+touching disk:
 
 ```python
-from pathlib import Path
-from dofjson.titulos import download_legal_provisions_titles
-
-download_legal_provisions_titles(Path("titulos.jsonl.gz"))
+dofjson.legal_provisions_titles(Path("cache"))       # a cache of your own
+dofjson.legal_provisions_titles(cache_dir=None)      # nothing on disk
 ```
 
-Pass `cache_dir` to keep the downloaded `.tgz` assets on disk (e.g. a
-Colab-persisted folder) so rebuilding the dataset later only fetches assets
-not already there:
-
-```python
-download_legal_provisions_titles(Path("titulos.jsonl.gz"), cache_dir=Path("cache"))
-```
+The `codOrgaUno` -> `nombreCodOrgaUno` map comes out of the same pass —
+`dofjson.organigrama()` makes that pass on its own, or pass your own dict as
+`organigrama=` to get both at once. The stream is not re-iterable: a second
+pass re-reads the assets, so call it again (or materialize what you need).
 
 `download_dof_assets` does just the download/cache part, independently of
 building the titles dataset. Its own `cache_dir` is optional too: leave it
@@ -334,7 +337,7 @@ a caller needs (see above).
 
 ### Reading a whole asset, not just titles (`notas_de_tgz`)
 
-`titulos._titulos_de_tgz` (what `download_legal_provisions_titles` writes)
+`titulos._titulos_de_tgz` (what `legal_provisions_titles` yields)
 only ever kept four fields per legal provision. `dofjson.notas_de_tgz` is the
 general form: every field a note carries, in publication order (by day, then
 by `codNota` within the day):
@@ -350,8 +353,8 @@ for nota in dofjson.notas_de_tgz(Path("cache/notas-1980.tgz").read_bytes()):
 instead of one asset already in hand: it downloads (or reads from
 `cache_dir`) every `notas-YYYY[-MM].tgz` in turn and yields every note across
 all of them, one at a time, without ever holding more than one asset's notes
-in memory. `download_legal_provisions_titles` itself is built on top of it
-(it just keeps the titled notes and projects them down to four fields):
+in memory. `legal_provisions_titles` itself is built on top of it (it just keeps the
+titled notes and projects them down to four fields):
 
 ```python
 import dofjson

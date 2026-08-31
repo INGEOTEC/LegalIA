@@ -61,15 +61,20 @@ jobs:
           fi
 
       # 'todo' rebuilds every collection, which is what the monthly run needs:
-      # targeting one would leave the other three to go stale. The titles
-      # dataset is downloaded once by the first build and reused by the rest.
+      # targeting one would leave the other three to go stale. The DOF titles
+      # are streamed from the notas-archivo cache, populated once here and
+      # reused by every build.
       - name: Build
         env:
           LEY: ${{ inputs.ley || 'todo' }}
         run: |
           set -eu
-          titulos="${RUNNER_TEMP}/titulos.jsonl.gz"
+          cache="${RUNNER_TEMP}/notas-archivo"
           datos="${RUNNER_TEMP}/datos"
+          python -c "
+import dofjson
+dofjson.download_dof_assets('$cache', log=lambda *_: None)
+"
           construye() {
             case "$1" in
               todas)       salida="$datos/reformas" ;;
@@ -78,7 +83,7 @@ jobs:
               tratados)    salida="$datos/tratados" ;;
               *)           salida="$datos/reformas/$1.json" ;;
             esac
-            python -m leyesmx --ley "$1" --titulos "$titulos" --out "$salida"
+            python -m leyesmx --ley "$1" --cache-dir "$cache" --out "$salida"
           }
           if [ "$LEY" = "todo" ]; then
             for coleccion in todas reglamentos normas tratados; do

@@ -1,6 +1,13 @@
 # nota2md
 
-> **v0.5.0 changes what `legal_provisions` returns by default.** A `codNota`
+> **v0.5.0 changes what `legal_provisions` returns by default**, makes its
+> `outdir` optional, and replaces `download_legal_provisions_titles` with the
+> `legal_provisions_titles` stream (issues #117, #165, #166).
+>
+> Left out, `outdir` puts the Markdown in `nota2md`'s own cache and returns its
+> `Path`: `legal_provisions(5773097)` →
+> `<CACHE_DIR>/scjn-leyes/md/ccf-14-11-2025.md`. Passing an `outdir` behaves
+> exactly as before. And by default a `codNota`
 > the [`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)
 > release covers now comes back as **the law's whole consolidated text at that
 > reform** (written to `outdir/{slug}-{fecha}.md`, `fuente: scjn` header
@@ -15,11 +22,11 @@ Oficial de la Federación) and the federal laws it publishes:
 
 | Entry point | Given | Returns/writes |
 |---|---|---|
-| [`legal_provisions`](#legal_provisions--a-single-dof-legal-provision-as-markdown) | a legal provision's `codNota` | the law's consolidated text at that reform, from the SCJN corpus (`outdir/{slug}-{fecha}.md`) — or, when the corpus does not cover it, the DOF's own Markdown (`outdir/nota-{codNota}.md`) |
+| [`legal_provisions`](#legal_provisions--a-single-dof-legal-provision-as-markdown) | a legal provision's `codNota` (an `outdir` is optional) | the law's consolidated text at that reform, from the SCJN corpus (`outdir/{slug}-{fecha}.md`) — or, when the corpus does not cover it, the DOF's own Markdown (`outdir/nota-{codNota}.md`); with no `outdir`, written into the cache and returned as a `Path` |
 | [`reconstruct_legal_provisions`](#reconstruct_legal_provisions--a-laws-current-text-from-its-dof-legal-provisions) | a law's reform history (`codNota` list) | its current text, written to `outdir/ley-{codNota}.md` |
 | [`download_legal_provisions_provenance_ids`](#download_legal_provisions_provenance_ids--a-laws-reform-history) | a collection name (`"leyes"`, `"reglamentos"`, `"normas"`, `"tratados"`) | every instrument's reform history, in memory |
 | [`fetch_daily_legal_provisions`](#cutting-a-legal-provision-out-of-its-page) | a date | that day's browsable legal provisions (title, `codNota`, `codEdicion`...) |
-| [`download_legal_provisions_titles`](#download_legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` release) | every legal provision ever published, as `codNota`+`titulo`+`fecha`, written to a gzipped JSONL file |
+| [`legal_provisions_titles`](#legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` cache) | every legal provision ever published, as a stream of `codNota`+`titulo`+`fecha`+`codOrgaUno` records |
 | [`download_scjn_leyes_corpus`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | a law's `slug` | every snapshot of that law in the `scjn-leyes` release, with its `codNota` links, in memory |
 | [`download_scjn_leyes_index`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (reads one small release asset) | the reverse index `codNota → (law, snapshot)`, in memory |
 
@@ -120,13 +127,16 @@ Every file this path writes therefore keeps the corpus' own provenance header
 (`fuente: scjn`, `ordenamiento`, `fecha_publicacion`, …) intact, and lands
 under a different name — so the file alone says where it came from:
 
-| | file written |
-|---|---|
-| SCJN path | `outdir/{slug}-{fecha}.md` (e.g. `lfca-05-01-1999.md`) |
-| every DOF path | `outdir/nota-{codNota}.md` (unchanged) |
+| | file written | with no `outdir` (v0.5.0) |
+|---|---|---|
+| SCJN path | `outdir/{slug}-{fecha}.md` (e.g. `lfca-05-01-1999.md`) | `<CACHE_DIR>/scjn-leyes/md/{slug}-{fecha}.md` |
+| every DOF path | `outdir/nota-{codNota}.md` (unchanged) | `<CACHE_DIR>/dof/nota-{codNota}.md` |
 
 ```python
 from nota2md import legal_provisions
+
+# no outdir at all: written into nota2md's cache, path returned (v0.5.0)
+legal_provisions(4967917)     # -> <CACHE_DIR>/scjn-leyes/md/lfca-05-01-1999.md
 
 # default: the whole law at that reform, if the corpus covers this codNota
 legal_provisions(4967917, "output")                  # -> output/lfca-05-01-1999.md
@@ -173,6 +183,9 @@ lifecycles, so clearing one does not clear the other.
 ### Usage
 
 ```bash
+# no --outdir: written into nota2md's cache, path printed
+nota2md 5793655
+
 # the law's consolidated text from the SCJN corpus when it covers this
 # codNota, otherwise the DOF (HTML when available, else OCR)
 nota2md 5793655 --outdir output
@@ -308,24 +321,24 @@ reform count, dates...) with its own `historial`: the `codNota` of its reforms
 or decrees, oldest first, index 0 the original publication. That is exactly
 what `reconstruct_legal_provisions` expects as its own first argument.
 
-## `download_legal_provisions_titles` — every legal provision ever published, as titles
+## `legal_provisions_titles` — every legal provision ever published, as titles
 
 Implemented in [`dofjson.titulos`](../dofjson) and re-exported here so it sits
-alongside the rest of `nota2md`'s entry points. Builds a compact `codNota` +
-`titulo` + `fecha` + `codOrgaUno` dataset covering every legal provision
-published since 1917 (~1.2 million rows, a few tens of MB compressed), read
-straight from the `notas-archivo` release — nothing downloaded touches disk
-except the two result files:
-
-```python
-from pathlib import Path
-from nota2md import download_legal_provisions_titles
-
-download_legal_provisions_titles(Path("titulos.jsonl.gz"))
-```
+alongside the rest of `nota2md`'s entry points. Yields a compact `codNota` +
+`titulo` + `fecha` + `codOrgaUno` record for every legal provision published
+since 1917 (~1.2 million of them), streamed off the `notas-archivo` cache —
+nothing is written, and a populated cache means no network at all (issue
+#166; it used to write a `titulos.jsonl.gz` dataset):
 
 ```bash
-dofjson --titulos --outdir output    # -> output/titulos.jsonl.gz
+nota2md download gazette-metadata    # populate the cache, once
+```
+
+```python
+from nota2md import legal_provisions_titles
+
+for titulo in legal_provisions_titles():
+    ...
 ```
 
 ## `nota2md download` — putting the releases on disk

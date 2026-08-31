@@ -3,20 +3,28 @@
 The `notas-archivo` GitHub release (see `archivo.py`) publishes one
 `notas-YYYY.tgz` per year (1917-2025) and one `notas-YYYY-MM.tgz` per month
 of the current year, each holding the per-day notes-index JSON files. This
-module downloads every asset straight into memory by default (or reuses a
-`cache_dir` on disk, via `download_dof_assets`, if one is given), extracts
+module reads every asset from the on-disk cache by default (populating it via
+`download_dof_assets`, the same cache `dofjson.api` reads; pass
+``cache_dir=None`` to download straight into memory instead), extracts
 its daily JSONs, and keeps only `codNota`, `titulo`
 (Spanish for "title"), `fecha` (Spanish for "date") and `codOrgaUno` (the
 note's top-level organism/branch code) from each note — `codNota` to fetch
 that note's full content later, `titulo` for exploratory analysis of the
 titles themselves, `fecha` to place each title in time (e.g. grouping by
 year), `codOrgaUno` to group notes by issuing branch without carrying its
-full name on every row. The result is a single small JSONL file, light
-enough to ship to a Colab GPU runtime for experiments.
+full name on every row.
 
-Alongside it, `download_legal_provisions_titles` also writes a small JSON map from
-`codOrgaUno` to `nombreCodOrgaUno` (its human-readable name, e.g. "PODER
-EJECUTIVO") — the pairing lives once per code, not once per note.
+`legal_provisions_titles` yields that projection as a stream. It used to write
+it out as a gzipped JSONL file plus an `organigrama.json` map, back when
+neither the on-disk asset cache nor an iterator over it existed; both do now
+(`download_dof_assets` + `iterador_de_assets`), which made the dataset a third
+copy of ~1.2 million records that could silently fall behind the release, and
+made every consumer pass a file path around. Issue #166 removed it: the
+titles are a cheap projection of a stream we already know how to produce.
+
+The `codOrgaUno` -> `nombreCodOrgaUno` map (its human-readable name, e.g.
+"PODER EJECUTIVO") comes out of the same pass, into a dict the caller owns —
+see `organigrama` below, or the `organigrama=` parameter.
 
 A note whose day did not come from SIDOF carries a `fuente` key naming where
 it did come from (see `dofweb.py`); notes without one are SIDOF's.
@@ -31,7 +39,6 @@ cached date without a SIDOF/dofweb request at all.
 """
 
 import datetime as dt
-import gzip
 import io
 import json
 import re
@@ -87,20 +94,16 @@ CACHE_DIR = directorio_cache_predeterminado()
 SIN_CACHE_DIR = object()
 
 
-def lee_titulos(origen: Path):
-    """Yield the records of a dataset `download_legal_provisions_titles` wrote.
-
-    The counterpart of writing it, kept here so a consumer does not have to
-    know the file is gzipped JSONL — or reach for a text-mining library to find
-    that out. `microtc.utils.tweet_iterator` reads the same format, but pulling
-    it in costs `numpy` as well, and it does not declare that dependency: an
-    install without it fails on `import microtc`, not at the call.
-    """
-    with gzip.open(Path(origen), "rt", encoding="utf-8") as f:
-        for linea in f:
-            linea = linea.strip()
-            if linea:
-                yield json.loads(linea)
+def resuelve_cache_dir(cache_dir) -> Path | None:
+    """A `cache_dir` argument as an actual directory (or None, "no cache"):
+    `SIN_CACHE_DIR` -> the package-wide `CACHE_DIR`, read now rather than
+    frozen at import time, so reassigning it still takes effect; None ->
+    None; anything else -> that path."""
+    if cache_dir is SIN_CACHE_DIR:
+        return Path(CACHE_DIR)
+    if cache_dir is None:
+        return None
+    return Path(cache_dir)
 
 
 def listar_assets(timeout: int = 30) -> list[dict]:
@@ -168,8 +171,8 @@ def notas_de_tgz(contenido: bytes, organigrama: dict | None = None):
 
     Reads the tarball straight out of `contenido` in memory: nothing is
     written to disk. This is the general building block `_titulos_de_tgz`
-    (the codNota+titulo+fecha+codOrgaUno projection `download_legal_provisions_titles`
-    writes) and `nota_del_dia_en_cache` (a single cached day, for
+    (the codNota+titulo+fecha+codOrgaUno projection `legal_provisions_titles`
+    yields) and `nota_del_dia_en_cache` (a single cached day, for
     `dofjson.api.get_notas`) are both built on.
 
     A note whose day did not come from SIDOF is tagged with the same
@@ -226,7 +229,7 @@ def _proyectar_titulo(nota: dict) -> dict | None:
 def _titulos_de_tgz(contenido: bytes, organigrama: dict | None = None):
     """Yield {"codNota", "titulo", "fecha", "codOrgaUno"} for every titled note
     inside a notas-YYYY[-MM].tgz — the codNota+titulo+fecha+codOrgaUno
-    projection of `notas_de_tgz` that `download_legal_provisions_titles` writes out.
+    projection of `notas_de_tgz` that `legal_provisions_titles` yields.
     """
     for nota in notas_de_tgz(contenido, organigrama):
         titulo = _proyectar_titulo(nota)
@@ -235,7 +238,7 @@ def _titulos_de_tgz(contenido: bytes, organigrama: dict | None = None):
 
 
 def iterador_de_assets(
-    cache_dir: Path | None = None, timeout: int = 60, log=print,
+    cache_dir=SIN_CACHE_DIR, timeout: int = 60, log=print,
     organigrama: dict | None = None,
 ):
     """Yield every note in the notas-archivo release, one asset after another
@@ -244,20 +247,22 @@ def iterador_de_assets(
     archive as a single stream, never holding more than one asset's notes in
     memory at a time.
 
-    `cache_dir` works exactly like `download_legal_provisions_titles`'s own:
-    left as None (the default), every asset is downloaded straight into
-    memory and nothing touches disk; give a directory instead to read/reuse
-    assets there (see `download_dof_assets`), so a later run only fetches
-    what is not already cached.
+    `cache_dir` follows the same convention as `api.get_notas` and
+    `archivo.download_archivo` (issue #166): not given at all -> the
+    package-wide `CACHE_DIR`, so a caller who already populated it (e.g.
+    `nota2md download gazette-metadata`) reads it back without naming a path;
+    a directory -> that one; an explicit ``cache_dir=None`` -> every asset
+    downloaded straight into memory, nothing touching disk.
 
     `organigrama`, if given, accumulates codOrgaUno -> nombreCodOrgaUno across
     every asset — see `notas_de_tgz`.
 
-    This is the building block `download_legal_provisions_titles` streams
-    through `_proyectar_titulo()` to build its compact dataset; any other
-    consumer that wants the whole archive, notes whole, can iterate this
-    directly instead of re-deriving the download-then-extract loop itself.
+    This is the building block `legal_provisions_titles` streams through
+    `_proyectar_titulo()`; any other consumer that wants the whole archive,
+    notes whole, can iterate this directly instead of re-deriving the
+    download-then-extract loop itself.
     """
+    cache_dir = resuelve_cache_dir(cache_dir)
     if cache_dir is not None:
         asset_paths = download_dof_assets(cache_dir, timeout, log)
         for i, path in enumerate(asset_paths, 1):
@@ -278,53 +283,54 @@ def iterador_de_assets(
             log(f"[{i}/{len(assets)}] {asset['name']}: {n} notas")
 
 
-def download_legal_provisions_titles(
-    dest: Path,
-    organigrama_dest: Path | None = None,
-    cache_dir: Path | None = None,
+def legal_provisions_titles(
+    cache_dir=SIN_CACHE_DIR,
     timeout: int = 60,
     log=print,
-) -> Path:
-    """Build a codNota+titulo+fecha+codOrgaUno dataset (gzipped JSONL) out of
-    every published note, plus a small codOrgaUno -> nombreCodOrgaUno map.
+    organigrama: dict | None = None,
+):
+    """Yield the codNota+titulo+fecha+codOrgaUno(+fuente) record of every
+    titled note ever published — `iterador_de_assets` streamed through
+    `_proyectar_titulo`, title-less notes dropped.
 
-    Streams every note in the release (`iterador_de_assets`), keeps only
-    codNota/titulo/fecha/codOrgaUno from every titled one (`_proyectar_titulo`),
-    and appends them to `dest` as gzip-compressed JSONL. With `cache_dir` left
-    unset, nothing downloaded touches disk, so the whole run leaves behind
-    only the two result files (~1.2 million notes fit in a few tens of MB
-    gzipped) — small enough to move around or commit to a Colab notebook for
-    experiments.
+    Nothing is written: this is the titles dataset as a stream (issue #166),
+    read from the notas-archivo cache the rest of the monorepo already shares.
+    Populate that cache once (``nota2md download gazette-metadata``, or
+    `download_dof_assets`) and every pass afterwards is local.
 
-    `organigrama_dest` (default: `organigrama.json` next to `dest`) gets the
-    codOrgaUno -> nombreCodOrgaUno map, built from the same notes as they are
-    streamed, and written once at the end.
+    `cache_dir` resolves as everywhere else: omitted -> `CACHE_DIR`, a
+    directory -> that one, an explicit None -> downloaded into memory,
+    nothing on disk.
 
-    `cache_dir`, if given, is passed to `download_dof_assets` so assets are
-    fetched (or reused) from disk instead of downloaded straight into memory
-    — a rebuild then only fetches assets not already cached there.
+    `organigrama`, if given, is filled in place with codOrgaUno ->
+    nombreCodOrgaUno as the same pass goes by (see `notas_de_tgz`) — the map
+    is complete only once the stream has been consumed to the end, which is
+    what `organigrama()` below does.
+
+    The stream is not re-iterable: each pass re-reads (and re-decompresses)
+    every asset. A consumer that needs more than one pass either calls this
+    again or materializes what it needs.
     """
-    dest = Path(dest)
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    organigrama_dest = Path(organigrama_dest) if organigrama_dest else dest.with_name("organigrama.json")
-    organigrama_dest.parent.mkdir(parents=True, exist_ok=True)
+    for nota in iterador_de_assets(cache_dir, timeout, log, organigrama):
+        titulo = _proyectar_titulo(nota)
+        if titulo is not None:
+            yield titulo
 
-    organigrama: dict = {}
-    total = 0
-    with gzip.open(dest, "wt", encoding="utf-8") as out:
-        for nota in iterador_de_assets(cache_dir, timeout, log, organigrama):
-            titulo = _proyectar_titulo(nota)
-            if titulo is None:
-                continue
-            out.write(json.dumps(titulo, ensure_ascii=False) + "\n")
-            total += 1
 
-    with open(organigrama_dest, "w", encoding="utf-8") as f:
-        json.dump(organigrama, f, ensure_ascii=False, indent=2, sort_keys=True)
+def organigrama(cache_dir=SIN_CACHE_DIR, timeout: int = 60, log=print) -> dict:
+    """The codOrgaUno -> nombreCodOrgaUno map of the whole archive (e.g.
+    ``{"PEJ": "PODER EJECUTIVO"}``), built by consuming the archive once.
 
-    log(f"\nTotal: {total} notas -> {dest}")
-    log(f"Organigrama: {len(organigrama)} códigos -> {organigrama_dest}")
-    return dest
+    It used to be written out as `organigrama.json` alongside the titles
+    dataset; it is small enough (a few hundred codes) to hand back as a dict,
+    and it is derived from the same pass the titles are. A caller that wants
+    both in one pass passes its own dict as `legal_provisions_titles`'
+    `organigrama=` instead of paying for a second one.
+    """
+    acumulado: dict = {}
+    for _ in iterador_de_assets(cache_dir, timeout, log, acumulado):
+        pass
+    return acumulado
 
 
 def _asset_para_fecha(fecha: dt.date, hoy: dt.date | None = None) -> str:

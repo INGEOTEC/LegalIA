@@ -22,17 +22,21 @@ build on each other in this sequence.
   silently loses whole days (reports them as an empty, valid day, same as a
   Sunday); `dofjson.dofweb` recovers those from `www.dof.gob.mx` and callers
   never need to know which source actually answered (see `fuente` field).
-  Also builds the compact `codNota`+`titulo`+`fecha` dataset of every legal
-  provision ever published, read from the `notas-archivo` GitHub release.
+  Also streams the compact `codNota`+`titulo`+`fecha` record of every legal
+  provision ever published (`legal_provisions_titles`), off the on-disk cache
+  of the `notas-archivo` GitHub release — it writes no dataset of its own
+  (issue #166).
 - **`nota2md`** — seven entry points, all re-exported off the package:
-  `legal_provisions` (one note → Markdown; **by default the SCJN's
+  `legal_provisions` (one note → Markdown, `legal_provisions(codNota)` with no
+  other argument writing into `nota2md.cache.CACHE_DIR` and returning the
+  `Path` (issue #165); **by default the SCJN's
   consolidated text of the whole law at that reform** when the `scjn-leyes`
   release covers the `codNota`, else the DOF's own HTML/image/PDF source —
   `source="dof"` forces the original source; issue #117),
   `reconstruct_legal_provisions` (a law's current text, replayed from its own
   reform decrees), `download_legal_provisions_provenance_ids` (a law's reform
   history, from the `historial-legislativo` release), `fetch_daily_legal_provisions`,
-  `download_legal_provisions_titles` (re-exported from `dofjson.titulos`),
+  `legal_provisions_titles` (re-exported from `dofjson.titulos`),
   `download_scjn_leyes_corpus`/`download_scjn_leyes_index` (the `scjn-leyes`
   release's readers). Its release assets are cached on disk under
   `nota2md.cache.CACHE_DIR` — `nota2md`'s own directory, deliberately not
@@ -60,7 +64,8 @@ releases (`historial-legislativo`, `notas-archivo`) or are `.gitignore`d
 local scratch directories (`/output/`, `/notas-archivo/`,
 `packages/leyesmx/data/`, `scripts/scjn/`, `scripts/legal_provisions/`).
 Read them back via `download_legal_provisions_provenance_ids` /
-`download_legal_provisions_titles`, never by looking for a file in the repo.
+`legal_provisions_titles` (the latter over the cache `nota2md download
+gazette-metadata` populates), never by looking for a file in the repo.
 
 ## Commands
 
@@ -98,8 +103,14 @@ which has outputs; git stores the stripped one). That is exactly how the
 `pages/titles.ipynb` on a runner with no Python.
 
 Consequence for local work: `quarto render` will *not* pick up edits to a
-notebook's code. Re-execute explicitly with `quarto render --no-freeze`
-(or `--no-freeze` on the single file) and commit the refreshed `_freeze/`.
+notebook's code. Re-execute explicitly and commit the refreshed `_freeze/`.
+`--no-freeze` is a project-level flag only — on a single file quarto (1.9.36)
+hands it to pandoc, which dies with `Unknown option --no-freeze`. So:
+
+```bash
+quarto render --no-freeze                                  # the whole site
+QUARTO_FREEZE=false quarto render pages/dataset.ipynb --execute   # one file
+```
 
 A clone that skips the `nbstripout` install is not broken — an undefined
 filter is a pass-through — it just stops shrinking what it commits.

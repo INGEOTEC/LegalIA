@@ -13,10 +13,20 @@ the release names them:
 
     <CACHE_DIR>/scjn-leyes/indice-global.json.gz
     <CACHE_DIR>/scjn-leyes/<slug>.tgz
+    <CACHE_DIR>/scjn-leyes/md/<slug>-<archivo>
+    <CACHE_DIR>/dof/nota-<codNota>.md
 
 The `.tgz` is stored as-is rather than unpacked: it is one file per law, it
 can be checked against the release's own `SHA256SUMS.txt`, and it is what
 `dofjson.download_dof_assets` already does with `notas-archivo`'s assets.
+Unpacking it in place would lose that property, so the one snapshot a caller
+asked for is extracted next to it, under `md/` — derived text rather than an
+asset, deletable at any time and re-derivable from the tarball it came from.
+
+`dof/` holds what `legal_provisions(codNota)` builds when the SCJN corpus does
+not cover the note (issue #165): a sibling of `scjn-leyes/`, not a
+subdirectory of it, because it does not come from that release and clearing
+the corpus must not take DOF text with it.
 
 Freshness works like `dofjson`'s: an asset already on disk is a hit **by file
 name, with no revalidation** — these assets are only ever republished by hand
@@ -80,6 +90,45 @@ def resuelve_cache_dir(cache_dir) -> Path | None:
     if cache_dir is None:
         return None
     return Path(cache_dir)
+
+
+#: Where a snapshot extracted out of a `scjn-leyes` tarball is materialized,
+#: and where `legal_provisions` writes a note built from the DOF, when the
+#: caller named no `outdir` of their own — relative to the resolved cache
+#: directory. See the module docstring's layout diagram.
+SUBDIR_MD_SCJN = ("scjn-leyes", "md")
+SUBDIR_DOF = ("dof",)
+
+
+def directorio_de_salida(cache_dir, *partes) -> Path:
+    """``<cache_dir>/<*partes>``, created if it is not there yet — the
+    destination directory of a `legal_provisions` call that named no `outdir`.
+
+    ``cache_dir=None`` ("skip the cache") has no answer to give here: with no
+    `outdir` either, there is nowhere left to write. That combination raises
+    `ValueError` rather than silently picking a directory, the same way
+    `download_scjn_leyes_assets` refuses its own version of it."""
+    directorio = resuelve_cache_dir(cache_dir)
+    if directorio is None:
+        raise ValueError(
+            "cache_dir=None means 'no cache', and outdir=None means 'write it "
+            "into the cache': together they leave nowhere to write. Pass an "
+            "outdir, or let cache_dir default to nota2md.cache.CACHE_DIR"
+        )
+    ruta = directorio.joinpath(*partes)
+    ruta.mkdir(parents=True, exist_ok=True)
+    return ruta
+
+
+def escribe_texto(destino: Path, texto: str) -> Path:
+    """Write `texto` to `destino` through a `SUFIJO_PARCIAL` file, renamed
+    into place only once the write finished — the same guarantee
+    `asset_en_cache` gives a download: a run interrupted half-way can never
+    leave behind a truncated file that the next call reads as a hit."""
+    parcial = destino.with_name(destino.name + SUFIJO_PARCIAL)
+    parcial.write_text(texto, encoding="utf-8")
+    parcial.replace(destino)
+    return destino
 
 
 def descarga(url: str, timeout: int = 60) -> bytes:

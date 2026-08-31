@@ -8,7 +8,8 @@ general script (`fetch_scjn_legislacion.py`, `enlaza_scjn_legislacion.py`,
 `nota2md/scjn.py`). It only writes inside
 ``<outdir>/leyes/lfca/``.
 
-    ./scripts/construye_lfca.py --outdir scripts/scjn --titulos titulos.jsonl.gz
+    nota2md download gazette-metadata   # pobla el cache de notas-archivo
+    ./scripts/construye_lfca.py --outdir scripts/scjn
 
 --- PROCEDIMIENTO (copiable a la página web del proyecto) -----------------
 
@@ -133,6 +134,7 @@ from pathlib import Path
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
 
+from dofjson.titulos import legal_provisions_titles  # noqa: E402
 from nota2md.builder import fetch_nota, legal_provisions  # noqa: E402
 from nota2md.scjn import (  # noqa: E402
     confirm_by_content_diff,
@@ -150,6 +152,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from enlaza_scjn_legislacion import (  # noqa: E402
     _confianza,
     _confirmaciones_por_contenido,
+    _resolver_cache_dir,
     carga_porf,
 )
 
@@ -309,8 +312,10 @@ def main(argv=None) -> int:
         help="la misma raiz que usan los scripts generales (p.ej. scripts/scjn)",
     )
     p.add_argument(
-        "--titulos", type=Path, required=True,
-        help="dataset de dofjson.download_legal_provisions_titles (gzip JSONL)",
+        "--cache-dir", default=None, metavar="DIR",
+        help="directorio con los assets .tgz de notas-archivo de donde se leen "
+             "los titulos del DOF (poblalo con `nota2md download gazette-metadata`); "
+             "sin valor: dofjson.titulos.CACHE_DIR; 'none': a memoria",
     )
     p.add_argument(
         "--espera", type=float, default=1.0, help="segundos entre peticiones a la SCJN",
@@ -349,7 +354,10 @@ def main(argv=None) -> int:
     print(f"  {archivo_dof.name}", file=sys.stderr)
 
     print("[3/3] enlace a codNota -> indice.json", file=sys.stderr)
-    indice = construye_indice(destino, carga_porf(args.titulos), archivo_dof)
+    titulos = legal_provisions_titles(
+        _resolver_cache_dir(args.cache_dir), log=lambda *_: None
+    )
+    indice = construye_indice(destino, carga_porf(titulos), archivo_dof)
 
     enlazados = sum(1 for e in indice if e["codNota"] is not None)
     de_scjn = sum(1 for e in indice if e["fuente"] == "scjn")

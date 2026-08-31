@@ -54,6 +54,7 @@ from pathlib import Path
 import dofjson
 import requests
 
+from nota2md import cache
 from nota2md.cache import SIN_CACHE_DIR
 from nota2md.html_converter import html_to_markdown
 
@@ -121,10 +122,35 @@ def _snapshot_scjn(cod_nota, instrumento, cache_dir, refrescar):
     there to prevent."""
     from nota2md.scjn import snapshot_de_codNota
 
-    try:
-        return snapshot_de_codNota(
+    return _con_fallback_dof(
+        cod_nota,
+        lambda: snapshot_de_codNota(
             cod_nota, instrumento=instrumento, cache_dir=cache_dir, refrescar=refrescar
-        )
+        ),
+    )
+
+
+def _localiza_scjn(cod_nota, instrumento, cache_dir, refrescar):
+    """Where the SCJN keeps `cod_nota`'s consolidated text, as
+    ``(slug, archivo)``, or None — `_snapshot_scjn` without reading the
+    tarball, for the `outdir=None` path that only needs the file name to know
+    whether it already has that snapshot on disk. Same fallback rules."""
+    from nota2md.scjn import localiza_codNota
+
+    return _con_fallback_dof(
+        cod_nota,
+        lambda: localiza_codNota(
+            cod_nota, instrumento=instrumento, cache_dir=cache_dir, refrescar=refrescar
+        ),
+    )
+
+
+def _con_fallback_dof(cod_nota, consulta):
+    """Run `consulta` against the `scjn-leyes` release, turning "not published
+    yet" and "release unreachable" into None (fall back to the DOF) with a
+    warning — see `_snapshot_scjn`."""
+    try:
+        return consulta()
     except KeyError as exc:
         warnings.warn(
             f"el release 'scjn-leyes' no responde por el codNota {cod_nota} "
@@ -142,7 +168,7 @@ def _snapshot_scjn(cod_nota, instrumento, cache_dir, refrescar):
 
 def legal_provisions(
     cod_nota: int,
-    outdir: str | Path,
+    outdir: str | Path | None = None,
     source: str = "auto",
     *,
     fecha: dt.date | None = None,
@@ -158,6 +184,14 @@ def legal_provisions(
 ) -> Path:
     """Build the Markdown for `cod_nota` and write it into `outdir`; return
     that path.
+
+    `outdir` is optional: left out, the note is written into `nota2md`'s own
+    cache and its path returned (issue #165) — the caller asked *where this
+    legal provision is*, and with the SCJN corpus already cached on disk there
+    is no directory left for them to have to choose:
+
+        >>> legal_provisions(5773097)
+        PosixPath('<CACHE_DIR>/scjn-leyes/md/ccf-14-11-2025.md')
 
     `source` picks where the Markdown comes from:
 
@@ -177,6 +211,15 @@ def legal_provisions(
     official source of legal text, and whoever reads the result has to be able
     to tell that from the file alone. Every DOF path keeps writing
     ``outdir/nota-{cod_nota}.md``, unchanged.
+
+    With no `outdir`, those two destinations become
+    ``<CACHE_DIR>/scjn-leyes/md/{slug}-{fecha}.md`` and
+    ``<CACHE_DIR>/dof/nota-{cod_nota}.md`` (see `nota2md.cache`). The SCJN one
+    is a cache proper — a file already there is returned without opening the
+    tarball or touching the network — while the DOF one is rebuilt on every
+    call, since ``nota-{cod_nota}.md`` carries no version and the HTML/OCR it
+    is built from can change. ``cache_dir=None`` ("no cache") together with no
+    `outdir` leaves nowhere to write, and raises `ValueError`.
 
     `instrumento` (a law's slug) picks which law is meant when one decree
     reformed several at once; without it that case raises `ValueError` listing
@@ -215,23 +258,32 @@ def legal_provisions(
             f"source must be 'auto', 'dof', 'html', 'image' or 'pdf', got {source!r}"
         )
 
-    outdir = Path(outdir)
-    outdir.mkdir(parents=True, exist_ok=True)
+    if outdir is not None:
+        outdir = Path(outdir)
+        outdir.mkdir(parents=True, exist_ok=True)
+    else:
+        # Fails here, before any request, when there is no cache to write to.
+        cache.directorio_de_salida(cache_dir)
 
     if source == "auto":
-        snapshot = _snapshot_scjn(cod_nota, instrumento, cache_dir, refrescar)
-        if snapshot is not None:
-            slug, archivo, markdown = snapshot
-            # `archivo` already carries issue #113's `-N` suffix for a law
-            # reformed twice on one date, so `<slug>-<fecha>.md` is unique.
-            destino = outdir / f"{slug}-{archivo}"
-            destino.write_text(markdown, encoding="utf-8")
+        destino = (
+            _scjn_a_directorio(cod_nota, instrumento, cache_dir, refrescar, outdir)
+            if outdir is not None
+            else _scjn_a_cache(cod_nota, instrumento, cache_dir, refrescar)
+        )
+        if destino is not None:
             return destino
 
     # Every remaining path is the DOF's own. "dof" only ever meant "not the
     # SCJN": from here on it picks HTML-or-image exactly as "auto" does.
     if source == "dof":
         source = "auto"
+
+    if outdir is None:
+        # Every DOF path — including the auxiliary artifacts of the OCR ones —
+        # lands in the cache's own `dof/` directory, a sibling of the SCJN
+        # corpus rather than a subdirectory of it (see `nota2md.cache`).
+        outdir = cache.directorio_de_salida(cache_dir, *cache.SUBDIR_DOF)
 
     md_path = outdir / f"nota-{cod_nota}.md"
 
@@ -284,6 +336,42 @@ def legal_provisions(
     )
     convert(path_or_paths, md_path, keep_mineru_output=keep_mineru_output)
     return _cut_and_write(md_path, outdir, titulo, titulo_sig, min_confidence, keep_pages, cod_nota)
+
+
+def _scjn_a_directorio(cod_nota, instrumento, cache_dir, refrescar, outdir):
+    """The SCJN's text for `cod_nota` written into `outdir`, or None when the
+    corpus does not cover it."""
+    snapshot = _snapshot_scjn(cod_nota, instrumento, cache_dir, refrescar)
+    if snapshot is None:
+        return None
+    slug, archivo, markdown = snapshot
+    # `archivo` already carries issue #113's `-N` suffix for a law reformed
+    # twice on one date, so `<slug>-<fecha>.md` is unique.
+    destino = outdir / f"{slug}-{archivo}"
+    destino.write_text(markdown, encoding="utf-8")
+    return destino
+
+
+def _scjn_a_cache(cod_nota, instrumento, cache_dir, refrescar):
+    """The same, into ``<CACHE_DIR>/scjn-leyes/md/`` — the no-`outdir` path.
+
+    Named exactly as the `outdir` one names it, and a hit by file name: a
+    snapshot already materialized is returned without opening the tarball,
+    the same rule the rest of the cache follows. `refrescar` re-extracts over
+    it, so it still means "ignore what is on disk"."""
+    ubicacion = _localiza_scjn(cod_nota, instrumento, cache_dir, refrescar)
+    if ubicacion is None:
+        return None
+    from nota2md.scjn import markdown_de_snapshot
+
+    slug, archivo = ubicacion
+    destino = cache.directorio_de_salida(cache_dir, *cache.SUBDIR_MD_SCJN) / f"{slug}-{archivo}"
+    if destino.exists() and not refrescar:
+        return destino
+    markdown = markdown_de_snapshot(
+        slug, archivo, cache_dir=cache_dir, refrescar=refrescar
+    )
+    return cache.escribe_texto(destino, markdown)
 
 
 def _load_converter(name: str):
