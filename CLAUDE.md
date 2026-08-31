@@ -103,8 +103,14 @@ which has outputs; git stores the stripped one). That is exactly how the
 `pages/titles.ipynb` on a runner with no Python.
 
 Consequence for local work: `quarto render` will *not* pick up edits to a
-notebook's code. Re-execute explicitly with `quarto render --no-freeze`
-(or `--no-freeze` on the single file) and commit the refreshed `_freeze/`.
+notebook's code. Re-execute explicitly and commit the refreshed `_freeze/`.
+`--no-freeze` is a project-level flag only — on a single file quarto (1.9.36)
+hands it to pandoc, which dies with `Unknown option --no-freeze`. So:
+
+```bash
+quarto render --no-freeze                                  # the whole site
+QUARTO_FREEZE=false quarto render pages/dataset.ipynb --execute   # one file
+```
 
 A clone that skips the `nbstripout` install is not broken — an undefined
 filter is a pass-through — it just stops shrinking what it commits.
