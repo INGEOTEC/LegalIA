@@ -22,9 +22,9 @@ for nodo in ley.walk():               # every node, in document order
 
 `md2akn` follows the repository's naming convention (`nota2md`, `dof2md`:
 input → output), but the `2` does **not** mean this package emits Akoma Ntoso
-XML. It never does — that conversion already exists, in
-[`nota2md.akoma_ntoso`](../nota2md). What is taken from the standard (an OASIS
-Standard since 2018, reviewed in
+XML. It never does, and neither does anything else in LegalIA: the project
+does not emit Akoma Ntoso XML at any point (issue #168). What is taken from
+the standard (an OASIS Standard since 2018, reviewed in
 [issue #91](https://github.com/INGEOTEC/LegalIA/issues/91)) is its
 **vocabulary**: the element names a node's `akn_type` is drawn from, the `eId`
 naming convention, and `refersTo` for the structures the standard has no
@@ -34,8 +34,11 @@ Not emitting XML is what lets the tree stay faithful to the source. Akoma
 Ntoso's `hierarchy` content model is a strict either/or — an element has a
 flat `content` **or** hierarchical children, never both — and a Mexican
 article routinely has both: an introductory sentence ("Artículo 4. Son
-obligaciones:"), then its fracciones, then one or more closing paragraphs. The
-XML converter has to choose and flatten; this tree does not.
+obligaciones:"), then its fracciones, then one or more closing paragraphs. An
+XML serialization has to choose one and flatten the other away; this tree does
+not. That is the reason the decision went the way it did — an earlier XML
+converter did live in `nota2md`, and it was removed rather than kept alongside
+this package (it remains in git history if it is ever needed again).
 
 ## Vocabulary
 
@@ -53,9 +56,8 @@ XML converter has to choose and flatten; this tree does not.
 | the closing signatures | `conclusions` | |
 
 Akoma Ntoso has no element for "transitorios" or for "apartado"; both are
-expressed as an existing element plus `refers_to`, which is the same
-convention `nota2md.akoma_ntoso` already adopted — deliberately, so the two
-packages say the same thing even though they share no code.
+expressed as an existing element plus `refers_to`, which is the convention
+issue #91 settled on for structures the standard does not name.
 
 ## What it recognizes
 

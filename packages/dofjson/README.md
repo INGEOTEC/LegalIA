@@ -365,6 +365,34 @@ for nota in dofjson.iterador_de_assets(Path("cache")):  # reuse a cache_dir on d
     ...
 ```
 
+### A day's legal provisions as one flat sequence
+
+`get_notas(date)` answers the day split into its three editions
+(`NotasMatutinas`/`NotasVespertinas`/`NotasExtraordinarias`, plus the
+day-level `fuente`), which is the wire shape of both SIDOF and the DOF
+website and the format the `notas-archivo` release is written in. That shape
+does not change. To go through the whole day instead, without knowing the
+three key names and without losing which edition a note came from, use
+`legal_provisions_of_day()`:
+
+```python
+import dofjson
+
+for nota in dofjson.legal_provisions_of_day(dt.date(2026, 7, 15)):
+    print(nota["edicion"], nota["codNota"], nota["titulo"])   # MAT, then VES, then EXT
+```
+
+It takes either the date — fetching the day first, passing `respaldo` and
+`cache_dir` straight through to `get_notas()` — or a response already in
+hand, in which case nothing is fetched. Every note is a shallow copy of the
+original, ordered edition-first (MAT, VES, EXT, the day's own publication
+order) and by `codNota` inside an edition, and carries two extra keys:
+`edicion` (`"MAT"`/`"VES"`/`"EXT"`, taken from the bucket it was in, since a
+website-recovered note does not always carry its own `codEdicion`) and the
+day's `fuente`, so a note pulled out of the day still says where it came
+from. An empty day gives back `[]`. The pure half of this, for a response
+already in hand, is `dofjson.notas_del_dia(notas)`.
+
 ### Reducing calls to SIDOF with an already-downloaded archive (`cache_dir`)
 
 A day's notes index (`dofjson.get_notas(date)`/`dofjson.api.get_notas(date)`)

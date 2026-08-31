@@ -16,7 +16,7 @@
 > unchanged in every other respect. See [the SCJN
 > path](#the-scjn-path--a-laws-consolidated-text-at-each-reform).
 
-Seven entry points, all re-exported off the package itself
+Eight entry points, all re-exported off the package itself
 (`from nota2md import ...`), for Mexico's official gazette (DOF, Diario
 Oficial de la Federación) and the federal laws it publishes:
 
@@ -26,6 +26,7 @@ Oficial de la Federación) and the federal laws it publishes:
 | [`reconstruct_legal_provisions`](#reconstruct_legal_provisions--a-laws-current-text-from-its-dof-legal-provisions) | a law's reform history (`codNota` list) | its current text, written to `outdir/ley-{codNota}.md` |
 | [`download_legal_provisions_provenance_ids`](#download_legal_provisions_provenance_ids--a-laws-reform-history) | a collection name (`"leyes"`, `"reglamentos"`, `"normas"`, `"tratados"`) | every instrument's reform history, in memory |
 | [`fetch_daily_legal_provisions`](#cutting-a-legal-provision-out-of-its-page) | a date | that day's browsable legal provisions (title, `codNota`, `codEdicion`...) |
+| [`get_document`](#get_document--a-note-whose-text-is-already-markdown) | a legal provision's `codNota`, or a `get_nota` record already in hand | that same record, with `cadenaContenido` holding its **Markdown** instead of DOF HTML |
 | [`legal_provisions_titles`](#legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` cache) | every legal provision ever published, as a stream of `codNota`+`titulo`+`fecha`+`codOrgaUno` records |
 | [`download_scjn_leyes_corpus`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | a law's `slug` | every snapshot of that law in the `scjn-leyes` release, with its `codNota` links, in memory |
 | [`download_scjn_leyes_index`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (reads one small release asset) | the reverse index `codNota → (law, snapshot)`, in memory |
@@ -104,10 +105,50 @@ and, when SIDOF has nothing for that day, from the DOF's own website:
 ```python
 from nota2md import fetch_daily_legal_provisions
 import datetime as dt
+import dofjson
 
-for nota in fetch_daily_legal_provisions(dt.date(2026, 7, 15))["NotasMatutinas"]:
-    print(nota["codNota"], nota["titulo"])
+notas = fetch_daily_legal_provisions(dt.date(2026, 7, 15))
+for nota in dofjson.legal_provisions_of_day(notas):
+    print(nota["edicion"], nota["codNota"], nota["titulo"])
 ```
+
+The index itself is keyed by edition
+(`NotasMatutinas`/`NotasVespertinas`/`NotasExtraordinarias`), so indexing one
+of those keys silently drops the rest of the day;
+`dofjson.legal_provisions_of_day()` flattens all three into one sequence in
+publication order, each note naming its own `edicion` (issue #169).
+
+### `get_document` — a note whose text is already Markdown
+
+`dofjson.get_nota(codNota)` answers the note's record with its digital text
+in `cadenaContenido`, as DOF HTML. `get_document` is that same record with
+`cadenaContenido` holding the **Markdown** instead — every other key
+(`codNota`, `titulo`, `fecha`, `fuente`, `codDiario`, page numbers...) passed
+through untouched, so it can go anywhere a `get_nota` record can, including
+as `legal_provisions`' own `nota` argument:
+
+```python
+from nota2md import get_document
+
+documento = get_document(5793655)
+documento["titulo"]            # unchanged
+documento["cadenaContenido"]   # Markdown, not HTML
+```
+
+This is the package's single note-to-Markdown step (issue #170): the pairing
+of `cadenaContenido` with `html_to_markdown` is spelled out here and nowhere
+else. Given a record already in hand, the call is pure and offline, and the
+dict passed in is never mutated:
+
+```python
+documento = get_document(nota=fetch_nota(5793655))
+```
+
+A note with no digital text (scanned, pre-1999ish) comes back with
+`cadenaContenido` as it was — `None` or empty, and no error raised. It is not
+silently OCR'd: OCR is `dof2md`'s heavy path, and `legal_provisions` already
+owns the decision of when to take it. `html_to_markdown` itself stays public,
+as the string-to-string primitive this is built on.
 
 ### The SCJN path — a law's consolidated text at each reform
 
@@ -403,97 +444,6 @@ memory") is rejected here: this verb exists to write the release to disk, and
 
 From Python, the same two downloads are `nota2md.scjn.download_scjn_leyes_assets`
 and `dofjson.download_dof_assets`.
-
-## `markdown_to_akoma_ntoso` — experimental Akoma Ntoso (OASIS LegalDocML) conversion
-
-**Experimental — not one of the entry points above.** A first-pass mapping
-from nota2md's own Markdown (as `legal_provisions()`/`reconstruct_legal_provisions()`
-write it) to [Akoma Ntoso](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=legaldocml)
-XML, the OASIS standard vocabulary for structured legal documents — see
-[issue #91](https://github.com/INGEOTEC/LegalIA/issues/91) for the
-specification review this implements against, now checked against the real
-`akomantoso30.xsd` schema of the OASIS Standard (29 August 2018), not just
-its prose (see the module's own docstring, `nota2md/akoma_ntoso.py`, for the
-full list of corrections that check turned up):
-
-```python
-from pathlib import Path
-from nota2md import download_legal_provisions_provenance_ids, reconstruct_legal_provisions
-from nota2md.akoma_ntoso import markdown_to_akoma_ntoso
-
-leyes = download_legal_provisions_provenance_ids("leyes")
-cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
-
-md_path = reconstruct_legal_provisions(cpeum["historial"], Path("output"), nombre_ley=cpeum["nombre"])
-xml_path = markdown_to_akoma_ntoso(md_path, Path("output"), fecha="2024-09-15")
-```
-
-`fecha` genuinely matters, not just for a resolvable IRI: `FRBRdate` is
-mandatory at every FRBR level and typed `xsd:date`, so leaving it out
-produces XML that is not schema-valid at all (`numero` is the one that is
-truly optional — the opposite of what issue #91 first assumed before
-checking the schema). `FRBRauthor` needs no parameter — the DOF is always
-the issuing authority, so it is always filled in as `href="#dof"`.
-
-Akoma Ntoso has no native element for "Transitorios" (or "Considerandos");
-this follows the convention the standard's own official examples use for
-that kind of gap — a plain `<section refersTo="#transitorios">` (the schema
-has no `name` attribute on `section` at all, unlike what issue #91 first
-guessed), with a matching `<TLCConcept>` declared under
-`<meta>/<references>` so `refersTo` actually resolves to something, the way
-the official examples' own do. Fracciones/incisos inside an article
-(markdown blocks like `"**I.**"`/`"**a)**"`) are nested into Akoma Ntoso's
-own `<paragraph>`/`<point>` hierarchy — a DOF article can legally repeat the
-same fracción label under two separate "I. a X." lists, which is
-disambiguated rather than left to collide (eId must be unique across the
-whole `<act>`). Spanish is `"esp"` (`FRBRlanguage` and the IRI's own
-language segment), matching the official Uruguayan example, not the ISO
-639-2 code `"spa"` this module used at first. See the module's own
-docstring for the complete, current list of what is and is not covered.
-
-[Issue #93](https://github.com/INGEOTEC/LegalIA/issues/93) asked for the
-other direction too: `akoma_ntoso_to_markdown()` reads an `<akomaNtoso>`
-XML file back into nota2md's own Markdown — `<b>` back to `**bold**`, a
-fracción/inciso's `<num>` back to its `"**I.**"`/`"**a)**"` label, and so
-on:
-
-```python
-from nota2md.akoma_ntoso import akoma_ntoso_to_markdown, markdown_to_akoma_ntoso
-
-xml_path = markdown_to_akoma_ntoso(md_path, Path("output"), fecha="2024-09-15")
-md_path_de_vuelta = akoma_ntoso_to_markdown(xml_path, Path("output"))
-```
-
-Written to ``outdir/{stem}.md`` (`stem` is the XML file's own stem with a
-trailing `.akn` dropped, so `markdown_to_akoma_ntoso`'s own
-`"{md_path.stem}.akn.xml"` round-trips back to `"{md_path.stem}.md"`, not
-`"{md_path.stem}.akn.md"`). It is a best-effort inverse, not a lossless
-one: information the forward conversion never keeps in the XML at all —
-the note's own H1 title, any "#"/"##" Markdown heading other than
-Transitorios' own (Akoma Ntoso has no dedicated element for a `<preamble>`
-paragraph that happened to be a heading, unlike `<section>`'s `<heading>`)
-— cannot be recovered from the XML alone.
-
-Checked against a real note too, not just hand-written Markdown snippets:
-`tests/test_akoma_ntoso_red.py` round-trips a real CONAGUA "acuerdo"
-(codNota 5793639, the same one #91/#92 verified by hand) through both
-converters and measures how close the result lands to the original with
-`difflib`, the same way `test_leyes_44.py` scores a reconstruction against
-its own ground truth — ~0.996 similarity once Markdown syntax is folded
-away, the gap being almost entirely that dropped H1 title. Like
-`test_leyes_44.py`, it makes a real network call and is excluded from the
-default run:
-
-```bash
-pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
-    --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py \
-    --ignore=packages/nota2md/tests/test_scjn_release_red.py
-```
-
-`tests/test_scjn_release_red.py` is the third of those: it reads the real
-`scjn-leyes` release end to end, which is the only way to catch a corpus
-re-packaged without re-uploading its `indice-global.json.gz` (a codNota then
-resolves to a snapshot file no longer in the law's tarball).
 
 ## Installation
 

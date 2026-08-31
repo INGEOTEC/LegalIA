@@ -26,7 +26,7 @@ build on each other in this sequence.
   provision ever published (`legal_provisions_titles`), off the on-disk cache
   of the `notas-archivo` GitHub release — it writes no dataset of its own
   (issue #166).
-- **`nota2md`** — seven entry points, all re-exported off the package:
+- **`nota2md`** — eight entry points, all re-exported off the package:
   `legal_provisions` (one note → Markdown, `legal_provisions(codNota)` with no
   other argument writing into `nota2md.cache.CACHE_DIR` and returning the
   `Path` (issue #165); **by default the SCJN's
@@ -36,12 +36,13 @@ build on each other in this sequence.
   `reconstruct_legal_provisions` (a law's current text, replayed from its own
   reform decrees), `download_legal_provisions_provenance_ids` (a law's reform
   history, from the `historial-legislativo` release), `fetch_daily_legal_provisions`,
+  `get_document` (a `get_nota` record whose `cadenaContenido` is Markdown —
+  the one note→Markdown step, issue #170),
   `legal_provisions_titles` (re-exported from `dofjson.titulos`),
   `download_scjn_leyes_corpus`/`download_scjn_leyes_index` (the `scjn-leyes`
   release's readers). Its release assets are cached on disk under
   `nota2md.cache.CACHE_DIR` — `nota2md`'s own directory, deliberately not
-  `dofjson`'s. Also has an experimental Akoma Ntoso (OASIS LegalDocML)
-  converter in `nota2md/akoma_ntoso.py`.
+  `dofjson`'s.
 - **`dof2md`** — OCRs a PDF or a set of scanned images to Markdown via
   `mineru`. Has no notion of "note"/"legal provision", and no download of
   its own — it only ever converts a PDF/images already on disk; getting a
@@ -57,6 +58,13 @@ build on each other in this sequence.
   no second source — the DOF title contains the NOM's own code), and
   international treaties (paired by rarity-weighted name similarity, since
   no authoritative source exists at all).
+- **`md2akn`** — segments a Mexican federal law's Markdown (what `nota2md`
+  produces) into a navigable hierarchy — articles inside their chapter,
+  fracciones inside their article — labelled with Akoma Ntoso's *vocabulary*
+  (`akn_type`, `eId`, `refersTo`). It reads Markdown and has no dependency on
+  the other packages, so it comes last in the read order. The project emits no
+  Akoma Ntoso XML anywhere: only the vocabulary is borrowed, and the earlier
+  XML converter that lived in `nota2md` was removed (issue #168).
 
 **Data is never committed to git.** `leyesmx`'s reform history, `dofjson`'s
 notes archive, and downloaded titles datasets all live only in GitHub
@@ -75,7 +83,6 @@ failure there is unrelated):
 
 ```bash
 pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
-    --ignore=packages/nota2md/tests/test_akoma_ntoso_red.py \
     --ignore=packages/nota2md/tests/test_scjn_release_red.py
 ```
 

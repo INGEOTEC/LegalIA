@@ -11,7 +11,8 @@ Four sources feed the same output, and legal_provisions() picks between them:
   because the SCJN is not an official source of legal text. ``source="dof"``
   turns this path off and goes to the original source.
 * **HTML** — when the note carries digital text (``cadenaContenido``), it is
-  converted directly with html_converter.html_to_markdown(). This is the
+  converted directly with get_document(), the package's one note-to-Markdown
+  step (itself html_converter.html_to_markdown()). This is the
   preferred path: clean, already scoped to the one note, and needs no OCR.
   A note SIDOF does not have at all (see dofjson.dofweb: whole days are
   missing from its dataset) is looked up on the DOF's website instead, which
@@ -58,22 +59,22 @@ from nota2md import cache
 from nota2md.cache import SIN_CACHE_DIR
 from nota2md.html_converter import html_to_markdown
 
-# Which per-edition list in a get_notas() response holds a note, keyed by its
-# codEdicion. Mirrors dofjson.notas.EDICION_LISTAS (kept local rather than
-# imported, since dofjson.notas isn't part of dofjson's own unified surface).
-_EDICION_LISTAS = {
-    "MAT": "NotasMatutinas",
-    "VES": "NotasVespertinas",
-    "EXT": "NotasExtraordinarias",
-}
-
-
 def titulo_siguiente(nota: dict, notas_del_dia: dict) -> str | None:
     """The title of the note published right after `nota` (in codNota order),
     skipping title-less stub/twin entries. This is the boundary at which
-    `nota` ends on its shared page — see cut_markdown_by_titles()."""
-    lista = notas_del_dia.get(_EDICION_LISTAS[nota["codEdicion"]], [])
-    ordenada = sorted(lista, key=lambda n: n["codNota"])
+    `nota` ends on its shared page — see cut_markdown_by_titles().
+
+    Only the notes of `nota`'s own edition are in play: a page number restarts
+    with each edition, so the morning note that follows in codNota order says
+    nothing about where an evening note ends. dofjson's flat day view already
+    stamps each note with the `edicion` it came from and orders it by codNota
+    inside that edition (issue #169), so the per-edition list no longer has to
+    be looked up by name here."""
+    ordenada = [
+        n
+        for n in dofjson.legal_provisions_of_day(notas_del_dia)
+        if n["edicion"] == nota["codEdicion"]
+    ]
     idx = next(
         (i for i, n in enumerate(ordenada) if n["codNota"] == nota["codNota"]), None
     )
@@ -98,12 +99,49 @@ def fetch_nota(cod_nota: int, fecha: dt.date | None = None) -> dict:
     return dofjson.get_nota(cod_nota, fecha=fecha)
 
 
+def get_document(cod_nota: int | None = None, fecha: dt.date | None = None,
+                 *, nota: dict | None = None) -> dict:
+    """The same record `dofjson.get_nota()` returns, but with
+    `cadenaContenido` holding the note's **Markdown** instead of its DOF HTML.
+
+    Every other key (`codNota`, `titulo`, `fecha`, `fuente`, `codDiario`, page
+    numbers...) is passed through untouched, so a `get_document` record can go
+    anywhere a `get_nota` one can — including as `legal_provisions`' own
+    already-fetched `nota` argument. This is the single note-to-Markdown step
+    of the package: nothing else pairs `cadenaContenido` with
+    html_to_markdown() by hand (issue #170).
+
+    Given `cod_nota`, the record is fetched with fetch_nota() — SIDOF, falling
+    back to the DOF website, with `fecha` forwarded for the 1999-2000 codigos
+    the website only resolves alongside their date (issue #109). Given a
+    record already in hand (`nota=`), the call is pure and offline; the dict
+    passed in is never mutated, a copy is returned.
+
+    A note with no digital text (scanned, pre-1999ish) comes back with
+    `cadenaContenido` left as it was — None or empty, and no error. It is not
+    silently OCR'd: OCR is dof2md's heavy path, and legal_provisions() already
+    owns the decision of when to take it.
+    """
+    if nota is None:
+        if cod_nota is None:
+            raise TypeError("get_document() necesita cod_nota o nota")
+        nota = fetch_nota(cod_nota, fecha=fecha)
+    documento = dict(nota)
+    if documento.get("cadenaContenido"):
+        documento["cadenaContenido"] = html_to_markdown(documento["cadenaContenido"])
+    return documento
+
+
 def fetch_daily_legal_provisions(date: dt.date) -> dict:
     """`date`'s notes index — title, codNota, codEdicion, pagina... one entry
     per note, split into NotasMatutinas/NotasVespertinas/NotasExtraordinarias
     — from SIDOF, falling back to the DOF website when SIDOF has nothing for
     that day. See dofjson.get_notas(), the package's unified entry point for
-    both sources."""
+    both sources.
+
+    To walk the whole day instead of one edition at a time, run the result
+    through `dofjson.legal_provisions_of_day()`, which flattens it into one
+    sequence with each note naming its own edition (issue #169)."""
     return dofjson.get_notas(date)
 
 
@@ -296,7 +334,8 @@ def legal_provisions(
                 f"nota {cod_nota} has no cadenaContenido; use source='image' or "
                 f"'pdf' to OCR its scanned page(s) instead"
             )
-        md_path.write_text(html_to_markdown(nota["cadenaContenido"]) + "\n", encoding="utf-8")
+        documento = get_document(nota=nota)
+        md_path.write_text(documento["cadenaContenido"] + "\n", encoding="utf-8")
         return md_path
 
     if nota.get("fuente") == dofjson.FUENTE_WEB:

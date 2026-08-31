@@ -6,7 +6,14 @@ from unittest.mock import MagicMock, patch
 
 import dofjson
 
-from nota2md.builder import fetch_daily_legal_provisions, fetch_nota, legal_provisions, titulo_siguiente
+from nota2md.builder import (
+    fetch_daily_legal_provisions,
+    fetch_nota,
+    get_document,
+    legal_provisions,
+    titulo_siguiente,
+)
+from nota2md.html_converter import html_to_markdown
 
 HTML_NOTA = {
     "codNota": 5793655,
@@ -48,6 +55,57 @@ class TestTituloSiguiente(unittest.TestCase):
         notas = {"NotasMatutinas": [{"codNota": 100, "titulo": "Nota A"}]}
         nota = {"codNota": 100, "codEdicion": "MAT"}
         self.assertIsNone(titulo_siguiente(nota, notas))
+
+
+class TestGetDocument(unittest.TestCase):
+    """get_document() is the package's single note-to-Markdown step (issue
+    #170): the get_nota() record, with cadenaContenido holding Markdown."""
+
+    @patch("nota2md.builder.dofjson.get_nota")
+    def test_cadenaContenido_is_markdown_and_the_rest_is_passed_through(self, mock_get_nota):
+        mock_get_nota.return_value = dict(HTML_NOTA)
+
+        documento = get_document(HTML_NOTA["codNota"])
+
+        mock_get_nota.assert_called_once_with(HTML_NOTA["codNota"], fecha=None)
+        self.assertEqual(
+            documento["cadenaContenido"], html_to_markdown(HTML_NOTA["cadenaContenido"])
+        )
+        for clave in ("codNota", "titulo", "codEdicion", "fecha"):
+            self.assertEqual(documento[clave], HTML_NOTA[clave])
+
+    @patch("nota2md.builder.dofjson.get_nota")
+    def test_fecha_is_forwarded_to_the_fetch(self, mock_get_nota):
+        mock_get_nota.return_value = dict(WEB_NOTA)
+
+        get_document(4920760, dt.date(2000, 2, 29))
+
+        mock_get_nota.assert_called_once_with(4920760, fecha=dt.date(2000, 2, 29))
+
+    def test_an_already_fetched_record_is_converted_offline(self):
+        # No dofjson.get_nota patch: reaching the network here would fail.
+        documento = get_document(nota=WEB_NOTA)
+
+        self.assertEqual(documento["cadenaContenido"], "Cuerpo del decreto.")
+        self.assertEqual(documento["fuente"], dofjson.FUENTE_WEB)
+
+    def test_a_note_without_digital_text_comes_back_unchanged(self):
+        for vacio in (None, ""):
+            with self.subTest(cadenaContenido=vacio):
+                documento = get_document(nota={"codNota": 1, "cadenaContenido": vacio})
+
+                self.assertEqual(documento["cadenaContenido"], vacio)
+
+    def test_does_not_mutate_the_input_record(self):
+        nota = dict(HTML_NOTA)
+
+        get_document(nota=nota)
+
+        self.assertEqual(nota, HTML_NOTA)
+
+    def test_needs_a_codNota_or_a_record(self):
+        with self.assertRaises(TypeError):
+            get_document()
 
 
 class TestFetchNota(unittest.TestCase):

@@ -50,6 +50,7 @@ from dofjson.notas import (
     EDICION_LISTAS,
     _detectar_offset_paginacion,
     infer_paginas,
+    notas_del_dia,
     quita_notas_sin_titulo
 )
 from dofjson.titulos import nota_del_dia_en_cache
@@ -72,6 +73,33 @@ cuenta_notas = dofweb.cuenta_notas
 def tiene_notas(notas: dict) -> bool:
     """Whether a get_notas()-shaped response carries any note at all."""
     return any(notas.get(clave) for clave in EDICION_LISTAS.values())
+
+
+def legal_provisions_of_day(date_or_notas, **kwargs) -> list[dict]:
+    """A day's legal provisions as one flat list, each one naming the edition
+    it was published in — get_notas()'s per-edition dict run through
+    dofjson.notas.notas_del_dia(), which documents the ordering and the
+    `edicion`/`fuente` keys it stamps on every note.
+
+    Takes either the date, in which case the day is fetched first
+    (`respaldo`/`cache_dir` are passed straight through to get_notas()), or a
+    response already in hand, in which case nothing is fetched:
+
+        for nota in dofjson.legal_provisions_of_day(dt.date(2024, 9, 15)):
+            print(nota["edicion"], nota["codNota"], nota["titulo"])
+
+    get_notas()'s own return shape is untouched — this is a view over it. That
+    dict is the wire shape of both SIDOF and dofweb and the format the
+    notas-archivo release is written in, so it stays as it is.
+    """
+    if isinstance(date_or_notas, dict):
+        if kwargs:
+            raise TypeError(
+                "legal_provisions_of_day() no acepta argumentos de get_notas() "
+                f"cuando ya se le pasa la respuesta del dia: {sorted(kwargs)}"
+            )
+        return notas_del_dia(date_or_notas)
+    return notas_del_dia(get_notas(date_or_notas, **kwargs))
 
 
 def _validar_respaldo(respaldo: str) -> None:
