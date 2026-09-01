@@ -66,6 +66,15 @@ REINTENTOS_DEFAULT = 3
 # also stops honouring the requested size (a ~1.7 MB payload cap), which would
 # make a short page ambiguous between "last page" and "truncated"; at 500 it
 # does not.
+#
+# So *both* stop conditions are needed, and neither alone is enough:
+#
+#   - a page shorter than requested is the last one (covers the overcounting
+#     `tamanio`, e.g. `lfd` reforma 99);
+#   - having collected `tamanio` rows is also the end, even on a full page
+#     (covers a count that is an exact multiple of the page size — `lss`
+#     reforma 42 declares exactly 500 and serves exactly 500, and asking for
+#     its page 2 answers 500 too).
 TAMANIO_PAGINA_ARTICULOS = 500
 TAMANIO_PAGINA_REFORMAS = 500
 
@@ -281,9 +290,11 @@ class ScjnApi:
                 )
                 for r in lote
             ]
-            # A page shorter than asked for is the last one; asking for the
-            # next would answer HTTP 500 rather than an empty page.
-            if len(lote) < TAMANIO_PAGINA_REFORMAS:
+            # A page shorter than asked for is the last one, and so is a full
+            # page that already accounts for every declared row; asking for
+            # the next would answer HTTP 500 rather than an empty page.
+            total = datos.get("tamanio") or 0
+            if len(lote) < TAMANIO_PAGINA_REFORMAS or len(filas) >= total:
                 return filas
             pagina += 1
 
@@ -322,8 +333,9 @@ class ScjnApi:
                 for a in lote
             ]
             # See TAMANIO_PAGINA_ARTICULOS: a short page is the last one, and
-            # `tamanio` is not a reliable stop condition.
-            if len(lote) < TAMANIO_PAGINA_ARTICULOS:
+            # so is a full page that already covers every declared article.
+            total = datos.get("tamanio") or 0
+            if len(lote) < TAMANIO_PAGINA_ARTICULOS or len(filas) >= total:
                 return filas
             pagina += 1
 

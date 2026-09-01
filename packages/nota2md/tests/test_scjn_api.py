@@ -81,8 +81,11 @@ class TestReformas(unittest.TestCase):
         from nota2md.scjn_api import TAMANIO_PAGINA_REFORMAS
 
         fila = fixture("reformas.json")["resultados"][0]
-        completa = {"codigo": 200, "tamanio": 0, "resultados": [fila] * TAMANIO_PAGINA_REFORMAS}
-        corta = {"codigo": 200, "tamanio": 0, "resultados": [fila] * 3}
+        total = TAMANIO_PAGINA_REFORMAS + 3
+        completa = {
+            "codigo": 200, "tamanio": total, "resultados": [fila] * TAMANIO_PAGINA_REFORMAS,
+        }
+        corta = {"codigo": 200, "tamanio": total, "resultados": [fila] * 3}
         cliente, sesion = api([RespuestaFalsa(completa), RespuestaFalsa(corta)])
         filas = cliente.reformas_of_ordenamiento(188805)
         self.assertEqual(len(filas), TAMANIO_PAGINA_REFORMAS + 3)
@@ -541,6 +544,17 @@ class TestPaginacion(unittest.TestCase):
         self.assertEqual(len(articulos), n + 491)
         # Y no pidió la tercera página, que es la que contesta 500.
         self.assertEqual(len(sesion.llamadas), 2)
+
+    def test_una_pagina_completa_que_agota_tamanio_es_la_ultima(self):
+        # `lss` reforma 42: declara exactamente 500 y sirve exactamente 500,
+        # y su pagina 2 tambien contesta HTTP 500. Con solo la regla de la
+        # pagina corta, este caso volvia a pedir una pagina inexistente.
+        from nota2md.scjn_api import TAMANIO_PAGINA_ARTICULOS
+
+        n = TAMANIO_PAGINA_ARTICULOS
+        cliente, sesion = self.respuestas_articulos([range(1, n + 1)], tamanio=n)
+        self.assertEqual(len(cliente.articulos_of_reforma(853, 42)), n)
+        self.assertEqual(len(sesion.llamadas), 1)
 
     def test_una_sola_pagina_corta_no_pide_una_segunda(self):
         cliente, sesion = self.respuestas_articulos([range(1, 88)], tamanio=87)
