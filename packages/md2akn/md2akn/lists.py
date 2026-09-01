@@ -349,6 +349,18 @@ class ConstructorDeArticulo:
         self._vio_anotacion = True
 
     def _nuevo(self, akn_type, padre, bloque, num) -> AknNode:
+        if akn_type == "content":
+            # Numbered within its own parent, 1-based, in document order --
+            # so an article's paragraphs are `art_1o__p_1`, `art_1o__p_2`,
+            # and a paragraph inside a fracción restarts at 1 under it
+            # (`art_1o__para_II__p_1`). Mexican citation counts an article's
+            # own paragraphs, not the text inside its fracciones, so the
+            # count that answers "el párrafo segundo del artículo 1o." is
+            # the one scoped to the article (issue #181). Until then every
+            # `content` was allocated the literal `"p"`, so two paragraphs
+            # of one article proposed the *same* eId and only the
+            # allocator's `_2` suffix kept them apart.
+            num = str(1 + sum(1 for h in padre.children if h.akn_type == "content"))
         eid = self._eids.child(
             padre.eId, self._prefijo.get(akn_type, akn_type),
             num if num is not None else "p",
@@ -363,20 +375,22 @@ class ConstructorDeArticulo:
     def cierra(self) -> None:
         """Mark the article's own leading and trailing paragraphs.
 
-        Only meaningful for an article that has both text and hierarchy —
-        which is the shape Akoma Ntoso forbids and a Mexican article
-        routinely has. An article of nothing but paragraphs needs no flags:
-        there is no choice for a later XML conversion to make.
+        The flags are only meaningful for an article that has both text and
+        hierarchy — which is the shape Akoma Ntoso forbids and a Mexican
+        article routinely has. An article of nothing but paragraphs needs
+        none of them: there is no choice for a later XML conversion to make.
+        It keeps its paragraphs all the same.
+
+        Until issue #181 such an article had its children *cleared* here, on
+        the reasoning that a lone `content` twin of the article would only
+        double the tree. That optimizes the tree's shape at the cost of the
+        citation the Mexican legal register actually uses: "el párrafo
+        segundo del artículo 1o." is an ordinary reference, reforms are
+        published against it ("se reforma el párrafo tercero del artículo
+        4o."), and a unit that exists only when a sibling list happens to
+        exist is not one anybody can cite against. So the paragraph is a
+        unit of the tree unconditionally, and the asymmetry is gone.
         """
-        if not self._vio_lista and not self._vio_anotacion:
-            # An article of nothing but paragraphs keeps no children at all:
-            # its text is its own, there is no hierarchy to interleave it
-            # with, and there is no choice for a later XML conversion to
-            # make. Wrapping it in a single `content` twin of itself would
-            # only double the tree.
-            self._articulo.children.clear()
-            self._retenidos.clear()
-            return
         if self._vio_lista:
             for nodo in self._contenidos_iniciales:
                 nodo.is_chapeau = True

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Crawl the SCJN Buscador for every ley, reglamento and tratado that
+"""Crawl the SCJN for every ley, reglamento and tratado that
 `extract_scjn_titles.py`'s own catalogue already knows about, and save each
 one's reform-dated snapshots as Markdown under
 ``<outdir>/<coleccion>/<abrev-o-nombre>/<fecha_publicacion>.md`` — Fase 1 of
@@ -10,9 +10,36 @@ does not catalogue NOM technical standards as ordenamientos of their own at
 all (8 real NOM codes, zero hits, even searching "Norma Oficial Mexicana"
 generically), so "normas" has nothing here to crawl.
 
+The crawl goes through the SCJN's own SCOW JSON API
+(`/SCOW-API`, `nota2md.scjn_api`). Until issue #179 it went instead through
+the legacy WebForms Buscador (`/Buscador/`), and the mechanisms below are
+worded the way that path taught them. What replaced what, and why:
+
+- **The whole crawl** (search -> reform table -> per-reform text) was a
+  session-scoped walk of `/Buscador/`: a POST resubmitting `__VIEWSTATE`, a
+  detail page whose `q` token only the requesting session could use, a
+  reform grid of 10 rows a page walked by `__EVENTTARGET` postbacks, and one
+  `.docx` per row. It is now three JSON calls (`BusquedaFrase`, `Reforma`,
+  `Articulos`), and an instrumento is addressable by a stable
+  `idOrdenamiento`.
+- **Mecanismo 2's permanent retry** (below) existed because the old Buscador
+  did not index the LEY Federal de Cine y el Audiovisual at all -- searching
+  its exact title returned 0 candidates, twice, live (issue #124). The API
+  answers `idOrdenamiento` 188805 for the same name, so that case is closed;
+  the retry stays, since a brand-new law can still be indexed late.
+- **`elige_candidato`'s guards** (issue #115) live on as
+  `scjn_api.elige_ordenamiento`, thresholds and hard exclusions unchanged,
+  plus signals the old results page never showed (the API's own
+  `categoriaOrdenamiento`).
+
+The API is not an official contract either -- a Swagger page is not a
+stability promise -- so the rate limiting stays, and the SCJN remains a
+non-official source of legal text: the `fuente: scjn` header these files
+carry means exactly what it meant before the migration.
+
 Resumable at two levels. Within one instrumento, a file already on disk is
-left alone and its row's download skipped (see
-nota2md.scjn.descarga_ordenamiento), so a later re-run picking up new
+left alone and its reform's download skipped (see
+nota2md.scjn_api.descarga_ordenamiento), so a later re-run picking up new
 reforms only fetches what is missing. Across a whole collection, the index
 of the last instrumento fully attempted is checkpointed to
 ``<outdir>/<coleccion>/.progreso.json`` and cleared once the collection
@@ -24,22 +51,20 @@ catalogue itself changed).
 
 A third, narrower case: issue #115's manual audit confirmed 5 instrumentos
 (ccf, lisr, lsint, lfd, lopgjdf) where the SCJN search returned, and a past
-crawl saved, the wrong document entirely — `elige_candidato` gained guards
+crawl saved, the wrong document entirely — candidate selection gained guards
 against this, but the wrong snapshots already on disk are still there,
 untouched, since the per-file skip above has no notion of a snapshot being
 *wrong*. ``--reintenta SLUG`` (repeatable, `nota2md.scjn.slug_instrumento`)
 re-bajas exactly the named instrumentos: their existing snapshots (and
 stale `indice.json`) are deleted first so they are genuinely re-fetched
-against the fixed `elige_candidato`, while every instrumento not named is
+against the fixed candidate selection, while every instrumento not named is
 skipped without touching the SCJN at all — a full collection is ~600
 instrumentos, and there is no need to re-walk the other ~595 that were never
 wrong just to verify a fix aimed at 5. Leaves the collection's own
 ``.progreso.json`` checkpoint untouched either way. Rate-limited:
 `--espera` seconds between requests, since this is an unofficial site with
-no public API (the same posture as leyesmx.diputados/dofjson.dofweb
-elsewhere in this repo) — a single ley or reglamento search-then-detail-
-then-per-row walk cannot be parallelized across instruments either, since
-the SCJN scopes a detail page's own URL to the session that requested it.
+no stability contract (the same posture as leyesmx.diputados/dofjson.dofweb
+elsewhere in this repo).
 
 A fourth case, issue #124's follow-up ("Dos casos disparadores"): an
 instrumento the coverage sweep above never finds *anything* for at all,
@@ -54,8 +79,8 @@ pass on this script's own command line:
   (`nota2md.scjn.search_name`) — `nombre` itself is still what gets printed
   and what `enlaza_scjn_legislacion.py` (issue #126) compares against DOF
   titles. Applied so far only to `lisipl`; `lfca`'s own gap is indexing
-  lag, not a title mismatch, so no override is correct for it (see
-  `nota2md.scjn`'s own "issue #124 (follow-up)" section).
+  lag, not a title mismatch, so no override was correct for it — and the
+  API has since indexed the law, which is what actually closed the case.
 - **Mecanismo 2** (incremental refresh): once a collection has been crawled
   start-to-finish at least once under this mechanism, that date is
   recorded to ``<outdir>/<coleccion>/.rastreo_completo.json``. A later
@@ -76,17 +101,16 @@ that field is only ever written by `extract_scjn_titles.py` -- a
 `catalogo.json` extracted before that field existed (or hand-edited) leaves
 it inert with no visible sign why, so this script now warns on stderr, once
 per collection, when it sees a catalogue with zero `actualizado` entries.
-And a large instrumento's own crawl -- confirmed live against the CPEUM, 301
-rows across 31 grid pages -- used to go completely silent for as long as
-that took, indistinguishable from a hung process; `descarga_ordenamiento`'s
-`on_progreso` callback now narrates it, one line per grid page and per row.
+And a large instrumento's own crawl -- confirmed live against the CPEUM,
+301 reforms -- used to go completely silent for as long as that took,
+indistinguishable from a hung process; the crawl's
+`on_progreso` callback now narrates it, one line per reform.
 
-Issue #177 added ``--api``: the same crawl, driven by the SCJN's own SCOW
-JSON API (`nota2md.scjn_api`) instead of the WebForms Buscador. Issue #178
-re-crawled the whole `leyes` collection through it, diffed the result
-against the corpus this repo had already published, and **made it the
-default** -- ``--webforms`` is now the flag, and it only survives until the
-Fase 6 removal (issue #179). What the diff showed, over 315 instrumentos:
+Issue #177 added ``--api``; issue #178 re-crawled the whole `leyes`
+collection through it, diffed the result against the corpus this repo had
+already published, and made it the default; issue #179 removed the WebForms
+path altogether, so ``--api`` is now a no-op accepted only so a command
+written during the transition keeps running. What the diff showed, over 315 instrumentos:
 270 identical in every respect, 0 that the new index cannot find and the
 old one could, 53 whose only change is a title cleaned of the HTML
 scraping's own spacing artifacts ("INTE RES PUBLICO", "LEY ,"), and two
@@ -165,9 +189,6 @@ never calls `download_legal_provisions_provenance_ids` itself, so Diputados'
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion --coleccion tratados
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion --coleccion leyes \
         --reintenta ccf --reintenta lisr --reintenta lsint --reintenta lfd --reintenta lopgjdf
-
-Needs the "scjn" extra installed (``pip install packages/nota2md[scjn]``) for
-python-docx.
 """
 
 import argparse
@@ -187,11 +208,9 @@ from nota2md.scjn import (  # noqa: E402
     PENDIENTE_CAMBIO,
     PENDIENTE_NUNCA_RASTREADO,
     PENDIENTE_SIN_ACTUALIZADO,
-    descarga_ordenamiento,
     escribe_estado,
     lee_estado,
     motivo_pendiente,
-    nueva_sesion,
     search_name,
     slug_instrumento,
 )
@@ -228,7 +247,7 @@ def _lee_progreso(outdir: Path, coleccion: str) -> int:
     that already finished and had its checkpoint cleared).
     A malformed/unreadable checkpoint is treated the same as none, rather
     than raising: worst case a finished instrumento gets re-attempted, which
-    `descarga_ordenamiento`'s own file-level skip already makes cheap."""
+    `scjn_api.descarga_ordenamiento`'s own file-level skip already makes cheap."""
     try:
         return json.loads(_archivo_progreso(outdir, coleccion).read_text(encoding="utf-8"))["indice"]
     except (OSError, json.JSONDecodeError, KeyError):
@@ -265,7 +284,7 @@ def _guarda_fecha_rastreo_completo(outdir: Path, coleccion: str, fecha: str) -> 
 
 
 def _imprime_avance(mensaje: str) -> None:
-    """`descarga_ordenamiento`'s own `on_progreso` callback (issue #140,
+    """`scjn_api.descarga_ordenamiento`'s own `on_progreso` callback (issue #140,
     Causa 2): indented under its instrumento's own `[coleccion i/N]` line so
     it reads as a sub-step, not another instrumento."""
     print(f"    {mensaje}", file=sys.stderr)
@@ -313,7 +332,6 @@ def actualiza_coleccion(
     refresca: bool = True,
     incluye_sin_actualizado: bool = False,
     empaqueta: bool = True,
-    api: bool = True,
 ) -> int:
     """The whole issue #148 chain in one call: refresh the catalogue, work
     out what is pending, and for each pending instrumento crawl it, link it
@@ -353,9 +371,7 @@ def actualiza_coleccion(
     for n, slug in enumerate(pendientes, 1):
         print(f"\n== [{n}/{len(pendientes)}] {slug} ==", file=sys.stderr)
         try:
-            if rastrea_coleccion(
-                coleccion, outdir, espera, instrumento={slug}, api=api
-            ):
+            if rastrea_coleccion(coleccion, outdir, espera, instrumento={slug}):
                 raise RuntimeError("la SCJN no devolvio nada para este instrumento")
             enlaza.enlaza_coleccion(coleccion, outdir, porf, cache_notas, instrumento={slug})
         except Exception as exc:
@@ -495,7 +511,6 @@ def rastrea_coleccion(
     reiniciar: bool = False,
     reintenta: set[str] | None = None,
     instrumento: set[str] | None = None,
-    api: bool = True,
 ) -> list[str]:
     """Crawl `coleccion` and return the slugs whose crawl did not succeed —
     the SCJN raised, or returned nothing at all for them. Failures were
@@ -554,8 +569,9 @@ def rastrea_coleccion(
             )
     # One client for the whole collection: it holds the connection pool and
     # the rate limit, and nothing in it is scoped to an instrument (unlike
-    # the WebForms session, which had to be new for each one).
-    cliente_api = scjn_api.ScjnApi(espera=espera) if api else None
+    # the WebForms session it replaced, which had to be new for each one --
+    # its detail-page `q` token was scoped to the session that got it).
+    cliente_api = scjn_api.ScjnApi(espera=espera)
     saltados = 0
     fallidos = []
     descuadres: list[tuple] = []
@@ -589,58 +605,52 @@ def rastrea_coleccion(
             id_ordenamiento = None
             try:
                 # Issue #140, Causa 2: a large instrumento (the CPEUM's 301
-                # rows across 31 grid pages is the confirmed case) otherwise
-                # goes silent for as long as its own crawl takes --
+                # reforms is the confirmed case) otherwise goes
+                # silent for as long as its own crawl takes --
                 # indistinguishable from a hung process.
-                if api:
-                    # Issue #177: an `id_ordenamiento` a previous run already
-                    # resolved skips the search step entirely -- the whole
-                    # point of an instrument being addressable by a stable id
-                    # instead of a session URL. --reintenta deliberately does
-                    # not reuse it: re-downloading a wrong document from the
-                    # same id would defeat the purpose (issue #115).
-                    if reintenta is None:
-                        id_previo = lee_estado(destino).get("id_ordenamiento")
-                    else:
-                        id_previo = None
-                    resultado = scjn_api.descarga_ordenamiento(
-                        cliente_api,
-                        buscado,
-                        destino,
-                        on_progreso=_imprime_avance,
-                        id_ordenamiento=id_previo,
-                    )
-                    escritos = resultado.escritos
-                    if resultado.ordenamiento is not None:
-                        id_ordenamiento = resultado.ordenamiento.idOrdenamiento
-                    for sin in resultado.reformas_sin_articulos:
-                        print(
-                            f"  sin texto consolidado (tieneArticulos=false): {sin}",
-                            file=sys.stderr,
-                        )
-                    for fallida in resultado.reformas_fallidas:
-                        print(f"  aviso: reforma no servida por la SCJN: {fallida}", file=sys.stderr)
-                    # Issue #178: check the crawl against the SCJN's own reform
-                    # count for this instrumento -- its detail page shows that
-                    # number, and a silent shortfall is exactly how a paging
-                    # bug hid ~106 missing snapshots in the first full crawl.
-                    cubiertas = len(escritos) + len(resultado.reformas_sin_articulos)
-                    if resultado.total_reformas and cubiertas != resultado.total_reformas:
-                        print(
-                            f"  DESCUADRE: la SCJN reporta {resultado.total_reformas} reforma(s) "
-                            f"y quedaron {len(escritos)} snapshot(s) + "
-                            f"{len(resultado.reformas_sin_articulos)} sin texto consolidado "
-                            f"= {cubiertas}",
-                            file=sys.stderr,
-                        )
-                        descuadres.append(
-                            (slug, resultado.total_reformas, len(escritos),
-                             len(resultado.reformas_sin_articulos))
-                        )
+                # Issue #177: an `id_ordenamiento` a previous run already
+                # resolved skips the search step entirely -- the whole
+                # point of an instrument being addressable by a stable id
+                # instead of a session URL. --reintenta deliberately does
+                # not reuse it: re-downloading a wrong document from the
+                # same id would defeat the purpose (issue #115).
+                if reintenta is None:
+                    id_previo = lee_estado(destino).get("id_ordenamiento")
                 else:
-                    escritos = descarga_ordenamiento(
-                        nueva_sesion(), buscado, destino, espera=espera,
-                        on_progreso=_imprime_avance,
+                    id_previo = None
+                resultado = scjn_api.descarga_ordenamiento(
+                    cliente_api,
+                    buscado,
+                    destino,
+                    on_progreso=_imprime_avance,
+                    id_ordenamiento=id_previo,
+                )
+                escritos = resultado.escritos
+                if resultado.ordenamiento is not None:
+                    id_ordenamiento = resultado.ordenamiento.idOrdenamiento
+                for sin in resultado.reformas_sin_articulos:
+                    print(
+                        f"  sin texto consolidado (tieneArticulos=false): {sin}",
+                        file=sys.stderr,
+                    )
+                for fallida in resultado.reformas_fallidas:
+                    print(f"  aviso: reforma no servida por la SCJN: {fallida}", file=sys.stderr)
+                # Issue #178: check the crawl against the SCJN's own reform
+                # count for this instrumento -- its detail page shows that
+                # number, and a silent shortfall is exactly how a paging
+                # bug hid ~106 missing snapshots in the first full crawl.
+                cubiertas = len(escritos) + len(resultado.reformas_sin_articulos)
+                if resultado.total_reformas and cubiertas != resultado.total_reformas:
+                    print(
+                        f"  DESCUADRE: la SCJN reporta {resultado.total_reformas} reforma(s) "
+                        f"y quedaron {len(escritos)} snapshot(s) + "
+                        f"{len(resultado.reformas_sin_articulos)} sin texto consolidado "
+                        f"= {cubiertas}",
+                        file=sys.stderr,
+                    )
+                    descuadres.append(
+                        (slug, resultado.total_reformas, len(escritos),
+                         len(resultado.reformas_sin_articulos))
                     )
             except Exception as exc:
                 print(f"  aviso: {buscado!r} fallo: {exc}", file=sys.stderr)
@@ -749,18 +759,8 @@ def main(argv=None) -> int:
         "--api",
         action="store_true",
         help=(
-            "sin efecto: la API ya es el default desde el issue #178. Se acepta para "
+            "sin efecto: la API es el unico camino desde el issue #179. Se acepta para "
             "que un comando escrito durante la transicion (issue #177) siga corriendo"
-        ),
-    )
-    p.add_argument(
-        "--webforms",
-        action="store_true",
-        help=(
-            "rastrea por el Buscador WebForms viejo en vez de la API (issue #178). "
-            "Bandera de transicion: el camino WebForms se retira en la Fase 6 "
-            "(issue #179). Solo tiene sentido para reproducir a mano lo que una "
-            "corrida anterior a la migracion produjo"
         ),
     )
     p.add_argument(
@@ -851,7 +851,6 @@ def main(argv=None) -> int:
                 refresca=not args.sin_refrescar_catalogo,
                 incluye_sin_actualizado=args.incluye_sin_actualizado,
                 empaqueta=not args.sin_empaquetar,
-                api=not args.webforms,
             )
             continue
         rastrea_coleccion(
@@ -861,7 +860,6 @@ def main(argv=None) -> int:
             reiniciar=args.reiniciar,
             reintenta=reintenta,
             instrumento=instrumento,
-            api=not args.webforms,
         )
     # Non-zero when --actualiza left work behind, so a caller (or a human
     # reading `echo $?`) does not mistake a partial run for a clean one.

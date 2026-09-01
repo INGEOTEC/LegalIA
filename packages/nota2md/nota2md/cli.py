@@ -64,8 +64,10 @@ def _agrega_argumentos_build(parser):
     )
     parser.add_argument(
         "--notas", metavar="PATH",
-        help="Path to a saved get_notas() JSON (e.g. from `dofjson DATE`) to source "
-        "the next note's title from, instead of fetching it (image path only)",
+        help="Path to a saved day's legal provisions as JSON (e.g. from `dofjson DATE`) "
+        "to source the next note's title from, instead of fetching it (image path only). "
+        "Either shape: get_notas()'s per-edition dict or fetch_daily_legal_provisions()'s "
+        "flat list (issue #180)",
     )
     parser.add_argument(
         "--min-confidence", type=float, default=0.6,

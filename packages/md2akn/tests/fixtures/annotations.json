@@ -71,7 +71,21 @@
                     "raw": "**(REFORMADO PRIMER PARRAFO, D.O.F. 10 DE JUNIO DE 2011)**"
                   }
                 ],
-                "children": []
+                "children": [
+                  {
+                    "akn_type": "content",
+                    "eId": "tit_PRIMERO__art_1o__p_1",
+                    "num": "1",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 140,
+                    "end": 241,
+                    "notes": [],
+                    "children": []
+                  }
+                ]
               },
               {
                 "akn_type": "article",
@@ -92,7 +106,21 @@
                     "raw": "(DEROGADO, D.O.F. 3 DE MAYO DE 1999)"
                   }
                 ],
-                "children": []
+                "children": [
+                  {
+                    "akn_type": "content",
+                    "eId": "tit_PRIMERO__art_2o__p_1",
+                    "num": "1",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 243,
+                    "end": 297,
+                    "notes": [],
+                    "children": []
+                  }
+                ]
               },
               {
                 "akn_type": "article",
@@ -108,8 +136,8 @@
                 "children": [
                   {
                     "akn_type": "content",
-                    "eId": "tit_PRIMERO__art_3o__content_p",
-                    "num": null,
+                    "eId": "tit_PRIMERO__art_3o__p_1",
+                    "num": "1",
                     "heading": null,
                     "refers_to": null,
                     "is_chapeau": true,

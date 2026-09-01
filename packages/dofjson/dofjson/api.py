@@ -50,6 +50,7 @@ from dofjson.notas import (
     EDICION_LISTAS,
     _detectar_offset_paginacion,
     infer_paginas,
+    notas_de_la_edicion,
     notas_del_dia,
     quita_notas_sin_titulo
 )
@@ -75,7 +76,7 @@ def tiene_notas(notas: dict) -> bool:
     return any(notas.get(clave) for clave in EDICION_LISTAS.values())
 
 
-def legal_provisions_of_day(date_or_notas, **kwargs) -> list[dict]:
+def fetch_daily_legal_provisions(date_or_notas, **kwargs) -> list[dict]:
     """A day's legal provisions as one flat list, each one naming the edition
     it was published in — get_notas()'s per-edition dict run through
     dofjson.notas.notas_del_dia(), which documents the ordering and the
@@ -85,17 +86,24 @@ def legal_provisions_of_day(date_or_notas, **kwargs) -> list[dict]:
     (`respaldo`/`cache_dir` are passed straight through to get_notas()), or a
     response already in hand, in which case nothing is fetched:
 
-        for nota in dofjson.legal_provisions_of_day(dt.date(2024, 9, 15)):
+        for nota in dofjson.fetch_daily_legal_provisions(dt.date(2024, 9, 15)):
             print(nota["edicion"], nota["codNota"], nota["titulo"])
 
     get_notas()'s own return shape is untouched — this is a view over it. That
     dict is the wire shape of both SIDOF and dofweb and the format the
     notas-archivo release is written in, so it stays as it is.
+
+    This is the project's one day-level entry point. Issue #169 added the flat
+    view as `legal_provisions_of_day()` while `nota2md` still exported a
+    `fetch_daily_legal_provisions()` of its own returning the per-edition
+    dict, so "give me the day's legal provisions" had two names and two
+    shapes; issue #180 kept this name and #169's shape. `nota2md` re-exports
+    it, the same way it re-exports `legal_provisions_titles`.
     """
     if isinstance(date_or_notas, dict):
         if kwargs:
             raise TypeError(
-                "legal_provisions_of_day() no acepta argumentos de get_notas() "
+                "fetch_daily_legal_provisions() no acepta argumentos de get_notas() "
                 f"cuando ya se le pasa la respuesta del dia: {sorted(kwargs)}"
             )
         return notas_del_dia(date_or_notas)
@@ -359,11 +367,13 @@ def download_nota_pdf(cod_nota: int, outdir: Path, nota: dict | None = None) -> 
         nota = _resolver_nota(cod_nota)
 
     fecha = dt.datetime.strptime(nota["fecha"], "%d-%m-%Y").date()
-    notas_del_dia = sidof.get_notas(fecha)
-    paginas = infer_paginas(nota, notas_del_dia)
-    paginas_conocidas = {
-        n["pagina"] for n in notas_del_dia[EDICION_LISTAS[nota["codEdicion"]]]
-    }
+    # sidof.get_notas(), deliberately, not the unified get_notas(): the latter
+    # drops title-less stub entries, and page spans are computed from exactly
+    # those (see quita_notas_sin_titulo's own warning). Both readers of this
+    # day go through the one per-edition helper (issue #180).
+    dia = sidof.get_notas(fecha)
+    paginas = infer_paginas(nota, dia)
+    paginas_conocidas = {n["pagina"] for n in notas_de_la_edicion(nota, dia)}
 
     edicion_pdf = _edicion_pdf_cacheada(nota["codDiario"], outdir)
     reader = PdfReader(str(edicion_pdf))

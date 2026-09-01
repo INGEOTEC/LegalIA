@@ -52,12 +52,21 @@ this package (it remains in git history if it is ever needed again).
 | Artículo N | `article` | |
 | fracción / inciso / subinciso | `paragraph` / `point` / `subpoint` | |
 | TRANSITORIOS | `section` | + `refers_to="#transitorios"` |
-| a plain paragraph | `content` | |
+| a plain paragraph | `content` | numbered 1..n inside its parent (`art_1o__p_2`) |
 | the closing signatures | `conclusions` | |
 
 Akoma Ntoso has no element for "transitorios" or for "apartado"; both are
 expressed as an existing element plus `refers_to`, which is the convention
 issue #91 settled on for structures the standard does not name.
+
+Every paragraph of an article is a `content` child of it, whether or not the
+article also has fracciones, and carries a `num` — so "el párrafo segundo del
+artículo 1o." resolves to `art_1o__p_2`. That is an ordinary Mexican
+citation, and reforms are published against it ("se reforma el párrafo
+tercero del artículo 4o."), so the unit cannot exist only when a sibling list
+happens to (issue #181). The count is scoped to the immediate parent, which
+is what makes it the article's *own* paragraphs: text that continues a
+fracción belongs to that fracción and never advances the article's numbering.
 
 ## What it recognizes
 
@@ -99,7 +108,9 @@ between `VII.` and `VIII.`, and a second list in the same article restarts at
 A block with no marker belongs to the deepest open node when another item
 follows it, and is the article's own closing paragraph when the article ends
 instead. The two are identical in form, so the decision waits for the next
-block; `is_chapeau` and `is_tail` mark the result.
+block; `is_chapeau` and `is_tail` mark the result. Those two flags are the
+only thing hierarchy adds to a paragraph — the paragraph itself is a node
+either way.
 
 A law's transitional provisions come out as **several sibling sections**, one
 per decree that added some — the `## Transitorios` marker opens the first and

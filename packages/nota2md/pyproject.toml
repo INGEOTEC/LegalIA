@@ -32,9 +32,10 @@ dependencies = [
 dynamic = ['version']
 
 [project.optional-dependencies]
+# The "scjn" extra (python-docx) went away with the .docx crawl path in
+# issue #179 -- the SCJN's JSON API serves the same text as plain text.
 ocr = ["dof2md>=0.2.0"]
-scjn = ["python-docx>=1.0"]
-test = ["pytest>=7.0", "python-docx>=1.0"]
+test = ["pytest>=7.0"]
 
 [project.urls]
 Homepage = "https://github.com/INGEOTEC/LegalIA/tree/main/packages/nota2md"

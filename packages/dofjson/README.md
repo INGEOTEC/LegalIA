@@ -373,12 +373,13 @@ day-level `fuente`), which is the wire shape of both SIDOF and the DOF
 website and the format the `notas-archivo` release is written in. That shape
 does not change. To go through the whole day instead, without knowing the
 three key names and without losing which edition a note came from, use
-`legal_provisions_of_day()`:
+`fetch_daily_legal_provisions()` — the project's one day-level entry point,
+also re-exported as `nota2md.fetch_daily_legal_provisions` (issue #180):
 
 ```python
 import dofjson
 
-for nota in dofjson.legal_provisions_of_day(dt.date(2026, 7, 15)):
+for nota in dofjson.fetch_daily_legal_provisions(dt.date(2026, 7, 15)):
     print(nota["edicion"], nota["codNota"], nota["titulo"])   # MAT, then VES, then EXT
 ```
 

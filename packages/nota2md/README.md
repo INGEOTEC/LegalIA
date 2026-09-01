@@ -25,7 +25,7 @@ Oficial de la Federación) and the federal laws it publishes:
 | [`legal_provisions`](#legal_provisions--a-single-dof-legal-provision-as-markdown) | a legal provision's `codNota` (an `outdir` is optional) | the law's consolidated text at that reform, from the SCJN corpus (`outdir/{slug}-{fecha}.md`) — or, when the corpus does not cover it, the DOF's own Markdown (`outdir/nota-{codNota}.md`); with no `outdir`, written into the cache and returned as a `Path` |
 | [`reconstruct_legal_provisions`](#reconstruct_legal_provisions--a-laws-current-text-from-its-dof-legal-provisions) | a law's reform history (`codNota` list) | its current text, written to `outdir/ley-{codNota}.md` |
 | [`download_legal_provisions_provenance_ids`](#download_legal_provisions_provenance_ids--a-laws-reform-history) | a collection name (`"leyes"`, `"reglamentos"`, `"normas"`, `"tratados"`) | every instrument's reform history, in memory |
-| [`fetch_daily_legal_provisions`](#cutting-a-legal-provision-out-of-its-page) | a date | that day's browsable legal provisions (title, `codNota`, `codEdicion`...) |
+| [`fetch_daily_legal_provisions`](#cutting-a-legal-provision-out-of-its-page) | a date (or a day already in hand) | that whole day's legal provisions as one flat list, each naming its `edicion` |
 | [`get_document`](#get_document--a-note-whose-text-is-already-markdown) | a legal provision's `codNota`, or a `get_nota` record already in hand | that same record, with `cadenaContenido` holding its **Markdown** instead of DOF HTML |
 | [`legal_provisions_titles`](#legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` cache) | every legal provision ever published, as a stream of `codNota`+`titulo`+`fecha`+`codOrgaUno` records |
 | [`download_scjn_leyes_corpus`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | a law's `slug` | every snapshot of that law in the `scjn-leyes` release, with its `codNota` links, in memory |
@@ -98,25 +98,26 @@ between. Matching is fuzzy (accent-folded, marker-stripped, `difflib`
 alignment) to tolerate OCR differences, and it also drops the next legal
 provision's organism header that the DOF prints above its title.
 
-`fetch_daily_legal_provisions(date)` is the per-day index itself — a day's
-browsable legal provisions (title, `codNota`, `codEdicion`...), from SIDOF
+`fetch_daily_legal_provisions(date)` is the whole day — every legal
+provision published on it (title, `codNota`, `pagina`...) as one flat list in
+publication order, each note naming the `edicion` it appeared in, from SIDOF
 and, when SIDOF has nothing for that day, from the DOF's own website:
 
 ```python
 from nota2md import fetch_daily_legal_provisions
 import datetime as dt
-import dofjson
 
-notas = fetch_daily_legal_provisions(dt.date(2026, 7, 15))
-for nota in dofjson.legal_provisions_of_day(notas):
+for nota in fetch_daily_legal_provisions(dt.date(2026, 7, 15)):
     print(nota["edicion"], nota["codNota"], nota["titulo"])
 ```
 
-The index itself is keyed by edition
-(`NotasMatutinas`/`NotasVespertinas`/`NotasExtraordinarias`), so indexing one
-of those keys silently drops the rest of the day;
-`dofjson.legal_provisions_of_day()` flattens all three into one sequence in
-publication order, each note naming its own `edicion` (issue #169).
+It is `dofjson.fetch_daily_legal_provisions`, re-exported (issue #180, the
+same pattern as `legal_provisions_titles`). It also takes a day already in
+hand instead of a date, in which case nothing is fetched. The underlying
+`dofjson.get_notas()` answers the day keyed by edition
+(`NotasMatutinas`/`NotasVespertinas`/`NotasExtraordinarias`) — the wire shape
+of both sources — so indexing one of those keys silently drops the rest of
+the day; this flattens all three, in publication order (issue #169).
 
 ### `get_document` — a note whose text is already Markdown
 
@@ -153,10 +154,13 @@ as the string-to-string primitive this is built on.
 ### The SCJN path — a law's consolidated text at each reform
 
 Since v0.5.0, `legal_provisions` answers **the whole law, not the reform
-decree**, whenever it can. The SCJN's Buscador keeps, for every reform of
-every federal law, a snapshot of the law's consolidated text exactly as it
-read right after that reform; those snapshots are crawled, matched to the DOF
-`codNota` that enacted them, and published as the
+decree**, whenever it can. The SCJN's legislative database keeps, for every
+reform of every federal law, a snapshot of the law's consolidated text
+exactly as it read right after that reform; those snapshots are crawled —
+through the SCJN's own SCOW JSON API since issue #172, which replaced the
+legacy WebForms Buscador and, unlike it, indexes laws as new as the LEY
+FEDERAL DE CINE Y EL AUDIOVISUAL — matched to the DOF `codNota` that enacted
+them, and published as the
 [`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)
 release (315 laws, 3,724 snapshots). A `codNota` the release covers is
 answered straight out of it — which is what

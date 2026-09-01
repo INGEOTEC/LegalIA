@@ -2,7 +2,7 @@
 and for the notas-archivo release (this module's own `notas_de_tgz`, issue
 #103) -- see tests/test_dofjson.py for the surface this locks in."""
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 from dofjson import dofweb
 from dofjson.api import (
@@ -11,9 +11,9 @@ from dofjson.api import (
     download_nota_imagen_o_pdf,
     download_nota_imagenes,
     download_nota_pdf,
+    fetch_daily_legal_provisions,
     get_nota,
     get_notas,
-    legal_provisions_of_day,
 )
 from dofjson.notas import infer_paginas, notas_del_dia, quita_notas_sin_titulo
 from dofjson.sidof import (
@@ -38,7 +38,7 @@ FUENTE_WEB = dofweb.FUENTE
 __all__ = [
     "get_nota",
     "get_notas",
-    "legal_provisions_of_day",
+    "fetch_daily_legal_provisions",
     "notas_del_dia",
     "FUENTE_WEB",
     "download_nota",

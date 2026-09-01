@@ -38,8 +38,8 @@
             "children": [
               {
                 "akn_type": "content",
-                "eId": "art_123__content_p",
-                "num": null,
+                "eId": "art_123__p_1",
+                "num": "1",
                 "heading": null,
                 "refers_to": null,
                 "is_chapeau": true,

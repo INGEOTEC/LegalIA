@@ -1,28 +1,39 @@
-"""Crawl the SCJN Buscador (https://legislacion.scjn.gob.mx/Buscador/) for an
-instrument's own reform-dated snapshots.
+"""Everything about the SCJN's reform-dated snapshots that is not the
+transport: catalogue slugs, crawl state, the provenance header's reader,
+the link from a snapshot to the DOF `codNota` that published it, and the
+`scjn-leyes` release's own readers.
 
-Each reform row on an instrument's detail page carries a "Ver texto completo
-de la última publicación" .docx that is not its *current* text but the
-consolidated text exactly as it read right after that particular reform —
-see issue #105 for how this was found and validated live against 22 real
-instruments (leyes, reglamentos, tratados, and state legislation).
+The crawl itself lives in `nota2md.scjn_api`, against the SCJN's JSON API
+(`/SCOW-API`, issue #172). Until issue #179 this module also carried the
+crawler for the legacy WebForms Buscador (`/Buscador/`): a search POST
+round-tripping `__VIEWSTATE`/`__EVENTVALIDATION`, a detail page whose `q`
+token was scoped to the session that requested it, a reform grid paged
+through `__EVENTTARGET`, and one `.docx` download per row parsed by
+`docx_a_markdown`. All of it is gone. What replaced it, and why:
 
-A whole instrument's history needs one `requests.Session` walked through
-search -> detail -> each row's download in turn: the detail page's `q`
-query-string token is scoped to the session that requested it, so a fresh
-session can never reuse a URL a previous one already resolved (see
-`nueva_sesion`) — that scoping is also why this crawls collection by
-collection, instrument by instrument, rather than trying to precompute or
-cache any of these URLs across a run.
+- The old Buscador simply did not index everything. Searching it for the
+  LEY Federal de Cine y el Audiovisual returned 0 candidates, twice, live
+  (issue #124's "Mecanismo 2"); the JSON API answers with
+  `idOrdenamiento` 188805 for the same name. That law is now in the corpus.
+- An instrument is addressable by a stable `idOrdenamiento` instead of a
+  session-scoped URL, so a crawl is resumable and auditable, and the whole
+  reform table arrives in one request instead of 31 postbacks.
+- The per-reform article text arrives already segmented, so the heuristic
+  paragraph classifier that read the `.docx` is now only the formatter
+  `scjn_api` applies to it (`scjn_api._formatea_parrafo`).
 
-The SCJN is not an official source of legal text — dof.gob.mx/SIDOF remains
-that (the SCJN's own site marks its editorial insertions as "N. DE E." —
-Nota de Editor). Every Markdown file this writes is therefore tagged with a
-`fuente: scjn` header, so it is never mistaken for text reconstructed from
-the DOF's own notes — see nota2md.leyes.reconstruct_legal_provisions, the
-DOF-only equivalent this crawl stands in for once matched by date to a
-codNota — which `legal_provisions` now does by default, through this
-module's `snapshot_de_codNota` (issue #117).
+The API is still **not** an official contract — a Swagger page is not a
+stability promise, the same posture `dofjson.dofweb` and `leyesmx.diputados`
+take toward their own sources, and the rate limiting stays. And the SCJN is
+still not an official source of legal text: dof.gob.mx/SIDOF remains that
+(the SCJN's own site marks its editorial insertions as "N. DE E." — Nota de
+Editor). Every Markdown file the crawl writes is therefore tagged with a
+`fuente: scjn` header, whose meaning this migration does not change, so it
+is never mistaken for text reconstructed from the DOF's own notes — see
+nota2md.leyes.reconstruct_legal_provisions, the DOF-only equivalent this
+crawl stands in for once matched by date to a codNota — which
+`legal_provisions` now does by default, through this module's
+`snapshot_de_codNota` (issue #117).
 """
 
 import gzip
@@ -30,17 +41,13 @@ import io
 import json
 import re
 import tarfile
-import time
 import unicodedata
-from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import datetime
 from difflib import SequenceMatcher
 from pathlib import Path
-from urllib.parse import urljoin
 
 import requests
-from bs4 import BeautifulSoup
 
 from nota2md.cache import (
     SIN_CACHE_DIR,
@@ -50,121 +57,10 @@ from nota2md.cache import (
 )
 from nota2md.leyes import normaliza_para_comparar
 
-_HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LegalIA-scjn-crawler/1.0)"}
-BASE_URL = "https://legislacion.scjn.gob.mx/Buscador/"
-_LABEL_TEXTO_COMPLETO = "Ver texto completo de la última publicación"
-
-_VIGENCIA = re.compile(r"Vigencia:\s*(\S+)")
-_AMBITO = re.compile(r"Ambito:\s*(.+?)(?:\s+Ver\b|$)")
-_TITULO_CANDIDATO = re.compile(r"^(.*?)\s*[UÚ]ltima actualizaci[oó]n:")
-_FECHA_PUBLICACION = re.compile(r"Fecha de publicaci[oó]n:\s*(\d{2}/\d{2}/\d{4})")
-_FECHA_EXPEDICION = re.compile(r"Fecha de expedici[oó]n:\s*(\d{2}/\d{2}/\d{4})")
-_CATEGORIA = re.compile(r"Categor[ií]a:\s*(.+?)\s+No\.\s+y\s+secci[oó]n")
-_TOTAL_PAGINAS = re.compile(r"gina\s+\d+\s+de\s+(\d+)", re.I)
-_PAGER_TARGET = "ctl00$MainContentPlaceHolder$pagerGridReformas"
-
-
-def nueva_sesion() -> requests.Session:
-    """A fresh, unauthenticated session — always start one of these for a
-    new instrument's own search->detail->download walk; never reuse a
-    session (or a URL it obtained) across instruments or across runs, since
-    the SCJN scopes a detail page's `q` token to the session that requested
-    it."""
-    sesion = requests.Session()
-    sesion.headers.update(_HEADERS)
-    return sesion
-
-
-def _campos_formulario(form) -> dict:
-    """Every hidden/visible field of `form` (including ASP.NET's own
-    `__VIEWSTATE`/`__EVENTVALIDATION`), name -> current value — the payload a
-    POST to this WebForms site must resubmit unchanged apart from whichever
-    field the caller means to actually drive (`txtPalabra`, `__EVENTTARGET`,
-    ...)."""
-    data = {}
-    for inp in form.find_all("input"):
-        name = inp.get("name")
-        if not name:
-            continue
-        tipo = inp.get("type", "text")
-        if tipo in ("checkbox", "radio"):
-            if inp.get("checked"):
-                data[name] = inp.get("value", "on")
-            continue
-        data[name] = inp.get("value", "")
-    for sel in form.find_all("select"):
-        name = sel.get("name")
-        if not name:
-            continue
-        opt = sel.find("option", selected=True) or sel.find("option")
-        data[name] = opt.get("value", "") if opt else ""
-    return data
-
-
-@dataclass
-class Candidato:
-    """One ordenamiento the SCJN's search returned: its own title as
-    highlighted in the results list, the (session-scoped) URL of its detail
-    page, and the Ámbito/Vigencia the results page already shows before
-    opening that page at all.
-
-    `ratio`/`sospechoso` are filled in by `elige_candidato` once it has
-    picked a winner (see issue #115) — a candidate straight out of `buscar`
-    carries neither, since there is no `nombre` to compare it against yet."""
-
-    titulo: str
-    url: str
-    ambito: str | None
-    vigencia: str | None
-    ratio: float | None = None
-    sospechoso: bool | None = None
-
-
-def _candidato(a, url: str) -> Candidato:
-    texto = a.get_text(" ", strip=True)
-    m_titulo = _TITULO_CANDIDATO.search(texto)
-    m_vigencia = _VIGENCIA.search(texto)
-    m_ambito = _AMBITO.search(texto)
-    return Candidato(
-        titulo=(m_titulo.group(1) if m_titulo else texto).strip(),
-        url=url,
-        ambito=m_ambito.group(1).strip() if m_ambito else None,
-        vigencia=m_vigencia.group(1).strip() if m_vigencia else None,
-    )
-
-
-def buscar(sesion: requests.Session, nombre: str) -> tuple[list[Candidato], str]:
-    """Every ordenamiento the SCJN's search returns for `nombre`, and the
-    results page's own URL (the `Referer` a detail-page request needs).
-
-    The results themselves come back in a paginated grid (`pagerGridLeyes`,
-    10 rows/page by default) that this never walks page by page — instead,
-    the search itself asks for the grid's own largest page size (50, its
-    `ddlPageSize` dropdown's highest option), so every result still arrives
-    in this one request. Confirmed live: "LEY del Impuesto sobre la Renta"
-    (issue #124) has 42 total hits, all 10 of page 1 pure ACUERDOs that only
-    mention the law in passing (`es_acuerdo_interno` excludes every one) —
-    the actual ordenamiento sits at position 14, invisible to a caller that
-    only ever reads page 1. 50 covers every case seen so far; an instrument
-    with more than 50 hits would still only be found by paginating the grid
-    for real, not attempted here."""
-    r = sesion.get(BASE_URL, timeout=20)
-    soup = BeautifulSoup(r.text, "html.parser")
-    form = soup.find("form", id="aspnetForm")
-    action_url = urljoin(r.url, form.get("action"))
-    data = _campos_formulario(form)
-    data["ctl00$MainContentPlaceHolder$ucBusqueda1$txtPalabra"] = nombre
-    data["ctl00$MainContentPlaceHolder$ucBusqueda1$cbxTitulo"] = "on"
-    data["ctl00$MainContentPlaceHolder$ucBusqueda1$ddlPageSize"] = "50"
-    data["__EVENTTARGET"] = "ctl00$MainContentPlaceHolder$ucBusqueda1$btnBuscar"
-    r2 = sesion.post(action_url, data=data, headers={"Referer": r.url}, timeout=30)
-    soup2 = BeautifulSoup(r2.text, "html.parser")
-    candidatos = [
-        _candidato(a, urljoin(r2.url, a.get("href")))
-        for a in soup2.find_all("a")
-        if a.get("href") and "wfOrdenamiento" in a.get("href")
-    ]
-    return candidatos, r2.url
+#: User-Agent for the `scjn-leyes` release's own GitHub requests -- the only
+#: network this module still does on its own (the SCJN crawl lives in
+#: `nota2md.scjn_api`, which carries its own headers).
+_HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LegalIA-nota2md/1.0)"}
 
 
 def _normaliza(texto: str) -> str:
@@ -175,7 +71,7 @@ def _normaliza(texto: str) -> str:
 
 # --- Fase 3 (issue #115): guard against a wrong-document match ---------
 #
-# `elige_candidato` narrowing by Ámbito/Vigencia (issue #105's Fase 0 finding
+# Candidate selection narrowing by Ámbito/Vigencia (issue #105's Fase 0 finding
 # 5) resolves *most* of "searching by name alone can return something
 # unrelated", but not all of it — issue #115's manual audit of the already-
 # crawled corpus found 5 leyes/reglamentos where the SCJN's search returned,
@@ -205,8 +101,9 @@ UMBRAL_CONFIANZA_SIMILITUD = 0.75
 def ratio_similitud(titulo: str, nombre: str) -> float:
     """How closely a candidate's own `titulo` matches the catalogue's
     `nombre` for it, accent/case/whitespace-insensitive — the same
-    `SequenceMatcher` ratio `elige_candidato` picks its winner by, and that
-    `_cabecera` recomputes to decide whether `nombre_buscado` is worth
+    `SequenceMatcher` ratio `scjn_api.elige_ordenamiento` picks its winner
+    by, and that `scjn_api.cabecera` recomputes to decide whether
+    `nombre_buscado` is worth
     writing (issue #132). Exposed too so `scripts/empaqueta_scjn_leyes.py`
     can classify an already-crawled snapshot's confidence offline, against
     whatever `ordenamiento` a past crawl already saved to its own header,
@@ -249,222 +146,6 @@ def grupo_instrumento(texto: str) -> str | None:
     return None
 
 
-def elige_candidato(candidatos: list[Candidato], nombre: str) -> Candidato | None:
-    """The candidate that best matches `nombre` among the SCJN's own search
-    results for it — see issue #105's Fase 0 finding 5: searching by name
-    alone can return an abrogated instrument alongside its still-current
-    successor, or something unrelated that merely mentions `nombre`, so
-    narrowing by Ámbito/Vigencia before comparing titles resolves most of
-    that ambiguity. `download_legal_provisions_provenance_ids` only ever
-    covers federal instruments, so FEDERAL is preferred whenever at least one
-    candidate has it; VIGENTE is preferred the same way, but neither
-    preference ever discards the only candidate(s) on offer — an abrogated
-    law is still worth crawling its own reform history.
-
-    Before any of that, two hard exclusions (issue #115, see the section
-    docstring above) drop candidates that are never a legitimate match
-    regardless of Ámbito/Vigencia/similarity: the SCJN's own internal
-    acuerdos (`es_acuerdo_interno`), and — only when `nombre` itself
-    unambiguously names a ley/código or a reglamento — a candidate of the
-    opposite kind (`grupo_instrumento`). Unlike the Ámbito/Vigencia
-    preference, these two never fall back to "keep everyone" when they
-    would empty the list: a document of the wrong kind is worse than no
-    document at all.
-
-    The winner returned then also needs to clear `UMBRAL_MINIMO_SIMILITUD`
-    on `ratio_similitud`, or this returns None the same as "no candidates"
-    — and comes back flagged `sospechoso` when it clears that floor but not
-    `UMBRAL_CONFIANZA_SIMILITUD`, for a caller to route to manual review
-    instead of trusting outright.
-
-    Returns None (rather than raising) when `candidatos` is empty (or every
-    candidate got excluded by the two hard exclusions above), so a batch
-    crawl can log a miss and move on to the next instrument."""
-    excluidos = [c for c in candidatos if not es_acuerdo_interno(c.titulo)]
-    grupo_objetivo = grupo_instrumento(nombre)
-    if grupo_objetivo is not None:
-        excluidos = [
-            c for c in excluidos if grupo_instrumento(c.titulo) in (None, grupo_objetivo)
-        ]
-    if not excluidos:
-        return None
-
-    federales = [c for c in excluidos if c.ambito == "FEDERAL"] or excluidos
-    vigentes = [c for c in federales if c.vigencia == "VIGENTE"] or federales
-    elegido = max(vigentes, key=lambda c: ratio_similitud(c.titulo, nombre))
-
-    ratio = ratio_similitud(elegido.titulo, nombre)
-    if ratio < UMBRAL_MINIMO_SIMILITUD:
-        return None
-    return replace(elegido, ratio=ratio, sospechoso=ratio < UMBRAL_CONFIANZA_SIMILITUD)
-
-
-@dataclass
-class FilaReforma:
-    """One row of an instrument's own reform table: the publication/
-    expedition dates and category the SCJN prints for it, and the URL of its
-    "texto completo" .docx — the reform-dated snapshot Fase 0 validated."""
-
-    fecha_publicacion: str
-    fecha_expedicion: str | None
-    categoria: str | None
-    url_docx: str
-
-
-def _filas_de_pagina(html: str, base_url: str) -> list["FilaReforma"]:
-    """Every reform row on one already-fetched page of the grid."""
-    soup = BeautifulSoup(html, "html.parser")
-    filas = []
-    for a in soup.find_all("a"):
-        if a.get_text(strip=True) != _LABEL_TEXTO_COMPLETO:
-            continue
-        tr = a.find_parent("tr")
-        texto_fila = tr.get_text(" ", strip=True) if tr is not None else ""
-        m_pub = _FECHA_PUBLICACION.search(texto_fila)
-        if not m_pub:
-            continue
-        m_exp = _FECHA_EXPEDICION.search(texto_fila)
-        m_cat = _CATEGORIA.search(texto_fila)
-        filas.append(
-            FilaReforma(
-                fecha_publicacion=m_pub.group(1).replace("/", "-"),
-                fecha_expedicion=m_exp.group(1).replace("/", "-") if m_exp else None,
-                categoria=m_cat.group(1).strip() if m_cat else None,
-                url_docx=urljoin(base_url, a.get("href")),
-            )
-        )
-    return filas
-
-
-def filas_de_reforma(
-    sesion: requests.Session,
-    detail_url: str,
-    referer: str,
-    *,
-    espera: float = 1.0,
-    on_pagina: Callable[[int, int], None] | None = None,
-) -> tuple[list[FilaReforma], str]:
-    """Every reform row of the instrument at `detail_url`, most recent first
-    (the SCJN's own order — see `descarga_ordenamiento`, which reverses this
-    before returning) — and the detail page's own URL (the `Referer` each
-    row's docx download needs).
-
-    The grid only ever renders 10 rows per page (a DevExpress ASPxGridView);
-    an instrument with more reforms than that — confirmed live against the
-    CPEUM, 301 rows across 31 pages — needs its remaining pages walked via
-    the same plain ASP.NET postback its own pager link uses
-    (`__EVENTTARGET=pagerGridReformas`, `__EVENTARGUMENT=PN<n>`), resubmitting
-    the *detail* page's own `aspnetForm` fields (not the search page's) each
-    time, since every postback returns a fresh `__VIEWSTATE` the next page
-    request must carry forward.
-
-    Issue #140: walking a multi-page grid like the CPEUM's is ~31 real
-    requests with nothing else to show for it until the very last one comes
-    back — indistinguishable from a hung process. `on_pagina`, when given,
-    is called with (`pagina_actual`, `total_paginas`) after each page is
-    fetched (1-based, so the first call is always `(1, total_paginas)`) —
-    only when there is more than one page to begin with, since a single-page
-    instrument (the common case) has nothing worth narrating."""
-    r = sesion.get(detail_url, headers={"Referer": referer}, timeout=20)
-    soup = BeautifulSoup(r.text, "html.parser")
-    filas = _filas_de_pagina(r.text, r.url)
-    m_total = _TOTAL_PAGINAS.search(r.text)
-    total_paginas = int(m_total.group(1)) if m_total else 1
-    if on_pagina is not None and total_paginas > 1:
-        on_pagina(1, total_paginas)
-    for n in range(1, total_paginas):
-        time.sleep(espera)
-        form = soup.find("form", id="aspnetForm")
-        campos = _campos_formulario(form)
-        campos["__EVENTTARGET"] = _PAGER_TARGET
-        campos["__EVENTARGUMENT"] = f"PN{n}"
-        r = sesion.post(detail_url, data=campos, headers={"Referer": detail_url}, timeout=30)
-        soup = BeautifulSoup(r.text, "html.parser")
-        filas.extend(_filas_de_pagina(r.text, r.url))
-        if on_pagina is not None:
-            on_pagina(n + 1, total_paginas)
-    return filas, r.url
-
-
-def descarga_docx(
-    sesion: requests.Session,
-    url: str,
-    referer: str,
-    *,
-    intentos: int = 3,
-    espera: float = 2.0,
-) -> bytes:
-    """`url`'s raw .docx bytes, retrying on a dropped connection — the SCJN's
-    server occasionally closes a request outright rather than erroring, the
-    same flakiness issue #105's Fase 0 spike already had to work around."""
-    r = None
-    for intento in range(intentos):
-        try:
-            r = sesion.get(url, headers={"Referer": referer}, timeout=30)
-            break
-        except requests.exceptions.ConnectionError:
-            if intento == intentos - 1:
-                raise
-            time.sleep(espera)
-    if r.content[:2] != b"PK":
-        raise ValueError(
-            f"la respuesta de {url} no es un .docx "
-            f"(content-type={r.headers.get('content-type')})"
-        )
-    return r.content
-
-
-# --- .docx -> Markdown -------------------------------------------------
-#
-# Every docx sampled in Fase 0 (a ley, a reglamento — see issue #105) carries
-# no run-level formatting at all: "TEXTO ORIGINAL.", "Artículo N.-" leads and
-# "TRANSITORIOS" captions are plain text, told apart only by their own
-# wording/casing — the same situation nota2md.texto_vigente's Diputados PDFs
-# are in, except a docx paragraph already is one clean block (no per-page
-# header/footer to strip first, no line-wrapped text to reflow), so only the
-# per-paragraph classification below is needed. Kept independent of
-# texto_vigente's own patterns rather than imported, for the same reason that
-# module gives for staying independent of this package's DOF-derived output:
-# the two are meant to be compared, not to share a source.
-
-_ORDINAL = (
-    r"(?:[UÚ]nico|Primero|Segundo|Tercero|Cuarto|Quinto|Sexto|S[ée]ptimo|"
-    r"Octavo|Noveno|D[ée]cimo(?:\s+(?:Primero|Segundo|Tercero|Cuarto|Quinto|"
-    r"Sexto|S[ée]ptimo|Octavo|Noveno))?)"
-)
-_LEAD_ARTICULO = re.compile(
-    rf"^(Art[íi]culo\s+(?:\d+\s*(?:o\b\.?|[°º])?\s*"
-    r"(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies)?|"
-    rf"{_ORDINAL})\.?-?)",
-    re.I,
-)
-_LEAD_ORDINAL = re.compile(rf"^({_ORDINAL}\.-?)", re.I)
-_LEAD_LISTA = re.compile(r"^((?:[IVXLCDM]+|[a-záA-Z])[\.\)])(?=\s)")
-_MARGEN = re.compile(r"^Al margen un sello\b.*", re.I)
-_TRANSITORIOS_PARRAFO = re.compile(r"^TRANSITORIOS?$", re.I)
-
-
-def _es_titular(parrafo: str) -> bool:
-    """A whole-paragraph ALL-CAPS caption ("DECRETO", "TEXTO ORIGINAL.") is
-    bolded in full."""
-    letras = [c for c in parrafo if c.isalpha()]
-    return len(letras) >= 3 and len(parrafo) < 300 and all(c.isupper() for c in letras)
-
-
-def _formatea_parrafo(parrafo: str) -> str:
-    if _MARGEN.match(parrafo):
-        return f"## {parrafo}"
-    if _TRANSITORIOS_PARRAFO.match(parrafo):
-        return f"## {parrafo.capitalize()}"
-    if _es_titular(parrafo):
-        return f"**{parrafo}**"
-    for patron in (_LEAD_ARTICULO, _LEAD_ORDINAL, _LEAD_LISTA):
-        m = patron.match(parrafo)
-        if m:
-            return f"**{m.group(1)}**{parrafo[m.end(1):]}"
-    return parrafo
-
-
 # --- Editorial commentary removal ("N. DE E." / "NOTA N") --------------
 #
 # The SCJN's own Markdown mixes two things a reform-annotated paragraph can
@@ -487,7 +168,7 @@ def _formatea_parrafo(parrafo: str) -> str:
 #     `[...]`/`(...)` paragraph of its own; (b) embedded inside a reform
 #     annotation's own parenthesis, which resumes with ", D.O.F. <date>)"
 #     right after it; (c) trailing bare after a reform annotation has
-#     already closed, running to the end of that docx paragraph (SCJN's own
+#     already closed, running to the end of that paragraph (SCJN's own
 #     "N. DE E." is not always bracketed at all).
 #   - One no-marker case (Fase 0 finding 3): an unmarked, all-caps bracket
 #     ("[REPUBLICADAS]", "[ANTES ARTÍCULO 57]"). The one thing that rules out
@@ -610,11 +291,11 @@ def quita_notas_editoriales(parrafo: str) -> str:
     section docstring above) — a paragraph that turns out to be *only* one
     such insertion comes back empty, rather than as a blank paragraph.
 
-    Takes the already-bolded output of `_formatea_parrafo` just as readily
-    as a raw docx paragraph — a whole-paragraph editorial insertion in an
-    already-written snapshot is wrapped in its own "**...**" (`_es_titular`
-    bolds every all-caps paragraph, editorial or not), stripped and restored
-    around the result so a second pass over already-clean output is a no-op,
+    Takes the already-bolded output of `scjn_api._formatea_parrafo` just as
+    readily as a raw source paragraph — a whole-paragraph editorial insertion
+    in an already-written snapshot is wrapped in its own "**...**"
+    (`scjn_api._es_titular` bolds every all-caps paragraph, editorial or not),
+    stripped and restored around the result so a second pass over already-clean output is a no-op,
     byte for byte. That property is what let issue #114's Paso 5 repair, in
     place, the snapshots an earlier crawl had written before this existed;
     that one-time script (`scripts/repara_notas_editoriales_scjn.py`) was
@@ -629,49 +310,6 @@ def quita_notas_editoriales(parrafo: str) -> str:
     if not resultado:
         return ""
     return f"**{resultado}**" if negrita else resultado
-
-
-def docx_a_markdown(contenido: bytes) -> str:
-    """A reform row's .docx, reformatted into the same light Markdown
-    nota2md's other sources use: a heading for "Al margen un sello"/
-    "Transitorios", a bolded whole-paragraph caption for an ALL-CAPS line, a
-    bolded lead for an "Artículo N"/ordinal/list-marker paragraph — see the
-    section docstring above for why this doesn't share code with
-    nota2md.texto_vigente's own (very similar-looking) PDF conversion.
-
-    Every paragraph is also stripped of the SCJN's own editorial asides
-    before formatting (`quita_notas_editoriales`, see issue #114) — the
-    result is meant to read as if it had been reconstructed from the DOF's
-    own notes, which never carried them.
-
-    python-docx is only needed here — the extra that pulls it in
-    (``pip install nota2md[scjn]``) is optional, same as dof2md is for the
-    OCR paths in nota2md.builder.
-
-    Issue #125 evaluated replacing this with a public docx→Markdown package
-    (pandoc via pypandoc's ``gfm`` writer, and mammoth) against real SCJN
-    reform docx (e.g. "LEY de Firma Electrónica Avanzada", "LEY de la Casa
-    de Moneda de México"): both failed on the two things this module is
-    actually for. Neither strips the SCJN's own "N. DE E."/"NOTA N"
-    insertions — both pass them straight through (mammoth even markdown-
-    escapes the periods in them: ``N\\. DE E\\.``), which issue #114 found in
-    91% of snapshots. And neither reconstructs any paragraph structure at
-    all — no heading, no bold lead — because the source docx itself carries
-    none (see the module docstring), so both would need this exact per-
-    paragraph classification layered back on top of their own output anyway.
-    Pulling raw paragraph text out of a docx (``python-docx``, which this
-    already uses) was never the hard part of this module; both packages
-    would only ever replace that one trivial step, never the editorial-
-    note-stripping or classification that is the actual work — so there is
-    nothing to gain by switching. Kept as is.
-    """
-    import docx
-
-    documento = docx.Document(io.BytesIO(contenido))
-    parrafos = [p.text.strip() for p in documento.paragraphs]
-    parrafos = [quita_notas_editoriales(p) for p in parrafos if p]
-    bloques = [_formatea_parrafo(p) for p in parrafos if p]
-    return "\n\n".join(bloques) + "\n"
 
 
 def slug_instrumento(entrada: dict) -> str:
@@ -874,128 +512,10 @@ def motivo_pendiente(entry: dict, directory: Path, corpus_date: str | None) -> s
     return None if instrument_up_to_date(directory, actualizado, corpus_date) else PENDIENTE_CAMBIO
 
 
-def _cabecera(candidato: Candidato, fila: FilaReforma, nombre_buscado: str) -> str:
-    """The provenance header every file this writes carries, so it is never
-    mistaken for Markdown built from the DOF's own notes (see the module
-    docstring). `ratio_similitud`/`sospechoso` (issue #115) record how
-    confident `elige_candidato` was that `candidato` is genuinely the
-    instrument that was searched for.
-
-    `nombre_buscado` is the exact `nombre` `descarga_ordenamiento` was called
-    with — the SCJN's own search has no fixed per-document URL (its `?q=`
-    token is scoped to the session that generated it, see the module
-    docstring), so this and `ordenamiento` together are the only way to
-    reproduce by hand, later, how this particular file was reached (issue
-    #124). Written only when `ratio_similitud(candidato.titulo,
-    nombre_buscado) < 1.0` — i.e. when the title `elige_candidato` picked is
-    not, after normalizing (accents/case/whitespace), identical to what was
-    searched for; when it is, `ordenamiento` alone already says everything
-    `nombre_buscado` would add. That makes the mere presence of
-    `nombre_buscado` in a snapshot the signal that its title is worth a
-    second look — `grep -l nombre_buscado: <coleccion>/**/*.md` finds it
-    directly, without needing `catalogo.json` or a separate offline pass
-    (issue #132, retiring `scripts/audita_scjn_legislacion.py`)."""
-    lineas = [
-        "---",
-        "fuente: scjn",
-    ]
-    if ratio_similitud(candidato.titulo, nombre_buscado) < 1.0:
-        lineas.append(f"nombre_buscado: {nombre_buscado}")
-    lineas += [
-        f"ordenamiento: {candidato.titulo}",
-        f"fecha_publicacion: {fila.fecha_publicacion}",
-    ]
-    if fila.fecha_expedicion:
-        lineas.append(f"fecha_expedicion: {fila.fecha_expedicion}")
-    if fila.categoria:
-        lineas.append(f"categoria: {fila.categoria}")
-    if candidato.ratio is not None:
-        lineas.append(f"ratio_similitud: {candidato.ratio:.3f}")
-        lineas.append(f"sospechoso: {'true' if candidato.sospechoso else 'false'}")
-    lineas.append("---")
-    return "\n".join(lineas)
-
-
-def descarga_ordenamiento(
-    sesion: requests.Session,
-    nombre: str,
-    outdir: Path,
-    *,
-    espera: float = 1.0,
-    on_progreso: Callable[[str], None] | None = None,
-) -> list[Path]:
-    """Every reform-dated snapshot the SCJN has for `nombre`, written as
-    ``outdir/<fecha_publicacion>.md`` — `outdir` is already the instrument's
-    own directory (e.g. ``<coleccion>/<abrev-o-nombre>/``; picking that split
-    is left to the caller, the same way it is left to
-    ``download_legal_provisions_provenance_ids``'s own per-collection
-    helpers). A file already there is left untouched and its row's download
-    skipped entirely — what makes a crawl over hundreds of instruments
-    resumable after a partial run, instead of starting over.
-
-    Two rows can share the same `fecha_publicacion` — confirmed live on the
-    CPEUM, whose 301 reforms include 39 dates published more than once (up
-    to 4 decrees on the same day) — so the 2nd+ row for a date gets
-    `<fecha_publicacion>-2.md`, `-3.md`, ... appended, in the SCJN's own
-    (most-recent-first) row order, instead of silently overwriting the
-    first row's file.
-
-    Returns the paths written (or already present), oldest first — an empty
-    list, without raising, when the search finds nothing or every candidate
-    looks unrelated (see `elige_candidato`): a batch crawl over a whole
-    collection is expected to log that miss and keep going, not stop at the
-    first one.
-
-    Issue #140: a caller crawling a whole collection only ever sees one line
-    per instrumento, so a large one (again, the CPEUM) walking its own
-    multi-page reform grid or downloading many rows in a row goes silent for
-    as long as that takes. `on_progreso`, when given, is called with a
-    ready-to-print message: forwarded from `filas_de_reforma`'s own
-    `on_pagina` while walking the grid, then once per row (only when there
-    is more than one) while downloading — a caller owns how/where that
-    message is shown (`fetch_scjn_legislacion.py` prints it to stderr).
-    """
-    candidatos, referer_busqueda = buscar(sesion, nombre)
-    candidato = elige_candidato(candidatos, nombre)
-    if candidato is None:
-        return []
-
-    on_pagina = (
-        (lambda actual, total: on_progreso(f"grid de reformas: pagina {actual}/{total}"))
-        if on_progreso is not None
-        else None
-    )
-    filas, referer_detalle = filas_de_reforma(
-        sesion, candidato.url, referer_busqueda, espera=espera, on_pagina=on_pagina
-    )
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    escritos = []
-    repeticiones: dict[str, int] = {}
-    total_filas = len(filas)
-    for indice, fila in enumerate(filas, 1):
-        if on_progreso is not None and total_filas > 1:
-            on_progreso(f"fila {indice}/{total_filas}")
-        repeticiones[fila.fecha_publicacion] = repeticiones.get(fila.fecha_publicacion, 0) + 1
-        orden = repeticiones[fila.fecha_publicacion]
-        sufijo = f"-{orden}" if orden > 1 else ""
-        destino = outdir / f"{fila.fecha_publicacion}{sufijo}.md"
-        if destino.exists():
-            escritos.append(destino)
-            continue
-        contenido = descarga_docx(sesion, fila.url_docx, referer_detalle)
-        time.sleep(espera)
-        markdown = docx_a_markdown(contenido)
-        cabecera = _cabecera(candidato, fila, nombre)
-        destino.write_text(f"{cabecera}\n\n{markdown}", encoding="utf-8")
-        escritos.append(destino)
-    return list(reversed(escritos))
-
-
 # --- issue #123/#126: match each snapshot to the codNota that published it,
 # by title mention alone --------------------------------------------------
 #
-# `descarga_ordenamiento` only knows the SCJN's own view of an instrument: a
+# The crawl only knows the SCJN's own view of an instrument: a
 # publication date per snapshot, nothing that ties back to a DOF `codNota`.
 # Issue #105's original design paired that date against Diputados'
 # `historial` (`download_legal_provisions_provenance_ids`'s own list of
@@ -1020,7 +540,8 @@ _CABECERA_CAMPO = re.compile(r"^([a-z_]+):\s*(.*)$")
 
 
 def lee_cabecera(archivo: Path) -> dict:
-    """The provenance header `_cabecera` writes at the top of `archivo`, back
+    """The provenance header `scjn_api.cabecera` writes at the top of
+    `archivo`, back
     as a dict (`fuente`, `nombre_buscado`, `ordenamiento`,
     `fecha_publicacion`, and whichever of `fecha_expedicion`/`categoria` that
     snapshot's row had) — reading back a file a previous crawl run already
@@ -1028,7 +549,7 @@ def lee_cabecera(archivo: Path) -> dict:
     crawl wrote before issue #124 added it, same as `ratio_similitud`/
     `sospechoso` for issue #115 — and, since issue #132, also absent on a
     file whose `ordenamiento` was already identical to what was searched
-    for, which is not a missing field but `_cabecera` declining to write a
+    for, which is not a missing field but `scjn_api.cabecera` declining to write a
     redundant one."""
     texto = archivo.read_text(encoding="utf-8")
     lineas = texto.split("\n")
@@ -1045,14 +566,15 @@ def lee_cabecera(archivo: Path) -> dict:
 @dataclass
 class VersionInstrumento:
     """One SCJN snapshot already on disk: its own publication date and the
-    file `descarga_ordenamiento` wrote it to."""
+    file `scjn_api.descarga_ordenamiento` wrote it to."""
 
     fecha_publicacion: str
     archivo: Path
 
 
 def _orden_repeticion(version: "VersionInstrumento") -> int:
-    """The `-N` suffix `descarga_ordenamiento` appends to the 2nd+ file of a
+    """The `-N` suffix `scjn_api.descarga_ordenamiento` appends to the 2nd+
+    file of a
     repeated `fecha_publicacion` (see its own docstring), as a sort key: 1
     for a plain `<fecha>.md` (no suffix), N for `<fecha>-N.md`. `fecha` is
     known already (the header, not the filename, is the source of truth),
@@ -1063,7 +585,7 @@ def _orden_repeticion(version: "VersionInstrumento") -> int:
 
 
 def versiones_de_directorio(outdir: Path) -> list[VersionInstrumento]:
-    """Every snapshot `descarga_ordenamiento` has already written to
+    """Every snapshot `scjn_api.descarga_ordenamiento` has already written to
     `outdir`, oldest first — read back from each file's own header rather
     than re-crawling, so a later Fase 2 pass can run over a crawl's output
     independently of the crawl itself."""
@@ -1254,7 +776,8 @@ _PALABRA_DIFF = re.compile(r"\d+(?:[.,]\d+)?|\w{4,}")
 
 
 def _cuerpo_de_snapshot(archivo: Path) -> str:
-    """`archivo`'s own body, with the provenance header `_cabecera` wrote at
+    """`archivo`'s own body, with the provenance header `scjn_api.cabecera`
+    wrote at
     its top stripped off — header and body are separated by the first blank
     line, so a diff between two snapshots never mistakes a header field
     (e.g. a different

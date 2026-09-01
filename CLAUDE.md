@@ -35,14 +35,25 @@ build on each other in this sequence.
   `source="dof"` forces the original source; issue #117),
   `reconstruct_legal_provisions` (a law's current text, replayed from its own
   reform decrees), `download_legal_provisions_provenance_ids` (a law's reform
-  history, from the `historial-legislativo` release), `fetch_daily_legal_provisions`,
+  history, from the `historial-legislativo` release),
+  `fetch_daily_legal_provisions` (a whole day's legal provisions as one flat
+  list, each naming its edition — re-exported from `dofjson.api`, which is
+  where it lives since issue #180 collapsed it with
+  `legal_provisions_of_day`),
   `get_document` (a `get_nota` record whose `cadenaContenido` is Markdown —
   the one note→Markdown step, issue #170),
   `legal_provisions_titles` (re-exported from `dofjson.titulos`),
   `download_scjn_leyes_corpus`/`download_scjn_leyes_index` (the `scjn-leyes`
   release's readers). Its release assets are cached on disk under
   `nota2md.cache.CACHE_DIR` — `nota2md`'s own directory, deliberately not
-  `dofjson`'s.
+  `dofjson`'s. The SCJN corpus behind `scjn-leyes` is crawled through the
+  SCJN's **SCOW JSON API** (`nota2md.scjn_api`, issue #172); the legacy
+  WebForms Buscador crawler was removed in #179, so `nota2md.scjn` now holds
+  only what is not transport — catalogue slugs, crawl state, the provenance
+  header's reader, the snapshot→`codNota` link, and the release's readers.
+  The API is public but has no stability contract, and the SCJN is still not
+  an official source of legal text: `fuente: scjn` means what it always did,
+  the DOF/SIDOF remains the official source.
 - **`dof2md`** — OCRs a PDF or a set of scanned images to Markdown via
   `mineru`. Has no notion of "note"/"legal provision", and no download of
   its own — it only ever converts a PDF/images already on disk; getting a

@@ -120,7 +120,7 @@ def carga_porf(titulos) -> dict:
 
 
 def _confianza(archivo: Path) -> dict:
-    """The `ratio_similitud`/`sospechoso` fields `nota2md.scjn._cabecera`
+    """The `ratio_similitud`/`sospechoso` fields `nota2md.scjn_api.cabecera`
     writes into a snapshot's own header (issue #115), read back into
     `indice.json` so a packaging step can quarantine `sospechoso` entries
     without re-reading every snapshot file itself. Both come back `None`
