@@ -83,7 +83,7 @@ class TestDofjsonSurface(unittest.TestCase):
 
     def test_all_lists_exactly_the_exported_names(self):
         esperado = {
-            "get_nota", "get_notas", "legal_provisions_of_day", "FUENTE_WEB",
+            "get_nota", "get_notas", "fetch_daily_legal_provisions", "FUENTE_WEB",
             "download_dof_assets", "iterador_de_assets",
             "legal_provisions_titles", "organigrama",
             "notas_de_tgz",

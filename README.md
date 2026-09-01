@@ -51,9 +51,9 @@ from pathlib import Path
 
 from nota2md import fetch_daily_legal_provisions, legal_provisions
 
-# Every legal provision published on a given day
+# Every legal provision published on a given day, in publication order
 notas = fetch_daily_legal_provisions(dt.date(2026, 7, 15))
-cod_nota = notas["NotasMatutinas"][0]["codNota"]
+cod_nota = notas[0]["codNota"]
 
 # The legal provision's Markdown, from its official HTML
 md_path = legal_provisions(cod_nota, Path("output"), source="html")

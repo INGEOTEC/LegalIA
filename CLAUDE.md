@@ -35,7 +35,11 @@ build on each other in this sequence.
   `source="dof"` forces the original source; issue #117),
   `reconstruct_legal_provisions` (a law's current text, replayed from its own
   reform decrees), `download_legal_provisions_provenance_ids` (a law's reform
-  history, from the `historial-legislativo` release), `fetch_daily_legal_provisions`,
+  history, from the `historial-legislativo` release),
+  `fetch_daily_legal_provisions` (a whole day's legal provisions as one flat
+  list, each naming its edition — re-exported from `dofjson.api`, which is
+  where it lives since issue #180 collapsed it with
+  `legal_provisions_of_day`),
   `get_document` (a `get_nota` record whose `cadenaContenido` is Markdown —
   the one note→Markdown step, issue #170),
   `legal_provisions_titles` (re-exported from `dofjson.titulos`),

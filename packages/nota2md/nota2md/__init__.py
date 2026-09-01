@@ -2,7 +2,9 @@
 reconstruct a law's current text from nothing but its DOF notes
 (`reconstruct_legal_provisions`), read a law's reform history back from the
 historial-legislativo release (`download_legal_provisions_provenance_ids`),
-fetch a day's browsable legal-provisions index (`fetch_daily_legal_provisions`),
+fetch a whole day's legal provisions as one flat list, each one naming the
+edition it was published in (`fetch_daily_legal_provisions`, re-exported from
+`dofjson.api` — issue #180),
 get a note's record with its text already in Markdown (`get_document`),
 stream every legal provision ever published, as titles
 (`legal_provisions_titles`), and read the SCJN-based corpus of
@@ -20,7 +22,7 @@ only goes to the DOF when the corpus does not cover the codNota — pass
 
 from dofjson.titulos import legal_provisions_titles
 from nota2md.builder import (
-    fetch_daily_legal_provisions,
+    fetch_daily_legal_provisions,  # re-exported from dofjson.api (issue #180)
     get_document,
     legal_provisions,
 )

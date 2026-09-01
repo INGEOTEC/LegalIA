@@ -18,6 +18,29 @@ EDICION_LISTAS = {
 }
 
 
+def notas_de_la_edicion(nota: dict, notas) -> list[dict]:
+    """The day's notes of `nota`'s own edition, in publication order — the
+    one place `EDICION_LISTAS` is looked up (issue #180).
+
+    A page number restarts with each edition, so everything that reasons
+    about where a note ends on a shared page — infer_paginas(), the
+    `paginas_conocidas` of dofjson.api.download_nota_pdf(),
+    nota2md.builder.titulo_siguiente() — needs exactly this list and nothing
+    wider. Expressed over notas_del_dia(), which already orders by `codNota`
+    inside an edition and stamps each note with the bucket it came from, so
+    a dofweb-recovered note with no `codEdicion` of its own still lands in
+    the right edition.
+
+    `notas` is either day shape: get_notas()'s per-edition dict, or the flat
+    list fetch_daily_legal_provisions() returns. Normalising here is what
+    lets a public parameter take both without every caller re-deciding
+    (issue #180, question 3).
+    """
+    edicion = nota.get("edicion") or nota["codEdicion"]
+    planas = notas_del_dia(notas) if isinstance(notas, dict) else notas
+    return [n for n in planas if n["edicion"] == edicion]
+
+
 def infer_paginas(nota: dict, notas_del_dia: dict) -> list[int]:
     """Infer which page(s) a note occupies, using the fact that notes are
     published one after another: if the next note (in publication order)
@@ -25,8 +48,7 @@ def infer_paginas(nota: dict, notas_del_dia: dict) -> list[int]:
     starts on a later page, this note is assumed to span through that page
     too.
     """
-    lista = notas_del_dia[EDICION_LISTAS[nota["codEdicion"]]]
-    ordenada = sorted(lista, key=lambda n: n["codNota"])
+    ordenada = notas_de_la_edicion(nota, notas_del_dia)
     idx = next(i for i, n in enumerate(ordenada) if n["codNota"] == nota["codNota"])
 
     pagina_inicio = nota["pagina"]

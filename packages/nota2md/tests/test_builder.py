@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import dofjson
 
+import nota2md
 from nota2md.builder import (
     fetch_daily_legal_provisions,
     fetch_nota,
@@ -141,23 +142,33 @@ class TestFetchNota(unittest.TestCase):
 
 
 class TestFetchDailyLegalProvisions(unittest.TestCase):
-    """Same as TestFetchNota: fetch_daily_legal_provisions() only delegates
-    to dofjson.get_notas() now — see dofjson.api for the fallback tests."""
+    """Issue #180: nota2md no longer has a day-level function of its own —
+    the name is dofjson's, re-exported here, and it answers with #169's flat
+    list. The behaviour itself is tested in dofjson; what is pinned here is
+    that `from nota2md import fetch_daily_legal_provisions` keeps working and
+    is the very same object."""
 
     FECHA = dt.date(2026, 7, 15)
 
-    @patch("nota2md.builder.dofjson.get_notas")
-    def test_delegates_to_the_unified_dofjson_entry_point(self, mock_get_notas):
+    def test_is_dofjsons_own_function_re_exported(self):
+        self.assertIs(fetch_daily_legal_provisions, dofjson.fetch_daily_legal_provisions)
+        self.assertIs(nota2md.fetch_daily_legal_provisions, dofjson.fetch_daily_legal_provisions)
+
+    @patch("dofjson.api.get_notas")
+    def test_answers_the_flat_day_view(self, mock_get_notas):
         mock_get_notas.return_value = {
             "NotasMatutinas": [{"codNota": 1, "titulo": "Nota A"}],
             "NotasVespertinas": [],
             "NotasExtraordinarias": [],
+            "fuente": "sidof",
         }
 
         notas = fetch_daily_legal_provisions(self.FECHA)
 
         mock_get_notas.assert_called_once_with(self.FECHA)
-        self.assertEqual(notas, mock_get_notas.return_value)
+        self.assertEqual(
+            notas, [{"codNota": 1, "titulo": "Nota A", "edicion": "MAT", "fuente": "sidof"}]
+        )
 
 
 class TestLegalProvisions(unittest.TestCase):

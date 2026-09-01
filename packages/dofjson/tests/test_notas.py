@@ -4,7 +4,12 @@ import unittest
 from unittest import mock
 
 import dofjson
-from dofjson.notas import infer_paginas, notas_del_dia, quita_notas_sin_titulo
+from dofjson.notas import (
+    infer_paginas,
+    notas_de_la_edicion,
+    notas_del_dia,
+    quita_notas_sin_titulo,
+)
 
 
 class TestInferPaginas(unittest.TestCase):
@@ -95,6 +100,52 @@ class TestInferPaginas(unittest.TestCase):
         nota = {"codNota": 1002, "codEdicion": "MAT", "pagina": 21}
 
         self.assertEqual(infer_paginas(nota, notas_del_dia), [21])
+
+
+class TestNotasDeLaEdicion(unittest.TestCase):
+    """The one place EDICION_LISTAS is looked up (issue #180)."""
+
+    DIA = {
+        "NotasMatutinas": [
+            {"codNota": 20, "pagina": 5},
+            {"codNota": 10, "pagina": 2},
+        ],
+        "NotasVespertinas": [{"codNota": 30, "pagina": 1}],
+        "NotasExtraordinarias": [],
+        "fuente": "sidof",
+    }
+
+    def test_only_the_notes_of_the_notes_own_edition_in_codnota_order(self):
+        nota = {"codNota": 10, "codEdicion": "MAT"}
+
+        self.assertEqual(
+            [n["codNota"] for n in notas_de_la_edicion(nota, self.DIA)], [10, 20]
+        )
+
+    def test_the_evening_note_never_sees_the_morning_ones(self):
+        nota = {"codNota": 30, "codEdicion": "VES"}
+
+        self.assertEqual([n["codNota"] for n in notas_de_la_edicion(nota, self.DIA)], [30])
+
+    def test_a_flat_day_is_accepted_as_readily_as_the_per_edition_dict(self):
+        # Issue #180, question 3: a public parameter takes either shape, and
+        # this is where the two meet.
+        nota = {"codNota": 10, "codEdicion": "MAT"}
+
+        self.assertEqual(
+            notas_de_la_edicion(nota, notas_del_dia(self.DIA)),
+            notas_de_la_edicion(nota, self.DIA),
+        )
+
+    def test_a_note_with_no_codedicion_uses_the_bucket_it_came_from(self):
+        # A dofweb-recovered note does not always carry codEdicion; the flat
+        # view's own `edicion` stamp answers for it.
+        plana = notas_del_dia(self.DIA)[0]
+        plana.pop("codEdicion", None)
+
+        self.assertEqual(
+            [n["codNota"] for n in notas_de_la_edicion(plana, self.DIA)], [10, 20]
+        )
 
 
 class TestQuitaNotasSinTitulo(unittest.TestCase):
@@ -210,14 +261,16 @@ class TestNotasDelDia(unittest.TestCase):
         self.assertEqual(planas, [])
 
 
-class TestLegalProvisionsOfDay(unittest.TestCase):
-    """The date-accepting wrapper, dofjson.legal_provisions_of_day()."""
+class TestFetchDailyLegalProvisions(unittest.TestCase):
+    """The project's one day-level entry point,
+    dofjson.fetch_daily_legal_provisions() — #169's flat view under the name
+    nota2md used to give a per-edition wrapper of its own (issue #180)."""
 
     def test_a_dict_is_just_flattened_without_fetching(self):
         dia = {"NotasMatutinas": [{"codNota": 1}], "fuente": "sidof"}
 
         self.assertEqual(
-            dofjson.legal_provisions_of_day(dia), notas_del_dia(dia)
+            dofjson.fetch_daily_legal_provisions(dia), notas_del_dia(dia)
         )
 
     def test_a_date_is_fetched_first_with_its_kwargs(self):
@@ -228,7 +281,7 @@ class TestLegalProvisionsOfDay(unittest.TestCase):
             return {"NotasMatutinas": [{"codNota": 1}], "fuente": "sidof"}
 
         with mock.patch.object(dofjson.api, "get_notas", get_notas):
-            planas = dofjson.legal_provisions_of_day(
+            planas = dofjson.fetch_daily_legal_provisions(
                 dt.date(2024, 9, 15), respaldo="nunca", cache_dir=None
             )
 
@@ -239,4 +292,4 @@ class TestLegalProvisionsOfDay(unittest.TestCase):
 
     def test_get_notas_kwargs_with_an_already_fetched_day_is_an_error(self):
         with self.assertRaises(TypeError):
-            dofjson.legal_provisions_of_day({"fuente": "sidof"}, respaldo="nunca")
+            dofjson.fetch_daily_legal_provisions({"fuente": "sidof"}, respaldo="nunca")

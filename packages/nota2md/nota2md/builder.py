@@ -54,27 +54,25 @@ from pathlib import Path
 
 import dofjson
 import requests
+from dofjson import fetch_daily_legal_provisions  # noqa: F401  (re-exported)
+from dofjson.notas import notas_de_la_edicion
 
 from nota2md import cache
 from nota2md.cache import SIN_CACHE_DIR
 from nota2md.html_converter import html_to_markdown
 
-def titulo_siguiente(nota: dict, notas_del_dia: dict) -> str | None:
+
+def titulo_siguiente(nota: dict, notas_del_dia) -> str | None:
     """The title of the note published right after `nota` (in codNota order),
     skipping title-less stub/twin entries. This is the boundary at which
     `nota` ends on its shared page — see cut_markdown_by_titles().
 
     Only the notes of `nota`'s own edition are in play: a page number restarts
     with each edition, so the morning note that follows in codNota order says
-    nothing about where an evening note ends. dofjson's flat day view already
-    stamps each note with the `edicion` it came from and orders it by codNota
-    inside that edition (issue #169), so the per-edition list no longer has to
-    be looked up by name here."""
-    ordenada = [
-        n
-        for n in dofjson.legal_provisions_of_day(notas_del_dia)
-        if n["edicion"] == nota["codEdicion"]
-    ]
+    nothing about where an evening note ends. That per-edition list is
+    `dofjson.notas.notas_de_la_edicion` — the one place `EDICION_LISTAS` is
+    looked up (issues #169/#180)."""
+    ordenada = notas_de_la_edicion(nota, notas_del_dia)
     idx = next(
         (i for i, n in enumerate(ordenada) if n["codNota"] == nota["codNota"]), None
     )
@@ -130,19 +128,6 @@ def get_document(cod_nota: int | None = None, fecha: dt.date | None = None,
     if documento.get("cadenaContenido"):
         documento["cadenaContenido"] = html_to_markdown(documento["cadenaContenido"])
     return documento
-
-
-def fetch_daily_legal_provisions(date: dt.date) -> dict:
-    """`date`'s notes index — title, codNota, codEdicion, pagina... one entry
-    per note, split into NotasMatutinas/NotasVespertinas/NotasExtraordinarias
-    — from SIDOF, falling back to the DOF website when SIDOF has nothing for
-    that day. See dofjson.get_notas(), the package's unified entry point for
-    both sources.
-
-    To walk the whole day instead of one edition at a time, run the result
-    through `dofjson.legal_provisions_of_day()`, which flattens it into one
-    sequence with each note naming its own edition (issue #169)."""
-    return dofjson.get_notas(date)
 
 
 def _snapshot_scjn(cod_nota, instrumento, cache_dir, refrescar):
@@ -211,7 +196,7 @@ def legal_provisions(
     *,
     fecha: dt.date | None = None,
     nota: dict | None = None,
-    notas_del_dia: dict | None = None,
+    notas_del_dia: dict | list[dict] | None = None,
     min_confidence: float = 0.6,
     keep_pages: bool = False,
     keep_mineru_output: bool = False,
@@ -269,7 +254,9 @@ def legal_provisions(
     note; "auto" never selects "pdf" — it is opt-in. Pass `nota` to reuse an
     already-fetched get_nota() note, and `notas_del_dia` to supply the per-day
     index (e.g. a saved notas JSON) instead of fetching it — the OCR paths need
-    it to find the next note's title (the cut boundary). `fecha` is forwarded
+    it to find the next note's title (the cut boundary). Either day shape does:
+    `get_notas()`'s per-edition dict, or the flat list
+    `fetch_daily_legal_provisions()` returns (issue #180). `fecha` is forwarded
     to fetch_nota() when `nota` is not already given — needed for the
     codigos (1999-2000) the DOF website only resolves alongside their own
     date (issue #109/#111). `keep_pages` also
