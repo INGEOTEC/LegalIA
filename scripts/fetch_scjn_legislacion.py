@@ -180,9 +180,9 @@ freshness metadata.
     ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --actualiza
 
 Needs each requested collection's own ``catalogo.json`` already written by
-``extract_scjn_titles.py`` under ``<outdir>/<coleccion>/`` (issue #123: this
-never calls `download_legal_provisions_provenance_ids` itself, so Diputados'
-`historial` never reaches it).
+``extract_scjn_titles.py`` under ``<outdir>/<coleccion>/`` — since issue #186
+that catalogue is built from the SCJN and the DOF alone, so nothing in this
+pipeline reads anything the Cámara de Diputados published.
 
     ./scripts/extract_scjn_titles.py --outdir scjn-legislacion
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion

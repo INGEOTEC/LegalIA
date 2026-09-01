@@ -26,7 +26,7 @@ build on each other in this sequence.
   provision ever published (`legal_provisions_titles`), off the on-disk cache
   of the `notas-archivo` GitHub release — it writes no dataset of its own
   (issue #166).
-- **`nota2md`** — nine entry points, all re-exported off the package:
+- **`nota2md`** — eight entry points, all re-exported off the package:
   `legal_provisions` (one note → Markdown, `legal_provisions(codNota)` with no
   other argument writing into `nota2md.cache.CACHE_DIR` and returning the
   `Path` (issue #165); **by default the SCJN's
@@ -34,8 +34,7 @@ build on each other in this sequence.
   release covers the `codNota`, else the DOF's own HTML/image/PDF source —
   `source="dof"` forces the original source; issue #117),
   `reconstruct_legal_provisions` (a law's current text, replayed from its own
-  reform decrees), `download_legal_provisions_provenance_ids` (a law's reform
-  history, from the `historial-legislativo` release),
+  reform decrees),
   `fetch_daily_legal_provisions` (a whole day's legal provisions as one flat
   list, each naming its edition — re-exported from `dofjson.api`, which is
   where it lives since issue #180 collapsed it with
@@ -81,22 +80,34 @@ build on each other in this sequence.
   Akoma Ntoso XML anywhere: only the vocabulary is borrowed, and the earlier
   XML converter that lived in `nota2md` was removed (issue #168).
 
-**Data is never committed to git.** `leyesmx`'s reform history, `dofjson`'s
-notes archive, and downloaded titles datasets all live only in GitHub
-releases (`historial-legislativo`, `notas-archivo`) or are `.gitignore`d
+**Data is never committed to git.** The SCJN corpus of consolidated law
+texts, `dofjson`'s notes archive, and downloaded titles datasets all live
+only in GitHub releases (`scjn-leyes`, `notas-archivo`) or are `.gitignore`d
 local scratch directories (`/output/`, `/notas-archivo/`,
 `packages/leyesmx/data/`, `scripts/scjn/`, `scripts/legal_provisions/`).
-Read them back via `download_legal_provisions_provenance_ids` /
+Read them back via `download_scjn_leyes_corpus`/`download_scjn_leyes_index` /
 `legal_provisions_titles` (the latter over the cache `nota2md download
 gazette-metadata` populates), never by looking for a file in the repo.
 
+**A law's reform history is the `scjn-leyes` release itself** (issue #187):
+each law's own `indice.json`, one entry per reform oldest-first with the
+`codNota` that published it, plus `indice-global.json.gz` inverting that by
+`codNota`. There is no separate history dataset any more —
+`download_legal_provisions_provenance_ids` and the `historial-legislativo`
+release's `leyes.tgz` are gone with the Diputados data they carried, with no
+shim. **"Reform N" now means the SCJN reform table's chronological order**,
+not Diputados' numbering; the two count different things and the old one is
+not reproduced or measured against.
+
 ## Sources: SCJN + DOF only (issue #184, in progress)
 
-**Read this section as the direction, not as a description of the tree.** The
-Cámara de Diputados code is still present and still working; it goes away only
-when phases #189 and #190 land. Until then, what is written above about
-`leyesmx` and about `download_legal_provisions_provenance_ids` is what the code
-actually does.
+**Read this section as the direction, not as a description of the tree.**
+Phases #185, #186 and #187 have landed: the catalogue is built from the SCJN
+and the DOF (`scripts/extract_scjn_titles.py`), and
+`download_legal_provisions_provenance_ids` is deleted. The `leyesmx` package
+and the four-collection abstraction are still present and still working; they
+go away when #189 and #190 land, so what is written above about `leyesmx` is
+what the code actually does.
 
 The decision: every dependency on the Cámara de Diputados (LeyesBiblio) is
 removed, and federal-law functionality rests on the **SCJN** (the SCOW JSON
@@ -123,9 +134,9 @@ exist, their name, their abbreviation.
   `nota2md.utils`' `COLECCIONES`/`_ASSETS`/`_INDICES`/`_une_con_historial`, the
   `--coleccion` flags of the SCJN scripts, `empaqueta_historial.py`'s asset
   map, and the collection branches in `nota2md.scjn`/`scjn_api`. The public
-  `download_legal_provisions_provenance_ids` is **deleted outright** — no shim,
-  no deprecation, no name kept for compatibility (changelog note regardless of
-  whether a version bump follows). A law's reform history then lives in the
+  `download_legal_provisions_provenance_ids` was **deleted outright** in #187 —
+  no shim, no deprecation, no name kept for compatibility (changelog note in
+  `packages/nota2md/README.md` regardless of whether a version bump follows). A law's reform history then lives in the
   `scjn-leyes` release itself (each law's `indice.json`, plus
   `indice-global.json.gz`); no new dataset and no new asset is created for it.
   Consequently the `historial-legislativo` release loses its `leyes.tgz` asset,
@@ -238,7 +249,7 @@ filter is a pass-through — it just stops shrinking what it commits.
 ## Working conventions
 
 - Naming favors precision over brevity even when verbose: `codNota`,
-  `legal_provisions`, `download_legal_provisions_provenance_ids` are the
+  `legal_provisions`, `download_scjn_leyes_corpus` are the
   domain's actual vocabulary (a DOF "nota" is a legal provision, not a
   short informal note) — don't shorten it for its own sake.
 - Comments in this codebase often record a specific past incident or a

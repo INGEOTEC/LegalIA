@@ -1,5 +1,24 @@
 # nota2md
 
+> **`download_legal_provisions_provenance_ids` is gone** (issue #187). It read
+> the `historial-legislativo` release, which was built by scraping the Cámara
+> de Diputados' LeyesBiblio; the project now rests on the SCJN and the DOF
+> alone (issue #184). There is no shim and the name is not kept.
+>
+> A law's reform history is the
+> [`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)
+> release itself: `download_scjn_leyes_corpus("<abrev>")` gives one entry per
+> reform, oldest first, each with the `codNota` that published it — which is
+> exactly what `reconstruct_legal_provisions` takes.
+>
+> **"Reform N" is redefined**, once and deliberately: it is now the position
+> of the reform in the SCJN's own chronological reform table, not Diputados'
+> numbering. The two count different things — Diputados filed errata, peso
+> restatements, Court rulings and entry-into-force declarations in the same
+> numbered column — so a saved "reform 139 of the Constitution" may not point
+> at the same decree it used to. This is not measured against the old
+> numbering, and cannot be: its source is gone.
+
 > **v0.5.0 changes what `legal_provisions` returns by default**, makes its
 > `outdir` optional, and replaces `download_legal_provisions_titles` with the
 > `legal_provisions_titles` stream (issues #117, #165, #166).
@@ -16,7 +35,7 @@
 > unchanged in every other respect. See [the SCJN
 > path](#the-scjn-path--a-laws-consolidated-text-at-each-reform).
 
-Nine entry points, all re-exported off the package itself
+Eight entry points, all re-exported off the package itself
 (`from nota2md import ...`), for Mexico's official gazette (DOF, Diario
 Oficial de la Federación) and the federal laws it publishes:
 
@@ -24,7 +43,6 @@ Oficial de la Federación) and the federal laws it publishes:
 |---|---|---|
 | [`legal_provisions`](#legal_provisions--a-single-dof-legal-provision-as-markdown) | a legal provision's `codNota` (an `outdir` is optional) | the law's consolidated text at that reform, from the SCJN corpus (`outdir/{slug}-{fecha}.md`) — or, when the corpus does not cover it, the DOF's own Markdown (`outdir/nota-{codNota}.md`); with no `outdir`, written into the cache and returned as a `Path` |
 | [`reconstruct_legal_provisions`](#reconstruct_legal_provisions--a-laws-current-text-from-its-dof-legal-provisions) | a law's reform history (`codNota` list) | its current text, written to `outdir/ley-{codNota}.md` |
-| [`download_legal_provisions_provenance_ids`](#download_legal_provisions_provenance_ids--a-laws-reform-history) | a collection name (`"leyes"`, `"reglamentos"`, `"normas"`, `"tratados"`) | every instrument's reform history, in memory |
 | [`fetch_daily_legal_provisions`](#cutting-a-legal-provision-out-of-its-page) | a date (or a day already in hand) | that whole day's legal provisions as one flat list, each naming its `edicion` |
 | [`get_document`](#get_document--a-note-whose-text-is-already-markdown) | a legal provision's `codNota`, or a `get_nota` record already in hand | that same record, with `cadenaContenido` holding its **Markdown** instead of DOF HTML |
 | [`legal_provisions_titles`](#legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` cache) | every legal provision ever published, as a stream of `codNota`+`titulo`+`fecha`+`codOrgaUno` records |
@@ -32,20 +50,22 @@ Oficial de la Federación) and the federal laws it publishes:
 | [`download_scjn_leyes_index`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (reads one small release asset) | the reverse index `codNota → (law, snapshot)`, in memory |
 | [`download_scjn_leyes_catalog`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (the index, plus one tarball per law for `actualizado`) | every federal law the release publishes, as `abrev`+`nombre`+`actualizado` |
 
-They compose: `download_legal_provisions_provenance_ids` gets you the `codNota` list
+They compose: `download_scjn_leyes_corpus` gets you the `codNota` list
 `reconstruct_legal_provisions` needs, and `reconstruct_legal_provisions` gets you a
 law's current text the same way `legal_provisions` gets you a single legal
 provision's — built from nothing but the DOF's own legal provisions, one
 Markdown file at a time.
 
 ```python
-from nota2md import download_legal_provisions_provenance_ids, legal_provisions, reconstruct_legal_provisions
+from nota2md import download_scjn_leyes_corpus, legal_provisions, reconstruct_legal_provisions
 
-leyes = download_legal_provisions_provenance_ids("leyes")
-cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
+cpeum = download_scjn_leyes_corpus("cpeum")
+# one entry per reform, oldest first; `codNota` is None where the link could
+# not be established (see `title_link_status` in the same entry).
+historial = [s["codNota"] for s in cpeum["snapshots"] if s["codNota"]]
 
-dest = reconstruct_legal_provisions(cpeum["historial"], "output", nombre_ley=cpeum["nombre"])
-print(f"{cpeum['nombre']} -> {dest}")
+dest = reconstruct_legal_provisions(historial, "output", nombre_ley="CONSTITUCIÓN Política de los Estados Unidos Mexicanos")
+print(dest)
 ```
 
 ## `legal_provisions` — a single DOF legal provision as Markdown
@@ -339,8 +359,8 @@ independent cross-check on what it does.
 from nota2md import reconstruct_legal_provisions
 
 # cpeum's own historial: [5592105, 5730586, ...] — oldest first, index 0 the
-# original publication (see download_legal_provisions_provenance_ids below for where a
-# law's own historial list comes from).
+# original publication (see the `scjn-leyes` readers above for where a law's
+# own historial list comes from).
 dest = reconstruct_legal_provisions(
     [5592105, 5730586], "output", nombre_ley="LEY de Amnistía",
 )
@@ -352,11 +372,12 @@ same `outdir`, as `nota-{codNota}.md` — a legal provision already there from
 an earlier call (this law's own previous run, or another law's sharing the
 same `outdir`) is read back from disk instead of fetched again.
 
-`nombre_ley` (as `download_legal_provisions_provenance_ids` names it, e.g.
-`"LEY de Amnistía"`), scopes every legal provision to the one instrument
-among the several a single decree may touch — pass it whenever a legal
-provision is shared with another law's history, which `leyesmx`'s data does
-not mark on its own. Left out, a legal provision is assumed to concern only
+`nombre_ley` (the catalogue's own `nombre`, e.g. `"LEY de Amnistía"`) scopes
+every legal provision to the one instrument among the several a single decree
+may touch — pass it whenever a legal provision is shared with another law's
+history, which the release's per-law index does not mark on its own (the
+reverse index does: `download_scjn_leyes_index` maps one `codNota` to *every*
+law it reformed). Left out, a legal provision is assumed to concern only
 this law, which holds for most of them but silently mixes in another law's
 articles for the rest.
 
@@ -369,27 +390,6 @@ Markdown, so a legal provision missing `cadenaContenido` still fails by
 default. Passing `source="image"` or `"pdf"` OCRs it instead of failing, but
 the merge's behavior on OCR output has not been validated — review the
 result before trusting it.
-
-## `download_legal_provisions_provenance_ids` — a law's reform history
-
-Reads a Mexican legislative-history collection — laws, regulations, Normas
-Oficiales Mexicanas, international treaties — back from the
-[`historial-legislativo`](https://github.com/INGEOTEC/LegalIA/releases/tag/historial-legislativo)
-release that [`leyesmx`](../leyesmx) publishes:
-
-```python
-from nota2md import download_legal_provisions_provenance_ids
-
-leyes = download_legal_provisions_provenance_ids("leyes")   # or "reglamentos", "normas", "tratados"
-cpeum = next(l for l in leyes if l["abrev"] == "cpeum")
-print(cpeum["nombre"], cpeum["reformas"], len(cpeum["historial"]))
-```
-
-Downloads that collection's tarball straight into memory — nothing touches
-disk — and returns one dict per instrument, merging its catalogue entry (name,
-reform count, dates...) with its own `historial`: the `codNota` of its reforms
-or decrees, oldest first, index 0 the original publication. That is exactly
-what `reconstruct_legal_provisions` expects as its own first argument.
 
 ## `legal_provisions_titles` — every legal provision ever published, as titles
 
@@ -478,7 +478,7 @@ and `dofjson.download_dof_assets`.
 
 ```bash
 pip install nota2md          # legal_provisions' HTML path, plus reconstruct_legal_provisions
-                              # and download_legal_provisions_provenance_ids
+                              # and the scjn-leyes release readers
 pip install nota2md[ocr]     # also pulls in dof2md, for legal_provisions' image/PDF OCR paths
 ```
 

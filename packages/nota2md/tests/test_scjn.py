@@ -1156,3 +1156,92 @@ class TestReconstruccionDelCatalogo(unittest.TestCase):
             "nombre_scjn": self.NOMBRE_SCJN,
             "actualizado": "2026-01-15",
         }])
+
+
+class TestResolveLinks(unittest.TestCase):
+    """Issue #187: the content-diff confirmation becomes the link when title
+    matching alone could not pick one."""
+
+    @staticmethod
+    def _enlazada(fecha, cod=None):
+        return scjn.VersionEnlazada(fecha, cod, Path(f"{fecha}.md"))
+
+    @staticmethod
+    def _confirmacion(fecha, cod=None, score=None):
+        return scjn.ContentDiffConfirmation(fecha, cod, score)
+
+    def test_un_enlace_por_titulo_manda_sobre_el_diff(self):
+        # The title link is the stronger claim in the sense that matters
+        # here: it is the only candidate that named the law that day, so
+        # there was never a choice for the diff to make.
+        resuelto = scjn.resolve_links(
+            [self._enlazada("14-06-2024", 100)],
+            [self._confirmacion("14-06-2024", 200, 0.9)],
+            {"14-06-2024": [100]},
+        )
+
+        self.assertEqual(resuelto, [(100, "linked")])
+
+    def test_una_fecha_ambigua_confirmada_por_diff_queda_enlazada(self):
+        resuelto = scjn.resolve_links(
+            [self._enlazada("14-06-2024")],
+            [self._confirmacion("14-06-2024", 200, 0.82)],
+            {"14-06-2024": [100, 200]},
+        )
+
+        self.assertEqual(resuelto, [(200, scjn.ESTADO_ENLACE_CONTENT_DIFF)])
+
+    def test_una_fecha_ambigua_sin_confirmacion_sigue_ambigua(self):
+        resuelto = scjn.resolve_links(
+            [self._enlazada("14-06-2024")],
+            [self._confirmacion("14-06-2024", None, 0.41)],
+            {"14-06-2024": [100, 200]},
+        )
+
+        self.assertEqual(resuelto, [(None, "ambiguous")])
+
+    def test_una_fecha_sin_candidatos_no_se_puede_promover(self):
+        resuelto = scjn.resolve_links(
+            [self._enlazada("14-06-2024")], [self._confirmacion("14-06-2024")], {}
+        )
+
+        self.assertEqual(resuelto, [(None, "none")])
+
+    def test_nunca_promueve_un_codnota_que_otro_snapshot_ya_reclamo(self):
+        # The guard that keeps issue #115's "an absent link is worth more
+        # than a wrong one" true across the two mechanisms: each enforces
+        # one-codNota-per-snapshot internally, neither knows about the
+        # other's claims.
+        resuelto = scjn.resolve_links(
+            [self._enlazada("14-06-2024", 100), self._enlazada("20-11-2025")],
+            [self._confirmacion("14-06-2024"), self._confirmacion("20-11-2025", 100, 0.95)],
+            {"14-06-2024": [100], "20-11-2025": [100, 300]},
+        )
+
+        self.assertEqual(resuelto, [(100, "linked"), (None, "ambiguous")])
+
+    def test_dos_promociones_del_mismo_codnota_solo_se_conceden_una_vez(self):
+        resuelto = scjn.resolve_links(
+            [self._enlazada("14-06-2024"), self._enlazada("20-11-2025")],
+            [self._confirmacion("14-06-2024", 200, 0.9),
+             self._confirmacion("20-11-2025", 200, 0.9)],
+            {"14-06-2024": [100, 200], "20-11-2025": [200, 300]},
+        )
+
+        self.assertEqual(
+            resuelto, [(200, scjn.ESTADO_ENLACE_CONTENT_DIFF), (None, "ambiguous")]
+        )
+
+    def test_devuelve_una_entrada_por_snapshot_en_orden(self):
+        enlazadas = [self._enlazada("01-01-2020", 1), self._enlazada("02-02-2021"),
+                     self._enlazada("03-03-2022", 3)]
+        confirmaciones = [self._confirmacion("01-01-2020"),
+                          self._confirmacion("02-02-2021", 2, 0.7),
+                          self._confirmacion("03-03-2022")]
+
+        resuelto = scjn.resolve_links(
+            enlazadas, confirmaciones,
+            {"02-02-2021": [2, 22], "03-03-2022": [3]},
+        )
+
+        self.assertEqual([cod for cod, _ in resuelto], [1, 2, 3])

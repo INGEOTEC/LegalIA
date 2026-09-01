@@ -581,8 +581,8 @@ def elige_ordenamiento(
        never the reglamento of itself (`lopgjdf`). The second is new: the
        API classifies the document itself, so a reglamento whose title
        happens not to start with "reglamento" is still caught.
-    3. `ambito == "FEDERAL"` — `download_legal_provisions_provenance_ids`
-       only ever covers federal instruments. New here only in that it costs
+    3. `ambito == "FEDERAL"` — the catalogue only ever covers federal
+       instruments. New here only in that it costs
        nothing: the old crawler had to have opened the results page to read
        it, and it is now a field of the hit.
     4. `vigencia == "VIGENTE"`.

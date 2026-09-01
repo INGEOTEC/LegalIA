@@ -314,9 +314,13 @@ def quita_notas_editoriales(parrafo: str) -> str:
 
 def slug_instrumento(entrada: dict) -> str:
     """A filesystem-safe directory name for one catalogue entry (as
-    `download_legal_provisions_provenance_ids` returns it): its `abrev` when
-    the collection gives one (leyes, reglamentos), otherwise a slug of its
-    `nombre` (tratados have no `abrev`)."""
+    `catalogo.json` holds it, see `scripts/extract_scjn_titles.py`): its
+    `abrev` when the entry has one, otherwise a slug of its `nombre`.
+
+    The `abrev` fallback is what makes the slug differ from the `abrev` for
+    the 14 laws whose abbreviation carries an underscore (`lif_2026` ->
+    `lif-2026`); the slug is the release's asset name, the `abrev` is what
+    the catalogue keeps verbatim."""
     base = entrada.get("abrev") or entrada.get("nombre") or entrada.get("codigo") or ""
     slug = re.sub(r"[^a-z0-9]+", "-", _normaliza(base)).strip("-")
     return slug or "instrumento"
@@ -570,9 +574,10 @@ def motivo_pendiente(entry: dict, directory: Path, corpus_date: str | None) -> s
 #
 # The crawl only knows the SCJN's own view of an instrument: a
 # publication date per snapshot, nothing that ties back to a DOF `codNota`.
-# Issue #105's original design paired that date against Diputados'
-# `historial` (`download_legal_provisions_provenance_ids`'s own list of
-# codNota for the instrument) — but issue #123's corrected goal is for the
+# Issue #105's original design paired that date against the Cámara de
+# Diputados' own curated `historial` (its list of codNota per instrument,
+# read through a release this project no longer publishes — issues #184 and
+# #187 deleted both) — but issue #123's corrected goal is for the
 # SCJN, plus the DOF's own title dataset, to be the *only* source once an
 # instrument's `nombre` has picked which one to crawl: `historial` is never
 # consulted here, not even as a tie-breaker or a fallback. The only thing
@@ -1087,6 +1092,98 @@ def confirm_by_content_diff(
     return resultados
 
 
+# --- issue #187: the law's reform history is the corpus itself -----------
+#
+# With the Cámara de Diputados gone (#184), the "which decree reformed which
+# law" relation is no longer a curated list this project downloads: it *is*
+# each law's own `indice.json` in the `scjn-leyes` release, one entry per
+# reform, oldest first, plus `indice-global.json.gz` inverting it by codNota.
+# Two consequences the rest of the project depends on:
+#
+# **"Reform N" is redefined, once and loudly.** It is now the position of the
+# entry in the law's own `indice.json` — that is, the chronological order of
+# the SCJN's own reform table (`scjn_api.reformas_of_ordenamiento`, newest
+# first, reversed to oldest-first by `versiones_de_directorio`). It is *not*
+# Diputados' numbering and is not measured against it: Diputados filed errata,
+# peso restatements, SCJN rulings and entry-into-force declarations in the
+# same numbered column, so the two count different things and any claim that
+# they agree would be unverifiable now that the source is gone. Code that used
+# to say "reform 139 of the Constitution" and mean Diputados' 139 means the
+# SCJN's 139th row today.
+#
+# **The metric is picked by what the source gives, not by preference.** All of
+# this module's linking is *name*-based (`_title_mentions_name`), including
+# for a law's original publication, and that is deliberate rather than
+# incidental. The retired `leyesmx.dof` scored a numbered reform by whether
+# the DOF title was *contained* in the decree title Diputados supplied — fine
+# when a decree title exists, and wrong when it does not. Applying containment
+# where only the instrument's name is available linked the Ley Federal del
+# Trabajo's 1970 publication to a Mexico City traffic-regulation decree, and
+# the Código Fiscal's to the 1982 budget. The SCJN supplies no decree title at
+# all, only dates, so the name is all there ever is here and containment never
+# becomes available to reach for.
+
+#: `title_link_status` for a snapshot linked by content diff rather than by
+#: title (issue #187). Kept distinct from "linked" so the release's own index
+#: says which of the two signals decided a link — they are not equally
+#: verifiable, and a human auditing the corpus should not have to guess.
+ESTADO_ENLACE_CONTENT_DIFF = "content_diff"
+
+
+def resolve_links(
+    enlazadas: list[VersionEnlazada],
+    confirmaciones: list[ContentDiffConfirmation],
+    candidatos_por_fecha: dict[str, list[int]],
+) -> list[tuple[int | None, str]]:
+    """One ``(codNota, title_link_status)`` per snapshot: the title link when
+    `enlaza_por_titulo` found one, and otherwise the content-diff
+    confirmation, promoted to *be* the link instead of only annotating it.
+
+    Until issue #187 a date where several same-day notes named the law came
+    back `ambiguous` with `codNota=None` even when `confirm_by_content_diff`
+    had already singled one candidate out — and the release's index drops
+    every entry with no `codNota`, so that answer was computed, written to
+    `indice.json`, and then thrown away. Replayed over the crawled corpus
+    (3,707 snapshots, 1,166 of them `ambiguous`), promoting it links **834
+    more snapshots across 188 laws** — the collection goes from 2,457 linked
+    to 3,291, 66% to 89% — each one already carrying a candidate whose own
+    DOF text accounts for at least `UMBRAL_CONFIRMACION_DIFF` of what
+    actually changed in the law. Nothing is ever un-linked by this.
+
+    Promoting it does not weaken the "an absent link is worth more than a
+    wrong one" rule that issue #115's five wrong-document matches bought:
+
+    - the candidate had to name the law in its own title in the first place
+      (it comes from `title_candidates_por_fecha`), so this only ever picks
+      *among* the candidates title matching already accepted;
+    - it had to clear `UMBRAL_CONFIRMACION_DIFF`, a bar deliberately set
+      higher than the title-mention bar because it is meant to give
+      certainty rather than plausibility;
+    - a codNota already claimed by a title link, anywhere in this
+      instrument, is never promoted onto a second snapshot — the same
+      one-codNota-per-snapshot exclusivity the two mechanisms each already
+      enforce internally, extended across them.
+
+    In practice only an `ambiguous` date can be promoted: `none` has no
+    candidates for the diff to score, and `claimed` had its one candidate
+    excluded from the diff too.
+    """
+    usados = {e.codNota for e in enlazadas if e.codNota is not None}
+    resuelto: list[tuple[int | None, str]] = []
+    for enlazada, confirmacion in zip(enlazadas, confirmaciones):
+        if enlazada.codNota is not None:
+            resuelto.append((enlazada.codNota, "linked"))
+            continue
+        confirmado = confirmacion.confirmed_codNota
+        if confirmado is not None and confirmado not in usados:
+            usados.add(confirmado)
+            resuelto.append((confirmado, ESTADO_ENLACE_CONTENT_DIFF))
+            continue
+        candidatos = candidatos_por_fecha.get(enlazada.fecha_publicacion, [])
+        resuelto.append((None, title_link_status(None, candidatos)))
+    return resuelto
+
+
 # --- issues #128/#117: read the packaged corpus (release loaders) --------
 #
 # `scripts/empaqueta_scjn_leyes.py` packages every already-crawled+linked
@@ -1095,9 +1192,10 @@ def confirm_by_content_diff(
 # one `<slug>.tgz` asset per law of the `scjn-leyes` release — see
 # that script for why publishing it is, and stays, a deliberate manual step,
 # never automated. These are that release's own readers, same shape as
-# `nota2md.utils.download_legal_provisions_provenance_ids` but kept as their
-# own small copy rather than sharing code with it: the two releases have
-# different tags, different asset layouts, and no caller in common.
+# the reader of the retired `historial-legislativo` release, but deliberately
+# never shared code with it: the two releases had different tags, different
+# asset layouts and no caller in common. That reader is gone (#187); these
+# are what a law's reform history is read through now.
 #
 # Three of them, in the order a caller reaches for them:
 # `download_scjn_leyes_index` (the reverse index, a few hundred KB),

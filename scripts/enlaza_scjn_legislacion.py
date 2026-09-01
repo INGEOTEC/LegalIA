@@ -34,12 +34,19 @@ Writes one ``indice.json`` per instrument directory, listing each
 snapshot's own file, `fecha_publicacion`, the `codNota` matched to it
 (``null`` when no match was found), every same-day candidate that named the
 instrument (`title_candidates`), how that pool was resolved
-(`title_link_status` — "linked", "none", "claimed" or "ambiguous", see
-`nota2md.scjn.title_link_status`), and its content-diff confirmation. An
-"ambiguous" date — more than one same-day codNota names the instrument,
-with nothing but content diff able to break the tie — is also printed as a
-warning, since it is exactly the class of case issue #115 asked to be
-reviewable by hand.
+(`title_link_status` — "linked", "content_diff", "none", "claimed" or
+"ambiguous", see `nota2md.scjn.title_link_status` and `resolve_links`), and
+its content-diff confirmation.
+
+Since issue #187 the content-diff confirmation *is* the link when title
+matching alone could not pick a winner, instead of only annotating a
+`codNota: null`: the candidate still had to name the instrument in its own
+title, still had to clear `UMBRAL_CONFIRMACION_DIFF`, and still cannot take
+a codNota another snapshot already claimed — see `resolve_links` for why
+that does not weaken issue #115's "an absent link is worth more than a wrong
+one". A date left `ambiguous` after that — several same-day candidates and
+no content confirmation among them — is printed as a warning, since it is
+exactly the class of case issue #115 asked to be reviewable by hand.
 
 Needs each requested collection's own ``catalogo.json`` (`extract_scjn_titles.py`)
 and the notas-archivo cache populated (the DOF titles are streamed from it):
@@ -71,13 +78,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "no
 from dofjson.titulos import SIN_CACHE_DIR, legal_provisions_titles  # noqa: E402
 from nota2md.builder import fetch_nota, get_document  # noqa: E402
 from nota2md.scjn import (  # noqa: E402
+    ESTADO_ENLACE_CONTENT_DIFF,
     confirm_by_content_diff,
     enlaza_por_titulo,
     escribe_estado,
     lee_cabecera,
+    resolve_links,
     slug_instrumento,
     title_candidates_por_fecha,
-    title_link_status,
     versiones_de_directorio,
 )
 
@@ -111,8 +119,7 @@ def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
 def carga_porf(titulos) -> dict:
     """Every dofjson title record in the `titulos` iterable (issue #166: the
     stream `dofjson.legal_provisions_titles` yields, no longer a file), grouped
-    by `fecha` — the same shape `leyesmx.dof.notas_por_fecha` builds, reused
-    here as `title_candidates_por_fecha`'s own `porf` argument."""
+    by `fecha` — `title_candidates_por_fecha`'s own `porf` argument."""
     porf: dict[str, list] = {}
     for nota in titulos:
         porf.setdefault(nota["fecha"], []).append(nota)
@@ -223,17 +230,23 @@ def enlaza_coleccion(
             versiones, candidatos_por_fecha, destino / "notas", cache_notas
         )
 
+        # Issue #187: the link is the title match when there is one and the
+        # content-diff confirmation otherwise, rather than the title match
+        # alone with the confirmation left as an annotation nobody reads.
+        resueltos = resolve_links(enlazadas, confirmaciones, candidatos_por_fecha)
+
         indice = []
         for idx, v in enumerate(enlazadas):
             candidatos_dia = candidatos_por_fecha.get(v.fecha_publicacion, [])
+            cod, estado = resueltos[idx]
             indice.append(
                 {
                     "archivo": v.archivo.name,
                     "fecha_publicacion": v.fecha_publicacion,
-                    "codNota": v.codNota,
+                    "codNota": cod,
                     **_confianza(v.archivo),
                     "title_candidates": candidatos_dia,
-                    "title_link_status": title_link_status(v.codNota, candidatos_dia),
+                    "title_link_status": estado,
                     "content_diff_confirmed_codNota": confirmaciones[idx].confirmed_codNota,
                     "content_diff_score": confirmaciones[idx].score,
                 }
@@ -246,20 +259,22 @@ def enlaza_coleccion(
         # `rastreado`, and `escribe_estado` merges rather than overwrites so
         # neither erases the other's record.
         escribe_estado(destino, enlazado=date.today().isoformat())
-        enlazados = sum(1 for v in enlazadas if v.codNota is not None)
+        enlazados = sum(1 for cod, _ in resueltos if cod is not None)
+        por_diff = sum(1 for _, estado in resueltos if estado == ESTADO_ENLACE_CONTENT_DIFF)
         print(
             f"[{coleccion} {i}/{len(instrumentos)}] {entrada['nombre']}: "
-            f"{enlazados}/{len(enlazadas)} enlazadas",
+            f"{enlazados}/{len(enlazadas)} enlazadas"
+            + (f" ({por_diff} por diff de contenido)" if por_diff else ""),
             file=sys.stderr,
         )
-        for v in enlazadas:
+        for v, (cod, _) in zip(enlazadas, resueltos):
             candidatos_dia = candidatos_por_fecha.get(v.fecha_publicacion, [])
-            if v.codNota is None and len(candidatos_dia) > 1:
+            if cod is None and len(candidatos_dia) > 1:
                 print(
                     f"  aviso: {entrada['nombre']!r} {v.fecha_publicacion}: "
                     f"varios codNota mencionan el nombre ese dia ({candidatos_dia}) — "
-                    "ninguno se enlaza por titulo solo, revisar a mano o esperar el "
-                    "diff de contenido (issue #115/#126/#127)",
+                    "ninguno se enlaza por titulo, y el diff de contenido tampoco "
+                    "confirmo uno: revisar a mano (issue #115/#126/#127/#187)",
                     file=sys.stderr,
                 )
 

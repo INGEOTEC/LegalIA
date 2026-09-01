@@ -181,9 +181,9 @@ to be hunted down.
 
 | Symbol / file | What it is | Phase |
 |---|---|---|
-| `nota2md/utils.py`, whole module | `download_legal_provisions_provenance_ids`, `COLECCIONES`, `_ASSETS`, `_INDICES`, `_une_con_historial`, `_con_historial_por_archivo` / `_por_mapa` / `_paralelo`, `listar_assets`, `_miembros`, `RELEASES_API` | #187 / #189 |
-| `nota2md/__init__.py` | the `from nota2md.utils import ...`, the `__all__` entry, and the module docstring's "read a law's reform history back from the historial-legislativo release" sentence and entry-point count | #189 |
-| `packages/nota2md/tests/test_utils.py` | 17 references; the whole file goes with `utils.py` (it is four tests, one per collection, plus the unknown-collection `ValueError`) | #189 |
+| ~~`nota2md/utils.py`, whole module~~ **deleted in #187** | `download_legal_provisions_provenance_ids`, `COLECCIONES`, `_ASSETS`, `_INDICES`, `_une_con_historial`, `_con_historial_por_archivo` / `_por_mapa` / `_paralelo`, `listar_assets`, `_miembros`, `RELEASES_API` | #187 / #189 |
+| ~~`nota2md/__init__.py`~~ **done in #187** | the `from nota2md.utils import ...`, the `__all__` entry, the docstring sentence and the entry-point count | #187 |
+| ~~`packages/nota2md/tests/test_utils.py`~~ **deleted in #187** | went with `utils.py` | #187 |
 | `nota2md/texto_vigente.py` | cleans Diputados' consolidated "texto vigente" PDF into Markdown | #188 |
 | `packages/nota2md/tests/test_texto_vigente.py` | asserts the Diputados page header/footer strip | #188 |
 | `packages/nota2md/tests/fixtures/leyes/*.md` (43 files, 3.1 MB) + `historial_44.json` | ground truth derived from the Diputados PDF, read by `tests/test_leyes_44.py` | #188 |
@@ -198,7 +198,7 @@ regardless of whether a version bump follows. Its consumers, all of them:
 | Consumer | Disposition | Phase |
 |---|---|---|
 | `scripts/extract_scjn_titles.py:64,96` | the only production caller; rebuilt on `download_scjn_leyes_catalog` | #186 |
-| `scripts/fetch_legal_provisions_provenance.py:8,26` | deleted with the function | #189 |
+| ~~`scripts/fetch_legal_provisions_provenance.py`~~ | deleted with the function | **#187, done** |
 | `packages/nota2md/tests/test_utils.py` | deleted with `utils.py` | #189 |
 | `packages/nota2md/README.md` (lines 27, 34, 41, 43, 317, 330, 348, 356, 358, 456) | rewritten | #190 |
 | `README.md` (root, lines 21, 72, 77, 80) | rewritten | #190 |
@@ -235,8 +235,8 @@ delete it and break the surviving `leyes` collection.
 | `fetch_scjn_legislacion.py` | 84 `coleccion` references — `COLECCIONES` (l. 220), `--coleccion` (l. 717), the per-collection `outdir` layout, `refresca_catalogo()` (l. 309) which calls `extract_scjn_titles.py` with `--coleccion`, `_fecha_release_historial()` (l. 406, used at l. 475), and the positional resume checkpoint (`_lee_progreso`/`_guarda_progreso`, `{"indice": n}` — a position in the catalogue list, which is why #186 must fix the catalogue's order) | collapse to one collection; the `historial-legislativo` publication-date lookup is removed or repointed at `scjn-leyes` | #186 |
 | `enlaza_scjn_legislacion.py` | 22 references — `COLECCIONES` (l. 84), `--coleccion` (l. 282), the `extract_scjn_titles.py` hint it prints | collapse to one collection | #186 / #187 |
 | `empaqueta_scjn_leyes.py` | 15 references, all `leyes`-only already; carries the **no-automated-publish rule** (l. 9–15) that #184 must not override, and the `estado.json` description (l. 54, 157, 167) which names Diputados | keep; docstrings rewritten | #190 |
-| `empaqueta_historial.py` | the four-asset map `COLECCIONES` (l. 35), `--datos packages/leyesmx/data` | deleted — no asset left to pack | #189 |
-| `fetch_legal_provisions_provenance.py` | wraps `download_legal_provisions_provenance_ids` | deleted | #189 |
+| ~~`empaqueta_historial.py`~~ | the four-asset map `COLECCIONES`, `--datos packages/leyesmx/data` | deleted — no asset left to pack | **#187, done** |
+| ~~`fetch_legal_provisions_provenance.py`~~ | wrapped `download_legal_provisions_provenance_ids` | deleted | **#187, done** |
 | `resume_scjn_leyes.py` | 7 references, `leyes`-only, feeds `website/pages/data/scjn-leyes-summary.json` | keep | — |
 | `fetch_lfiiedb_dof.py` | 3 Diputados references in its prose (l. 20, 40, 125) | prose rewritten | #190 |
 | `verifica_scjn_api.py`, `reparar_notas_archivo.py`, `spike_scjn_api.py`, `md2akn_sweep.py` | 1 incidental reference or none | untouched | — |
@@ -299,13 +299,18 @@ Every entry above, gathered by owning phase.
   `enlaza_scjn_legislacion.py`: `catalogo.json` without Diputados, the
   `--coleccion` flags, the catalogue's order and the resume checkpoint that
   depends on it, `actualizado`, and the minting rule for a new law's `abrev`.
-- **#187 (Fase 2)** — reform history from SCJN + DOF, inside the `scjn-leyes`
-  pipeline; the two mislinking incidents preserved as comments.
+- **#187 (Fase 2), done** — reform history from SCJN + DOF, inside the
+  `scjn-leyes` pipeline; the two mislinking incidents preserved as comments.
+  Also took, from #189's list, the deletion of `nota2md/utils.py`,
+  `download_legal_provisions_provenance_ids`, `test_utils.py`,
+  `fetch_legal_provisions_provenance.py` and `empaqueta_historial.py`, since
+  the run's phase-1 notes assign the public-API removal to this phase.
+  **`.github/workflows/reformas.yml` now calls a script that no longer
+  exists** — harmless on this branch, and #190 deletes the workflow.
 - **#188 (Fase 3)** — `texto_vigente.py`, `test_texto_vigente.py`,
   `tests/fixtures/leyes/*.md`, `test_leyes_44.py`.
-- **#189 (Fase 4)** — `packages/leyesmx`, `nota2md/utils.py` and
-  `download_legal_provisions_provenance_ids`, `fetch_legal_provisions_provenance.py`,
-  `empaqueta_historial.py`, `COLECCION_SCJN_LEYES`, `slug_instrumento` /
+- **#189 (Fase 4)** — `packages/leyesmx`, `COLECCION_SCJN_LEYES`,
+  `slug_instrumento` /
   `catalog_key`, `test.yml`'s matrix, `.gitignore`, `.devcontainer`,
   `.vscode`.
 - **#190 (Fase 5)** — `reformas.yml`, the `historial-legislativo` release and

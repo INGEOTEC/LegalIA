@@ -2,7 +2,7 @@
 """Package the SCJN-based `leyes` corpus (snapshots + codNota links + the DOF
 notes each link was decided against, issue #123/#128) into one
 byte-reproducible tarball *per instrument*, plus a human-readable manifest
-and a checksum file — same tarball pattern as `scripts/empaqueta_historial.py`.
+and a checksum file.
 
 ## Manual publish only — never automated
 
@@ -225,10 +225,13 @@ def empaqueta(
     resumenes: list[ResumenInstrumento],
     solo: set[str] | None = None,
 ) -> None:
-    """Write one `<slug>.tgz` per instrument, each byte-reproducibly — same
-    pattern as `scripts/empaqueta_historial.py` (gzip stamped mtime 0,
-    members added in sorted order, fixed ownership/mode); what changed for
-    #128 is the walk, not the recipe. Every member is prefixed with
+    """Write one `<slug>.tgz` per instrument, each **byte-reproducibly**:
+    gzip stamped with mtime 0, members added in sorted order, ownership and
+    mode fixed. Identical data therefore produces an identical file, which is
+    what lets a publish step tell an unchanged law from a changed one by
+    comparing bytes rather than guessing — the recipe the retired
+    `empaqueta_historial.py` used, kept here because that property is what
+    makes an incremental re-upload safe (issue #187). Every member is prefixed with
     `<slug>/` so the tarball unpacks anywhere without stepping on anything.
 
     `solo` (issue #148) restricts the rewriting to the named slugs — the

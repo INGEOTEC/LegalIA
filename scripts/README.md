@@ -6,27 +6,39 @@ a clone without an editable install first, needing only `requests`. (The
 "scjn" extra the SCJN scripts used to need went away with the `.docx` crawl
 path in issue #179.)
 
-## `empaqueta_historial.py`
+## A law's reform history lives in the `scjn-leyes` release
 
-Packs a data directory built by `leyesmx --ley todas|reglamentos|normas|tratados`
-into the four tarballs published as assets of the
+There used to be an `empaqueta_historial.py` here, packing four tarballs of
+Cámara de Diputados-derived data into the
 [`historial-legislativo`](https://github.com/INGEOTEC/LegalIA/releases/tag/historial-legislativo)
-release — `leyes.tgz`, `reglamentos.tgz`, `normas.tgz`, `tratados.tgz` — plus a
-`SHA256SUMS.txt`. That release is the data's only home; it is never committed
-to git, so `--datos` always names a scratch directory built just for the run
-(see `nota2md.utils.download_legal_provisions_provenance_ids` to read the release back).
+release. Issue #187 deleted it along with `download_legal_provisions_provenance_ids`,
+the reader that went with it: the project rests on the SCJN and the DOF alone
+now (#184), and **no new dataset replaces it**. A law's reform history *is*
+the `scjn-leyes` release — each law's own `indice.json`, one entry per reform
+with the `codNota` that published it, plus `indice-global.json.gz` inverting
+that by `codNota`. `empaqueta_scjn_leyes.py` below is what builds it.
 
-```bash
-./scripts/empaqueta_historial.py --datos packages/leyesmx/data --outdir historial
-./scripts/empaqueta_historial.py --datos packages/leyesmx/data --verificar historial   # which assets changed
-```
+`historial-legislativo`'s `reglamentos.tgz`, `normas.tgz` and `tratados.tgz`
+stay downloadable as a frozen record; nothing in this repo can regenerate
+them, and `leyes.tgz` is withdrawn.
 
-The tarballs are **byte-reproducible**: gzip is stamped with mtime 0, members
-are added sorted, and their timestamps and ownership are fixed. Identical data
-therefore produces an identical file, which is what lets the monthly workflow
-tell an unchanged collection from a changed one by comparing bytes rather than
-guessing — and what makes `--verificar` meaningful. It exits non-zero when
-anything differs.
+### "Reform N" is redefined
+
+The old dataset's key invariant was *index N is reform N*, with Diputados
+doing the numbering. That numbering is gone with its source, and is
+**replaced, not reproduced**: a reform's number is now its position in the
+law's own `indice.json`, which is the chronological order of the SCJN's own
+reform table.
+
+The two are not interchangeable and the difference is not a rounding error.
+Diputados' reform column also filed errata (`_fe`), peso restatements
+(`_cant`), Court rulings (`_sent`, `_voto`) and entry-into-force
+declarations; the SCJN's table has its own notion of what counts as a reform.
+Where the counts differ, every number after the difference shifts. Anything
+that recorded "reform 139 of the Constitution" against the old dataset has to
+be re-resolved against the new one by *date*, not by number. No measurement
+against the old numbering exists or will: the source that produced it is no
+longer consulted.
 
 ## SCJN pipeline: `extract_scjn_titles.py` → `fetch_scjn_legislacion.py` → `enlaza_scjn_legislacion.py` → `empaqueta_scjn_leyes.py`
 
@@ -271,7 +283,7 @@ Also writes a `MANIFEST.md` listing every instrument by name
 count, plus each instrument's asset name, compressed size and DOF-note
 count; issue #115's ratio/classification is gone from it — the titles were
 reviewed and fixed by hand) and a `SHA256SUMS.txt` with
-one line per asset — same pattern as `empaqueta_historial.py`.
+one line per asset.
 
 Alongside the tarballs it writes **`indice-global.json.gz`** (issue #117):
 the union of every `indice.json`, inverted by `codNota` and stripped of all
@@ -279,7 +291,7 @@ text, so `nota2md` can answer "which law does this decree reform, and which
 snapshot is it" for a few hundred KB instead of the corpus' 380 MB. Only
 snapshots with a `codNota` we are certain of go in; the manifest reports how
 many entered and how many stayed out by motive (`ambiguous`, `unlinked`,
-`sin_indice`). `--sin-indice-global` skips writing it. **This asset has to be
+`sin_indice`). `--sin-indice-global` skips writing it. Since issue #187 an entry linked by content diff rather than by title carries `title_link_status: "content_diff"` and goes into the index like any other link — that is 834 more snapshots across 188 laws, taking the collection from 2,457 linked to 3,291 of 3,707. **This asset has to be
 re-uploaded every time any law changes** — it is the union of all of them, so
 one updated law makes the published index stale, and a stale index resolves a
 `codNota` to a snapshot file that is no longer in the tarball.

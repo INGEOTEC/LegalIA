@@ -524,15 +524,17 @@ def reconstruct_legal_provisions(
     same shape as legal_provisions(), since a law's reconstruction is, in
     the end, one more piece of Markdown built from notes and written to disk.
 
-    `cod_notas` is a law's reform history as `nota2md.utils` returns it:
-    oldest first, index 0 the original publication and the rest its reform
-    decrees in order. Each decree is replayed on top of the previous state —
+    `cod_notas` is a law's reform history, oldest first: index 0 the
+    original publication and the rest its reform decrees in order — the
+    order each law's own `indice.json` in the `scjn-leyes` release has
+    (`download_scjn_leyes_corpus`), which since issue #187 is where that
+    history lives. Each decree is replayed on top of the previous state —
     a restated "Artículo N" merges into that article (see
     `_fusiona_articulo`) or inserts it if it is new, a "se deroga el artículo
     N" with no restated text marks it repealed — never touching the
     preamble or the original Transitorios section.
 
-    `nombre_ley` (as `nota2md.utils` names it, e.g. "LEY de Amnistía")
+    `nombre_ley` (the catalogue's own `nombre`, e.g. "LEY de Amnistía")
     scopes every note to the one instrument among the several a single decree
     may touch — pass it whenever a note is shared with another law's history.
     Left as None, a note is assumed to concern only this law, which holds for
