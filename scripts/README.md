@@ -38,10 +38,10 @@ the DOF `codNota` that published it — see
 `packages/nota2md/nota2md/scjn.py` for why this is a legitimate source (each
 snapshot is a consolidated-text-as-of-that-reform, not just a summary) and
 why it is never mistaken for an official DOF/SIDOF Markdown (`fuente: scjn`
-header on every file). For `leyes`, the SCJN is the primary reform source —
-Diputados' own reform history (`historial`) is never consulted, only used to
-know which instruments exist and their `nombre` (issue #123's correction to
-the original #105 design).
+header on every file). The SCJN is the primary reform source, and since issue #186 nothing in this
+pipeline touches the Cámara de Diputados at all: which laws exist and their
+`nombre` are read back off the `scjn-leyes` release, and `actualizado` comes
+from the SCJN's own reform table and the DOF's titles (issue #184).
 
 ```bash
 ./scripts/extract_scjn_titles.py --outdir scjn-legislacion                         # step 0: seed titles
@@ -55,7 +55,8 @@ nota2md download gazette-metadata                                               
 ```
 
 **Keeping it up to date afterwards is two commands, not four** (issue #148).
-The first says what changed and touches the SCJN for nothing; the second runs
+The first says what changed and, since #186, costs one reform-table request
+per law to refresh `actualizado` (`--sin-refrescar-catalogo` skips that); the second runs
 the whole chain above for exactly those laws, and exits without effects when
 nothing is pending — the expected case most of the time:
 
@@ -80,37 +81,63 @@ makes the published one stale.
 
 ### `extract_scjn_titles.py`
 
-Every other script below reads `<outdir>/<coleccion>/catalogo.json` instead
-of calling `download_legal_provisions_provenance_ids` itself — this is the
-only script that does. It writes that file: each instrument's own `nombre`,
-(when the collection has one) `abrev`, and `actualizado` — Diputados'
-`historial` itself never reaches downstream scripts, and the
-`historial-legislativo` release is downloaded once per collection instead of
-once per script. Re-run it to refresh the catalogue (e.g. after Diputados
-adds a new instrument); every downstream script fails fast, naming the exact
-command to run, if it hasn't been run yet.
+Writes `<outdir>/leyes/catalogo.json` — each law's `nombre`, `abrev` and
+`actualizado` — and every other script below reads that file instead of
+going to a source of its own. Re-run it to refresh the catalogue; every
+downstream script fails fast, naming the exact command, if it has not been
+run yet.
 
-Two fields exist to close coverage gaps a crawl alone cannot (issue #124's
-follow-up, "Dos casos disparadores" — a catalogue entry the SCJN's search
-returns nothing at all for):
+Since issue #186 it makes no request to `diputados.gob.mx` and has no
+`--coleccion` flag: `leyes` is the only collection left (#184), so `abrev`
+is always present.
 
-- **`actualizado`** — the ISO date of the instrument's own most recent
-  reform (Diputados' `historial`'s own last `codNota`, resolved via
-  `dofjson`; one extra request per instrument, so a run of this script is
-  noticeably slower/more network-bound than before). `fetch_scjn_legislacion.py`
-  uses it to skip re-searching the SCJN, on a refresh, for an instrument
-  nothing has changed on since the collection's own last full crawl — see
-  that script's own section below.
-- **`nombre_scjn`** — an optional manual override: the exact string to
-  search the SCJN with instead of `nombre`, for the rare instrument the
-  SCJN's own full-text search never finds under Diputados' exact wording.
-  Nothing in this script ever sets it — it is added by hand to
-  `catalogo.json` — but a re-run now reads back whatever `catalogo.json`
-  already exists and carries every entry's own `nombre_scjn` forward
-  instead of overwriting the file from scratch, so a manual override
-  survives a refresh. Applied so far to `lisipl` (`abrev`), whose `nombre`
-  carries a 250+ character trailing parenthetical alternate name the SCJN's
-  search never matches.
+```bash
+./scripts/extract_scjn_titles.py --outdir scripts/scjn
+./scripts/extract_scjn_titles.py --outdir scripts/scjn --dof-only   # offline
+./scripts/extract_scjn_titles.py --outdir scripts/scjn --discover   # report only
+```
+
+- **`nombre` and `abrev`** come from the `scjn-leyes` release itself
+  (`download_scjn_leyes_catalog` over `indice-global.json.gz`) — the seed
+  Diputados used to give has been published all along as a by-product of the
+  corpus, so it is read, not rebuilt. The file is written **sorted by
+  `slug_instrumento`**, the same order the release's index has; Diputados'
+  own index order is gone with its source. An existing `abrev` is carried
+  over **verbatim**, which is why the previous catalogue is matched by slug
+  and not by `abrev`: `lif_2026` in the catalogue is `lif-2026` in the
+  release, for 14 laws. The previous `catalogo.json` is the **floor** — a law
+  missing from the index is kept and reported, never dropped.
+- **`actualizado`** — the ISO date of the law's own most recent reform, and
+  the whole input to `fetch_scjn_legislacion.py`'s planner. It is the
+  **newest** of two independent answers, because each misses what the other
+  sees: the SCJN's own reform table (`reformas_of_ordenamiento`, addressed by
+  the `id_ordenamiento` the law's `estado.json` already records) and the
+  newest DOF provision whose title both names the law and opens with
+  DECRETO/LEY. Measured over the 316-law catalogue: the DOF alone under-dates
+  **91** laws, because an omnibus decree reforms dozens of laws without
+  naming any of them; the SCJN alone silently freezes a law it has not
+  indexed yet, which is the `lfca` case. A law neither can date keeps
+  `actualizado` **absent** — never a placeholder, since absent is what the
+  planner reads as "always re-check". `--dof-only` skips the SCJN half and
+  makes the run offline, at the cost of those 91.
+- **`nombre_scjn`** — an optional manual override: the exact string to search
+  the SCJN with instead of `nombre`, for the rare law the SCJN's own
+  full-text search never finds under its catalogue wording. Nothing here ever
+  sets it — it is added by hand — and a re-run reads back the existing
+  `catalogo.json` and carries every entry's own `nombre_scjn` forward, so the
+  override survives. Applied so far only to `lisipl`, whose `nombre` carries
+  a 250+ character trailing parenthetical alternate name.
+
+`--discover` reports federal laws the SCJN lists and the catalogue does not,
+then stops without writing anything: a new federal law is a handful a year,
+and an `abrev` is a release asset name, so adding one is a human's decision.
+Each candidate must be confirmed by a DOF title that names it and opens with
+DECRETO/LEY — without that the SCJN's own `CODIGO` category alone contributes
+~180 "CÓDIGO DE CONDUCTA DE ..." administrative documents. A suggested
+`abrev` is printed with each candidate (`nota2md.scjn.mint_abrev`: initials
+of the name's meaningful words, `-2`/`-3` on collision); it is written down
+once and never recomputed, since re-minting one renames that law's release
+asset and orphans it.
 
 ### `fetch_scjn_legislacion.py`
 

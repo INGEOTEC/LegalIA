@@ -223,25 +223,37 @@ class ScjnApi:
         tipo_publicacion: int = 1,
         tipo_busqueda: int = 1,
         tamanio_pagina: int = 25,
+        ambito: str = "",
+        categoria: str = "",
+        vigencia: str = "",
+        pagina: int = 1,
     ) -> list[Ordenamiento]:
         """Every ordenamiento `BusquedaFrase` returns for `name`.
 
         Issue #173: the optional filters must be sent, as empty strings —
         a body carrying only `q`/`tipoBusqueda`/`tipoPublicacion` gets an
-        HTTP 500, not a validation error."""
+        HTTP 500, not a validation error.
+
+        `ambito`/`categoria`/`vigencia`/`pagina` are those filters made
+        reachable (issue #186), for the one caller that wants a *listing*
+        rather than a lookup: `extract_scjn_titles.py --discover` pages
+        `FEDERAL`+`LEY`/`CODIGO`/`CONSTITUCION`+`VIGENTE` to find laws the
+        catalogue does not have yet. `name` stays mandatory — an empty `q`
+        answers zero results, so there is no "list everything" mode to
+        expose."""
         cuerpo = {
             "q": name,
             "tipoBusqueda": tipo_busqueda,
             "tipoPublicacion": tipo_publicacion,
-            "ambitoF": "",
-            "categoriaF": "",
-            "vigenciaF": "",
+            "ambitoF": ambito,
+            "categoriaF": categoria,
+            "vigenciaF": vigencia,
             "entidadFederativaF": "",
             "materiaF": "",
             "municipioF": "",
             "fechaPublicacionInicio": "",
             "fechaPublicacionFin": "",
-            "numeroPagina": 1,
+            "numeroPagina": pagina,
             "tamanioPagina": tamanio_pagina,
             "consultaArticulos": 0,
         }

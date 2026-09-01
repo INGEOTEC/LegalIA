@@ -928,3 +928,231 @@ class TestDescargaAssetsScjnLeyes(unittest.TestCase):
         mock_assets.return_value = dict(self.URLS)
 
         self.assertEqual(scjn.scjn_leyes_slugs(), ["lfca", "lft"])
+
+
+class TestNewestDofPublicationDates(unittest.TestCase):
+    """`actualizado`'s DOF half (issue #186): the newest legal provision that
+    both names the law and opens with DECRETO/LEY."""
+
+    LFCA = "LEY Federal de Cine y el Audiovisual"
+
+    @staticmethod
+    def _titulo(titulo, fecha):
+        return {"codNota": 1, "titulo": titulo, "fecha": fecha}
+
+    def test_toma_la_publicacion_mas_reciente_que_nombra_la_ley(self):
+        titulos = [
+            self._titulo("DECRETO por el que se expide la Ley Federal de Cine y el "
+                         "Audiovisual", "22-05-2026"),
+            self._titulo("DECRETO por el que se reforma la Ley Federal de Cine y el "
+                         "Audiovisual", "03-01-2020"),
+        ]
+
+        self.assertEqual(
+            scjn.newest_dof_publication_dates({"lfca": self.LFCA}, titulos),
+            {"lfca": "2026-05-22"},
+        )
+
+    def test_un_titulo_que_no_abre_con_decreto_o_ley_no_cuenta(self):
+        # The guard that keeps the SCJN's `CODIGO` category out: measured
+        # live, its ~180 "CODIGO DE CONDUCTA DE ..." entries are published
+        # under their own name, never under a DECRETO, so none of them gets
+        # a date and none of them is ever reported as a discovered law.
+        titulos = [self._titulo("CÓDIGO de Conducta de la Guardia Nacional", "01-06-2026")]
+
+        self.assertEqual(
+            scjn.newest_dof_publication_dates(
+                {"cdcgn": "CÓDIGO de Conducta de la Guardia Nacional"}, titulos
+            ),
+            {},
+        )
+
+    def test_un_decreto_que_no_nombra_la_ley_no_cuenta(self):
+        # The omnibus decree: it really does reform this law, and no
+        # title-based match can see that. This is why the SCJN's reform
+        # table is the other half rather than a fallback -- 91 of the 316
+        # laws come back under-dated when only this source is used.
+        titulos = [
+            self._titulo("DECRETO por el que se reforman diversas disposiciones de "
+                         "diversos ordenamientos legales", "14-11-2025")
+        ]
+
+        self.assertEqual(
+            scjn.newest_dof_publication_dates({"lfca": self.LFCA}, titulos), {}
+        )
+
+    def test_una_ley_sin_fecha_queda_ausente_no_en_none(self):
+        resultado = scjn.newest_dof_publication_dates(
+            {"lfca": self.LFCA, "lft": "LEY Federal del Trabajo"},
+            [self._titulo("DECRETO por el que se expide la Ley Federal de Cine y el "
+                          "Audiovisual", "22-05-2026")],
+        )
+
+        self.assertEqual(list(resultado), ["lfca"])
+
+    def test_un_nombre_de_una_sola_palabra_significativa_nunca_coincide(self):
+        # `_title_mentions_name`'s own floor, kept here because dropping
+        # those names up front is what makes one pass over 1.2 million
+        # titles affordable.
+        titulos = [self._titulo("DECRETO por el que se reforma la Ley de Amparo",
+                                "01-01-2026")]
+
+        self.assertEqual(
+            scjn.newest_dof_publication_dates({"lamp": "LEY de Amparo"}, titulos), {}
+        )
+
+    def test_consume_el_flujo_una_sola_vez(self):
+        titulos = iter([self._titulo("DECRETO que expide la Ley Federal de Cine y el "
+                                     "Audiovisual", "22-05-2026")])
+
+        scjn.newest_dof_publication_dates({"lfca": self.LFCA}, titulos)
+
+        self.assertEqual(list(titulos), [])
+
+
+class TestMintAbrev(unittest.TestCase):
+    """The one identifier no source assigns (issue #186)."""
+
+    def test_son_las_iniciales_sin_las_palabras_vacias(self):
+        self.assertEqual(scjn.mint_abrev("LEY Federal de Cine y el Audiovisual"), "lfca")
+        self.assertEqual(
+            scjn.mint_abrev("CÓDIGO Nacional de Procedimientos Civiles y Familiares"),
+            "cnpcf",
+        )
+
+    def test_es_determinista_y_no_depende_de_los_acentos(self):
+        self.assertEqual(
+            scjn.mint_abrev("CÓDIGO Nacional"), scjn.mint_abrev("CODIGO NACIONAL")
+        )
+
+    def test_una_colision_recibe_un_sufijo_numerado(self):
+        self.assertEqual(
+            scjn.mint_abrev("LEY Federal de Cine y el Audiovisual", {"lfca"}), "lfca-2"
+        )
+        self.assertEqual(
+            scjn.mint_abrev("LEY Federal de Cine y el Audiovisual", {"lfca", "lfca-2"}),
+            "lfca-3",
+        )
+
+    def test_el_resultado_ya_es_un_slug(self):
+        # Unlike the 14 historical `abrev` with an underscore, a minted one
+        # never has to be normalized to become the release's asset name.
+        for nombre in ("LEY de Ingresos de la Federación para 2026",
+                       "PRESUPUESTO de Egresos de la Federación"):
+            abrev = scjn.mint_abrev(nombre)
+            self.assertEqual(scjn.slug_instrumento({"abrev": abrev}), abrev)
+
+
+class TestMergeCatalogWithPrevious(unittest.TestCase):
+    """The seed overlaid on the catalogue already on disk (issue #186)."""
+
+    SEED = [
+        {"abrev": "lft", "nombre": "LEY Federal del Trabajo"},
+        {"abrev": "lfca", "nombre": "LEY Federal de Cine y el Audiovisual"},
+    ]
+
+    def test_ordena_por_slug_que_es_el_orden_del_indice_del_release(self):
+        catalogo, faltantes = scjn.merge_catalog_with_previous(self.SEED, None)
+
+        self.assertEqual([e["abrev"] for e in catalogo], ["lfca", "lft"])
+        self.assertEqual(faltantes, [])
+
+    def test_conserva_el_abrev_previo_verbatim_aunque_el_slug_lo_normalice(self):
+        # `lif_2026` in the catalogue is `lif-2026` in the release. The
+        # `abrev` is the asset name of an already published law, so it is
+        # the release's slug that gives way, not the other way round.
+        previo = [{"nombre": "LEY de Ingresos vieja", "abrev": "lif_2026"}]
+
+        catalogo, faltantes = scjn.merge_catalog_with_previous(
+            [{"abrev": "lif-2026", "nombre": "LEY de Ingresos de la Federacion"}], previo
+        )
+
+        self.assertEqual(faltantes, [])
+        self.assertEqual(catalogo, [{"nombre": "LEY de Ingresos de la Federacion",
+                                     "abrev": "lif_2026"}])
+
+    def test_el_catalogo_anterior_es_el_piso_y_lo_ausente_se_reporta(self):
+        previo = [{"nombre": "ORDENANZA General de la Armada", "abrev": "oga"}]
+
+        catalogo, faltantes = scjn.merge_catalog_with_previous(self.SEED, previo)
+
+        self.assertEqual([e["abrev"] for e in catalogo], ["lfca", "lft", "oga"])
+        self.assertEqual([e["abrev"] for e in faltantes], ["oga"])
+
+    def test_conserva_los_campos_escritos_a_mano_del_catalogo_anterior(self):
+        previo = [{"nombre": "viejo", "abrev": "lft", "nombre_scjn": "LEY FEDERAL DEL TRABAJO"}]
+
+        catalogo, _ = scjn.merge_catalog_with_previous(self.SEED, previo)
+        lft, = [e for e in catalogo if e["abrev"] == "lft"]
+
+        self.assertEqual(lft["nombre_scjn"], "LEY FEDERAL DEL TRABAJO")
+        self.assertEqual(lft["nombre"], "LEY Federal del Trabajo")
+
+
+class TestApplyActualizado(unittest.TestCase):
+    def test_gana_la_fecha_mas_nueva_de_todas_las_fuentes(self):
+        catalogo = [{"nombre": "LEY Federal del Trabajo", "abrev": "lft"}]
+
+        resultado = scjn.apply_actualizado(
+            catalogo, {"lft": "2025-11-14"}, {"lft": "2026-05-14"}
+        )
+
+        self.assertEqual(resultado[0]["actualizado"], "2026-05-14")
+
+    def test_sin_fecha_el_campo_queda_ausente_no_en_none(self):
+        catalogo = [{"nombre": "LEY", "abrev": "lfcpq", "actualizado": "2020-01-01"}]
+
+        resultado = scjn.apply_actualizado(catalogo, {}, {})
+
+        self.assertNotIn("actualizado", resultado[0])
+
+    def test_conserva_la_posicion_del_campo_en_la_entrada(self):
+        catalogo = [{"nombre": "LEY", "abrev": "lft", "actualizado": "2020-01-01",
+                     "nombre_scjn": "LEY"}]
+
+        resultado = scjn.apply_actualizado(catalogo, {"lft": "2026-05-14"})
+
+        self.assertEqual(list(resultado[0]), ["nombre", "abrev", "actualizado",
+                                              "nombre_scjn"])
+
+    def test_no_muta_el_catalogo_recibido(self):
+        catalogo = [{"nombre": "LEY", "abrev": "lft"}]
+
+        scjn.apply_actualizado(catalogo, {"lft": "2026-05-14"})
+
+        self.assertNotIn("actualizado", catalogo[0])
+
+
+class TestReconstruccionDelCatalogo(unittest.TestCase):
+    """The three steps `extract_scjn_titles.py` composes, in order, over the
+    one case issue #186 requires to survive a rebuild: `lisipl`'s manual
+    `nombre_scjn`. It is the only entry in the real catalogue that has one,
+    and it exists precisely because no automated step can re-derive it."""
+
+    LISIPL = (
+        "IMPUESTO sobre Servicios Expresamente Declarados de Interés Público por Ley, "
+        "en los que Intervengan Empresas Concesionarias de Bienes del Dominio Directo "
+        "de la Nación (LEY que establece, reforma y adiciona las disposiciones "
+        "relativas a diversos impuestos)"
+    )
+    NOMBRE_SCJN = (
+        "LEY DEL IMPUESTO SOBRE SERVICIOS EXPRESAMENTE DECLARADOS DE INTERES PUBLICO "
+        "POR LEY"
+    )
+
+    def test_el_override_nombre_scjn_sobrevive_a_una_reconstruccion(self):
+        previo = [{"nombre": self.LISIPL, "abrev": "lisipl",
+                   "nombre_scjn": self.NOMBRE_SCJN}]
+        seed = [{"abrev": "lisipl", "nombre": self.LISIPL}]
+
+        catalogo, faltantes = scjn.merge_catalog_with_previous(seed, previo)
+        catalogo = scjn.apply_actualizado(catalogo, {"lisipl": "2026-01-15"})
+        catalogo = scjn.merge_catalog_overrides(catalogo, previo)
+
+        self.assertEqual(faltantes, [])
+        self.assertEqual(catalogo, [{
+            "nombre": self.LISIPL,
+            "abrev": "lisipl",
+            "nombre_scjn": self.NOMBRE_SCJN,
+            "actualizado": "2026-01-15",
+        }])

@@ -103,7 +103,7 @@ def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
     if not archivo.is_file():
         raise SystemExit(
             f"{archivo} no existe -- corre primero "
-            f"./scripts/extract_scjn_titles.py --outdir {outdir} --coleccion {coleccion}"
+            f"./scripts/extract_scjn_titles.py --outdir {outdir}"
         )
     return json.loads(archivo.read_text(encoding="utf-8"))
 

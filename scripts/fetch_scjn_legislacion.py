@@ -196,7 +196,7 @@ import importlib.util
 import json
 import sys
 import time
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
@@ -215,7 +215,6 @@ from nota2md.scjn import (  # noqa: E402
     slug_instrumento,
 )
 from nota2md import scjn_api  # noqa: E402
-from nota2md.utils import RELEASES_API  # noqa: E402
 
 COLECCIONES = ("leyes", "reglamentos", "tratados")
 #: The only collection with a per-instrument release to repackage into
@@ -231,7 +230,7 @@ def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
     if not archivo.is_file():
         raise SystemExit(
             f"{archivo} no existe -- corre primero "
-            f"./scripts/extract_scjn_titles.py --outdir {outdir} --coleccion {coleccion}"
+            f"./scripts/extract_scjn_titles.py --outdir {outdir}"
         )
     return json.loads(archivo.read_text(encoding="utf-8"))
 
@@ -307,19 +306,21 @@ def _script_hermano(nombre: str):
 
 
 def refresca_catalogo(outdir: Path, coleccion: str) -> None:
-    """Re-extract `coleccion`'s own `catalogo.json` from Diputados before
-    planning against it (issue #148). Without this the plan is computed
-    against whatever `actualizado` values were extracted last time, which is
-    exactly the question being asked — so it is the default, and
+    """Re-extract `coleccion`'s own `catalogo.json` before planning against
+    it (issue #148). Without this the plan is computed against whatever
+    `actualizado` values were extracted last time, which is exactly the
+    question being asked — so it is the default, and
     `--sin-refrescar-catalogo` is for when the catalogue was just refreshed
     by hand and there is no reason to pay for it twice.
 
-    Touches Diputados and the DOF (one request per instrument), never the
-    SCJN — a `--plan` run is still SCJN-free."""
-    print(f"{coleccion}: refrescando catalogo.json desde Diputados...", file=sys.stderr)
-    _script_hermano("extract_scjn_titles").main(
-        ["--outdir", str(outdir), "--coleccion", coleccion]
-    )
+    Since issue #186 that refresh reads the SCJN's own reform table and the
+    DOF titles cache, not Diputados, so a `--plan` run is no longer
+    SCJN-free: it costs one reform-table request per law. Refreshing the
+    catalogue from the DOF alone (`extract_scjn_titles.py --dof-only`) and
+    then planning with `--sin-refrescar-catalogo` is the offline route, at
+    the cost that page's own docstring records."""
+    print(f"{coleccion}: refrescando catalogo.json desde la SCJN y el DOF...", file=sys.stderr)
+    _script_hermano("extract_scjn_titles").main(["--outdir", str(outdir)])
 
 
 def actualiza_coleccion(
@@ -403,28 +404,23 @@ def actualiza_coleccion(
     return len(fallidos)
 
 
-def _fecha_release_historial() -> str | None:
-    """When the `historial-legislativo` release — the sole source of every
-    `actualizado` in `catalogo.json` — was last published, or None when
-    GitHub cannot be reached.
+def _fecha_catalogo(outdir: Path, coleccion: str) -> str | None:
+    """The date `catalogo.json` was last written, or None when there is no
+    file to ask.
 
-    Printed by `--plan` because the corpus can never be fresher than that
-    release: `reformas.yml` republishes it monthly, so "0 pendientes" means
-    "up to date as of this date", not "up to date with today's DOF". A
-    failure here is reported and ignored — the plan itself is computed
-    entirely from local files, and losing one line of context is no reason
-    to refuse to print it."""
+    Printed by `--plan` because the corpus can never be fresher than the
+    catalogue it is planned against: "0 pendientes" means "up to date as of
+    this date", not "up to date with today's DOF". Until issue #186 this
+    read the `historial-legislativo` release's publication date over the
+    network, because that release was where every `actualizado` came from
+    and a monthly workflow republished it. Both facts are gone —
+    `actualizado` now comes from the SCJN's reform table and the DOF titles
+    at the moment `extract_scjn_titles.py` runs — so the bound is simply
+    when that ran, which is a local `stat` and cannot fail on a network."""
+    archivo = outdir / coleccion / "catalogo.json"
     try:
-        import requests
-
-        respuesta = requests.get(
-            RELEASES_API, headers={"Accept": "application/vnd.github+json"}, timeout=30
-        )
-        respuesta.raise_for_status()
-        datos = respuesta.json()
-        marca = datos.get("published_at") or datos.get("created_at")
-        return marca[:10] if marca else None
-    except Exception:
+        return datetime.fromtimestamp(archivo.stat().st_mtime).date().isoformat()
+    except OSError:
         return None
 
 
@@ -472,19 +468,18 @@ def planea_coleccion(
     for slug, nombre in sin_fecha:
         print(f"    {slug}  {nombre}", file=sys.stderr)
 
-    fecha_release = _fecha_release_historial()
-    if fecha_release:
+    fecha_catalogo = _fecha_catalogo(outdir, coleccion)
+    if fecha_catalogo:
         print(
-            f"  'actualizado' viene del release historial-legislativo publicado el "
-            f"{fecha_release}: sin pendientes significa al dia hasta esa fecha, no hasta "
-            "el DOF de hoy",
+            f"  'actualizado' se extrajo el {fecha_catalogo} (SCJN + DOF): sin "
+            "pendientes significa al dia hasta esa fecha, no hasta el DOF de hoy",
             file=sys.stderr,
         )
     else:
         print(
-            "  aviso: no se pudo consultar la fecha del release historial-legislativo "
-            "(de donde sale 'actualizado'); el plan de arriba sigue siendo valido, pero "
-            "no se sabe hasta que fecha esta al dia",
+            "  aviso: no se pudo leer la fecha de catalogo.json (de donde sale "
+            "'actualizado'); el plan de arriba sigue siendo valido, pero no se sabe "
+            "hasta que fecha esta al dia",
             file=sys.stderr,
         )
 
@@ -534,7 +529,7 @@ def rastrea_coleccion(
         print(
             f"  aviso: ningun instrumento de {coleccion} trae 'actualizado' en catalogo.json -- "
             "el Mecanismo 2 (refresh incremental, issue #124) no puede saltar nada hasta correr "
-            f"./scripts/extract_scjn_titles.py --outdir {outdir} --coleccion {coleccion}",
+            f"./scripts/extract_scjn_titles.py --outdir {outdir}",
             file=sys.stderr,
         )
     # --instrumento and --reintenta both narrow the sweep to named slugs and

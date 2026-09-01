@@ -396,6 +396,59 @@ def merge_catalog_overrides(catalog: list[dict], previous_catalog: list[dict] | 
     return merged
 
 
+def merge_catalog_with_previous(
+    seed: list[dict], previous: list[dict] | None
+) -> tuple[list[dict], list[dict]]:
+    """`seed` overlaid on `previous`, sorted by `slug_instrumento`, plus the
+    entries of `previous` the seed does not account for.
+
+    The previous catalogue is the floor: those entries stay in the result and
+    are returned separately so the caller can report them. An entry present
+    in both keeps its previous `abrev` verbatim and takes the seed's
+    `nombre`; every other previous field (`nombre_scjn`, and any hand-written
+    one) is preserved."""
+    por_slug = {slug_instrumento(entrada): dict(entrada) for entrada in (previous or [])}
+    faltantes = dict(por_slug)
+
+    for entrada in seed:
+        slug = slug_instrumento(entrada)
+        faltantes.pop(slug, None)
+        anterior = por_slug.get(slug)
+        if anterior is None:
+            por_slug[slug] = {"nombre": entrada["nombre"], "abrev": entrada["abrev"]}
+        else:
+            # `nombre` is refreshed, `abrev` never is.
+            anterior["nombre"] = entrada["nombre"]
+
+    catalogo = [por_slug[slug] for slug in sorted(por_slug)]
+    return catalogo, [faltantes[slug] for slug in sorted(faltantes)]
+
+
+def apply_actualizado(catalogo: list[dict], *fuentes: dict[str, str]) -> list[dict]:
+    """Each entry with `actualizado` set to the newest date any of `fuentes`
+    (slug -> ISO date) gives for it, and **removed** when none does — an entry
+    that used to carry a date and no longer can must not keep a stale one.
+
+    The newest wins rather than the first source that answers: the SCJN's
+    reform table and the DOF's own titles each miss reforms the other sees
+    (see `extract_scjn_titles.py`, which measured both), and over-reporting a
+    law as pending only costs a re-crawl, while under-reporting it loses the
+    reform silently."""
+    resultado = []
+    for entrada in catalogo:
+        slug = slug_instrumento(entrada)
+        candidatos = [f[slug] for f in fuentes if slug in f]
+        entrada = dict(entrada)
+        if candidatos:
+            # Assigned, not rebuilt, so an entry that already had the field
+            # keeps it where it was in the file.
+            entrada["actualizado"] = max(candidatos)
+        else:
+            entrada.pop("actualizado", None)
+        resultado.append(entrada)
+    return resultado
+
+
 def iso_date_from_note(note: dict) -> str | None:
     """`note`'s own `fecha` (dofjson's `DD-MM-YYYY`, the shape
     `nota2md.builder.fetch_nota` returns it in) as ISO `YYYY-MM-DD`, or None
@@ -599,6 +652,25 @@ def versiones_de_directorio(outdir: Path) -> list[VersionInstrumento]:
 _TITLE_MEANINGFUL_WORD = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]{4,}")
 
 
+def meaningful_words(nombre: str) -> list[str]:
+    """`nombre`'s own words worth matching on: accent-folded, lowercased, and
+    only those of 4+ letters, so "LEY"/"DEL"/"DE" never count on their own.
+
+    Split out of `_title_mentions_name` so a caller matching one stream of
+    titles against *hundreds* of instrument names can normalize each name
+    once instead of once per (title, name) pair — see
+    `newest_dof_publication_dates`, which is otherwise a 1.2-million by 316
+    product."""
+    return _TITLE_MEANINGFUL_WORD.findall(_normaliza(nombre))
+
+
+def _mentions_words(palabras: list[str], titulo_normalizado: str) -> bool:
+    """`_title_mentions_name`'s test, with both sides already normalized."""
+    if len(palabras) < 2:
+        return False
+    return all(palabra in titulo_normalizado for palabra in palabras)
+
+
 def _title_mentions_name(nombre: str, titulo: str) -> bool:
     """Whether `titulo` (some other same-day DOF note's own title) explicitly
     names the instrument `nombre` refers to: every one of `nombre`'s own
@@ -617,11 +689,7 @@ def _title_mentions_name(nombre: str, titulo: str) -> bool:
     it in passing. Those instruments simply get no candidate at all from
     `title_candidates_por_fecha` (`status="none"`) rather than an unreliable
     one."""
-    palabras = _TITLE_MEANINGFUL_WORD.findall(_normaliza(nombre))
-    if len(palabras) < 2:
-        return False
-    titulo_normalizado = _normaliza(titulo)
-    return all(palabra in titulo_normalizado for palabra in palabras)
+    return _mentions_words(meaningful_words(nombre), _normaliza(titulo))
 
 
 _DECRETO_O_LEY = re.compile(r"^(?:decreto|ley)\b", re.I)
@@ -679,6 +747,112 @@ def title_candidates_por_fecha(fechas, nombre: str, porf: dict) -> dict[str, lis
             )
         resultado[fecha] = candidatos
     return resultado
+
+
+# --- issue #186: `actualizado`, and an `abrev` for a law nobody named yet --
+#
+# `actualizado` used to be the publication date of the last codNota in
+# Diputados' `historial`. Its job is unchanged (`motivo_pendiente`: has this
+# law changed since we crawled it?), but its source has to be something
+# *outside* the crawl being scheduled. The SCJN's own reform table is the
+# obvious candidate and is the wrong one to lead with: if the SCJN has not
+# indexed a brand-new reform yet, an SCJN-derived `actualizado` never moves,
+# the law is never reported pending, and the reform is never picked up even
+# after the SCJN does index it. The DOF has the opposite failure mode — the
+# date moves the day the decree is published, so the law stays pending until
+# the SCJN catches up, which is exactly the `lfca` safety net issue #124
+# built `instrument_up_to_date` around. So the DOF leads and the SCJN's
+# reform table is the fallback (`fetch_scjn_legislacion.py --scjn`).
+#
+# Measured against the published corpus while this was written: the DOF date
+# below for `lfca` is 2026-05-22, the same day its `estado.json` records, and
+# `lft`'s is 2026-05-14. The DECRETO/LEY guard is what keeps the SCJN's
+# `CODIGO`-category noise out — "CODIGO DE CONDUCTA DE LA GUARDIA NACIONAL",
+# "CODIGO DE ETICA DEL BANCO DE MEXICO" and their ~180 siblings are published
+# under their own name, never under a DECRETO, so all three of the ones tried
+# came back with no date at all.
+
+
+def newest_dof_publication_dates(instrumentos: dict[str, str], titulos) -> dict[str, str]:
+    """For each ``slug -> nombre`` in `instrumentos`, the ISO date of the most
+    recent DOF legal provision that both **names** it (`_title_mentions_name`)
+    and **opens with "DECRETO" or "LEY"** (`_title_opens_with_decreto_or_ley`)
+    — the catalogue's `actualizado`, and the confirmation step that keeps an
+    SCJN catalogue entry from inventing a law (issue #186).
+
+    `titulos` is any iterable of `dofjson.legal_provisions_titles` records
+    (`titulo` plus `fecha` as `DD-MM-YYYY`), consumed exactly once. A slug for
+    which nothing qualifies is **absent** from the result rather than mapped
+    to None: absent is what the planner reads as "always re-check".
+
+    Both guards are needed and neither is enough alone. Without the name
+    test, every decree of the day matches; without the DECRETO/LEY test, an
+    instrument's own non-legislative namesakes match — see the module
+    comment above for the numbers.
+    """
+    palabras_por_slug = {slug: meaningful_words(nombre) for slug, nombre in instrumentos.items()}
+    # A name left with fewer than two meaningful words can never be matched
+    # (`_mentions_words`), so it is dropped here rather than tested 1.2
+    # million times.
+    palabras_por_slug = {s: p for s, p in palabras_por_slug.items() if len(p) >= 2}
+
+    mas_reciente: dict[str, str] = {}
+    for nota in titulos:
+        titulo = nota["titulo"]
+        if not _title_opens_with_decreto_or_ley(titulo):
+            continue
+        normalizado = _normaliza(titulo)
+        fecha = nota.get("fecha")
+        if not fecha:
+            continue
+        iso = f"{fecha[6:10]}-{fecha[3:5]}-{fecha[0:2]}"
+        for slug, palabras in palabras_por_slug.items():
+            if _mentions_words(palabras, normalizado) and iso > mas_reciente.get(slug, ""):
+                mas_reciente[slug] = iso
+    return mas_reciente
+
+
+#: Words an `abrev` is never built out of: they are in almost every federal
+#: law's name and carry no distinguishing information.
+_ABREV_VACIAS = {
+    "de", "del", "la", "las", "el", "los", "y", "e", "en", "para", "por",
+    "sobre", "que", "al", "a", "un", "una", "su", "sus", "con",
+}
+
+
+def mint_abrev(nombre: str, taken=()) -> str:
+    """A new law's `abrev`, minted deterministically from its `nombre`: the
+    first letter of every word that is not a stop word (`_ABREV_VACIAS`),
+    accent-folded and lowercased, with `-2`, `-3`, … appended until it is not
+    in `taken`.
+
+    Nothing else in the project assigns one. An `abrev` is the `scjn-leyes`
+    slug and asset name, so this rule exists to be applied **once**, when a
+    law first enters the catalogue, and the value is then carried verbatim
+    forever: re-minting one would rename that law's release asset and orphan
+    it. `extract_scjn_titles.py` never applies it on its own — it reports the
+    candidate and a human writes the entry (issue #186).
+
+    The result is already slug-safe (`slug_instrumento` is the identity on
+    it), unlike the 14 historical `abrev` that carry an underscore.
+
+    >>> mint_abrev("LEY Federal de Cine y el Audiovisual")
+    'lfca'
+    >>> mint_abrev("LEY Federal de Cine y el Audiovisual", taken={"lfca"})
+    'lfca-2'
+    """
+    palabras = re.findall(r"[a-z0-9]+", _normaliza(nombre))
+    base = "".join(p[0] for p in palabras if p not in _ABREV_VACIAS)
+    if not base:
+        # A name that is nothing but stop words is not a real law name, but
+        # returning "" would collide with itself on the very next call.
+        base = "ley"
+    candidato = base
+    sufijo = 1
+    while candidato in taken:
+        sufijo += 1
+        candidato = f"{base}-{sufijo}"
+    return candidato
 
 
 @dataclass
