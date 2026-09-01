@@ -258,6 +258,56 @@ class TestEscritor(unittest.TestCase):
         self.assertEqual(articulos_a_markdown(arts), "\n")
 
 
+class TestFormateaParrafo(unittest.TestCase):
+    """La clasificación por párrafo que vivía en `scjn.docx_a_markdown` hasta
+    el issue #179 — las mismas afirmaciones que fijaban el camino .docx, ahora
+    contra su único llamador."""
+
+    def test_clasifica_titular_margen_articulo_y_transitorios(self):
+        from nota2md.scjn_api import Articulo, articulos_a_markdown
+
+        arts = [
+            Articulo(1, 1, "ENCABEZADO", "TEXTO ORIGINAL."),
+            Articulo(2, 2, "ENCABEZADO", "Al margen un sello con el Escudo Nacional."),
+            Articulo(3, 3, "ARTÍCULO 1", "Artículo 1o.- Se decreta la disposición de prueba."),
+            Articulo(4, 4, "TRANSITORIOS", "TRANSITORIOS"),
+            Articulo(5, 5, "TRANSITORIOS", "PRIMERO.- Entra en vigor de inmediato."),
+        ]
+
+        markdown = articulos_a_markdown(arts)
+
+        self.assertIn("**TEXTO ORIGINAL.**", markdown)
+        self.assertIn("## Al margen un sello con el Escudo Nacional.", markdown)
+        self.assertIn("**Artículo 1o.-** Se decreta la disposición de prueba.", markdown)
+        self.assertIn("## Transitorios", markdown)
+        self.assertIn("**PRIMERO.-** Entra en vigor de inmediato.", markdown)
+
+    def test_omite_los_parrafos_vacios_usados_como_separadores(self):
+        from nota2md.scjn_api import Articulo, articulos_a_markdown
+
+        arts = [Articulo(1, 1, "ARTÍCULO 1", "Primer párrafo.\n\n\nSegundo párrafo.")]
+
+        self.assertEqual(
+            articulos_a_markdown(arts), "Primer párrafo.\n\nSegundo párrafo.\n"
+        )
+
+    def test_omite_por_completo_un_parrafo_que_es_solo_nota_editorial(self):
+        from nota2md.scjn_api import Articulo, articulos_a_markdown
+
+        arts = [
+            Articulo(1, 1, "ARTÍCULO 1", "Artículo 1o.- Se decreta la disposición de prueba."),
+            Articulo(2, 2, "ARTÍCULO 1", '[N. DE E. TRANSITORIO DEL "DECRETO POR EL QUE SE '
+                                         'REFORMA".]'),
+            Articulo(3, 3, "ARTÍCULO 2", "Artículo 2o.- Otra disposición."),
+        ]
+
+        markdown = articulos_a_markdown(arts)
+
+        self.assertNotIn("N. DE E.", markdown)
+        self.assertIn("**Artículo 1o.-** Se decreta la disposición de prueba.", markdown)
+        self.assertIn("**Artículo 2o.-** Otra disposición.", markdown)
+
+
 class TestSeleccion(unittest.TestCase):
     """Los 5 instrumentos del issue #115 en los que el buscador viejo trajo
     otro documento, reducidos a los candidatos que la API devuelve hoy para

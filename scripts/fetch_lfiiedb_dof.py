@@ -25,8 +25,9 @@ hay nada que arreglar del lado de la SCJN: hay que traer la ley de otra
 fuente.
 
 Lo bueno es que **es una ley nueva, sin historia de reformas**: un solo
-texto, una sola fecha. A diferencia de `lfca` (ver
-`scripts/construye_lfca.py`), tampoco abroga una ley que la SCJN sí tenga
+texto, una sola fecha. A diferencia de `lfca` -- el otro caso de #124, que
+sí abrogaba una ley con historia propia y que la SCJN ya indexa por su
+cuenta desde el issue #172 -- tampoco abroga una ley que la SCJN sí tenga
 indexada, así que no hay historia que recuperar de ningún lado.
 
 **De dónde sale el texto.** Del DOF, `codNota` **5784517**:
@@ -46,7 +47,7 @@ publicación, ``DD-MM-YYYY.md``, es decir
 reformas. La fecha se toma del campo `fecha` de la nota, no se escribe a
 mano, para que el script sea reproducible.
 
-**Cabecera.** Se sigue el esquema de `nota2md.scjn._cabecera` (frontmatter
+**Cabecera.** Se sigue el esquema de `nota2md.scjn_api.cabecera` (frontmatter
 delimitado por `---`, leíble por `lee_cabecera`), pero dejando explícito que
 el origen es el DOF y no la SCJN:
 
@@ -68,7 +69,7 @@ el origen es el DOF y no la SCJN:
   reconoce campos en minúsculas, así que `codNota` queda como documentación
   dentro del archivo; el índice lo toma de la constante del script.
 - **No** se escriben `ratio_similitud` ni `sospechoso`: no hubo búsqueda ni
-  `elige_candidato`, así que no hay ratio que reportar. `_confianza`
+  `elige_ordenamiento`, así que no hay ratio que reportar. `_confianza`
   (`enlaza_scjn_legislacion.py`) los deja en `null` cuando faltan, que es
   exactamente la semántica correcta.
 - `motivo` documenta la excepción dentro del propio archivo, sin que haya que
@@ -138,7 +139,7 @@ MOTIVO = (
 
 def cabecera(nota: dict) -> str:
     """The provenance header for a snapshot whose origin is the DOF and not
-    the SCJN — same shape `nota2md.scjn._cabecera` writes (so `lee_cabecera`
+    the SCJN — same shape `nota2md.scjn_api.cabecera` writes (so `lee_cabecera`
     and `versiones_de_directorio` read it back unchanged), declaring
     `fuente: dof` and carrying the `codNota` it is known by from the origin.
     No `ratio_similitud`/`sospechoso`: there was no search to report one for."""

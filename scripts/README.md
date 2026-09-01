@@ -2,9 +2,9 @@
 
 Repo-level utilities. They add the package(s) they need (`packages/dofjson`,
 `packages/nota2md`) to the import path themselves, so they run straight from
-a clone without an editable install first — the SCJN scripts below also need
-the "scjn" extra (`pip install "packages/nota2md[scjn]"`, for `python-docx`);
-everything else needs only `requests`.
+a clone without an editable install first, needing only `requests`. (The
+"scjn" extra the SCJN scripts used to need went away with the `.docx` crawl
+path in issue #179.)
 
 ## `empaqueta_historial.py`
 
@@ -30,8 +30,9 @@ anything differs.
 
 ## SCJN pipeline: `extract_scjn_titles.py` → `fetch_scjn_legislacion.py` → `enlaza_scjn_legislacion.py` → `empaqueta_scjn_leyes.py`
 
-Recovers, from [legislacion.scjn.gob.mx](https://legislacion.scjn.gob.mx/Buscador/),
-the reform-dated Markdown snapshots of a law/reglamento/tratado that
+Recovers, from the SCJN's own SCOW JSON API
+([legislacion.scjn.gob.mx/consulta/buscador](https://legislacion.scjn.gob.mx/consulta/buscador),
+issue #172), the reform-dated Markdown snapshots of a law/reglamento/tratado that
 `nota2md.legal_provisions` would otherwise have to OCR, and links each one to
 the DOF `codNota` that published it — see
 `packages/nota2md/nota2md/scjn.py` for why this is a legitimate source (each
@@ -191,45 +192,44 @@ needing `catalogo.json` at hand. `ratio_similitud`/`sospechoso` (issue #115)
 are unaffected and still always present, giving the magnitude of how far
 off a flagged title is.
 
-### Casos aislados: `construye_lfca.py` y `fetch_lfiiedb_dof.py`
+### Caso aislado: `fetch_lfiiedb_dof.py`
 
-Two catalogue entries the SCJN does not index at all (issue #124's coverage
-gaps), each closed by its own single-law script rather than by a general
-mechanism. Both are **isolated**: they touch no catalogue, no checkpoint and
-no general script — they only write inside `<outdir>/leyes/<abrev>/` — and
-both run **after** `enlaza_scjn_legislacion.py`, since they own the last word
-on their own `indice.json` (the normal sweep would otherwise overwrite it).
-Each script's own module docstring carries the full, web-page-ready procedure;
+A catalogue entry the SCJN does not index at all (issue #124's coverage
+gaps), closed by its own single-law script rather than by a general
+mechanism. It is **isolated**: it touches no catalogue, no checkpoint and no
+general script — it only writes inside `<outdir>/leyes/<abrev>/` — and it
+runs **after** `enlaza_scjn_legislacion.py`, since it owns the last word on
+its own `indice.json` (the normal sweep would otherwise overwrite it). The
+script's own module docstring carries the full, web-page-ready procedure;
 read it there.
 
 ```bash
-./scripts/construye_lfca.py --outdir scripts/scjn
 ./scripts/fetch_lfiiedb_dof.py --outdir scripts/scjn
 ```
 
-- **`construye_lfca.py`** (issue #144) — the reference case for *a new law
-  that abrogates another and is not indexed yet*. `lfca`'s corpus is built in
-  two halves: its reform history from the abrogated **LEY FEDERAL DE
-  CINEMATOGRAFIA**, which the SCJN *does* index (crawled with the existing
-  `descarga_ordenamiento`, unmodified), and its current text from the DOF
-  (`codNota` 5788357), converted with `nota2md.legal_provisions`. The SCJN's
-  own last row for the abrogated law is **discarded**: it is dated the day
-  `lfca` was published and announces its enactment, but its body is the old
-  1992 text — so 22-05-2026 ends up with exactly one snapshot, the DOF's.
-  Linking uses the abrogated law's name, since that is what appears in each
-  reform decree's DOF title. Its `indice.json` also carries an extra `fuente` field
-  (`"scjn"`/`"dof"`) on every entry — consumers must treat it as **optional**
-  (absent ⇒ `"scjn"`), since `enlaza_scjn_legislacion.py` never writes it.
-- **`fetch_lfiiedb_dof.py`** (issue #145) — the simpler case: a brand-new law
-  with no reform history at all. One `codNota` (5784517, DOF 09-04-2026), one
-  file, an `indice.json` whose link is known by construction instead of
-  inferred.
+- **`fetch_lfiiedb_dof.py`** (issue #145) — a brand-new law with no reform
+  history at all. One `codNota` (5784517, DOF 09-04-2026), one file, an
+  `indice.json` whose link is known by construction instead of inferred.
 
-Both write `fuente: dof` in the header of every file taken from the DOF —
-`grep -rl 'fuente: dof' scripts/scjn/` is how these exceptions are found. Each
-one disappears when the SCJN finally indexes its law: delete the directory,
-run `fetch_scjn_legislacion.py --reintenta <abrev>` plus
+It writes `fuente: dof` in the header of every file taken from the DOF —
+`grep -rl 'fuente: dof' scripts/scjn/` is how these exceptions are found.
+The script disappears when the SCJN finally indexes its law: delete the
+directory, run `fetch_scjn_legislacion.py --reintenta lfiiedb` plus
 `enlaza_scjn_legislacion.py`, and retire the script.
+
+**Retirado: `construye_lfca.py`** (issue #144, retired in #179). It was the
+reference case for *a new law that abrogates another and is not indexed
+yet*: it built `lfca`'s corpus in two halves, its reform history from the
+abrogated **LEY FEDERAL DE CINEMATOGRAFIA** — which the old Buscador *did*
+index — plus its current text from the DOF (`codNota` 5788357). Exactly the
+disappearance described above then happened: the SCJN's new index has the
+LEY FEDERAL DE CINE Y EL AUDIOVISUAL as an ordenamiento of its own
+(`idOrdenamiento` 188805, issue #172), the ordinary crawl reaches it, and
+the script's own transport (the WebForms search, grid and `.docx` download)
+no longer exists. One consequence is recorded in issue #178: `lfca` now
+holds only the successor law's snapshots — keeping the predecessor's would
+mean giving it a slug of its own, which is a catalogue decision and its own
+issue.
 
 ### `empaqueta_scjn_leyes.py`
 
@@ -272,7 +272,7 @@ release create`/`upload` command the script prints.
 
 Issue #129 retired the one-time `repara_notas_editoriales_scjn.py` that used
 to live here. It re-processed what `fetch_scjn_legislacion.py` had downloaded
-*before* `nota2md.scjn.docx_a_markdown` started stripping the SCJN's own
+*before* the crawl started stripping the SCJN's own
 editorial commentary ("N. DE E." / "NOTA N", issue #114) at crawl time —
 a migration, not a step of the pipeline. Run over the whole published corpus
 its `--dry-run` now reports `0 parrafo(s) de nota editorial se quitarian en 0

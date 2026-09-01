@@ -122,14 +122,14 @@ class Ordenamiento:
     categoriaOrdenamiento: str | None = None
     materia: str | None = None
     fechaPublicado: str | None = None
-    # Filled in by candidate selection, the same way `scjn.Candidato` does.
+    # Filled in by candidate selection, the same way the retired `scjn.Candidato` did.
     ratio: float | None = None
     sospechoso: bool | None = None
 
 
 @dataclass
 class Reforma:
-    """One row of an instrument's reform table — every field `scjn._cabecera`
+    """One row of an instrument's reform table — every field the retired `scjn._cabecera`
     writes today, plus `seccionPublicacion`, which the WebForms grid never
     showed."""
 
@@ -344,13 +344,14 @@ class ScjnApi:
 #
 # Hard rule: the on-disk format does not change. `scripts/scjn/`'s whole
 # corpus, its `indice.json`, `empaqueta_scjn_leyes.py`, `snapshot_de_codNota`
-# and `legal_provisions(source="scjn")` all read what `scjn.descarga_ordenamiento`
-# writes today, and the migration is only auditable while a snapshot written
+# and `legal_provisions(source="scjn")` all read what the retired
+# `scjn.descarga_ordenamiento` wrote, and the migration is only auditable while a snapshot written
 # from the API can be diffed against the one the WebForms crawler wrote for
 # the same law and the same date.
 #
-# So the per-paragraph pipeline is literally `scjn`'s: split into paragraphs,
-# `quita_notas_editoriales`, `_formatea_parrafo`. Issue #173's question 3
+# So the per-paragraph pipeline is literally the .docx one: split into
+# paragraphs, `quita_notas_editoriales`, `_formatea_parrafo`. Issue #173's
+# question 3
 # settled that this is right rather than merely convenient — the API's own
 # `contenido` carries the "N. DE E." markers with the same spelling as the
 # .docx (181 of them in one CPEUM reform, 193 in one of the Código de
@@ -366,10 +367,67 @@ class ScjnApi:
 # paragraph it does today, not as a differently-shaped file.
 
 from nota2md.scjn import (  # noqa: E402  (deliberately below the client)
-    _formatea_parrafo,
     quita_notas_editoriales,
     ratio_similitud,
 )
+
+
+# --- paragraph classification ------------------------------------------
+#
+# The SCJN's text carries no formatting of its own: "TEXTO ORIGINAL.",
+# "Artículo N.-" leads and "TRANSITORIOS" captions are plain text, told apart
+# only by their own wording/casing — the same situation
+# nota2md.texto_vigente's Diputados PDFs are in. This lived in `nota2md.scjn`
+# while the source was the reform row's .docx (one docx paragraph already is
+# one clean block, so only this per-paragraph classification was ever needed
+# on top of it); it moved here with issue #179, when the .docx path went away
+# and `articulos_a_markdown` became its only caller. The API's `contenido` is
+# in exactly the same shape, which is why the classifier is reused byte for
+# byte rather than rewritten — that reuse is what makes a snapshot written
+# from the API diffable against the one the WebForms crawler wrote for the
+# same law and the same date.
+#
+# Kept independent of texto_vigente's own patterns rather than imported, for
+# the same reason that module gives for staying independent of this package's
+# DOF-derived output: the two are meant to be compared, not to share a
+# source.
+_ORDINAL = (
+    r"(?:[UÚ]nico|Primero|Segundo|Tercero|Cuarto|Quinto|Sexto|S[ée]ptimo|"
+    r"Octavo|Noveno|D[ée]cimo(?:\s+(?:Primero|Segundo|Tercero|Cuarto|Quinto|"
+    r"Sexto|S[ée]ptimo|Octavo|Noveno))?)"
+)
+_LEAD_ARTICULO = re.compile(
+    rf"^(Art[íi]culo\s+(?:\d+\s*(?:o\b\.?|[°º])?\s*"
+    r"(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies)?|"
+    rf"{_ORDINAL})\.?-?)",
+    re.I,
+)
+_LEAD_ORDINAL = re.compile(rf"^({_ORDINAL}\.-?)", re.I)
+_LEAD_LISTA = re.compile(r"^((?:[IVXLCDM]+|[a-záA-Z])[\.\)])(?=\s)")
+_MARGEN = re.compile(r"^Al margen un sello\b.*", re.I)
+_TRANSITORIOS_PARRAFO = re.compile(r"^TRANSITORIOS?$", re.I)
+
+
+def _es_titular(parrafo: str) -> bool:
+    """A whole-paragraph ALL-CAPS caption ("DECRETO", "TEXTO ORIGINAL.") is
+    bolded in full."""
+    letras = [c for c in parrafo if c.isalpha()]
+    return len(letras) >= 3 and len(parrafo) < 300 and all(c.isupper() for c in letras)
+
+
+def _formatea_parrafo(parrafo: str) -> str:
+    if _MARGEN.match(parrafo):
+        return f"## {parrafo}"
+    if _TRANSITORIOS_PARRAFO.match(parrafo):
+        return f"## {parrafo.capitalize()}"
+    if _es_titular(parrafo):
+        return f"**{parrafo}**"
+    for patron in (_LEAD_ARTICULO, _LEAD_ORDINAL, _LEAD_LISTA):
+        m = patron.match(parrafo)
+        if m:
+            return f"**{m.group(1)}**{parrafo[m.end(1):]}"
+    return parrafo
+
 
 _PARRAFOS = re.compile(r"\r\n|\n|\r")
 # A handful of `contenido` values are not plain text after all: the ENCABEZADO
@@ -384,8 +442,9 @@ _ETIQUETA_HTML = re.compile(r"<[^>]*>")
 
 
 def articulos_a_markdown(articulos: list[Articulo]) -> str:
-    """The reform's consolidated text as the same light Markdown
-    `scjn.docx_a_markdown` produces from the .docx: one blank-line-separated
+    """The reform's consolidated text as the same light Markdown the
+    retired `scjn.docx_a_markdown` produced from the .docx: one
+    blank-line-separated
     paragraph per source paragraph, editorial asides removed, a heading for
     "Al margen un sello"/"Transitorios", a bolded caption for an ALL-CAPS
     line and a bolded lead for an "Artículo N"/ordinal/list-marker one."""
@@ -402,8 +461,8 @@ def articulos_a_markdown(articulos: list[Articulo]) -> str:
 
 
 def cabecera(ordenamiento: Ordenamiento, reforma: Reforma, nombre_buscado: str) -> str:
-    """The same provenance header `scjn._cabecera` writes, key for key and in
-    the same order, with what the API gives for free appended after it —
+    """The same provenance header the retired `scjn._cabecera` wrote, key for
+    key and in the same order, with what the API gives for free appended after it —
     never renaming or reordering one that is already there.
 
     The added keys are spelled snake_case (`seccion_publicacion`,
@@ -459,7 +518,7 @@ def snapshot(
 # already on disk" skip has no notion of a snapshot being *wrong*. So the
 # thresholds (`UMBRAL_MINIMO_SIMILITUD`, `UMBRAL_CONFIANZA_SIMILITUD`) and
 # the two hard exclusions (`es_acuerdo_interno`, `grupo_instrumento`) are
-# carried over unchanged from `scjn.elige_candidato`; only signals the old
+# carried over unchanged from the retired `scjn.elige_candidato`; only signals the old
 # results page did not have are added, each measured against those 5 cases
 # plus `lfca` and `lisipl` (the numbers are the comment on issue #176).
 
@@ -499,7 +558,7 @@ def elige_ordenamiento(
 ) -> Ordenamiento | None:
     """The candidate that best matches `nombre` among `BusquedaFrase`'s
     results, or None when none of them plausibly is it — the same contract
-    as `scjn.elige_candidato`, so a batch crawl logs the miss and moves on.
+    as the retired `scjn.elige_candidato` did, so a batch crawl logs the miss and moves on.
 
     Order of the filters, and why each one is where it is:
 
@@ -563,7 +622,7 @@ from pathlib import Path  # noqa: E402
 @dataclass
 class ResultadoCrawl:
     """What one instrument's crawl produced: the snapshot paths (oldest
-    first, as `scjn.descarga_ordenamiento` returns them), the ordenamiento
+    first, as the retired `scjn.descarga_ordenamiento` returned them), the ordenamiento
     that was picked, and the reforms the SCJN could not serve."""
 
     escritos: list[Path]
@@ -596,7 +655,8 @@ def descarga_ordenamiento(
 ) -> ResultadoCrawl:
     """Every reform-dated snapshot the SCJN has for `nombre`, written as
     ``outdir/<fecha_publicacion>.md`` — the same contract as
-    `scjn.descarga_ordenamiento`, so `fetch_scjn_legislacion.py` keeps every
+    the retired `scjn.descarga_ordenamiento`, so `fetch_scjn_legislacion.py`
+    keeps every
     one of its resumption mechanisms:
 
     - a file already on disk is left untouched and its reform not fetched,

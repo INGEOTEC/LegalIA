@@ -153,10 +153,13 @@ as the string-to-string primitive this is built on.
 ### The SCJN path — a law's consolidated text at each reform
 
 Since v0.5.0, `legal_provisions` answers **the whole law, not the reform
-decree**, whenever it can. The SCJN's Buscador keeps, for every reform of
-every federal law, a snapshot of the law's consolidated text exactly as it
-read right after that reform; those snapshots are crawled, matched to the DOF
-`codNota` that enacted them, and published as the
+decree**, whenever it can. The SCJN's legislative database keeps, for every
+reform of every federal law, a snapshot of the law's consolidated text
+exactly as it read right after that reform; those snapshots are crawled —
+through the SCJN's own SCOW JSON API since issue #172, which replaced the
+legacy WebForms Buscador and, unlike it, indexes laws as new as the LEY
+FEDERAL DE CINE Y EL AUDIOVISUAL — matched to the DOF `codNota` that enacted
+them, and published as the
 [`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)
 release (315 laws, 3,724 snapshots). A `codNota` the release covers is
 answered straight out of it — which is what
