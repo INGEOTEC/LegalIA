@@ -81,6 +81,30 @@ rows across 31 grid pages -- used to go completely silent for as long as
 that took, indistinguishable from a hung process; `descarga_ordenamiento`'s
 `on_progreso` callback now narrates it, one line per grid page and per row.
 
+Issue #177 added ``--api``: the same crawl, driven by the SCJN's own SCOW
+JSON API (`nota2md.scjn_api`) instead of the WebForms Buscador. Issue #178
+re-crawled the whole `leyes` collection through it, diffed the result
+against the corpus this repo had already published, and **made it the
+default** -- ``--webforms`` is now the flag, and it only survives until the
+Fase 6 removal (issue #179). What the diff showed, over 315 instrumentos:
+270 identical in every respect, 0 that the new index cannot find and the
+old one could, 53 whose only change is a title cleaned of the HTML
+scraping's own spacing artifacts ("INTE RES PUBLICO", "LEY ,"), and two
+files the old crawler had saved from an entirely different ordenamiento
+(a Morelos state law under `lgeepa`, a Nuevo Leon one under `cpeum` --
+issue #115 Hallazgo C, found again). Every mechanism described above keeps
+its meaning under the API; two things are genuinely new:
+
+- an instrumento's `estado.json` records the `id_ordenamiento` the crawl
+  resolved, so a later run skips the search step entirely and reads exactly
+  the document the previous one read. `lee_estado`/`motivo_pendiente`
+  tolerate an `estado.json` written before this field existed, and
+  ``--reintenta`` deliberately does *not* reuse it (re-downloading the same
+  wrong document from a remembered id is exactly what issue #115 is about).
+- a reform the SCJN itself cannot serve (`lfd` has ones answering HTTP 500
+  on every attempt, issue #173) is reported and skipped, not treated as the
+  instrumento failing.
+
 Issue #148 turns the refresh above from all-or-nothing into law-by-law, with
 two additions and no change to what a plain full sweep does:
 
@@ -165,11 +189,13 @@ from nota2md.scjn import (  # noqa: E402
     PENDIENTE_SIN_ACTUALIZADO,
     descarga_ordenamiento,
     escribe_estado,
+    lee_estado,
     motivo_pendiente,
     nueva_sesion,
     search_name,
     slug_instrumento,
 )
+from nota2md import scjn_api  # noqa: E402
 from nota2md.utils import RELEASES_API  # noqa: E402
 
 COLECCIONES = ("leyes", "reglamentos", "tratados")
@@ -287,6 +313,7 @@ def actualiza_coleccion(
     refresca: bool = True,
     incluye_sin_actualizado: bool = False,
     empaqueta: bool = True,
+    api: bool = True,
 ) -> int:
     """The whole issue #148 chain in one call: refresh the catalogue, work
     out what is pending, and for each pending instrumento crawl it, link it
@@ -327,7 +354,7 @@ def actualiza_coleccion(
         print(f"\n== [{n}/{len(pendientes)}] {slug} ==", file=sys.stderr)
         try:
             if rastrea_coleccion(
-                coleccion, outdir, espera, instrumento={slug}
+                coleccion, outdir, espera, instrumento={slug}, api=api
             ):
                 raise RuntimeError("la SCJN no devolvio nada para este instrumento")
             enlaza.enlaza_coleccion(coleccion, outdir, porf, cache_notas, instrumento={slug})
@@ -468,6 +495,7 @@ def rastrea_coleccion(
     reiniciar: bool = False,
     reintenta: set[str] | None = None,
     instrumento: set[str] | None = None,
+    api: bool = True,
 ) -> list[str]:
     """Crawl `coleccion` and return the slugs whose crawl did not succeed —
     the SCJN raised, or returned nothing at all for them. Failures were
@@ -524,8 +552,13 @@ def rastrea_coleccion(
                 "(progreso guardado de una corrida anterior)",
                 file=sys.stderr,
             )
+    # One client for the whole collection: it holds the connection pool and
+    # the rate limit, and nothing in it is scoped to an instrument (unlike
+    # the WebForms session, which had to be new for each one).
+    cliente_api = scjn_api.ScjnApi(espera=espera) if api else None
     saltados = 0
     fallidos = []
+    descuadres: list[tuple] = []
     for i, entrada in enumerate(instrumentos, 1):
         if i <= inicio:
             continue
@@ -553,15 +586,62 @@ def rastrea_coleccion(
                 (destino / ARCHIVO_ESTADO).unlink(missing_ok=True)
             etiqueta = nombre if buscado == nombre else f"{nombre} (buscado como {buscado!r})"
             print(f"[{coleccion} {i}/{len(instrumentos)}] {etiqueta}", file=sys.stderr)
-            sesion = nueva_sesion()
+            id_ordenamiento = None
             try:
                 # Issue #140, Causa 2: a large instrumento (the CPEUM's 301
                 # rows across 31 grid pages is the confirmed case) otherwise
                 # goes silent for as long as its own crawl takes --
                 # indistinguishable from a hung process.
-                escritos = descarga_ordenamiento(
-                    sesion, buscado, destino, espera=espera, on_progreso=_imprime_avance
-                )
+                if api:
+                    # Issue #177: an `id_ordenamiento` a previous run already
+                    # resolved skips the search step entirely -- the whole
+                    # point of an instrument being addressable by a stable id
+                    # instead of a session URL. --reintenta deliberately does
+                    # not reuse it: re-downloading a wrong document from the
+                    # same id would defeat the purpose (issue #115).
+                    if reintenta is None:
+                        id_previo = lee_estado(destino).get("id_ordenamiento")
+                    else:
+                        id_previo = None
+                    resultado = scjn_api.descarga_ordenamiento(
+                        cliente_api,
+                        buscado,
+                        destino,
+                        on_progreso=_imprime_avance,
+                        id_ordenamiento=id_previo,
+                    )
+                    escritos = resultado.escritos
+                    if resultado.ordenamiento is not None:
+                        id_ordenamiento = resultado.ordenamiento.idOrdenamiento
+                    for sin in resultado.reformas_sin_articulos:
+                        print(
+                            f"  sin texto consolidado (tieneArticulos=false): {sin}",
+                            file=sys.stderr,
+                        )
+                    for fallida in resultado.reformas_fallidas:
+                        print(f"  aviso: reforma no servida por la SCJN: {fallida}", file=sys.stderr)
+                    # Issue #178: check the crawl against the SCJN's own reform
+                    # count for this instrumento -- its detail page shows that
+                    # number, and a silent shortfall is exactly how a paging
+                    # bug hid ~106 missing snapshots in the first full crawl.
+                    cubiertas = len(escritos) + len(resultado.reformas_sin_articulos)
+                    if resultado.total_reformas and cubiertas != resultado.total_reformas:
+                        print(
+                            f"  DESCUADRE: la SCJN reporta {resultado.total_reformas} reforma(s) "
+                            f"y quedaron {len(escritos)} snapshot(s) + "
+                            f"{len(resultado.reformas_sin_articulos)} sin texto consolidado "
+                            f"= {cubiertas}",
+                            file=sys.stderr,
+                        )
+                        descuadres.append(
+                            (slug, resultado.total_reformas, len(escritos),
+                             len(resultado.reformas_sin_articulos))
+                        )
+                else:
+                    escritos = descarga_ordenamiento(
+                        nueva_sesion(), buscado, destino, espera=espera,
+                        on_progreso=_imprime_avance,
+                    )
             except Exception as exc:
                 print(f"  aviso: {buscado!r} fallo: {exc}", file=sys.stderr)
                 fallidos.append(slug)
@@ -578,11 +658,16 @@ def rastrea_coleccion(
                 # still gets no `estado.json` directory of snapshots, so
                 # `motivo_pendiente` keeps returning `nunca_rastreado` for it.
                 if destino.is_dir():
-                    escribe_estado(
-                        destino,
+                    campos = dict(
                         actualizado=entrada.get("actualizado"),
                         rastreado=date.today().isoformat(),
                     )
+                    # Issue #177: only ever added, never required --
+                    # `lee_estado`/`motivo_pendiente` read an estado.json
+                    # written before this field existed exactly as they did.
+                    if id_ordenamiento is not None:
+                        campos["id_ordenamiento"] = id_ordenamiento
+                    escribe_estado(destino, **campos)
             time.sleep(espera)
         if seleccion is None:
             _guarda_progreso(outdir, coleccion, i)
@@ -592,6 +677,18 @@ def rastrea_coleccion(
             "SCJN not touched (Mecanismo 2, issue #124)",
             file=sys.stderr,
         )
+    if descuadres:
+        print(
+            f"\n  {coleccion}: {len(descuadres)} instrumento(s) NO cuadran con el "
+            "numero de reformas que reporta la SCJN:",
+            file=sys.stderr,
+        )
+        for slug_d, total_d, escritos_d, sin_d in descuadres:
+            print(
+                f"    {slug_d}: reformas={total_d} snapshots={escritos_d} "
+                f"sin_texto={sin_d} faltan={total_d - escritos_d - sin_d}",
+                file=sys.stderr,
+            )
     # Only a sweep of the whole collection may claim it was crawled
     # start-to-finish: --instrumento/--reintenta deliberately skipped most of
     # it, so neither the checkpoint nor the full-crawl date apply to them.
@@ -646,6 +743,24 @@ def main(argv=None) -> int:
             "repetible; slug_instrumento a rastrear, sin tocar la SCJN para ningun otro "
             "(issue #148). A diferencia de --reintenta, no borra nada: los snapshots ya "
             "en disco se conservan y solo se bajan las reformas nuevas."
+        ),
+    )
+    p.add_argument(
+        "--api",
+        action="store_true",
+        help=(
+            "sin efecto: la API ya es el default desde el issue #178. Se acepta para "
+            "que un comando escrito durante la transicion (issue #177) siga corriendo"
+        ),
+    )
+    p.add_argument(
+        "--webforms",
+        action="store_true",
+        help=(
+            "rastrea por el Buscador WebForms viejo en vez de la API (issue #178). "
+            "Bandera de transicion: el camino WebForms se retira en la Fase 6 "
+            "(issue #179). Solo tiene sentido para reproducir a mano lo que una "
+            "corrida anterior a la migracion produjo"
         ),
     )
     p.add_argument(
@@ -736,6 +851,7 @@ def main(argv=None) -> int:
                 refresca=not args.sin_refrescar_catalogo,
                 incluye_sin_actualizado=args.incluye_sin_actualizado,
                 empaqueta=not args.sin_empaquetar,
+                api=not args.webforms,
             )
             continue
         rastrea_coleccion(
@@ -745,6 +861,7 @@ def main(argv=None) -> int:
             reiniciar=args.reiniciar,
             reintenta=reintenta,
             instrumento=instrumento,
+            api=not args.webforms,
         )
     # Non-zero when --actualiza left work behind, so a caller (or a human
     # reading `echo $?`) does not mistake a partial run for a clean one.

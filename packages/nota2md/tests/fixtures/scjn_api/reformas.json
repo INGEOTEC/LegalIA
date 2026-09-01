@@ -1,0 +1,130 @@
+{
+ "tamanio": 3,
+ "codigo": 200,
+ "mensaje": "Resultados encontrados",
+ "resultados": [
+  {
+   "vigencia": "VIGENTE",
+   "estado": null,
+   "categoriaOrdenamiento": "LEY",
+   "categoriaReforma": "LEY",
+   "ambito": "FEDERAL",
+   "reformaId": 1,
+   "reforma": "LEY FEDERAL DE CINE Y EL AUDIOVISUAL.\r\n\r\nTRANSITORIOS:\r\nPRIMERO. EL PRESENTE DECRETO ENTRA EN VIGOR EL DIA SIGUIENTE AL DE SU PUBLICACION EN EL DIARIO OFICIAL DE LA FEDERACION.\r\n\r\nSEGUNDO. SE ABROGA LA LEY FEDERAL DE CINEMATOGRAFIA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACION EL 29 DE DICIEMBRE DE 1992.",
+   "fechaPublicacion": "22/05/2026 00:00:00",
+   "fechaExpedicion": "02/05/2026 00:00:00",
+   "seccionPublicacion": "133/2026 EDICION VESPERTINA ",
+   "pdf": "018880500001.pdf",
+   "id": 0,
+   "tieneArticulos": true,
+   "tieneProcesos": false,
+   "articulos": [
+    {
+     "numero": 0,
+     "id": 0,
+     "orden": 0,
+     "ordenamientoId": 0,
+     "reformaId": 0,
+     "referencia": "",
+     "contenido": "",
+     "fechaActualizacion": null,
+     "documento": null,
+     "esDocumentoArticulos": null,
+     "nombre": null,
+     "extension": null,
+     "ruta": null,
+     "articuloVersion": 0,
+     "fechaPublicacion": null,
+     "tamanioListadoTotal": 0,
+     "lOrdenValidado": false
+    }
+   ],
+   "procesosLegislativos": null
+  },
+  {
+   "vigencia": "VIGENTE",
+   "estado": null,
+   "categoriaOrdenamiento": "CODIGO",
+   "categoriaReforma": "DECRETO",
+   "ambito": "FEDERAL",
+   "reformaId": 75,
+   "reforma": "DECRETO \r\nARTICULO PRIMERO.- SE REFORMAN LOS ARTICULOS 51; 89; 137; 206; 272, CUARTO PARRAFO; 282, FRACCION II; 283, SEGUNDO PARRAFO; 399; 416, PRIMER PARRAFO; 462; 513; 1549 BIS, FRACCION VI; 1712; 1725; 1750; 1752; 1934 BIS; 2118; 2323; 2325; 2416; 2545; 2882; 2916, PRIMER PARRAFO; 2965; 2972; 3039, SEGUNDO PARRAFO; 3047, PRIMER PARRAFO Y, 3048, SEGUNDO PARRAFO, DEL CODIGO CIVIL FEDERAL.\r\n\r\nTRANSITORIOS:\r\nPRIMERO. EL PRESENTE DECRETO ENTRARA EN VIGOR EL DIA SIGUIENTE AL DE SU PUBLICACION EN EL DIARIO OFICIAL DE LA FEDERACION.\r\n\r\nSEGUNDO. LA APLICACION DE LO DISPUESTO EN EL PRESENTE DECRETO ENTRARA EN VIGOR EN CADA UNA DE LAS ENTIDADES FEDERATIVAS AL MISMO TIEMPO QUE LA DECLARATORIA DE APLICACION GRADUAL QUE EXPIDAN LOS CONGRESOS LOCALES PARA EFECTO DE LA ENTRADA EN VIGOR DEL CODIGO NACIONAL DE PROCEDIMIENTOS CIVILES Y FAMILIARES, DE CONFORMIDAD CON EL ARTICULO SEGUNDO TRANSITORIO DEL DECRETO PUBLICADO EN EL DIARIO OFICIAL DE LA FEDERACION EL 7 DE JUNIO DE 2023.\r\n\r\nEN EL ORDEN FEDERAL, LA APLICACION DE LO DISPUESTO EN EL PRESENTE DECRETO ENTRARA EN VIGOR DE CONFORMIDAD CON LA DECLARATORIA DE APLICACION GRADUAL QUE, INDISTINTA Y SUCESIVAMENTE, REALICEN PARA EL CODIGO NACIONAL DE PROCEDIMIENTOS CIVILES Y FAMILIARES LAS CAMARAS DE DIPUTADOS Y SENADORES QUE INTEGRAN EL CONGRESO DE LA UNION.\r\n\r\nEN TODOS LOS CASOS, VENCIDO EL PLAZO SIN QUE SE HUBIERA EMITIDO LA DECLARATORIA RESPECTIVA, LA ENTRADA EN VIGOR DE LO PREVISTO EN EL PRESENTE DECRETO SERA AUTOMATICA A PARTIR DEL 1°. DE ABRIL DE 2027.",
+   "fechaPublicacion": "14/11/2025 00:00:00",
+   "fechaExpedicion": "13/11/2025 00:00:00",
+   "seccionPublicacion": "310/2025 EDICION VESPERTINA ",
+   "pdf": "000064100075.pdf",
+   "id": 0,
+   "tieneArticulos": true,
+   "tieneProcesos": false,
+   "articulos": [
+    {
+     "numero": 0,
+     "id": 0,
+     "orden": 0,
+     "ordenamientoId": 0,
+     "reformaId": 0,
+     "referencia": "",
+     "contenido": "",
+     "fechaActualizacion": null,
+     "documento": null,
+     "esDocumentoArticulos": null,
+     "nombre": null,
+     "extension": null,
+     "ruta": null,
+     "articuloVersion": 0,
+     "fechaPublicacion": null,
+     "tamanioListadoTotal": 0,
+     "lOrdenValidado": false
+    }
+   ],
+   "procesosLegislativos": null
+  },
+  {
+   "vigencia": "VIGENTE",
+   "estado": null,
+   "categoriaOrdenamiento": "CODIGO",
+   "categoriaReforma": "DECRETO",
+   "ambito": "FEDERAL",
+   "reformaId": 74,
+   "reforma": "DECRETO \r\nARTICULO SEGUNDO.- SE REFORMA EL PARRAFO TERCERO DEL ARTICULO 323 TER; Y LOS ARTICULOS 444 BIS Y 494, Y SE ADICIONA UN PARRAFO CUARTO AL ARTICULO 323 TER, Y EL 323 QUATER, DEL CODIGO CIVIL FEDERAL.\r\n\r\nTRANSITORIO PRIMERO. EL PRESENTE DECRETO ENTRARA EN VIGOR EL DIA SIGUIENTE AL DE SU PUBLICACION EN EL DIARIO OFICIAL DE LA FEDERACION.",
+   "fechaPublicacion": "17/01/2024 00:00:00",
+   "fechaExpedicion": "17/01/2024 00:00:00",
+   "seccionPublicacion": "17 EDICION VESPERTINA ",
+   "pdf": "000064100074.pdf",
+   "id": 0,
+   "tieneArticulos": true,
+   "tieneProcesos": true,
+   "articulos": [
+    {
+     "numero": 0,
+     "id": 0,
+     "orden": 0,
+     "ordenamientoId": 0,
+     "reformaId": 0,
+     "referencia": "",
+     "contenido": "",
+     "fechaActualizacion": null,
+     "documento": null,
+     "esDocumentoArticulos": null,
+     "nombre": null,
+     "extension": null,
+     "ruta": null,
+     "articuloVersion": 0,
+     "fechaPublicacion": null,
+     "tamanioListadoTotal": 0,
+     "lOrdenValidado": false
+    }
+   ],
+   "procesosLegislativos": [
+    {
+     "pdf": "",
+     "proceso": "",
+     "procesoId": 0,
+     "tipoProceso": "",
+     "extension": null,
+     "ruta": null
+    }
+   ]
+  }
+ ]
+}
