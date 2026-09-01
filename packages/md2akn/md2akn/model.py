@@ -159,7 +159,7 @@ class AknNode:
     #: The document's frontmatter, set on the root `act` only (empty on
     #: every other node, and on an `act` whose file had none).
     meta: dict[str, str] = field(default_factory=dict, repr=False)
-    #: Set on a `content` child of an `article` that also has fracciones:
+    #: Set only on a `content` child of an `article` that also has fracciones:
     #: `is_chapeau` for the introduction that precedes them ("Artículo 4. Son
     #: obligaciones:"), `is_tail` for a paragraph that follows the last one.
     #:
@@ -170,7 +170,9 @@ class AknNode:
     #: and keeps the article as it reads; the flags are what let a later XML
     #: conversion make that choice knowingly rather than by position. See
     #: #160, and `nota2md/akoma_ntoso.py`, which does have to choose and
-    #: therefore flattens.
+    #: therefore flattens. An article of nothing but paragraphs still has
+    #: them as `content` children (issue #181) — it simply has no chapeau and
+    #: no tail, because there is nothing to interleave and nothing to choose.
     is_chapeau: bool = False
     is_tail: bool = False
     parent: "AknNode | None" = field(default=None, repr=False)

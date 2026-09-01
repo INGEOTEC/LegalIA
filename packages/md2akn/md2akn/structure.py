@@ -83,6 +83,9 @@ PREFIJO_EID = {
     "paragraph": "para",
     "point": "point",
     "subpoint": "subpoint",
+    # A paragraph is a citable unit of its own ("el párrafo segundo del
+    # artículo 1o.", and reforms published against it) -- issue #181.
+    "content": "p",
 }
 
 _ACENTOS = str.maketrans("ÁÉÍÓÚÜáéíóúü", "AEIOUUaeiouu")

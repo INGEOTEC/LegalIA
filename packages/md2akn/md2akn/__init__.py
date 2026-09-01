@@ -41,7 +41,7 @@ from md2akn.model import (
 from md2akn.pipeline import parse_legal_provisions, parse_markdown
 from md2akn.validate import Report, Violation, validate
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "parse_legal_provisions",

@@ -38,8 +38,8 @@
             "children": [
               {
                 "akn_type": "content",
-                "eId": "art_4o__content_p",
-                "num": null,
+                "eId": "art_4o__p_1",
+                "num": "1",
                 "heading": null,
                 "refers_to": null,
                 "is_chapeau": true,
@@ -157,8 +157,8 @@
               },
               {
                 "akn_type": "content",
-                "eId": "art_4o__content_p_2",
-                "num": null,
+                "eId": "art_4o__p_2",
+                "num": "2",
                 "heading": null,
                 "refers_to": null,
                 "is_chapeau": false,
@@ -181,7 +181,21 @@
             "start": 503,
             "end": 570,
             "notes": [],
-            "children": []
+            "children": [
+              {
+                "akn_type": "content",
+                "eId": "art_5o__p_1",
+                "num": "1",
+                "heading": null,
+                "refers_to": null,
+                "is_chapeau": false,
+                "is_tail": false,
+                "start": 503,
+                "end": 570,
+                "notes": [],
+                "children": []
+              }
+            ]
           }
         ]
       }

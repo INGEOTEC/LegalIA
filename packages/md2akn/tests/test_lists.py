@@ -63,11 +63,22 @@ class TestFracciones(unittest.TestCase):
         art = _articulo(tree)
         self.assertEqual([p.num for p in _hijos(art, "paragraph")], ["I", "II", "III"])
 
-    def test_un_articulo_sin_lista_no_gana_hijos(self):
-        # Its text is its own; a lone `content` twin of the article would
-        # only double the tree.
+    def test_un_articulo_sin_lista_tiene_un_content_por_parrafo(self):
+        # Issue #181: the paragraph is a unit of the tree unconditionally, so
+        # it can be cited ("el párrafo segundo del artículo 1o.") whether or
+        # not the article also happens to carry fracciones.
         tree = parse_markdown("**Artículo 1o.** Un texto sin listas.\n\nOtro parrafo.\n")
-        self.assertEqual(_articulo(tree).children, [])
+        art = _articulo(tree)
+
+        self.assertEqual([h.akn_type for h in art.children], ["content", "content"])
+        self.assertEqual([h.num for h in art.children], ["1", "2"])
+        self.assertEqual(
+            [h.eId for h in art.children], ["art_1o__p_1", "art_1o__p_2"]
+        )
+        # No hierarchy means no chapeau and no tail: there is nothing for a
+        # later XML conversion to choose between.
+        self.assertEqual([h.is_chapeau for h in art.children], [False, False])
+        self.assertEqual([h.is_tail for h in art.children], [False, False])
 
     def test_una_fraccion_derogada_deja_un_hueco_y_no_rompe_la_lista(self):
         tree = parse_markdown(
@@ -179,7 +190,9 @@ class TestApartados(unittest.TestCase):
             "C. Primer Jefe del Ejercito Constitucionalista, Encargado del Poder.\n"
         )
         art = _articulo(tree)
-        self.assertEqual([n.akn_type for n in art.walk()][1:], [])
+        # Both blocks are plain paragraphs of the article (issue #181); what
+        # matters here is that no list node was opened by that `C.`.
+        self.assertEqual([n.akn_type for n in art.walk()][1:], ["content", "content"])
 
 
 class TestChapeauYTail(unittest.TestCase):
@@ -215,6 +228,60 @@ class TestChapeauYTail(unittest.TestCase):
     def test_un_articulo_sin_lista_no_lleva_banderas(self):
         tree = parse_markdown("**Artículo 1o.** Solo texto.\n")
         self.assertFalse(any(n.is_chapeau or n.is_tail for n in tree.walk()))
+
+
+class TestParrafoCitable(unittest.TestCase):
+    """The paragraph as a unit of the tree, always (issue #181)."""
+
+    LEY = (
+        "**Artículo 4o.** Son obligaciones:\n\n"
+        "**I.** La primera, que dice:\n\n"
+        "Un parrafo dentro de la fraccion.\n\n"
+        "Y otro parrafo dentro de la misma fraccion.\n\n"
+        "**II.** La segunda.\n\n"
+        "Un parrafo final del articulo.\n"
+    )
+
+    def setUp(self):
+        self.art = _articulo(parse_markdown(self.LEY), "4o")
+
+    def test_el_articulo_con_jerarquia_conserva_su_forma_y_sus_banderas(self):
+        self.assertEqual(
+            [h.akn_type for h in self.art.children],
+            ["content", "paragraph", "paragraph", "content"],
+        )
+        self.assertTrue(self.art.children[0].is_chapeau)
+        self.assertTrue(self.art.children[-1].is_tail)
+
+    def test_los_parrafos_propios_del_articulo_se_numeran_entre_ellos(self):
+        # Mexican citation counts the article's own paragraphs -- the chapeau
+        # and the closing one -- not the text inside its fracciones.
+        propios = [h for h in self.art.children if h.akn_type == "content"]
+        self.assertEqual([h.num for h in propios], ["1", "2"])
+        self.assertEqual([h.eId for h in propios], ["art_4o__p_1", "art_4o__p_2"])
+
+    def test_la_fraccion_absorbe_sus_propios_parrafos_y_no_entran_en_la_cuenta(self):
+        # Settling the question #181 leaves open: the count is scoped to the
+        # immediate parent, so a fracción's continuation paragraphs never
+        # advance the article's own numbering. They are not `content` nodes
+        # at all today — #160's rule grows the fracción's span over them
+        # instead — and the two paragraphs the article does own are numbered
+        # 1 and 2 with those in between, exactly as "el párrafo segundo del
+        # artículo 4o." means it.
+        fraccion = _hijos(self.art, "paragraph")[0]
+        self.assertEqual(_hijos(fraccion, "content"), [])
+        self.assertIn("Y otro parrafo dentro de la misma fraccion", fraccion.text)
+
+        propios = [h for h in self.art.children if h.akn_type == "content"]
+        self.assertEqual([h.num for h in propios], ["1", "2"])
+        self.assertIn("Un parrafo final del articulo", propios[1].text)
+
+    def test_los_eid_son_unicos_en_todo_el_arbol(self):
+        # The literal `"p"` placeholder made this false before #181: two
+        # paragraphs of one article proposed the same eId.
+        eids = [n.eId for n in parse_markdown(self.LEY).walk() if n.eId]
+        self.assertEqual(len(eids), len(set(eids)))
+        self.assertFalse([e for e in eids if e.endswith("__p_2_2")])
 
 
 class TestInvariantes(unittest.TestCase):

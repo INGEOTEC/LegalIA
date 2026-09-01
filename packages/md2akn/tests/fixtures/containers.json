@@ -59,7 +59,21 @@
                     "start": 125,
                     "end": 179,
                     "notes": [],
-                    "children": []
+                    "children": [
+                      {
+                        "akn_type": "content",
+                        "eId": "tit_PRIMERO__cap_I__art_1o__p_1",
+                        "num": "1",
+                        "heading": null,
+                        "refers_to": null,
+                        "is_chapeau": false,
+                        "is_tail": false,
+                        "start": 125,
+                        "end": 179,
+                        "notes": [],
+                        "children": []
+                      }
+                    ]
                   },
                   {
                     "akn_type": "article",
@@ -75,8 +89,8 @@
                     "children": [
                       {
                         "akn_type": "content",
-                        "eId": "tit_PRIMERO__cap_I__art_2o__content_p",
-                        "num": null,
+                        "eId": "tit_PRIMERO__cap_I__art_2o__p_1",
+                        "num": "1",
                         "heading": null,
                         "refers_to": null,
                         "is_chapeau": true,
@@ -139,7 +153,21 @@
                     "start": 358,
                     "end": 419,
                     "notes": [],
-                    "children": []
+                    "children": [
+                      {
+                        "akn_type": "content",
+                        "eId": "tit_PRIMERO__cap_II__art_3o__p_1",
+                        "num": "1",
+                        "heading": null,
+                        "refers_to": null,
+                        "is_chapeau": false,
+                        "is_tail": false,
+                        "start": 358,
+                        "end": 419,
+                        "notes": [],
+                        "children": []
+                      }
+                    ]
                   }
                 ]
               }
@@ -168,7 +196,21 @@
                 "start": 438,
                 "end": 502,
                 "notes": [],
-                "children": []
+                "children": [
+                  {
+                    "akn_type": "content",
+                    "eId": "sec_transitorios__art_PRIMERO__p_1",
+                    "num": "1",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 438,
+                    "end": 502,
+                    "notes": [],
+                    "children": []
+                  }
+                ]
               },
               {
                 "akn_type": "article",
@@ -181,7 +223,21 @@
                 "start": 504,
                 "end": 562,
                 "notes": [],
-                "children": []
+                "children": [
+                  {
+                    "akn_type": "content",
+                    "eId": "sec_transitorios__art_SEGUNDO__p_1",
+                    "num": "1",
+                    "heading": null,
+                    "refers_to": null,
+                    "is_chapeau": false,
+                    "is_tail": false,
+                    "start": 504,
+                    "end": 562,
+                    "notes": [],
+                    "children": []
+                  }
+                ]
               }
             ]
           }
