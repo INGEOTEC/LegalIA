@@ -558,6 +558,7 @@ def rastrea_coleccion(
     cliente_api = scjn_api.ScjnApi(espera=espera) if api else None
     saltados = 0
     fallidos = []
+    descuadres: list[tuple] = []
     for i, entrada in enumerate(instrumentos, 1):
         if i <= inicio:
             continue
@@ -612,8 +613,30 @@ def rastrea_coleccion(
                     escritos = resultado.escritos
                     if resultado.ordenamiento is not None:
                         id_ordenamiento = resultado.ordenamiento.idOrdenamiento
+                    for sin in resultado.reformas_sin_articulos:
+                        print(
+                            f"  sin texto consolidado (tieneArticulos=false): {sin}",
+                            file=sys.stderr,
+                        )
                     for fallida in resultado.reformas_fallidas:
                         print(f"  aviso: reforma no servida por la SCJN: {fallida}", file=sys.stderr)
+                    # Issue #178: check the crawl against the SCJN's own reform
+                    # count for this instrumento -- its detail page shows that
+                    # number, and a silent shortfall is exactly how a paging
+                    # bug hid ~106 missing snapshots in the first full crawl.
+                    cubiertas = len(escritos) + len(resultado.reformas_sin_articulos)
+                    if resultado.total_reformas and cubiertas != resultado.total_reformas:
+                        print(
+                            f"  DESCUADRE: la SCJN reporta {resultado.total_reformas} reforma(s) "
+                            f"y quedaron {len(escritos)} snapshot(s) + "
+                            f"{len(resultado.reformas_sin_articulos)} sin texto consolidado "
+                            f"= {cubiertas}",
+                            file=sys.stderr,
+                        )
+                        descuadres.append(
+                            (slug, resultado.total_reformas, len(escritos),
+                             len(resultado.reformas_sin_articulos))
+                        )
                 else:
                     escritos = descarga_ordenamiento(
                         nueva_sesion(), buscado, destino, espera=espera,
@@ -654,6 +677,18 @@ def rastrea_coleccion(
             "SCJN not touched (Mecanismo 2, issue #124)",
             file=sys.stderr,
         )
+    if descuadres:
+        print(
+            f"\n  {coleccion}: {len(descuadres)} instrumento(s) NO cuadran con el "
+            "numero de reformas que reporta la SCJN:",
+            file=sys.stderr,
+        )
+        for slug_d, total_d, escritos_d, sin_d in descuadres:
+            print(
+                f"    {slug_d}: reformas={total_d} snapshots={escritos_d} "
+                f"sin_texto={sin_d} faltan={total_d - escritos_d - sin_d}",
+                file=sys.stderr,
+            )
     # Only a sweep of the whole collection may claim it was crawled
     # start-to-finish: --instrumento/--reintenta deliberately skipped most of
     # it, so neither the checkpoint nor the full-crawl date apply to them.

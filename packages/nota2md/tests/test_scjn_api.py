@@ -75,12 +75,17 @@ class TestBusqueda(unittest.TestCase):
 
 
 class TestReformas(unittest.TestCase):
-    def test_pagina_hasta_agotar_tamanio(self):
-        pagina1 = {"tamanio": 3, "codigo": 200, "resultados": fixture("reformas.json")["resultados"][:2]}
-        pagina2 = {"tamanio": 3, "codigo": 200, "resultados": fixture("reformas.json")["resultados"][2:]}
-        cliente, sesion = api([RespuestaFalsa(pagina1), RespuestaFalsa(pagina2)])
+    def test_pagina_mientras_la_pagina_venga_completa(self):
+        # Una pagina completa significa que puede haber otra; una corta es la
+        # ultima (ver TAMANIO_PAGINA_REFORMAS y el bug de paginacion de #178).
+        from nota2md.scjn_api import TAMANIO_PAGINA_REFORMAS
+
+        fila = fixture("reformas.json")["resultados"][0]
+        completa = {"codigo": 200, "tamanio": 0, "resultados": [fila] * TAMANIO_PAGINA_REFORMAS}
+        corta = {"codigo": 200, "tamanio": 0, "resultados": [fila] * 3}
+        cliente, sesion = api([RespuestaFalsa(completa), RespuestaFalsa(corta)])
         filas = cliente.reformas_of_ordenamiento(188805)
-        self.assertEqual(len(filas), 3)
+        self.assertEqual(len(filas), TAMANIO_PAGINA_REFORMAS + 3)
         self.assertEqual([l[2]["params"]["numeroPagina"] for l in sesion.llamadas], [1, 2])
 
     def test_normaliza_fechas_y_seccion(self):
@@ -490,3 +495,99 @@ class TestCrawl(unittest.TestCase):
             resultado = descarga_ordenamiento(cliente, "CÓDIGO Civil Federal", Path(tmp))
         self.assertEqual(resultado.escritos, [])
         self.assertIsNone(resultado.ordenamiento)
+
+
+class TestPaginacion(unittest.TestCase):
+    """Regresión del bug que el issue #178 destapó auditando `lfd`: 92
+    snapshots contra las 98 reformas que su propia ficha de la SCJN lista.
+
+    Dos hechos de esta API se combinaban mal: `tamanio` puede sobrecontar lo
+    que el endpoint llega a devolver (`lfd` reforma 99 declara 995 y sirve
+    991, completos, cubriendo `orden` 1..995), y pedir una página pasada del
+    final contesta HTTP 500 en vez de una página vacía. Con `len(filas) >=
+    tamanio` como condición de paro, esas reformas pedían siempre una
+    segunda página, esa página fallaba, y la reforma entera se descartaba."""
+
+    def respuestas_articulos(self, paginas, tamanio):
+        from nota2md.scjn_api import ScjnApi
+
+        respuestas = [
+            RespuestaFalsa(
+                {
+                    "codigo": 200,
+                    "tamanio": tamanio,
+                    "articulos": [
+                        {"numero": i, "orden": i, "referencia": f"ARTÍCULO {i}", "contenido": "x"}
+                        for i in p
+                    ],
+                }
+            )
+            for p in paginas
+        ]
+        # Una página más allá del final: 500, como hace la API de verdad.
+        respuestas.append(RespuestaFalsa({}, status_code=500))
+        sesion = SesionFalsa(respuestas)
+        return ScjnApi(espera=0, reintentos=0, session=sesion), sesion
+
+    def test_una_pagina_corta_es_la_ultima_aunque_tamanio_sobrecuente(self):
+        from nota2md.scjn_api import TAMANIO_PAGINA_ARTICULOS
+
+        n = TAMANIO_PAGINA_ARTICULOS
+        # Página 1 completa, página 2 corta; `tamanio` declara 4 de más.
+        cliente, sesion = self.respuestas_articulos(
+            [range(1, n + 1), range(n + 1, n + 492)], tamanio=n + 495
+        )
+        articulos = cliente.articulos_of_reforma(693, 99)
+        self.assertEqual(len(articulos), n + 491)
+        # Y no pidió la tercera página, que es la que contesta 500.
+        self.assertEqual(len(sesion.llamadas), 2)
+
+    def test_una_sola_pagina_corta_no_pide_una_segunda(self):
+        cliente, sesion = self.respuestas_articulos([range(1, 88)], tamanio=87)
+        self.assertEqual(len(cliente.articulos_of_reforma(188805, 1)), 87)
+        self.assertEqual(len(sesion.llamadas), 1)
+
+    def test_una_reforma_sin_articulos_no_se_pide(self):
+        # `tieneArticulos=False` es la API diciendo por adelantado que no tiene
+        # texto consolidado; preguntarle igual contesta 500.
+        from tempfile import TemporaryDirectory
+
+        from nota2md.scjn_api import Ordenamiento, Reforma, ScjnApiError, descarga_ordenamiento
+
+        class ClienteFalso:
+            def __init__(self):
+                self.pedidos = []
+
+            def search_ordenamiento(self, nombre, **kw):
+                return [Ordenamiento(idOrdenamiento="693", ordenamiento="LEY FEDERAL DE DERECHOS")]
+
+            def reformas_of_ordenamiento(self, id_ordenamiento):
+                return [
+                    Reforma(reformaId=9, fecha_publicacion="28-12-2025"),
+                    Reforma(
+                        reformaId=8,
+                        fecha_publicacion="21-05-1982",
+                        categoria="FE DE ERRATAS",
+                        tieneArticulos=False,
+                    ),
+                ]
+
+            def articulos_of_reforma(self, id_ordenamiento, id_reforma):
+                self.pedidos.append(id_reforma)
+                if id_reforma == 8:
+                    raise ScjnApiError("HTTP 500")
+                return []
+
+        cliente = ClienteFalso()
+        with TemporaryDirectory() as tmp:
+            resultado = descarga_ordenamiento(cliente, "LEY Federal de Derechos", Path(tmp))
+        self.assertEqual(cliente.pedidos, [9])
+        self.assertEqual(resultado.reformas_fallidas, [])
+        self.assertEqual(len(resultado.reformas_sin_articulos), 1)
+        self.assertIn("FE DE ERRATAS", resultado.reformas_sin_articulos[0])
+        # snapshots + sin-texto tiene que cuadrar con lo que la SCJN reporta
+        self.assertEqual(resultado.total_reformas, 2)
+        self.assertEqual(
+            len(resultado.escritos) + len(resultado.reformas_sin_articulos),
+            resultado.total_reformas,
+        )

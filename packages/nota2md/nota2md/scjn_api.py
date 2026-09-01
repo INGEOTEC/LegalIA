@@ -47,11 +47,26 @@ HEADERS = {
 ESPERA_DEFAULT = 0.5
 REINTENTOS_DEFAULT = 3
 
-# Issue #173, question 5: `Articulos` served a 3 473-article reform whole in
-# one 2.1 MB / 1.8 s response at this size, with no ceiling observed. The
-# readers below still paginate, since a ceiling appearing later must not
-# silently truncate a law.
-TAMANIO_PAGINA_ARTICULOS = 5000
+# A page size the API honours *exactly*, which is what makes "a short page is
+# the last page" a safe stop condition — and that condition is the only safe
+# one here, because two things are true of this API at once (issue #178, found
+# while auditing why `lfd` had 92 snapshots against the 98 reforms its own
+# detail page lists):
+#
+#   - Asking for a page past the end answers HTTP 500, not an empty page.
+#   - `tamanio` can overcount what the endpoint will ever return: `lfd`
+#     reforma 99 reports `tamanio` 995 and serves 991 articles, complete,
+#     spanning `orden` 1..995 (4 `orden` values simply do not exist).
+#
+# Together those made a `len(filas) >= tamanio` stop condition fail closed: it
+# never came true for such a reform, so a second page was always requested, it
+# answered 500, and the whole reform was discarded as unavailable. That is
+# what produced ~106 of the 231 "the SCJN cannot serve this" reports of the
+# first full crawl — a bug here, not a defect there. Above 500 the endpoint
+# also stops honouring the requested size (a ~1.7 MB payload cap), which would
+# make a short page ambiguous between "last page" and "truncated"; at 500 it
+# does not.
+TAMANIO_PAGINA_ARTICULOS = 500
 TAMANIO_PAGINA_REFORMAS = 500
 
 _EM = re.compile(r"</?em>")
@@ -266,8 +281,9 @@ class ScjnApi:
                 )
                 for r in lote
             ]
-            total = datos.get("tamanio") or 0
-            if not lote or len(filas) >= total:
+            # A page shorter than asked for is the last one; asking for the
+            # next would answer HTTP 500 rather than an empty page.
+            if len(lote) < TAMANIO_PAGINA_REFORMAS:
                 return filas
             pagina += 1
 
@@ -305,8 +321,9 @@ class ScjnApi:
                 )
                 for a in lote
             ]
-            total = datos.get("tamanio") or 0
-            if not lote or len(filas) >= total:
+            # See TAMANIO_PAGINA_ARTICULOS: a short page is the last one, and
+            # `tamanio` is not a reliable stop condition.
+            if len(lote) < TAMANIO_PAGINA_ARTICULOS:
                 return filas
             pagina += 1
 
@@ -540,10 +557,21 @@ class ResultadoCrawl:
     escritos: list[Path]
     ordenamiento: Ordenamiento | None
     reformas_fallidas: list[str] = None  # type: ignore[assignment]
+    #: Reforms the API itself marks `tieneArticulos=False` — it holds no
+    #: consolidated text for them (mostly FE DE ERRATAS and ACLARACION rows).
+    #: Kept apart from `reformas_fallidas`: this is a known absence, not a
+    #: failure, and it is why an instrument's snapshot count can legitimately
+    #: fall short of the reform count its own SCJN detail page shows.
+    reformas_sin_articulos: list[str] = None  # type: ignore[assignment]
+    #: How many rows `Reforma` returned, so a caller can check the crawl
+    #: against the SCJN's own count without asking again.
+    total_reformas: int = 0
 
     def __post_init__(self) -> None:
         if self.reformas_fallidas is None:
             self.reformas_fallidas = []
+        if self.reformas_sin_articulos is None:
+            self.reformas_sin_articulos = []
 
 
 def descarga_ordenamiento(
@@ -574,12 +602,21 @@ def descarga_ordenamiento(
     run costs one request less per law and can be audited against exactly
     the document the first one read.
 
-    A reform the SCJN cannot serve is recorded in `reformas_fallidas` and
-    skipped; it never aborts the instrument. That is not hypothetical —
-    `lfd` has reforms answering HTTP 500 on every attempt (issue #173).
+    A reform the API marks `tieneArticulos=False` is not requested at all
+    (it answers HTTP 500 if asked) and is recorded in
+    `reformas_sin_articulos`; one that fails for any other reason goes to
+    `reformas_fallidas`. Neither ever aborts the instrument, and the two are
+    kept apart because only the first is an expected absence — which is what
+    lets a caller check `len(escritos) + len(reformas_sin_articulos)`
+    against `total_reformas`, the count the SCJN's own detail page shows.
     """
     if id_ordenamiento is not None:
-        elegido = Ordenamiento(idOrdenamiento=str(id_ordenamiento), ordenamiento=nombre, ratio=1.0, sospechoso=False)
+        elegido = Ordenamiento(
+            idOrdenamiento=str(id_ordenamiento),
+            ordenamiento=nombre,
+            ratio=1.0,
+            sospechoso=False,
+        )
     else:
         elegido = elige_ordenamiento(api.search_ordenamiento(nombre), nombre)
         if elegido is None:
@@ -590,6 +627,7 @@ def descarga_ordenamiento(
 
     escritos: list[Path] = []
     fallidas: list[str] = []
+    sin_articulos: list[str] = []
     repeticiones: dict[str, int] = {}
     total = len(reformas)
     for indice, reforma in enumerate(reformas, 1):
@@ -604,6 +642,14 @@ def descarga_ordenamiento(
         if destino.exists():
             escritos.append(destino)
             continue
+        if not reforma.tieneArticulos:
+            # The API says up front it holds no consolidated text for this
+            # row; asking anyway answers HTTP 500.
+            sin_articulos.append(
+                f"{reforma.fecha_publicacion} (reformaId {reforma.reformaId}, "
+                f"{reforma.categoria or 'sin categoria'})"
+            )
+            continue
         try:
             articulos = api.articulos_of_reforma(elegido.idOrdenamiento, reforma.reformaId)
         except ScjnApiError as exc:
@@ -613,4 +659,6 @@ def descarga_ordenamiento(
             continue
         destino.write_text(snapshot(elegido, reforma, articulos, nombre), encoding="utf-8")
         escritos.append(destino)
-    return ResultadoCrawl(list(reversed(escritos)), elegido, fallidas)
+    return ResultadoCrawl(
+        list(reversed(escritos)), elegido, fallidas, sin_articulos, total
+    )
