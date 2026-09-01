@@ -16,7 +16,7 @@
 > unchanged in every other respect. See [the SCJN
 > path](#the-scjn-path--a-laws-consolidated-text-at-each-reform).
 
-Eight entry points, all re-exported off the package itself
+Nine entry points, all re-exported off the package itself
 (`from nota2md import ...`), for Mexico's official gazette (DOF, Diario
 Oficial de la Federación) and the federal laws it publishes:
 
@@ -30,6 +30,7 @@ Oficial de la Federación) and the federal laws it publishes:
 | [`legal_provisions_titles`](#legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` cache) | every legal provision ever published, as a stream of `codNota`+`titulo`+`fecha`+`codOrgaUno` records |
 | [`download_scjn_leyes_corpus`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | a law's `slug` | every snapshot of that law in the `scjn-leyes` release, with its `codNota` links, in memory |
 | [`download_scjn_leyes_index`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (reads one small release asset) | the reverse index `codNota → (law, snapshot)`, in memory |
+| [`download_scjn_leyes_catalog`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (the index, plus one tarball per law for `actualizado`) | every federal law the release publishes, as `abrev`+`nombre`+`actualizado` |
 
 They compose: `download_legal_provisions_provenance_ids` gets you the `codNota` list
 `reconstruct_legal_provisions` needs, and `reconstruct_legal_provisions` gets you a
@@ -197,14 +198,38 @@ does not cover, an asset not published yet, or a network failure reading the
 release all fall back to the DOF path (the last two with a `warnings.warn`,
 so the fallback is never silent).
 
-Two readers of the release are exported for working with the corpus directly:
+Three readers of the release are exported for working with the corpus directly:
 
 ```python
-from nota2md import download_scjn_leyes_corpus, download_scjn_leyes_index
+from nota2md import (
+    download_scjn_leyes_catalog,
+    download_scjn_leyes_corpus,
+    download_scjn_leyes_index,
+)
 
 indice = download_scjn_leyes_index()          # codNota -> [{slug, archivo, ...}]
 lfca = download_scjn_leyes_corpus("lfca")     # every snapshot of one law
+
+# which federal laws exist, their name and their freshness
+catalogo = download_scjn_leyes_catalog(freshness=False)
+# -> [{"abrev": "ccf", "nombre": "CÓDIGO Civil Federal"}, ...]  (315 laws)
 ```
+
+`download_scjn_leyes_catalog` is the federal-law **catalogue**: one
+`{"abrev", "nombre", "actualizado"}` dict per law, sorted by `abrev`.
+`abrev`/`nombre` come from the release's index; `actualizado` — the date of
+the law's most recent reform as of the crawl — comes from each law's own
+`estado.json`, and is **absent** rather than null for the three laws that
+have none (absent means "freshness unknown, always review"). Reading
+`actualizado` means opening one tarball per law, so `freshness=False`
+answers off the index alone; run `nota2md download federal-laws` first (see
+below) and the default costs no request either.
+
+Beware one thing if you are joining this against a catalogue of your own: the
+release slug is the *normalized* `abrev`, so the 14 laws whose abbreviation
+carries an underscore (`lif_2026`, `pef_2026`, `ligie_2022`, `reg_senado`,
+the `lrart*`/`lrf*` reglamentarias …) come back hyphenated. Match on
+`nota2md.scjn.slug_instrumento` and keep your own `abrev`.
 
 #### Cache
 

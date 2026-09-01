@@ -9,8 +9,9 @@ get a note's record with its text already in Markdown (`get_document`),
 stream every legal provision ever published, as titles
 (`legal_provisions_titles`), and read the SCJN-based corpus of
 consolidated law texts back from the scjn-leyes release
-(`download_scjn_leyes_corpus`, `download_scjn_leyes_index`) — the package's
-eight entry points, re-exported here so each can be imported straight off
+(`download_scjn_leyes_corpus`, `download_scjn_leyes_index`,
+`download_scjn_leyes_catalog`) — the package's
+nine entry points, re-exported here so each can be imported straight off
 `nota2md` (``from nota2md import legal_provisions``) instead of its own
 submodule.
 
@@ -27,7 +28,11 @@ from nota2md.builder import (
     legal_provisions,
 )
 from nota2md.leyes import reconstruct_legal_provisions
-from nota2md.scjn import download_scjn_leyes_corpus, download_scjn_leyes_index
+from nota2md.scjn import (
+    download_scjn_leyes_catalog,
+    download_scjn_leyes_corpus,
+    download_scjn_leyes_index,
+)
 from nota2md.utils import download_legal_provisions_provenance_ids
 
 __version__ = "0.6.0"
@@ -41,4 +46,5 @@ __all__ = [
     "legal_provisions_titles",
     "download_scjn_leyes_corpus",
     "download_scjn_leyes_index",
+    "download_scjn_leyes_catalog",
 ]

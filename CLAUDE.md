@@ -26,7 +26,7 @@ build on each other in this sequence.
   provision ever published (`legal_provisions_titles`), off the on-disk cache
   of the `notas-archivo` GitHub release — it writes no dataset of its own
   (issue #166).
-- **`nota2md`** — eight entry points, all re-exported off the package:
+- **`nota2md`** — nine entry points, all re-exported off the package:
   `legal_provisions` (one note → Markdown, `legal_provisions(codNota)` with no
   other argument writing into `nota2md.cache.CACHE_DIR` and returning the
   `Path` (issue #165); **by default the SCJN's
@@ -43,8 +43,11 @@ build on each other in this sequence.
   `get_document` (a `get_nota` record whose `cadenaContenido` is Markdown —
   the one note→Markdown step, issue #170),
   `legal_provisions_titles` (re-exported from `dofjson.titulos`),
-  `download_scjn_leyes_corpus`/`download_scjn_leyes_index` (the `scjn-leyes`
-  release's readers). Its release assets are cached on disk under
+  `download_scjn_leyes_corpus`/`download_scjn_leyes_index`/
+  `download_scjn_leyes_catalog` (the `scjn-leyes` release's readers — the last
+  one is the federal-law catalogue, `abrev`+`nombre` off the index and
+  `actualizado` off each law's `estado.json`, which is the LeyesBiblio seed
+  read back rather than rebuilt; issue #185). Its release assets are cached on disk under
   `nota2md.cache.CACHE_DIR` — `nota2md`'s own directory, deliberately not
   `dofjson`'s. The SCJN corpus behind `scjn-leyes` is crawled through the
   SCJN's **SCOW JSON API** (`nota2md.scjn_api`, issue #172); the legacy

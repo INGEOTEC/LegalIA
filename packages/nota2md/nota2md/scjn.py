@@ -1280,6 +1280,83 @@ def download_scjn_leyes_corpus(
     return {"slug": slug, "snapshots": snapshots}
 
 
+def _estado_de_asset(slug: str, cache_dir, refrescar: bool, timeout: int) -> dict:
+    """One law's own `estado.json` as the release ships it inside `<slug>.tgz`,
+    or `{}` when that tarball carries none (a law packaged before issue #148
+    added the file).
+
+    Only that one member is read out of the tarball; the snapshots and the
+    `notas/` are never decoded. A whole law's Markdown weighs orders of
+    magnitude more than the four fields wanted here, and the catalogue reader
+    does this once per law."""
+    contenido = _bytes_de_asset(f"{slug}.tgz", cache_dir, refrescar, timeout)
+    with tarfile.open(fileobj=io.BytesIO(contenido), mode="r:gz") as tar:
+        for miembro in tar:
+            # Every member is prefixed with `<slug>/` so the tarball unpacks
+            # anywhere — the same convention `download_scjn_leyes_corpus` strips.
+            if miembro.isfile() and miembro.name.partition("/")[2] == ARCHIVO_ESTADO:
+                return json.loads(tar.extractfile(miembro).read())
+    return {}
+
+
+def download_scjn_leyes_catalog(
+    *,
+    freshness: bool = True,
+    cache_dir=SIN_CACHE_DIR,
+    refrescar: bool = False,
+    timeout: int = 60,
+) -> list[dict]:
+    """The federal-law catalogue as the `scjn-leyes` release already publishes
+    it: one ``{"abrev", "nombre", "actualizado"}`` dict per law, sorted by
+    `abrev`.
+
+    This is the seed the Cámara de Diputados used to be scraped for — which
+    laws exist, their name, their abbreviation — read back out of the release
+    rather than rebuilt (issue #184). `nombre` and `abrev` come from
+    `indice-global.json.gz`'s `instrumentos`, whose slug *is* the `abrev`
+    (`slug_instrumento`); `actualizado` comes from each law's own
+    `estado.json`, which records the date its last reform carried when it was
+    crawled (issue #148).
+
+    `actualizado` is **absent** — not None, not a placeholder — for a law whose
+    `estado.json` has none (3 laws today: `lcmopfih`, `lfcpq`, `lisipl`).
+    Absent means "freshness unknown, always review", which is what
+    `motivo_pendiente` already does with a catalogue entry that has no
+    `actualizado`.
+
+    One caveat this reader cannot paper over, and which matters to whoever
+    rebuilds `catalogo.json`: the slug is `slug_instrumento`'s *normalized*
+    `abrev`, so the 14 laws whose historical `abrev` contains an underscore
+    (`lif_2026`, `pef_2026`, `ligie_2022`, the `lrart*`/`lrf*` reglamentarias,
+    `reg_diputados`, `reg_senado`) come back hyphenated. Existing `abrev`
+    values are preserved verbatim, so a caller holding a previous catalogue
+    must match on `slug_instrumento` and keep its own `abrev`.
+
+    `freshness=False` skips the tarballs entirely and returns `abrev`/`nombre`
+    only, off the index alone — a few hundred KB. The default reads one
+    tarball per law, which is the whole 380 MB corpus the first time; with a
+    `cache_dir` already populated (`download_scjn_leyes_assets`, or `nota2md
+    download federal-laws`) it costs no request at all.
+
+    Raises `KeyError` while the release does not publish an asset it needs —
+    see `_url_de_asset`.
+    """
+    indice = download_scjn_leyes_index(
+        cache_dir=cache_dir, refrescar=refrescar, timeout=timeout
+    )
+    catalogo = []
+    for slug in sorted(indice["instrumentos"]):
+        entrada = {"abrev": slug, "nombre": indice["instrumentos"][slug]["nombre"]}
+        if freshness:
+            actualizado = _estado_de_asset(slug, cache_dir, refrescar, timeout).get(
+                "actualizado"
+            )
+            if actualizado:
+                entrada["actualizado"] = actualizado
+        catalogo.append(entrada)
+    return catalogo
+
+
 def scjn_leyes_slugs(timeout: int = 30) -> list[str]:
     """Every law the `scjn-leyes` release publishes a tarball for, by slug.
 
