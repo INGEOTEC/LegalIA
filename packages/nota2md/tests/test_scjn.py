@@ -50,51 +50,6 @@ class TestRatioSimilitudYGuardas(unittest.TestCase):
         self.assertIsNone(scjn.grupo_instrumento("Convenio 107 OIT"))
 
 
-TABLA_REFORMAS = """
-<table>
-<tr><td>
-Fecha de publicación: 14/06/2024 Fecha de expedición: 10/06/2024
-Categoría: DECRETO No. y sección de Publicación: 5
-<a href="descarga1.docx">Ver texto completo de la última publicación</a>
-</td></tr>
-<tr><td>
-Fecha de publicación: 22/01/1994 Fecha de expedición: 21/01/1994
-Categoría: LEY No. y sección de Publicación: 16
-<a href="descarga2.docx">Ver texto completo de la última publicación</a>
-</td></tr>
-<tr><td>
-Sin fecha de publicación reconocible, esta fila se ignora.
-<a href="descarga3.docx">Ver texto completo de la última publicación</a>
-</td></tr>
-</table>
-"""
-
-
-TABLA_REFORMAS_PAGINA1 = """
-<form id="aspnetForm" action="detalle.aspx">
-<input type="hidden" name="__VIEWSTATE" value="estado1"/>
-</form>
-<table><tr><td>Página 1 de 2 [2 Registros en total]</td></tr></table>
-<table>
-<tr><td>
-Fecha de publicación: 14/06/2024 Fecha de expedición: 10/06/2024
-Categoría: DECRETO No. y sección de Publicación: 5
-<a href="descarga1.docx">Ver texto completo de la última publicación</a>
-</td></tr>
-</table>
-"""
-
-TABLA_REFORMAS_PAGINA2 = """
-<table>
-<tr><td>
-Fecha de publicación: 22/01/1994 Fecha de expedición: 21/01/1994
-Categoría: LEY No. y sección de Publicación: 16
-<a href="descarga2.docx">Ver texto completo de la última publicación</a>
-</td></tr>
-</table>
-"""
-
-
 class TestQuitaNotasEditoriales(unittest.TestCase):
     def test_quita_la_nota_embebida_dentro_de_una_anotacion_de_reforma(self):
         self.assertEqual(

@@ -1,10 +1,10 @@
 """Client for the SCJN's SCOW JSON API, the backend of
 https://legislacion.scjn.gob.mx/consulta/buscador.
 
-This is the transport `nota2md.scjn`'s WebForms crawler is being migrated
-off (issue #172). Where that one round-trips `__VIEWSTATE`, holds a
-session-scoped `q` token, scrapes a paged HTML grid and downloads one
-`.docx` per reform, this asks three unauthenticated JSON endpoints:
+This is the transport that replaced `nota2md.scjn`'s WebForms crawler
+(issue #172, retired in #179). Where that one round-tripped `__VIEWSTATE`,
+held a session-scoped `q` token, scraped a paged HTML grid and downloaded
+one `.docx` per reform, this asks three unauthenticated JSON endpoints:
 
 - `BusquedaFrase` — the ordenamientos matching a name,
 - `Reforma` — that ordenamiento's whole reform table,
