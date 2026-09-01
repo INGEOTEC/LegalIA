@@ -64,7 +64,8 @@ build on each other in this sequence.
   `converter` parameter. Only needed as `nota2md`'s OCR fallback for legal
   provisions predating the HTML era (pre-1999ish) — a modern note only needs
   `dofjson` + `nota2md`.
-- **`leyesmx`** — joins the Cámara de Diputados' LeyesBiblio (which decree
+- **`leyesmx`** (*being retired* — see "Sources: SCJN + DOF only" below) —
+  joins the Cámara de Diputados' LeyesBiblio (which decree
   reformed which law) with DOF `codNota`s, for laws, regulations (NOMs need
   no second source — the DOF title contains the NOM's own code), and
   international treaties (paired by rarity-weighted name similarity, since
@@ -85,6 +86,71 @@ local scratch directories (`/output/`, `/notas-archivo/`,
 Read them back via `download_legal_provisions_provenance_ids` /
 `legal_provisions_titles` (the latter over the cache `nota2md download
 gazette-metadata` populates), never by looking for a file in the repo.
+
+## Sources: SCJN + DOF only (issue #184, in progress)
+
+**Read this section as the direction, not as a description of the tree.** The
+Cámara de Diputados code is still present and still working; it goes away only
+when phases #189 and #190 land. Until then, what is written above about
+`leyesmx` and about `download_legal_provisions_provenance_ids` is what the code
+actually does.
+
+The decision: every dependency on the Cámara de Diputados (LeyesBiblio) is
+removed, and federal-law functionality rests on the **SCJN** (the SCOW JSON
+API, `nota2md.scjn_api`) plus the **DOF/SIDOF** (`dofjson`) alone. LeyesBiblio
+was three HTML page layouts whose markup changes without notice, and it was
+scraped for one thing: the initial seed of federal legislation — which laws
+exist, their name, their abbreviation.
+
+- **The seed is read, not rebuilt.** It is already published: the `scjn-leyes`
+  release's `indice-global.json.gz` carries every law's slug and `nombre`, the
+  slug *is* the `abrev` (`nota2md.scjn.slug_instrumento`), and each
+  `<slug>.tgz` ships an `estado.json` recording the `actualizado` it was
+  crawled against. So `download_scjn_leyes_index` answers the question the
+  scraper used to. Existing `abrev` values are preserved **verbatim** — an
+  `abrev` is the release's slug and asset name, so re-deriving one would be a
+  breaking change dressed up as a cleanup.
+- **The source hierarchy does not change.** The DOF/SIDOF remains the official
+  source of legal text; the SCJN's consolidated texts keep their `fuente: scjn`
+  header, meaning exactly what it has always meant.
+- **Only the `leyes` collection survives.** Reglamentos, tratados and Normas
+  Oficiales Mexicanas are out of scope, so their code is deleted rather than
+  migrated — unused machinery still has to be read, tested and reasoned about.
+  With one collection left, the four-collection abstraction collapses:
+  `nota2md.utils`' `COLECCIONES`/`_ASSETS`/`_INDICES`/`_une_con_historial`, the
+  `--coleccion` flags of the SCJN scripts, `empaqueta_historial.py`'s asset
+  map, and the collection branches in `nota2md.scjn`/`scjn_api`. The public
+  `download_legal_provisions_provenance_ids` is **deleted outright** — no shim,
+  no deprecation, no name kept for compatibility (changelog note regardless of
+  whether a version bump follows). A law's reform history then lives in the
+  `scjn-leyes` release itself (each law's `indice.json`, plus
+  `indice-global.json.gz`); no new dataset and no new asset is created for it.
+  Consequently the `historial-legislativo` release loses its `leyes.tgz` asset,
+  while `reglamentos.tgz`, `normas.tgz` and `tratados.tgz` stay downloadable,
+  labelled in the release notes as a frozen record nothing in the repo can
+  regenerate.
+- **Reform numbering is redefined, loudly.** "Reform N" becomes the SCJN reform
+  table's chronological order. It is not an attempt to reproduce Diputados'
+  numbering, and it is not measured against it — the old numbering is gone with
+  its source.
+- **No GitHub Action publishes SCJN-derived data.** That rule predates this
+  work and is written down in `scripts/empaqueta_scjn_leyes.py` (issue #115,
+  Hallazgo C: the SCJN's own search can return a completely wrong document for
+  an instrument, so a human decides what is safe to publish). This epic does
+  not get to override it — which is why `.github/workflows/reformas.yml` is
+  **deleted rather than repointed**, with no workflow replacing it. The leyes
+  rebuild becomes a manual publish, like `scjn-leyes` already is.
+
+Phases, each its own sub-issue, in order:
+
+| Phase | Issue | What it does |
+|---|---|---|
+| Fase 0 | #185 | Audit the Diputados footprint; read the seed already in `scjn-leyes` |
+| Fase 1 | #186 | `catalogo.json` without Diputados: discovery and `actualizado` |
+| Fase 2 | #187 | Reform history of leyes from SCJN + DOF |
+| Fase 3 | #188 | Replace `texto_vigente`'s ground truth for `reconstruct_legal_provisions()` |
+| Fase 4 | #189 | Delete `leyesmx`, the Diputados code, the collection abstraction |
+| Fase 5 | #190 | Delete the workflow; update the release, docs and website |
 
 ## Commands
 
