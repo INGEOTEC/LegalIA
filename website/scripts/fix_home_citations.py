@@ -1,7 +1,7 @@
 """Point index.html's citation links at the References page.
 
 index.ipynb cites publications inline but does not list them (that list lives
-on references.qmd, at the same navbar level as Home/Dataset/Tools).
+on references.qmd, at the same navbar level as Home/Archive/Federal Laws).
 Quarto's citeproc always resolves citation links to local "#ref-KEY" anchors
 and appends a "References" appendix (heading and bibliography div) to the
 page that produced them; there is no document-level option to point those
