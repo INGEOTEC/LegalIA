@@ -124,6 +124,7 @@ from nota2md.scjn import (  # noqa: E402
     mint_abrev,
     newest_dof_publication_dates,
     slug_instrumento,
+    slugify,
 )
 from nota2md.scjn_api import (  # noqa: E402
     ScjnApi,
@@ -249,7 +250,7 @@ def discover(
 
     desconocidos = {n: i for n, i in hallados.items() if n not in nombres_conocidos}
     desconocidos = {
-        n: i for n, i in desconocidos.items() if slug_instrumento({"nombre": n}) not in conocidos
+        n: i for n, i in desconocidos.items() if slugify(n) not in conocidos
     }
     if not desconocidos:
         return []

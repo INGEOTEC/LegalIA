@@ -6,9 +6,7 @@ and a checksum file.
 
 ## Manual publish only — never automated
 
-Unlike `historial-legislativo` (Diputados/DOF, already reliable, republished
-monthly by `.github/workflows/reformas.yml` with no human in the loop), the
-SCJN's own search can return a completely wrong document for an instrument
+The SCJN's own search can return a completely wrong document for an instrument
 (issue #115, Hallazgo C) — so nothing this script produces is ever published
 automatically, now or in the future. The packaging step (this script) and
 the publish step (a person running `gh` by hand) are deliberately kept
@@ -51,7 +49,7 @@ stepping on anything:
     <slug>/<fecha>.md          the snapshots, with their provenance header
     <slug>/indice.json         the codNota link + #115/#126/#127's signals
     <slug>/estado.json         when it was crawled/linked, and against which
-                               Diputados `actualizado` (issue #148)
+                               catalogue `actualizado` (issue #148)
     <slug>/notas/nota-<cod>.md the DOF text of every candidate considered
 
 `estado.json` travels with them so the release itself carries its own
@@ -68,11 +66,9 @@ review before publishing is a handful of rows instead of 315. The manifest,
 whole corpus, though: the reverse index is the union of every `indice.json`,
 so one law changing makes the published one stale.
 
-    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --plan
-    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes \\
-        --instrumento lft
-    ./scripts/enlaza_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes \\
-        --instrumento lft
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --plan
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --instrumento lft
+    ./scripts/enlaza_scjn_legislacion.py --outdir scripts/scjn --instrumento lft
     ./scripts/empaqueta_scjn_leyes.py --instrumento lft
     less scripts/scjn/leyes-release/MANIFEST.md   # short now. still read it all.
 
@@ -85,9 +81,11 @@ snapshots, no `indice.json`) rather than held back; the manifest calls that
 out explicitly instead of hiding it.
 
 Needs `leyes`' own ``catalogo.json`` (`extract_scjn_titles.py`), already
-written under ``<outdir>/leyes/``, to list every instrument the Diputados
-catalogue names — including one never crawled at all (Fase 1 pendiente,
-issue #124), which the manifest lists rather than silently omits.
+written under ``<outdir>/leyes/`` — `leyes` is a literal path segment here
+(issue #189: it is the only collection left), and the catalogue is what
+lists every instrument, including one never crawled at all (Fase 1
+pendiente, issue #124), which the manifest lists rather than silently
+omits.
 """
 
 import argparse
@@ -115,11 +113,10 @@ from nota2md.scjn import (  # noqa: E402
 COLECCION = "leyes"
 
 
-def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
+def _load_catalog(outdir: Path) -> list[dict]:
     """The `nombre`(+`abrev`) catalogue `extract_scjn_titles.py` already
-    wrote for `coleccion` -- Diputados' `historial` never reaches this
-    script (issue #123)."""
-    archivo = outdir / coleccion / "catalogo.json"
+    wrote for the `leyes` collection."""
+    archivo = outdir / COLECCION / "catalogo.json"
     if not archivo.is_file():
         raise SystemExit(
             f"{archivo} no existe -- corre primero "
@@ -154,7 +151,7 @@ class ResumenInstrumento:
     bytes_comprimidos: int = 0
     indice: list[dict] | None = None
     #: This instrument's own `estado.json` (issue #148) — when it was last
-    #: crawled and linked, and against which Diputados `actualizado`. Shown
+    #: crawled and linked, and against which catalogue `actualizado`. Shown
     #: in the manifest so the human reviewing an incremental update can see
     #: at a glance which laws the run actually refreshed.
     estado: dict | None = None
@@ -164,11 +161,11 @@ class ResumenInstrumento:
 
 
 def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]:
-    """Every `leyes` instrument in the Diputados catalogue, summarized for
+    """Every `leyes` instrument in the catalogue, summarized for
     the manifest, plus the catalogue names of the ones never crawled at all
     (issue #124's Fase 1 pendiente) — returned separately, since a
     never-crawled instrument has nothing on disk to classify or link."""
-    instrumentos = _load_catalog(outdir, COLECCION)
+    instrumentos = _load_catalog(outdir)
     resumenes = []
     nunca_rastreados = []
     for entrada in instrumentos:
@@ -338,7 +335,7 @@ def _formatea_manifiesto(
         "",
         f"Generado: {datetime.now(timezone.utc).isoformat(timespec='seconds')}",
         "",
-        f"{total_catalogo} instrumento(s) en el catálogo de Diputados (`leyes`); "
+        f"{total_catalogo} instrumento(s) en el catálogo (`leyes`); "
         f"{len(resumenes)} ya rastreado(s) por la SCJN.",
         "",
     ]

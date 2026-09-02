@@ -17,8 +17,8 @@ for the `.docx`, so the corpus this feeds keeps meaning what it meant.
 The SCJN is still **not** an official source of legal text — dof.gob.mx /
 SIDOF remains that, and every file written from this keeps its
 `fuente: scjn` header. A public Swagger page is not a stability contract
-either: same posture as `dofjson.dofweb` and `leyesmx.diputados`, so the
-rate limiting and the retries stay.
+either: same posture as `dofjson.dofweb` takes toward the DOF's own
+website, so the rate limiting and the retries stay.
 
 Measured live against the corpus the old crawler wrote (issue #173, whose
 numbers are the comment on #172); three of those findings are load-bearing

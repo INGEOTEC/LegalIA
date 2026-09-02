@@ -4,7 +4,6 @@
         "./packages",
         "./packages/dof2md",
         "./packages/dofjson",
-        "./packages/leyesmx",
         "./packages/nota2md"
     ],
     "python.testing.pytestArgs": [

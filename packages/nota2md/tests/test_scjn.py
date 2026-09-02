@@ -156,10 +156,15 @@ class TestSlugInstrumento(unittest.TestCase):
     def test_usa_abrev_cuando_esta_disponible(self):
         self.assertEqual(scjn.slug_instrumento({"abrev": "cpeum", "nombre": "CONSTITUCIÓN"}), "cpeum")
 
-    def test_forma_un_slug_del_nombre_cuando_no_hay_abrev(self):
-        self.assertEqual(
-            scjn.slug_instrumento({"nombre": "Convenio 107 OIT"}), "convenio-107-oit"
-        )
+    def test_exige_abrev(self):
+        # Issue #189: with `leyes` the only collection left, every catalogue
+        # entry has an `abrev`, so falling back to the `nombre` would only
+        # ever hide a malformed entry behind a plausible-looking slug.
+        with self.assertRaises(KeyError):
+            scjn.slug_instrumento({"nombre": "Convenio 107 OIT"})
+
+    def test_slugify_forma_un_slug_de_cualquier_texto(self):
+        self.assertEqual(scjn.slugify("Convenio 107 OIT"), "convenio-107-oit")
 
 
 class TestLeeCabecera(unittest.TestCase):
@@ -673,8 +678,10 @@ class TestCatalogKey(unittest.TestCase):
     def test_usa_abrev_cuando_esta_disponible(self):
         self.assertEqual(scjn.catalog_key({"abrev": "ccf", "nombre": "Codigo Civil Federal"}), "ccf")
 
-    def test_recae_en_nombre_sin_abrev(self):
-        self.assertEqual(scjn.catalog_key({"nombre": "Convenio 107 OIT"}), "Convenio 107 OIT")
+    def test_exige_abrev(self):
+        # Same reason as `slug_instrumento` (issue #189).
+        with self.assertRaises(KeyError):
+            scjn.catalog_key({"nombre": "Convenio 107 OIT"})
 
 
 class TestMergeCatalogOverrides(unittest.TestCase):
@@ -793,8 +800,9 @@ class TestEstadoPorInstrumento(unittest.TestCase):
             )
 
     def test_pendiente_sin_actualizado_en_el_catalogo(self):
-        # lisipl/lcmopfih/lfcpq: su historial de Diputados viene vacio, asi
-        # que no hay forma de saber si cambiaron.
+        # lisipl/lcmopfih/lfcpq: nada los fecha (ni la tabla de reformas de
+        # la SCJN ni los titulos del DOF), asi que no hay forma de saber si
+        # cambiaron.
         with tempfile.TemporaryDirectory() as tmp:
             destino = Path(tmp)
             (destino / "01-01-2020.md").write_text("x")

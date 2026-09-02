@@ -1,6 +1,6 @@
 """dofjson (the package) is meant to be the ONE entry point for every piece
 of SIDOF/dofweb functionality (issue #104): no other function, in this
-package or another one (nota2md, leyesmx...), should need to import
+package or another one (nota2md, dof2md...), should need to import
 dofjson.sidof or dofjson.dofweb directly. These tests lock that surface in,
 so a future addition to sidof/dofweb that forgets to re-export it here
 doesn't quietly reintroduce the need to reach into a submodule."""

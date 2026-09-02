@@ -122,7 +122,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "no
 
 from nota2md.builder import fetch_nota, legal_provisions  # noqa: E402
 
-#: Diputados' own name for this instrument, and the directory
+#: The catalogue's own name for this instrument, and the directory
 #: `slug_instrumento` would pick for it.
 NOMBRE_CATALOGO = (
     "LEY para el Fomento de la Inversión en Infraestructura Estratégica "

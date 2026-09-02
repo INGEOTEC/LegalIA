@@ -29,9 +29,6 @@ packages/dof2md/output/
 # Local output from nota2md / dofjson / ad-hoc runs (generated Markdown, PDFs, images)
 /output/
 
-# Legislative history built by `leyesmx` (local only). It lives solely in the
-# historial-legislativo release; see leyesmx.historial.descarga_historial.
-/packages/leyesmx/data/
 
 # Editor / OS
 .DS_Store

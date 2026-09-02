@@ -23,8 +23,8 @@ through `__EVENTTARGET`, and one `.docx` download per row parsed by
   `scjn_api` applies to it (`scjn_api._formatea_parrafo`).
 
 The API is still **not** an official contract — a Swagger page is not a
-stability promise, the same posture `dofjson.dofweb` and `leyesmx.diputados`
-take toward their own sources, and the rate limiting stays. And the SCJN is
+stability promise, the same posture `dofjson.dofweb` takes toward the DOF's
+own website, and the rate limiting stays. And the SCJN is
 still not an official source of legal text: dof.gob.mx/SIDOF remains that
 (the SCJN's own site marks its editorial insertions as "N. DE E." — Nota de
 Editor). Every Markdown file the crawl writes is therefore tagged with a
@@ -312,24 +312,35 @@ def quita_notas_editoriales(parrafo: str) -> str:
     return f"**{resultado}**" if negrita else resultado
 
 
-def slug_instrumento(entrada: dict) -> str:
-    """A filesystem-safe directory name for one catalogue entry (as
-    `catalogo.json` holds it, see `scripts/extract_scjn_titles.py`): its
-    `abrev` when the entry has one, otherwise a slug of its `nombre`.
+def slugify(texto: str) -> str:
+    """`texto` as a filesystem-safe, ASCII, lowercase slug — the release's
+    own asset-name shape."""
+    return re.sub(r"[^a-z0-9]+", "-", _normaliza(texto)).strip("-")
 
-    The `abrev` fallback is what makes the slug differ from the `abrev` for
-    the 14 laws whose abbreviation carries an underscore (`lif_2026` ->
-    `lif-2026`); the slug is the release's asset name, the `abrev` is what
-    the catalogue keeps verbatim."""
-    base = entrada.get("abrev") or entrada.get("nombre") or entrada.get("codigo") or ""
-    slug = re.sub(r"[^a-z0-9]+", "-", _normaliza(base)).strip("-")
-    return slug or "instrumento"
+
+def slug_instrumento(entrada: dict) -> str:
+    """The directory and release-asset name for one catalogue entry (as
+    `catalogo.json` holds it, see `scripts/extract_scjn_titles.py`): its own
+    `abrev`, slugified.
+
+    Slugifying is not a no-op: the 14 laws whose abbreviation carries an
+    underscore come out hyphenated (`lif_2026` -> `lif-2026`), which is why
+    this and `catalog_key` are two functions and not one — the slug is the
+    release's asset name, the `abrev` is what the catalogue keeps verbatim.
+
+    Raises `KeyError` for an entry with no `abrev`. Until issue #189 this fell
+    back to the entry's `nombre`, then to a literal `"instrumento"`, because
+    the tratados catalogue had no `abrev` at all; with `leyes` the only
+    collection left, a missing `abrev` is a broken catalogue entry and a
+    silent shared directory name would be the worst possible way to find
+    that out."""
+    return slugify(entrada["abrev"])
 
 
 # --- issue #124 (follow-up): closing the catalogue's own coverage gaps ----
 #
 # Two catalogue entries the coverage sweep above never finds anything for,
-# each for a different reason. `lisipl`: Diputados' own `nombre` for it
+# each for a different reason. `lisipl`: the catalogue's own `nombre` for it
 # carries a 250+ character trailing parenthetical alternate name that the
 # SCJN's full-text search never matches, even though the SCJN's own title
 # for it scores 0.774 on `ratio_similitud` against that `nombre` — above
@@ -346,8 +357,9 @@ def slug_instrumento(entrada: dict) -> str:
 # `fetch_scjn_legislacion.py` searches with in place of `nombre`.
 #
 # instrument_up_to_date/iso_date_from_note are Mecanismo 2: an `actualizado`
-# field (the ISO date of an instrument's own most recent reform, read from
-# Diputados' `historial` via dofjson) that lets a refresh run skip
+# field (the ISO date of an instrument's own most recent reform — since
+# issue #186 the newest of the SCJN's reform table and the DOF's own titles,
+# `newest_dof_publication_dates`) that lets a refresh run skip
 # re-searching the SCJN for an instrument nothing has changed on since the
 # collection's own last full crawl. This is the safety net for a case like
 # `lfca`: nothing needs to be typed by hand — a brand-new law's `actualizado`
@@ -357,8 +369,8 @@ def slug_instrumento(entrada: dict) -> str:
 
 def search_name(entry: dict) -> str:
     """The string to actually search the SCJN with for one catalogue entry:
-    its manual `nombre_scjn` override when present, Diputados' own `nombre`
-    otherwise. `nombre` itself is never touched by this — it stays what
+    its manual `nombre_scjn` override when present, the catalogue's own
+    `nombre` otherwise. `nombre` itself is never touched by this — it stays what
     `enlaza_por_titulo`/`title_candidates_por_fecha` compare against DOF
     titles (issue #126), and what a caller shows in its own progress
     output; only the string handed to `buscar` changes."""
@@ -367,14 +379,18 @@ def search_name(entry: dict) -> str:
 
 def catalog_key(entry: dict) -> str:
     """The key two catalogue entries from separate runs are considered the
-    same instrument by: `abrev` when the collection gives one (leyes,
-    reglamentos), `nombre` otherwise (tratados) — the same precedence
-    `slug_instrumento` already uses to pick a directory name."""
-    return entry.get("abrev") or entry["nombre"]
+    same instrument by: its `abrev`, **verbatim** — not slugified, unlike
+    `slug_instrumento`. Keeping the two apart is what lets a catalogue that
+    already spells a law `lif_2026` keep spelling it that way while the
+    release's asset for it is `lif-2026.tgz` (issue #186).
+
+    Raises `KeyError` for an entry with no `abrev`, same as
+    `slug_instrumento` and for the same reason (issue #189)."""
+    return entry["abrev"]
 
 
 def merge_catalog_overrides(catalog: list[dict], previous_catalog: list[dict] | None) -> list[dict]:
-    """`catalog` (a fresh projection of Diputados' own instruments) with
+    """`catalog` (a freshly extracted catalogue) with
     each entry's own `nombre_scjn` carried over from whichever entry of
     `previous_catalog` it corresponds to (`catalog_key`), when that
     previous entry had one.
@@ -382,9 +398,9 @@ def merge_catalog_overrides(catalog: list[dict], previous_catalog: list[dict] | 
     `extract_scjn_titles.py` used to overwrite `catalogo.json` from scratch
     on every run — there was nowhere to keep a manual override, and even a
     hand-edited one would vanish on the next refresh. This is what makes it
-    survive instead: a fresh run only ever adds or updates what Diputados
-    itself gives (`nombre`, `abrev`, `actualizado`), and only ever keeps —
-    never invents — `nombre_scjn`.
+    survive instead: a fresh run only ever adds or updates what the
+    extraction itself gives (`nombre`, `abrev`, `actualizado`), and only ever
+    keeps — never invents — `nombre_scjn`.
 
     `previous_catalog` being empty or None (first run, no `catalogo.json`
     yet) returns `catalog` unchanged."""
@@ -548,12 +564,12 @@ def motivo_pendiente(entry: dict, directory: Path, corpus_date: str | None) -> s
       pending, whatever the dates say — the `lfca` safety net of issue #124,
       unchanged.
     - `PENDIENTE_SIN_ACTUALIZADO`: the catalogue gives no `actualizado` for
-      it (3 laws today: their Diputados `historial` is empty), so whether it
-      changed is simply unknowable. Reported as pending, but as its own
+      it (3 laws today: neither the SCJN's reform table nor the DOF's
+      titles date them), so whether it changed is simply unknowable. Reported as pending, but as its own
       distinct reason: a planner lists these apart and lets a human decide,
       while a full sweep keeps re-crawling them, which is what it always did.
-    - `PENDIENTE_CAMBIO`: Diputados now reports a reform newer than the one
-      this instrument was last crawled against. The comparison is against
+    - `PENDIENTE_CAMBIO`: the catalogue now reports a reform newer than the
+      one this instrument was last crawled against. The comparison is against
       the instrument's own `estado.json` when it has one, and only otherwise
       against the collection-wide `corpus_date` (`instrument_up_to_date`) —
       per-law state takes precedence, so a single law refreshed on its own
@@ -580,8 +596,8 @@ def motivo_pendiente(entry: dict, directory: Path, corpus_date: str | None) -> s
 # #187 deleted both) — but issue #123's corrected goal is for the
 # SCJN, plus the DOF's own title dataset, to be the *only* source once an
 # instrument's `nombre` has picked which one to crawl: `historial` is never
-# consulted here, not even as a tie-breaker or a fallback. The only thing
-# borrowed from Diputados is `nombre` itself, used for two things: searching
+# consulted here, not even as a tie-breaker or a fallback. What the catalogue
+# contributes is `nombre` itself, used for two things: searching
 # the SCJN (`buscar`) and, here, testing which same-day DOF note's own title
 # actually names the instrument. Two SCJN-dated snapshots can share a
 # `fecha_publicacion` (issue #105's Fase 0 found up to 4 on the CPEUM alone),
@@ -681,10 +697,10 @@ def _title_mentions_name(nombre: str, titulo: str) -> bool:
     names the instrument `nombre` refers to: every one of `nombre`'s own
     meaningful words (4+ letters, so "LEY"/"DEL"/"DE" never count on their
     own) must appear in `titulo`, case/accent-insensitive. Mirrors the same
-    "does this title name that instrument" question
-    `leyesmx.dof.similitud_nombre` answers for regulations with no decree
-    title of their own — kept as nota2md's own small copy rather than an
-    import, since nota2md carries no dependency on leyesmx.
+    "does this title name that instrument" question that the retired
+    `leyesmx.dof` asked of an entry with no decree title of its own — the
+    only shape of the question the SCJN's dates-only reform table ever
+    allows, see this module's issue #187 section.
 
     A `nombre` left with fewer than 2 meaningful words (e.g. "LEY de
     Amparo" — only "Amparo" survives the filter) never counts as mentioned,
@@ -726,7 +742,7 @@ def title_candidates_por_fecha(fechas, nombre: str, porf: dict) -> dict[str, lis
     cover the dates actually worth checking (typically the ones
     `versiones_de_directorio` returns for this instrument); `porf` groups by
     fecha every dofjson title record worth considering (see
-    `leyesmx.dof.notas_por_fecha` / `dofjson.legal_provisions_titles`).
+    `dofjson.legal_provisions_titles`).
 
     When no same-day title names the instrument at all, this falls back to
     every same-day codNota whose own title opens with "DECRETO" or "LEY"
@@ -1210,11 +1226,6 @@ _SCJN_LEYES_RELEASES_API = (
     f"https://api.github.com/repos/INGEOTEC/LegalIA/releases/tags/{_SCJN_LEYES_RELEASE}"
 )
 
-#: The one collection the corpus covers today. Carried inside
-#: `indice-global.json.gz` so adding `reglamentos`/`normas`/`tratados` later is
-#: not a breaking change to its readers — see issue #117, "Fuera de alcance".
-COLECCION_SCJN_LEYES = "leyes"
-
 #: The reverse index published alongside the per-law tarballs: the union of
 #: every `indice.json`, inverted by codNota and stripped of all text, so
 #: resolving "which law does this codNota reform" costs a few hundred KB
@@ -1222,9 +1233,7 @@ COLECCION_SCJN_LEYES = "leyes"
 ASSET_INDICE_GLOBAL = "indice-global.json.gz"
 
 
-def construye_indice_global(
-    instrumentos: list[dict], generado: str, coleccion: str = COLECCION_SCJN_LEYES
-) -> tuple[dict, dict]:
+def construye_indice_global(instrumentos: list[dict], generado: str) -> tuple[dict, dict]:
     """The `indice-global.json.gz` payload for `instrumentos`, plus the counts
     the packaging manifest reports — see `ASSET_INDICE_GLOBAL`.
 
@@ -1251,6 +1260,13 @@ def construye_indice_global(
     Only snapshots with a `codNota` actually linked make it in (D2): the index
     is the list of what we *know*, so an `ambiguous` or `unlinked` snapshot is
     counted in the returned tally and left out of the payload.
+
+    `coleccion` is written as the literal `"leyes"`. It stopped being a
+    parameter in issue #189, when `leyes` became the project's only
+    collection, but stays in the payload: it is a field of a *published*
+    asset that readers can already see, and dropping it would change the
+    release format for no gain (`tests/test_scjn_release_red.py` asserts the
+    published index still has it).
     """
     entradas_instrumentos: dict[str, dict] = {}
     por_cod_nota: dict[str, list[dict]] = {}
@@ -1290,7 +1306,7 @@ def construye_indice_global(
 
     indice_global = {
         "generado": generado,
-        "coleccion": coleccion,
+        "coleccion": "leyes",
         "instrumentos": entradas_instrumentos,
         "codNota": {cod: por_cod_nota[cod] for cod in sorted(por_cod_nota, key=int)},
     }

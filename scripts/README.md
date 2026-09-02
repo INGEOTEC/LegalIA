@@ -74,7 +74,7 @@ in particular that the ground truth is no longer independent of the SCJN.
 
 Recovers, from the SCJN's own SCOW JSON API
 ([legislacion.scjn.gob.mx/consulta/buscador](https://legislacion.scjn.gob.mx/consulta/buscador),
-issue #172), the reform-dated Markdown snapshots of a law/reglamento/tratado that
+issue #172), the reform-dated Markdown snapshots of a federal law that
 `nota2md.legal_provisions` would otherwise have to OCR, and links each one to
 the DOF `codNota` that published it — see
 `packages/nota2md/nota2md/scjn.py` for why this is a legitimate source (each
@@ -103,8 +103,8 @@ the whole chain above for exactly those laws, and exits without effects when
 nothing is pending — the expected case most of the time:
 
 ```bash
-python scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --plan
-python scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --actualiza
+python scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --plan
+python scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --actualiza
 ```
 
 Then read `MANIFEST.md` — an incremental run lists the laws it actually
@@ -183,11 +183,11 @@ asset and orphans it.
 
 ### `fetch_scjn_legislacion.py`
 
-Fase 1: covers `leyes`, `reglamentos` and `tratados` only — the SCJN does not
-catalogue NOM technical standards as ordenamientos of their own (issue
-#105's Fase 0). Resumable at two levels — a file already on disk is left
-alone, and, per collection, the index of the last instrumento fully
-attempted is checkpointed to `<outdir>/<coleccion>/.progreso.json` and
+Fase 1: covers `leyes`, the only collection left (issue #189) — which is
+why `leyes` is a literal path segment in these scripts and no longer
+something to pass on the command line. Resumable at two levels — a file
+already on disk is left alone, and the index of the last instrumento fully
+attempted is checkpointed to `<outdir>/leyes/.progreso.json` and
 cleared once that collection finishes, so a run killed partway (crash,
 network drop, Ctrl-C) picks back up right after that index instead of
 re-walking every already-done instrumento's reform table from the top
@@ -207,7 +207,7 @@ line:
   searched instead of `nombre`.
 - **Incremental refresh** — once a collection has been crawled
   start-to-finish, that date is recorded to
-  `<outdir>/<coleccion>/.rastreo_completo.json`. A later refresh skips an
+  `<outdir>/leyes/.rastreo_completo.json`. A later refresh skips an
   instrumento without touching the SCJN only when it already has a snapshot
   on disk *and* its own `actualizado` is no later than that checkpoint — an
   instrumento with no snapshot yet is always retried, so a law the SCJN has
@@ -242,7 +242,7 @@ since a weaker link is never what you actually want:
    changed between this SCJN snapshot and the previous one — resolving the
    `ambiguous` case title mention alone cannot. Needs each candidate's own
    DOF Markdown, fetched via `dofjson` and saved under each instrument's own
-   `notas` subdirectory (`<outdir>/<coleccion>/<slug>/notas`, created
+   `notas` subdirectory (`<outdir>/leyes/<slug>/notas`, created
    automatically) — next to that instrument's own `indice.json`, not in a
    directory shared across instruments. Kept, not scratch: issue #128 ships
    them inside each instrument's own tarball.
