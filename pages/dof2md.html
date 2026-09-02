@@ -78,7 +78,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-15b7c4a5ef1133b45a72edd940cf6f53.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-8d41ce0f7a064c7399262d85766ee5c3.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -133,19 +133,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../pages/dataset.html"> 
-<span class="menu-text">Dataset</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="../pages/titles.html"> 
-<span class="menu-text">DOF Titles</span></a>
+<span class="menu-text">Archive</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../pages/leyes.html"> 
 <span class="menu-text">Federal Laws</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../pages/tools.html"> 
-<span class="menu-text">Tools</span></a>
+    <a class="nav-link" href="../pages/titles.html"> 
+<span class="menu-text">DOF Titles</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link active" href="../pages/dof2md.html" aria-current="page"> 
@@ -250,7 +246,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Rewriting the raw HTML tables mineru falls back to (rowspan/colspan) into Markdown tables.</li>
 <li>Cropping the result down to a single note, by locating its title and the next note’s title in the OCR’d text — useful because a scanned page usually holds the tail of one note and the head of the next.</li>
 </ul>
-<p>It is only needed directly for notes that predate the HTML era of the gazette (pre-1999-ish) and survive only as scanned images — <code>nota2md</code> borrows it lazily for that OCR path, as shown in <a href="../pages/tools.html#when-there-is-no-html-the-scanned-decades">From the gazette to Markdown</a>. Used on its own, as here, it never talks to <code>dofjson</code> or <code>nota2md</code> at all.</p>
+<p>It is only needed directly for notes that predate the HTML era of the gazette (pre-1999-ish) and survive only as scanned images — <code>nota2md</code> borrows it lazily as its own OCR fallback for that path. Used on its own, as here, it never talks to <code>dofjson</code> or <code>nota2md</code> at all.</p>
 </section>
 <section id="a-real-edition-converted" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="a-real-edition-converted"><span class="header-section-number">2</span> A real edition, converted</h2>
@@ -285,8 +281,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>md_path</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
-<pre><code>2026-08-27 14:36:25.735 | INFO     | mineru.cli.client:run_planned_task:832 - Submitting batch 1/1 | 1 document, 4 pages in this batch | 4 pages total | task#1 [edicion-327945]
-2026-08-27 14:37:10.836 | INFO     | mineru.cli.client:run_planned_task:883 - Completed batch 1/1 | Processed 4/4 pages | 1 of 1 batch finished | task#1 [edicion-327945]</code></pre>
+<pre><code>2026-09-02 14:03:31.765 | INFO     | mineru.cli.client:run_planned_task:832 - Submitting batch 1/1 | 1 document, 4 pages in this batch | 4 pages total | task#1 [edicion-327945]
+2026-09-02 14:04:58.882 | INFO     | mineru.cli.client:run_planned_task:883 - Completed batch 1/1 | Processed 4/4 pages | 1 of 1 batch finished | task#1 [edicion-327945]</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <pre><code>PosixPath('output/16062026-VES.md')</code></pre>

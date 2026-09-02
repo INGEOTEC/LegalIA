@@ -61,7 +61,7 @@ div.csl-indent {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-15b7c4a5ef1133b45a72edd940cf6f53.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-8d41ce0f7a064c7399262d85766ee5c3.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -116,19 +116,15 @@ div.csl-indent {
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./pages/dataset.html"> 
-<span class="menu-text">Dataset</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./pages/titles.html"> 
-<span class="menu-text">DOF Titles</span></a>
+<span class="menu-text">Archive</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./pages/leyes.html"> 
 <span class="menu-text">Federal Laws</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./pages/tools.html"> 
-<span class="menu-text">Tools</span></a>
+    <a class="nav-link" href="./pages/titles.html"> 
+<span class="menu-text">DOF Titles</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./pages/dof2md.html"> 
@@ -236,12 +232,6 @@ NEARUSTECH</p>
 </div>
 <p>The group brings more than a decade of work on natural language processing for Spanish: automated text categorization <span class="citation" data-cites="Tellez2018AnOptimization">(<a href="references.html#ref-Tellez2018AnOptimization" role="doc-biblioref">Tellez et al. 2018</a>)</span>, multilingual sentiment analysis <span class="citation" data-cites="Tellez2017ATwitter Graff2020EvoMSA:Analysis">(<a href="references.html#ref-Tellez2017ATwitter" role="doc-biblioref">Tellez, Miranda-Jiménez, Graff, Moctezuma, Suárez, et al. 2017</a>; <a href="references.html#ref-Graff2020EvoMSA:Analysis" role="doc-biblioref">Graff et al. 2020</a>)</span>, the text transformations that matter when processing informal Spanish <span class="citation" data-cites="Tellez2017AAnalysis">(<a href="references.html#ref-Tellez2017AAnalysis" role="doc-biblioref">Tellez, Miranda-Jiménez, Graff, Moctezuma, Siordia, et al. 2017</a>)</span>, large-scale exploratory analysis of text collections <span class="citation" data-cites="Graff2022AData">(<a href="references.html#ref-Graff2022AData" role="doc-biblioref">Graff et al. 2022</a>)</span>, and evidence that lexical representations remain competitive across a myriad of classification challenges <span class="citation" data-cites="Graff2025BoW">(<a href="references.html#ref-Graff2025BoW" role="doc-biblioref">Graff et al. 2025</a>)</span>. Of direct relevance to LegalIA, it has built regionalized word embeddings and BERT models that capture the variations of Spanish across twenty-six Spanish-speaking regions <span class="citation" data-cites="Tellez2023Regionalized">(<a href="references.html#ref-Tellez2023Regionalized" role="doc-biblioref">Tellez et al. 2023</a>)</span> — experience in creating, from raw text, precisely the kind of specialized resources this project requires.</p>
 <p>The team also works on the bridge between machine learning and regulation: a taxonomic proposal of regulatory approaches to artificial intelligence <span class="citation" data-cites="LlamasCovarrubias2022Enfoques">(<a href="references.html#ref-LlamasCovarrubias2022Enfoques" role="doc-biblioref">Llamas Covarrubias et al. 2022</a>)</span>, a review of the discipline’s trajectory in the legal domain <span class="citation" data-cites="Graff2026IALegal">(<a href="references.html#ref-Graff2026IALegal" role="doc-biblioref">Graff and Llamas Covarrubias 2026</a>)</span>, and a treatment of its foundations oriented to rigorous and auditable evaluation <span class="citation" data-cites="Tellez2026Fundamentos">(<a href="references.html#ref-Tellez2026Fundamentos" role="doc-biblioref">Tellez et al. 2026</a>)</span>. The publications that support the project are collected in the <a href="./pages/references.html">References</a> page.</p>
-</section>
-<section id="first-steps" class="level2">
-<h2 class="anchored" data-anchor-id="first-steps">First steps</h2>
-<p>The project is underway, and its starting point — the beginning of the collection, not its full extent — is the <em>Diario Oficial de la Federación</em> (DOF), the official gazette of the Mexican State: more than 1.2 million <em>notas</em> published without interruption since 1917. The collection of the data is facilitated by <a href="https://github.com/INGEOTEC/LegalIA/tree/master/packages/nota2md">nota2md</a>, which turns an individual note into Markdown from its official HTML or by OCR of its scanned pages, accompanied by <a href="https://github.com/INGEOTEC/LegalIA/tree/master/packages/dofjson">dofjson</a> and <a href="https://github.com/INGEOTEC/LegalIA/tree/master/packages/dof2md">dof2md</a>; a guided walkthrough is presented in <a href="./pages/tools.html">From the gazette to Markdown</a>. The resulting archive of daily note indices — what it contains, and how it is kept growing — is documented in <a href="./pages/dataset.html">The DOF note archive</a>.</p>
-<p>A first analysis examines <a href="./pages/titles.html">the titles of the Diario Oficial</a>, the gazette’s most elementary metadata, and uses them as a longitudinal lens to detect structural, institutional and linguistic transformations in the publication itself. Drawing on the titles published since 1917, this analysis considers yearly volume, the first word of each title, title length, the issuing branch, and the vocabulary that distinguishes one period from another, revealing how shifts in administrative practice reshape even the smallest textual units of the state.</p>
-<p>Every page on this site, including this one, is a Jupyter notebook that can be executed outside the site — for instance on <a href="https://colab.research.google.com/">Google Colab</a>.</p>
 </section>
 <section id="colophon" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="colophon">Colophon</h2>
