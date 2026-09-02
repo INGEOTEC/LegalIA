@@ -29,7 +29,7 @@ on the project's [website](https://ingeotec.github.io/LegalIA/).
 
 ## Quick start
 
-`nota2md` has seven entry points, all re-exported off the package itself.
+`nota2md` has eight entry points, all re-exported off the package itself.
 Note that `legal_provisions` answers from the SCJN's consolidated law texts
 by default when the `scjn-leyes` release covers the `codNota`, and only goes
 to the DOF otherwise — `source="dof"` forces the original source. See
@@ -111,7 +111,7 @@ for titulo in legal_provisions_titles():
 
 Install a package in editable mode with its test dependencies, then run its
 tests. The same two commands work for any of the four packages —
-`dofjson`, `nota2md`, `dof2md` and `leyesmx`:
+`dofjson`, `nota2md`, `dof2md` and `md2akn`:
 
 ```bash
 pip install -e "packages/dofjson[test]"

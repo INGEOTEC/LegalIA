@@ -236,27 +236,28 @@ delete it and break the surviving `leyes` collection.
 | `extract_scjn_titles.py` | the only remaining consumer of the Diputados-derived `historial`; `COLECCIONES = ("leyes","reglamentos","tratados")` (l. 68), `--coleccion` (l. 118), `_actualizado()` resolving `historial[-1]` through `dofjson`, and 5 docstring references | rebuilt on `download_scjn_leyes_catalog`; `--coleccion` and `COLECCIONES` removed; `actualizado` re-derived per #186 | #186 |
 | `fetch_scjn_legislacion.py` | 84 `coleccion` references — `COLECCIONES` (l. 220), `--coleccion` (l. 717), the per-collection `outdir` layout, `refresca_catalogo()` (l. 309) which calls `extract_scjn_titles.py` with `--coleccion`, `_fecha_release_historial()` (l. 406, used at l. 475), and the positional resume checkpoint (`_lee_progreso`/`_guarda_progreso`, `{"indice": n}` — a position in the catalogue list, which is why #186 must fix the catalogue's order) | collapse to one collection; the `historial-legislativo` publication-date lookup is removed or repointed at `scjn-leyes` | #186 |
 | `enlaza_scjn_legislacion.py` | 22 references — `COLECCIONES` (l. 84), `--coleccion` (l. 282), the `extract_scjn_titles.py` hint it prints | collapse to one collection | #186 / #187 |
-| `empaqueta_scjn_leyes.py` | 15 references, all `leyes`-only already; carries the **no-automated-publish rule** (l. 9–15) that #184 must not override, and the `estado.json` description (l. 54, 157, 167) which names Diputados | keep; docstrings rewritten | #190 |
+| `empaqueta_scjn_leyes.py` | 15 references, all `leyes`-only already; carries the **no-automated-publish rule** (l. 9–15) that #184 must not override, and the `estado.json` description (l. 54, 157, 167) which named Diputados | kept, rule intact; docstrings rewritten in **#189**, and #190 removed the comparison to the once-automated `reformas.yml` | **#189/#190, done** |
 | ~~`empaqueta_historial.py`~~ | the four-asset map `COLECCIONES`, `--datos packages/leyesmx/data` | deleted — no asset left to pack | **#187, done** |
 | ~~`fetch_legal_provisions_provenance.py`~~ | wrapped `download_legal_provisions_provenance_ids` | deleted | **#187, done** |
 | `resume_scjn_leyes.py` | 7 references, `leyes`-only, feeds `website/pages/data/scjn-leyes-summary.json` | keep | — |
-| `fetch_lfiiedb_dof.py` | 3 Diputados references in its prose (l. 20, 40, 125) | prose rewritten | #190 |
+| ~~`fetch_lfiiedb_dof.py`~~ | 3 Diputados references in its prose (l. 20, 40, 125) | prose rewritten (l. 125 in #189, l. 20 and 40 in #190); the rest of the page stays the Spanish procedure record it always was | **#190, done** |
 | `verifica_scjn_api.py`, `reparar_notas_archivo.py`, `spike_scjn_api.py`, `md2akn_sweep.py` | 1 incidental reference or none | untouched | — |
-| `scripts/README.md` | 6 collection references + the `empaqueta_historial.py` section (l. 11–21) and the `actualizado` description (l. 84–106) | rewritten; also absorbs the seeding step and byte-reproducibility note the deleted workflow carried | #190 |
+| ~~`scripts/README.md`~~ | 6 collection references + the `empaqueta_historial.py` section (l. 11–21) and the `actualizado` description (l. 84–106) | rewritten across #186–#189; #190 added the **seeding step** and the **byte-reproducibility check** the deleted workflow carried, both as commands, plus the frozen-release paragraph | **#190, done** |
 
 ## 5. `.github/workflows/` — a verdict for every file
 
-The directory has five files. This is a statement about all of them.
+The directory had five files; it has four since #190. This is a statement
+about all of them, re-checked file by file in #190.
 
 | File | Runs Diputados code? | Verdict | Phase |
 |---|---|---|---|
-| `reformas.yml` | **Yes** — `pip install -e packages/leyesmx`, `python -m leyesmx --ley ...` for the four collections, monthly cron plus `workflow_dispatch` | **Deleted, not repointed**, and no workflow replaces it. Two independent reasons: three of its four collections are out of scope, and the fourth would be SCJN-derived, which `scripts/empaqueta_scjn_leyes.py` (issue #115, Hallazgo C) forbids publishing without a human. Two things it carried have to survive as documentation in `scripts/README.md`: the **seeding step** (unpack the existing release first, so a single-`abrev` run does not publish a `leyes.tgz` holding one law) and the **byte-reproducibility** of the tarballs that lets "upload only what changed" be a byte comparison rather than a guess. | #190 |
+| ~~`reformas.yml`~~ **deleted in #190** | **Yes, it did** — `pip install -e packages/leyesmx`, `python -m leyesmx --ley ...` for the four collections, monthly cron plus `workflow_dispatch` | **Deleted, not repointed**, and no workflow replaces it. Two independent reasons: three of its four collections are out of scope, and the fourth would be SCJN-derived, which `scripts/empaqueta_scjn_leyes.py` (issue #115, Hallazgo C) forbids publishing without a human. Two things it carried have to survive as documentation in `scripts/README.md`: the **seeding step** (unpack the existing release first, so a single-`abrev` run does not publish a `leyes.tgz` holding one law) and the **byte-reproducibility** of the tarballs that lets "upload only what changed" be a byte comparison rather than a guess. | #190 |
 | `test.yml` | No | **Done in #189**: `leyesmx` removed from the matrix and the "Install sibling package (dofjson) for leyesmx" step removed, in the same commit as the package, so CI never goes red between commits. Note for CI expectations: this workflow runs `pytest packages/<pkg>` with **no** `--ignore`, so the four network test files run here even though `CLAUDE.md`'s routine command excludes them. | #189 |
-| `publish-pypi.yml` | No | Keep, **unchanged**. #184's text says it has a `leyesmx` entry to remove; it does not — its tag triggers are `dof2md-v*`/`dofjson-v*`/`nota2md-v*` and its `workflow_dispatch` choices are `dof2md`/`dofjson`/`nota2md`. `leyesmx` was never publishable through it. | — |
-| `notas-archivo.yml` | No — installs `packages/dofjson` only | Keep, unchanged. Publishes the DOF's own archive, which this epic does not touch. | — |
-| `website.yml` | No | Keep, unchanged as a workflow. The *content* it publishes changes in #190/#192. | — |
+| `publish-pypi.yml` | No | Kept **unchanged**, re-verified in #190. #184's text says it has a `leyesmx` entry to remove; it does not — its tag triggers are `dof2md-v*`/`dofjson-v*`/`nota2md-v*` and its `workflow_dispatch` choices are `dof2md`/`dofjson`/`nota2md`. `leyesmx` was never publishable through it. | — |
+| `notas-archivo.yml` | No — installs `packages/dofjson` only | Kept unchanged, re-verified in #190. Publishes the DOF's own archive, which this epic does not touch. | — |
+| `website.yml` | No | Kept unchanged as a workflow. The *content* it publishes: #190 removed the Diputados mentions and the retired collections from `pages/leyes.ipynb` and recommitted its `_freeze/`; #192 rewrites the page. | — |
 
-After #190 the directory contains four files, none of which runs Diputados
+The directory now contains those four files, none of which runs Diputados
 code and none of which publishes SCJN-derived data. That second property is
 permanent: no future workflow may publish SCJN-derived data either.
 
@@ -264,16 +265,16 @@ permanent: no future workflow may publish SCJN-derived data either.
 
 | Artifact | Disposition | Phase |
 |---|---|---|
-| `historial-legislativo` release, `leyes.tgz` | **Asset deleted** (`gh release delete-asset`). The reform history of laws lives in the `scjn-leyes` release itself — each law's `indice.json` plus `indice-global.json.gz`. No new dataset, no new asset. | #190 |
-| `historial-legislativo` release, `reglamentos.tgz` / `normas.tgz` / `tratados.tgz` | Kept downloadable, and **labelled by name in the release notes** as a frozen record nothing in the repo can regenerate, with the date each was last built. Stated in plain words, not left to be inferred from a timestamp. `SHA256SUMS.txt` still covers them. | #190 |
-| `.github/historial-legislativo.md` (the release notes body) | Rewritten. Today it names LeyesBiblio as the origin, the monthly workflow as the publisher, four maintained collections, and points at `packages/leyesmx/README.md` — all four statements stop being true. | #190 |
+| ~~`historial-legislativo` release, `leyes.tgz`~~ **deleted in #190** | **Asset deleted** (`gh release delete-asset`; sha256 `8348dd9d…f15e`, 28,538 bytes, last built 2026-07-28, kept out of git as every dataset is). The reform history of laws lives in the `scjn-leyes` release itself — each law's `indice.json` plus `indice-global.json.gz`. No new dataset, no new asset. | #190 |
+| `historial-legislativo` release, `reglamentos.tgz` / `normas.tgz` / `tratados.tgz` | **Done in #190**: kept downloadable, **labelled by name in the release notes** as a frozen record nothing in the repo can regenerate, with the date each was last built. Stated in plain words, not left to be inferred from a timestamp. `SHA256SUMS.txt` still covers them. | #190 |
+| `.github/historial-legislativo.md` (the release notes body) | **Rewritten in #190** and pushed to the release with `gh release edit --notes-file`. It used to name LeyesBiblio as the origin, the monthly workflow as the publisher, four maintained collections, and points at `packages/leyesmx/README.md` — all four statements stop being true. | #190 |
 | ~~`packages/leyesmx/data/` in `.gitignore` (l. 32–34)~~ | Removed with the package | **#189, done** |
 | ~~`.devcontainer/python.sh:7`, `.vscode/settings.json:7`~~ | `leyesmx` install / analysis path removed | **#189, done** |
-| `README.md` (root, l. 21, 72–80, 110) | Package table, the `download_legal_provisions_provenance_ids` example, and the four-package list | #190 |
-| `docs/source/conf.py:21`, `docs/source/index.rst:33,35` | Read order drops to four packages | #190 |
+| ~~`README.md` (root, l. 21, 72–80, 110)~~ | **#190, done**: the four-package list is `dofjson`/`nota2md`/`dof2md`/`md2akn` and the entry-point count matches `nota2md.__all__` (eight). The `download_legal_provisions_provenance_ids` example was already gone with #187's rewrite. | **#190, done** |
+| ~~`docs/source/conf.py:21`, `docs/source/index.rst:33,35`~~ | Read order drops to four packages, ending in `md2akn` | **#190, done** |
 | ~~`packages/dofjson/dofjson/api.py:4`, `packages/dofjson/tests/test_dofjson.py:3`~~ | "(nota2md, leyesmx...)" in prose — rewritten in **#189**, since they were hits on that phase's own definition-of-done grep | **#189, done** |
-| `packages/nota2md/README.md:333,353` and the `download_legal_provisions_provenance_ids` section | Rewritten | #190 |
-| `website/pages/leyes.ipynb` (l. 189, 191, 263) | #190 removes the Diputados mentions and the retired collections; **#192 rewrites the page** and takes precedence over anything #190 says about it | #190 → #192 |
+| ~~`packages/nota2md/README.md:333,353` and the `download_legal_provisions_provenance_ids` section~~ | #187's banner already covered the removal; #190 refreshed the one stale measurement left (the corpus links 3,291 of 3,724 snapshots since #187, not 2,474) and dropped "no reglamento, tratado or NOM" as a scope statement | **#190, done** |
+| `website/pages/leyes.ipynb` (l. 189, 191, 263) | **#190, done** for its own half: the "Why the Supreme Court and not only the Chamber of Deputies" argument, the pipeline figure's LeyesBiblio node, the seeding section, the `nombre_buscado` prose, the overview table's row label and the two stale publishing claims; the notebook was re-executed and `_freeze/` recommitted. **#192 rewrites the page** and takes precedence over anything #190 says about it | #190 → #192 |
 | `packages/dof2md/tests/test_cutter.py:53` | False positive — "ciento cuarenta diputados" inside a legal-text fixture. Expected to survive the definition-of-done grep. | — |
 | `packages/nota2md/tests/fixtures/scjn_api/reformas.json`, `tests/fixtures/leyes/*.md` | Incidental mentions inside captured legal text; the `fixtures/leyes/*.md` files are separately replaced by #188 | #188 |
 
@@ -321,6 +322,13 @@ Every entry above, gathered by owning phase.
   `fetch_scjn_legislacion.py`, `enlaza_scjn_legislacion.py` and
   `empaqueta_scjn_leyes.py` — `leyes` is now a **literal path segment**, said
   out loud in each script's own docstring so it reads as a decision.
-- **#190 (Fase 5)** — `reformas.yml`, the `historial-legislativo` release and
-  its notes, and every document in §6.
+- **#190 (Fase 5), done** — `reformas.yml` deleted with no replacement and a
+  re-checked verdict for the four remaining workflows (§5); `leyes.tgz`
+  deleted from the `historial-legislativo` release, `SHA256SUMS.txt`
+  regenerated over the three frozen assets (`sha256sum -c` re-verified
+  against what the release now serves), and
+  `.github/historial-legislativo.md` rewritten and pushed as the release
+  body; `CLAUDE.md`, the root `README.md`, `docs/`, `packages/nota2md/README.md`
+  and `scripts/README.md` updated; the Diputados half of
+  `website/pages/leyes.ipynb` removed and its `_freeze/` recommitted.
 - **#192** — the Quarto site, which overrides #190 wherever they overlap.

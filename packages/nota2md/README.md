@@ -349,11 +349,12 @@ each law's most recent reform, over 42 real federal laws, and that test says in
 full what the check does and does not establish (issue #188).
 
 The SCJN corpus becoming `legal_provisions`' default source (issue #117) does
-not retire this function (issue #129's audit): the corpus links 2,474 of its
-3,724 `leyes` snapshots to a codNota, only 526 of them pre-1999, and covers no
-reglamento, tratado or NOM at all — so replaying a law's own reform decrees
-remains the only route for everything it does not reach, as well as the
-independent cross-check on what it does.
+not retire this function (issue #129's audit): the corpus links 3,291 of its
+3,724 `leyes` snapshots to a codNota (2,474 by title alone, 834 more promoted
+from their content-diff confirmation in issue #187), only 526 of them
+pre-1999, and covers nothing outside federal laws — so replaying a law's own
+reform decrees remains the only route for everything it does not reach, as
+well as the independent cross-check on what it does.
 
 ```python
 from nota2md import reconstruct_legal_provisions

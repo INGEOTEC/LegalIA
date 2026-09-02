@@ -19,8 +19,21 @@ with the `codNota` that published it, plus `indice-global.json.gz` inverting
 that by `codNota`. `empaqueta_scjn_leyes.py` below is what builds it.
 
 `historial-legislativo`'s `reglamentos.tgz`, `normas.tgz` and `tratados.tgz`
-stay downloadable as a frozen record; nothing in this repo can regenerate
-them, and `leyes.tgz` is withdrawn.
+stay downloadable as a frozen record, labelled as such by name and last build
+date in the release notes (`.github/historial-legislativo.md`, which *is* the
+release body). Nothing in this repo can regenerate them, no workflow
+republishes them, and `leyes.tgz` was **deleted from the release** in issue
+#190 with `SHA256SUMS.txt` regenerated over the three that remain, so the
+`sha256sum -c` the notes tell a reader to run still passes.
+
+The monthly workflow that used to rebuild all four
+(`.github/workflows/reformas.yml`) is deleted too, and **nothing replaces
+it**: the surviving collection is SCJN-sourced, and SCJN-sourced data is
+never published by a workflow (issue #115, Hallazgo C — the Court's own
+search can return a completely wrong document, so a human decides what is
+safe to publish). The two things that workflow carried which are still worth
+having are documented below, as commands rather than automation: the
+**seeding step** and the **byte-reproducibility** of the tarballs.
 
 ### "Reform N" is redefined
 
@@ -325,6 +338,49 @@ many entered and how many stayed out by motive (`ambiguous`, `unlinked`,
 re-uploaded every time any law changes** — it is the union of all of them, so
 one updated law makes the published index stale, and a stale index resolves a
 `codNota` to a snapshot file that is no longer in the tarball.
+
+#### Seeding, and why an incremental run needs it
+
+`--instrumento` rewrites only the named law's tarball; every other law is
+measured from the `.tgz` already sitting in `--destino`, and repackaged from
+`--outdir` when there is none there. So two things have to be whole before an
+incremental publish, and both are the seeding step the retired workflow used
+to perform on a fresh runner:
+
+```bash
+# 1. --destino seeded with what the release already serves, so the assets this
+#    run does not touch stay exactly as published and still get measured
+gh release download scjn-leyes --repo INGEOTEC/LegalIA \
+    --dir scripts/scjn/leyes-release --clobber
+
+# 2. --outdir holding the whole corpus, not one law: SHA256SUMS.txt and
+#    indice-global.json.gz are recomputed over everything on disk, so packing
+#    a partial corpus publishes a partial index
+./scripts/empaqueta_scjn_leyes.py --instrumento lft
+```
+
+Skipping step 1 is not silent — the run reports every law it rewrote, and a
+run that rewrote all 315 when one law changed is the symptom.
+
+#### Byte-reproducibility, and how to check it
+
+The tarballs are byte-reproducible on purpose (gzip stamped with mtime 0,
+members added in sorted order, mode/ownership/times fixed), which is what
+makes "re-upload only what changed" a byte comparison instead of a guess.
+Verified in issue #190 by packaging the same two laws twice into different
+destinations: `lft.tgz` (10.2 MB, 55 snapshots) and `cnpcf.tgz` came out
+byte-identical.
+
+```bash
+./scripts/empaqueta_scjn_leyes.py --destino /tmp/verifica-reproducibilidad
+cmp /tmp/verifica-reproducibilidad/lft.tgz scripts/scjn/leyes-release/lft.tgz
+```
+
+`MANIFEST.md`, `SHA256SUMS.txt` and `indice-global.json.gz` are **not** in
+that guarantee: the index carries its own `generado` timestamp and the
+checksum file covers it, so both differ between two runs over identical data.
+The tarballs are the byte-identical ones, and they are the ones an
+"upload only what changed" step compares.
 
 `nota2md.download_scjn_leyes_corpus(slug)` reads one law back and
 `nota2md.download_scjn_leyes_index()` reads the reverse index. Both
