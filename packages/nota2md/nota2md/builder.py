@@ -213,8 +213,9 @@ def legal_provisions(
     legal provision is*, and with the SCJN corpus already cached on disk there
     is no directory left for them to have to choose:
 
-        >>> legal_provisions(5773097)
-        PosixPath('<CACHE_DIR>/scjn-leyes/md/ccf-14-11-2025.md')
+        >>> import nota2md
+        >>> nota2md.legal_provisions(5788357)
+        PosixPath('.../scjn-leyes/md/lfca-22-05-2026.md')
 
     `source` picks where the Markdown comes from:
 
