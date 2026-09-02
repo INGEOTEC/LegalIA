@@ -1,6 +1,12 @@
-## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY DE DESARROLLO SUSTENTABLE DE LA CAÑA DE AZUCAR**
 
-**VICENTE FOX QUESADA**, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 14 DE NOVIEMBRE DE 2025.**
+
+Ley publicada en el Diario Oficial de la Federación, el lunes 22 de agosto de 2005.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+VICENTE FOX QUESADA, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente:
 
@@ -14,17 +20,19 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente:
 
 **LEY DE DESARROLLO SUSTENTABLE DE LA CAÑA DE AZÚCAR.**
 
-**TITULO PRIMERO DISPOSICIONES GENERALES**
+**TITULO PRIMERO**
 
-**Artículo 1.** - Se expide la presente Ley en el marco de los artículos 25 y 27, fracción XX, de la Constitución Política de los Estados Unidos Mexicanos y demás disposiciones que resultan aplicables.
+**DISPOSICIONES GENERALES**
 
-**Artículo 2.** - Sus disposiciones son de interés público y de orden social, por su carácter básico y estratégico para la economía nacional en términos de la Ley de Desarrollo Rural Sustentable, tiene po r objeto normar las actividades asociadas a la agricultura de contrato y a la integración sustentable de la caña de azúcar, de los procesos de la siembra, el cultivo, la cosecha, la industrialización y la comercialización de la caña de azúcar, sus productos, subproductos, coproductos y derivados.
+**Artículo 1.-** Se expide la presente Ley en el marco de los artículos 25 y 27, fracción XX, de la Constitución Política de los Estados Unidos Mexicanos y demás disposiciones que resultan aplicables.
+
+**Artículo 2.-** Sus disposiciones son de interés público y de orden social, por su carácter básico y estratégico para la economía nacional en términos de la Ley de Desarrollo Rural Sustentable, tiene por objeto normar las actividades asociadas a la agricultura de contrato y a la integración sustentable de la caña de azúcar, de los procesos de la siembra, el cultivo, la cosecha, la industrialización y la comercialización de la caña de azúcar, sus productos, subproductos, coproductos y derivados.
 
 **Artículo 3.-** Para los efectos de esta Ley se entenderá por:
 
-**I.** Abastecedores de Caña: Los productores, personas físicas o morales, cuyas tierras se dediquen total o parcialmente al cultivo de la caña de azúcar, p ara uso industrial y que tengan celebrado un Contrato Uniforme sancionado por el Comité de Producción y Calidad Cañera correspondiente o un contrato de condiciones particulares;
+**I.** Abastecedores de Caña: Los productores, personas físicas o morales, cuyas tierras se dediquen total o parcialmente al cultivo de la caña de azúcar, para uso industrial y que tengan celebrado un Contrato Uniforme sancionado por el Comité de Producción y Calidad Cañera correspondiente o un contrato de condiciones particulares;
 
-**II.** Cámara Azucarera: La Cámara Nacional de las Industrias Azucarera y Alcoho lera;
+**II.** Cámara Azucarera: La Cámara Nacional de las Industrias Azucarera y Alcoholera;
 
 **III.** Ciclo Azucarero: El periodo comprendido del 1 de octubre de un año al 30 de septiembre del año siguiente;
 
@@ -40,7 +48,7 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente:
 
 **IX.** Industriales: Los propietarios de los Ingenios procesadores de caña de azúcar;
 
-**X.** Ingenio: La planta industrial dedicada al procesamiento , transformación e industrialización de la caña de azúcar;
+**X.** Ingenio: La planta industrial dedicada al procesamiento, transformación e industrialización de la caña de azúcar;
 
 **XI.** Junta Permanente: La Junta Permanente de Arbitraje de la Agroindustria de la Caña de Azúcar, de conformidad con la Ley de Desarrollo Rural Sustentable;
 
@@ -62,25 +70,29 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente:
 
 **XX.** Soca: Caña que se cosecha después de la plantilla;
 
-**XXI.** Zona de Abastecimiento: El área geográfica d onde se ubican los terrenos de los abastecedores de cada Ingenio, y
+**XXI.** Zona de Abastecimiento: El área geográfica donde se ubican los terrenos de los abastecedores de cada Ingenio, y
 
-**XXII.** Contrato de condiciones particulares: El Contrato de compraventa, siembra, cultivo, cosecha, entrega y recepción de caña de azúcar, que de manera voluntaria e individual celebren lo s Abastecedores de Caña con algún Ingenio, que pudiera estipular condiciones diferentes a las del Contrato Uniforme.
+**XXII.** Contrato de condiciones particulares: El Contrato de compraventa, siembra, cultivo, cosecha, entrega y recepción de caña de azúcar, que de manera voluntaria e individual celebren los Abastecedores de Caña con algún Ingenio, que pudiera estipular condiciones diferentes a las del Contrato Uniforme.
 
-**Artículo 4.** - Las líneas de política para la agroindustria de la caña de azúcar deberán ser consideradas y previstas en el Programa Naciona l de la Agroindustria de la Caña de Azúcar con carácter especial, contemplando los objetivos, las metas, las estrategias y las líneas de acción propuestas en los programas sectoriales agropecuario, industrial y comercial.
+**Artículo 4.-** Las líneas de política para la agroindustria de la caña de azúcar deberán ser consideradas y previstas en el Programa Nacional de la Agroindustria de la Caña de Azúcar con carácter especial, contemplando los objetivos, las metas, las estrategias y las líneas de acción propuestas en los programas sectoriales agropecuario, industrial y comercial.
 
-**Artículo 5.-** El producto azúcar d e caña, por ser necesario para la economía nacional y el consumo popular, queda sujeto a las disposiciones contenidas en el Artículo 7o. de la Ley Federal de Competencia Económica.
+**Artículo 5.-** El producto azúcar de caña, por ser necesario para la economía nacional y el consumo popular, queda sujeto a las disposiciones contenidas en el Artículo 7o. de la Ley Federal de Competencia Económica.
 
-**Artículo 6.-** Son sujetos de esta Ley los Abastecedores de Caña, los Indust riales procesadores de la caña de azúcar y las Organizaciones que los representan.
+**Artículo 6.-** Son sujetos de esta Ley los Abastecedores de Caña, los Industriales procesadores de la caña de azúcar y las Organizaciones que los representan.
 
-**TITULO SEGUNDO DE LAS AUTORIDADES Y DE LOS ORGANOS EN MATERIA DE LA AGROINDUSTRIA DE LA CAÑA DE AZÚCAR.**
+**TITULO SEGUNDO**
 
-CAPITULO I De la Secretaría
+**DE LAS AUTORIDADES Y DE LOS ORGANOS EN MATERIA DE LA AGROINDUSTRIA DE LA CAÑA DE AZUCAR**
 
-**Artículo 7.** La Secretaría, en coordina ción con las dependencias y entidades competentes de los Gobiernos Federal, Estatales y del Distrito Federal, así como de los municipios, en el ámbito de sus atribuciones realizará lo siguiente:
+**CAPITULO I**
 
-**I.** Dictar las políticas públicas nacionales que habrán de ap licarse en la materia, a fin de imprimir rentabilidad, productividad y competitividad a las actividades que regula esta Ley, que la hagan sustentable;
+De la Secretaría
 
-**II.** Establecer programas para el fomento y el desarrollo de la agroindustria de la caña de azúcar e impu lsar esquemas que propicien la inversión en el campo cañero y en la industria azucarera;
+**Artículo 7.** La Secretaría, en coordinación con las dependencias y entidades competentes de los Gobiernos Federal, Estatales y del Distrito Federal, así como de los municipios, en el ámbito de sus atribuciones realizará lo siguiente:
+
+**I.** Dictar las políticas públicas nacionales que habrán de aplicarse en la materia, a fin de imprimir rentabilidad, productividad y competitividad a las actividades que regula esta Ley, que la hagan sustentable;
+
+**II.** Establecer programas para el fomento y el desarrollo de la agroindustria de la caña de azúcar e impulsar esquemas que propicien la inversión en el campo cañero y en la industria azucarera;
 
 **III.** Gestionar los recursos que demande la ejecución de los programas que formule para promover el mejoramiento de la agroindustria de la caña de azúcar;
 
@@ -88,9 +100,9 @@ CAPITULO I De la Secretaría
 
 **V.** Participar en coordinación con las autoridades correspondientes, en la tramitación y/o prestación de todos los servicios asociados a la agroindustria de la caña de azúcar;
 
-**VI.** Establecer en coordinación con la Secretaría de Economía, las medidas para procurar el abasto nacional suficiente del azúcar de caña previendo la rese rva estratégica que permita el establecimiento de niveles de inventarios adecuados;
+**VI.** Establecer en coordinación con la Secretaría de Economía, las medidas para procurar el abasto nacional suficiente del azúcar de caña previendo la reserva estratégica que permita el establecimiento de niveles de inventarios adecuados;
 
-**VII.** Proponer a la Secretaría de Economía las bases para la fijación de precios máximos en la materia, en términos del Artículo 7o. de la Ley Federal de Competencia Económ ica;
+**VII.** Proponer a la Secretaría de Economía las bases para la fijación de precios máximos en la materia, en términos del Artículo 7o. de la Ley Federal de Competencia Económica;
 
 **VIII.** Promover y encauzar el crédito en coordinación con la Secretaría de Hacienda y Crédito Público, para el desarrollo y estimulación de la producción del campo cañero, la operación de los Ingenios y el financiamiento de los inventarios de azúcar;
 
@@ -98,15 +110,13 @@ CAPITULO I De la Secretaría
 
 **X.** Proponer a las Secretarías de Hacienda y Crédito Público y de Economía cuando así se requiera, los niveles de cuota y arancel para la importación de azúcar y sus sustitutos;
 
-**XI.** Participar e instrumentar en coordinación con la Secretaría de Medio Ambiente y Recursos Naturales, las acciones de preservación del medio ambiente y la protección d e la biodiversidad
-
-en el campo cañero en las Zonas de Abastecimiento y de los Ingenios, impulsando la ejecución de programas de recuperación ecológica;
+**XI.** Participar e instrumentar en coordinación con la Secretaría de Medio Ambiente y Recursos Naturales, las acciones de preservación del medio ambiente y la protección de la biodiversidad en el campo cañero en las Zonas de Abastecimiento y de los Ingenios, impulsando la ejecución de programas de recuperación ecológica;
 
 **XII.** Fomentar el consumo nacional del azúcar y de los productos, coproductos, subproductos y derivados de la caña de azúcar;
 
 **XIII.** Establecer en coordinación con la Secretaría de Economía un sistema integral de información de mercados y otros servicios que consoliden el mercado doméstico y la exportación de productos, coproductos, subproductos y derivados de la caña de azúcar;
 
-**XIV.** Elaborar, actualizar y difundir un banco de proyectos y oportunidades de inversión en la agroindustria de la caña de azúcar y sus actividades complementarias, para lo cual, en coordinación con las dependencias o entidades compet entes de los tres órdenes de gobierno, fomentará el establecimiento de empresas de los sectores social y privado cuyo objeto social sea el aprovechamiento de la caña de azúcar, la industrialización y comercialización de los productos, coproductos, subproductos y derivados de la misma propiciando la competitividad y en su caso, la reconversión productiva;
+**XIV.** Elaborar, actualizar y difundir un banco de proyectos y oportunidades de inversión en la agroindustria de la caña de azúcar y sus actividades complementarias, para lo cual, en coordinación con las dependencias o entidades competentes de los tres órdenes de gobierno, fomentará el establecimiento de empresas de los sectores social y privado cuyo objeto social sea el aprovechamiento de la caña de azúcar, la industrialización y comercialización de los productos, coproductos, subproductos y derivados de la misma propiciando la competitividad y en su caso, la reconversión productiva;
 
 **XV.** Elaborar y promover programas de productividad de las Zonas de Abastecimiento donde se incorporen los programas de infraestructura hidroagrícola y de caminos rurales;
 
@@ -116,47 +126,51 @@ en el campo cañero en las Zonas de Abastecimiento y de los Ingenios, impulsando
 
 **XVIII.** Las demás que esta Ley y su Reglamento establezcan.
 
-**Artículo 8.** - La Secretaría, en coordinación con el Comité Nacional, deberá formular el Programa Nacional de la Agroindustria de la Caña de Azúcar con carácter especial, que será presentado para su aprobación al Titular del Ejecutivo Federal, el que deberá considerar como mínimo, el balance azucarero y el balance general de edulcorantes, las políticas de financiamiento de inversión para el campo cañero y fábrica, las políticas comerciales, los estímulos fiscales y apoyos gubernamentales, la competitividad en costos y preci os, el desarrollo y aplicación de nuevas tecnologías, los tratados comerciales celebrados con otros países y el comportamiento del mercado nacional e internacional, con el objeto de establecer, para el corto y el mediano plazos, los objetivos, metas, estra tegias, líneas de acción, asignación de recursos, responsabilidades, instrumentos de evaluación, y mecanismos de colaboración y coordinación interinstitucional con los gobiernos Federal, Estatales, del Distrito Federal y municipales, para propiciar el ordenamiento, fortalecimiento y transparencia en las actividades de la agroindustria de la caña de azúcar.
+**Artículo 8.-** La Secretaría, en coordinación con el Comité Nacional, deberá formular el Programa Nacional de la Agroindustria de la Caña de Azúcar con carácter especial, que será presentado para su aprobación al Titular del Ejecutivo Federal, el que deberá considerar como mínimo, el balance azucarero y el balance general de edulcorantes, las políticas de financiamiento de inversión para el campo cañero y fábrica, las políticas comerciales, los estímulos fiscales y apoyos gubernamentales, la competitividad en costos y precios, el desarrollo y aplicación de nuevas tecnologías, los tratados comerciales celebrados con otros países y el comportamiento del mercado nacional e internacional, con el objeto de establecer, para el corto y el mediano plazos (sic), los objetivos, metas, estrategias, líneas de acción, asignación de recursos, responsabilidades, instrumentos de evaluación, y mecanismos de colaboración y coordinación interinstitucional con los gobiernos Federal, Estatales, del Distrito Federal y municipales, para propiciar el ordenamiento, fortalecimiento y transparencia en las actividades de la agroindustria de la caña de azúcar.
 
-CAPITULO II Del Comité Nacional para el Desarrollo Sustentable de la Caña de Azúcar
+**CAPITULO II**
 
-Sección Primera De la denominación, objeto y domicilio.
+Del Comité Nacional para el Desarrollo Sustentable de la Caña de Azúcar
 
-**Artículo 9 .-** En términos de lo dispuesto en el Artículo 14 de la Ley Federal de las Entidades Paraestatales, se constituye el Comité Nacional para el Desarrollo Sustentable de la Caña de Azúcar como un organismo público descentralizado, dependiente de la Administrac ión Pública Federal, cuyo
+Sección Primera
 
-objeto será la coordinación y la realización de todas las actividades previstas en esta Ley relacionadas con la agroindustria de la caña de azúcar; su domicilio legal será la Ciudad de México, Distrito Federal.
+De la denominación, objeto y domicilio
 
-Sección Segunda De las atribuciones
+**Artículo 9.-** En términos de lo dispuesto en el Artículo 14 de la Ley Federal de las Entidades Paraestatales, se constituye el Comité Nacional para el Desarrollo Sustentable de la Caña de Azúcar como un organismo público descentralizado, dependiente de la Administración Pública Federal, cuyo objeto será la coordinación y la realización de todas las actividades previstas en esta Ley relacionadas con la agroindustria de la caña de azúcar; su domicilio legal será la Ciudad de México, Distrito Federal.
 
-**Artículo 10.** - El Comité Nacional, para el cumplimiento de su objeto, tendrá las siguientes atribuciones:
+Sección Segunda
 
-**I.** Proponer a la Secretaría, en los términos del Sistema Nacional de Planeación, los programas que resulten mas convenientes para l a producción, industrialización y comercialización de la caña de azúcar, sus coproductos, subproductos y derivados, así como las obras de infraestructura, considerando el entorno en el que se desenvuelve el sector en el corto y en el mediano plazos;
+De las atribuciones
+
+**Artículo 10.-** El Comité Nacional, para el cumplimiento de su objeto, tendrá las siguientes atribuciones:
+
+**I.** Proponer a la Secretaría, en los términos del Sistema Nacional de Planeación, los programas que resulten mas convenientes para la producción, industrialización y comercialización de la caña de azúcar, sus coproductos, subproductos y derivados, así como las obras de infraestructura, considerando el entorno en el que se desenvuelve el sector en el corto y en el mediano plazos (sic);
 
 **II.** Generar mecanismos de concertación entre Abastecedores de Caña e Industriales;
 
-**III.** Analizar el tamaño de los mercados de edulcorantes con el propósito de instrumentar estrategias de expansión y repliegue del azúcar de caña en sus distintas presentaciones, así como sus coproductos, subproductos y derivados, acorde con las tendencias de los mercados y las condiciones del País, que a su vez permitan participar con criterios objetivos y pertinentes en la definición de aranceles, cupos y modalidades de importac ión de azúcar, coproductos, subproductos, derivados y sustitutos;
+**III.** Analizar el tamaño de los mercados de edulcorantes con el propósito de instrumentar estrategias de expansión y repliegue del azúcar de caña en sus distintas presentaciones, así como sus coproductos, subproductos y derivados, acorde con las tendencias de los mercados y las condiciones del País, que a su vez permitan participar con criterios objetivos y pertinentes en la definición de aranceles, cupos y modalidades de importación de azúcar, coproductos, subproductos, derivados y sustitutos;
 
 **IV.** Promover alianzas estratégicas y acuerdos para la integración de los agentes económicos participantes, llevando un registro de acuerdos, convenios y contratos de asociación en participación y coinversiones celebrados entre los Ingenios y sus Abastecedores de Caña;
 
 **V.** Evaluar las repercusiones de los tratados de libre comercio en el ámbito de la agroindustria de la caña de azúcar y proponer las medidas pertinentes;
 
-**VI.** Instrumentar en c oordinación con la Secretaría, un sistema obligatorio de registro e informes de control semanal, mensual y anual del comportamiento del balance azucarero y de edulcorantes totales con base en el ciclo azucarero;
+**VI.** Instrumentar en coordinación con la Secretaría, un sistema obligatorio de registro e informes de control semanal, mensual y anual del comportamiento del balance azucarero y de edulcorantes totales con base en el ciclo azucarero;
 
-**VII.** Llevar el registro y control de nivele s de producción óptima por Ingenio para contribuir a elevar la competitividad del sector;
+**VII.** Llevar el registro y control de niveles de producción óptima por Ingenio para contribuir a elevar la competitividad del sector;
 
 **VIII.** Evaluar periódicamente el Sistema de pago de la caña por calidad uniforme y el Sistema de pago por la calidad de la caña individual o de grupo; proponiendo los cambios necesarios que le den viabilidad en el contexto del comportamiento de los mercados. Cualquier cambio necesario deberá ser aprobado por el Pleno del Comité;
 
-**IX.** Elaborar balances azucareros y de edulcorantes totales por país, para homologar las po líticas públicas de los socios comerciales de nuestro país en relación con costos, precios, subsidios, índices de productividad, fondos compensatorios, estímulos fiscales, tasas de interés, políticas crediticias, políticas comerciales, precios administrado s y de mercado que entre otros se consideren para establecer las bases para fijar criterios de precios máximos al azúcar de caña en el mercado nacional;
+**IX.** Elaborar balances azucareros y de edulcorantes totales por país, para homologar las políticas públicas de los socios comerciales de nuestro país en relación con costos, precios, subsidios, índices de productividad, fondos compensatorios, estímulos fiscales, tasas de interés, políticas crediticias, políticas comerciales, precios administrados y de mercado que entre otros se consideren para establecer las bases para fijar criterios de precios máximos al azúcar de caña en el mercado nacional;
 
 **X.** Conciliar entre los Ingenios del país, la distribución de las cuotas de exportación de azúcar acordadas en los tratados comerciales que México haya celebrado o celebre en el futuro;
 
-**XI.** Con base en el balance azucarero para la zafra correspondiente, calcular y proponer el precio de referencia del azúcar para el pago de la caña, llevando registro y cont rol de los precios nacionales del azúcar y de los precios del mercado internacional incluidos los precios del mercado de los Estados Unidos de América;
+**XI.** Con base en el balance azucarero para la zafra correspondiente, calcular y proponer el precio de referencia del azúcar para el pago de la caña, llevando registro y control de los precios nacionales del azúcar y de los precios del mercado internacional incluidos los precios del mercado de los Estados Unidos de América;
 
 **XII.** Elaborar y aprobar las bases y cláusulas del Contrato y en su caso, sus modificaciones;
 
 **XIII.** Fomentar el sistema de pago de la caña de azúcar por calidad individual o por grupos;
 
-**XIV.** Llevar el registro nacional de los métodos de pago por calidad de la caña adoptado por el Comité de cada Ingenio, considerando los sistemas de determinación de los kil ogramos de azúcar recuperable base estándar, para efectos de cálculo del precio de la caña;
+**XIV.** Llevar el registro nacional de los métodos de pago por calidad de la caña adoptado por el Comité de cada Ingenio, considerando los sistemas de determinación de los kilogramos de azúcar recuperable base estándar, para efectos de cálculo del precio de la caña;
 
 **XV.** Elaborar las estadísticas de resultados de producción y productividad de las zafras, tanto de campo como de fábrica;
 
@@ -170,13 +184,11 @@ Sección Segunda De las atribuciones
 
 **XX.** Instrumentar un programa de desarrollo tecnológico que articule el campo con la fábrica para elevar sus niveles de competitividad en forma sostenible;
 
-**XXI.** Aprobar el Reglamento, el programa de trabajo y el presupuesto del Centro de Investigación Científica y Tecnológica de la Caña de Azúcar, recibir informes periódicos y evaluar el cumplimiento de su desempeño, así com o proponer las aportaciones que hagan los Industriales, las Organizaciones nacionales y la Secretaría;
+**XXI.** Aprobar el Reglamento, el programa de trabajo y el presupuesto del Centro de Investigación Científica y Tecnológica de la Caña de Azúcar, recibir informes periódicos y evaluar el cumplimiento de su desempeño, así como proponer las aportaciones que hagan los Industriales, las Organizaciones nacionales y la Secretaría;
 
-**XXII.** Proponer en coordinación con la Secretaría, las acciones y programas de capacitación, asistencia técnica y transferencia de tecnología, formulándo se y ejecutándose bajo criterios de sustentabilidad, integralidad, inclusión y participación, los cuales formarán parte del Sistema Nacional de Capacitación y Asistencia Técnica Rural Integral, que establece la Ley de Desarrollo Rural Sustentable;
+**XXII.** Proponer en coordinación con la Secretaría, las acciones y programas de capacitación, asistencia técnica y transferencia de tecnología, formulándose y ejecutándose bajo criterios de sustentabilidad, integralidad, inclusión y participación, los cuales formarán parte del Sistema Nacional de Capacitación y Asistencia Técnica Rural Integral, que establece la Ley de Desarrollo Rural Sustentable;
 
-**XXIII.** Recibir, analizar y evaluar los informes de los Comités respecto de los programas convenidos y sus modificaciones, los avances semanales y acumulados de los programas de campo y de recepción e industrialización de caña en fábrica, los de inicio y término d e zafra, los reportes
-
-de evaluación de actividades y todos aquellos que a su juicio resulten necesarios para tomar decisiones en materia de esta Ley;
+**XXIII.** Recibir, analizar y evaluar los informes de los Comités respecto de los programas convenidos y sus modificaciones, los avances semanales y acumulados de los programas de campo y de recepción e industrialización de caña en fábrica, los de inicio y término de zafra, los reportes de evaluación de actividades y todos aquellos que a su juicio resulten necesarios para tomar decisiones en materia de esta Ley;
 
 **XXIV.** Realizar revisiones, exámenes o auditorías a solicitud de los Comités sobre el desempeño de sus operaciones en general o de alguna en particular;
 
@@ -186,11 +198,13 @@ de evaluación de actividades y todos aquellos que a su juicio resulten necesari
 
 **XXVII.** Intervenir en las consultas de carácter técnico, presupuestal o programático que le sean planteadas;
 
-**XXVIII.** Invitar a los centros de investigación, instituciones de educación superior y organismos no gubernamentales relacionados con la actividad de la a groindustria de la caña de azúcar para escuchar su opinión de acuerdo con la naturaleza de los asuntos a tratar y para incorporarlos al Centro de Investigación Científica y Tecnológica de la Caña de Azúcar, y
+**XXVIII.** Invitar a los centros de investigación, instituciones de educación superior y organismos no gubernamentales relacionados con la actividad de la agroindustria de la caña de azúcar para escuchar su opinión de acuerdo con la naturaleza de los asuntos a tratar y para incorporarlos al Centro de Investigación Científica y Tecnológica de la Caña de Azúcar, y
 
 **XXIX.** Las demás que se señalen en esta Ley.
 
-Sección Tercera De los Órganos de Administración del Comité Nacional
+Sección Tercera
+
+De los Órganos de Administración del Comité Nacional
 
 **Artículo 11.-** La administración del Comité Nacional estará a cargo de:
 
@@ -218,9 +232,9 @@ Por cada miembro propietario habrá un suplente y contará con las mismas facult
 
 El total de integrantes de la Junta Directiva no será menor de cinco ni mayor de quince.
 
-Podrán integrarse a la Junta Directiva con carácter de invitados y solo con derecho a voz, los servidores públicos de la administración pública federal, estatal y municipal, que tengan a su cargo acciones relacionadas con el objeto del Comité Nacional, así como los representantes de organizaciones privadas o sociales con actividades afines al mismo, siempre y cuando así lo a pruebe la Junta Directiva.
+Podrán integrarse a la Junta Directiva con carácter de invitados y solo con derecho a voz, los servidores públicos de la administración pública federal, estatal y municipal, que tengan a su cargo acciones relacionadas con el objeto del Comité Nacional, así como los representantes de organizaciones privadas o sociales con actividades afines al mismo, siempre y cuando así lo apruebe la Junta Directiva.
 
-**Artículo 13.** - Las sesiones que celebre la Junta Directiva, serán ordinarias o extraordinarias. Las sesiones ordinarias se llevarán a cabo cuando menos cuatro veces al año en forma trimestral y las extraordinarias las veces que sean necesarias.
+**Artículo 13.-** Las sesiones que celebre la Junta Directiva, serán ordinarias o extraordinarias. Las sesiones ordinarias se llevarán a cabo cuando menos cuatro veces al año en forma trimestral y las extraordinarias las veces que sean necesarias.
 
 Serán válidas las sesiones cuando se encuentren presentes la mayoría de sus miembros. En caso de ausencia del Presidente la sesión la presidirá su suplente. El Presidente o quien presida la sesión, tendrá voto de calidad en caso de empate.
 
@@ -230,7 +244,7 @@ Los acuerdos serán tomados por mayoría de votos de los miembros presentes; de 
 
 **I.** Establecer en congruencia con el sistema de planeación nacional, las políticas generales y definir las prioridades a las que deberá sujetarse el Comité Nacional para el cumplimiento de su objeto;
 
-**II.** Aprobar el Programa Instituci onal de Desarrollo y el Programa Financiero correspondiente; los Programas de Acción, que deriven de los programas de mediano plazo, así como el Programa Operativo Anual del Comité Nacional, el Presupuesto de Ingresos y Egresos y sus modificaciones en los términos de la legislación aplicable;
+**II.** Aprobar el Programa Institucional de Desarrollo y el Programa Financiero correspondiente; los Programas de Acción, que deriven de los programas de mediano plazo, así como el Programa Operativo Anual del Comité Nacional, el Presupuesto de Ingresos y Egresos y sus modificaciones en los términos de la legislación aplicable;
 
 **III.** Conocer y aprobar el cumplimiento del Programa Institucional de Desarrollo, de los Programas de Acción y del Programa Operativo Anual, en correlación con el ejercicio del presupuesto, de conformidad con las disposiciones legales vigentes;
 
@@ -242,25 +256,25 @@ Los acuerdos serán tomados por mayoría de votos de los miembros presentes; de 
 
 **VII.** Conocer y resolver los asuntos de su competencia de conformidad con esta Ley, el Estatuto Orgánico y demás disposiciones legales aplicables;
 
-**VIII.** Velar por el cumplimiento de la legislación aplicable al Comité Naciona l y en su caso, aplicar las sanciones correspondientes en los términos de la misma en el ámbito de su competencia;
+**VIII.** Velar por el cumplimiento de la legislación aplicable al Comité Nacional y en su caso, aplicar las sanciones correspondientes en los términos de la misma en el ámbito de su competencia;
 
-**IX.** Nombrar y remover a propuesta del Director General, a los servidores públicos del organismo que ocupen cargos en las dos jerarquías admi nistrativas inmediatas inferiores a las de aquél, así como aprobar la fijación de sueldos, prestaciones y conceder licencias;
+**IX.** Nombrar y remover a propuesta del Director General, a los servidores públicos del organismo que ocupen cargos en las dos jerarquías administrativas inmediatas inferiores a las de aquél, así como aprobar la fijación de sueldos, prestaciones y conceder licencias;
 
-**X.** Analizar y en su caso aprobar, los informes anual y los trimestrales, que rinda el Director General sobre el desempeño del Com ité Nacional, con la intervención que corresponda al Comisario;
+**X.** Analizar y en su caso aprobar, los informes anual (sic) y los trimestrales, que rinda el Director General sobre el desempeño del Comité Nacional, con la intervención que corresponda al Comisario;
 
 **XI.** Aprobar y ajustar los precios de los bienes y servicios que produzca o preste el Comité Nacional, a fin de incorporarlos a su presupuesto de ingresos;
 
 **XII.** Aprobar la concertación de los créditos para el financiamiento del Comité Nacional, así como observar los lineamientos que dicten las autoridades competentes en materia de manejo de disponibilidades financieras;
 
-**XIII.** Expedir las normas o bases generales con arreglo a las cuales de co nformidad con la legislación aplicable, el Director General cuando fuere necesario pueda disponer de los activos fijos del Comité Nacional que no correspondan a las operaciones propias del objeto del mismo;
+**XIII.** Expedir las normas o bases generales con arreglo a las cuales de conformidad con la legislación aplicable, el Director General cuando fuere necesario pueda disponer de los activos fijos del Comité Nacional que no correspondan a las operaciones propias del objeto del mismo;
 
-**XIV.** Aprobar de acuerdo con las leyes, reglament os y demás disposiciones aplicables, las bases y programas generales que regulen los convenios, contratos, pedidos o acuerdos que deba celebrar el Comité Nacional con terceros en obras públicas, arrendamientos, adquisiciones y prestaciones de servicios relacionados con bienes muebles e inmuebles. El Director General y en su caso, los servidores públicos que deban de intervenir de conformidad con el Estatuto Orgánico, realizarán tales actos bajo su responsabilidad con sujeción a las directrices fijadas por la Junta Directiva;
+**XIV.** Aprobar de acuerdo con las leyes, reglamentos y demás disposiciones aplicables, las bases y programas generales que regulen los convenios, contratos, pedidos o acuerdos que deba celebrar el Comité Nacional con terceros en obras públicas, arrendamientos, adquisiciones y prestaciones de servicios relacionados con bienes muebles e inmuebles. El Director General y en su caso, los servidores públicos que deban de intervenir de conformidad con el Estatuto Orgánico, realizarán tales actos bajo su responsabilidad con sujeción a las directrices fijadas por la Junta Directiva;
 
-**XV.** Autorizar a propuesta del Presidente, o cuando menos de la tercera parte del Comité Nacional, la creación de comités especializados para apoyar la programación estratégica y la supervisión de la marcha normal del Comité Nacional, at ender los problemas de administración y organización, así como para la selección y aplicación de adelantos científicos y tecnológicos que permitan elevar la productividad y eficiencia;
+**XV.** Autorizar a propuesta del Presidente, o cuando menos de la tercera parte del Comité Nacional, la creación de comités especializados para apoyar la programación estratégica y la supervisión de la marcha normal del Comité Nacional, atender los problemas de administración y organización, así como para la selección y aplicación de adelantos científicos y tecnológicos que permitan elevar la productividad y eficiencia;
 
-**XVI.** Aprobar, en caso de existir excedentes económicos, la constitució n de reservas y su aplicación, previa autorización de la Comisión Intersecretarial Gasto-Financiamiento;
+**XVI.** Aprobar, en caso de existir excedentes económicos, la constitución de reservas y su aplicación, previa autorización de la Comisión Intersecretarial Gasto-Financiamiento;
 
-**XVII.** Establecer con sujeción a las disposiciones aplicables las normas y bases para la adquisición, arrendamiento y enajenación de los bienes inmuebl es que el Comité Nacional requiera para la prestación de sus servicios, con excepción de aquellos inmuebles que la ley considere de dominio publico;
+**XVII.** Establecer con sujeción a las disposiciones aplicables las normas y bases para la adquisición, arrendamiento y enajenación de los bienes inmuebles que el Comité Nacional requiera para la prestación de sus servicios, con excepción de aquellos inmuebles que la ley considere de dominio público;
 
 **XVIII.** Acordar con sujeción a las disposiciones legales relativas, los donativos y pagos extraordinarios y verificar que los mismos se apliquen a los fines señalados;
 
@@ -268,11 +282,11 @@ Los acuerdos serán tomados por mayoría de votos de los miembros presentes; de 
 
 **XX.** Aprobar anualmente previo informe del Comisario y dictamen de los auditores externos en su caso, los estados financieros y el estado del ejercicio del presupuesto del organismo y autorizar la publicación de los mismos;
 
-**XXI.** Controlar y evaluar la forma en que los objetivos sean alcanzados y la manera en que las estrategias básicas y las metas sean cumplidas, atendiendo los informes que en materia de control y auditoría les sean turnados, vigilando la implanta ción de las medidas preventivas y correctivas a que hubiere lugar;
+**XXI.** Controlar y evaluar la forma en que los objetivos sean alcanzados y la manera en que las estrategias básicas y las metas sean cumplidas, atendiendo los informes que en materia de control y auditoría les sean turnados, vigilando la implantación de las medidas preventivas y correctivas a que hubiere lugar;
 
 **XXII.** Nombrar y remover a propuesta de su Presidente, al Secretario del órgano de gobierno, quien podrá ser miembro o no de la Junta Directiva, así como designar o remover a propuesta del Director General al Prosecretario del órgano de gobierno, quien deberá ser servidor público del Comité Nacional, y
 
-**XXIII.** Las demás que le otorguen la presente Ley y las disposiciones jurídico -administrativas aplicables.
+**XXIII.** Las demás que le otorguen la presente Ley y las disposiciones jurídico-administrativas aplicables.
 
 **Artículo 15.-** El Director General será nombrado y removido por el Titular del Ejecutivo Federal.
 
@@ -282,31 +296,29 @@ Los acuerdos serán tomados por mayoría de votos de los miembros presentes; de 
 
 **II.** Ser mayor de treinta y menor de setenta años;
 
-**III.** Poseer grado académico, preferentemente vinculad o a las tareas del sector, y tener conocimientos en materia de administración pública, y
+**III.** Poseer grado académico, preferentemente vinculado a las tareas del sector, y tener conocimientos en materia de administración pública, y
 
 **IV.** No ser ministro de culto religioso, militar activo, dirigente de partido político, representante sindical o directivo de organismos empresariales al momento de su designación.
 
 **Artículo 17.-** El Director General tendrá las siguientes facultades y obligaciones:
 
-**I.** Representar legalmente al Comité Nacional y llevar a cabo todos los actos jurídicos y de dominio necesarios para el cumplimiento de sus obligaciones de ac uerdo con los lineamientos que establezca la Junta Directiva, la cual podrá determinar en qué casos debe ser necesaria su previa y especial aprobación y también en qué casos podrá sustituirse dicha representación;
+**I.** Representar legalmente al Comité Nacional y llevar a cabo todos los actos jurídicos y de dominio necesarios para el cumplimiento de sus obligaciones de acuerdo con los lineamientos que establezca la Junta Directiva, la cual podrá determinar en qué casos debe ser necesaria su previa y especial aprobación y también en qué casos podrá sustituirse dicha representación;
 
 **II.** Presentar para su aprobación ante la Junta Directiva el Programa Institucional de Desarrollo y el Programa Financiero correspondiente; los programas de Acción; así como el Programa Operativo Anual y los presupuestos de Ingresos y Egresos del Comité Nacional;
 
-**III.** Someter para su aprobación a l órgano de gobierno, los convenios de cooperación y desarrollo que celebre el Comité Nacional con instituciones nacionales e internacionales, así como con los sectores publico, privado y social, para beneficio del Comité Nacional y del sector;
+**III.** Someter para su aprobación al órgano de gobierno, los convenios de cooperación y desarrollo que celebre el Comité Nacional con instituciones nacionales e internacionales, así como con los sectores público, privado y social, para beneficio del Comité Nacional y del sector;
 
 **IV.** Presentar para su aprobación a la Junta Directiva, la estructura orgánica y sus modificaciones;
 
-**V.** Someter a la consideración del órgano de gobierno para su aprobación, el Estatuto Orgánico del Comité Nacional, así como las disposiciones reglamentarias correspo ndientes para su organización, funcionamiento, control y evaluación;
+**V.** Someter a la consideración del órgano de gobierno para su aprobación, el Estatuto Orgánico del Comité Nacional, así como las disposiciones reglamentarias correspondientes para su organización, funcionamiento, control y evaluación;
 
 **VI.** Elaborar los manuales de organización, procedimientos y políticas del Comité Nacional y presentarlo a la Junta Directiva para su aprobación;
 
-**VII.** Dirigir el desarrollo de las activi dades técnicas, sustantivas y administrativas, así como de control y evaluación del Comité Nacional y dictar los acuerdos pertinentes para estos propósitos;
+**VII.** Dirigir el desarrollo de las actividades técnicas, sustantivas y administrativas, así como de control y evaluación del Comité Nacional y dictar los acuerdos pertinentes para estos propósitos;
 
-**VIII.** Proponer a la Junta Directiva, el nombramiento o remoción de los dos primeros niveles de servidores públicos del Comité Nacional inferiores al Director General, proponer la fijación de
+**VIII.** Proponer a la Junta Directiva, el nombramiento o remoción de los dos primeros niveles de servidores públicos del Comité Nacional inferiores al Director General, proponer la fijación de sueldos y demás prestaciones y designar al resto de los mismos, conforme a las asignaciones globales del presupuesto y de gasto corriente aprobado por la Junta Directiva, en los términos de ley;
 
-sueldos y demás prestaciones y designar al resto de los mismos, conforme a las asignaciones globales del presupuesto y de gasto corriente aprobado por la Junta Dir ectiva, en los términos de ley;
-
-**IX.** Establecer los sistemas de control y evaluación de gestión del Comité Nacional, a fin de contar con información veraz y oportuna sobre el cumplimiento de los objetivos y metas, así como de desempeño institucional para l a toma de decisiones y presentar a la Junta Directiva en forma trimestral un informe;
+**IX.** Establecer los sistemas de control y evaluación de gestión del Comité Nacional, a fin de contar con información veraz y oportuna sobre el cumplimiento de los objetivos y metas, así como de desempeño institucional para la toma de decisiones y presentar a la Junta Directiva en forma trimestral un informe;
 
 **X.** Presentar trimestralmente y de manera anual a la Junta Directiva, el informe de las actividades y resultados;
 
@@ -316,17 +328,17 @@ sueldos y demás prestaciones y designar al resto de los mismos, conforme a las 
 
 **XIII.** Ejecutar las disposiciones generales y acuerdos de la Junta Directiva;
 
-**XIV.** Llevar a cabo todos los actos de administración, de dominio, para pleitos y cobranzas, con todas las facultades que requieran cláusula especial conforme a l a ley y sustituir y delegar esta representación en uno o más apoderados para que las ejerzan individual o conjuntamente;
+**XIV.** Llevar a cabo todos los actos de administración, de dominio, para pleitos y cobranzas, con todas las facultades que requieran cláusula especial conforme a la ley y sustituir y delegar esta representación en uno o más apoderados para que las ejerzan individual o conjuntamente;
 
-**XV.** Obligar al Comité Nacional cambiariamente, emitir y negociar títulos de crédito y concertar las operaciones de crédito, de conform idad con lo dispuesto por las leyes y reglamentos aplicables;
+**XV.** Obligar al Comité Nacional cambiariamente, emitir y negociar títulos de crédito y concertar las operaciones de crédito, de conformidad con lo dispuesto por las leyes y reglamentos aplicables;
 
 **XVI.** Comprometer asuntos en arbitraje y realizar transacciones comerciales y financieras en los términos de ley, previa autorización del órgano competente;
 
-**XVII.** Ejercer todos los actos de rep resentación y mandato que sean necesarios, especialmente los que para su ejercicio requieran cláusula especial, así como para revocar los poderes que otorgue, desistirse del juicio de amparo, presentar denuncias o querellas y otorgar el perdón correspondiente;
+**XVII.** Ejercer todos los actos de representación y mandato que sean necesarios, especialmente los que para su ejercicio requieran cláusula especial, así como para revocar los poderes que otorgue, desistirse del juicio de amparo, presentar denuncias o querellas y otorgar el perdón correspondiente;
 
 **XVIII.** Establecer mecanismos y procedimientos que permitan el óptimo aprovechamiento de los bienes muebles e inmuebles del Comité Nacional;
 
-**XIX.** Establecer los instrumentos para controlar la calidad de los suministros y programas de recepción, que a seguren la continuidad en la prestación de los servicios que son objeto del Comité Nacional;
+**XIX.** Establecer los instrumentos para controlar la calidad de los suministros y programas de recepción, que aseguren la continuidad en la prestación de los servicios que son objeto del Comité Nacional;
 
 **XX.** Establecer y conservar actualizados los procedimientos y sistemas de información, así como su aplicación para garantizar un servicio de calidad en el Comité Nacional;
 
@@ -334,23 +346,25 @@ sueldos y demás prestaciones y designar al resto de los mismos, conforme a las 
 
 **XXII.** Establecer los sistemas de registro, control y evaluación necesarios para alcanzar los resultados, metas y objetivos propuestos para el corto y mediano plazos;
 
-**XXIII.** Establecer sistemas eficientes para la administración del personal, de los recursos financieros y de los materiales que aseguren la prestación de servicios que brinde el Comité Naci onal;
+**XXIII.** Establecer sistemas eficientes para la administración del personal, de los recursos financieros y de los materiales que aseguren la prestación de servicios que brinde el Comité Nacional;
 
 **XXIV.** Establecer un sistema de indicadores que permita evaluar la gestión de la entidad;
 
-**XXV.** Establecer los mecanismos de autoevaluación que destaquen la eficiencia y eficacia con que se desempeñe el Comité Nacional y presentar al órgano de gobier no por lo menos dos veces al año la evaluación de gestión con el detalle que previamente acuerde con el órgano y escuchando al Comisario público;
+**XXV.** Establecer los mecanismos de autoevaluación que destaquen la eficiencia y eficacia con que se desempeñe el Comité Nacional y presentar al órgano de gobierno por lo menos dos veces al año la evaluación de gestión con el detalle que previamente acuerde con el órgano y escuchando al Comisario público;
 
 **XXVI.** Suscribir, en su caso, los contratos colectivos e individuales que regulen las relaciones laborales de la entidad con sus trabajadores, y
 
 **XXVII.** Las demás que le confiera la presente Ley y las disposiciones legales aplicables.
 
-Sección Cuarta Del Patrimonio del Comité Nacional
+Sección Cuarta
+
+Del Patrimonio del Comité Nacional
 
 **Artículo 18.-** El patrimonio del Comité Nacional se integrará con:
 
 **I.** Los ingresos que obtenga por los servicios que preste en cumplimiento de su objeto;
 
-**II.** Las aportaciones, participaciones, subsidios y apoyos que le otorguen los gobiernos federal, estatal y municipal y en general las personas físicas y morales para el cumplimient o de su objeto;
+**II.** Las aportaciones, participaciones, subsidios y apoyos que le otorguen los gobiernos federal, estatal y municipal y en general las personas físicas y morales para el cumplimiento de su objeto;
 
 **III.** Los legados, herencias y donaciones otorgadas en su favor y los fideicomisos en los que se señale como fideicomisario;
 
@@ -358,43 +372,51 @@ Sección Cuarta Del Patrimonio del Comité Nacional
 
 **V.** Los intereses, rendimientos y en general, todo ingreso que adquiera por cualquier título legal.
 
-Sección Quinta De la Vigilancia
+Sección Quinta
 
-**Artículo 19.** - La vigilancia del Comité Nacional estará a cargo de un Comisario propietario y un suplente, designados por la Secretaría d e la Función Pública; lo anterior sin perjuicio de que el Comité Nacional integre en su estructura su propio órgano interno de control.
+De la Vigilancia
 
-**Artículo 20.** - El Comisario evaluará el desempeño general y por funciones del Comité Nacional, realizará estudios sobre la eficiencia con la que se ejerzan las erogaciones de los gastos corriente y de inversión, así como lo referente a los ingresos y en general solicitará toda la información para efectuar los actos que requiera el adecuado cumplimiento de sus funciones, sin perjuicio de las tareas que la Secretaría de la Función Pública le asigne de conformidad con la ley. Para el adecuado cumplimiento de sus funciones, la Junta Directiva y el Director General, deberán proporcionar la información que solicite el Comisario.
+**Artículo 19.-** La vigilancia del Comité Nacional estará a cargo de un Comisario propietario y un suplente, designados por la Secretaría de la Función Pública; lo anterior sin perjuicio de que el Comité Nacional integre en su estructura su propio órgano interno de control.
 
-Sección Sexta De las relaciones laborales
+**Artículo 20.-** El Comisario evaluará el desempeño general y por funciones del Comité Nacional, realizará estudios sobre la eficiencia con la que se ejerzan las erogaciones de los gastos corriente y de inversión, así como lo referente a los ingresos y en general solicitará toda la información para efectuar los actos que requiera el adecuado cumplimiento de sus funciones, sin perjuicio de las tareas que la Secretaría de la Función Pública le asigne de conformidad con la ley. Para el adecuado cumplimiento de sus funciones, la Junta Directiva y el Director General, deberán proporcionar la información que solicite el Comisario.
+
+Sección Sexta
+
+De las relaciones laborales
 
 **Artículo 21.-** Las relaciones de trabajo entre el organismo descentralizado y su personal, se regirán por la legislación que dispone el artículo 123 de la Constitución Política de los Estados Unidos Mexicanos.
 
-CAPITULO III De los Comités Regionales de Desarrollo Sustentable de la Caña de Azúcar
+**CAPITULO III**
 
-**Artículo 22.** - En el ámbito territorial en el que quede comprendida cada una de las regiones que determine el Comité Nacional, se promoverá la creación de los Comités Region ales, para que, en concordancia con los acuerdos del Comité Nacional y los programas estatales y municipales del ramo, coadyuven en el ámbito regional a la planeación, organización, producción, competitividad y rentabilidad, con base en la multifuncionalid ad de las zonas cañeras, circunscribiendo su actuación al ámbito regional y estatal que corresponda, en los términos de la propia Ley.
+De los Comités Regionales de Desarrollo Sustentable de la Caña de Azúcar
+
+**Artículo 22.-** En el ámbito territorial en el que quede comprendida cada una de las regiones que determine el Comité Nacional, se promoverá la creación de los Comités Regionales, para que, en concordancia con los acuerdos del Comité Nacional y los programas estatales y municipales del ramo, coadyuven en el ámbito regional a la planeación, organización, producción, competitividad y rentabilidad, con base en la multifuncionalidad de las zonas cañeras, circunscribiendo su actuación al ámbito regional y estatal que corresponda, en los términos de la propia Ley.
 
 Corresponde al Comité Nacional la instalación de los Comités Regionales y la expedición de su Reglamento Interno.
 
-CAPITULO IV De los Comités de Producción y Calidad Cañera
+**CAPITULO IV**
+
+De los Comités de Producción y Calidad Cañera
 
 **Artículo 23.-** En cada Ingenio se constituirá un Comité para tratar todo lo concerniente a la siembra, cultivo, cosecha, entrega, recepción y a la calidad e industrialización de la materia prima.
 
 **Artículo 24.-** Los Comités se integrarán con los representantes de los Ingenios y los representantes de los Abastecedores de Caña que correspondan, bajo las siguientes reglas:
 
-**I.** Un representante del Ingenio con facultades para tomar decisiones, de preferencia e l representante legal o gerente general y el superintendente de campo, con el carácter de propietario y suplente, respectivamente; quienes acreditarán su carácter con el nombramiento o poder notarial correspondiente, y
+**I.** Un representante del Ingenio con facultades para tomar decisiones, de preferencia el representante legal o gerente general y el superintendente de campo, con el carácter de propietario y suplente, respectivamente; quienes acreditarán su carácter con el nombramiento o poder notarial correspondiente, y
 
-**II.** Cada una de las organizaciones l ocales de Abastecedores de Caña tendrá un representante propietario con su respectivo suplente, quienes acreditarán su personalidad con el nombramiento o poder notarial correspondiente. El Presidente o Secretario General de cada organización local, en su c aso, actuarán como propietarios, siendo el suplente un miembro del comité ejecutivo de la organización local designado por el mismo.
+**II.** Cada una de las organizaciones locales de Abastecedores de Caña tendrá un representante propietario con su respectivo suplente, quienes acreditarán su personalidad con el nombramiento o poder notarial correspondiente. El Presidente o Secretario General de cada organización local, en su caso, actuarán como propietarios, siendo el suplente un miembro del comité ejecutivo de la organización local designado por el mismo.
 
-**Artículo 25.** - Los acuerdos de los Comités se tomarán por mayoría de votos, excepto los que se refieran a la determinación de fechas de inicio y terminación de zafra, corte de rendimiento de los kilogramos de azúcar recuperable base estándar, descuentos y castigos de cañas, cañas diferidas y cañas quedadas, así como distribución de gastos prorrateables a la masa común de caña liquidable, que deberán adoptarse por unanimidad.
+**Artículo 25.-** Los acuerdos de los Comités se tomarán por mayoría de votos, excepto los que se refieran a la determinación de fechas de inicio y terminación de zafra, corte de rendimiento de los kilogramos de azúcar recuperable base estándar, descuentos y castigos de cañas, cañas diferidas y cañas quedadas, así como distribución de gastos prorrateables a la masa común de caña liquidable, que deberán adoptarse por unanimidad.
 
-**Artículo 26.-** Los Comités son los órganos encargados de vigilar el cumplimiento de esta Ley, y de las reglas y definiciones que acuerde el Comité Nacional y tendrán las siguientes facultades y obligaciones :
+**Artículo 26.-** Los Comités son los órganos encargados de vigilar el cumplimiento de esta Ley, y de las reglas y definiciones que acuerde el Comité Nacional y tendrán las siguientes facultades y obligaciones:
 
-**I.** Formular para su respectiva Zona de Abastecimiento los programas de operación de campo relativos a la siembra de caña de azúcar; actividades agrícolas; mecanización del campo cañero; cosecha y molienda de caña para la zafra; conservación y mejoramien to de caminos cañeros; albergues para cortadores; modificación de tarifas por trabajos ejecutados y de tarifas de trabajos de siembra, cultivo, cosecha, entrega y recepción de caña y de las solicitudes de crédito en general;
+**I.** Formular para su respectiva Zona de Abastecimiento los programas de operación de campo relativos a la siembra de caña de azúcar; actividades agrícolas; mecanización del campo cañero; cosecha y molienda de caña para la zafra; conservación y mejoramiento de caminos cañeros; albergues para cortadores; modificación de tarifas por trabajos ejecutados y de tarifas de trabajos de siembra, cultivo, cosecha, entrega y recepción de caña y de las solicitudes de crédito en general;
 
-**II.** Elaborar y modificar, en s u caso, el programa semanal de prioridades de Corte; adecuar el programa de zafra cuando a su juicio sea conveniente y acordar la suspensión de cortes si las condiciones lo requieren;
+**II.** Elaborar y modificar, en su caso, el programa semanal de prioridades de Corte; adecuar el programa de zafra cuando a su juicio sea conveniente y acordar la suspensión de cortes si las condiciones lo requieren;
 
-**III.** Determinar las erogaciones que, en su caso, deban hacer el Industr ial y/o los Abastecedores de Caña de azúcar para cubrir costos generados por causa de interrupciones en la zafra, incluyendo entre otros el correspondiente a los apoyos a cortadores y fleteros;
+**III.** Determinar las erogaciones que, en su caso, deban hacer el Industrial y/o los Abastecedores de Caña de azúcar para cubrir costos generados por causa de interrupciones en la zafra, incluyendo entre otros el correspondiente a los apoyos a cortadores y fleteros;
 
-**IV.** Convenir las condiciones económicas y de operación para l a transferencia de caña de azúcar de un Ingenio a otro, cuando así se estime conveniente;
+**IV.** Convenir las condiciones económicas y de operación para la transferencia de caña de azúcar de un Ingenio a otro, cuando así se estime conveniente;
 
 **V.** Expedir las órdenes de suspensión de riegos, de quemas y de corte, así como elaborar el acta de fin de zafra dentro de los diez días siguientes a su terminación;
 
@@ -406,15 +428,15 @@ CAPITULO IV De los Comités de Producción y Calidad Cañera
 
 **IX.** Aprobar el control y rotación de estibas de caña en el batey del Ingenio;
 
-**X.** Aprobar la distribución de todos los gastos prorrateables efectu ados durante los períodos de pre-zafra y zafra que deban ser aplicados a la masa común de caña liquidable;
+**X.** Aprobar la distribución de todos los gastos prorrateables efectuados durante los períodos de pre-zafra y zafra que deban ser aplicados a la masa común de caña liquidable;
 
-**XI.** Informar al Comité Nacional en los formatos que el mismo expida, el avance de los programas convenidos; los avances semanales y acumulados de lo s programas de campo y de recepción de caña en fábrica; los reportes de evaluación de actividades y los cambios de programas; el inicio y término de la operación de zafra y los demás que se le soliciten;
+**XI.** Informar al Comité Nacional en los formatos que el mismo expida, el avance de los programas convenidos; los avances semanales y acumulados de los programas de campo y de recepción de caña en fábrica; los reportes de evaluación de actividades y los cambios de programas; el inicio y término de la operación de zafra y los demás que se le soliciten;
 
-**XII.** Coadyuvar en su ámbito de acción con las medid as necesarias que le den viabilidad a las actividades que contribuyan al desarrollo sustentable de la caña de azúcar;
+**XII.** Coadyuvar en su ámbito de acción con las medidas necesarias que le den viabilidad a las actividades que contribuyan al desarrollo sustentable de la caña de azúcar;
 
-**XIII.** Integrar la información digitalizada de la Zona de Abastecimiento con la finalidad de estar en posibilidades de acordar lo proceden te para elevar la productividad y la producción de azúcar por hectárea;
+**XIII.** Integrar la información digitalizada de la Zona de Abastecimiento con la finalidad de estar en posibilidades de acordar lo procedente para elevar la productividad y la producción de azúcar por hectárea;
 
-**XIV.** Solicitar al Comité Nacional la realización de revisiones, exámenes o auditorías sobre el desempeño de las operaciones del Comité en general o sobre de alguna de ellas en particu lar;
+**XIV.** Solicitar al Comité Nacional la realización de revisiones, exámenes o auditorías sobre el desempeño de las operaciones del Comité en general o sobre de alguna de ellas en particular;
 
 **XV.** Informar a los Abastecedores de Caña en forma pública, clara y puntual, por conducto del representante respectivo, los gastos efectuados en el ejercicio de sus funciones, especificando montos, conceptos y distribución de los mismos, y
 
@@ -422,9 +444,9 @@ CAPITULO IV De los Comités de Producción y Calidad Cañera
 
 **Artículo 27.-** Los Comités celebrarán las reuniones que se indican a continuación:
 
-**a)** Ordinarias, una vez por semana durante la zafra y cada 15 días en el tiempo de pre -zafra, y
+**a)** Ordinarias, una vez por semana durante la zafra y cada 15 días en el tiempo de pre-zafra, y
 
-**b)** Extraordinarias, cuando así lo req uiera la atención de asuntos urgentes, deberán ser convocadas, por escrito, por cualquiera de sus miembros, debiendo acompañarse del orden del día correspondiente.
+**b)** Extraordinarias, cuando así lo requiera la atención de asuntos urgentes, deberán ser convocadas, por escrito, por cualquiera de sus miembros, debiendo acompañarse del orden del día correspondiente.
 
 **Artículo 28.-** Cuando sin causa justificada y habiendo sido legalmente notificado no asista alguno de los representantes a una sesión ordinaria del Comité no se llevará a efecto dicha reunión, debiendo convocarse a una nueva reunión con tres días naturales de antelación. En caso de sesiones extraordinarias, la convocatoria para una nueva reunión podrá hacerse dentro de las 24 horas siguientes si el asunto así lo amerita.
 
@@ -432,13 +454,17 @@ En ambos casos se realizarán con los que asistan, siendo los acuerdos obligator
 
 **Artículo 29.-** Todos los cargos en el Comité serán honoríficos.
 
-**TITULO TERCERO DE LAS ORGANIZACIONES DE ABASTECEDORES DE CAÑA DE AZÚCAR**
+**TITULO TERCERO**
 
-CAPITULO I Constitución y Objeto de las Organizaciones de Abastecedores
+**DE LAS ORGANIZACIONES DE ABASTECEDORES DE CAÑA DE AZUCAR**
+
+**CAPITULO I**
+
+Constitución y Objeto de las Organizaciones de Abastecedores
 
 **Artículo 30.-** Los Abastecedores de Caña de los Ingenios podrán constituir organizaciones locales y nacionales de productores de caña para la mejor representación y defensa de sus intereses.
 
-**Artículo 31.** - Las organizaciones nacionales y locales deberán constituirse o estar constituidas conforme a lo dispuesto en la Ley Agraria o en las Leyes Federales, Estatales y del Di strito Federal vigentes, cualquiera que sea su materia.
+**Artículo 31.-** Las organizaciones nacionales y locales deberán constituirse o estar constituidas conforme a lo dispuesto en la Ley Agraria o en las Leyes Federales, Estatales y del Distrito Federal vigentes, cualquiera que sea su materia.
 
 **Artículo 32.-** La Secretaría, por conducto del Registro y con la intervención de la Junta Permanente, inscribirá las organizaciones locales y nacionales de abastecedores que se constituyan, asentando los datos relativos al acta constitutiva y a su padrón de afiliados, los estatutos, directivas y modificaciones de documentos, previo cumplimiento de los requisitos señalados en esta Ley y en el reglamento correspondiente.
 
@@ -446,23 +472,25 @@ Una vez obtenido el registro de las organizaciones locales y nacionales con base
 
 Las inscripciones realizadas en el Registro, relacionadas con los sujetos de esta Ley, tendrán efectos de fe pública, de conformidad con lo que establece la Ley de Desarrollo Rural Sustentable y demás disposiciones aplicables.
 
-CAPITULO II De las Organizaciones Locales de Abastecedores de Caña
+**CAPITULO II**
 
-**Artículo 33.** - Las Orga nizaciones Locales de Abastecedores de Caña estarán constituidas en las Zonas de Abastecimiento con los productores de caña que tengan celebrado Contrato con el Ingenio que corresponda.
+De las Organizaciones Locales de Abastecedores de Caña
 
-**Artículo 34.** - Las organizaciones locales que se constituyan, para obt ener y mantener su registro, deberán contar con una membresía mínima equivalente al 10% del padrón total de los Abastecedores de Caña del Ingenio de que se trate y por lo menos con el l0 % del volumen total de la caña de la Zona de Abastecimiento correspon diente, cumplir con los requisitos establecidos en la legislación bajo la cual adopten la figura jurídica para su constitución y deberán estar debidamente inscritas en el Registro. Para estos efectos, el Registro deberá certificar que dichos padrones cumpl en con los requerimientos establecidos en esta Ley.
+**Artículo 33.-** Las Organizaciones Locales de Abastecedores de Caña estarán constituidas en las Zonas de Abastecimiento con los productores de caña que tengan celebrado Contrato con el Ingenio que corresponda.
+
+**Artículo 34.-** Las organizaciones locales que se constituyan, para obtener y mantener su registro, deberán contar con una membresía mínima equivalente al 10% del padrón total de los Abastecedores de Caña del Ingenio de que se trate y por lo menos con el 10 % del volumen total de la caña de la Zona de Abastecimiento correspondiente, cumplir con los requisitos establecidos en la legislación bajo la cual adopten la figura jurídica para su constitución y deberán estar debidamente inscritas en el Registro. Para estos efectos, el Registro deberá certificar que dichos padrones cumplen con los requerimientos establecidos en esta Ley.
 
 Igualmente, deberán exhibir dos copias de su acta constitutiva y de sus estatutos debidamente certificados, dos copias del acta de elección de su Comité Local vigente y dos copias del padrón de Abastecedores de Caña asociados, mismo que deberán actualizar anualmente.
 
 Los Abastecedores de Caña que tengan celebrado un contrato de condiciones particulares tendrán los mismos derechos y obligaciones que establece esta Ley.
 
-**Artículo 35.** - Entre otras funciones , a las organizaciones locales de Abastecedores de Caña, les corresponderá:
+**Artículo 35.-** Entre otras funciones, a las organizaciones locales de Abastecedores de Caña, les corresponderá:
 
 **I.** Representar los intereses generales de sus agremiados ante los Industriales y toda clase de autoridades y organismos federales, estatales y municipales;
 
 **II.** Impulsar la modernización de las Zonas de Abastecimiento de caña y la adopción de prácticas productivas e innovaciones tecnológicas que tiendan a incrementar la productividad entre sus afiliados;
 
-**III.** Promover las medidas que se estimen convenientes para impulsar la activi dad cañera en las Zonas de Abastecimiento de caña;
+**III.** Promover las medidas que se estimen convenientes para impulsar la actividad cañera en las Zonas de Abastecimiento de caña;
 
 **IV.** Organizar el otorgamiento de servicios de orientación y asistencia técnica, legal y administrativa relacionada con su actividad, en beneficio de sus asociados;
 
@@ -470,11 +498,11 @@ Los Abastecedores de Caña que tengan celebrado un contrato de condiciones parti
 
 **VI.** Organizar y participar en eventos, exposiciones, conferencias, seminarios y en general toda clase de actividades que redunden en beneficio de sus afiliados;
 
-**VII.** Procurar el mejoramiento de las condiciones de vida y l a actualización de los Abastecedores de Caña de azúcar para elevar sus niveles de producción;
+**VII.** Procurar el mejoramiento de las condiciones de vida y la actualización de los Abastecedores de Caña de azúcar para elevar sus niveles de producción;
 
 **VIII.** Procurar el mejoramiento de las condiciones de vida de las familias cañeras de las Zonas de Abastecimiento;
 
-**IX.** Promover y fomentar las figuras asociativa s para el desarrollo de proyectos productivos y de financiamiento que contribuyan al desarrollo regional, municipal y al empleo;
+**IX.** Promover y fomentar las figuras asociativas para el desarrollo de proyectos productivos y de financiamiento que contribuyan al desarrollo regional, municipal y al empleo;
 
 **X.** Informar con periodicidad a los Abastecedores de Caña integrantes de su organización sobre su actuación, y el alcance de los programas y acciones en beneficio de sus agremiados, y
 
@@ -482,23 +510,45 @@ Los Abastecedores de Caña que tengan celebrado un contrato de condiciones parti
 
 **Artículo 36.-** Las organizaciones cañeras locales que se constituyan con apego a esta Ley, se podrán integrar o adherir a cualquiera de las organizaciones cañeras nacionales legalmente registradas.
 
-CAPITULO III De las Organizaciones Nacionales de Abastecedores de Caña
+**CAPITULO III**
 
-**Artículo 37.-** Para la mejor atención y defensa de los intereses de sus agremiados las organizaciones locales de Abastec edores de Caña podrán constituirse en organizaciones cañeras nacionales en los términos de la presente Ley.
+De las Organizaciones Nacionales de Abastecedores de Caña
 
-**Artículo 38.** - Las organizaciones nacionales de Abastecedores de Caña de azúcar deberán estar debidamente inscritas ante el Registro.
+**Artículo 37.-** Para la mejor atención y defensa de los intereses de sus agremiados las organizaciones locales de Abastecedores de Caña podrán constituirse en organizaciones cañeras nacionales en los términos de la presente Ley.
+
+**Artículo 38.-** Las organizaciones nacionales de Abastecedores de Caña de azúcar deberán estar debidamente inscritas ante el Registro.
 
 Para su debido registro, deberán exhibir dos copias del padrón de Abastecedores de Caña asociados que deberán actualizar anualmente. La certificación del padrón se basará en el registro de afiliaciones de sus organizaciones locales, sancionadas por el Comité de cada uno de los Ingenios.
 
-Con objeto de fomentar la constitución de nuevas organizaciones nacionales de Abastecedores de Caña, por única vez el Servicio Nacional del Registro Agropecuario podrá otorgar a organizaciones nacionales de Abastecedores de Caña registr o condicionado durante los ciclos 2005 -2006 y 2006 -2007, el cual podrá ser definitivo siempre y cuando dichas Organizaciones demuestren que sus organizaciones locales están constituidas en términos del artículo 34 de esta Ley, y:
+Con objeto de fomentar la constitución de nuevas organizaciones nacionales de Abastecedores de Caña, por única vez el Servicio Nacional del Registro Agropecuario podrá otorgar a organizaciones nacionales de Abastecedores de Caña registro condicionado durante los ciclos 2005-2006 y 2006-2007, el cual podrá ser definitivo siempre y cuando dichas Organizaciones demuestren que sus organizaciones locales están constituidas en términos del artículo 34 de esta Ley, y:
 
-**a)** Contar inicialmente co n el 5% de la membresía del Padrón Nacional de Abastecedores de Caña, el 5% de la producción nacional de caña y tener presencia al menos en cuatro Estados productores de caña de azúcar, y
+**a)** Contar inicialmente con el 5% de la membresía del Padrón Nacional de Abastecedores de Caña, el 5% de la producción nacional de caña y tener presencia al menos en cuatro Estados productores de caña de azúcar, y
 
 **b)** Contar con presencia en Estados productores de caña de azúcar y con el porcentaje de membresía y de producción nacional durante los ciclos azucareros siguientes:
 
-Si en cualquier ciclo de los mencionados, la organización naci onal que tenga registro condicionado acredita cumplir con los requisitos previstos en el párrafo segundo de este artículo, obtendrá su registro definitivo; en caso de no cumplirlos perderá el registro condicionado.
+Ciclo Azucarero		Porcentaje de		Número de Estados
 
-La organización nacional con registro co ndicionado, tendrá derecho a participar con voz y sin voto en el Comité Nacional y en la Junta Permanente, hasta en tanto no obtenga su registro definitivo.
+Abastecedores de		Cañeros en los que
+
+Caña y de 			deberá tener
+
+Producción			presencia con
+
+Nacional			organización local
+
+2005-2006				5%				4
+
+2006-2007				5%				5
+
+2007-2008				6%				6
+
+2008-2009				8%				7
+
+2009-2010				10%				8
+
+Si en cualquier ciclo de los mencionados, la organización nacional que tenga registro condicionado acredita cumplir con los requisitos previstos en el párrafo segundo de este artículo, obtendrá su registro definitivo; en caso de no cumplirlos perderá el registro condicionado.
+
+La organización nacional con registro condicionado, tendrá derecho a participar con voz y sin voto en el Comité Nacional y en la Junta Permanente, hasta en tanto no obtenga su registro definitivo.
 
 **Artículo 39.-** Las organizaciones nacionales, entre otros, tendrán por objeto:
 
@@ -506,7 +556,7 @@ La organización nacional con registro co ndicionado, tendrá derecho a particip
 
 **II.** Apoyar el desarrollo y fortalecimiento de las organizaciones locales afiliadas;
 
-**III.** Fomentar la modernización del campo cañero nacional y la adopción de m ejoras tecnológicas;
+**III.** Fomentar la modernización del campo cañero nacional y la adopción de mejoras tecnológicas;
 
 **IV.** Promover la instrumentación de políticas que impulsen el desarrollo equilibrado de la actividad cañera en nuestro país;
 
@@ -526,25 +576,27 @@ La organización nacional con registro co ndicionado, tendrá derecho a particip
 
 **XII.** Prestar los servicios públicos que les sean autorizados o concesionados por los Gobiernos Federal, de las Entidades Federativas o municipales;
 
-**XIII.** Informar con periodicidad a sus organizaciones locales y los Abaste cedores de Caña afiliados sobre su actuación, y el alcance de los programas y acciones en beneficio de sus agremiados, y
+**XIII.** Informar con periodicidad a sus organizaciones locales y los Abastecedores de Caña afiliados sobre su actuación, y el alcance de los programas y acciones en beneficio de sus agremiados, y
 
 **XIV.** Las demás que le señale esta Ley y sus propios estatutos.
 
-CAPITULO IV Del Padrón Nacional de Abastecedores de Caña
+**CAPITULO IV**
 
-**Artículo 40.** - El Padrón Nacional estará conformado por el listado de Abastecedores de Caña del país, especificando los Ingenios con los que tengan celebrado Contrato y la organización local y/o nacional a la que pertenezcan, así como los datos que permitan su plena identificación.
+Del Padrón Nacional de Abastecedores de Caña
 
-**Artículo 41.** - De conformidad con lo establecido en los Artículos 32, 34 y 38 de la presente Ley, corresponde al Registro la verificación del padrón de Abastecedores de Caña de azúcar de cada Ingenio y la certificación, en su caso, de las afi liaciones y renuncias a las organizaciones locales y/o nacionales que les sean presentadas.
+**Artículo 40.-** El Padrón Nacional estará conformado por el listado de Abastecedores de Caña del país, especificando los Ingenios con los que tengan celebrado Contrato y la organización local y/o nacional a la que pertenezcan, así como los datos que permitan su plena identificación.
+
+**Artículo 41.-** De conformidad con lo establecido en los Artículos 32, 34 y 38 de la presente Ley, corresponde al Registro la verificación del padrón de Abastecedores de Caña de azúcar de cada Ingenio y la certificación, en su caso, de las afiliaciones y renuncias a las organizaciones locales y/o nacionales que les sean presentadas.
 
 **Artículo 42.-** Para efectos del artículo anterior se establece el siguiente procedimiento:
 
-**I.** Los Abastecedores de Caña que tengan interés en constituir una Organi zación o de renunciar a la que pertenezcan, deberán presentar la solicitud de afiliación y/o renuncia que deberá contener lo siguiente:
+**I.** Los Abastecedores de Caña que tengan interés en constituir una Organización o de renunciar a la que pertenezcan, deberán presentar la solicitud de afiliación y/o renuncia que deberá contener lo siguiente:
 
 **a)** Nombre del Abastecedor de Caña;
 
 **b)** Clave de abastecedor del Ingenio de que se trate;
 
-**c)** Nombre del predio, parcela , ejido o congregación, municipio y entidad federativa a la que pertenezca;
+**c)** Nombre del predio, parcela, ejido o congregación, municipio y entidad federativa a la que pertenezca;
 
 **d)** Superficie contratada y volumen de caña entregada en la zafra inmediata anterior o, en su caso, el estimado de producción a industrializarse;
 
@@ -556,67 +608,71 @@ CAPITULO IV Del Padrón Nacional de Abastecedores de Caña
 
 **II.** En caso de renuncia a la Organización a la que pertenezca, deberá ser presentada por escrito a la misma, con copia para el Comité, para el Registro, y para la Organización a la que desee pertenecer en su caso.
 
-**Artículo 43.** - Una vez recibida por el Registro la d ocumentación a la que se hace referencia en el articulo anterior, procederá a su análisis, evaluación y aprobación, en su caso; de ser procedente, certificará la misma para los fines legales a que haya lugar.
+**Artículo 43.-** Una vez recibida por el Registro la documentación a la que se hace referencia en el artículo anterior, procederá a su análisis, evaluación y aprobación, en su caso; de ser procedente, certificará la misma para los fines legales a que haya lugar.
 
-**Artículo 44.-** Los Ingenios tendrán la obligaci ón de entregar al Comité y al Registro la relación de la totalidad de sus Abastecedores de Caña de azúcar anualmente o cuando así se les requiera, especificando la agrupación a que correspondan.
+**Artículo 44.-** Los Ingenios tendrán la obligación de entregar al Comité y al Registro la relación de la totalidad de sus Abastecedores de Caña de azúcar anualmente o cuando así se les requiera, especificando la agrupación a que correspondan.
 
-**Artículo 45.** - Cuando exista duplicidad de una afiliación, el Registro pedirá al Comité que cite al Abastecedor de Caña de azúcar para que, de manera personal, manifieste a qué Organización desea pertenecer, certificando tal decisión.
+**Artículo 45.-** Cuando exista duplicidad de una afiliación, el Registro pedirá al Comité que cite al Abastecedor de Caña de azúcar para que, de manera personal, manifieste a qué Organización desea pertenecer, certificando tal decisión.
 
 En caso de que el Abastecedor de Caña de azúcar no atienda el citatorio sin causa que lo justifique, se le considerará no afiliado a Organización alguna.
 
-**Artículo 46.** - Las solicitudes de afiliación y/o renuncia que se presenten antes del inicio del Ciclo Azucarero, surtirán efecto a partir del inicio del mismo.
+**Artículo 46.-** Las solicitudes de afiliación y/o renuncia que se presenten antes del inicio del Ciclo Azucarero, surtirán efecto a partir del inicio del mismo.
 
 Si se presentaran una vez iniciado el Ciclo Azucarero tendrán efectos jurídicos hasta el inicio del siguiente.
 
-**Artículo 47.** - Los padrones de Abastecedores de Caña de azúcar por Ingenio se actualizarán anualmente; de no presentarse modificación alguna una vez iniciado el Ciclo Azucarero, prevalecerá el padrón del Ciclo anterior.
+**Artículo 47.-** Los padrones de Abastecedores de Caña de azúcar por Ingenio se actualizarán anualmente; de no presentarse modificación alguna una vez iniciado el Ciclo Azucarero, prevalecerá el padrón del Ciclo anterior.
 
-**Artículo 48.** - Las afiliaciones que hayan sido certificadas se incluirán en el registro del Padrón Nacional cuando cuenten con la aprobación de la Organización a la que deseen pertenecer.
+**Artículo 48.-** Las afiliaciones que hayan sido certificadas se incluirán en el registro del Padrón Nacional cuando cuenten con la aprobación de la Organización a la que deseen pertenecer.
 
 **Artículo 49.-** El Padrón Nacional servirá de base para fomentar y fortalecer los programas y acciones de Gobierno orientados a la modernización y desarrollo de las zonas de abastecimiento.
 
-**TITULO CUARTO DE LAS RELACIONES CONTRACTUALES**
+**TITULO CUARTO**
 
-CAPITULO I Del Contrato Uniforme
+**DE LAS RELACIONES CONTRACTUALES**
 
-**Articulo 50.-** El Contrato que deben celebrar los Industriales con los Abastecedores de Caña es el instrumento jurídico que regula las relaciones entre ambos respecto de la siembra, el cultivo, la cosecha y la industrialización de la caña de azúcar; será un iforme para todos los Ingenios del país, se sujetará a los términos que se establecen en esta Ley y requerirá la sanción del Comité correspondiente, entregándose copia del mismo a las partes.
+**CAPITULO I**
 
-Deberá contener, como mínimo la personalidad de los contratante s, la identificación del Ingenio y del terreno contratado para producción de caña de azúcar, la vigencia del Contrato, la forma de pago de la caña, el pago de intereses ordinarios o moratorios, las causales de rescisión, el sometimiento expreso de las part es a los acuerdos del Comité Nacional y del Comité, [así como a la jurisdicción de la Junta Permanente]. Párrafo declarado inválido por sentencia de la SCJN a Acción de Inconstitucionalidad DOF 07-12-2007 (En la porción normativa que señala: “así como a la jurisdicción de la Junta Permanente”)
+Del Contrato Uniforme
+
+**Artículo 50.-** El Contrato que deben celebrar los Industriales con los Abastecedores de Caña es el instrumento jurídico que regula las relaciones entre ambos respecto de la siembra, el cultivo, la cosecha y la industrialización de la caña de azúcar; será uniforme para todos los Ingenios del país, se sujetará a los términos que se establecen en esta Ley y requerirá la sanción del Comité correspondiente, entregándose copia del mismo a las partes.
+
+Deberá contener, como mínimo la personalidad de los contratantes, la identificación del Ingenio y del terreno contratado para producción de caña de azúcar, la vigencia del Contrato, la forma de pago de la caña, el pago de intereses ordinarios o moratorios, las causales de rescisión, el sometimiento expreso de las partes a los acuerdos del Comité Nacional y del Comité, así como a la jurisdicción de la Junta Permanente.
 
 El Comité Nacional elaborará el formato del Contrato.
 
-**Artículo 51.-** La rescisión de algún Contrato solo podrá darse por la voluntad de las partes; cuando el Ingenio o el Comité estimen que existen causales de rescis ión, procederá a someter el caso a la Junta Permanente para su resolución definitiva. Igualmente, los abastecedores podrán recurrir a dicha Junta Permanente cuando se les rescinda su Contrato sin existir previamente resolución de la misma.
+**Artículo 51.-** La rescisión de algún Contrato sólo podrá darse por la voluntad de las partes; cuando el Ingenio o el Comité estimen que existen causales de rescisión, procederá a someter el caso a la Junta Permanente para su resolución definitiva. Igualmente, los abastecedores podrán recurrir a dicha Junta Permanente cuando se les rescinda su Contrato sin existir previamente resolución de la misma.
 
-**Artículo 52.** - Los Contratos que celebren los Abastecedores de Caña de azúcar e Industriales deberán tener en consideración para su vigencia, la naturaleza del ciclo de la caña de azúcar, contemplándose en los que se refieran a nuevas siembras, una vigencia mínima obligat oria de cuatro cortes y de un año para los Ciclos de Soca y Resoca, conservando el Abastecedor de Caña el derecho de recontratar la misma superficie al término de la vigencia o sustituirla por una superficie igual, de similares o mejores condiciones de producción, previa aprobación del Comité respectivo.
+**Artículo 52.-** Los Contratos que celebren los Abastecedores de Caña de azúcar e Industriales deberán tener en consideración para su vigencia, la naturaleza del ciclo de la caña de azúcar, contemplándose en los que se refieran a nuevas siembras, una vigencia mínima obligatoria de cuatro cortes y de un año para los Ciclos de Soca y Resoca, conservando el Abastecedor de Caña el derecho de recontratar la misma superficie al término de la vigencia o sustituirla por una superficie igual, de similares o mejores condiciones de producción, previa aprobación del Comité respectivo.
 
 En los casos de operaciones de compra venta de la superficie sembrada con caña de azúcar, el adquiriente conservará, si así lo desea, la relación contractual de la misma con el Ingenio.
 
-**Artículo 53.** - Cuando el contrato considere el otorgamiento de créditos, el Industrial actuará como retenedor, en este caso, a solicitud de las Organizaciones y mediante acta del Comité, retendrá de los alcances de los Abastecedores de Caña de azúcar los montos que se le ind iquen, efectuando los enteros al acreedor financiero.
+**Artículo 53.-** Cuando el contrato considere el otorgamiento de créditos, el Industrial actuará como retenedor, en este caso, a solicitud de las Organizaciones y mediante acta del Comité, retendrá de los alcances de los Abastecedores de Caña de azúcar los montos que se le indiquen, efectuando los enteros al acreedor financiero.
 
-En los casos en que se convenga con los Industriales para que actúen como retenedores, no quedarán obligados a retener y enterar importes de crédito que no hayan sido contratados por conducto de las in stituciones integrantes del Sistema Bancario Mexicano o de las Organizaciones Auxiliares del Crédito en términos de la Ley General de Organizaciones y Actividades Auxiliares del Crédito.
+En los casos en que se convenga con los Industriales para que actúen como retenedores, no quedarán obligados a retener y enterar importes de crédito que no hayan sido contratados por conducto de las instituciones integrantes del Sistema Bancario Mexicano o de las Organizaciones Auxiliares del Crédito en términos de la Ley General de Organizaciones y Actividades Auxiliares del Crédito.
 
-**Artículo 54.** - En el Contrato se establecerán los mecanismos necesari os para garantizar el pago oportuno de los alcances que correspondan a los Abastecedores de Caña.
+**Artículo 54.-** En el Contrato se establecerán los mecanismos necesarios para garantizar el pago oportuno de los alcances que correspondan a los Abastecedores de Caña.
 
-Sin embargo, en caso de concurso mercantil de los Industriales sin liquidez o de imposibilidad de acceso a créditos para cubrir sus obligaciones contractuale s con los Abastecedores de Caña, éstos serán
+Sin embargo, en caso de concurso mercantil de los Industriales sin liquidez o de imposibilidad de acceso a créditos para cubrir sus obligaciones contractuales con los Abastecedores de Caña, éstos serán considerados acreedores con garantía real en los términos de lo dispuesto en los Artículos 217, Fracción II, y 219 de la Ley de Concursos Mercantiles.
 
-considerados acreedores con garantía real en los términos de lo dispuesto en los Artículos 217, Fracción II, y 219 de la Ley de Concursos Mercantiles.
+**Artículo 55.-** Los contratos que de manera voluntaria celebren los Ingenios y los Abastecedores de Caña en materia de coinversión, de constitución de asociaciones o cualquier otro contrato para aumentar la inversión, la productividad, la eficiencia y la diversificación del campo cañero, para que surtan efectos deberán ser registrados previamente ante la Junta Permanente.
 
-**Artículo 55.-** Los contratos que de manera voluntaria celebr en los Ingenios y los Abastecedores de Caña en materia de coinversión, de constitución de asociaciones o cualquier otro contrato para aumentar la inversión, la productividad, la eficiencia y la diversificación del campo cañero, para que surtan efectos deberán ser registrados previamente ante la Junta Permanente.
+**Artículo 56.-** Los Ingenios y sus Abastecedores de Caña se someterán expresamente a la jurisdicción de la Junta Permanente con el objeto de dirimir las controversias que surjan con motivo del incumplimiento de lo establecido en la presente Ley y del Contrato que celebren y demás disposiciones derivadas y relacionadas.
 
-**Artículo 56.** - [Los Ingenios y sus Abastecedores de Caña se someterán expresamente a la jurisdicción de la Junta Permanente con el objeto de dirimir las controversias que surjan con motivo del incumplimiento de lo establecido en la presente Ley y del Contrato que celebren y demás disposiciones derivadas y relacionadas.] Artículo declarado inválido por sentencia de la SCJN a Acción de Inconstitucionalidad DOF 07-12-2007
+**CAPITULO II**
 
-CAPITULO II Del Sistema de Pago
+Del Sistema de Pago
 
 **Artículo 57.-** El precio de la caña de azúcar regirá anualmente, de acuerdo al precio de referencia del azúcar que proponga el Comité Nacional, y publique la autoridad competente en el Diario Oficial de la Federación en el mes de octubre del primer año de cada zafra.
 
-**Artículo 58.** - Cuando la caña de azúcar se destine a la producción de azúcar, su precio deberá referirse al azúcar recuperable base estándar, a razón del 57% del precio de referencia de un kilogramo de azúcar base estándar.
+**Artículo 58.-** Cuando la caña de azúcar se destine a la producción de azúcar, su precio deberá referirse al azúcar recuperable base estándar, a razón del 57% del precio de referencia de un kilogramo de azúcar base estándar.
 
-El precio de refe rencia de un kilogramo de azúcar base estándar se determinará como el promedio ponderado del precio nacional del azúcar estándar al mayoreo, más el precio promedio de las exportaciones de azúcar realizadas en el Ciclo Azucarero de que se trate.
+El precio de referencia de un kilogramo de azúcar base estándar se determinará como el promedio ponderado del precio nacional del azúcar estándar al mayoreo, más el precio promedio de las exportaciones de azúcar realizadas en el Ciclo Azucarero de que se trate.
 
 Para efectos del párrafo anterior, el precio nacional del azúcar estándar al mayoreo se determinará con base en el monitoreo del Sistema Nacional de Información de Mercados, o del mecanismo que lo sustituya acordado por el Comité Nacional y el precio promedio de las exportaciones del azúcar se calculará con base en los registros del balance azucarero que determinen, a partir de la producción y consumos nacional del azúcar, los excedentes netos exportables de azúcar nacional y por Ingenio, de donde se obtendrá la variación porcentual del componente de exportación del precio del azúcar.
 
 El precio de referencia será el que se obtenga como promedio ponderado de ambos precios.
 
-**Artículo 59.** - En virtud de la diversificación productiva que pueda darse en esta agroindustria, por mutuo acuerdo de los Abastecedores de Caña y los Industriales de un Ingenio específico, podrán acordar modificaciones o la sustitución del sistema de pago contemplado en el artículo anterior, cuando la caña se utilice para obtener bienes distintos al azúcar, previa aprobación del Comité Nacional y la sanción de la Secretaría de Economía.
+**Artículo 59.-** En virtud de la diversificación productiva que pueda darse en esta agroindustria, por mutuo acuerdo de los Abastecedores de Caña y los Industriales de un Ingenio específico, podrán acordar modificaciones o la sustitución del sistema de pago contemplado en el artículo anterior, cuando la caña se utilice para obtener bienes distintos al azúcar, previa aprobación del Comité Nacional y la sanción de la Secretaría de Economía.
 
 **Artículo 60.-** Para determinar el monto que debe pagarse con base en la calidad de la caña conforme a un contenido de azúcar recuperable base estándar uniforme en cada Ingenio, se deberá cumplir con lo siguiente:
 
@@ -626,65 +682,65 @@ El precio de referencia será el que se obtenga como promedio ponderado de ambos
 
 **Artículo 61.-** Los Ingenios pagarán la caña conforme a las siguientes reglas:
 
-**I.** Una preliquidación equivalente al 80% de la caña neta recibida sobre la base del promedio ponderado del porcentaje de azúcar recuperable base estándar obtenido en las cinco zafras anteriores, calculados con respecto a la caña neta industrializada, debiendo descontarse sus obligaciones crediticias y aportaciones que correspondan con vencimiento en la zafra de que se trate. La preliquidación deberá cubrirse al precio vigente el día 15 d e cada mes cuando la terminación del corte de la caña por Contrato sea en la segunda quincena del mes anterior, y el día último del mes cuando la terminación del corte de la caña por Contrato sea en la primera quincena del mismo mes, y
+**I.** Una preliquidación equivalente al 80% de la caña neta recibida sobre la base del promedio ponderado del porcentaje de azúcar recuperable base estándar obtenido en las cinco zafras anteriores, calculados con respecto a la caña neta industrializada, debiendo descontarse sus obligaciones crediticias y aportaciones que correspondan con vencimiento en la zafra de que se trate. La preliquidación deberá cubrirse al precio vigente el día 15 de cada mes cuando la terminación del corte de la caña por Contrato sea en la segunda quincena del mes anterior, y el día último del mes cuando la terminación del corte de la caña por Contrato sea en la primera quincena del mismo mes, y
 
 **II.** Una liquidación final equivalente a la diferencia entre el total de kilogramos de azúcar recuperable base estándar obtenidos y los kilogramos considerados en la preliquidación respectiva; del saldo deberán descontarse las obligaciones pendientes que no se hubieren descontado durante la preliquidación. Este saldo deberá pagarse con el precio vigente, en un plazo no mayor a treinta días naturales contados a partir del día de la terminación de la zafra.
 
-**Artículo 62.-** Si existiere acuerdo del Comité respectivo para determina r el monto que debe pagarse a los Abastecedores de Caña, conforme a un contenido de azúcar base estándar individual y/o por grupos de Abastecedores de Caña organizados en frentes de corte o unidades de cosecha, se deberá cumplir con lo siguiente:
+**Artículo 62.-** Si existiere acuerdo del Comité respectivo para determinar el monto que debe pagarse a los Abastecedores de Caña, conforme a un contenido de azúcar base estándar individual y/o por grupos de Abastecedores de Caña organizados en frentes de corte o unidades de cosecha, se deberá cumplir con lo siguiente:
 
-**I.** El az úcar recuperable base estándar se calculará mediante el análisis de las muestras tomadas con un sistema de muestreo representativo a través de una sonda mecánica u otro implemento idóneo instalado en el patio de muestreo;
+**I.** El azúcar recuperable base estándar se calculará mediante el análisis de las muestras tomadas con un sistema de muestreo representativo a través de una sonda mecánica u otro implemento idóneo instalado en el patio de muestreo;
 
-**II.** El cálculo del azúcar base es tándar se hará en función de los siguientes elementos: la pol de la caña o porcentaje de sacarosa, la pureza del jugo extraído por una prensa hidráulica u otro mecanismo idóneo y la fibra en caña, obtenida a partir del peso de la torta residual del bagazo que arroje el mecanismo de muestreo para referirlo a la fibra en caña, considerando además una eficiencia dada de fábrica no menor a 82.37% respecto a una calidad específica de caña entregada por cada Abastecedor de Caña o grupo de abastecedores, conforme a los lineamientos correspondientes, y
+**II.** El cálculo del azúcar base estándar se hará en función de los siguientes elementos: la pol de la caña o porcentaje de sacarosa, la pureza del jugo extraído por una prensa hidráulica u otro mecanismo idóneo y la fibra en caña, obtenida a partir del peso de la torta residual del bagazo que arroje el mecanismo de muestreo para referirlo a la fibra en caña, considerando además una eficiencia dada de fábrica no menor a 82.37% respecto a una calidad específica de caña entregada por cada Abastecedor de Caña o grupo de abastecedores, conforme a los lineamientos correspondientes, y
 
 **III.** La toma de muestras se llevará a cabo aleatoriamente, debiendo existir representatividad de la caña de los Contratos a los que se vaya a aplicar esa muestra, de acuerdo con la normatividad respectiva. El Comité establecerá los métodos de agrupamiento y muestreo de las cañas entregadas.
 
-**Artículo 63.** - Cuando sea aplicable el sistema referido en el Artículo 62 de esta Ley, los Ingenios pagarán la caña recibida de la siguiente manera:
+**Artículo 63.-** Cuando sea aplicable el sistema referido en el Artículo 62 de esta Ley, los Ingenios pagarán la caña recibida de la siguiente manera:
 
-**I.** Una preliquidación equivalente al 85% del azúcar recuperable base estándar determinado, que deberá pagar al precio vigente el día quince de cada mes cuando la terminación del corte de caña por Contrato sea en la segunda quincena del mes anterior y el último día del mes cuando
+**I.** Una preliquidación equivalente al 85% del azúcar recuperable base estándar determinado, que deberá pagar al precio vigente el día quince de cada mes cuando la terminación del corte de caña por Contrato sea en la segunda quincena del mes anterior y el último día del mes cuando la terminación del corte sea en la primera quincena del mismo, debiendo descontarse sus obligaciones crediticias y aportaciones que correspondan con vencimiento en la zafra de que se trate, y
 
-la ter minación del corte sea en la primera quincena del mismo, debiendo descontarse sus obligaciones crediticias y aportaciones que correspondan con vencimiento en la zafra de que se trate, y
-
-**II.** Una liquidación final equivalente al 15% del azúcar recuperable b ase estándar cuyo monto deberá pagarse en un plazo no mayor de treinta días naturales al precio vigente a partir de la terminación de la zafra, debiendo descontarse las obligaciones crediticias y aportaciones que correspondan que no se hubieren descontado durante la preliquidación.
+**II.** Una liquidación final equivalente al 15% del azúcar recuperable base estándar cuyo monto deberá pagarse en un plazo no mayor de treinta días naturales al precio vigente a partir de la terminación de la zafra, debiendo descontarse las obligaciones crediticias y aportaciones que correspondan que no se hubieren descontado durante la preliquidación.
 
 **Artículo 64.-** Para el cálculo del precio de la tonelada de caña de azúcar utilizando tanto el sistema de determinación del azúcar recuperable base estándar uniforme, como el individual o por grupos, se considerarán hasta milésimas de kilogramos de azúcar recuperable base estándar con relación a la caña neta.
 
-**Artículo 65.-** Para el pago individual por calidad de la caña de azúcar descrito en el Artículo 62 de esta Ley, el Comité que corresponda presentará para su aprobación al Com ité Nacional, el programa, la fecha y la viabilidad financiera y tecnológica de la sonda mecánica o la tecnología que decidan adoptar, siempre y cuando la misma garantice, en términos de equidad y medición, la calidad de la caña y el procedimiento como deberá pagarse. El Comité Nacional dará respuesta en un plazo razonable.
+**Artículo 65.-** Para el pago individual por calidad de la caña de azúcar descrito en el Artículo 62 de esta Ley, el Comité que corresponda presentará para su aprobación al Comité Nacional, el programa, la fecha y la viabilidad financiera y tecnológica de la sonda mecánica o la tecnología que decidan adoptar, siempre y cuando la misma garantice, en términos de equidad y medición, la calidad de la caña y el procedimiento como deberá pagarse. El Comité Nacional dará respuesta en un plazo razonable.
 
-**Artículo 66.** - Los Industriales estarán obligados a entregar semanalmente, un ejemplar del Informe Oficial de Corrida Semanal al Comité Nacional, a la Junta Permanente, a la Cámara Azuca rera y a las organizaciones nacionales y locales de Abastecedores de Caña.
+**Artículo 66.-** Los Industriales estarán obligados a entregar semanalmente, un ejemplar del Informe Oficial de Corrida Semanal al Comité Nacional, a la Junta Permanente, a la Cámara Azucarera y a las organizaciones nacionales y locales de Abastecedores de Caña.
 
-CAPITULO III De las Características de la Caña como Materia Prima para la Industria Azucarera
+**CAPITULO III**
 
-**Artículo 67.-** Por caña de azúcar como materia prima para la industria azucarera se en tiende la parte del tallo comprendido entre el entrenudo mas cercano al surco y el último entrenudo superior desarrollado, correspondiente a la sección entre los entrenudos 8 y 10, desprovisto, adherido o no, de otras porciones de la gramínea o de tierra, así como los objetos extraños de cualquier naturaleza que sean.
+De las Características de la Caña como Materia Prima para la Industria Azucarera
+
+**Artículo 67.-** Por caña de azúcar como materia prima para la industria azucarera se entiende la parte del tallo comprendido entre el entrenudo mas cercano al surco y el último entrenudo superior desarrollado, correspondiente a la sección entre los entrenudos 8 y 10, desprovisto, adherido o no, de otras porciones de la gramínea o de tierra, así como los objetos extraños de cualquier naturaleza que sean.
 
 **Artículo 68.-** La pol o sacarosa aparente es en sí lo que da valor a la caña de azúcar como materia prima de la agroindustria de la caña de azúcar y se distribuye en su mayor proporción en la parte del tallo que ha alcanzado su total desarrollo fisiológico, desde su base hasta los entrenudos 8 a 10. Los entrenudos 8 a 10 en una caña normalmente desarrollada se localizan contando las hojas de la punta hacia abajo, siendo la número uno la que empieza a desenvolverse.
 
 La parte del tallo superior de esos entrenudos 8-10 se denomina cogollo o punta y no tiene valor como materia prima para la industria azucarera, quedando en propiedad del cañero después de la cosecha.
 
-**Artículo 69.** - Quedarán comprend idos dentro de la denominación basura, materias extrañas o impurezas: las vainas y hojas o tlazole, puntas o cogollos incluyendo la banderilla o inflorescencia, tallos de desarrollo insuficiente conocidos como mamones o chupones, yemas germinadas o lalas, raíces sueltas o adheridas al tallo, tierra, piedras y cualquier otra materia distinta a la caña de azúcar.
+**Artículo 69.-** Quedarán comprendidos dentro de la denominación basura, materias extrañas o impurezas: las vainas y hojas o tlazole, puntas o cogollos incluyendo la banderilla o inflorescencia, tallos de desarrollo insuficiente conocidos como mamones o chupones, yemas germinadas o lalas, raíces sueltas o adheridas al tallo, tierra, piedras y cualquier otra materia distinta a la caña de azúcar.
 
 **Artículo 70.-** Por caña programada se entenderá aquella que esté comprendida dentro de las fechas de corte según el programa previo aprobado por el Comité, debidamente actualizado durante el desarrollo de la zafra y cubierta por su respectiva orden de quema en su caso, de corte y/o de suspensión de riegos, con base en su índice de madurez.
 
 **Artículo 71.-** Se entiende por caña bruta el peso de la caña en báscula sin descuento alguno.
 
-**Artículo 72.** - Se entiende por caña neta el resultado que se obtiene de deducir de la caña bruta cualquier cantidad en kilogramos correspondiente a basura o materia extraña.
+**Artículo 72.-** Se entiende por caña neta el resultado que se obtiene de deducir de la caña bruta cualquier cantidad en kilogramos correspondiente a basura o materia extraña.
 
-**Artículo 73.-** Al momento de su recepción en el ba tey del Ingenio, la caña de azúcar deberá tener la condición y las características siguientes:
+**Artículo 73.-** Al momento de su recepción en el batey del Ingenio, la caña de azúcar deberá tener la condición y las características siguientes:
 
 **I.** Estar comprendida dentro de los programas de corte oportunamente establecidos, de acuerdo a su índice de madurez;
 
-**II.** Ser fresca, en el momento de su entreg a, entendiéndose por ello no más de 72 horas después de su corte en el caso de caña cruda y no mas de 48 horas después de su quema;
+**II.** Ser fresca, en el momento de su entrega, entendiéndose por ello no más de 72 horas después de su corte en el caso de caña cruda y no mas de 48 horas después de su quema;
 
-**III.** Deberá estar despuntada inmediatamente arriba de la sección 8 -10 que es la parte de madurez mas reciente. En el caso d e cañas afectadas por heladas, el despunte se hará en el límite entre la parte sana y la parte dañada, de acuerdo con el grado de daño sufrido;
+**III.** Deberá estar despuntada inmediatamente arriba de la sección 8-10 que es la parte de madurez mas reciente. En el caso de cañas afectadas por heladas, el despunte se hará en el límite entre la parte sana y la parte dañada, de acuerdo con el grado de daño sufrido;
 
-**IV.** En caso de cañas afectadas por sequía, inundación, ciclones y plagas, merecerán consideración especial, deb iéndose llevar a cabo una investigación técnica por parte del Comité respectivo, a fin de conocer el grado de deterioro de esa caña, para dictar la resolución que sea conducente, y
+**IV.** En caso de cañas afectadas por sequía, inundación, ciclones y plagas, merecerán consideración especial, debiéndose llevar a cabo una investigación técnica por parte del Comité respectivo, a fin de conocer el grado de deterioro de esa caña, para dictar la resolución que sea conducente, y
 
 **V.** Estar constituida por los tallos de caña limpios de basura, materias extrañas o impurezas.
 
-**Artículo 74.** - Cuando la caña cruda rebase las 72 horas desde su corte, por causas imputables al Abastecedor de Caña de azúcar, será sujeta a un castigo hasta el 10% de su valor durante las primeras 24 horas siguientes y hasta el 20% de su valor durante las 24 horas posteriores que dictaminará el Comité. La recepción de caña con mayor tiempo de lo antes señalado será motivo de análisis para determinar su deterioro y en su caso, el castigo correspondiente que establecerá el citado Comité.
+**Artículo 74.-** Cuando la caña cruda rebase las 72 horas desde su corte, por causas imputables al Abastecedor de Caña de azúcar, será sujeta a un castigo hasta el 10% de su valor durante las primeras 24 horas siguientes y hasta el 20% de su valor durante las 24 horas posteriores que dictaminará el Comité. La recepción de caña con mayor tiempo de lo antes señalado será motivo de análisis para determinar su deterioro y en su caso, el castigo correspondiente que establecerá el citado Comité.
 
-**Artículo 75.** - Cuando la caña rebase las 48 horas después de su quema sin ser entregada en el batey, por causas imputables al Abastecedor de Caña de azúcar, será sujeta a un castigo hasta del 10% ciento de su valor durante las primeras 24 horas posteriore s siguientes y hasta el 20% de su valor durante las 24 horas posteriores, que dictaminará el Comité. La recepción de la caña con mayor tiempo de lo antes señalado, será motivo de análisis para determinar su deterioro y en su caso, el castigo correspondiente que establecerá el citado Comité.
+**Artículo 75.-** Cuando la caña rebase las 48 horas después de su quema sin ser entregada en el batey, por causas imputables al Abastecedor de Caña de azúcar, será sujeta a un castigo hasta del 10% ciento (sic) de su valor durante las primeras 24 horas posteriores siguientes y hasta el 20% de su valor durante las 24 horas posteriores, que dictaminará el Comité. La recepción de la caña con mayor tiempo de lo antes señalado, será motivo de análisis para determinar su deterioro y en su caso, el castigo correspondiente que establecerá el citado Comité.
 
-**Articulo 76.-** Para el caso de los dos artículos anteriores, cuando el deterioro de la caña por demoras en su entrega sea por causas no imputables al Abastecedor de Caña de azúcar, tales como fenómenos meteorológicos, incendios o explosiones, el Comité resolverá lo conducente.
+**Artículo 76.-** Para el caso de los dos artículos anteriores, cuando el deterioro de la caña por demoras en su entrega sea por causas no imputables al Abastecedor de Caña de azúcar, tales como fenómenos meteorológicos, incendios o explosiones, el Comité resolverá lo conducente.
 
 **Artículo 77.-** Para la organización de la cosecha en general, las cañas no programadas se sujetarán a los procedimientos siguientes:
 
@@ -692,39 +748,41 @@ La parte del tallo superior de esos entrenudos 8-10 se denomina cogollo o punta 
 
 **II.** Cuando por causa accidental una superficie con caña desarrollada se queme sin orden de corte, será castigada hasta con el 10% de su valor sin perjuicio de otros descuentos y/o castigos que le pudiera corresponder. El Comité, previa investigación de las causas que hayan provocado el accidente, determinará dicho castigo.
 
-**Artículo 78.** - Para la evaluación de basura, materia extraña o impurezas en la caña de azúcar destinada a la industria azucarera, se adoptará el siguiente procedimiento:
+**Artículo 78.-** Para la evaluación de basura, materia extraña o impurezas en la caña de azúcar destinada a la industria azucarera, se adoptará el siguiente procedimiento:
 
 **I.** La evaluación del porcentaje de basura, materia extraña o impurezas se hará bajo la dirección y responsabilidad del Comité, por muestreos físicos en batey o en campo.
 
-La evaluación en por ciento será el cociente resultante de dividir el peso de basura y materias extrañas entre el peso bruto de la muestra de caña, multiplicado por 100. El total de basura y materia extraña se obtendrá al separar de los tallos y pesar en báscula: t lazole, raíces, mamones, cogollos, partes del tallo dañadas por heladas, tierra y materiales ajenos a la caña que resulten de limpiar cuidadosamente la muestra.
+La evaluación en por ciento será el cociente resultante de dividir el peso de basura y materias extrañas entre el peso bruto de la muestra de caña, multiplicado por 100. El total de basura y materia extraña se obtendrá al separar de los tallos y pesar en báscula: tlazole, raíces, mamones, cogollos, partes del tallo dañadas por heladas, tierra y materiales ajenos a la caña que resulten de limpiar cuidadosamente la muestra.
 
-El resultado obtenido servirá de base para calcular la deducción que habrá de hacerse del pes o de la caña bruta entregada y así obtener el peso neto;
+El resultado obtenido servirá de base para calcular la deducción que habrá de hacerse del peso de la caña bruta entregada y así obtener el peso neto;
 
 **II.** El Comité podrá acordar que la calificación de basura, materia extraña o impurezas se realice en forma visual, pero siempre fundamentado en el muestreo físico.
 
-Como la calificación visual no d etecta la presencia de piedras, terrones, tierra y otros elementos, las deducciones de peso que se tengan que hacer por estos conceptos, tendrán que basarse precisamente en el muestreo físico, y
+Como la calificación visual no detecta la presencia de piedras, terrones, tierra y otros elementos, las deducciones de peso que se tengan que hacer por estos conceptos, tendrán que basarse precisamente en el muestreo físico, y
 
 **III.** Cuando el descuento por los conceptos señalados en este artículo superen el 10%, será motivo de acuerdo entre las partes para la aplicación del descuento resultante o bien el rechazo de dicha caña.
 
-**Artículo 79.-** El importe neto de la caña castigada se determinará multiplicando la cantidad total de caña castig ada por el precio de la tonelada de caña, deduciendo el importe total de sus costos de cosecha promedio y demás deducibles que le correspondan. El importe resultante invariablemente deberá prorratearse entre el volumen total de caña no castigada de la zafr a.
+**Artículo 79.-** El importe neto de la caña castigada se determinará multiplicando la cantidad total de caña castigada por el precio de la tonelada de caña, deduciendo el importe total de sus costos de cosecha promedio y demás deducibles que le correspondan. El importe resultante invariablemente deberá prorratearse entre el volumen total de caña no castigada de la zafra.
 
-Para la determinación de castigos, el Comité deberá escuchar a los afectados y en caso de inconformidad esta deberá hacerse constar en el acta respectiva para que en su caso recurra a la Junta Permanente.
+Para la determinación de castigos, el Comité deberá escuchar a los afectados y en caso de inconformidad ésta deberá hacerse constar en el acta respectiva para que en su caso recurra a la Junta Permanente.
 
 **Artículo 80.-** Cuando el Ingenio por cualquier causa suspenda la recepción y/o la molienda de caña de azúcar por más de 12 horas, deberá notificar de inmediato al Comité, para que éste suspenda las órdenes de quema y reprograme los cortes, levantando el acta correspondiente de la caña quemada en campo y en trayecto al Ingenio, para su relación con la aplicación de castigos en su caso.
 
-**Artículo 81.-** Cuando por causas imputables al Ingenio, la caña se procese con deterioro, debido a demoras en su recepción, o bien por haber estado más de 24 horas en el b atey sin molerse, se le aplicará un castigo que será hasta del 10% del valor de la caña deteriorada y hasta del 20% ciento de su valor durante las 24 horas siguientes. El importe de este castigo será determinado por el Comité y el Ingenio deberá abonarlo a la caña total aportada.
+**Artículo 81.-** Cuando por causas imputables al Ingenio, la caña se procese con deterioro, debido a demoras en su recepción, o bien por haber estado más de 24 horas en el batey sin molerse, se le aplicará un castigo que será hasta del 10% del valor de la caña deteriorada y hasta del 20% ciento (sic) de su valor durante las 24 horas siguientes. El importe de este castigo será determinado por el Comité y el Ingenio deberá abonarlo a la caña total aportada.
 
-CAPITULO IV De las Cañas Contratadas no Industrializadas
+**CAPITULO IV**
 
-**Artículo 82.-** Las cañas contratadas no industrializadas en la zafra de que se trate, se considerarán como cañas quedadas, excepto las que convengan el Ingenio y el Abastece dor de Caña en diferir para la siguiente zafra.
+De las Cañas Contratadas no Industrializadas
 
-**Artículo 83.** - Cuando por causas imputables al Ingenio, resulten cañas sin industrializar, éstas deberán ser pagadas al abastecedor por dicho Ingenio, en los términos establecidos en el presente capítulo.
+**Artículo 82.-** Las cañas contratadas no industrializadas en la zafra de que se trate, se considerarán como cañas quedadas, excepto las que convengan el Ingenio y el Abastecedor de Caña en diferir para la siguiente zafra.
+
+**Artículo 83.-** Cuando por causas imputables al Ingenio, resulten cañas sin industrializar, éstas deberán ser pagadas al abastecedor por dicho Ingenio, en los términos establecidos en el presente capítulo.
 
 **Artículo 84.-** Se entenderán por causas imputables al Ingenio las siguientes:
 
 **I.** La disminución de la capacidad de molienda, debidamente verificada y sancionada por el Comité;
 
-**II.** Cuando las ampliaciones de fábrica den como resultado retrasos en el inicio n ormal de la zafra y/o mal funcionamiento de la fábrica;
+**II.** Cuando las ampliaciones de fábrica den como resultado retrasos en el inicio normal de la zafra y/o mal funcionamiento de la fábrica;
 
 **III.** La suspensión de las labores por conflictos obrero patronales;
 
@@ -732,7 +790,7 @@ CAPITULO IV De las Cañas Contratadas no Industrializadas
 
 **V.** La insuficiencia en la capacidad de molienda en la fábrica, en relación con la caña contratada y programada para su industrialización;
 
-**VI.** Cuando se muela caña de otro Ingenio, o no contratada, sin la sanció n del Comité y se deje caña contratada sin industrializar;
+**VI.** Cuando se muela caña de otro Ingenio, o no contratada, sin la sanción del Comité y se deje caña contratada sin industrializar;
 
 **VII.** Cuando sin la sanción del Comité, un Ingenio fomente y contrate la producción de la caña de azúcar;
 
@@ -760,9 +818,9 @@ CAPITULO IV De las Cañas Contratadas no Industrializadas
 
 **VII.** Cuando no atiendan oportunamente la quema, el corte y el acarreo de sus cañas.
 
-**Artículo 86.** - En caso de cañas quemadas accide ntalmente y fuera de programa, el Comité podrá llevar a cabo una reprogramación en sus frentes de corte, acudiendo en auxilio del Abastecedor de Caña afectado para facilitar la entrega, con el fin de que se industrialice el mayor volumen posible sin lesion ar los intereses de otros cañeros cuyas cañas estén en proceso de corte.
+**Artículo 86.-** En caso de cañas quemadas accidentalmente y fuera de programa, el Comité podrá llevar a cabo una reprogramación en sus frentes de corte, acudiendo en auxilio del Abastecedor de Caña afectado para facilitar la entrega, con el fin de que se industrialice el mayor volumen posible sin lesionar los intereses de otros cañeros cuyas cañas estén en proceso de corte.
 
-**Artículo 87.-** Cuando por casos fortuitos o de fuerza mayor, tales como fenómenos meteorológicos, ajenos al Ingenio y a los Abastecedores de Caña, se queden cañas contratadas y progra madas sin industrializar en la zafra de que se trate, en beneficio de los Abastecedores de Caña afectados se establece lo siguiente:
+**Artículo 87.-** Cuando por casos fortuitos o de fuerza mayor, tales como fenómenos meteorológicos, ajenos al Ingenio y a los Abastecedores de Caña, se queden cañas contratadas y programadas sin industrializar en la zafra de que se trate, en beneficio de los Abastecedores de Caña afectados se establece lo siguiente:
 
 **I.** De acuerdo con el estimado de la producción de caña, llevado a cabo por el Comité para cada caso, se harán los cálculos del valor de dichas cañas, deduciendo el promedio de los costos totales de cosecha y demás deducibles que le correspondan. Del valor resultante el 34% será absorbido por el propio Abastecedor de Caña, abonándosele a su cuenta el 66%, del cual el Ingenio cubrirá 33% y el otro 33% será a cargo de la totalidad de los Abastecedores de Caña que hayan entregado caña durante la zafra de que se trate, y
 
@@ -770,33 +828,37 @@ CAPITULO IV De las Cañas Contratadas no Industrializadas
 
 **Artículo 88.-** Para todos los efectos, el Abastecedor de Caña conservará la propiedad de la caña no industrializada y de las socas y resocas subsecuentes.
 
-**Artículo 89.** - En el caso demostrado y sancionado por el Comité de la incapacidad eventual o permanente, parcial o total, de los Abastecedores de Caña para cumplir con su obl igación de entregar la materia prima, de acuerdo con las cuotas de entrega señaladas en la programación o reprogramaciones, el Ingenio quedará autorizado para llevar a cabo las gestiones necesarias tendientes a normalizar las entregas, regularizar la molie nda y evitar la posibilidad de que se queden cañas sin industrializar, aun siendo imputables a los propios Abastecedores de Caña, debiendo intervenir en este acto con la autorización del Comité.
+**Artículo 89.-** En el caso demostrado y sancionado por el Comité de la incapacidad eventual o permanente, parcial o total, de los Abastecedores de Caña para cumplir con su obligación de entregar la materia prima, de acuerdo con las cuotas de entrega señaladas en la programación o reprogramaciones, el Ingenio quedará autorizado para llevar a cabo las gestiones necesarias tendientes a normalizar las entregas, regularizar la molienda y evitar la posibilidad de que se queden cañas sin industrializar, aun siendo imputables a los propios Abastecedores de Caña, debiendo intervenir en este acto con la autorización del Comité.
 
-**Artículo 90.-** Una vez concluida la zafra, el Abastecedor de Caña al que se le hayan quedado cañas sin industrializar, en pie o cortadas, deberá acudir dentro de los diez días siguientes a la conclusión oficial de la zafra de que se trate ante el Comité, a fin de que éste sancione y haga constar en acta lo siguiente :
+**Artículo 90.-** Una vez concluida la zafra, el Abastecedor de Caña al que se le hayan quedado cañas sin industrializar, en pie o cortadas, deberá acudir dentro de los diez días siguientes a la conclusión oficial de la zafra de que se trate ante el Comité, a fin de que éste sancione y haga constar en acta lo siguiente:
 
 **I.** La cuantificación del volumen de caña considerada como no industrializada, incluyendo nombre del Abastecedor de Caña, superficie neta, rendimiento estimado por hectárea y toneladas de caña, y
 
-**II.** La calificación de la procedencia de la reclamación d el Abastecedor de Caña en los términos de la presente Ley.
+**II.** La calificación de la procedencia de la reclamación del Abastecedor de Caña en los términos de la presente Ley.
 
-**Artículo 91.-** El valor de la caña no industrializada imputable al Ingenio, será calculado con base en el precio de liquidación de la caña industrializada deduciendo el promedio de los costos total es de cosecha y demás deducibles que le correspondan cuando la caña no ha sido quemada o cortada. El saldo será cubierto en un término de treinta días naturales a partir de la fecha de terminación de la zafra del Ingenio correspondiente.
+**Artículo 91.-** El valor de la caña no industrializada imputable al Ingenio, será calculado con base en el precio de liquidación de la caña industrializada deduciendo el promedio de los costos totales de cosecha y demás deducibles que le correspondan cuando la caña no ha sido quemada o cortada. El saldo será cubierto en un término de treinta días naturales a partir de la fecha de terminación de la zafra del Ingenio correspondiente.
 
-Cuando se trate d e caña quemada, en pie o cortada, o cruda cortada, se agregará al valor anterior el monto de los trabajos de corte, pica y saca según corresponda, de acuerdo con las tarifas sancionadas por el Comité.
+Cuando se trate de caña quemada, en pie o cortada, o cruda cortada, se agregará al valor anterior el monto de los trabajos de corte, pica y saca según corresponda, de acuerdo con las tarifas sancionadas por el Comité.
 
-**Artículo 92.-** Por mutuo acuerdo de las partes contrata ntes se podrá programar el diferimiento de la cosecha de superficies de caña para el inicio de la zafra siguiente debidamente sancionado por el respectivo Comité.
+**Artículo 92.-** Por mutuo acuerdo de las partes contratantes se podrá programar el diferimiento de la cosecha de superficies de caña para el inicio de la zafra siguiente debidamente sancionado por el respectivo Comité.
 
-CAPITULO V Del Sistema para Determinar el Azúcar Recuperable Base Estándar Uniforme de la Caña Industrializada
+**CAPITULO V**
 
-**Artículo 93.** - Para determinar el azúcar recuperable base estándar de la caña industrializada, establecido en el Artículo 58 de la presente Ley, se deberá aplicar el sistema correspondiente que considera una Eficiencia Base de Fábrica mí nima de 82.37% referida a la calidad especifica de caña de cada Ingenio del país.
+Del Sistema para Determinar el Azúcar Recuperable Base Estándar Uniforme de la Caña Industrializada
+
+**Artículo 93.-** Para determinar el azúcar recuperable base estándar de la caña industrializada, establecido en el Artículo 58 de la presente Ley, se deberá aplicar el sistema correspondiente que considera una Eficiencia Base de Fábrica mínima de 82.37% referida a la calidad especifica de caña de cada Ingenio del país.
 
 Con ese fin se fomentará la normalización e impulsará los programas para el fomento de la calidad.
 
-CAPITULO VI De la Normatividad y de la Supervisión del Proceso de Fábrica
+**CAPITULO VI**
+
+De la Normatividad y de la Supervisión del Proceso de Fábrica
 
 **Artículo 94.-** El procedimiento de toma, manejo y análisis de muestras se efectuará con base en la normatividad aplicable a la agroindustria de la caña de azúcar expedida por la Dirección General de Normas de la Secretaría de Economía y, a falta de ésta, por los acuerdos adoptados en el seno del Comité Nacional.
 
-**Artículo 95.** - Para la toma de muestras representativas y la realización de los análisis en el laboratorio, los Industriales estarán obligados a contar en los Ingenios con el local de laboratorio funcional, exclusivo para ello, con espacio y mobiliario suficientes para el personal representante de Abastecedores de Caña e Industriales, dotado de todos los materiales, equipos, aparatos y reactivos contemplados en las especificaciones de las normas mex icanas respectivas. Para tal efecto, el Gobierno Federal se obliga a verificar, calibrar y certificar los instrumentos de medición, materiales, reactivos y demás elementos que se requieran en los términos establecidos en la Ley Federal sobre Metrología y Normalización.
+**Artículo 95.-** Para la toma de muestras representativas y la realización de los análisis en el laboratorio, los Industriales estarán obligados a contar en los Ingenios con el local de laboratorio funcional, exclusivo para ello, con espacio y mobiliario suficientes para el personal representante de Abastecedores de Caña e Industriales, dotado de todos los materiales, equipos, aparatos y reactivos contemplados en las especificaciones de las normas mexicanas respectivas. Para tal efecto, el Gobierno Federal se obliga a verificar, calibrar y certificar los instrumentos de medición, materiales, reactivos y demás elementos que se requieran en los términos establecidos en la Ley Federal sobre Metrología y Normalización.
 
-**Artículo 96.** - Bajo el sistema en el que el precio de la caña se determina mediante el azúcar recuperable base estándar promedio uniforme de toda la caña molida en la zafra por cada Ingenio del país, el resultado del azúcar físicamente produc ido en cada zafra no tendrá relación con el pago de la caña.
+**Artículo 96.-** Bajo el sistema en el que el precio de la caña se determina mediante el azúcar recuperable base estándar promedio uniforme de toda la caña molida en la zafra por cada Ingenio del país, el resultado del azúcar físicamente producido en cada zafra no tendrá relación con el pago de la caña.
 
 En consecuencia los Abastecedores de Caña por conducto de sus Organizaciones tienen derecho a supervisar en la fábrica y a participar conjuntamente con el personal del Ingenio, únicamente hasta la parte del proceso que interviene para la determinación de los parámetros comprendidos en el cálculo del azúcar recuperable de su caña, que son:
 
@@ -818,35 +880,37 @@ En consecuencia los Abastecedores de Caña por conducto de sus Organizaciones ti
 
 **i)** Verificación de la instalación en los Ingenios de los equipos necesarios y su correcta operación, así como de la aplicación debida de las normas mexicanas vigentes y disposiciones que correspondan emitidas por la Dirección General de Normas de la Secretaría de Economía.
 
-En caso de que las Organizaciones nombren representantes para vigilar y participar en la determinación de los parámetros utilizados en el cálculo del azúcar recuperable de la caña industrializada, deberán firmar conjuntamente con el perso nal del Ingenio encargado de dichas actividades los resultados diarios obtenidos. En caso de divergencia, las partes manifestarán su inconformidad levantando el acta respectiva que harán del conocimiento inmediato del Comité del Ingenio de que se trate.
+En caso de que las Organizaciones nombren representantes para vigilar y participar en la determinación de los parámetros utilizados en el cálculo del azúcar recuperable de la caña industrializada, deberán firmar conjuntamente con el personal del Ingenio encargado de dichas actividades los resultados diarios obtenidos. En caso de divergencia, las partes manifestarán su inconformidad levantando el acta respectiva que harán del conocimiento inmediato del Comité del Ingenio de que se trate.
 
-**TITULO QUINTO DE LA INVESTIGACIÓN**, LA DIVERSIFICACIÓN Y LA SUSTENTABILlDAD
+**TITULO QUINTO**
 
-CAPITULO I De la Investigación y Desarrollo Tecnológico
+DE LA INVESTIGACIÓN, LA DIVERSIFICACIÓN Y LA SUSTENTABILlDAD
 
-**Artículo 97.** - Se crea el Centro de Investigación Científica y Tecnológica de la Caña de Azúcar (CICTCAÑA), que tendrá como p ropósito orientar los proyectos de investigación y desarrollo para otorgarle más competitividad y rentabilidad a la agroindustria de la caña de azúcar.
+**CAPITULO I**
+
+De la Investigación y Desarrollo Tecnológico
+
+**Artículo 97.-** Se crea el Centro de Investigación Científica y Tecnológica de la Caña de Azúcar (CICTCAÑA), que tendrá como propósito orientar los proyectos de investigación y desarrollo para otorgarle más competitividad y rentabilidad a la agroindustria de la caña de azúcar.
 
 Este centro dependerá del Comité Nacional, y se sujetará a las directrices de éste, a las del Sistema Nacional de Investigación y Transferencia Tecnológica para el Desarrollo Rural Sustentable y a las políticas que sean aprobadas por la Comisión Intersecretarial y el Consejo Mexicano en la materia.
 
-Su estructura, programa de mediano plazo y programa operat ivo anual de investigación y desarrollo, así como su presupuesto, serán aprobados por el Comité Nacional.
+Su estructura, programa de mediano plazo y programa operativo anual de investigación y desarrollo, así como su presupuesto, serán aprobados por el Comité Nacional.
 
-**Artículo 98.-** Para darle viabilidad al CICTCAÑA se creará un fondo con aportaciones tripartitas, del Gobierno Federal, de los Industriales y de las O rganizaciones en los términos, lineamientos y reglamentación que acuerde el Comité Nacional.
+**Artículo 98.-** Para darle viabilidad al CICTCAÑA se creará un fondo con aportaciones tripartitas, del Gobierno Federal, de los Industriales y de las Organizaciones en los términos, lineamientos y reglamentación que acuerde el Comité Nacional.
 
-**Artículo 99.** - A través del CICTCAÑA, en coordinación con las instituciones de investigación y educación superior participantes, se dará prioridad al establecimien to de un inventario nacional de
+**Artículo 99.-** A través del CICTCAÑA, en coordinación con las instituciones de investigación y educación superior participantes, se dará prioridad al establecimiento de un inventario nacional de proyectos de investigación y recursos materiales en campus de experimentación, a efecto de optimizar las investigaciones y sus resultados obtenidos y aprovechar los campus existentes para el desarrollo de nuevos proyectos.
 
-proyectos de investigación y recursos materiales en campus de experimentación, a efecto de optimizar las investigaciones y sus resultados obtenidos y aprovechar los campus existentes para el desarrollo de nuevos proyectos.
-
-**Artículo 100.** - El CICTCAÑA se apoyará en cuerpos colegiados formados por investigadores de reconocido prestigio que serán convocados de las diferentes instituciones públicas que realizan investigación científica y tecnológica en el país.
+**Artículo 100.-** El CICTCAÑA se apoyará en cuerpos colegiados formados por investigadores de reconocido prestigio que serán convocados de las diferentes instituciones públicas que realizan investigación científica y tecnológica en el país.
 
 **Artículo 101.-** El CICTCAÑA, con la aprobación del Comité Nacional, atenderá las demandas de los sectores integrantes de la agroindustria de la caña de azúcar, y tendrá como propósitos fundamentales los siguientes:
 
-**I.** Desarrollar nuevas variedades con elevados contenidos d e sacarosa, baja fibra, tolerantes a plagas y enfermedades, sequía e inundaciones y otras adversidades climatológicas;
+**I.** Desarrollar nuevas variedades con elevados contenidos de sacarosa, baja fibra, tolerantes a plagas y enfermedades, sequía e inundaciones y otras adversidades climatológicas;
 
 **II.** Generar paquetes tecnológicos regionales que incrementen sustancialmente la productividad agrícola e industrial;
 
-**III.** Diseñar y eva luar los sistemas de cartografía y geoposicionamiento satelital y los programas de cómputo que aseguren una aplicación y uso estandarizado en los Comités, con el fin de fortalecer el Sistema de Información para la toma de decisiones que permitan la elevaci ón de la productividad y competitividad de cada una de las zonas de abastecimiento cañero;
+**III.** Diseñar y evaluar los sistemas de cartografía y geoposicionamiento satelital y los programas de cómputo que aseguren una aplicación y uso estandarizado en los Comités, con el fin de fortalecer el Sistema de Información para la toma de decisiones que permitan la elevación de la productividad y competitividad de cada una de las zonas de abastecimiento cañero;
 
-**IV.** Establecer los mecanismos de vinculación y coordinación de todas las instancias que participan en el desarrollo tecnológico de la gramínea y en particular retom ar el control de las estaciones de hibridación y cuarentenaria para proyectar el programa de nuevas variedades a largo plazo, evitar duplicidades y abaratar los costos;
+**IV.** Establecer los mecanismos de vinculación y coordinación de todas las instancias que participan en el desarrollo tecnológico de la gramínea y en particular retomar el control de las estaciones de hibridación y cuarentenaria para proyectar el programa de nuevas variedades a largo plazo, evitar duplicidades y abaratar los costos;
 
 **V.** Promover las investigaciones que diversifiquen y optimicen el aprovechamiento de la caña atendiendo a su rentabilidad, mercado y disponibilidad de inversiones;
 
@@ -854,19 +918,21 @@ proyectos de investigación y recursos materiales en campus de experimentación,
 
 **VII.** Profundizar en la evaluación del efecto en los rendimientos de fábrica y campo del proceso de fabricación del azúcar de caña cortada en verde;
 
-**VIII.** Promover para cada región y Zona de Abastecimiento, el sistema de cartograf ía y geoposicionamiento satelital estandarizado para todos los Comités, con el propósito de facilitar la reconversión productiva y lograr el pleno aprovechamiento de la tierra;
+**VIII.** Promover para cada región y Zona de Abastecimiento, el sistema de cartografía y geoposicionamiento satelital estandarizado para todos los Comités, con el propósito de facilitar la reconversión productiva y lograr el pleno aprovechamiento de la tierra;
 
-**IX.** Determinar mediante estudios e investigaciones, la contribución a la compe titividad del territorio rural de cada una de las Zonas de Abastecimiento cañero que permitan consolidar la producción, el empleo y los servicios rurales;
+**IX.** Determinar mediante estudios e investigaciones, la contribución a la competitividad del territorio rural de cada una de las Zonas de Abastecimiento cañero que permitan consolidar la producción, el empleo y los servicios rurales;
 
 **X.** Inventariar la investigación y sus resultados en materia de coproductos, subproductos y derivados, y promover las nuevas investigaciones para maximizar el aprovechamiento y diversificación de la caña de azúcar, y
 
 **XI.** Llevar a cabo las investigaciones, estudios y acciones que acuerde y le instruya el Comité Nacional.
 
-**Artículo 102.** - El CICTCAÑA promov erá, a través de los mecanismos de coordinación que se establezcan con las instituciones académicas y de investigación, la formación del recurso humano que le dé certidumbre y continuidad a este Centro de investigación.
+**Artículo 102.-** El CICTCAÑA promoverá, a través de los mecanismos de coordinación que se establezcan con las instituciones académicas y de investigación, la formación del recurso humano que le dé certidumbre y continuidad a este Centro de investigación.
 
-**Artículo 103.-** A efecto de garantiz ar la aportación del Gobierno Federal a este Centro, se harán las previsiones necesarias en el Programa Especial Concurrente que incluya el Presupuesto de Egresos de la Federación cada año. Las aportaciones que deban realizar los Abastecedores de Caña y lo s Industriales se harán por tonelada de caña y serán acordadas en el Pleno del Comité Nacional.
+**Artículo 103.-** A efecto de garantizar la aportación del Gobierno Federal a este Centro, se harán las previsiones necesarias en el Programa Especial Concurrente que incluya el Presupuesto de Egresos de la Federación cada año. Las aportaciones que deban realizar los Abastecedores de Caña y los Industriales se harán por tonelada de caña y serán acordadas en el Pleno del Comité Nacional.
 
-CAPITULO II Diversificación Productiva
+**CAPITULO II**
+
+Diversificación Productiva
 
 **Artículo 104.-** Se considera como diversificación productiva la obtención del azúcar de caña en todas sus presentaciones, los Coproductos, Subproductos y Derivados de la caña de azúcar.
 
@@ -876,41 +942,45 @@ Los Subproductos: son productos colaterales a la producción azucarera.
 
 Derivados: son aquellos productos que se obtienen a partir de los Subproductos de la caña.
 
-**Artículo 105.** - El Comité Nacional, apoyándose en el CICTCAÑA promoverá el intercambio de tecnologías de punta probadas en el aprovechamiento de la agroenergía, con el propósito de que los interesados tengan la información necesaria para mejorar la eficiencia térmica del Ingenio, que permita la cogeneración de energía eléctrica y la obtención de gas sintético.
+**Artículo 105.-** El Comité Nacional, apoyándose en el CICTCAÑA promoverá el intercambio de tecnologías de punta probadas en el aprovechamiento de la agroenergía, con el propósito de que los interesados tengan la información necesaria para mejorar la eficiencia térmica del Ingenio, que permita la cogeneración de energía eléctrica y la obtención de gas sintético.
 
-**Artículo 106.** - El Comité Nacional, por conducto de la Secretaría, propondrá a la Comisión Intersecretarial las políticas, el marco legal y administrativo tanto público como privado, que permita el aprovechamiento diversificado de la caña de azúcar, a efecto de que procedan las adecuaciones de Ley y reglamentación respectiva.
+**Artículo 106.-** El Comité Nacional, por conducto de la Secretaría, propondrá a la Comisión Intersecretarial las políticas, el marco legal y administrativo tanto público como privado, que permita el aprovechamiento diversificado de la caña de azúcar, a efecto de que procedan las adecuaciones de Ley y reglamentación respectiva.
 
-**Artículo 107.-** El CICTCAÑA propondrá al Comité Nacional los estudios y proyectos que tengan como prioridad el desarrollo y aprovechamiento de la agroenergía, en particu lar del etanol como carburante y oxigenante de gasolina a partir de mieles iniciales y de mieles finales, así como del aprovechamiento del bagazo de la caña con fines de industrialización para la cogeneración de energía y la obtención de gas sintético. De igual manera los productos alimenticios tales como la sucralosa, olestra, fructooligosacáridos y farmacéuticos como sucralfate, polisucrose, esteres especiales, epóxidos, sucrogel y bioplásticos derivados de la sacarosa.
+**Artículo 107.-** El CICTCAÑA propondrá al Comité Nacional los estudios y proyectos que tengan como prioridad el desarrollo y aprovechamiento de la agroenergía, en particular del etanol como carburante y oxigenante de gasolina a partir de mieles iniciales y de mieles finales, así como del aprovechamiento del bagazo de la caña con fines de industrialización para la cogeneración de energía y la obtención de gas sintético. De igual manera los productos alimenticios tales como la sucralosa, olestra, fructooligosacáridos y farmacéuticos como sucralfate, polisucrose, esteres especiales, epóxidos, sucrogel y bioplásticos derivados de la sacarosa.
 
 Los resultados de dichos estudios deben incorporar la rentabilidad financiera, social e institucional, para que, de resultar favorables, el Comité Nacional proponga a la Comisión Intersecretarial la reglamentación e iniciativas de Ley que permitan el aprovechamiento de los coproductos como bienes estratégicos para la soberanía nacional en producción de energéticos y los derivados de sacarosa como bienes necesarios para la soberanía alimentaria y farmacéutica del país.
 
-**Artículo 108.-** El Comité Nacional propondrá a la Comisión Intersecretari al, para su aprobación, los estímulos a la inversión para la producción de gas sintético, cogeneración de energía y producción de etanol como carburante, sin dejar de incluir al resto de coproductos, subproductos y derivados.
+**Artículo 108.-** El Comité Nacional propondrá a la Comisión Intersecretarial, para su aprobación, los estímulos a la inversión para la producción de gas sintético, cogeneración de energía y producción de etanol como carburante, sin dejar de incluir al resto de coproductos, subproductos y derivados.
 
-**Artículo 109.** - El Comité Naci onal, con apoyo de la Secretaría, promoverá el desarrollo de los Coproductos, Subproductos y Derivados vinculándolos a los programas de riesgo compartido y riesgo de
+**Artículo 109.-** El Comité Nacional, con apoyo de la Secretaría, promoverá el desarrollo de los Coproductos, Subproductos y Derivados vinculándolos a los programas de riesgo compartido y riesgo de inversión, a las alianzas productivas y a las instituciones de educación superior existentes dentro del territorio de la Zona de Abastecimiento cañero donde se promueva, mediante módulos demostrativos, la viabilidad de este desarrollo.
 
-inversión, a las alianzas productivas y a las instituciones de educación superior existent es dentro del territorio de la Zona de Abastecimiento cañero donde se promueva, mediante módulos demostrativos, la viabilidad de este desarrollo.
+**Artículo 110.-** Los apoyos que el Gobierno Federal otorgue para la diversificación productiva de la agroindustria de la caña, se preverán en el Programa Especial Concurrente para el Desarrollo Rural Sustentable que incluya el Presupuesto de Egresos de la Federación cada año.
 
-**Artículo 110.** - Los apoyos que el Gobierno Federal otorgue para la diversificación productiva de la agroindustria de la caña, se preverán en el Programa Especial Concurrente para el Desarrollo Rural Sustentable que incluya el Presupuesto de Egresos de la Federación cada año.
+**CAPITULO III**
 
-CAPITULO III De la Sustentabilidad
+De la Sustentabilidad
 
 **Artículo 111.-** El Comité Nacional, con apoyo del CICTCAÑA, identificará las actividades innovadoras, tanto en el área agrícola como industrial cuya implementación coadyuve al desarrollo sustentable del sector.
 
 **Artículo 112.-** El Comité Nacional promoverá sistemas de agricultura cañera sustentables basados en la conservación del medio ambiente y el eficiente aprovechamiento de los recursos disponibles, involucrando la calidad de vida de los productores y de la sociedad en general.
 
-**Artículo 113.** - El Comité Nacional evaluará, promoverá y apoyará la instrumentac ión de programas que reduzcan la fuente contaminante de la industria, tanto al aire como al suelo y al agua, lo relativo a la solución del tratamiento de las aguas residuales de los Ingenios y de las destilerías y de los gases de combustión de las calderas.
+**Artículo 113.-** El Comité Nacional evaluará, promoverá y apoyará la instrumentación de programas que reduzcan la fuente contaminante de la industria, tanto al aire como al suelo y al agua, lo relativo a la solución del tratamiento de las aguas residuales de los Ingenios y de las destilerías y de los gases de combustión de las calderas.
 
-**Artículo 114.** - Se promoverá y apoyará la adopción de prácticas de manejo sustentable del suelo, estableciendo un sistema de registro por Ingenio.
+**Artículo 114.-** Se promoverá y apoyará la adopción de prácticas de manejo sustentable del suelo, estableciendo un sistema de registro por Ingenio.
 
-**Artículo 115.** - Se impulsará el aprovechamiento de la biomasa residual de la caña de azúcar, particularmente los procesos de gasificación o termólisis, apoyando aquellos proyectos que demuestren la rentabilidad sustentable.
+**Artículo 115.-** Se impulsará el aprovechamiento de la biomasa residual de la caña de azúcar, particularmente los procesos de gasificación o termólisis, apoyando aquellos proyectos que demuestren la rentabilidad sustentable.
 
 **Artículo 116.-** El Comité Nacional elaborará una propuesta de estímulos a la inversión para aquellos Industriales que realicen y pongan en marcha proyectos sustentables de alta eficiencia energética, enfocados a su propio abastecimiento y venta de energía. La Secretaría propondrá a la Comisión Intersecretarial la aprobación de esta propuesta para los efectos jurídicos, administrativos y presupuestales que sea necesario instrumentar.
 
 **Artículo 117.-** A efecto de garantizar una agricultura y una industrialización de la caña de azúcar de carácter sustentable, se considerarán los apoyos necesarios en el Programa Especial Concurrente del Presupuesto de Egresos de la Federación, para cada ejercicio.
 
-**TITULO SEXTO DE LA CONCILIACIÓN Y EL ARBITRAJE EN LA AGROINDUSTRIA DE LA CAÑA DE AZÚCAR**
+**TITULO SEXTO**
 
-CAPITULO I De las Controversias
+**DE LA CONCILIACION Y EL ARBITRAJE EN LA AGROINDUSTRIA DE LA CAÑA DE AZUCAR**
+
+**CAPITULO I**
+
+De las Controversias
 
 **Artículo 118.-** Son controversias azucareras las que, con motivo del incumplimiento en la aplicación de las disposiciones contenidas en la presente Ley, el Contrato y disposiciones derivadas, se susciten entre:
 
@@ -922,29 +992,33 @@ CAPITULO I De las Controversias
 
 **d)** Cualquiera de los sujetos anteriores y los Comités.
 
-Serán aplicables de manera supletoria, el Código de Comercio, el Código Civil Federal, el Código Nacional de Procedimientos Civiles y Familiares y la Ley General de Títulos y Operaciones de Crédito. Párrafo reformado DOF 14-11-2025
+**(REFORMADO, D.O.F. 14 DE NOVIEMBRE DE 2025)**
 
-**Artículo 119.** - El sistema de sol ución de conflictos de la agroindustria de la caña de azúcar se conformará con:
+Serán aplicables de manera supletoria, el Código de Comercio, el Código Civil Federal, el Código Nacional de Procedimientos Civiles y Familiares y la Ley General de Títulos y Operaciones de Crédito.
+
+**Artículo 119.-** El sistema de solución de conflictos de la agroindustria de la caña de azúcar se conformará con:
 
 **a)** Comités, como instancia de conciliación, y
 
 **b)** Junta Permanente, en procedimiento conciliatorio o en procedimiento arbitral.
 
-**Artículo 120.-** En la tramitación de las contro versias que sean puestas bajo su conocimiento, la Junta Permanente y los Comités se sujetarán al procedimiento previsto en esta Ley, debiendo dejar constancia por escrito de todas sus actuaciones en los expedientes respectivos.
+**Artículo 120.-** En la tramitación de las controversias que sean puestas bajo su conocimiento, la Junta Permanente y los Comités se sujetarán al procedimiento previsto en esta Ley, debiendo dejar constancia por escrito de todas sus actuaciones en los expedientes respectivos.
 
-CAPITULO II Del Procedimiento Conciliatorio
+**CAPITULO II**
+
+Del Procedimiento Conciliatorio
 
 **Artículo 121.-** Los Comités tendrán la jurisdicción que les corresponda en razón del Ingenio donde se constituyan.
 
 **Artículo 122.-** Los Comités, para los fines de conciliación, se integrarán en los términos que dispone el Artículo 24 de la presente Ley.
 
-**Artículo 123.** - Los Comités, en su función conciliatoria, tendrán las facultades y obligaciones siguientes:
+**Artículo 123.-** Los Comités, en su función conciliatoria, tendrán las facultades y obligaciones siguientes:
 
-**I.** Actuar como instancia conciliatoria potestativa en las controversias azucareras surgidas entre Abastecedores de Caña de azúcar, en tre éstos, de ellos con los Industriales o entre estos últimos;
+**I.** Actuar como instancia conciliatoria potestativa en las controversias azucareras surgidas entre Abastecedores de Caña de azúcar, entre éstos, de ellos con los Industriales o entre estos últimos;
 
 **II.** Procurar un arreglo conciliatorio de las controversias azucareras;
 
-**III.** Recibir las pruebas que los Abastecedores de Caña o los Industriales juzguen conveniente rendir ante ellos, en rel ación con las acciones y excepciones que pretendan deducir ante la Junta Permanente. El término para la recepción de pruebas no podrá exceder de diez días;
+**III.** Recibir las pruebas que los Abastecedores de Caña o los Industriales juzguen conveniente rendir ante ellos, en relación con las acciones y excepciones que pretendan deducir ante la Junta Permanente. El término para la recepción de pruebas no podrá exceder de diez días;
 
 **IV.** Llevar a cabo los trámites necesarios de inscripción en el Registro de las constancias de lo actuado en su función conciliatoria, y
 
@@ -954,19 +1028,21 @@ Adicionalmente a petición de parte podrán recibir las demandas que le sean pre
 
 **Artículo 124.-** El procedimiento conciliatorio se sujetará a las siguientes reglas:
 
-**I.** El órgano conciliatorio, una vez recibida la solicitud de su intervención en tal carácter citará a las partes a una au diencia de avenimiento señalando el lugar, la fecha y la hora para su celebración, así como el motivo de la audiencia;
+**I.** El órgano conciliatorio, una vez recibida la solicitud de su intervención en tal carácter citará a las partes a una audiencia de avenimiento señalando el lugar, la fecha y la hora para su celebración, así como el motivo de la audiencia;
 
 **II.** El día de la audiencia de avenimiento, el órgano conciliatorio exhortará a las partes a que resuelvan amigablemente sus diferencias, proponiendo para el efecto las alternativas de solución que a su juicio considere pertinentes;
 
-**III.** Si las partes lIegaren a un arreglo, el conflicto se tendrá por terminado en forma conciliatoria, asentándose lo pactado en un convenio que deberá ser fir mado por aquellas, el cual producirá todos los efectos jurídicos de un laudo y llevará aparejada su ejecución, y
+**III.** Si las partes lIegaren a un arreglo, el conflicto se tendrá por terminado en forma conciliatoria, asentándose lo pactado en un convenio que deberá ser firmado por aquellas, el cual producirá todos los efectos jurídicos de un laudo y llevará aparejada su ejecución, y
 
 **IV.** Si alguna de las partes no asiste a la audiencia convocada se tendrá por inconforme con cualquier arreglo, o habiendo asistido las partes no se llegare a él, se dará por concluido el procedimiento conciliatorio.
 
-CAPITULO III Del Arbitraje
+**CAPITULO III**
 
-**Artículo 125.-** [Para la resolución de las controversias azucareras que se susciten, los Abastecedores de Caña y los Industriales deberán someterse a la j urisdicción de la Junta Permanente, a petición de parte, en los términos establecidos en esta Ley, en el Contrato y demás disposiciones derivadas.
+Del Arbitraje
 
-Las partes deberán cumplir con las resoluciones que dicte la Junta Permanente, una vez que causen estado.] Artículo declarado inválido por sentencia de la SCJN a Acción de Inconstitucionalidad DOF 07-12-2007
+**Artículo 125.-** Para la resolución de las controversias azucareras que se susciten, los Abastecedores de Caña y los Industriales deberán someterse a la jurisdicción de la Junta Permanente, a petición de parte, en los términos establecidos en esta Ley, en el Contrato y demás disposiciones derivadas.
+
+Las partes deberán cumplir con las resoluciones que dicte la Junta Permanente, una vez que causen estado.
 
 **Artículo 126.-** El procedimiento arbitral, en su caso, se sujetará a las siguientes reglas:
 
@@ -974,23 +1050,27 @@ Las partes deberán cumplir con las resoluciones que dicte la Junta Permanente, 
 
 **II.** Contestada o no la demanda, y desahogadas las pruebas admitidas, se concederá a las partes un plazo de diez días hábiles para presentar sus alegatos.
 
-Cuando, para mejor proveer, a juicio de la Junta Permanente sea necesario obtener mayor información, recabar más pruebas, o realizar alguna investigación respecto a las controversias instauradas, ésta podrá hacerlo en el plazo necesario p ara ello. En estos casos, se citará para alegatos una vez recopiladas y desahogadas las pruebas y diligencias que se hubieren ordenado.
+Cuando, para mejor proveer, a juicio de la Junta Permanente sea necesario obtener mayor información, recabar más pruebas, o realizar alguna investigación respecto a las controversias instauradas, ésta podrá hacerlo en el plazo necesario para ello. En estos casos, se citará para alegatos una vez recopiladas y desahogadas las pruebas y diligencias que se hubieren ordenado.
 
 **III.** Transcurridas las etapas mencionadas y presentados o no los alegatos de las partes, la Junta Permanente cerrará el periodo de instrucción y contará con un plazo máximo de treinta días hábiles para dictar el laudo correspondiente.
 
-CAPITULO IV De la Junta Permanente
+**CAPITULO IV**
+
+De la Junta Permanente
 
 **Artículo 127.-** Se crea la Junta Permanente en términos de la Ley de Desarrollo Rural Sustentable, la que tendrá plena competencia para conocer y resolver todas aquellas controversias azucareras que le sean sometidas.
 
 En ningún caso la Junta Permanente intervendrá en controversias de carácter interno de las Organizaciones o en asuntos políticos de las mismas.
 
-**Artículo 128.-** La Junta Permanente estará dotada de autonomía para dictar sus fallos y contará con presupuesto anual propio, que se integrará con las aportaciones anuales de los sectores representados en ella, en los montos que determine su Pleno, en t érminos del Artículo 186 de la Ley de Desarrollo Rural Sustentable.
+**Artículo 128.-** La Junta Permanente estará dotada de autonomía para dictar sus fallos y contará con presupuesto anual propio, que se integrará con las aportaciones anuales de los sectores representados en ella, en los montos que determine su Pleno, en términos del Artículo 186 de la Ley de Desarrollo Rural Sustentable.
 
 **Artículo 129.-** La Junta Permanente, en acuerdo con la Secretaría, por conducto del Registro, tomará nota de la integración y actualización del registro de las organizaciones nacionales y locales de productores de caña; del registro de los miembros del Comité de cada Ingenio y el registro oficial del Padrón en los términos de esta Ley, debiendo el Registro turnar copia a la Junta Permanente de la documentación respectiva.
 
 **Artículo 130.-** La Junta Permanente tendrá su domicilio en la Ciudad de México, Distrito Federal.
 
-CAPITULO V Del Pleno de la Junta Permanente
+**CAPITULO V**
+
+Del Pleno de la Junta Permanente
 
 **Artículo 131.-** El Pleno será el órgano supremo de la Junta Permanente, quien dictará los laudos y las interlocutorias que pongan fin a las controversias azucareras.
 
@@ -1002,17 +1082,17 @@ CAPITULO V Del Pleno de la Junta Permanente
 
 **c)** Representantes de la Cámara Azucarera, en número igual al de los representantes de las organizaciones nacionales cañeras registradas.
 
-El Presidente tendrá la representación de la Junta Permanente y contará con todos los poderes generales para pleitos y c obranzas y actos de administración, pudiendo delegar estas facultades en su totalidad o parcialmente, para los efectos que se requieran.
+El Presidente tendrá la representación de la Junta Permanente y contará con todos los poderes generales para pleitos y cobranzas y actos de administración, pudiendo delegar estas facultades en su totalidad o parcialmente, para los efectos que se requieran.
 
 Por cada representante propietario habrá un suplente; dichos cargos serán intransferibles y honoríficos.
 
 **Artículo 133.-** El Presidente de la Junta Permanente será nombrado por el Titular de la Secretaría. Sus ausencias temporales y las definitivas, en tanto se hace nuevo nombramiento, serán cubiertas por su suplente.
 
-**Artículo 134.-** Las reuniones serán presididas por el P residente o, en su ausencia, por su suplente; el Pleno sesionará por instrucciones del mismo o a petición de, por lo menos, dos de sus miembros, previa notificación por escrito de sus integrantes con cinco días hábiles de antelación a la misma.
+**Artículo 134.-** Las reuniones serán presididas por el Presidente o, en su ausencia, por su suplente; el Pleno sesionará por instrucciones del mismo o a petición de, por lo menos, dos de sus miembros, previa notificación por escrito de sus integrantes con cinco días hábiles de antelación a la misma.
 
-**Artículo 1 **35.- El Pleno deberá sesionar con la asistencia total de sus miembros. En caso de no celebrarse una sesión por la inasistencia de alguno de ellos, el Secretario General citará nuevamente para celebrarse dentro de los tres días hábiles siguientes, llevándol a a cabo con los que asistan, y se tendrán por conformes los miembros no asistentes con las resoluciones o acuerdos que se tomen en ella.
+**Artículo 135.-** El Pleno deberá sesionar con la asistencia total de sus miembros. En caso de no celebrarse una sesión por la inasistencia de alguno de ellos, el Secretario General citará nuevamente para celebrarse dentro de los tres días hábiles siguientes, llevándola a cabo con los que asistan, y se tendrán por conformes los miembros no asistentes con las resoluciones o acuerdos que se tomen en ella.
 
-**Artículo 136.** - El Pleno de la Junta Permanente resolverá por unanimidad o mayoría de votos los asuntos que sometan la s partes a su consideración. En caso de empate el presidente tendrá voto de calidad.
+**Artículo 136.-** El Pleno de la Junta Permanente resolverá por unanimidad o mayoría de votos los asuntos que sometan las partes a su consideración. En caso de empate el presidente tendrá voto de calidad.
 
 **Artículo 137.-** El Pleno de la Junta Permanente tiene las facultades y obligaciones siguientes:
 
@@ -1026,29 +1106,31 @@ Por cada representante propietario habrá un suplente; dichos cargos serán intr
 
 **V.** Las demás que le confieren las leyes.
 
-CAPITULO VI De la Secretaría General de la Junta Permanente
+**CAPITULO VI**
 
-**Artículo 138.** - El Pleno de la Junta Permanente designará al Secretario General de la misma, que deberá ser Licenciado en Derecho con una experiencia mínima de cinco años en la materia de la agroindustria de la caña de azúcar, al que se le otorgarán las facultades necesarias para su mejor actuación, responsabilizado del adecuado funcionamiento de la Junta Permanente.
+De la Secretaría General de la Junta Permanente
 
-**Artículo 139.** - El Secretario General de la Junta Permanente tendrá, entre otras, las siguientes funciones:
+**Artículo 138.-** El Pleno de la Junta Permanente designará al Secretario General de la misma, que deberá ser Licenciado en Derecho con una experiencia mínima de cinco años en la materia de la agroindustria de la caña de azúcar, al que se le otorgarán las facultades necesarias para su mejor actuación, responsabilizado del adecuado funcionamiento de la Junta Permanente.
 
-**I.** Coordinar las labores de la Junta Permanente y administrar los recu rsos humanos, financieros y materiales asignados a la misma;
+**Artículo 139.-** El Secretario General de la Junta Permanente tendrá, entre otras, las siguientes funciones:
+
+**I.** Coordinar las labores de la Junta Permanente y administrar los recursos humanos, financieros y materiales asignados a la misma;
 
 **II.** Convocar a las partes en controversia en los términos del artículo 124 de esta Ley, para que en vías de conciliación se procure una solución que les satisfaga;
 
-**III.** Comisionar al personal q ue considere necesario, por iniciativa propia o a petición de parte, para la investigación, información o aclaración del asunto que se someta a su consideración;
+**III.** Comisionar al personal que considere necesario, por iniciativa propia o a petición de parte, para la investigación, información o aclaración del asunto que se someta a su consideración;
 
-**IV.** Integrar los expedientes de los asuntos en trámite, dictando todo tipo de acuerdos que pa ra la sustanciación del procedimiento sean necesarios;
+**IV.** Integrar los expedientes de los asuntos en trámite, dictando todo tipo de acuerdos que para la sustanciación del procedimiento sean necesarios;
 
-**V.** Ordenar las investigaciones necesarias y el aprovisionamiento de datos o documentos que se encuentren relacionados con los asuntos que se ventilen ante la misma y, en su oportunidad, formular el pr oyecto de laudo o interlocutoria que dé por terminado el juicio arbitral, que someterá a la consideración del Pleno;
+**V.** Ordenar las investigaciones necesarias y el aprovisionamiento de datos o documentos que se encuentren relacionados con los asuntos que se ventilen ante la misma y, en su oportunidad, formular el proyecto de laudo o interlocutoria que dé por terminado el juicio arbitral, que someterá a la consideración del Pleno;
 
-**VI.** Encargarse de la sustanciación de los procedimientos arbitrales hasta dejarlos en estado de resolución, incluyendo la firma de las res oluciones interlocutorias que declaren improcedentes las excepciones de previo y especial pronunciamiento que no impliquen dar por concluido el juicio arbitral;
+**VI.** Encargarse de la sustanciación de los procedimientos arbitrales hasta dejarlos en estado de resolución, incluyendo la firma de las resoluciones interlocutorias que declaren improcedentes las excepciones de previo y especial pronunciamiento que no impliquen dar por concluido el juicio arbitral;
 
 **VII.** Mantener actualizado un registro de los miembros del Comité de cada Ingenio del país;
 
 **VIII.** Llevar el registro oficial del tonelaje de caña aportado por los abastecedores;
 
-**IX.** Presentar para su análisis y aprobación al Pleno de la Junta Permanente, en forma detallada y con base en las necesidades de operatividad funcional, el presupuesto anu al de la Junta Permanente;
+**IX.** Presentar para su análisis y aprobación al Pleno de la Junta Permanente, en forma detallada y con base en las necesidades de operatividad funcional, el presupuesto anual de la Junta Permanente;
 
 **X.** Informar por escrito, trimestralmente o cuantas veces sea requerido por el Comité Nacional o por el Pleno de la Junta Permanente, del ejercicio y manejo de los fondos asignados a la Junta Permanente;
 
@@ -1058,19 +1140,21 @@ CAPITULO VI De la Secretaría General de la Junta Permanente
 
 **XIII.** Las demás que se contemplen en la presente Ley.
 
-CAPITULO VII Del Ámbito Competencial y del Procedimiento ante la Junta Permanente
+**CAPITULO VII**
 
-**Artículo 140.-** La Junta Permanente tendrá competencia para conocer de las controversias surgidas entre Abastecedores de Caña de azúcar, de éstos co n los Industriales o entre estos últimos, derivadas de la aplicación de la presente Ley, el Contrato y de las demás disposiciones relativas.
+Del Ámbito Competencial y del Procedimiento ante la Junta Permanente
 
-**Artículo 141.** - Las demandas controversiales interpuestas ante la Junta Permanente deberán ser formuladas por escrito señalando el nombre y domicilio de la o las personas contra quien se entablen, así como los hechos fundatorios de su petición. El escrito inicial de demanda, así como los documentos fundatorios de su acción, deberán ser presentados en original y acompañ ados de las copias necesarias para traslado. Igualmente deberán ofrecer las pruebas que se estime convenientes.
+**Artículo 140.-** La Junta Permanente tendrá competencia para conocer de las controversias surgidas entre Abastecedores de Caña de azúcar, de éstos con los Industriales o entre estos últimos, derivadas de la aplicación de la presente Ley, el Contrato y de las demás disposiciones relativas.
 
-**Artículo 142.-** Cuando una demanda controversial no sea lo suficientemente clara a juicio de la Junta Permanente, ésta solicitará las aclaracion es pertinentes, las cuales deberán hacerse dentro de un término máximo de diez días hábiles. Transcurrido dicho plazo sin que se hubieran presentado las aclaraciones solicitadas, no se dará curso a la demanda o inconformidad, dejando a salvo los derechos del actor, interrumpiendo el plazo para la prescripción de la acción intentada.
+**Artículo 141.-** Las demandas controversiales interpuestas ante la Junta Permanente deberán ser formuladas por escrito señalando el nombre y domicilio de la o las personas contra quien se entablen, así como los hechos fundatorios de su petición. El escrito inicial de demanda, así como los documentos fundatorios de su acción, deberán ser presentados en original y acompañados de las copias necesarias para traslado. Igualmente deberán ofrecer las pruebas que se estime convenientes.
 
-No será necesaria la aclaración anterior, en el caso de que las Organizaciones de Abastecedores de Caña demanden al Ingenio determinada prestación sin especificar su monto, nom bre de Abastecedores de Caña y toneladas de caña entregadas por cada uno, ya que en caso de procedencia, toda cuantificación podrá hacerse al efectuarse la liquidación de lo fallado, mediante estimados de producción o volumen de caña de azúcar y promedios de contenido de sacarosa o índice de calidad que corresponda, así como registros de Abastecedores de Caña, a menos que la Junta Permanente estime que son necesarias para la defensa de la contraparte o resolución de la controversia, o cuando se presente una excepción por parte del Ingenio que comprenda a un abastecedor o grupo de abastecedores.
+**Artículo 142.-** Cuando una demanda controversial no sea lo suficientemente clara a juicio de la Junta Permanente, ésta solicitará las aclaraciones pertinentes, las cuales deberán hacerse dentro de un término máximo de diez días hábiles. Transcurrido dicho plazo sin que se hubieran presentado las aclaraciones solicitadas, no se dará curso a la demanda o inconformidad, dejando a salvo los derechos del actor, interrumpiendo el plazo para la prescripción de la acción intentada.
+
+No será necesaria la aclaración anterior, en el caso de que las Organizaciones de Abastecedores de Caña demanden al Ingenio determinada prestación sin especificar su monto, nombre de Abastecedores de Caña y toneladas de caña entregadas por cada uno, ya que en caso de procedencia, toda cuantificación podrá hacerse al efectuarse la liquidación de lo fallado, mediante estimados de producción o volumen de caña de azúcar y promedios de contenido de sacarosa o índice de calidad que corresponda, así como registros de Abastecedores de Caña, a menos que la Junta Permanente estime que son necesarias para la defensa de la contraparte o resolución de la controversia, o cuando se presente una excepción por parte del Ingenio que comprenda a un abastecedor o grupo de abastecedores.
 
 Las demandas controversiales deberán presentarse en contra de la persona física o moral en forma individualizada.
 
-**Artículo 143.-** Cuando la Junta Permanente reciba i nhibitoria de tribunal judicial u órgano arbitral en que se promueva sobre la competencia y considerase debido sostener la suya, en un plazo no mayor a tres días hábiles lo comunicará así al competidor.
+**Artículo 143.-** Cuando la Junta Permanente reciba inhibitoria de tribunal judicial u órgano arbitral en que se promueva sobre la competencia y considerase debido sostener la suya, en un plazo no mayor a tres días hábiles lo comunicará así al competidor.
 
 **Artículo 144.-** Cuando la persona que comparezca ante la Junta Permanente lo haga en nombre de otra, bastará con que acredite su personalidad con carta poder firmada por el poderdante y dos testigos.
 
@@ -1078,42 +1162,60 @@ En caso de personas morales, éstas deberán acreditar la personalidad de su rep
 
 Las organizaciones nacionales y locales de Abastecedores de Caña inscritas en el Registro, tendrán personalidad para representar legalmente a sus afiliados ante la Junta Permanente.
 
-Cuando la personalidad de las partes haya sido recon ocida previamente dentro de un procedimiento instaurado, dicha personalidad se tendrá por reconocida por la Junta Permanente, salvo inconformidad o prueba en contrario.
+Cuando la personalidad de las partes haya sido reconocida previamente dentro de un procedimiento instaurado, dicha personalidad se tendrá por reconocida por la Junta Permanente, salvo inconformidad o prueba en contrario.
 
-**Artículo 145.** - Las partes deberán señalar en su escrito de demanda o de contestación d omicilio ubicado en la Ciudad de México, Distrito Federal, a efecto de que se les notifiquen los acuerdos y laudos dictados por la Junta Permanente, de no hacerlo, las notificaciones se les harán por lista.
+**Artículo 145.-** Las partes deberán señalar en su escrito de demanda o de contestación domicilio ubicado en la Ciudad de México, Distrito Federal, a efecto de que se les notifiquen los acuerdos y laudos dictados por la Junta Permanente, de no hacerlo, las notificaciones se les harán por lista.
 
-**Artículo 146.** - Recibida la solicitud de interven ción arbitral, la Junta Permanente iniciará el procedimiento, emitirá el auto de radicación de la demanda controversial y procederá a intervenir en la resolución del conflicto, en única instancia, de acuerdo a sus facultades.
+**Artículo 146.-** Recibida la solicitud de intervención arbitral, la Junta Permanente iniciará el procedimiento, emitirá el auto de radicación de la demanda controversial y procederá a intervenir en la resolución del conflicto, en única instancia, de acuerdo a sus facultades.
 
-**Artículo 147.** - Radicada la de manda controversial, la Junta Permanente citará a las partes a una audiencia conciliatoria que deberá celebrarse dentro del plazo de diez días hábiles.
+**Artículo 147.-** Radicada la demanda controversial, la Junta Permanente citará a las partes a una audiencia conciliatoria que deberá celebrarse dentro del plazo de diez días hábiles.
 
 En el citatorio se expresará, cuando menos, el nombre completo del actor, su pretensión, la fecha, hora y lugar fijados para llevar a cabo la audiencia de avenimiento.
 
-**Artículo 148.** - En la resolución de los conflictos, la Junta Permanente deberá dictar sus laudos a verdad sabida y buena fe guardada, apreciando los hechos debidos en conciencia, sin sujetars e a las reglas o formalidades sobre estimación de pruebas, pero expresando los motivos y fundamentos legales en que sus fallos se apoyen.
+**Artículo 148.-** En la resolución de los conflictos, la Junta Permanente deberá dictar sus laudos a verdad sabida y buena fe guardada, apreciando los hechos debidos en conciencia, sin sujetarse a las reglas o formalidades sobre estimación de pruebas, pero expresando los motivos y fundamentos legales en que sus fallos se apoyen.
 
-**Artículo 149.** - Los acuerdos de trámite podrán ser recurridos ante quien los haya emitido; las incidentales que no pongan fin al trámite, podrán re currirse ante el Pleno; los laudos y las interlocutorias de éste se sujetarán, en su caso, a lo dispuesto en el Código Nacional de Procedimientos Civiles y Familiares. Artículo reformado DOF 14-11-2025
+**(REFORMADO, D.O.F. 14 DE NOVIEMBRE DE 2025)**
+
+**Artículo 149.-** Los acuerdos de trámite podrán ser recurridos ante quien los haya emitido; las incidentales que no pongan fin al trámite, podrán recurrirse ante el Pleno; los laudos y las interlocutorias de éste se sujetarán, en su caso, a lo dispuesto en el Código Nacional de Procedimientos Civiles y Familiares.
 
 **Artículo 150.-** La parte condenada deberá dar cumplimiento al laudo de la Junta Permanente dentro del plazo de diez días hábiles, contados a partir de la notificación correspondiente. Si no lo hiciere, la parte interesada podrá solicitar su homologación y ejecución a la autoridad competente.
 
 ## Transitorios
 
-**PRIMERO.**- La presente Ley entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
+**PRIMERO.-** La presente Ley entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
 
-**SEGUNDO.**- Se deroga toda disposición que contravenga a esta Ley, con excepción de lo dispuesto en los artículos Transitorios TERCERO, QUINTO, SEXTO Y OCTAVO de la presente.
+**SEGUNDO.-** Se deroga toda disposición que contravenga a esta Ley, con excepción de lo dispuesto en los artículos Transitorios TERCERO, QUINTO, SEXTO Y OCTAVO de la presente.
 
-**TERCERO.**- Los asuntos que se encuentren pendientes de resolver en los Comités de Producción Cañera y en la Junta de Conciliación y Arbitraje de Controversias Azucareras, a la entrada en vigor de la presente Ley, deberán seguir tramitándose y resolverse conforme a las disposiciones que se encontraban vigentes al momento de su inicio.
+**TERCERO.-** Los asuntos que se encuentren pendientes de resolver en los Comités de Producción Cañera y en la Junta de Conciliación y Arbitraje de Controversias Azucareras, a la entrada en vigor de la presente Ley, deberán seguir tramitándose y resolverse conforme a las disposiciones que se encontraban vigentes al momento de su inicio.
 
-**CUARTO.**- El Comité Nacional, la Junta Permanente y el CICTCAÑA deberán quedar debidamente instalados a más tardar dentro de los treinta días siguientes a la entrada en vigor de esta Ley.
+**CUARTO.-** El Comité Nacional, la Junta Permanente y el CICTCAÑA deberán quedar debidamente instalados a más tardar dentro de los treinta días siguientes a la entrada en vigor de esta Ley.
 
 Para la instalación de uno y otra la Secretaría deberá convocar a los sectores involucrados en un término máximo de 15 días después de la entrada en vigor de esta Ley.
 
-**QUINTO.**- Para el establecimiento del precio de la caña de az úcar, en tanto el Comité Nacional no adopte un acuerdo unánime que los modifique, serán vigentes el "Acuerdo que Establece las Reglas para Determinación del Precio de Referencia del Azúcar para el Pago de la Caña de Azúcar", publicado en el Diario Oficial de la Federación de fecha 26 de marzo de 1997; el "Acuerdo que Reforma al Diverso que Establece las Reglas para la Determinación del Precio de Referencia del Azúcar para el Pago de la Caña de Azúcar", publicado en el Diario Oficial de la Federación de fech a 31 de marzo de 1998 y el Acuerdo del Comité Nacional de la Agroindustria Azucarera, aprobado en su sesión ordinaria del 10 de octubre de 1991, relativo al "Sistema para Determinar el Azúcar Recuperable Base Estándar Uniforme de la Caña Industrializada en cada ingenio del País", conforme lo establece el artículo DÉCIMO SEGUNDO del Decreto por el que se declara de interés público la siembra, el cultivo, la cosecha y la industrialización de la caña de azúcar, publicado el 31 de mayo de 1991, así como el Decr eto que reforma el diverso por el que se declara de interés público la siembra, el cultivo, la cosecha y la industrialización de la caña de azúcar, publicado el 27 de julio de 1993.
+**QUINTO.-** Para el establecimiento del precio de la caña de azúcar, en tanto el Comité Nacional no adopte un acuerdo unánime que los modifique, serán vigentes el "Acuerdo que Establece las Reglas para Determinación del Precio de Referencia del Azúcar para el Pago de la Caña de Azúcar", publicado en el Diario Oficial de la Federación de fecha 26 de marzo de 1997; el "Acuerdo que Reforma al Diverso que Establece las Reglas para la Determinación del Precio de Referencia del Azúcar para el Pago de la Caña de Azúcar", publicado en el Diario Oficial de la Federación de fecha 31 de marzo de 1998 y el Acuerdo del Comité Nacional de la Agroindustria Azucarera, aprobado en su sesión ordinaria del 10 de octubre de 1991, relativo al "Sistema para Determinar el Azúcar Recuperable Base Estándar Uniforme de la Caña Industrializada en cada ingenio del País", conforme lo establece el artículo DÉCIMO SEGUNDO del Decreto por el que se declara de interés público la siembra, el cultivo, la cosecha y la industrialización de la caña de azúcar, publicado el 31 de mayo de 1991, así como el Decreto que reforma el diverso por el que se declara de interés público la siembra, el cultivo, la cosecha y la industrialización de la caña de azúcar, publicado el 27 de julio de 1993.
 
-**SEXTO.**- Las organizaciones locales y nacionales de Abastecedores de Caña, que se encontraban registradas ante la Junta de Conciliación y Arbitraje de Controversias Azucareras, se les tendrá por reconocidas, debiendo actualizar su inscripción en los términos de los Artículos 34 y 38 y en concordancia con lo estipulado en el Artículo Transitorio SÉPTIMO de la presente Ley.
+**SEXTO.-** Las organizaciones locales y nacionales de Abastecedores de Caña, que se encontraban registradas ante la Junta de Conciliación y Arbitraje de Controversias Azucareras, se les tendrá por reconocidas, debiendo actualizar su inscripción en los términos de los Artículos 34 y 38 y en concordancia con lo estipulado en el Artículo Transitorio SÉPTIMO de la presente Ley.
 
-**SÉPTIMO.**- Los programas, proyectos y las acciones que se lleven a cabo por la aplicación de la presente Ley, así como los apoyos, subsidios y beneficios que se ejerzan con recursos de carácter federal, se sujetarán a la disponibilidad de recursos que se hayan aprobado para tal fin en el Presupuesto de Egresos de la Federación del ejercicio fiscal correspondiente y deberán observar las disposiciones aplicables en materia presupuestaria.
+**SÉPTIMO.-** Los programas, proyectos y las acciones que se lleven a cabo por la aplicación de la presente Ley, así como los apoyos, subsidios y beneficios que se ejerzan con recursos de carácter federal, se sujetarán a la disponibilidad de recursos que se hayan aprobado para tal fin en el Presupuesto de Egresos de la Federación del ejercicio fiscal correspondiente y deberán observar las disposiciones aplicables en materia presupuestaria.
 
-**OCTAVO.**- En tanto no se e labore por el Comité Nacional un nuevo formato de Contrato que deben celebrar los Industriales con los Abastecedores de Caña de azúcar, continuará vigente el Formato del Contrato Uniforme derivado del Decreto por el que se declara de interés público la sie mbra, el cultivo, la cosecha y la industrialización de la caña de azúcar, publicado en el Diario Oficial de la Federación el 31 de mayo de 1991.
+**OCTAVO.-** En tanto no se elabore por el Comité Nacional un nuevo formato de Contrato que deben celebrar los Industriales con los Abastecedores de Caña de azúcar, continuará vigente el Formato del Contrato Uniforme derivado del Decreto por el que se declara de interés público la siembra, el cultivo, la cosecha y la industrialización de la caña de azúcar, publicado en el Diario Oficial de la Federación el 31 de mayo de 1991.
 
-México, D.F., a 21 de junio de 2005. - Sen. Diego Fernández de Cevallos Ramos , Presidente.- Dip. Manlio Fabio B eltrones Rivera , Presidente. - Sen. Sara Isabel Castellanos Cortés , Secretaria. - Dip. Marcos Morales Torres, Secretario.- Rúbricas."
+México, D.F., a 21 de junio de 2005.- Sen. Diego Fernández de Cevallos Ramos, Presidente.- Dip. Manlio Fabio Beltrones Rivera, Presidente.- Sen. Sara Isabel Castellanos Cortés, Secretaria.- Dip. Marcos Morales Torres, Secretario.- Rúbricas."
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a los diecinueve días del mes de agosto de dos mil cinco. - Vicente Fox Quesada .- Rúbrica.- El Secretario de Gobernación, Carlos María Abascal Carranza.- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a los diecinueve días del mes de agosto de dos mil cinco.- Vicente Fox Quesada.- Rúbrica.- El Secretario de Gobernación, Carlos María Abascal Carranza.- Rúbrica.
+
+**D.O.F. 14 DE NOVIEMBRE DE 2025.**
+
+**Primero.** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
+
+**Segundo.** La aplicación de lo dispuesto en el presente Decreto entrará en vigor en cada una de las entidades federativas al mismo tiempo que la Declaratoria de aplicación gradual que expidan los Congresos Locales para efecto de la entrada en vigor del Código Nacional de Procedimientos Civiles y Familiares, de conformidad con el Artículo Segundo Transitorio del Decreto publicado en el Diario Oficial de la Federación el 7 de junio de 2023.
+
+En el orden federal, la aplicación de lo dispuesto en el presente Decreto entrará en vigor de conformidad con la Declaratoria de aplicación gradual que, indistinta y sucesivamente, realicen para el Código Nacional de Procedimientos Civiles y Familiares las Cámaras de Diputados y Senadores que integran el Congreso de la Unión.
+
+En todos los casos, vencido el plazo sin que se hubiera emitido la Declaratoria respectiva, la entrada en vigor de lo previsto en el presente Decreto será automática a partir del 1o. de abril de 2027.
+
+**Tercero.** Los procedimientos que se encuentren en trámite a la entrada en vigor del presente Decreto conforme con lo dispuesto en el artículo anterior, continuarán su sustanciación con la legislación aplicable al momento del inicio de los mismos, salvo que las partes conjuntamente opten por la regulación del contenido del Código Nacional de Procedimientos Civiles y Familiares.
+
+No procederá la acumulación de procesos cuando alguno de ellos se tramite conforme con el Código Nacional de Procedimientos Civiles y Familiares y el otro proceso conforme a un Código abrogado.
+
+**Cuarto.** El Artículo Cuadragésimo Primero, del presente Decreto, tendrá vigencia hasta en tanto no se abrogue la Ley Federal de Telecomunicaciones y Radiodifusión, de conformidad con lo previsto en el artículo Sexto Transitorio del Decreto por el que se expide la Ley en Materia de Telecomunicaciones y Radiodifusión y se abroga la Ley Federal de Telecomunicaciones y Radiodifusión, publicado en el Diario Oficial de la Federación el 16 de julio de 2025.

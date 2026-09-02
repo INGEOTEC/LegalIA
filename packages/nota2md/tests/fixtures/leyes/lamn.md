@@ -1,6 +1,12 @@
-## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY DE AMNISTÍA**
 
-**ANDRÉS MANUEL LÓPEZ OBRADOR** , Pr esidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 14 DE JUNIO DE 2024.**
+
+Ley publicada en la Edición Vespertina al Número 24 del Diario Oficial de la Federación, el miércoles 22 de abril de 2020.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+ANDRÉS MANUEL LÓPEZ OBRADOR, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -14,33 +20,33 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **LEY DE AMNISTÍA**
 
-**Artículo 1.** Se decreta amnistía en favor de las personas en contra de quienes se haya ejercitado acción penal, hayan sido procesadas o se les haya dictado sentencia firme, ante los tribunales del orde n federal, siempre que no sean reincidentes respecto del delito por el que están indiciadas o sentenciadas, por los delitos cometidos antes de la fecha de entrada en vigor de la presente Ley, en los siguientes supuestos:
+**Artículo 1.** Se decreta amnistía en favor de las personas en contra de quienes se haya ejercitado acción penal, hayan sido procesadas o se les haya dictado sentencia firme, ante los tribunales del orden federal, siempre que no sean reincidentes respecto del delito por el que están indiciadas o sentenciadas, por los delitos cometidos antes de la fecha de entrada en vigor de la presente Ley, en los siguientes supuestos:
 
-**I.** Por el delito de aborto, en cua lquiera de sus modalidades, previsto en el Código Penal Federal, cuando:
+**I.** Por el delito de aborto, en cualquiera de sus modalidades, previsto en el Código Penal Federal, cuando:
 
 **a)** Se impute a la madre del producto del embarazo interrumpido;
 
 **b)** Se impute a las y los médicos, cirujanos, comadronas o parteras, u otro personal autorizado de servicios de la salud, que hayan auxiliado en la interrupción del embarazo, siempre que la conducta delictiva se haya llevado a cabo sin violencia y con el consentimiento de la madre del producto del embarazo interrumpido;
 
-**c)** Se impute a los familiares de la madre del produ cto que hayan auxiliado en la interrupción del embarazo;
+**c)** Se impute a los familiares de la madre del producto que hayan auxiliado en la interrupción del embarazo;
 
 **II.** Por el delito de homicidio por razón de parentesco, cuando el sujeto pasivo sea el producto de la concepción en cualquier momento de la preñez, en los supuestos previstos en la fracción I de este artículo;
 
 **III.** Por los delitos contra la salud a que se refieren los artículos 194, fracciones I y II, 195, 195 Bis y 198 del Código Penal Federal, siempre que sean de competencia federal, en términos del artículo 474 de la Ley General de Salud, cuando:
 
-**a)** Quien los haya cometido se encuentre en situación de pobreza, o de extrema vulnerabilidad por su condición de exclusión y discriminación, por tener una discapacidad permanente, o cuando el delito se haya cometido por indicación de su cónyuge, concubin ario o concubina, pareja sentimental, pariente consanguíneo o por afinidad sin limitación de grado, o por temor fundado, así como quien haya sido obligado por grupos de la delincuencia organizada a cometer el delito;
+**a)** Quien los haya cometido se encuentre en situación de pobreza, o de extrema vulnerabilidad por su condición de exclusión y discriminación, por tener una discapacidad permanente, o cuando el delito se haya cometido por indicación de su cónyuge, concubinario o concubina, pareja sentimental, pariente consanguíneo o por afinidad sin limitación de grado, o por temor fundado, así como quien haya sido obligado por grupos de la delincuencia organizada a cometer el delito;
 
-**b)** Quien pertenezca a un pueblo o comu nidad indígena o afromexicana, en términos del artículo 2 de la Constitución Política de los Estados Unidos Mexicanos, y se encuentre en alguna de las hipótesis mencionadas en el inciso anterior;
+**b)** Quien pertenezca a un pueblo o comunidad indígena o afromexicana, en términos del artículo 2 de la Constitución Política de los Estados Unidos Mexicanos, y se encuentre en alguna de las hipótesis mencionadas en el inciso anterior;
 
-**c)** Las personas consumidoras que hayan poseído narcóticos e n cantidades superiores hasta en dos tantos a la dosis máxima de consumo personal e inmediato, a que se refiere el artículo 479 de la Ley General de Salud, siempre que no haya sido con fines de distribución o venta;
+**c)** Las personas consumidoras que hayan poseído narcóticos en cantidades superiores hasta en dos tantos a la dosis máxima de consumo personal e inmediato, a que se refiere el artículo 479 de la Ley General de Salud, siempre que no haya sido con fines de distribución o venta;
 
-**IV.** Por cualquier delito, a personas pe rtenecientes a los pueblos y comunidades indígenas que durante su proceso no hayan accedido plenamente a la jurisdicción del Estado, por no haber sido garantizado el derecho a contar con intérpretes o defensores que tuvieran conocimiento de su lengua y cultura;
+**IV.** Por cualquier delito, a personas pertenecientes a los pueblos y comunidades indígenas que durante su proceso no hayan accedido plenamente a la jurisdicción del Estado, por no haber sido garantizado el derecho a contar con intérpretes o defensores que tuvieran conocimiento de su lengua y cultura;
 
 **V.** Por el delito de robo simple y sin violencia, siempre que no amerite pena privativa de la libertad de más de cuatro años, y
 
-**VI.** Por el delito de sedición, o porque hayan invitado, instigado o incitado a la comisión de este delito formando parte de grupos impulsados por razones políticas con el propósito de alterar la vida institucional, siempre que no se trate de terrorismo, y que en los hechos no se haya producido la privación de la vida, lesiones graves a otra persona o se hayan empleado o util izado armas de fuego.
+**VI.** Por el delito de sedición, o porque hayan invitado, instigado o incitado a la comisión de este delito formando parte de grupos impulsados por razones políticas con el propósito de alterar la vida institucional, siempre que no se trate de terrorismo, y que en los hechos no se haya producido la privación de la vida, lesiones graves a otra persona o se hayan empleado o utilizado armas de fuego.
 
-**Artículo 2.** No se concederá el beneficio de esta Ley a quienes hayan cometido delitos contra la vida o la integridad corporal, salvo lo establecido en el artículo 1, fracciones I y II de esta Ley; ni a quienes hayan cometido el delit o de secuestro, o cuando se hayan utilizado en la comisión del delito armas de fuego. Tampoco se podrán beneficiar las personas indiciadas por los delitos a que se refiere el artículo 19 de la Constitución Política de los Estados Unidos Mexicanos, o que ha yan cometido otros delitos graves del orden federal.
+**Artículo 2.** No se concederá el beneficio de esta Ley a quienes hayan cometido delitos contra la vida o la integridad corporal, salvo lo establecido en el artículo 1, fracciones I y II de esta Ley; ni a quienes hayan cometido el delito de secuestro, o cuando se hayan utilizado en la comisión del delito armas de fuego. Tampoco se podrán beneficiar las personas indiciadas por los delitos a que se refiere el artículo 19 de la Constitución Política de los Estados Unidos Mexicanos, o que hayan cometido otros delitos graves del orden federal.
 
 **Artículo 3.** La persona interesada o su representante legal, podrá solicitar a la Comisión a que se refiere el párrafo tercero de este artículo la aplicación de esta Ley. Dicha Comisión determinará la procedencia del beneficio y someterá su decisión a la calificación de un juez federal para que éste, en su caso, la confirme, para lo cual:
 
@@ -48,19 +54,19 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **II.** Tratándose de personas con sentencia firme, se realizarán las actuaciones conducentes para, en su caso, ordenar su liberación.
 
-Para efectos de las solicitudes que presenten las personas que ha yan sido vinculadas a proceso o sentenciadas por las conductas señaladas en el artículo 1, fracción VI, de la presente Ley, la Comisión deberá solicitar opinión previa a la Secretaría de Gobernación.
+Para efectos de las solicitudes que presenten las personas que hayan sido vinculadas a proceso o sentenciadas por las conductas señaladas en el artículo 1, fracción VI, de la presente Ley, la Comisión deberá solicitar opinión previa a la Secretaría de Gobernación.
 
 El Ejecutivo Federal integrará una Comisión que coordinará los actos para dar cumplimiento y vigilar la aplicación de la presente Ley, en los casos en que considere que un hecho encuadra dentro de algún supuesto de los previstos en el artículo 1 de esta Ley.
 
-Las solicitudes podrán ser presentadas por las pers onas que tengan relación de parentesco por consanguinidad o afinidad hasta el cuarto grado con el interesado o por organismos públicos defensores de derechos humanos, cumpliendo los procedimientos que determine la Comisión.
+Las solicitudes podrán ser presentadas por las personas que tengan relación de parentesco por consanguinidad o afinidad hasta el cuarto grado con el interesado o por organismos públicos defensores de derechos humanos, cumpliendo los procedimientos que determine la Comisión.
 
-La solicitud de amnistía será r esuelta por la Comisión en un plazo máximo de cuatro meses contados a partir de la presentación de la misma. Transcurrido dicho plazo sin que se notifique su determinación, se considerará resuelta en sentido negativo y los interesados podrán interponer los medios de defensa que resulten aplicables.
+La solicitud de amnistía será resuelta por la Comisión en un plazo máximo de cuatro meses contados a partir de la presentación de la misma. Transcurrido dicho plazo sin que se notifique su determinación, se considerará resuelta en sentido negativo y los interesados podrán interponer los medios de defensa que resulten aplicables.
 
 Serán supletorias de esta Ley, en lo que corresponda, la Ley Federal de Procedimiento Administrativo y el Código Nacional de Procedimientos Penales.
 
-**Artículo 4.** Las personas que se encuentren sustraídas a la ac ción de la justicia por los delitos a que se refiere el artículo 1 de la presente Ley, podrán beneficiarse de la amnistía, mediante la solicitud correspondiente.
+**Artículo 4.** Las personas que se encuentren sustraídas a la acción de la justicia por los delitos a que se refiere el artículo 1 de la presente Ley, podrán beneficiarse de la amnistía, mediante la solicitud correspondiente.
 
-**Artículo 5.** La amnistía extingue las acciones penales y las sanciones impuestas respecto de l os delitos que se establecen en el artículo 1 de esta Ley, dejando subsistente la responsabilidad civil y a salvo los derechos de quienes puedan exigirla, así como los derechos de las víctimas, de conformidad con la legislación aplicable.
+**Artículo 5.** La amnistía extingue las acciones penales y las sanciones impuestas respecto de los delitos que se establecen en el artículo 1 de esta Ley, dejando subsistente la responsabilidad civil y a salvo los derechos de quienes puedan exigirla, así como los derechos de las víctimas, de conformidad con la legislación aplicable.
 
 **Artículo 6.** En el caso de que se hubiere interpuesto demanda de amparo por las personas a quienes beneficia esta Ley, la autoridad que conozca del respectivo juicio dictará auto de sobreseimiento.
 
@@ -72,15 +78,17 @@ Las autoridades ejecutoras de la pena pondrán en inmediata libertad a las perso
 
 La Secretaría de Gobernación coordinará las acciones para facilitar la reinserción social de las personas beneficiarias de esta Ley, en términos de la legislación aplicable.
 
+**(ADICIONADO, D.O.F. 14 DE JUNIO DE 2024)**
+
 **Artículo 9.** Por determinación exclusiva de la persona titular del Poder Ejecutivo Federal se podrá otorgar el beneficio de la amnistía de manera directa, sin sujetarse al procedimiento establecido en este ordenamiento, en casos específicos que reúnan las siguientes condiciones:
 
-**I.** Que la amnistía se otorgue a personas que aporten elementos com probables que resulten útiles para conocer la verdad de los hechos en casos que sean relevantes para el Estado Mexicano, y
+**I.** Que la amnistía se otorgue a personas que aporten elementos comprobables que resulten útiles para conocer la verdad de los hechos en casos que sean relevantes para el Estado Mexicano, y
 
 **II.** Que en contra de la persona o personas a las que se conceda la amnistía, se haya ejercido la acción penal, estén siendo procesados o se encuentren sentenciados por cualquier delito.
 
 En los casos a que se refiere esta disposición no será aplicable lo dispuesto en el artículo 2 de la presente Ley.
 
-La amnistía concedida en términos de lo dispuesto por este artículo extinguirá las accio nes penales y las sanciones impuestas. Artículo adicionado DOF 14-06-2024
+La amnistía concedida en términos de lo dispuesto por este artículo extinguirá las acciones penales y las sanciones impuestas.
 
 ## Transitorios
 
@@ -90,12 +98,18 @@ Dentro de los sesenta días hábiles siguientes a la entrada en vigor del presen
 
 **Segundo.** El Ejecutivo Federal, a través de la Secretaría de Gobernación, promoverá ante los gobiernos y las legislaturas de las entidades federativas la expedición de leyes de amnistía por la comisión de delitos previstos en sus respectivas legislaciones que se asemejen a los que se amnistían en esta Ley.
 
-**Tercero.** Las erogaciones que se presenten con motivo de la entrada en vigor del presente Decreto s e realizarán con cargo a los presupuestos aprobados a los ejecutores de gasto correspondientes, para el ejercicio fiscal que corresponda.
+**Tercero.** Las erogaciones que se presenten con motivo de la entrada en vigor del presente Decreto se realizarán con cargo a los presupuestos aprobados a los ejecutores de gasto correspondientes, para el ejercicio fiscal que corresponda.
 
 **Cuarto.** La Comisión por conducto de la Secretaría de Gobernación, enviará al Congreso de la Unión un informe anual sobre las solicitudes de amnistía pendientes y resueltas, así como de los supuestos por los cuales se han concedido.
 
-**Quinto.** Dentro de los 180 días posteriores a la entrada en vigor de esta Ley, el Congreso de la Unión llevará a cabo un ejercicio de revisió n de los delitos a que hace referencia esta Ley con la finalidad de valorar la vigencia de sus elementos configurativos.
+**Quinto.** Dentro de los 180 días posteriores a la entrada en vigor de esta Ley, el Congreso de la Unión llevará a cabo un ejercicio de revisión de los delitos a que hace referencia esta Ley con la finalidad de valorar la vigencia de sus elementos configurativos.
 
-Ciudad de México, a 20 de abril de 2020. - Dip. Laura Angélica Rojas Hernández , Presidenta.- Sen. Mónica Fernández Balboa , Presidenta. - Dip. Julieta Macías Rábago , Secretaria. - Sen. Primo Dothé Mata, Secretario.- Rúbricas."
+Ciudad de México, a 20 de abril de 2020.- Dip. Laura Angélica Rojas Hernández, Presidenta.- Sen. Mónica Fernández Balboa, Presidenta.- Dip. Julieta Macías Rábago, Secretaria.- Sen. Primo Dothé Mata, Secretario.- Rúbricas."
 
-cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia , expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a 22 de abril de 2020.- Andrés Manuel López Obrador .- Rúbrica.- La Secretaria de Gobernación, Dra. Olga María del Carmen Sánchez Cordero Dávila.- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a 22 de abril de 2020.- Andrés Manuel López Obrador.- Rúbrica.- La Secretaria de Gobernación, Dra. Olga María del Carmen Sánchez Cordero Dávila.- Rúbrica.
+
+**D.O.F. 14 DE JUNIO DE 2024.**
+
+**Primero.** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
+
+**Segundo.** El Ejecutivo Federal podrá emitir los acuerdos que considere necesarios para la aplicación de lo dispuesto en el presente Decreto.

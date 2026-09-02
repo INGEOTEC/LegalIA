@@ -1,6 +1,12 @@
-## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY DEL INSTITUTO DEL FONDO NACIONAL PARA EL CONSUMO DE LOS TRABAJADORES**
 
-**VICENTE FOX QUESADA**, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 3 DE ENERO DE 2024.**
+
+Ley publicada en la Primera Sección del Diario Oficial de la Federación, el lunes 24 de abril de 2006.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+VICENTE FOX QUESADA, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -10,19 +16,21 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **SE CREA LA LEY DEL INSTITUTO DEL FONDO NACIONAL PARA EL CONSUMO DE LOS TRABAJADORES**
 
-**ÚNICO.**- Se crea la Ley del Instituto del Fondo Nacional para el Consumo de los Trabajadores.
+**ÚNICO.-** Se crea la Ley del Instituto del Fondo Nacional para el Consumo de los Trabajadores.
 
 Ley del Instituto del Fondo Nacional para el Consumo de los Trabajadores
 
-CAPÍTULO I Disposiciones Generales
+**CAPÍTULO I**
+
+Disposiciones Generales
 
 **Artículo 1.** Se crea el Instituto del Fondo Nacional para el Consumo de los Trabajadores como un organismo público descentralizado de interés social, con personalidad jurídica y patrimonio propio, así como con autosuficiencia presupuestal y sectorizado en la Secretaría del Trabajo y Previsión Social.
 
-**Artículo 2.-** El Instituto del Fondo Nacional para el Consumo de los Trabajadores tendrá como objeto promover el ahorro de los tra bajadores, otorgarles financiamiento y garantizar su acceso a créditos, para la adquisición de bienes y pago de servicios.
+**Artículo 2.-** El Instituto del Fondo Nacional para el Consumo de los Trabajadores tendrá como objeto promover el ahorro de los trabajadores, otorgarles financiamiento y garantizar su acceso a créditos, para la adquisición de bienes y pago de servicios.
 
-Asimismo, el Instituto deberá actuar bajo criterios que favorezcan el desarrollo social y las condiciones de vida de los trabajadore s y de sus familias. Además, deberá ajustar su operación a las mejores prácticas de buen gobierno y mejora continua, quedando sujeto, entre otras, a la Ley de Protección y Defensa al Usuario de Servicios Financieros.
+Asimismo, el Instituto deberá actuar bajo criterios que favorezcan el desarrollo social y las condiciones de vida de los trabajadores y de sus familias. Además, deberá ajustar su operación a las mejores prácticas de buen gobierno y mejora continua, quedando sujeto, entre otras, a la Ley de Protección y Defensa al Usuario de Servicios Financieros.
 
-**Artículo 3.-** El Instituto del Fondo Na cional para el Consumo de los Trabajadores tendrá su domicilio en el Distrito Federal. Para el cumplimiento de su objeto, podrá establecer delegaciones, sucursales, agencias o cualquier otro tipo de oficinas en los lugares de la República Mexicana que resu lten convenientes.
+**Artículo 3.-** El Instituto del Fondo Nacional para el Consumo de los Trabajadores tendrá su domicilio en el Distrito Federal. Para el cumplimiento de su objeto, podrá establecer delegaciones, sucursales, agencias o cualquier otro tipo de oficinas en los lugares de la República Mexicana que resulten convenientes.
 
 **Artículo 4.-** Para los efectos de esta Ley, se entenderá por:
 
@@ -34,59 +42,63 @@ I.- Comisión: La Comisión Nacional Bancaria y de Valores;
 
 **IV.** Fondo: El fondo de fomento y garantía para el consumo de los trabajadores a que se refiere la Ley Federal del Trabajo;
 
-**V.** Instituto: El organismo descen tralizado denominado Instituto del Fondo Nacional para el Consumo de los Trabajadores;
+**V.** Instituto: El organismo descentralizado denominado Instituto del Fondo Nacional para el Consumo de los Trabajadores;
 
 **VI.** Ley: La Ley del Instituto del Fondo Nacional para el Consumo de los Trabajadores;
 
-**VII.** Recursos del Fondo: La totalidad de los activos que integren el patrimonio d el Instituto en términos de la presente Ley, excepto los inmuebles, mobiliario y equipo necesarios para su funcionamiento;
+**VII.** Recursos del Fondo: La totalidad de los activos que integren el patrimonio del Instituto en términos de la presente Ley, excepto los inmuebles, mobiliario y equipo necesarios para su funcionamiento;
 
 **VIII.** Secretaría de Hacienda: La Secretaría de Hacienda y Crédito Público, y
 
 **IX.** Secretaría del Trabajo: La Secretaría del Trabajo y Previsión Social.
 
-**Artículo 5.** - La organización, el funcionamiento y la operación administrativos del Instituto como organismo descentralizado, integrante del sistema financiero mexicano, se sujetará a la presente Ley y, en lo que no se opongan a ésta, l e serán aplicables, la Ley Federal de las Entidades Paraestatales y la Ley Orgánica de la Administración Pública Federal.
+**Artículo 5.-** La organización, el funcionamiento y la operación administrativos del Instituto como organismo descentralizado, integrante del sistema financiero mexicano, se sujetará a la presente Ley y, en lo que no se opongan a ésta, le serán aplicables, la Ley Federal de las Entidades Paraestatales y la Ley Orgánica de la Administración Pública Federal.
 
 Las operaciones y servicios del Instituto se regirán por lo dispuesto en la presente Ley y, en lo no previsto en ésta y en el orden siguiente, por la Ley Federal del Trabajo, la legislación mercantil, los usos y prácticas mercantiles y el Código Civil Federal.
 
-El Ejecutivo Federal, a través de la Secretaría del Trabajo y de la Secretaría de Hacienda, en el ámbito de sus respectivas com petencias, estará facultado para interpretar esta Ley para efectos administrativos.
+El Ejecutivo Federal, a través de la Secretaría del Trabajo y de la Secretaría de Hacienda, en el ámbito de sus respectivas competencias, estará facultado para interpretar esta Ley para efectos administrativos.
 
-**Artículo 6.** - El Instituto formulará anualmente su programa operativo y financiero, su presupuesto general de gastos e inversiones, así como las estimaciones de ingresos, d e conformidad con las disposiciones legales aplicables. El Instituto deberá someter a la autorización de la Secretaría de Hacienda, de acuerdo con los lineamientos, medidas y mecanismos que al efecto establezca, los límites de financiamiento neto que podrá destinar al sector privado y social.
+**Artículo 6.-** El Instituto formulará anualmente su programa operativo y financiero, su presupuesto general de gastos e inversiones, así como las estimaciones de ingresos, de conformidad con las disposiciones legales aplicables. El Instituto deberá someter a la autorización de la Secretaría de Hacienda, de acuerdo con los lineamientos, medidas y mecanismos que al efecto establezca, los límites de financiamiento neto que podrá destinar al sector privado y social.
 
 El presupuesto del Instituto se ejercerá en términos de las disposiciones aplicables de la materia.
 
 **Artículo 7.-** Las relaciones de trabajo entre el Instituto y su personal se regirán por la Ley Federal del Trabajo, reglamentaria del Apartado "A" del artículo 123 de la Constitución Política de los Estados Unidos Mexicanos.
 
-CAPÍTULO II De las Atribuciones del Instituto
+**CAPÍTULO II**
 
-**Artículo 8.-** Para el cumplimiento de su objeto, el Instituto contará con las siguientes atribuciones :
+De las Atribuciones del Instituto
+
+**Artículo 8.-** Para el cumplimiento de su objeto, el Instituto contará con las siguientes atribuciones:
 
 **I.** Administrar el Fondo;
 
 **II.** Participar en programas y proyectos en términos de la presente Ley que tengan como finalidad el fomento al ahorro de los trabajadores;
 
-**III.** Coadyuvar en el desarrollo económico integral de los trabajadores y de sus familia s;
+**III.** Coadyuvar en el desarrollo económico integral de los trabajadores y de sus familias;
 
 **IV.** Instrumentar acciones que permitan obtener a los trabajadores financiamiento para la adquisición de bienes y servicios, en las mejores condiciones de precio, calidad y crédito;
 
-**V.** Participar en términos de la presente Ley en los programas que esta blezcan las instituciones de crédito y sociedades financieras de objeto limitado, dirigidos a fomentar el crédito para los trabajadores, así como para los almacenes y tiendas a que se refiere el artículo 103 de la Ley Federal del Trabajo;
+**V.** Participar en términos de la presente Ley en los programas que establezcan las instituciones de crédito y sociedades financieras de objeto limitado, dirigidos a fomentar el crédito para los trabajadores, así como para los almacenes y tiendas a que se refiere el artículo 103 de la Ley Federal del Trabajo;
 
-**VI.** Brindar apoy o y asesoría en el funcionamiento de las tiendas y almacenes a que se refiere el artículo 103 de la Ley Federal del Trabajo;
+**VI.** Brindar apoyo y asesoría en el funcionamiento de las tiendas y almacenes a que se refiere el artículo 103 de la Ley Federal del Trabajo;
 
 **VII.** Celebrar los actos o contratos relacionados directa o indirectamente con su objeto;
 
-**VIII.** Celebrar convenios con los poderes legislativo y judicial de la Federación y de l as entidades federativas, con los gobiernos de los municipios, así como con las dependencias y entidades de la Administración Pública Federal, de los estados y de la Ciudad de México, a fin de que el Instituto otorgue a los trabajadores respectivos los créditos a que se refiere la fracción II del artículo 9 de esta Ley; Fracción reformada DOF 03-01-2024
+**(REFORMADA, D.O.F. 3 DE ENERO DE 2024)**
+
+**VIII.** Celebrar convenios con los poderes legislativo y judicial de la Federación y de las entidades federativas, con los gobiernos de los municipios, así como con las dependencias y entidades de la Administración Pública Federal, de los estados y de la Ciudad de México, a fin de que el Instituto otorgue a los trabajadores respectivos los créditos a que se refiere la fracción II del artículo 9 de esta Ley;
 
 **IX.** Constituir fideicomisos y otorgar mandatos, directamente relacionados con su objeto, y
 
 **X.** Adquirir los bienes muebles e inmuebles necesarios para el cumplimiento de su objeto, así como proceder a su enajenación, en su caso, con apego a las disposiciones jurídicas aplicables.
 
-**Artículo 9.** - Para el cumplimiento de su objeto, el Instituto sólo podrá realizar las siguientes operaciones:
+**Artículo 9.-** Para el cumplimiento de su objeto, el Instituto sólo podrá realizar las siguientes operaciones:
 
 **I.** Garantizar los créditos y, en su caso, otorgar financiamiento para la operación de los almacenes y tiendas a que se refiere el artículo 103 de la Ley Federal del Trabajo;
 
 **II.** Otorgar financiamiento a los trabajadores para la adquisición de bienes y pago de servicios y garantizar dichas adquisiciones y pagos;
 
-**III.** Contratar financiamientos conforme a lo prev isto en esta Ley y en las disposiciones aplicables en la materia;
+**III.** Contratar financiamientos conforme a lo previsto en esta Ley y en las disposiciones aplicables en la materia;
 
 **IV.** Gestionar ante otras instituciones la obtención de condiciones adecuadas de crédito, garantías y precios que les procuren un mayor poder adquisitivo a los trabajadores;
 
@@ -94,13 +106,17 @@ CAPÍTULO II De las Atribuciones del Instituto
 
 **VI.** Participar y coadyuvar en esquemas o programas a efecto de facilitar el acceso al financiamiento a los Distribuidores, que tiendan a disminuir el precio y facilitar la adquisición de dichos bienes y pago de servicios;
 
-**VII.** Promover entre los trabajadores, el mejor aprovechami ento del salario y contribuir a la orientación de su gasto familiar, y
+**VII.** Promover entre los trabajadores, el mejor aprovechamiento del salario y contribuir a la orientación de su gasto familiar, y
 
-**VIII.** Realizar las operaciones y servicios análogos o conexos necesarios para la consecución de las operaciones previstas en este artículo, previa autorización de la Secretaría de Hac ienda.
+**VIII.** Realizar las operaciones y servicios análogos o conexos necesarios para la consecución de las operaciones previstas en este artículo, previa autorización de la Secretaría de Hacienda.
 
-Las garantías que otorgue el Instituto conforme a las fracciones I y II y los financiamientos que contrate en términos de la fracción III de este artículo, deberán hacerse con cargo a los Recursos del Fondo y, en ningún caso, los montos de dichas o peraciones en su conjunto podrán ser superiores al importe de los Recursos del Fondo. Asimismo, las operaciones a que se refiere este párrafo quedarán sujetas a la consideración y, en su caso, autorización previa por parte de la Secretaría de Hacienda y Crédito Público. Párrafo reformado DOF 10-01-2014
+**(REFORMADO, D.O.F. 10 DE ENERO DE 2014)**
 
-CAPÍTULO III Del Patrimonio del Instituto
+Las garantías que otorgue el Instituto conforme a las fracciones I y II y los financiamientos que contrate en términos de la fracción III de este artículo, deberán hacerse con cargo a los Recursos del Fondo y, en ningún caso, los montos de dichas operaciones en su conjunto podrán ser superiores al importe de los Recursos del Fondo. Asimismo, las operaciones a que se refiere este párrafo quedarán sujetas a la consideración y, en su caso, autorización previa por parte de la Secretaría de Hacienda y Crédito Público.
+
+**CAPÍTULO III**
+
+Del Patrimonio del Instituto
 
 **Artículo 10.-** El patrimonio del Instituto se integra por:
 
@@ -116,13 +132,17 @@ CAPÍTULO III Del Patrimonio del Instituto
 
 **Artículo 11.-** Los recursos del Instituto sólo podrán destinarse al cumplimiento de su objeto y a cubrir sus gastos de operación y administración.
 
-**Artículo 12 .-** El Instituto se considerará de acreditada solvencia y no estará obligado a constituir depósitos o garantías de cualquier tipo para el cumplimiento de sus obligaciones de pago.
+**Artículo 12.-** El Instituto se considerará de acreditada solvencia y no estará obligado a constituir depósitos o garantías de cualquier tipo para el cumplimiento de sus obligaciones de pago.
 
-CAPÍTULO IV De la Administración del Instituto
+**CAPÍTULO IV**
 
-**Artículo 13.** - La administrac ión del Instituto estará encomendada a un Consejo Directivo y a un Director General, quienes se auxiliarán para el ejercicio de sus funciones de los comités previstos en esta Ley y en los demás que constituya el propio Consejo, así como de los servidores p úblicos que prevea el Estatuto Orgánico.
+De la Administración del Instituto
 
-Sección I Del Consejo Directivo
+**Artículo 13.-** La administración del Instituto estará encomendada a un Consejo Directivo y a un Director General, quienes se auxiliarán para el ejercicio de sus funciones de los comités previstos en esta Ley y en los demás que constituya el propio Consejo, así como de los servidores públicos que prevea el Estatuto Orgánico.
+
+Sección I
+
+Del Consejo Directivo
 
 **Artículo 14.-** El Consejo se integrará en forma tripartita por los siguientes consejeros:
 
@@ -140,21 +160,21 @@ Sección I Del Consejo Directivo
 
 El Titular de la Secretaría del Trabajo, considerando las propuestas de las organizaciones de patrones y de trabajadores fundadoras, determinará mediante acuerdo que se publique en el Diario Oficial de la Federación, las organizaciones de patrones y de trabajadores que, en el marco de la ley, deban ser propuestas a participar en la integración del Consejo.
 
-Los representantes de las organizaciones de trabajadores y de patrones deberán contar con la experiencia, capacidad y prestigio profesional que les permita desempeñar su función en forma objetiva. Estos representantes percibirá n por su participación las remuneraciones que determine el Consejo Directivo, en términos de las disposiciones jurídicas aplicables.
+Los representantes de las organizaciones de trabajadores y de patrones deberán contar con la experiencia, capacidad y prestigio profesional que les permita desempeñar su función en forma objetiva. Estos representantes percibirán por su participación las remuneraciones que determine el Consejo Directivo, en términos de las disposiciones jurídicas aplicables.
 
-**Artículo 15.** - El Secretario del Trabajo presidirá el Consejo y, en su ausencia, lo hará su suplente, quien deberá tener el nivel jerárquico inmediato inferior al de aquél.
+**Artículo 15.-** El Secretario del Trabajo presidirá el Consejo y, en su ausencia, lo hará su suplente, quien deberá tener el nivel jerárquico inmediato inferior al de aquél.
 
-**Artículo 16.** - Cada consejero propietario designará a su suplente. En el caso de los servidores públicos, los suplentes deberán tener, por lo menos, el nivel de director general.
+**Artículo 16.-** Cada consejero propietario designará a su suplente. En el caso de los servidores públicos, los suplentes deberán tener, por lo menos, el nivel de director general.
 
-**Artículo 17.** - El Consejo c elebrará sesiones ordinarias por lo menos cada tres meses. Cuando se estime necesario, también podrá sesionar en forma extraordinaria.
+**Artículo 17.-** El Consejo celebrará sesiones ordinarias por lo menos cada tres meses. Cuando se estime necesario, también podrá sesionar en forma extraordinaria.
 
-Las sesiones serán convocadas por el Presidente o, en su defecto, por el Secretario del Consejo a petición de la mayoría de los consejeros o del Director General; serán válidas cuando asistan, por lo menos, siete de sus miembros, incluyendo tres representantes de la Administración Pública Federal, y sus resoluciones se tomarán por mayoría de los miembros presentes. El Presi dente tendrá voto de calidad en caso de empate.
+Las sesiones serán convocadas por el Presidente o, en su defecto, por el Secretario del Consejo a petición de la mayoría de los consejeros o del Director General; serán válidas cuando asistan, por lo menos, siete de sus miembros, incluyendo tres representantes de la Administración Pública Federal, y sus resoluciones se tomarán por mayoría de los miembros presentes. El Presidente tendrá voto de calidad en caso de empate.
 
 A las sesiones del Consejo asistirán el Director General y el Comisario del Instituto con derecho a voz, pero sin voto.
 
-A las sesiones del Consejo podrán asistir también los invitados que autorice el Presid ente, a propuesta del Director General del Instituto, quienes participarán en las sesiones con voz pero sin voto y únicamente en los puntos de la orden del día para los cuales se les haya invitado.
+A las sesiones del Consejo podrán asistir también los invitados que autorice el Presidente, a propuesta del Director General del Instituto, quienes participarán en las sesiones con voz pero sin voto y únicamente en los puntos de la orden del día para los cuales se les haya invitado.
 
-Los invitados deberán ser personas distinguidas de los se ctores público, social y privado, cuya opinión específica sea de interés para el Consejo, en virtud de sus conocimientos y experiencia sobre las materias o los asuntos del Instituto.
+Los invitados deberán ser personas distinguidas de los sectores público, social y privado, cuya opinión específica sea de interés para el Consejo, en virtud de sus conocimientos y experiencia sobre las materias o los asuntos del Instituto.
 
 **Artículo 18.-** Además de las señaladas en la Ley Federal de las Entidades Paraestatales, el Consejo tendrá las atribuciones indelegables siguientes:
 
@@ -172,11 +192,13 @@ Los invitados deberán ser personas distinguidas de los se ctores público, soci
 
 **VII.** Autorizar la participación de profesionistas independientes en los comités de apoyo del Instituto, en términos de lo dispuesto por el Estatuto Orgánico;
 
-**VIII.** Autorizar las políticas generales para la celebración de convenios con los poderes legislativo y judicial de la Federación y de las enti dades federativas, con los gobiernos de los municipios, así como con las dependencias y entidades de la Administración Pública Federal, de los estados y de la Ciudad de México, a fin de que el Instituto otorgue a los trabajadores respectivos los créditos a que se refiere la fracción II del artículo 9 de esta Ley; Fracción reformada DOF 03-01-2024
+**(REFORMADA, D.O.F. 3 DE ENERO DE 2024)**
+
+**VIII.** Autorizar las políticas generales para la celebración de convenios con los poderes legislativo y judicial de la Federación y de las entidades federativas, con los gobiernos de los municipios, así como con las dependencias y entidades de la Administración Pública Federal, de los estados y de la Ciudad de México, a fin de que el Instituto otorgue a los trabajadores respectivos los créditos a que se refiere la fracción II del artículo 9 de esta Ley;
 
 **IX.** Acordar los asuntos intersectoriales que se requieran en la administración integral del Instituto;
 
-**X.** Autorizar con sujeción a las disposiciones aplicables en la materia, la estructura orgánica básica; los niveles de puestos; las bases generales para la elaboración de tabuladores de sueldos; la política salarial y de incentivos que considere las compen saciones y demás prestaciones económicas en beneficio de los trabajadores del Instituto; los lineamientos en materia de selección, reclutamiento, capacitación, ascenso y promoción; los indicadores de evaluación del desempeño, y los criterios de separación. Todo esto a propuesta del Director General y oyendo la opinión del Comité de Recursos Humanos;
+**X.** Autorizar con sujeción a las disposiciones aplicables en la materia, la estructura orgánica básica; los niveles de puestos; las bases generales para la elaboración de tabuladores de sueldos; la política salarial y de incentivos que considere las compensaciones y demás prestaciones económicas en beneficio de los trabajadores del Instituto; los lineamientos en materia de selección, reclutamiento, capacitación, ascenso y promoción; los indicadores de evaluación del desempeño, y los criterios de separación. Todo esto a propuesta del Director General y oyendo la opinión del Comité de Recursos Humanos;
 
 **XI.** Fijar las remuneraciones que correspondan a los representantes de las organizaciones de trabajadores y de patrones por su participación en las sesiones del Consejo;
 
@@ -186,7 +208,9 @@ Los invitados deberán ser personas distinguidas de los se ctores público, soci
 
 **XIV.** Las demás previstas en la presente Ley.
 
-Sección II De los Comités de Apoyo del Instituto
+Sección II
+
+De los Comités de Apoyo del Instituto
 
 **Artículo 19.-** El Instituto contará con los siguientes comités de apoyo:
 
@@ -206,17 +230,17 @@ Sección II De los Comités de Apoyo del Instituto
 
 Los profesionistas independientes a que se refiere este artículo serán nombrados por el Consejo Directivo a propuesta del Director General del Instituto.
 
-Respecto de los c omités de apoyo a que se contraen las fracciones I a V del artículo 19 de esta Ley, el Estatuto Orgánico establecerá lo relativo a su objeto, integración, operación, facultades y reglas básicas de operación, en términos de las disposiciones de carácter gen eral que al efecto expidan las autoridades competentes.
+Respecto de los comités de apoyo a que se contraen las fracciones I a V del artículo 19 de esta Ley, el Estatuto Orgánico establecerá lo relativo a su objeto, integración, operación, facultades y reglas básicas de operación, en términos de las disposiciones de carácter general que al efecto expidan las autoridades competentes.
 
-**Artículo 21.-** El Comité de Operaciones tendrá entre sus facultades la de someter a la consideración y aprobación del Consejo, las políticas generales o lineamientos sobre tasas de interés, plazos, ga rantías, otorgamiento de los préstamos o créditos y demás características de las operaciones del Instituto.
+**Artículo 21.-** El Comité de Operaciones tendrá entre sus facultades la de someter a la consideración y aprobación del Consejo, las políticas generales o lineamientos sobre tasas de interés, plazos, garantías, otorgamiento de los préstamos o créditos y demás características de las operaciones del Instituto.
 
 **Artículo 22.-** El Comité de Crédito tendrá especialmente la facultad de someter a la consideración y aprobación del Consejo, las políticas generales con base en las cuales se autorizarán los créditos y los aspectos inherentes a su otorgamiento.
 
-**Artículo 23.-** El Comité de Auditoría, Control y Vigilancia tendrá entre sus facultades la de someter a la consideración y aprobación del Consejo, las política s generales sobre control y auditoría, evaluación y desarrollo administrativo.
+**Artículo 23.-** El Comité de Auditoría, Control y Vigilancia tendrá entre sus facultades la de someter a la consideración y aprobación del Consejo, las políticas generales sobre control y auditoría, evaluación y desarrollo administrativo.
 
-**Artículo 24.** - El Comité de Administración Integral de Riesgos tendrá la atribución de fijar la metodología para la estimación de pérdidas por riesgos de crédito, de mercado, de liquidez y de operación, así como por los de carácter legal. Dicho Comité someterá a la consideración y aprobación del Consejo los términos para la aplicación de las reservas al efecto constituidas.
+**Artículo 24.-** El Comité de Administración Integral de Riesgos tendrá la atribución de fijar la metodología para la estimación de pérdidas por riesgos de crédito, de mercado, de liquidez y de operación, así como por los de carácter legal. Dicho Comité someterá a la consideración y aprobación del Consejo los términos para la aplicación de las reservas al efecto constituidas.
 
-**Artículo 25.-** El Comité de Recursos Humanos tendrá entr e otras atribuciones, la de opinar sobre la estructura orgánica básica; los niveles de puestos; las bases generales para la elaboración de tabuladores de sueldos; la política salarial y de incentivos que considere las compensaciones y demás prestaciones ec onómicas en beneficio de los trabajadores del Instituto; los lineamientos en materia de selección, reclutamiento, capacitación, ascenso y promoción; los indicadores de evaluación del desempeño, y los criterios de separación de trabajadores.
+**Artículo 25.-** El Comité de Recursos Humanos tendrá entre otras atribuciones, la de opinar sobre la estructura orgánica básica; los niveles de puestos; las bases generales para la elaboración de tabuladores de sueldos; la política salarial y de incentivos que considere las compensaciones y demás prestaciones económicas en beneficio de los trabajadores del Instituto; los lineamientos en materia de selección, reclutamiento, capacitación, ascenso y promoción; los indicadores de evaluación del desempeño, y los criterios de separación de trabajadores.
 
 **Artículo 26.-** El Comité de Recursos Humanos, estará integrado de la siguiente forma:
 
@@ -232,9 +256,11 @@ Respecto de los c omités de apoyo a que se contraen las fracciones I a V del ar
 
 Salvo el caso del profesional independiente, los demás miembros del Comité contarán con sus respectivos suplentes, quienes serán preferentemente servidores públicos del nivel inmediato inferior.
 
-Sección III Del Director General
+Sección III
 
-**Artículo 27.** - El Director General del Instituto será designado por el titular del Ejecutivo Federal, a propuesta del Secretario del Trabajo y Prev isión Social. El nombramiento deberá recaer en persona que reúna los requisitos que establece la Ley Federal de las Entidades Paraestatales y quien, además, deberá contar con una experiencia mínima de cinco años en puestos de alto nivel decisorio en materi a financiera dentro del sistema financiero mexicano.
+Del Director General
+
+**Artículo 27.-** El Director General del Instituto será designado por el titular del Ejecutivo Federal, a propuesta del Secretario del Trabajo y Previsión Social. El nombramiento deberá recaer en persona que reúna los requisitos que establece la Ley Federal de las Entidades Paraestatales y quien, además, deberá contar con una experiencia mínima de cinco años en puestos de alto nivel decisorio en materia financiera dentro del sistema financiero mexicano.
 
 **Artículo 28.-** El Director General tendrá a su cargo las facultades y obligaciones siguientes:
 
@@ -242,7 +268,7 @@ Sección III Del Director General
 
 **a)** Celebrar y otorgar toda clase de actos jurídicos y documentos inherentes al objeto del Instituto;
 
-**b)** Ejercer las más amplias facultades para realizar actos de dominio, administración, pleitos y cobranzas, aun aquéllas que requieran de aut orización especial, según esta Ley u otras disposiciones legales, reglamentarias o estatutarias;
+**b)** Ejercer las más amplias facultades para realizar actos de dominio, administración, pleitos y cobranzas, aun aquéllas que requieran de autorización especial, según esta Ley u otras disposiciones legales, reglamentarias o estatutarias;
 
 **c)** Emitir, avalar y negociar títulos de crédito;
 
@@ -254,9 +280,9 @@ Sección III Del Director General
 
 **II.** Dirigir técnica y administrativamente las actividades y programas del Instituto;
 
-**III.** Presentar a la aprobación del Consejo los proyectos de E statuto Orgánico, manuales de organización, de procedimientos y de servicios al público, y demás instrumentos normativos que regulen el funcionamiento del Instituto;
+**III.** Presentar a la aprobación del Consejo los proyectos de Estatuto Orgánico, manuales de organización, de procedimientos y de servicios al público, y demás instrumentos normativos que regulen el funcionamiento del Instituto;
 
-**IV.** Someter a la autorización del Consejo el establecimiento, reubicación y cierre de ofi cinas en el territorio nacional;
+**IV.** Someter a la autorización del Consejo el establecimiento, reubicación y cierre de oficinas en el territorio nacional;
 
 **V.** Presentar anualmente al Consejo los proyectos de los programas operativo y financiero, de las estimaciones de ingresos anuales y del presupuesto de gastos e inversión para el ejercicio siguiente;
 
@@ -276,15 +302,17 @@ Sección III Del Director General
 
 Las facultades del Director General del Instituto previstas en las fracciones III y VI de este artículo serán indelegables.
 
-**Artículo 29.-** El Director General del Instituto será auxiliado en el cumplimiento de sus facultades por los servidores públicos de base y de confianza que establezca el Estatuto Or gánico.
+**Artículo 29.-** El Director General del Instituto será auxiliado en el cumplimiento de sus facultades por los servidores públicos de base y de confianza que establezca el Estatuto Orgánico.
 
 Asimismo, dicho Estatuto determinará al servidor público que suplirá al Director General en sus ausencias. El suplente deberá tener el nivel inmediato inferior al del Director General.
 
-CAPÍTULO V Del Control, Vigilancia y Evaluación del Instituto
+**CAPÍTULO V**
+
+Del Control, Vigilancia y Evaluación del Instituto
 
 **Artículo 30.-** El Instituto contará con un órgano interno de control, en los términos de la Ley Federal de las Entidades Paraestatales. Al frente de dicho órgano de control y de las áreas de Auditoría Interna, Auditoría de Control y Evaluación, de Quejas y Responsabilidades, estarán los servidores públicos que sean designados por la Secretaría de la Función Pública, en términos de la Ley Orgánica de la Administración Pública Federal y quienes contarán con las facultades que respectivamente les otorga el Reglamento Interior de la Secretaría de la Función Pública.
 
-**Artículo 31.-** El Instituto contará con un comisario público propietario y uno suplente, designados por la Secretaría de la Función Pública. El comisario vigilará y evaluará la operación del Institu to y tendrá las atribuciones contenidas en la Ley Federal de las Entidades Paraestatales y en las demás disposiciones legales aplicables.
+**Artículo 31.-** El Instituto contará con un comisario público propietario y uno suplente, designados por la Secretaría de la Función Pública. El comisario vigilará y evaluará la operación del Instituto y tendrá las atribuciones contenidas en la Ley Federal de las Entidades Paraestatales y en las demás disposiciones legales aplicables.
 
 **Artículo 32.-** La Comisión ejercerá la supervisión del Instituto, en términos de esta Ley y en los de aquélla que rige a la propia Comisión.
 
@@ -292,54 +320,86 @@ La supervisión que ejerza la Comisión tendrá por objeto verificar que las ope
 
 Sin perjuicio de las facultades de otras instancias fiscalizadoras, la supervisión de la Comisión comprenderá el ejercicio de las de inspección, vigilancia, prevención y corrección que le confiere su propia ley.
 
-El Instituto estará obligado a proporcionar a la Comisión los datos, inform es, registros, libros de actas, auxiliares, documentos, correspondencia y, en general, toda la información que ésta estime necesaria para el ejercicio de sus facultades de inspección y vigilancia.
+El Instituto estará obligado a proporcionar a la Comisión los datos, informes, registros, libros de actas, auxiliares, documentos, correspondencia y, en general, toda la información que ésta estime necesaria para el ejercicio de sus facultades de inspección y vigilancia.
 
-Esta obligación comprende la información y documentación r elativa al titular o beneficiario de las operaciones y servicios que realice el Instituto y que se encuentren protegidas por algún tipo de secreto.
+Esta obligación comprende la información y documentación relativa al titular o beneficiario de las operaciones y servicios que realice el Instituto y que se encuentren protegidas por algún tipo de secreto.
 
 La Comisión podrá establecer programas preventivos o correctivos de cumplimiento forzoso, tendientes a eliminar irregularidades o desequilibrios financieros que puedan afectar la liquidez, solvencia o estabilidad del Instituto. Los términos y condiciones para la ejecución de dichos programas podrán ser convenidos por la Comisión y el Instituto.
 
 El incumplimiento de los programas o convenios a que se refiere el párrafo anterior, dará lugar a la imposición de las sanciones que correspondan.
 
-**Artículo 33.** - La Comisión emitirá la regulación prudencial que deberá observar el Instituto y las disposiciones a las que s e sujetará en materia de registro de operaciones, información financiera, estimación de activos y, en su caso, las relativas a sus responsabilidades y obligaciones.
+**Artículo 33.-** La Comisión emitirá la regulación prudencial que deberá observar el Instituto y las disposiciones a las que se sujetará en materia de registro de operaciones, información financiera, estimación de activos y, en su caso, las relativas a sus responsabilidades y obligaciones.
 
-El incumplimiento o violación a la presente Ley se sancionará con multa de cien a cincuent a mil veces el salario mínimo general vigente en el Distrito Federal. Para la imposición de las multas, la Comisión seguirá el procedimiento establecido en la Ley de Instituciones de Crédito y su importe se cargará al patrimonio líquido del Instituto.
+El incumplimiento o violación a la presente Ley se sancionará con multa de cien a cincuenta mil veces el salario mínimo general vigente en el Distrito Federal. Para la imposición de las multas, la Comisión seguirá el procedimiento establecido en la Ley de Instituciones de Crédito y su importe se cargará al patrimonio líquido del Instituto.
 
 ## Transitorios
 
-**PRIMERO.**- La presente Ley entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
+**PRIMERO.-** La presente Ley entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
 
-**SEGUNDO.**- Se decreta la desincorporación mediante extinción del fideicomiso público "Fondo de Fomento y Garantía para el Consumo de los Trabajadores".
+**SEGUNDO.-** Se decreta la desincorporación mediante extinción del fideicomiso público "Fondo de Fomento y Garantía para el Consumo de los Trabajadores".
 
-**TERCERO.**- A la entrada en vigor de la presente Ley, pasarán a formar parte del patrimonio del Instituto del Fondo Nacional para el Consumo de los Trabajadores los recursos, los activos, los bienes muebles e inmuebles, los derechos y las obligaciones que integren el patrimonio del fideicomiso público "Fondo de Fomento y Garantía para el Consumo de los Trabajadores".
+**TERCERO.-** A la entrada en vigor de la presente Ley, pasarán a formar parte del patrimonio del Instituto del Fondo Nacional para el Consumo de los Trabajadores los recursos, los activos, los bienes muebles e inmuebles, los derechos y las obligaciones que integren el patrimonio del fideicomiso público "Fondo de Fomento y Garantía para el Consumo de los Trabajadores".
 
 La transferencia formal de los bienes, derechos y obligaciones a que se contrae el párrafo que antecede, así como los actos necesarios para llevar a cabo la extinción del fideicomiso público a que dicho párrafo se refiere, deberán efectuarse en un plazo no mayor a doce meses, contados a partir de la entrada en vigor de la presente Ley.
 
-Las transferencias de bienes y dere chos previstas en el presente artículo, no quedarán gravadas por contribución federal alguna.
+Las transferencias de bienes y derechos previstas en el presente artículo, no quedarán gravadas por contribución federal alguna.
 
-Las inscripciones y anotaciones marginales efectuadas en los registros públicos de la propiedad y de comercio, así como en cualquier otro registro del país, rela tivas a Nacional Financiera, Sociedad Nacional de Crédito, Institución de Banca de Desarrollo, en su carácter de fiduciario del fideicomiso público "Fondo de Fomento y Garantía para el Consumo de los Trabajadores", respecto de inmuebles, contratos, convenios, títulos de crédito, comisiones de carácter mercantil y cualquier otra, se entenderán referidas al Instituto del Fondo Nacional para el Consumo de los Trabajadores.
+Las inscripciones y anotaciones marginales efectuadas en los registros públicos de la propiedad y de comercio, así como en cualquier otro registro del país, relativas a Nacional Financiera, Sociedad Nacional de Crédito, Institución de Banca de Desarrollo, en su carácter de fiduciario del fideicomiso público "Fondo de Fomento y Garantía para el Consumo de los Trabajadores", respecto de inmuebles, contratos, convenios, títulos de crédito, comisiones de carácter mercantil y cualquier otra, se entenderán referidas al Instituto del Fondo Nacional para el Consumo de los Trabajadores.
 
-Como causahabiente, del fideicomiso público cuya extinción se ordena en la presente Ley , el Instituto del Fondo Nacional para el Consumo de los Trabajadores se subrogará en todos los derechos y obligaciones de aquél, y ejercerá las acciones, opondrá las excepciones y defensas e interpondrá los recursos de cualquier naturaleza deducidos en lo s procedimientos judiciales y administrativos en los que haya sido parte Nacional Financiera, Sociedad Nacional de Crédito, Institución de Banca de Desarrollo, en su carácter de fiduciario del mencionado fideicomiso.
+Como causahabiente, del fideicomiso público cuya extinción se ordena en la presente Ley, el Instituto del Fondo Nacional para el Consumo de los Trabajadores se subrogará en todos los derechos y obligaciones de aquél, y ejercerá las acciones, opondrá las excepciones y defensas e interpondrá los recursos de cualquier naturaleza deducidos en los procedimientos judiciales y administrativos en los que haya sido parte Nacional Financiera, Sociedad Nacional de Crédito, Institución de Banca de Desarrollo, en su carácter de fiduciario del mencionado fideicomiso.
 
-Con objeto de que no se interrumpan la s operaciones y funciones que a la fecha realiza el Fideicomiso denominado "Fondo de Fomento y Garantía para el Consumo de los Trabajadores", éste continuará desarrollándolas, hasta en tanto el Instituto del Fondo Nacional para el Consumo de los Trabajadores esté en posibilidad de hacerse cargo de las mismas, para lo cual tendrá un plazo máximo de 90 días hábiles, contados a partir de la entrada en vigor de la presente Ley.
+Con objeto de que no se interrumpan las operaciones y funciones que a la fecha realiza el Fideicomiso denominado "Fondo de Fomento y Garantía para el Consumo de los Trabajadores", éste continuará desarrollándolas, hasta en tanto el Instituto del Fondo Nacional para el Consumo de los Trabajadores esté en posibilidad de hacerse cargo de las mismas, para lo cual tendrá un plazo máximo de 90 días hábiles, contados a partir de la entrada en vigor de la presente Ley.
 
 En tanto se expide la normatividad interna del Instituto del Fondo Nacional para el Consumo de los Trabajadores, continuará aplicándose la que rige la operación y funcionamiento del Fideicomiso cuya extinción se ordena, en lo que no se oponga a esta Ley y, en lo no previsto, se estará a lo que resuelva el Consejo Directivo.
 
-**CUARTO.**- Sin perjuicio de lo señalado en el último párrafo del artículo 9 de esta Ley con respecto a las nuevas obligaciones de pasivo derivadas de financiamientos, las mencionadas obligaciones de pasivo contraídas por el fideicomiso público denominado "Fondo de Fomen to y Garantía para el Consumo de los Trabajadores" antes de la entrada en vigor de esta Ley, podrán ser canjeadas, modificadas, novadas y, en general, refinanciadas por el Instituto del Fondo Nacional para el Consumo de los Trabajadores a partir de la entr ada en vigor de esta Ley, previa autorización de la Secretaría de Hacienda y Crédito Público, a efecto de que dichas obligaciones sean disminuidas gradualmente hasta su liquidación, conforme a los términos y condiciones autorizados por la mencionada Depend encia.
+**CUARTO.-** Sin perjuicio de lo señalado en el último párrafo del artículo 9 de esta Ley con respecto a las nuevas obligaciones de pasivo derivadas de financiamientos, las mencionadas obligaciones de pasivo contraídas por el fideicomiso público denominado "Fondo de Fomento y Garantía para el Consumo de los Trabajadores" antes de la entrada en vigor de esta Ley, podrán ser canjeadas, modificadas, novadas y, en general, refinanciadas por el Instituto del Fondo Nacional para el Consumo de los Trabajadores a partir de la entrada en vigor de esta Ley, previa autorización de la Secretaría de Hacienda y Crédito Público, a efecto de que dichas obligaciones sean disminuidas gradualmente hasta su liquidación, conforme a los términos y condiciones autorizados por la mencionada Dependencia.
 
-**QUINTO.**- El Estatuto Orgánico del Instituto del Fondo Nacional para el Consumo de los Trabajadores deberá ser aprobado y expedido por el Consejo Directivo a más tardar en la segunda sesión ordinaria que celebre.
+**QUINTO.-** El Estatuto Orgánico del Instituto del Fondo Nacional para el Consumo de los Trabajadores deberá ser aprobado y expedido por el Consejo Directivo a más tardar en la segunda sesión ordinaria que celebre.
 
-**SEXTO.**- Las personas que presten se rvicios personales subordinados a Nacional Financiera, Sociedad Nacional de Crédito, Institución de Banca de Desarrollo, en su carácter de fiduciario en el fideicomiso público "Fondo de Fomento y Garantía para el Consumo de los Trabajadores", formarán part e del personal al servicio del Instituto del Fondo Nacional para el Consumo de los Trabajadores y conservarán las remuneraciones y prestaciones de las cuales gozan, así como los derechos adquiridos y las condiciones de trabajo fijadas mediante la contratación colectiva, al entrar en vigor la presente Ley.
+**SEXTO.-** Las personas que presten servicios personales subordinados a Nacional Financiera, Sociedad Nacional de Crédito, Institución de Banca de Desarrollo, en su carácter de fiduciario en el fideicomiso público "Fondo de Fomento y Garantía para el Consumo de los Trabajadores", formarán parte del personal al servicio del Instituto del Fondo Nacional para el Consumo de los Trabajadores y conservarán las remuneraciones y prestaciones de las cuales gozan, así como los derechos adquiridos y las condiciones de trabajo fijadas mediante la contratación colectiva, al entrar en vigor la presente Ley.
 
 El Instituto del Fondo Nacional para el Consumo de los Trabajadores constituirá y mantendrá las reservas necesarias para dar cumplimiento a las obligaciones derivadas de la relación laboral con sus trabajadores, en función del estudio actuarial que se realice para tal efecto.
 
-**SÉPTIMO.**- La primera sesión ordinaria del Consejo Directivo deberá llevarse a cabo dentro de los treinta días siguientes a la entrada en vigor de la presente Ley. La Secretaría del T rabajo y Previsión Social adoptará las medidas pertinentes para la instalación del Consejo Directivo.
+**SÉPTIMO.-** La primera sesión ordinaria del Consejo Directivo deberá llevarse a cabo dentro de los treinta días siguientes a la entrada en vigor de la presente Ley. La Secretaría del Trabajo y Previsión Social adoptará las medidas pertinentes para la instalación del Consejo Directivo.
 
-**OCTAVO.**- Previo al inicio de operaciones que sean distintas a las que actualmente realiza el fideicomiso "Fondo de Fomento y Garantía para el Consumo de los Trabajadores", el Instituto del Fondo Nacional para el Consumo de los Trabajadores someterá a la aprobación de la Comisión Nacional Bancaria y de Valores, sus sistemas operativos, de procesamiento de información y de control interno, así como sus manuales de organización y operación.
+**OCTAVO.-** Previo al inicio de operaciones que sean distintas a las que actualmente realiza el fideicomiso "Fondo de Fomento y Garantía para el Consumo de los Trabajadores", el Instituto del Fondo Nacional para el Consumo de los Trabajadores someterá a la aprobación de la Comisión Nacional Bancaria y de Valores, sus sistemas operativos, de procesamiento de información y de control interno, así como sus manuales de organización y operación.
 
-**NOVENO.**- El Instituto Nacional para el Consumo de los Trabajadores se circunscribirá en el presente ejercicio fiscal al presupuesto autorizado al Fideicomiso denominado "Fondo de Fomento y Garantía para el Consumo de los Trabajadores".
+**NOVENO.-** El Instituto Nacional para el Consumo de los Trabajadores se circunscribirá en el presente ejercicio fiscal al presupuesto autorizado al Fideicomiso denominado "Fondo de Fomento y Garantía para el Consumo de los Trabajadores".
 
-**DÉCIMO.**- El Ejecutivo Federal expedirá el Reglamento de esta Ley en un plazo máximo de 90 días.
+**DÉCIMO.-** El Ejecutivo Federal expedirá el Reglamento de esta Ley en un plazo máximo de 90 días.
 
-México, D.F., a 16 de marzo de 2006. - Sen. Enrique Jackson Ramírez , Presidente. - Dip. Marcela González Salas P. , Presidenta. - Sen. Saúl López So llano, Secretario. - Dip. Marcos Morales Torres , Secretario.- Rúbricas."
+México, D.F., a 16 de marzo de 2006.- Sen. Enrique Jackson Ramírez, Presidente.- Dip. Marcela González Salas P., Presidenta.- Sen. Saúl López Sollano, Secretario.- Dip. Marcos Morales Torres, Secretario.- Rúbricas."
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el pr esente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a los diecinueve días del mes de abril de dos mil seis.- Vicente Fox Quesada.- Rúbrica.- El Secretario de Gobernación, Carlos María Abascal Carranza.- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a los diecinueve días del mes de abril de dos mil seis.- Vicente Fox Quesada.- Rúbrica.- El Secretario de Gobernación, Carlos María Abascal Carranza.- Rúbrica.
+
+**D.O.F. 10 DE ENERO DE 2014.**
+
+**ARTÍCULO QUINTO.-** En relación con las modificaciones a que se refieren los Artículos Primero, Segundo, Tercero y Cuarto de este Decreto, se estará a lo siguiente:
+
+**I.** La Comisión Federal de Competencia Económica contará con un plazo de ciento ochenta días naturales contados a partir de la entrada en vigor del presente Decreto para llevar a cabo una investigación sobre las condiciones de competencia en el sistema financiero y sus mercados, para lo cual deberá escuchar la opinión no vinculante de la Secretaría de Hacienda y Crédito Público. Como resultado de dicha investigación la Comisión Federal de Competencia Económica podrá, en su caso, formular recomendaciones a las autoridades financieras para mejorar la competencia en este sistema y sus mercados y ejercer las demás atribuciones que le confiere la Ley Federal de Competencia Económica a fin de evitar prácticas monopólicas, concentraciones y demás restricciones al funcionamiento eficiente de los mercados en este sistema, incluyendo, según corresponda, ordenar medidas para eliminar las barreras a la competencia y la libre concurrencia; ordenar la desincorporación de activos, derechos, partes sociales o acciones de los agentes económicos, en las proporciones necesarias para eliminar efectos anticompetitivos, y el resto de las medidas facultadas por la Constitución y la ley de la materia.
+
+**II.** Las obligaciones derivadas del presente Decreto a cargo de las Instituciones Financieras entrarán en vigor a los noventa días naturales siguientes a su entrada en vigor.
+
+**III.** La Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros para emitir las disposiciones de carácter general a que se refiere este Decreto, tendrá un plazo de trescientos sesenta y cinco días naturales siguientes a la entrada en vigor del presente Decreto.
+
+**IV.** La Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros contará con el plazo citado en el transitorio anterior para emitir los lineamientos a que se refiere el artículo 84 Bis de la Ley de Protección y Defensa al Usuario de Servicios Financieros y poner en funcionamiento el Sistema Arbitral en Materia Financiera.
+
+**V.** La Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros contará con un plazo de ciento ochenta días naturales para poner en funcionamiento el Buró de Entidades Financieras, contados a partir de la entrada en vigor del presente Decreto.
+
+Además de lo estipulado por el artículo 8o. Bis de la Ley de Protección y Defensa al Usuario de Servicios Financieros respecto a la información del Buró de Entidades Financieras; se deberá incluir como mínimo la información relacionada con reclamaciones, consultas, dictámenes, sanciones administrativas, así como, la eliminación o modificación de cláusulas abusivas, cuya identificación deberá ser por productos o servicios.
+
+**VI.** La Comisión Nacional Bancaria y de Valores, dentro de los cuarenta y cinco días naturales siguientes a partir de la entrada en vigor de este Decreto, establecerá un programa de identificación, revisión e inspección de las Redes de Medios de Disposición actualmente en operación.
+
+**VII.** La Comisión Nacional Bancaria y de Valores y el Banco de México, de manera conjunta, emitirán las disposiciones de carácter general a que se refiere el artículo 4 Bis 3 de la Ley para la Transparencia y Ordenamiento de los Servicios Financieros dentro de los sesenta días naturales siguientes a partir de la entrada en vigor del presente Decreto. Al vencimiento de dicho plazo el Presidente de la Comisión Nacional Bancaria y de Valores, y el Gobernador del Banco de México, comparecerán conjuntamente ante la Cámara de Diputados para informar acerca del ejercicio de esta atribución, y deberán comparecer además a los seis y doce meses siguientes para informar respecto de la evolución del mercado de redes de disposición y respecto de la aplicación de las disposiciones antes referidas.
+
+**VIII.** El Banco de México emitirá las disposiciones de carácter general a que se refiere el artículo 19 Bis de la Ley para la Transparencia y Ordenamiento de los Servicios Financieros dentro de los sesenta días naturales siguientes a partir de la entrada en vigor del presente Decreto.
+
+**IX.** La Cámara de Diputados procurará destinar recursos en el presupuesto de la Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros para el desarrollo de los diferentes programas de educación y cultura financiera que ejerza.
+
+## Transitorio
+
+**ÚNICO.** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación, salvo lo dispuesto en los ARTÍCULOS VIGÉSIMO QUINTO, fracción I; TRIGÉSIMO, fracciones IV y VI; CUADRAGÉSIMO, fracciones I y II y; QUINCUAGÉSIMO, fracciones I y II, las cuales entrarán en vigor en las fechas que en dichas disposiciones se establecen.
+
+**D.O.F. 3 DE ENERO DE 2024.**
+
+**Único.-** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.

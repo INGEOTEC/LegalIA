@@ -1,6 +1,12 @@
-## Al margen un sello con el Escudo Nacional, q ue dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY REGLAMENTARIA DE LA FRACCION VI DEL ARTICULO 76 DE LA CONSTITUCION POLITICA DE LOS ESTADOS UNIDOS MEXICANOS**
 
-**FELIPE DE JESÚS CALDERÓN HINOJOSA** , Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 14 DE NOVIEMBRE DE 2025.**
+
+Ley publicada en la Primera Sección del Diario Oficial de la Federación, el viernes 31 de agosto de 2007.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+FELIPE DE JESÚS CALDERÓN HINOJOSA, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -10,13 +16,13 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **SE EXPIDE LA LEY REGLAMENTARIA DE LA FRACCIÓN VI DEL ARTÍCULO 76 DE LA CONSTITUCIÓN POLÍTICA DE LOS ESTADOS UNIDOS MEXICANOS.**
 
-**ARTÍCULO ÚNICO.** - Se expide la Ley Reglamentaria de la fracc ión VI del artículo 76 de la Constitución Política de los Estados Unidos Mexicanos, para quedar como sigue:
+**ARTÍCULO ÚNICO.-** Se expide la Ley Reglamentaria de la fracción VI del artículo 76 de la Constitución Política de los Estados Unidos Mexicanos, para quedar como sigue:
 
-**Artículo 1.** Esta Ley tiene por objeto establecer los casos en los cuales la Cámara de Senadores del Congreso de la Unión, de conformidad con lo dis puesto en la fracción VI del artículo 76 de la Constitución Política de los Estados Unidos Mexicanos, asumirá el conocimiento de las cuestiones políticas que surjan entre los poderes de un Estado, así como también prever las bases según las cuales conocerá de ellas y regular el proceso a través del cual las resolverá.
+**Artículo 1.** Esta Ley tiene por objeto establecer los casos en los cuales la Cámara de Senadores del Congreso de la Unión, de conformidad con lo dispuesto en la fracción VI del artículo 76 de la Constitución Política de los Estados Unidos Mexicanos, asumirá el conocimiento de las cuestiones políticas que surjan entre los poderes de un Estado, así como también prever las bases según las cuales conocerá de ellas y regular el proceso a través del cual las resolverá.
 
 La Cámara de Senadores no ejercerá funciones jurisdiccionales.
 
-**Artículo 2.** Se configura la cuestión política, si los actos o hechos que la motivan constituyen un conflicto que dañe gravement e la relación entre dos o más poderes de un Estado o afecten su funcionamiento.
+**Artículo 2.** Se configura la cuestión política, si los actos o hechos que la motivan constituyen un conflicto que dañe gravemente la relación entre dos o más poderes de un Estado o afecten su funcionamiento.
 
 **Artículo 3.** Se estará ante una cuestión política si se actualiza alguno de los siguientes supuestos:
 
@@ -26,17 +32,19 @@ La Cámara de Senadores no ejercerá funciones jurisdiccionales.
 
 **III.** Las expresiones que en forma pública y reiterada formule un poder respecto de otro, cuyo propósito o sus efectos tiendan a socavar su autoridad;
 
-**IV.** El enfrentamiento físico entre los titulares o integrantes de los p oderes, aunque éste no interrumpa el orden constitucional;
+**IV.** El enfrentamiento físico entre los titulares o integrantes de los poderes, aunque éste no interrumpa el orden constitucional;
 
 **V.** Los hechos de violencia del tipo que sea, de un poder hacia otro, que pudieran alterar o interrumpir el orden constitucional local o el ejercicio de sus respectivas funciones, y
 
-**VI.** En general , todos los actos o hechos que un poder estatal realice o se abstenga de hacer, en perjuicio de otro u otros.
+**VI.** En general, todos los actos o hechos que un poder estatal realice o se abstenga de hacer, en perjuicio de otro u otros.
 
 Procederá plantear la cuestión política siempre que, para resolverla, no haya recurso, vía o instancia jurisdiccional.
 
 **Artículo 4.** La Cámara de Senadores resolverá las cuestiones políticas que le sean sometidas, conforme a las disposiciones de la Constitución Política de los Estados Unidos Mexicanos, la Constitución del Estado al que pertenezcan los poderes en conflicto y la presente Ley.
 
-En lo no previsto en los cuerpos normativos anteriores, se aplicarán supletoriamente las disposiciones del Código Nacional de Procedimientos Civiles y Familiares. Párrafo reformado DOF 14-11-2025
+**(REFORMADO, D.O.F. 14 DE NOVIEMBRE DE 2025)**
+
+En lo no previsto en los cuerpos normativos anteriores, se aplicarán supletoriamente las disposiciones del Código Nacional de Procedimientos Civiles y Familiares.
 
 **Artículo 5.** La intervención de la Cámara de Senadores se dará:
 
@@ -50,7 +58,7 @@ En el último supuesto, bastará que un ciudadano lo haga del conocimiento de la
 
 **I.** Controversias constitucionales;
 
-**II.** Casos en que la cues tión política se dé entre poderes de un Estado y otro, o entre los poderes de un Estado y las Autoridades Locales del Distrito Federal;
+**II.** Casos en que la cuestión política se dé entre poderes de un Estado y otro, o entre los poderes de un Estado y las Autoridades Locales del Distrito Federal;
 
 **III.** Cuestiones Políticas que surjan entre:
 
@@ -68,7 +76,7 @@ En el último supuesto, bastará que un ciudadano lo haga del conocimiento de la
 
 **V.** Las cuestiones que, por cualquier vía, se hayan planteado ante la Suprema Corte de Justicia de la Nación, salvo que ella decline su conocimiento.
 
-**Artículo 7.** Los poderes de los Estados podrán plantear en todo momento las cuestiones políticas que surjan entre ellos, si los actos o hechos son continuos, sin embargo si se tratare de actos o hechos consumados que afecten de manera grave la gobernabilidad del Estado, lo harán de forma inmed iata. No habrá término para hacerlo ni perderán el derecho a solicitar la intervención de la Cámara de Senadores.
+**Artículo 7.** Los poderes de los Estados podrán plantear en todo momento las cuestiones políticas que surjan entre ellos, si los actos o hechos son continuos, sin embargo si se tratare de actos o hechos consumados que afecten de manera grave la gobernabilidad del Estado, lo harán de forma inmediata. No habrá término para hacerlo ni perderán el derecho a solicitar la intervención de la Cámara de Senadores.
 
 La falta de presentación de solicitud de intervención, no implicará un consentimiento tácito de parte del o de los poderes que se consideren afectados por la cuestión política que diere motivo a la intervención, bastará que uno de los poderes ocurra a la Cámara de Senadores para que ésta asuma el conocimiento de la cuestión política planteada. Para tal efecto, no se requerirá la anuencia de la otra parte para que tenga lugar dicha intervención.
 
@@ -98,9 +106,7 @@ Cada una de las partes señalará desde el principio, el domicilio en donde podr
 
 **III.** Si la cuestión planteada no es de índole constitucional.
 
-**Artículo 13.** Si la Junta de Coordinación Política al valorar la situación motivo de la intervención, infiere que se han dado o puedan darse hechos de violencia, lo hará en su caso del conocimiento de la
-
-Comisión Permanente, a fin de que convoque a la Cámara de Senadores a un período de sesiones extraordinarias, conforme a la fracción IV del artículo 78 Constitucional.
+**Artículo 13.** Si la Junta de Coordinación Política al valorar la situación motivo de la intervención, infiere que se han dado o puedan darse hechos de violencia, lo hará en su caso del conocimiento de la Comisión Permanente, a fin de que convoque a la Cámara de Senadores a un período de sesiones extraordinarias, conforme a la fracción IV del artículo 78 Constitucional.
 
 **Artículo 14.** Para la debida instrucción del proceso, la Junta de Coordinación Política, una vez decidida la procedencia de la solicitud, la enviará a la Mesa Directiva, la cual deberá turnarla a la Comisión responsable de su prosecución.
 
@@ -110,7 +116,7 @@ Para el adecuado desempeño de su función, la Comisión se auxiliará de especi
 
 Las notificaciones se harán por correo certificado.
 
-**Artículo 16.** La Comisión requerirá un informe al o a los Poderes señalados como contrapa rte, respecto de los actos o los hechos consignados por el o los promoventes de la intervención.
+**Artículo 16.** La Comisión requerirá un informe al o a los Poderes señalados como contraparte, respecto de los actos o los hechos consignados por el o los promoventes de la intervención.
 
 Dicho informe se rendirá en un plazo de quince días hábiles a partir de la notificación e incluirá, de ser necesario, las pruebas que acrediten los hechos en él referidos.
 
@@ -120,7 +126,7 @@ También podrá si lo juzga conveniente, oír a los interesados, entrevistar aut
 
 **Artículo 18.** La Comisión propondrá al Pleno las medidas precautorias que estime necesarias, a fin de que no se agrave la cuestión política surgida entre los poderes de un Estado o para suspender temporalmente los actos o hechos motivo del conflicto.
 
-La suspensión se someterá a la consider ación del Pleno de la Cámara de Senadores y será aprobada por la mayoría simple de los senadores presentes, la cual no podrá disponerse en los casos que impliquen la vigencia o aplicación de las leyes.
+La suspensión se someterá a la consideración del Pleno de la Cámara de Senadores y será aprobada por la mayoría simple de los senadores presentes, la cual no podrá disponerse en los casos que impliquen la vigencia o aplicación de las leyes.
 
 Para los efectos anteriores, la Comisión podrá solicitar a la Junta de Coordinación Política que recurra, de considerarlo ésta procedente, al auxilio del Ejecutivo Federal.
 
@@ -144,24 +150,40 @@ En la elaboración del proyecto, se observarán las disposiciones de la Constitu
 
 Su resolución será definitiva e inatacable y será notificada de forma inmediata a las partes.
 
-**Artículo 22.** En caso de que alguna de la partes considere que la actuación de la Comisión o la de alguno de sus i ntegrantes ha sido irregular, podrá interponer el recurso de revisión, el cual será resuelto por la Junta de Coordinación Política en un término de diez días hábiles a partir de la interposición del mismo.
+**Artículo 22.** En caso de que alguna de la partes considere que la actuación de la Comisión o la de alguno de sus integrantes ha sido irregular, podrá interponer el recurso de revisión, el cual será resuelto por la Junta de Coordinación Política en un término de diez días hábiles a partir de la interposición del mismo.
 
 El recurso de revisión se interpondrá por escrito y en un plazo de cinco días hábiles a partir de que tengan conocimiento del hecho irregular.
 
-**Artículo 23.** Cuando alguna de las partes no cumpla con las determinaciones que emita la Comisión en el curso de la instrucción, procederá el recurso de queja y l a misma dará trámite al recurso emitiendo la resolución que en derecho corresponda, dictando las medidas que se consideren pertinentes para hacer cumplir dicha resolución.
+**Artículo 23.** Cuando alguna de las partes no cumpla con las determinaciones que emita la Comisión en el curso de la instrucción, procederá el recurso de queja y la misma dará trámite al recurso emitiendo la resolución que en derecho corresponda, dictando las medidas que se consideren pertinentes para hacer cumplir dicha resolución.
 
-El recurso se resolverá dentro de los diez días hábiles posteriores a la interposic ión del mismo.
+El recurso se resolverá dentro de los diez días hábiles posteriores a la interposición del mismo.
 
 **Artículo 24.** En el caso de que una de las partes no cumpla con la resolución de la Cámara de Senadores, la parte afectada por el desacato, podrá interponer por escrito el recurso de reclamación de incumplimiento ante la Junta de Coordinación Política para que ésta resuelva lo conducente.
 
 La Junta de Coordinación requerirá al poder remiso para que rinda un informe dentro de los tres días hábiles siguientes. Recibido éste propondrá al Pleno de la Cámara de Senadores las medidas necesarias para el cumplimiento de la resolución dentro de los diez días hábiles siguientes.
 
-**Artículo 25.** Si el poder remiso no rinde dicho informe o se niega al cumplimento de la resolución, ello será considerado, conforme a los artículos constitucionales 109, fracció n I; 110, párrafo segundo y 114, párrafo primero, una violación grave a la Constitución Política de los Estados Unidos Mexicanos, por lo que el Pleno de la Cámara de Senadores declarará su desacato para los efectos legales correspondientes.
+**Artículo 25.** Si el poder remiso no rinde dicho informe o se niega al cumplimento de la resolución, ello será considerado, conforme a los artículos constitucionales 109, fracción I; 110, párrafo segundo y 114, párrafo primero, una violación grave a la Constitución Política de los Estados Unidos Mexicanos, por lo que el Pleno de la Cámara de Senadores declarará su desacato para los efectos legales correspondientes.
 
 ## Transitorio
 
 **ARTÍCULO ÚNICO.-** La presente Ley entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
 
-México, D.F., a 8 de febrero de 2007. - Sen. Manlio Fabio Beltrones Rivera , Presidente.- Dip. Jorge Zermeño Infante , Presidente. - Sen. Renán Cleominio Zoreda Novelo , Secretario. - Dip. Eduardo Sergio de la Torre Jaramillo, Secretario.- Rúbricas."
+México, D.F., a 8 de febrero de 2007.- Sen. Manlio Fabio Beltrones Rivera, Presidente.- Dip. Jorge Zermeño Infante, Presidente.- Sen. Renán Cleominio Zoreda Novelo, Secretario.- Dip. Eduardo Sergio de la Torre Jaramillo, Secretario.- Rúbricas."
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debid a publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a treinta de agosto de dos mil siete.- Felipe de Jesús Calderón Hinojosa .- Rúbrica.- El Secretario de Gobernació n, Francisco Javier Ramírez Acuña.- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a treinta de agosto de dos mil siete.- Felipe de Jesús Calderón Hinojosa.- Rúbrica.- El Secretario de Gobernación, Francisco Javier Ramírez Acuña.- Rúbrica.
+
+**D.O.F. 14 DE NOVIEMBRE DE 2025.**
+
+**Primero.** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
+
+**Segundo.** La aplicación de lo dispuesto en el presente Decreto entrará en vigor en cada una de las entidades federativas al mismo tiempo que la Declaratoria de aplicación gradual que expidan los Congresos Locales para efecto de la entrada en vigor del Código Nacional de Procedimientos Civiles y Familiares, de conformidad con el Artículo Segundo Transitorio del Decreto publicado en el Diario Oficial de la Federación el 7 de junio de 2023.
+
+En el orden federal, la aplicación de lo dispuesto en el presente Decreto entrará en vigor de conformidad con la Declaratoria de aplicación gradual que, indistinta y sucesivamente, realicen para el Código Nacional de Procedimientos Civiles y Familiares las Cámaras de Diputados y Senadores que integran el Congreso de la Unión.
+
+En todos los casos, vencido el plazo sin que se hubiera emitido la Declaratoria respectiva, la entrada en vigor de lo previsto en el presente Decreto será automática a partir del 1o. de abril de 2027.
+
+**Tercero.** Los procedimientos que se encuentren en trámite a la entrada en vigor del presente Decreto conforme con lo dispuesto en el artículo anterior, continuarán su sustanciación con la legislación aplicable al momento del inicio de los mismos, salvo que las partes conjuntamente opten por la regulación del contenido del Código Nacional de Procedimientos Civiles y Familiares.
+
+No procederá la acumulación de procesos cuando alguno de ellos se tramite conforme con el Código Nacional de Procedimientos Civiles y Familiares y el otro proceso conforme a un Código abrogado.
+
+**Cuarto.** El Artículo Cuadragésimo Primero, del presente Decreto, tendrá vigencia hasta en tanto no se abrogue la Ley Federal de Telecomunicaciones y Radiodifusión, de conformidad con lo previsto en el artículo Sexto Transitorio del Decreto por el que se expide la Ley en Materia de Telecomunicaciones y Radiodifusión y se abroga la Ley Federal de Telecomunicaciones y Radiodifusión, publicado en el Diario Oficial de la Federación el 16 de julio de 2025.

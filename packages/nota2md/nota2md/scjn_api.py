@@ -388,8 +388,7 @@ from nota2md.scjn import (  # noqa: E402  (deliberately below the client)
 #
 # The SCJN's text carries no formatting of its own: "TEXTO ORIGINAL.",
 # "Artículo N.-" leads and "TRANSITORIOS" captions are plain text, told apart
-# only by their own wording/casing — the same situation
-# nota2md.texto_vigente's Diputados PDFs are in. This lived in `nota2md.scjn`
+# only by their own wording/casing. This lived in `nota2md.scjn`
 # while the source was the reform row's .docx (one docx paragraph already is
 # one clean block, so only this per-paragraph classification was ever needed
 # on top of it); it moved here with issue #179, when the .docx path went away
@@ -399,10 +398,12 @@ from nota2md.scjn import (  # noqa: E402  (deliberately below the client)
 # from the API diffable against the one the WebForms crawler wrote for the
 # same law and the same date.
 #
-# Kept independent of texto_vigente's own patterns rather than imported, for
-# the same reason that module gives for staying independent of this package's
-# DOF-derived output: the two are meant to be compared, not to share a
-# source.
+# These patterns are the SCJN side of a comparison, so they stay their own
+# copy on purpose. A near-identical set used to live in
+# `nota2md.texto_vigente`, shaping the Cámara de Diputados' consolidated PDF
+# into the same Markdown conventions; that module was deleted with its source
+# (issues #184/#188) and nothing here ever imported it, precisely so the two
+# renderings of the same law could be compared rather than share a bug.
 _ORDINAL = (
     r"(?:[UÚ]nico|Primero|Segundo|Tercero|Cuarto|Quinto|Sexto|S[ée]ptimo|"
     r"Octavo|Noveno|D[ée]cimo(?:\s+(?:Primero|Segundo|Tercero|Cuarto|Quinto|"

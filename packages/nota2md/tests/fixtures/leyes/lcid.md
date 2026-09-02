@@ -1,6 +1,12 @@
-## Al margen un sello con el Escudo Nacional, que dice: Estados Unid os Mexicanos. - Presidencia de la República.
+**LEY DE COOPERACIÓN INTERNACIONAL PARA EL DESARROLLO**
 
-**FELIPE DE JESÚS CALDERÓN HINOJOSA** , Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 6 DE NOVIEMBRE DE 2020.**
+
+Ley publicada en la Primera Sección del Diario Oficial de la Federación, el miércoles 6 de abril de 2011.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+FELIPE DE JESÚS CALDERÓN HINOJOSA, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -10,27 +16,29 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **SE EXPIDE LA LEY DE COOPERACIÓN INTERNACIONAL PARA EL DESARROLLO**
 
-**ÚNICO.**- SE EXPIDE LA LEY DE COOPERACIÓN INTERNACIONAL PARA EL DESARROLLO, para quedar como sigue:
+**ÚNICO.-** SE EXPIDE LA LEY DE COOPERACIÓN INTERNACIONAL PARA EL DESARROLLO, para quedar como sigue:
 
 **LEY DE COOPERACIÓN INTERNACIONAL PARA EL DESARROLLO**
 
-Título Primero Disposiciones Generales
+Título Primero
+
+Disposiciones Generales
 
 **Artículo 1.** La presente Ley es de orden público y observancia general en todo el territorio nacional, y se aplicará sin perjuicio de lo dispuesto en los tratados internacionales.
 
-Esta Ley tiene por objeto dotar al Poder Ejecutivo Federal de los instrumentos necesarios para la programación, promoción, concertación, fomento, coordinación, ejecución, cuantificación, evaluación y fiscalización de acciones y Programas de Cooperación Internacional para el desarr ollo entre los Estados Unidos Mexicanos y los gobiernos de otros países así como con organismos internacionales, para la transferencia, recepción e intercambio de recursos, bienes, conocimientos y experiencias educativas, culturales, técnicas, científicas, económicas y financieras.
+Esta Ley tiene por objeto dotar al Poder Ejecutivo Federal de los instrumentos necesarios para la programación, promoción, concertación, fomento, coordinación, ejecución, cuantificación, evaluación y fiscalización de acciones y Programas de Cooperación Internacional para el desarrollo entre los Estados Unidos Mexicanos y los gobiernos de otros países así como con organismos internacionales, para la transferencia, recepción e intercambio de recursos, bienes, conocimientos y experiencias educativas, culturales, técnicas, científicas, económicas y financieras.
 
-Las acciones de cooperación internacional para el desarrollo que lleve a cabo el Estado Mexicano, tanto en su carácter de donante como de receptor, deberán tener como propósito esencial promover el desarrollo humano sustentable, mediante acciones que contribuyan a la erradicación de la pobreza, el desempleo, la desigualdad y la exclusión social; el aumento permanente de los niveles educativo, técnico, científico y cultural; la disminución de las asimetrías entre los países desarr ollados y países en vías de desarrollo; la búsqueda de la protección del medio ambiente y la lucha contra el cambio climático; así como el fortalecimiento a la seguridad pública, con base en los principios de solidaridad internacional, defensa y promoción de los derechos humanos, fortalecimiento del Estado de derecho, equidad de género, promoción del desarrollo sustentable, transparencia y rendición de cuentas y los criterios de apropiación, alineación, armonización, gestión orientada a resultados y mutua r esponsabilidad.
+Las acciones de cooperación internacional para el desarrollo que lleve a cabo el Estado Mexicano, tanto en su carácter de donante como de receptor, deberán tener como propósito esencial promover el desarrollo humano sustentable, mediante acciones que contribuyan a la erradicación de la pobreza, el desempleo, la desigualdad y la exclusión social; el aumento permanente de los niveles educativo, técnico, científico y cultural; la disminución de las asimetrías entre los países desarrollados y países en vías de desarrollo; la búsqueda de la protección del medio ambiente y la lucha contra el cambio climático; así como el fortalecimiento a la seguridad pública, con base en los principios de solidaridad internacional, defensa y promoción de los derechos humanos, fortalecimiento del Estado de derecho, equidad de género, promoción del desarrollo sustentable, transparencia y rendición de cuentas y los criterios de apropiación, alineación, armonización, gestión orientada a resultados y mutua responsabilidad.
 
 **Artículo 2.** Las disposiciones de esta Ley establecen los lineamientos jurídicos para:
 
 **I.** El cumplimiento de los objetivos consignados en el Programa de Cooperación Internacional para el Desarrollo.
 
-**II.** La administración, cuantificación y fiscalización de los recursos públicos humanos, materiales y presupuéstales asignados en forma directa o transferidos a la Agencia Mexicana de Cooperación Internacional para el Desarrollo, por conducto de la Secretaría de Relaciones Exteriores para el exc lusivo cumplimiento de las tareas de coordinación, seguimiento y evaluación del Programa de Cooperación Internacional para el Desarrollo, en los ámbitos nacional, binacional, regional y multilateral, en sus diferentes vertientes.
+**II.** La administración, cuantificación y fiscalización de los recursos públicos humanos, materiales y presupuéstales asignados en forma directa o transferidos a la Agencia Mexicana de Cooperación Internacional para el Desarrollo, por conducto de la Secretaría de Relaciones Exteriores para el exclusivo cumplimiento de las tareas de coordinación, seguimiento y evaluación del Programa de Cooperación Internacional para el Desarrollo, en los ámbitos nacional, binacional, regional y multilateral, en sus diferentes vertientes.
 
-**III.** La administración, c uantificación y fiscalización de los recursos que la Agencia Mexicana de Cooperación Internacional para el Desarrollo reciba de otras fuentes, nacionales e internacionales, mediante procedimientos que garanticen plena transparencia.
+**III.** La administración, cuantificación y fiscalización de los recursos que la Agencia Mexicana de Cooperación Internacional para el Desarrollo reciba de otras fuentes, nacionales e internacionales, mediante procedimientos que garanticen plena transparencia.
 
-**IV.** El cabal cumplimie nto de los acuerdos y convenios internacionales vigentes y futuros en materia de cooperación internacional suscritos por el Estado Mexicano.
+**IV.** El cabal cumplimiento de los acuerdos y convenios internacionales vigentes y futuros en materia de cooperación internacional suscritos por el Estado Mexicano.
 
 **Artículo 3.** Son sujetos de la presente Ley las dependencias y entidades de la Administración Pública Federal.
 
@@ -42,11 +50,11 @@ Las acciones de cooperación internacional para el desarrollo que lleve a cabo e
 
 **III.** Cooperación Internacional: La cooperación internacional para el desarrollo definida en los términos y para los efectos del artículo 1 de la presente Ley.
 
-**IV.** Cooperación Tria ngular: Modalidad de cooperación en asociación con una fuente tradicional bilateral o multilateral, para concurrir, conjuntamente, en acciones en favor de una tercera nación demandante, de menor o similar desarrollo relativo.
+**IV.** Cooperación Triangular: Modalidad de cooperación en asociación con una fuente tradicional bilateral o multilateral, para concurrir, conjuntamente, en acciones en favor de una tercera nación demandante, de menor o similar desarrollo relativo.
 
-**V.** Cooperación Vertical: La c ooperación que se otorga a países en vías de desarrollo sin aporte de recursos de contraparte.
+**V.** Cooperación Vertical: La cooperación que se otorga a países en vías de desarrollo sin aporte de recursos de contraparte.
 
-**VI.** Cooperante: La persona moral mexicana del sector público que reúna las capacidades técnicas e institucionales para participar en la ejecución de las activid ades de oferta o de demanda de cooperación internacional.
+**VI.** Cooperante: La persona moral mexicana del sector público que reúna las capacidades técnicas e institucionales para participar en la ejecución de las actividades de oferta o de demanda de cooperación internacional.
 
 **VII.** Consejo Consultivo: El Consejo Consultivo de la AMEXCID.
 
@@ -68,9 +76,13 @@ Las acciones de cooperación internacional para el desarrollo que lleve a cabo e
 
 **Artículo 5.** La autoridad competente para la aplicación e interpretación de la presente Ley será la Secretaría.
 
-Título Segundo De los Instrumentos para la Cooperación Internacional para el Desarrollo
+Título Segundo
 
-Capítulo I Disposiciones Generales
+De los Instrumentos para la Cooperación Internacional para el Desarrollo
+
+Capítulo I
+
+Disposiciones Generales
 
 **Artículo 6.** Son instrumentos para la Cooperación Internacional, los siguientes:
 
@@ -78,7 +90,9 @@ Capítulo I Disposiciones Generales
 
 **b)** El Programa de Cooperación Internacional para el Desarrollo.
 
-Capítulo II De la Agencia Mexicana de Cooperación Internacional para el Desarrollo
+Capítulo II
+
+De la Agencia Mexicana de Cooperación Internacional para el Desarrollo
 
 **Artículo 7.** Se crea la AMEXCID como un órgano desconcentrado de la Secretaría, en los términos de su reglamento interior, con atribuciones especificas para resolver sobre las materias que se señalan en la presente Ley y las demás disposiciones relativas.
 
@@ -94,17 +108,17 @@ Capítulo II De la Agencia Mexicana de Cooperación Internacional para el Desarr
 
 **III.** Asesorar a la Secretaría, en el ámbito de su competencia, sobre los tratados internacionales y convenios interinstitucionales que suscriba en materia de cooperación internacional;
 
-**IV.** Apoyar, supervisar, evaluar y dar seguimiento, en el ámbito de su competencia y en coordinación con las instituciones cooperantes que correspondan, a la ejecución de las polít icas y acciones de cooperación internacional de conformidad con los lineamientos del Programa;
+**IV.** Apoyar, supervisar, evaluar y dar seguimiento, en el ámbito de su competencia y en coordinación con las instituciones cooperantes que correspondan, a la ejecución de las políticas y acciones de cooperación internacional de conformidad con los lineamientos del Programa;
 
 **V.** Establecer, bajo criterios objetivos y transparentes, la calificación de cooperante y precisar los alcances de su misión, en los acuerdos internacionales que se suscriban en la materia, tanto para los nacionales mexicanos que participen en acciones de cooperación internacional en terceros países como de extranjeros que lo hagan en México, sin perjuicio de lo establecido en los tratados internacionales;
 
-**VI.** Celebrar, con la participación de las instancias competentes de la Secretaría, convenios con los gobiernos de las entidades federativas, de municipios, universidades e instituciones de educación superior e investigación, pertenecientes al sector público, par a la realización de acciones de cooperación internacional;
+**VI.** Celebrar, con la participación de las instancias competentes de la Secretaría, convenios con los gobiernos de las entidades federativas, de municipios, universidades e instituciones de educación superior e investigación, pertenecientes al sector público, para la realización de acciones de cooperación internacional;
 
 **VII.** Celebrar, con la participación de las instancias competentes de la Secretaría, convenios de colaboración con agencias de cooperación internacional de otras naciones para realizar acciones conjuntas en terceros países con menor desarrollo relativo, con apego al artículo 8 de esta Ley;
 
 **VIII.** Administrar, como parte de sus funciones, el Registro Nacional y el Sistema Nacional de Información de la Cooperación Internacional para el Desarrollo;
 
-**IX.** Se deroga. Fracción derogada DOF 06-11-2020
+**IX. (DEROGADA, D.O.F. 6 DE NOVIEMBRE DE 2020)**
 
 **X.** Ejercer las funciones generales asignadas en el Reglamento Interior de la Secretaría y en acuerdos reglamentarios que de él deriven, y
 
@@ -114,7 +128,7 @@ Capítulo II De la Agencia Mexicana de Cooperación Internacional para el Desarr
 
 **Artículo 12.** La AMEXCID, con apoyo en los datos del Registro Nacional, deberá desarrollar una metodología para contabilizar el total de los recursos humanos, financieros y técnicos que el conjunto de los cooperantes mexicanos destinen a este propósito.
 
-**Artículo 13.** Es responsabilidad de la AMEXCID que su personal se mantenga actualizado en relación con las mejores prácticas en materia de cooperación internacional, desarrolladas, adoptadas y aplicadas por agencias de cooperación de terceros países y por organism os multilaterales especializados.
+**Artículo 13.** Es responsabilidad de la AMEXCID que su personal se mantenga actualizado en relación con las mejores prácticas en materia de cooperación internacional, desarrolladas, adoptadas y aplicadas por agencias de cooperación de terceros países y por organismos multilaterales especializados.
 
 Capítulo III
 
@@ -124,9 +138,11 @@ De las Autoridades de la Agencia Mexicana de Cooperación Internacional para el 
 
 La Dirección Ejecutiva contará con la estructura orgánica y administrativa que se establezca en el Reglamento Interior de la Secretaría.
 
-Capítulo IV Del Consejo Consultivo de la Agencia Mexicana de Cooperación Internacional para el Desarrollo
+Capítulo IV
 
-**Artículo 15.** El Consejo Consultivo de la AMEXCID se constituye con el propósito de contribuir a la formulación del Programa de Cooperación Internacional para el Desarrollo, o su equivalente, y de la política pública en esta materia, cuya definición es responsabilidad de la Secretaría. El C onsejo Consultivo estará integrado por un representante de cada una las Secretarías y entidades que se mencionan a continuación, quienes tendrán derecho a voz y voto:
+Del Consejo Consultivo de la Agencia Mexicana de Cooperación Internacional para el Desarrollo
+
+**Artículo 15.** El Consejo Consultivo de la AMEXCID se constituye con el propósito de contribuir a la formulación del Programa de Cooperación Internacional para el Desarrollo, o su equivalente, y de la política pública en esta materia, cuya definición es responsabilidad de la Secretaría. El Consejo Consultivo estará integrado por un representante de cada una las Secretarías y entidades que se mencionan a continuación, quienes tendrán derecho a voz y voto:
 
 **a)** Secretaría de Gobernación;
 
@@ -164,15 +180,17 @@ Capítulo IV Del Consejo Consultivo de la Agencia Mexicana de Cooperación Inter
 
 **q)** Consejo Nacional de Ciencia y Tecnología;
 
-**r)** Secretaría de Cultura, y Inciso reformado DOF 17-12-2015
+**(REFORMADO, D.O.F. 17 DE DICIEMBRE DE 2015)**
+
+**r)** Secretaría de Cultura, y
 
 **s)** Comisión Nacional para el Desarrollo de los Pueblos Indígenas.
 
-La Presid encia del Consejo Consultivo estará a cargo del Titular de la Secretaría de Relaciones Exteriores.
+La Presidencia del Consejo Consultivo estará a cargo del Titular de la Secretaría de Relaciones Exteriores.
 
-Los integrantes propietarios del Consejo Consultivo deberán contar con sus respectivos suplentes, los cuales habrán de tener el nivel jerárquico inmediato i nferior y contarán con las mismas facultades que los propietarios en caso de ausencia de éstos.
+Los integrantes propietarios del Consejo Consultivo deberán contar con sus respectivos suplentes, los cuales habrán de tener el nivel jerárquico inmediato inferior y contarán con las mismas facultades que los propietarios en caso de ausencia de éstos.
 
-El Consejo podrá solicitar a su presidente invitar a representantes de los Gobiernos de las entidades federativas y municipios, así como de los sectores privad o, social y académico, quienes participarán con derecho a voz.
+El Consejo podrá solicitar a su presidente invitar a representantes de los Gobiernos de las entidades federativas y municipios, así como de los sectores privado, social y académico, quienes participarán con derecho a voz.
 
 Los cargos en el Consejo Consultivo serán de carácter honorífico.
 
@@ -190,7 +208,9 @@ El Presidente del Consejo Consultivo, podrá convocar a reuniones de los Consejo
 
 **Artículo 17.** Los acuerdos en el seno del Consejo Consultivo se tomarán por mayoría simple; en caso de empate, el Presidente del mismo tendrá voto de calidad.
 
-Capítulo V Del Director Ejecutivo de la Agencia Mexicana de Cooperación Internacional para el Desarrollo
+Capítulo V
+
+Del Director Ejecutivo de la Agencia Mexicana de Cooperación Internacional para el Desarrollo
 
 **Artículo 18.** Al frente de la AMEXCID habrá un Director Ejecutivo, quien será propuesto por el titular de la Secretaría y designado por el titular del Poder Ejecutivo Federal.
 
@@ -200,7 +220,7 @@ Capítulo V Del Director Ejecutivo de la Agencia Mexicana de Cooperación Intern
 
 **II.** Acordar y suscribir los convenios y contratos relativos a la AMEXCID, de conformidad con las disposiciones y lineamientos que fijen las unidades administrativas centrales de la Secretaría;
 
-**III.** Administrar los recursos humanos, así com o los financieros y materiales que se le asignen a la AMEXCID para el desarrollo de sus actividades;
+**III.** Administrar los recursos humanos, así como los financieros y materiales que se le asignen a la AMEXCID para el desarrollo de sus actividades;
 
 **IV.** Coordinar con el conjunto de instituciones cooperantes las acciones necesarias para la elaboración del Programa y presentar la propuesta al Consejo Consultivo;
 
@@ -212,19 +232,19 @@ Capítulo V Del Director Ejecutivo de la Agencia Mexicana de Cooperación Intern
 
 **VIII.** Proponer los proyectos de manuales de organización, procedimientos y servicios al público, relativos a la AMEXCID, previo dictamen de la Oficialía Mayor de la Secretaría, los cuales deberán ser expedidos por el Titular de la Secretaría;
 
-**IX.** Proponer al titu lar de la Secretaría la delegación de atribuciones en servidores públicos subalternos;
+**IX.** Proponer al titular de la Secretaría la delegación de atribuciones en servidores públicos subalternos;
 
-**X.** Participar, en el ámbito de su competencia, en el diseño y establecimiento de los mecanismos de coordinación y concertación que se establezcan con las autoridades fe derales, estatales y municipales;
+**X.** Participar, en el ámbito de su competencia, en el diseño y establecimiento de los mecanismos de coordinación y concertación que se establezcan con las autoridades federales, estatales y municipales;
 
 **XI.** Coordinarse con los titulares de las unidades administrativas de la Secretaría para el eficaz despacho de los asuntos de su competencia;
 
 **XII.** Proporcionar la información, los datos, criterios de calificación o de la cooperación técnica que le sea requerida oficialmente, de conformidad con lo dispuesto en esta Ley y lo establecido en la Ley Federal de Transparencia y Acceso a la Información Pública Gubernamental;
 
-**XIII.** Vigilar que se cumpla estrictamente con las dispo siciones legales y administrativas en todos los asuntos cuya atención le corresponda;
+**XIII.** Vigilar que se cumpla estrictamente con las disposiciones legales y administrativas en todos los asuntos cuya atención le corresponda;
 
 **XIV.** Cumplir con las normas de control y fiscalización que establezcan las disposiciones legales correspondientes;
 
-**XV.** Presentar al Consejo Consultivo el informe semest ral del desempeño de las actividades de la AMEXCID, incluido el ejercicio del presupuesto y los estados financieros correspondientes, las metas propuestas y los compromisos asumidos, sin perjuicio de hacer lo propio con la Secretaría;
+**XV.** Presentar al Consejo Consultivo el informe semestral del desempeño de las actividades de la AMEXCID, incluido el ejercicio del presupuesto y los estados financieros correspondientes, las metas propuestas y los compromisos asumidos, sin perjuicio de hacer lo propio con la Secretaría;
 
 **XVI.** Asistir a las sesiones del Consejo Consultivo con derecho a voz, pero sin voto;
 
@@ -246,7 +266,9 @@ Capítulo V Del Director Ejecutivo de la Agencia Mexicana de Cooperación Intern
 
 **Artículo 21.** El Director Ejecutivo de la AMEXCID no podrá desempeñar, durante el ejercicio de su encargo, ningún otro empleo, cargo o comisión distintos que sean remunerados, con excepción de los de carácter docente o científico.
 
-Capítulo VI Del Programa de Cooperación Internacional para el Desarrollo
+Capítulo VI
+
+Del Programa de Cooperación Internacional para el Desarrollo
 
 **Artículo 22.** Las políticas y mecanismos de ejecución de la Cooperación Internacional estarán establecidos en el Programa correspondiente.
 
@@ -254,15 +276,15 @@ Capítulo VI Del Programa de Cooperación Internacional para el Desarrollo
 
 **Artículo 24.** El Programa deberá contemplar los siguientes aspectos:
 
-**I.** La política general de cooperación internacional consistente en el conjunto de acciones de transferencia de recursos, bienes, conocimientos y exp eriencias educativas, culturales, técnicas, científicas, económicas y financieras, de terceros países y de organizaciones internacionales a México, y de México a terceros países, con el propósito fundamental de fortalecer en ambos casos las capacidades nacionales para el desarrollo;
+**I.** La política general de cooperación internacional consistente en el conjunto de acciones de transferencia de recursos, bienes, conocimientos y experiencias educativas, culturales, técnicas, científicas, económicas y financieras, de terceros países y de organizaciones internacionales a México, y de México a terceros países, con el propósito fundamental de fortalecer en ambos casos las capacidades nacionales para el desarrollo;
 
 **II.** La identificación de las áreas geográficas que resulten prioritarias para el interés de México en materia de oferta de cooperación internacional, en primer término Centroamérica y el resto de los países de América Latina y el Caribe;
 
-**III.** La identificación de los contenidos prioritarios de la cooperación internacional, entre los cuales deberán de figurar de manera obligada: investigación científica y tecnológica en todos los ámbitos de interés nacional, salud, educación, pr otección del medio ambiente y prevención de desastres, bajo los principios señalados en el último párrafo del artículo primero de esta Ley;
+**III.** La identificación de los contenidos prioritarios de la cooperación internacional, entre los cuales deberán de figurar de manera obligada: investigación científica y tecnológica en todos los ámbitos de interés nacional, salud, educación, protección del medio ambiente y prevención de desastres, bajo los principios señalados en el último párrafo del artículo primero de esta Ley;
 
 **IV.** Los medios y estrategias contemplados para el cumplimiento de los objetivos del Programa, y
 
-**V.** Las políticas q ue regirán la coordinación y concertación del Ejecutivo Federal con las dependencias y entidades enunciadas en el artículo 3 de este ordenamiento, en materia de cooperación internacional.
+**V.** Las políticas que regirán la coordinación y concertación del Ejecutivo Federal con las dependencias y entidades enunciadas en el artículo 3 de este ordenamiento, en materia de cooperación internacional.
 
 **Artículo 25.** En la orientación de la política de cooperación internacional, el Programa deberá:
 
@@ -274,21 +296,25 @@ Capítulo VI Del Programa de Cooperación Internacional para el Desarrollo
 
 **IV.** Promover la diversidad cultural y la proyección de México en el exterior como un Estado pluriétnico y multicultural;
 
-**V.** Privilegiar la demanda de cooperación internacional para fortalecer la formación de recursos humanos en las áreas de mayor importancia estratégica para el desarrollo nacional.
+**V.** Privilegiar la demanda de cooperación internacional para fortalecer la formación de recursos humanos en las áreas de mayor importancia estratégica para el desarrollo nacional;
 
-**VI.** Promover el fortalecimiento institucional para la cooperación internacional, con especi al énfasis en la formación de recursos humanos especializados en la gestión de la oferta mexicana en la materia;
+**VI.** Promover el fortalecimiento institucional para la cooperación internacional, con especial énfasis en la formación de recursos humanos especializados en la gestión de la oferta mexicana en la materia;
 
-**VII.** Propiciar la celebración de acuerdos internacionales para la realización de proyectos de cooperación internacional de gran impacto y larg o alcance, participando de manera activa en los organismos de cooperación internacional de distinta índole de los que México forme parte;
+**VII.** Propiciar la celebración de acuerdos internacionales para la realización de proyectos de cooperación internacional de gran impacto y largo alcance, participando de manera activa en los organismos de cooperación internacional de distinta índole de los que México forme parte;
 
 **VIII.** Incorporar lo dispuesto en las leyes mexicanas en lo relativo a la prestación de ayuda humanitaria en casos de desastres, y
 
 **IX.** Garantizar la coherencia con la consecución de los Objetivos del Milenio de la Organización de las Naciones Unidas, así como con aquellos otros acuerdos y convenciones internacionales que incidan en la cooperación internacional y de los que México forme parte.
 
-**Artículo 26.** El Programa deberá ser evaluado anualmente por la Secretaría, sin perjuicio de las facultades que en materia de evaluación correspondan a otras instancias, y podrá ser revisado cada dos años para ajustarlo tanto a las m odificaciones que se produzcan en los ámbitos específicos de su aplicación, como a los avances y limitaciones que se observen en su ejecución.
+**Artículo 26.** El Programa deberá ser evaluado anualmente por la Secretaría, sin perjuicio de las facultades que en materia de evaluación correspondan a otras instancias, y podrá ser revisado cada dos años para ajustarlo tanto a las modificaciones que se produzcan en los ámbitos específicos de su aplicación, como a los avances y limitaciones que se observen en su ejecución.
 
-Título Tercero Del Registro de Información de la Cooperación Internacional para el Desarrollo
+Título Tercero
 
-Capítulo I Del Registro Nacional de la Cooperación Internacional
+Del Registro de Información de la Cooperación Internacional para el Desarrollo
+
+Capítulo I
+
+Del Registro Nacional de la Cooperación Internacional
 
 **Artículo 27.** Se crea el Registro Nacional, como una función de la AMEXCID, que estará bajo su responsabilidad directa, sujeto a las disposiciones que al efecto prevea el Reglamento Interior de la Secretaría.
 
@@ -300,86 +326,200 @@ Capítulo I Del Registro Nacional de la Cooperación Internacional
 
 **III.** Los proyectos y acciones de cooperación internacional en los cuales participen como receptores o donantes las dependencias e instancias consignadas en el artículo 3, y en cuya promoción, acuerdo y ejecución participen la Secretaría y/o la AMEXCID;
 
-**IV.** Las ofertas de cooperación internacional en materias educativas, culturales, técnicas, científicas, económicas y financieras presentadas a México por instit uciones y gobiernos extranjeros y por organizaciones multilaterales;
+**IV.** Las ofertas de cooperación internacional en materias educativas, culturales, técnicas, científicas, económicas y financieras presentadas a México por instituciones y gobiernos extranjeros y por organizaciones multilaterales;
 
 **V.** Las demandas de cooperación internacional en materia educativa, cultural, técnica, científica, económica y financiera, planteadas a México por terceros países;
 
 **VI.** Los sujetos enunciados en el artículo 3 que hubieran recibido de la AMEXCID la calificación de cooperantes;
 
-**VII.** Los acuerdos de cooperación internacional que celebren, tanto en calidad de oferentes como de demandantes, las dependencias y entidades consignadas en el Artícu lo 3 y los centros de investigación pertenecientes al sector públicos;
+**VII.** Los acuerdos de cooperación internacional que celebren, tanto en calidad de oferentes como de demandantes, las dependencias y entidades consignadas en el Artículo 3 y los centros de investigación pertenecientes al sector públicos (sic);
 
 **VIII.** Los informes de los cooperantes mexicanos y extranjeros al término de sus misiones de cooperación internacional;
 
-**IX.** Los tratados internacionales y las disposiciones jurídicas r eferidas directa o indirectamente a la cooperación internacional para el desarrollo;
+**IX.** Los tratados internacionales y las disposiciones jurídicas referidas directa o indirectamente a la cooperación internacional para el desarrollo;
 
-**X.** Los montos de las asignaciones presupuestales federales para la Cooperación Internacional, así como para el financiamiento de proyectos específicos; Fracción reformada DOF 06-11-2020
+**(REFORMADA, D.O.F. 6 DE NOVIEMBRE DE 2020)**
+
+**X.** Los montos de las asignaciones presupuestales federales para la Cooperación Internacional, así como para el financiamiento de proyectos específicos;
 
 **XI.** Las evaluaciones de los resultados finales de las acciones de cooperación internacional coordinadas por la AMEXCID, y
 
 **XII.** Los montos, modalidades y ejercicio de los recursos financieros, las donaciones y las aportaciones en especie provenientes de gobiernos extranjeros y organismos internacionales, que se deriven de los esquemas de cooperación internacional de los que forme parte el Estado Mexicano.
 
-Capítulo II Del Sistema de Información de la Cooperación Internacional para el Desarrollo
+Capítulo II
 
-**Artículo 29.** Con base en la información inscrita en el Registro Nacional, la AMEXCID creará, organizará, administrará y mantendrá actualizado, como una de sus funciones, el Sistema de Información
+Del Sistema de Información de la Cooperación Internacional para el Desarrollo
 
-de la Cooperación Internacional para el Desar rollo, estableciendo un banco de información que permita identificar la concurrencia y, en su caso, la duplicidad de esfuerzos, así como las posibles iniciativas contradictorias de cooperación internacional que impulsen las dependencias e instancias de la Administración Pública Federal.
+**Artículo 29.** Con base en la información inscrita en el Registro Nacional, la AMEXCID creará, organizará, administrará y mantendrá actualizado, como una de sus funciones, el Sistema de Información de la Cooperación Internacional para el Desarrollo, estableciendo un banco de información que permita identificar la concurrencia y, en su caso, la duplicidad de esfuerzos, así como las posibles iniciativas contradictorias de cooperación internacional que impulsen las dependencias e instancias de la Administración Pública Federal.
 
 La información inscrita en el Registro Nacional será pública y estará sujeta a lo dispuesto por la Ley Federal de Transparencia y Acceso a la Información Pública Gubernamental.
 
-**Artículo 30.** Toda persona tendrá derecho a qu e la AMEXCID ponga a su disposición la información puntual que solicite sobre la cooperación internacional para el desarrollo, en los términos previstos por las leyes.
+**Artículo 30.** Toda persona tendrá derecho a que la AMEXCID ponga a su disposición la información puntual que solicite sobre la cooperación internacional para el desarrollo, en los términos previstos por las leyes.
 
-**Artículo 31.** La AMEXCID, bajo la coordinación de la Secretaría, diseñará y pondrá en pr áctica una política de divulgación de los resultados y beneficios de las acciones de cooperación internacional para el desarrollo, precisándose las gestiones del Estado mexicano en carácter de receptor y de oferente de dicha cooperación.
+**Artículo 31.** La AMEXCID, bajo la coordinación de la Secretaría, diseñará y pondrá en práctica una política de divulgación de los resultados y beneficios de las acciones de cooperación internacional para el desarrollo, precisándose las gestiones del Estado mexicano en carácter de receptor y de oferente de dicha cooperación.
 
-**Artículo 32.** Las dependencias y entidades de la Administración Pública Federal otorgantes o beneficiarias de las acciones de cooperación internacional estarán obligadas a colaborar con la AMEXCID en la organización y actualización del sistema de información, mediante la pr esentación anual de informes sobre los acuerdos interinstitucionales que celebren en materia de cooperación internacional para el desarrollo.
+**Artículo 32.** Las dependencias y entidades de la Administración Pública Federal otorgantes o beneficiarias de las acciones de cooperación internacional estarán obligadas a colaborar con la AMEXCID en la organización y actualización del sistema de información, mediante la presentación anual de informes sobre los acuerdos interinstitucionales que celebren en materia de cooperación internacional para el desarrollo.
 
-Título Cuarto Del Financiamiento de la Cooperación Internacional para el Desarrollo
+Título Cuarto
 
-**Artículo 33.** Las acciones de cooperación internacional se financiarán con asignaciones presupuestales federales aprobadas por la Cámara de Diputados, así como con aportaciones financieras y en especie de gobiernos extranjeros y organismos internacionales, y con aportaciones financier as y en especie de los gobiernos de las entidades federativas y de los municipios.
+Del Financiamiento de la Cooperación Internacional para el Desarrollo
 
-Capítulo I De los Recursos de Cooperación Internacional para el Desarrollo Denominación del Capítulo reformada DOF 06-11-2020
+**Artículo 33.** Las acciones de cooperación internacional se financiarán con asignaciones presupuestales federales aprobadas por la Cámara de Diputados, así como con aportaciones financieras y en especie de gobiernos extranjeros y organismos internacionales, y con aportaciones financieras y en especie de los gobiernos de las entidades federativas y de los municipios.
 
-**Artículo 34.** Se deroga. Artículo derogado DOF 06-11-2020
+**(REFORMADA SU DENOMINACIÓN, D.O.F. 6 DE NOVIEMBRE DE 2020)**
 
-**Artículo 35.** Se deroga. Artículo derogado DOF 06-11-2020
+Capítulo I
 
-**Artículo 36.** Se deroga. Artículo derogado DOF 06-11-2020
+De los Recursos de Cooperación Internacional para el Desarrollo
 
-**Artículo 37.** - Los recursos para la Cooperación Internacional serán ejecutados por la AMEXCID considerando a la cooperación internacional como parte de la política exterior de México. Artículo reformado DOF 06-11-2020
+**Artículo 34.** (DEROGADO, D.O.F. 6 DE NOVIEMBRE DE 2020)
 
-**Artículo 38.-** Se deroga. Artículo derogado DOF 06-11-2020
+**Artículo 35.** (DEROGADO, D.O.F. 6 DE NOVIEMBRE DE 2020)
 
-**Artículo 39.-** Se deroga. Artículo derogado DOF 06-11-2020
+**Artículo 36.** (DEROGADO, D.O.F. 6 DE NOVIEMBRE DE 2020)
+
+**(REFORMADO, D.O.F. 6 DE NOVIEMBRE DE 2020)**
+
+**Artículo 37.** Los recursos para la Cooperación Internacional serán ejecutados por la AMEXCID considerando a la cooperación internacional como parte de la política exterior de México.
+
+**Artículo 38.** (DEROGADO, D.O.F. 6 DE NOVIEMBRE DE 2020)
+
+**Artículo 39.** (DEROGADO, D.O.F. 6 DE NOVIEMBRE DE 2020)
 
 **Artículo 40.** Los bienes donados a favor de las entidades federativas y los municipios, invariablemente se incorporarán al patrimonio del Estado o de los municipios.
 
-**Artículo 41.** La AMEXCID, por conducto de la Secretaría, presentará a las Secret arías de Hacienda y Crédito Público y de la Función Pública un informe anual sobre los recursos financieros recibidos y aplicados directamente por la propia Agencia.
+**Artículo 41.** La AMEXCID, por conducto de la Secretaría, presentará a las Secretarías de Hacienda y Crédito Público y de la Función Pública un informe anual sobre los recursos financieros recibidos y aplicados directamente por la propia Agencia.
 
-**Artículo 42.** Se deroga. Artículo derogado DOF 06-11-2020
+**Artículo 42.** (DEROGADO, D.O.F. 6 DE NOVIEMBRE DE 2020)
 
 ## Transitorios
 
 **Artículo Primero.** El presente Decreto entrará en vigor a los diez días siguientes a su publicación en el Diario Oficial de la Federación.
 
-**Artículo Segundo.** La Agencia Mexicana de Cooperación Internacional (AMEXCID) para el Desarrollo a que se refiere la presente Ley, deberá constituirse dentro de los 120 días siguientes a su entrada en vigor, mediante la reasignación de los recursos de todo tipo que se destinan actualmente a las tareas de cooperación internacional en la estructura y presupuesto de la Secretaría de Rela ciones Exteriores.
+**Artículo Segundo.** La Agencia Mexicana de Cooperación Internacional (AMEXCID) para el Desarrollo a que se refiere la presente Ley, deberá constituirse dentro de los 120 días siguientes a su entrada en vigor, mediante la reasignación de los recursos de todo tipo que se destinan actualmente a las tareas de cooperación internacional en la estructura y presupuesto de la Secretaría de Relaciones Exteriores.
 
-Los programas, proyectos y demás acciones que, en cumplimiento a lo dispuesto en esta Ley y en razón de su competencia, corresponda ejecutar a las dependencias y entidades de la Administración Pública Federal, deberán sujetarse a la dis ponibilidad presupuestaria que se apruebe para dichos fines en el Presupuesto de Egresos de la Federación y a las disposiciones de la Ley Federal de Presupuesto y Responsabilidad Hacendaria.
+Los programas, proyectos y demás acciones que, en cumplimiento a lo dispuesto en esta Ley y en razón de su competencia, corresponda ejecutar a las dependencias y entidades de la Administración Pública Federal, deberán sujetarse a la disponibilidad presupuestaria que se apruebe para dichos fines en el Presupuesto de Egresos de la Federación y a las disposiciones de la Ley Federal de Presupuesto y Responsabilidad Hacendaria.
 
-**Artículo Tercero.** El Programa a que se refiere la Ley de Coopera ción Internacional para el Desarrollo, deberá ser integrado dentro de los 120 días que sigan a la constitución de la AMEXCID.
+**Artículo Tercero.** El Programa a que se refiere la Ley de Cooperación Internacional para el Desarrollo, deberá ser integrado dentro de los 120 días que sigan a la constitución de la AMEXCID.
 
 **Artículo Cuarto.** El Registro Nacional deberá ser instituido, como una función de la AMEXCID, dentro de los 240 días siguientes a la constitución del órgano desconcentrado.
 
-**Artículo Quinto.** El Fondo de Cooperación Internacional para el Desarrollo a que se refiere la presente Ley, deberá constituirse dentro de los 120 días siguientes a la constitución de la AMEXCID, integrando como r ecursos semilla aquellos que ya forman parte del presupuesto, tales como el Fondo Mexicano para la Cooperación con Centroamérica y el Caribe, el Programa de Acciones Estratégicas de México con el Caribe, el Programa de Cooperación entre México e Iberoaméri ca y el Fondo 22 México/OEA, así como los recursos de contraparte de los proyectos de cooperación acordados con la Unión Europea y varios países pertenecientes a la OCDE.
+**Artículo Quinto.** El Fondo de Cooperación Internacional para el Desarrollo a que se refiere la presente Ley, deberá constituirse dentro de los 120 días siguientes a la constitución de la AMEXCID, integrando como recursos semilla aquellos que ya forman parte del presupuesto, tales como el Fondo Mexicano para la Cooperación con Centroamérica y el Caribe, el Programa de Acciones Estratégicas de México con el Caribe, el Programa de Cooperación entre México e Iberoamérica y el Fondo 22 México/OEA, así como los recursos de contraparte de los proyectos de cooperación acordados con la Unión Europea y varios países pertenecientes a la OCDE.
 
-**Artículo Sexto.** La Secretaría de Relaciones Exteriores dentro de los 100 días siguie ntes a la aprobación de la Ley en la materia, propondrá al Ejecutivo Federal la adecuación del Reglamento Interior que la rige, a fin de incluir a la AMEXCID como órgano desconcentrado y señalar las atribuciones que esta Ley le confiere.
+**Artículo Sexto.** La Secretaría de Relaciones Exteriores dentro de los 100 días siguientes a la aprobación de la Ley en la materia, propondrá al Ejecutivo Federal la adecuación del Reglamento Interior que la rige, a fin de incluir a la AMEXCID como órgano desconcentrado y señalar las atribuciones que esta Ley le confiere.
 
 **Artículo Séptimo.** La Secretaría de Relaciones Exteriores, una vez promulgada la presente Ley en el Diario Oficial de la Federación, le destinará a la AMEXCID recursos presupuestales que le hayan sido asignados en el ejercicio fiscal en curso, a fin de iniciar sus trabajos en el tiempo señalado en este capítulo.
 
-**Artículo Octavo.** El personal de la Secretaría de Relaciones Exteriores que, en aplicación de esta Ley pase a la AMEXCID, incluido el perteneciente al Servicio Exterior Mexicano, en ninguna forma resultará
+**Artículo Octavo.** El personal de la Secretaría de Relaciones Exteriores que, en aplicación de esta Ley pase a la AMEXCID, incluido el perteneciente al Servicio Exterior Mexicano, en ninguna forma resultará afectado en los derechos que haya adquirido en virtud de su relación laboral con la Administración Pública Federal.
 
-afectado e n los derechos que haya adquirido en virtud de su relación laboral con la Administración Pública Federal.
+**Artículo Noveno.** Si alguna unidad administrativa de la Secretaría de Relaciones Exteriores pasa a formar parte de la AMEXCID, el traspaso se hará incluyendo al personal a su servicio, mobiliario, archivo y, en general, el equipo que la dependencia haya utilizado para la atención de los asuntos a su cargo.
 
-**Artículo Noveno.** Si alguna unidad administrativa de la Secretaría de Relaciones Exteriores pasa a formar parte de la AMEXCID, el traspaso se hará inc luyendo al personal a su servicio, mobiliario, archivo y, en general, el equipo que la dependencia haya utilizado para la atención de los asuntos a su cargo.
+México, D.F., a 15 de diciembre de 2010.- Sen. Manlio Fabio Beltrones Rivera, Presidente.- Dip. Jorge Carlos Ramírez Marín, Presidente.- Sen. Renan Cleominio Zoreda Novelo, Secretario.- Dip. María Dolores Del Río Sánchez, Secretaria.- Rúbricas."
 
-México, D.F., a 15 de diciembre de 2010. - Sen. Manlio Fabio Beltrones Rivera , Presidente. - Dip. Jorge Carlos Ramírez Marín , Presidente. - Sen. Renan Cleominio Zoreda Novelo , Secretario. - Dip. María Dolores Del Río Sánchez, Secretaria.- Rúbricas."
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a cuatro de abril de dos mil once.- Felipe de Jesús Calderón Hinojosa.- Rúbrica.- El Secretario de Gobernación, José Francisco Blake Mora.- Rúbrica.
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a cuatro de abril de dos mil once. - Felipe de Jesús Calderón Hinojosa .- Rúbrica.- El Secretario de Gobernación, José Francisco Blake Mora.- Rúbrica.
+**D.O.F. 17 DE DICIEMBRE DE 2015.**
+
+**PRIMERO.** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
+
+**SEGUNDO.** El Consejo Nacional para la Cultura y las Artes se transforma en la Secretaría de Cultura, por lo que todos sus bienes y recursos materiales, financieros y humanos se transferirán a la mencionada Secretaría, junto con los expedientes, archivos, acervos y demás documentación, en cualquier formato, que se encuentre bajo su resguardo.
+
+A partir de la entrada en vigor del presente Decreto, las menciones contenidas en leyes, reglamentos y disposiciones de cualquier naturaleza, respecto del Consejo Nacional para la Cultura y las Artes, se entenderán referidas a la Secretaría de Cultura.
+
+**TERCERO.** Los derechos laborales de los trabajadores que presten sus servicios en el Consejo Nacional para la Cultura y las Artes, en la Secretaría de Educación Pública, en los órganos administrativos desconcentrados y en las entidades paraestatales que, con motivo de la entrada en vigor del presente Decreto, queden adscritos o coordinados a la Secretaría de Cultura, respectivamente, serán respetados en todo momento, de conformidad con lo dispuesto en las leyes y demás disposiciones aplicables.
+
+**CUARTO.** El Instituto Nacional de Antropología e Historia y el Instituto Nacional de Bellas Artes y Literatura, continuarán rigiéndose por sus respectivas leyes y demás disposiciones aplicables y dependerán de la Secretaría de Cultura, misma que ejercerá las atribuciones que en dichos ordenamientos se otorgaban a la Secretaría de Educación Pública.
+
+Los órganos administrativos desconcentrados denominados Radio Educación e Instituto Nacional de Estudios Históricos de las Revoluciones de México, se adscribirán a la Secretaría de Cultura y mantendrán su naturaleza jurídica.
+
+**QUINTO.** La Secretaría de Cultura integrará los diversos consejos, comisiones intersecretariales y órganos colegiados previstos en las disposiciones jurídicas aplicables, según el ámbito de sus atribuciones.
+
+**SEXTO.** Los asuntos que se encuentren en trámite a la entrada en vigor del presente Decreto y sean competencia de la Secretaría de Cultura conforme a dicho Decreto, continuarán su despacho por esta dependencia, conforme a las disposiciones jurídicas aplicables.
+
+**SÉPTIMO.** Todas las disposiciones, normas, lineamientos, criterios y demás normativa emitida por el Consejo Nacional para la Cultura y las Artes continuará en vigor hasta en tanto las unidades administrativas competentes de la Secretaría de Cultura determinen su modificación o abrogación.
+
+Asimismo, todas las disposiciones, lineamientos, criterios y demás normativa emitida por el Secretario de Educación Pública que contengan disposiciones concernientes al Consejo Nacional para la Cultura y las Artes o los órganos administrativos desconcentrados que éste coordina, continuará en vigor en lo que no se opongan al presente Decreto, en tanto las unidades administrativas competentes de la Secretaría de Cultura determinen su modificación o abrogación.
+
+**OCTAVO.** Las atribuciones y referencias que se hagan a la Secretaría de Educación Pública o al Secretario de Educación Pública que en virtud del presente Decreto no fueron modificadas, y cuyas disposiciones prevén atribuciones y competencias en las materias de cultura y arte que son reguladas en este Decreto se entenderán referidas a la Secretaría de Cultura o Secretario de Cultura.
+
+**NOVENO.** Las erogaciones que se generen con motivo de la entrada en vigor de este Decreto, se cubrirán con cargo al presupuesto aprobado al Consejo Nacional para la Cultura y las Artes, así como a las entidades paraestatales y órganos administrativos desconcentrados que quedan agrupados en el sector coordinado por la Secretaría de Cultura, por lo que no se autorizarán recursos adicionales para tal efecto durante el ejercicio fiscal que corresponda, sin perjuicio de aquellos recursos económicos que, en su caso, puedan destinarse a los programas o proyectos que esa dependencia del Ejecutivo Federal considere prioritarios, con cargo al presupuesto autorizado para tales efectos y en términos de las disposiciones aplicables.
+
+**DÉCIMO.** Se derogan todas las disposiciones que se opongan a lo dispuesto en el presente Decreto.
+
+**D.O.F. 6 DE NOVIEMBRE DE 2020.**
+
+**Primero.** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
+
+**Segundo.** Se derogan todas las disposiciones que se opongan a lo dispuesto en el presente Decreto.
+
+**Tercero.** Se abroga la Ley que crea el Fideicomiso que Administrará el Fondo para el Fortalecimiento de Sociedades y Cooperativas de Ahorro y Préstamo y de Apoyo a sus Ahorradores.
+
+**Cuarto.** Las dependencias y entidades, por conducto de sus unidades responsables, deberán coordinar las acciones que correspondan para que a más tardar dentro de los 30 días naturales contados a partir de la entrada en vigor del presente Decreto concentren, en términos de la Ley de Ingresos de la Federación para el ejercicio fiscal que corresponda, en la Tesorería de la Federación la totalidad de los recursos públicos federales que formen parte de los fideicomisos, mandatos y análogos públicos previstos en las disposiciones que se abrogan, reforman o derogan por virtud de este Decreto, salvo que la Secretaría de Hacienda y Crédito Público determine una fecha distinta para la concentración de los recursos.
+
+A la extinción de los fideicomisos, y terminación de mandatos y análogos públicos las entidades concentrarán en sus respectivas tesorerías los recursos distintos a los fiscales, en el plazo señalado en el primer párrafo del presente Transitorio.
+
+Los ingresos excedentes que se concentren en la Tesorería de la Federación al amparo del presente Transitorio se destinarán en términos de la Ley de Ingresos de la Federación para el ejercicio fiscal correspondiente, con prioridad para el fortalecimiento de los programas y acciones en materia de salud, especialmente para los requerimientos derivados de la atención a la Pandemia generada por la enfermedad Covid-19, que ocasiona el Coronavirus SARS-CoV2, incluyendo, en su caso, la obtención de la vacuna en el número de dosis necesarias, así como para procurar la estabilización del balance fiscal federal y el pago de las obligaciones previamente contraídas por los vehículos financieros a que se refiere el presente Decreto con anterioridad a la entrada en vigor del mismo.
+
+**Quinto.** Los ejecutores de gasto, por conducto de sus unidades responsables, deberán coordinarse con las instituciones que fungen como fiduciarias para llevar a cabo los actos y procesos necesarios para extinguir los fideicomisos y dar por terminados los mandatos y análogos públicos a que se refieren las disposiciones que se reforman o derogan por virtud de este Decreto, con la finalidad de que durante el primer semestre del ejercicio 2021 se suscriban los convenios de extinción o terminación respectivamente, en términos de las disposiciones aplicables.
+
+Los derechos y obligaciones derivados de los instrumentos jurídicos que por virtud del presente Decreto se extinguen o terminan, serán asumidos por los ejecutores de gasto correspondientes con cargo a su presupuesto autorizado, de conformidad con las disposiciones aplicables.
+
+**Sexto.** Las dependencias y entidades que coordinen la operación de los fideicomisos, mandatos o análogos públicos serán las responsables de realizar todos los actos necesarios que permitan llevar a cabo la extinción o terminación de éstos, entre otros, por lo que se refiere a los activos y pasivos con los que cuente, en términos de la Ley Federal de Presupuesto y Responsabilidad Hacendaria y su Reglamento.
+
+**Séptimo.** El Consejo Nacional de Ciencia y Tecnología, así como los Centros Públicos de Investigación llevarán a cabo las acciones necesarias para que los fideicomisos constituidos al amparo de la Ley de Ciencia y Tecnología, se ajusten a lo dispuesto en la Ley Federal de Presupuesto y Responsabilidad Hacendaria y su Reglamento, y en consecuencia concentren en la Tesorería de la Federación, en términos de la Ley de Ingresos de la Federación para el ejercicio fiscal que corresponda, la totalidad de los recursos públicos federales que formen parte del patrimonio de dichos fideicomisos, en términos de las disposiciones aplicables, en la fecha que determine la Secretaría de Hacienda y Crédito Público en conjunto con el Consejo Nacional de Ciencia y Tecnología, sin que la misma rebase el 30 de junio de 2021. Por lo que a partir de la entrada en vigor del presente Decreto no podrán adquirir compromisos adicionales con cargo al patrimonio de dichos instrumentos.
+
+Asimismo, deberán concentrar en sus tesorerías los recursos distintos a los señalados en el primer párrafo del presente Transitorio en el plazo previsto en el mismo.
+
+El Consejo Nacional de Ciencia y Tecnología y los Centros Públicos de Investigación deberán coordinarse con las instituciones que fungen como fiduciarias para llevar a cabo los actos y procesos necesarios para extinguir los fideicomisos públicos constituidos al amparo de la Ley de Ciencia y Tecnología, con la finalidad de que durante el ejercicio fiscal de 2021 se suscriban los convenios de extinción en términos de las disposiciones aplicables.
+
+Los fideicomisos públicos constituidos por Centros Públicos de Investigación para el cumplimiento exclusivo de obligaciones de carácter laboral o en materia de seguridad social continuarán operando con la finalidad de salvaguardar los derechos laborales de los trabajadores.
+
+En caso de que los Centros Públicos de Investigación cuenten con fideicomisos que integren el cumplimiento de obligaciones de carácter laboral o en materia de seguridad social y otras obligaciones de distinta naturaleza en un solo instrumento, deberán llevar a cabo la modificación a los mismos dentro de un plazo de 30 días naturales contados a partir de la entrada en vigor del presente Decreto, a efecto de que dichos fideicomisos públicos conserven únicamente aquellas obligaciones de carácter laboral o en materia de seguridad social, y concentren los recursos no relacionados con dichos fines en términos del primer párrafo del presente Transitorio.
+
+Los ingresos excedentes que se concentren en la Tesorería de la Federación al amparo del presente Transitorio se destinarán en términos de la Ley de Ingresos de la Federación para el ejercicio fiscal correspondiente, de conformidad con lo dispuesto por el último párrafo del transitorio Cuarto de este Decreto.
+
+A la entrada en vigor del presente Decreto, los fondos Sectorial CONACYT-Secretaría de Energía-Hidrocarburos; Sectorial CONACYT-Secretaría de Energía-Sustentabilidad Energética, y de Investigación Científica y Desarrollo Tecnológico del Instituto Mexicano del Petróleo, no podrán contraer obligaciones adicionales con cargo a sus respectivos patrimonios.
+
+Los recursos a que se refiere el artículo 88 de la Ley Federal de Presupuesto y Responsabilidad Hacendaria, que se reforma por virtud del presente Decreto, se podrán destinar a cubrir los pagos derivados de los compromisos adquiridos por los fondos a que se refiere el párrafo anterior, previo a la entrada en vigor de este Decreto.
+
+**Octavo.** El Consejo Nacional de Ciencia y Tecnología, deberá llevar a cabo las acciones que correspondan para que a partir de la entrada en vigor del presente Decreto no se adquieran compromisos adicionales con cargo al patrimonio del fideicomiso público denominado Fondo para el Fomento y Apoyo a la Investigación Científica y Tecnológica en Bioseguridad y Biotecnología, y se concentren en la Tesorería de la Federación, en términos de la Ley de Ingresos de la Federación para el ejercicio fiscal que corresponda, la totalidad de los recursos públicos federales que formen parte del patrimonio del mismo en la fecha que determine la Secretaría de Hacienda y Crédito Público en conjunto con el Consejo Nacional de Ciencia y Tecnología, sin que la misma rebase el 30 de junio de 2021. Cumplido lo anterior, el fideicomiso deberá extinguirse durante el ejercicio fiscal de 2021.
+
+Los ingresos excedentes que se concentren en la Tesorería de la Federación al amparo del presente Transitorio se destinarán en términos de la Ley de Ingresos de la Federación para el ejercicio fiscal correspondiente, de conformidad con lo dispuesto por el último párrafo del Artículo Cuarto Transitorio de este Decreto.
+
+**Noveno.** Se deroga el transitorio Tercero del Decreto por el que se reforman, adicionan y derogan diversas disposiciones de la Ley Aduanera, publicado en el Diario Oficial de la Federación el 1o. de enero de 2002.
+
+**Décimo.** La Comisión Nacional de Cultura Física y Deporte realizará las acciones conducentes para el otorgamiento de un reconocimiento económico vitalicio a los deportistas que en representación oficial obtengan o hayan obtenido una o más medallas en Juegos Olímpicos o Paralímpicos, con cargo a su presupuesto autorizado, para lo cual el Reglamento de la Ley General de Cultura Física y Deporte establecerá los criterios y bases para el otorgamiento de dicho reconocimiento.
+
+**Décimo Primero.** Dentro de un plazo de ciento ochenta días naturales, el Ejecutivo Federal deberá reformar los Reglamentos de las leyes que se reforman por virtud de la entrada en vigor del presente Decreto, en lo que resulte conducente.
+
+**Décimo Segundo.** La Secretaría de Gobernación, con cargo a su presupuesto autorizado, asumirá las obligaciones pendientes de cumplimiento relacionadas con el Fondo de Apoyo Social para ex Trabajadores Migratorios Mexicanos, hasta su total cumplimiento.
+
+**Décimo Tercero.** Los recursos que integran el patrimonio de los fideicomisos públicos denominados Fondo Metropolitano y Fondo Regional se concentrarán en la Tesorería de la Federación sujetándose a lo dispuesto en el transitorio Cuarto del presente Decreto. Los recursos aportados deberán ser destinados, en primer término, al Programa de Mejoramiento Urbano a cargo de la Secretaría de Desarrollo Agrario, Territorial y Urbano.
+
+**Décimo Cuarto.** Los recursos que integran el patrimonio del fideicomiso público denominado Fondo para el Desarrollo de Zonas de Producción Minera se concentrarán en la Tesorería de la Federación sujetándose a lo dispuesto en el transitorio Cuarto del presente Decreto por lo que se refiere a los recursos obtenidos previo al ejercicio fiscal 2019. Por lo que se refiere a los recursos obtenidos durante el ejercicio fiscal 2019 se estará a lo dispuesto por la autoridad jurisdiccional competente y, en caso de resultar procedente se sujetarán a dicho Transitorio.
+
+Una vez realizado lo anterior, la Secretaría de Economía por conducto de la unidad responsable de dicho fideicomiso público en conjunto con la institución fiduciaria procederán en términos de lo señalado en el transitorio Quinto.
+
+**Décimo Quinto.** A la entrada en vigor del presente Decreto, el Fideicomiso para promover el acceso al financiamiento de MIPYMES y Emprendedores no podrá contraer obligaciones adicionales con cargo a su patrimonio, sin embargo, continuará cumpliendo con los compromisos derivados de los instrumentos de garantía contratados, conforme a las disposiciones aplicables, para el cumplimiento de sus fines.
+
+Una vez cumplidas la totalidad de las obligaciones y se ejerzan los derechos derivados de los instrumentos a que se refiere el párrafo anterior, el Fideicomiso para promover el acceso al financiamiento de MIPYMES y Emprendedores se extinguirá en términos de las disposiciones aplicables.
+
+A la extinción de dicho vehículo, la Secretaría de Economía por conducto de la unidad responsable, realizará las acciones necesarias para concentrar los recursos federales remanentes en la Tesorería de la Federación.
+
+Los ingresos excedentes que se concentren en la Tesorería de la Federación al amparo del presente Transitorio se destinarán en términos de la Ley de Ingresos de la Federación para el ejercicio fiscal correspondiente.
+
+**Décimo Sexto.** La Secretaría de Hacienda y Crédito Público, en su carácter de mandante en el contrato de Mandato para la Administración de los Recursos del Programa de Cooperación Energética para Países de Centroamérica y el Caribe, deberá coordinarse con la institución que funja con el carácter de mandataria para llevar a cabo las acciones necesarias para formalizar la terminación de dicho instrumento en términos del transitorio Quinto del presente Decreto. De igual forma, por conducto de la unidad responsable del mandato, deberá coordinar las acciones que correspondan para que concentre los recursos públicos federales en la Tesorería de la Federación, de conformidad con lo dispuesto en el transitorio Cuarto del presente Decreto.
+
+Asimismo, la unidad responsable del Mandato deberá llevar a cabo las acciones conducentes para efectuar la recuperación de los créditos que, en su caso, se hubiesen otorgado con cargo a los recursos del Mandato a que se refiere el presente transitorio, a efecto de que dichos recursos sean concentrados en (sic) Tesorería de la Federación, en los términos previstos en el transitorio Cuarto del presente Decreto.
+
+**Décimo Séptimo.** A partir de la entrada en vigor del presente Decreto, los ejecutores de gasto no podrán comprometer recursos públicos con cargo a los fideicomisos sin estructura orgánica, mandatos o análogos públicos, a que se refieren las disposiciones que se reforman o derogan por virtud de este Decreto y de sus disposiciones transitorias.
+
+**Décimo Octavo.** Los recursos que integran el patrimonio del Fondo a que se refiere el segundo párrafo del artículo 22 de la Ley Orgánica de la Financiera Nacional de Desarrollo Agropecuario, Rural, Forestal y Pesquero que se deroga deberán ser reintegrados a la Financiera mismo que formará (sic) parte de su patrimonio, salvo el monto que, en su caso, la Secretaría de Hacienda y Crédito Público determine se reintegre a la Tesorería de la Federación. Asimismo, la Financiera, en conjunto con la institución crediticia del citado Fondo, procederá en términos de lo señalado en los transitorios Cuarto y Quinto del presente Decreto.
+
+**Décimo Noveno.** Se deroga el transitorio Noveno del Decreto por el que se expide la Ley General de Protección Civil publicado en el Diario Oficial de la Federación el 6 de junio de 2012.
+
+A partir del 1o. de enero de 2021, el Fideicomiso Fondo de Desastres Naturales no asumirá compromisos adicionales a los adquiridos previamente, salvo los relativos a los gastos de operación, y únicamente podrán llevarse a cabo los actos tendientes a su extinción. Con los recursos a que se refiere el artículo 37 de la Ley Federal de Presupuesto y Responsabilidad Hacendaria se podrán cubrir las obligaciones que se tengan pendientes y que no se paguen con cargo al patrimonio del Fideicomiso.
+
+Los remanentes de recursos de este Fideicomiso se deberán concentrar a más tardar el 30 de junio de 2021, por concepto de aprovechamientos, a la Tesorería de la Federación y se destinarán por la Secretaría de Hacienda y Crédito Público para la atención de desastres naturales, así como para cubrir las obligaciones pendientes y que no se paguen con cargo al patrimonio del Fideicomiso.
+
+Vigésimo. Se faculta a la SHCP, para que en coordinación con la Fiduciaria establecida por la Ley del FIPAGO, en su caso, realice los convenios, acuerdos, y todos los actos jurídicos que sean necesarios, para dar cumplimiento a las obligaciones contraídas y convenios en proceso de formalización al 20 de septiembre de 2020. Asimismo, se faculta a la SHCP para realizar los convenios, acuerdos, y todos los actos jurídicos que se requieran, en coordinación con las Entidades Federativas en las que se localizan las citadas cajas de ahorro, para dar cumplimiento a las obligaciones contraídas y convenios en proceso de formalización que hayan sido reportados por la SHCP.

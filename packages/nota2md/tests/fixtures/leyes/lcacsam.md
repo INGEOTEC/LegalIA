@@ -1,6 +1,12 @@
-## Al margen un sello con el Escudo Naci onal, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY PARA LA COMPROBACION, AJUSTE Y COMPUTO DE SERVICIOS DE LA ARMADA DE MEXICO**
 
-**VICENTE FOX QUESADA**, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ULTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACION: 12 DE JUNIO DE 2009.**
+
+Ley publicada en el Diario Oficial de la Federación, el lunes 14 de junio de 2004.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+VICENTE FOX QUESADA, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -10,31 +16,33 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **LEY PARA LA COMPROBACIÓN, AJUSTE Y CÓMPUTO DE SERVICIOS DE LA ARMADA DE MÉXICO**
 
-Capítulo I Generalidades
+Capítulo I
+
+Generalidades
 
 **ARTÍCULO 1.-** Para los efectos de la presente Ley se entenderá por:
 
 I.- Tiempo de servicio efectivo, aquel que se le contará al personal a partir del día de su ingreso a la Armada de México hasta su separación definitiva de la misma, haciéndole las deducciones establecidas en esta Ley, y
 
-II.- Tiempo de servicios, aquel que comprende el tiempo del servici o efectivo del personal más los abonos de tiempo establecidos en esta Ley.
+II.- Tiempo de servicios, aquel que comprende el tiempo del servicio efectivo del personal más los abonos de tiempo establecidos en esta Ley.
 
-**ARTÍCULO 2.-** Los servicios prestados por el personal de la Armada de México serán comprobados, ajustados y computados de conformidad con la documentación que obre en los expediente s respectivos, formados en el Archivo General de la Armada, y a falta de éstos, con los documentos certificados que aporten los interesados.
+**ARTÍCULO 2.-** Los servicios prestados por el personal de la Armada de México serán comprobados, ajustados y computados de conformidad con la documentación que obre en los expedientes respectivos, formados en el Archivo General de la Armada, y a falta de éstos, con los documentos certificados que aporten los interesados.
 
 **ARTÍCULO 3.-** Los servicios prestados por el personal de la Armada de México se anotarán en un documento denominado hoja de servicios, que será formulada por la Oficialía Mayor, a través de la unidad administrativa correspondiente, conforme a la reglamentación respectiva.
 
-**ARTÍCULO 4.** - La actuación del personal de la Armada de México durante su permanencia en unidades o establecimientos navales, se asentará en los documentos siguientes:
+**ARTÍCULO 4.-** La actuación del personal de la Armada de México durante su permanencia en unidades o establecimientos navales, se asentará en los documentos siguientes:
 
 I.- Hoja de actuación, es el documento en el cual se conceptúa la actuación de los Almirantes, Capitanes y Oficiales, durante determinado periodo de su vida dentro de la Armada, y
 
 II.- Memorial de servicios, es el documento en el cual se conceptúa la actuación del personal de clases y marinería, durante determinado periodo de su vida dentro de la Armada.
 
-**ARTÍCULO 5.** - Los extractos de antecedentes son los documentos que contienen los ca mbios de situación del personal naval dentro de la Armada de México y serán formulados por la unidad administrativa correspondiente, conforme a lo ordenado en la Ley del Instituto de Seguridad Social para las Fuerzas Armadas Mexicanas.
+**ARTÍCULO 5.-** Los extractos de antecedentes son los documentos que contienen los cambios de situación del personal naval dentro de la Armada de México y serán formulados por la unidad administrativa correspondiente, conforme a lo ordenado en la Ley del Instituto de Seguridad Social para las Fuerzas Armadas Mexicanas.
 
 **ARTÍCULO 6.-** La unidad administrativa correspondiente se encargará de:
 
 I.- Formular los extractos de antecedente del personal naval, conforme a lo ordenado en el artículo 180 de la Ley del Instituto de Seguridad Social para las Fuerzas Armadas Mexicanas, y
 
-II.- Formular la s hojas de servicios, así como el cómputo y ajuste de tiempo de servicios correspondientes, en los siguientes casos:
+II.- Formular las hojas de servicios, así como el cómputo y ajuste de tiempo de servicios correspondientes, en los siguientes casos:
 
 **a)** En los señalados en la Ley del Instituto de Seguridad Social para las Fuerzas Armadas Mexicanas;
 
@@ -44,11 +52,13 @@ II.- Formular la s hojas de servicios, así como el cómputo y ajuste de tiempo 
 
 **d)** Cuando lo solicite el interesado.
 
-**ARTÍCULO 7.** - Cuando el personal naval desee cono cer o consultar los datos y constancias relacionados con su actuación militar, la unidad administrativa correspondiente dará las facilidades necesarias para ello, permitiéndoles que hagan las observaciones que juzguen pertinentes.
+**ARTÍCULO 7.-** Cuando el personal naval desee conocer o consultar los datos y constancias relacionados con su actuación militar, la unidad administrativa correspondiente dará las facilidades necesarias para ello, permitiéndoles que hagan las observaciones que juzguen pertinentes.
 
 **ARTÍCULO 8.-** Al personal de la Armada de México se le harán los abonos y deducciones de tiempo conforme a lo dispuesto en los artículos 21 y 22 de la presente Ley, respectivamente.
 
-Capítulo II Comprobación y Ajuste de Servicios
+Capítulo II
+
+Comprobación y Ajuste de Servicios
 
 **ARTÍCULO 9.-** En la hoja de servicios se anotará:
 
@@ -74,17 +84,17 @@ X.- Licencias que ha disfrutado, y
 
 XI.- Conceptos militares conforme a sus hojas de actuación o memoriales de Servicio.
 
-**ARTÍCULO 10.-** La antigüedad en el empleo para los miembros de la Armada de México se contará a partir de la fecha que se fije en el nombramiento o despacho respectivos, teniéndose en cuenta las deducciones que procedan, de acuerd o con lo dispuesto en la presente Ley y ordenamientos aplicables. El personal que pase a diferente escalafón, entrará al nuevo con la fecha del cambio, a menos que éste, sea ordenado por el Alto Mando, en cuyo caso mantendrá la antigüedad del escalafón que abandona.
+**ARTÍCULO 10.-** La antigüedad en el empleo para los miembros de la Armada de México se contará a partir de la fecha que se fije en el nombramiento o despacho respectivos, teniéndose en cuenta las deducciones que procedan, de acuerdo con lo dispuesto en la presente Ley y ordenamientos aplicables. El personal que pase a diferente escalafón, entrará al nuevo con la fecha del cambio, a menos que éste, sea ordenado por el Alto Mando, en cuyo caso mantendrá la antigüedad del escalafón que abandona.
 
 La antigüedad en el grado, para efectos de ascenso, se computará de acuerdo a lo establecido en la Legislación correspondiente.
 
-**ARTÍCULO 11.-** Los certificados que comprueben servicios, estancia en campaña, hechos de armas, cargos, comisiones u otros que guarden relación con la historia militar de los interesados, serán expedidos por los Almirantes, Capitanes y Oficiales bajo cuyas órdenes se encontraban al verificarse los hechos, siempre que les consten personalmente, o por oficiales de cualqui er graduación a quienes consten los servicios que tratan de comprobarse; cuando en la época a que hagan referencia hayan sido de igual o superior jerarquía al del que pida el certificado.
+**ARTÍCULO 11.-** Los certificados que comprueben servicios, estancia en campaña, hechos de armas, cargos, comisiones u otros que guarden relación con la historia militar de los interesados, serán expedidos por los Almirantes, Capitanes y Oficiales bajo cuyas órdenes se encontraban al verificarse los hechos, siempre que les consten personalmente, o por oficiales de cualquier graduación a quienes consten los servicios que tratan de comprobarse; cuando en la época a que hagan referencia hayan sido de igual o superior jerarquía al del que pida el certificado.
 
 **ARTÍCULO 12.-** Cuando los documentos existentes en el expediente de un miembro de la Armada no justifiquen su tiempo de servicios, se le concederá un plazo que no será menor de dos meses ni mayor de cuatro, contados a partir de la fecha en que oficialmente se le haga la comunicación respectiva, para que aporte las pruebas necesarias. Si en el plazo concedido no aportare las pruebas requeridas sólo se le reconocerá el tiempo de servicios del que haya elementos justificados legalmente.
 
-**ARTÍCULO 13.-** En el caso de que, en los expedientes específicos no exista comprobación alg una o se presuman datos falsos, se recurrirá a la documentación existente en los archivos; cuando la comprobación de estancias en campaña, no esté debidamente aclarada se recurrirá al historial de la unidad o establecimiento a que el interesado perteneció.
+**ARTÍCULO 13.-** En el caso de que, en los expedientes específicos no exista comprobación alguna o se presuman datos falsos, se recurrirá a la documentación existente en los archivos; cuando la comprobación de estancias en campaña, no esté debidamente aclarada se recurrirá al historial de la unidad o establecimiento a que el interesado perteneció.
 
-**ARTÍCULO 14.** - Al cerrarse las hojas de servicios, la unidad administrativa correspondiente las certificará, expresando el motivo que originó el trámite.
+**ARTÍCULO 14.-** Al cerrarse las hojas de servicios, la unidad administrativa correspondiente las certificará, expresando el motivo que originó el trámite.
 
 **ARTÍCULO 15.-** El personal de la Armada de México comprobará su edad:
 
@@ -92,9 +102,9 @@ I.- Con copia certificada del acta del Registro Civil que consigne su nacimiento
 
 II.- A falta del documento anterior, con copia certificada de la fe de bautismo del interesado, cotejada por Notario Público o por autoridad que legalmente los sustituya, y
 
-III.- A falta de los anterior es, con prueba documental consistente en la constancia que obre en el expediente oficial, relacionada con la edad que manifestó el interesado al ingresar a la Armada de México, aunada en caso necesario a la pericial que permita determinar su edad clínica.
+III.- A falta de los anteriores, con prueba documental consistente en la constancia que obre en el expediente oficial, relacionada con la edad que manifestó el interesado al ingresar a la Armada de México, aunada en caso necesario a la pericial que permita determinar su edad clínica.
 
-**ARTÍCULO 16.** - A todo individuo de la Armada al causar alta en alguna unidad o establecimiento, deberá abrírsele una hoja de actuación o memorial de servicios, según corresponda, que fundamentalmente contendrán los siguientes datos:
+**ARTÍCULO 16.-** A todo individuo de la Armada al causar alta en alguna unidad o establecimiento, deberá abrírsele una hoja de actuación o memorial de servicios, según corresponda, que fundamentalmente contendrán los siguientes datos:
 
 I.- Generales del militar;
 
@@ -120,11 +130,13 @@ XI.- Cómputo anual de servicios, y
 
 XII.- Conceptos particulares del Comandante, Director o del Superior que corresponda.
 
-**ARTÍCULO 17.-** Al cerrarse las hojas de actuación y memoriales de serv icio, el Jefe del Detall de la unidad o establecimiento que corresponda certificará los datos asentados.
+**ARTÍCULO 17.-** Al cerrarse las hojas de actuación y memoriales de servicio, el Jefe del Detall de la unidad o establecimiento que corresponda certificará los datos asentados.
 
-**ARTÍCULO 18.** - Los procedimientos para formular, calificar y tramitar las hojas de actuación y memoriales de servicios se especificarán en el reglamento correspondiente.
+**ARTÍCULO 18.-** Los procedimientos para formular, calificar y tramitar las hojas de actuación y memoriales de servicios se especificarán en el reglamento correspondiente.
 
-Capítulo III Cómputo de Servicios
+Capítulo III
+
+Cómputo de Servicios
 
 **ARTÍCULO 19.-** Los abonos y las deducciones de tiempo a que se refiere esta Ley, se anotarán en las hojas de servicios y extractos de antecedentes al cerrarse estos documentos.
 
@@ -154,21 +166,21 @@ El control del cómputo de doble tiempo, se realizará sujetándose a los manual
 
 Las horas de servicios a que se refieren las fracciones I y II de este artículo, se refieren al tiempo en que el personal durante una jornada se encuentra expuesto a riesgos.
 
-**ARTÍCULO 22.-** A los miembros de la Armada de México, que se hayan encontrado e n cualquiera de las situaciones siguientes se les harán las deducciones en el tiempo de servicios y de la antigüedad en la jerarquía, de acuerdo a lo siguiente:
+**ARTÍCULO 22.-** A los miembros de la Armada de México, que se hayan encontrado en cualquiera de las situaciones siguientes se les harán las deducciones en el tiempo de servicios y de la antigüedad en la jerarquía, de acuerdo a lo siguiente:
 
-I.- A los que hubieren estado separados del servicio activo por licencia ilimitada, así como p or haber permanecido sustraídos del servicio por cualquier causa no imputable a la Armada de México, el tiempo que dure la licencia o substracción;
+I.- A los que hubieren estado separados del servicio activo por licencia ilimitada, así como por haber permanecido sustraídos del servicio por cualquier causa no imputable a la Armada de México, el tiempo que dure la licencia o substracción;
 
 II.- A los que hayan sido sentenciados con pena privativa de la libertad, se les deducirá:
 
-**a)** Del tiempo d e servicios, todo el de la sentencia, con excepción del que hayan prestado en el servicio activo, ya sea porque hayan obtenido su libertad preparatoria o se les haya sustituido la pena por amonestación, y
+**a)** Del tiempo de servicios, todo el de la sentencia, con excepción del que hayan prestado en el servicio activo, ya sea porque hayan obtenido su libertad preparatoria o se les haya sustituido la pena por amonestación, y
 
-**b)** De la antigüedad, todo el tiempo de la sentenci a, excepto cuando se les sustituya la pena por amonestación.
+**b)** De la antigüedad, todo el tiempo de la sentencia, excepto cuando se les sustituya la pena por amonestación.
 
 **c)** En caso de inhabilitación, se deducirá de uno y de otra todo el tiempo de ésta, así como el de la duración en caso de suspensión.
 
-III.- A los que hayan disfrutado de retiro, se les descontar á de la antigüedad y tiempo de servicios todo el que duró esta situación;
+III.- A los que hayan disfrutado de retiro, se les descontará de la antigüedad y tiempo de servicios todo el que duró esta situación;
 
-IV.- A los que hayan hecho uso de licencia con motivo de enfermedad contraída por el alcoholismo o por el uso de estupefacientes se les deducirá de la antigüedad y tiempo de servici os, todo el que dure la licencia;
+IV.- A los que hayan hecho uso de licencia con motivo de enfermedad contraída por el alcoholismo o por el uso de estupefacientes se les deducirá de la antigüedad y tiempo de servicios, todo el que dure la licencia;
 
 V.- A los que hayan estado sujetos a proceso en el que se dicte resolución de sobreseimiento, por retiro de acción penal, se le deducirá en el tiempo de sus servicios y antigüedad todo el de la duración del procedimiento;
 
@@ -178,7 +190,9 @@ VII.- A los que hubieren disfrutado de licencia extraordinaria para asuntos part
 
 **ARTÍCULO 23.-** No se deducirán del tiempo de servicios, ni de la antigüedad en la jerarquía, el de la duración de un proceso cuando haya recaído sentencia absolutoria.
 
-**ARTÍCULO 24.-** A quien se le hubiere concedido licencia extraordinaria para el desempeño de algún cargo de elección popular, licencia por edad límite o pasare a situación de depósito, no se le deducirá del tiempo de servicios ni de la antigüedad en la jerarquía. Artículo reformado DOF 12-06-2009
+**(REFORMADO, D.O.F. 12 DE JUNIO DE 2009)**
+
+**ARTÍCULO 24.-** A quien se le hubiere concedido licencia extraordinaria para el desempeño de algún cargo de elección popular, licencia por edad límite o pasare a situación de depósito, no se le deducirá del tiempo de servicios ni de la antigüedad en la jerarquía.
 
 **ARTÍCULO 25.-** El tiempo de servicios se perderá totalmente:
 
@@ -188,8 +202,14 @@ II.- Por baja que haya sido motivada por resolución de organismo disciplinario.
 
 ## Transitorio
 
-**ÚNICO.**- La presente Ley entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación y abroga la Ley para la Comprobación, Ajuste y Cómputo de Servicios de la Armada de México publicada el 24 de diciembre de 1984 y sus reformas del 26 de diciemb re de 1997.
+**ÚNICO.-** La presente Ley entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación y abroga la Ley para la Comprobación, Ajuste y Cómputo de Servicios de la Armada de México publicada el 24 de diciembre de 1984 y sus reformas del 26 de diciembre de 1997.
 
-México, D.F., a 28 de abril de 2004. - Dip. Juan de Dios Castro Lozano , Presidente.- Sen. Enrique Jackson Ramírez, Presidente.- Dip. Marcos Morales Torres , Secretario.- Sen. Lydia Madero García , Secretaria.- Rúbricas."
+México, D.F., a 28 de abril de 2004.- Dip. Juan de Dios Castro Lozano, Presidente.- Sen. Enrique Jackson Ramírez, Presidente.- Dip. Marcos Morales Torres, Secretario.- Sen. Lydia Madero García, Secretaria.- Rúbricas."
 
-En cumplimiento de lo di spuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Fed eral, a los diez días del mes de junio de dos mil cuatro. - Vicente Fox Quesada .- Rúbrica.- El Secretario de Gobernación, Santiago Creel Miranda.- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a los diez días del mes de junio de dos mil cuatro.- Vicente Fox Quesada.- Rúbrica.- El Secretario de Gobernación, Santiago Creel Miranda.- Rúbrica.
+
+**D.O.F. 12 DE JUNIO DE 2009.**
+
+**Artículo Primero.-** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
+
+**Artículo Segundo.-** Se derogan todas las disposiciones legales, reglamentarias y administrativas que se opongan a este Decreto.

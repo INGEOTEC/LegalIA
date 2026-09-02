@@ -40,6 +40,36 @@ be re-resolved against the new one by *date*, not by number. No measurement
 against the old numbering exists or will: the source that produced it is no
 longer consulted.
 
+## `regenera_fixtures_leyes.py`
+
+Rebuilds `reconstruct_legal_provisions()`'s ground-truth fixtures —
+`packages/nota2md/tests/fixtures/leyes/<abrev>.md` and `historial_44.json`,
+what `tests/test_leyes_44.py` reads — from the `scjn-leyes` release. Nothing
+is crawled: it reads the published corpus back.
+
+```bash
+./scripts/regenera_fixtures_leyes.py             # report what it would write
+./scripts/regenera_fixtures_leyes.py --escribe
+```
+
+Until issue #188 those fixtures were the Cámara de Diputados' consolidated
+"texto vigente" PDF, cleaned up by `nota2md.texto_vigente`, deleted with them.
+The replacement is the SCJN's own consolidated text at each law's most recent
+reform, plus that law's `indice.json` as the reform history to replay — the
+two written together, so the history replayed ends at exactly the reform the
+fixture is the text of.
+
+**These ~3 MB of fixtures are the one exception to "data is never committed to
+git"** (`CLAUDE.md`): they are test fixtures, and freezing them is the point —
+a regression test of a replay algorithm should not change its answer because a
+law was reformed. This script is what keeps that freeze reproducible.
+
+A law whose history the corpus cannot fully resolve is excluded and reported
+(`lfgr` today: three `ambiguous` snapshots, none content-diff confirmed).
+Replaying a history with a hole measures the hole, not the algorithm. See the
+test module's own docstring for what the check does and does not establish —
+in particular that the ground truth is no longer independent of the SCJN.
+
 ## SCJN pipeline: `extract_scjn_titles.py` → `fetch_scjn_legislacion.py` → `enlaza_scjn_legislacion.py` → `empaqueta_scjn_leyes.py`
 
 Recovers, from the SCJN's own SCOW JSON API

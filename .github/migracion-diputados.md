@@ -184,9 +184,9 @@ to be hunted down.
 | ~~`nota2md/utils.py`, whole module~~ **deleted in #187** | `download_legal_provisions_provenance_ids`, `COLECCIONES`, `_ASSETS`, `_INDICES`, `_une_con_historial`, `_con_historial_por_archivo` / `_por_mapa` / `_paralelo`, `listar_assets`, `_miembros`, `RELEASES_API` | #187 / #189 |
 | ~~`nota2md/__init__.py`~~ **done in #187** | the `from nota2md.utils import ...`, the `__all__` entry, the docstring sentence and the entry-point count | #187 |
 | ~~`packages/nota2md/tests/test_utils.py`~~ **deleted in #187** | went with `utils.py` | #187 |
-| `nota2md/texto_vigente.py` | cleans Diputados' consolidated "texto vigente" PDF into Markdown | #188 |
-| `packages/nota2md/tests/test_texto_vigente.py` | asserts the Diputados page header/footer strip | #188 |
-| `packages/nota2md/tests/fixtures/leyes/*.md` (43 files, 3.1 MB) + `historial_44.json` | ground truth derived from the Diputados PDF, read by `tests/test_leyes_44.py` | #188 |
+| ~~`nota2md/texto_vigente.py`~~ **deleted in #188** | cleaned Diputados' consolidated "texto vigente" PDF into Markdown; nothing else imported it (`scjn_api` keeps its own copies on purpose) | #188 |
+| ~~`packages/nota2md/tests/test_texto_vigente.py`~~ **deleted in #188** | asserted the Diputados page header/footer strip | #188 |
+| ~~`packages/nota2md/tests/fixtures/leyes/*.md` + `historial_44.json`~~ **regenerated in #188** | now the SCJN's own consolidated text per law plus its `indice.json` history, written by `scripts/regenera_fixtures_leyes.py`; 42 laws (`lfgr` excluded) | #188 |
 | `nota2md/scjn.py` `COLECCION_SCJN_LEYES` | the constant, and `construye_indice_global`'s `coleccion` parameter it defaults | #189 |
 | `nota2md/scjn.py` `slug_instrumento` / `catalog_key` | the `abrev`-or-`nombre` precedence exists only because tratados have no `abrev`; with `abrev` always present, `catalog_key` should raise `KeyError` rather than silently fall back, and `slug_instrumento`'s `or "instrumento"` fallback goes | #189 |
 
@@ -307,8 +307,10 @@ Every entry above, gathered by owning phase.
   the run's phase-1 notes assign the public-API removal to this phase.
   **`.github/workflows/reformas.yml` now calls a script that no longer
   exists** — harmless on this branch, and #190 deletes the workflow.
-- **#188 (Fase 3)** — `texto_vigente.py`, `test_texto_vigente.py`,
-  `tests/fixtures/leyes/*.md`, `test_leyes_44.py`.
+- **#188 (Fase 3), done** — `texto_vigente.py` and `test_texto_vigente.py`
+  deleted, `tests/fixtures/leyes/*.md` and `historial_44.json` regenerated
+  from the `scjn-leyes` release, `test_leyes_44.py` restated (its ground
+  truth is no longer independent, and it says so).
 - **#189 (Fase 4)** — `packages/leyesmx`, `COLECCION_SCJN_LEYES`,
   `slug_instrumento` /
   `catalog_key`, `test.yml`'s matrix, `.gitignore`, `.devcontainer`,

@@ -1,6 +1,12 @@
-## Al margen un sello con el Escudo Nacional, que dice: Es tados Unidos Mexicanos. - Presidencia de la República.
+**LEY ORGÁNICA DEL TRIBUNAL FEDERAL DE JUSTICIA ADMINISTRATIVA**
 
-**ENRIQUE PEÑA NIETO**, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 16 DE OCTUBRE DE 2025.**
+
+Ley publicada en la Edición Vespertina del Diario Oficial de la Federación, el lunes 18 de julio de 2016.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+ENRIQUE PEÑA NIETO, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -10,17 +16,19 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **POR EL QUE SE EXPIDE LA LEY GENERAL DEL SISTEMA NACIONAL ANTICORRUPCIÓN; LA LEY GENERAL DE RESPONSABILIDADES ADMINISTRATIVAS, Y LA LEY ORGÁNICA DEL TRIBUNAL FEDERAL DE JUSTICIA ADMINISTRATIVA.**
 
-**ARTÍCULO PRIMERO. ………..**
-
-**ARTÍCULO SEGUNDO. ………..**
+….
 
 **ARTÍCULO TERCERO.** Se deroga la Ley Orgánica del Tribunal Federal de Justicia Fiscal y Administrativa y se expide la Ley Orgánica del Tribunal Federal de Justicia Administrativa.
 
 **LEY ORGÁNICA DEL TRIBUNAL FEDERAL DE JUSTICIA ADMINISTRATIVA**
 
-**TÍTULO PRIMERO DISPOSICIONES GENERALES**
+**TÍTULO PRIMERO**
 
-Capítulo I Del Tribunal Federal de Justicia Administrativa
+**DISPOSICIONES GENERALES**
+
+Capítulo I
+
+Del Tribunal Federal de Justicia Administrativa
 
 **Artículo 1.** La presente Ley es de orden público e interés general y tiene por objeto determinar la integración, organización, atribuciones y funcionamiento del Tribunal Federal de Justicia Administrativa.
 
@@ -28,15 +36,15 @@ El Tribunal Federal de Justicia Administrativa es un órgano jurisdiccional con 
 
 Formará parte del Sistema Nacional Anticorrupción y estará sujeto a las bases establecidas en el artículo 113 de la Constitución Política de los Estados Unidos Mexicanos, en la Ley General correspondiente y en el presente ordenamiento.
 
-Las resoluciones que emita el Tribunal deberán apegarse a los princi pios de legalidad, máxima publicidad, respeto a los derechos humanos, verdad material, razonabilidad, proporcionalidad, presunción de inocencia, tipicidad y debido proceso.
+Las resoluciones que emita el Tribunal deberán apegarse a los principios de legalidad, máxima publicidad, respeto a los derechos humanos, verdad material, razonabilidad, proporcionalidad, presunción de inocencia, tipicidad y debido proceso.
 
-El presupuesto aprobado por la Cámara de Diputados para el Tribunal Federal de Jus ticia Administrativa, se ejercerá con autonomía y conforme a la Ley Federal de Presupuesto y Responsabilidad Hacendaria y las disposiciones legales aplicables, bajo los principios de legalidad, certeza, independencia, honestidad, responsabilidad y transpar encia. Su administración será eficiente para lograr la eficacia de la justicia administrativa bajo el principio de rendición de cuentas.
+El presupuesto aprobado por la Cámara de Diputados para el Tribunal Federal de Justicia Administrativa, se ejercerá con autonomía y conforme a la Ley Federal de Presupuesto y Responsabilidad Hacendaria y las disposiciones legales aplicables, bajo los principios de legalidad, certeza, independencia, honestidad, responsabilidad y transparencia. Su administración será eficiente para lograr la eficacia de la justicia administrativa bajo el principio de rendición de cuentas.
 
-Dicho ejercicio deberá realizarse con base en los principios de honestidad, responsabilidad, eficiencia, eficacia, tra nsparencia, rendición de cuentas, austeridad, racionalidad y bajo estos principios estará sujeto a la evaluación y control de los órganos correspondientes.
+Dicho ejercicio deberá realizarse con base en los principios de honestidad, responsabilidad, eficiencia, eficacia, transparencia, rendición de cuentas, austeridad, racionalidad y bajo estos principios estará sujeto a la evaluación y control de los órganos correspondientes.
 
 Conforme a los principios a que se refiere el párrafo anterior, y de acuerdo a lo establecido en la Ley Federal de Presupuesto y Responsabilidad Hacendaria, el Tribunal se sujetará a las siguientes reglas:
 
-**I.** Ejercerá directamente su presupuesto aprobado por la Cámara de Diputados, sin sujetarse a las disposiciones emitidas por las secretarías de Hacie nda y Crédito Público y de la Función Pública;
+**I.** Ejercerá directamente su presupuesto aprobado por la Cámara de Diputados, sin sujetarse a las disposiciones emitidas por las secretarías de Hacienda y Crédito Público y de la Función Pública;
 
 **II.** Autorizará las adecuaciones presupuestarias sin requerir la autorización de la Secretaría de Hacienda y Crédito Público, siempre y cuando no rebase su techo global aprobado por la Cámara de Diputados;
 
@@ -54,33 +62,35 @@ Conforme a los principios a que se refiere el párrafo anterior, y de acuerdo a 
 
 **IV.** Tribunal: El Tribunal Federal de Justicia Administrativa.
 
-Capítulo II De la competencia del Tribunal y los Conflictos de Intereses
+Capítulo II
+
+De la competencia del Tribunal y los Conflictos de Intereses
 
 **Artículo 3.** El Tribunal conocerá de los juicios que se promuevan contra las resoluciones definitivas, actos administrativos y procedimientos que se indican a continuación:
 
 **I.** Los decretos y acuerdos de carácter general, diversos a los reglamentos, cuando sean autoaplicativos o cuando el interesado los controvierta con motivo de su primer acto de aplicación;
 
-**II.** Las dictadas por autoridades fiscales federales y organismos fiscales autónomos, en que se determine la existencia de una obligación fiscal, se fije en cantidad líquida o se den las bases para su liquidació n; con excepción de las que exijan el pago de créditos fiscales determinados en resoluciones liquidatorias que hubieren sido impugnadas y hayan quedado
+**(REFORMADA, D.O.F. 16 DE OCTUBRE DE 2025)**
 
-firmes por resolución de autoridad competente, o de actos que resuelvan sobre solicitudes de prescripción respecto de dichos créditos; Fracción reformada DOF 16-10-2025
+**II.** Las dictadas por autoridades fiscales federales y organismos fiscales autónomos, en que se determine la existencia de una obligación fiscal, se fije en cantidad líquida o se den las bases para su liquidación; con excepción de las que exijan el pago de créditos fiscales determinados en resoluciones liquidatorias que hubieren sido impugnadas y hayan quedado firmes por resolución de autoridad competente, o de actos que resuelvan sobre solicitudes de prescripción respecto de dichos créditos;
 
 **III.** Las que nieguen la devolución de un ingreso de los regulados por el Código Fiscal de la Federación, indebidamente percibido por el Estado o cuya devolución proceda de conformidad con las leyes fiscales;
 
 **IV.** Las que impongan multas por infracción a las normas administrativas federales;
 
-**V.** Las que caus en un agravio en materia fiscal distinto al que se refieren las fracciones anteriores;
+**V.** Las que causen un agravio en materia fiscal distinto al que se refieren las fracciones anteriores;
 
-**VI.** Las que nieguen o reduzcan las pensiones y demás prestaciones sociales que concedan las leyes en favor de los miembros del Ejército, de la Fuerza Aérea y de la Arma da Nacional o de sus familiares o derechohabientes con cargo a la Dirección de Pensiones Militares o al erario federal, así como las que establezcan obligaciones a cargo de las mismas personas, de acuerdo con las leyes que otorgan dichas prestaciones.
+**VI.** Las que nieguen o reduzcan las pensiones y demás prestaciones sociales que concedan las leyes en favor de los miembros del Ejército, de la Fuerza Aérea y de la Armada Nacional o de sus familiares o derechohabientes con cargo a la Dirección de Pensiones Militares o al erario federal, así como las que establezcan obligaciones a cargo de las mismas personas, de acuerdo con las leyes que otorgan dichas prestaciones.
 
-Cuando para fundar su demanda el interesado afirme que le corresponde un mayor número de años de servicio que los reconocidos por la autoridad respectiva, que debió ser retirado con grado superior al que consigne la resolución impugnada o que su situación mi litar sea diversa de la que le fue reconocida por la Secretaría de la Defensa Nacional o de Marina, según el caso; o cuando se versen cuestiones de jerarquía, antigüedad en el grado o tiempo de servicios militares, las sentencias del Tribunal sólo tendrán efectos en cuanto a la determinación de la cuantía de la prestación pecuniaria que a los propios militares corresponda, o a las bases para su depuración;
+Cuando para fundar su demanda el interesado afirme que le corresponde un mayor número de años de servicio que los reconocidos por la autoridad respectiva, que debió ser retirado con grado superior al que consigne la resolución impugnada o que su situación militar sea diversa de la que le fue reconocida por la Secretaría de la Defensa Nacional o de Marina, según el caso; o cuando se versen cuestiones de jerarquía, antigüedad en el grado o tiempo de servicios militares, las sentencias del Tribunal sólo tendrán efectos en cuanto a la determinación de la cuantía de la prestación pecuniaria que a los propios militares corresponda, o a las bases para su depuración;
 
 **VII.** Las que se dicten en materia de pensiones civiles, sea con cargo al erario federal o al Instituto de Seguridad y Servicios Sociales de los Trabajadores del Estado;
 
-**VIII.** Las que se originen por fallos en licitaciones públicas y la interpretación y cumplimiento de contratos públicos, de obra pública, adquisiciones, arrendamientos y servicios celebrad os por las dependencias y entidades de la Administración Pública Federal centralizada y paraestatal, y las empresas productivas del Estado; así como, las que estén bajo responsabilidad de los entes públicos federales cuando las leyes señalen expresamente l a competencia del tribunal;
+**VIII.** Las que se originen por fallos en licitaciones públicas y la interpretación y cumplimiento de contratos públicos, de obra pública, adquisiciones, arrendamientos y servicios celebrados por las dependencias y entidades de la Administración Pública Federal centralizada y paraestatal, y las empresas productivas del Estado; así como, las que estén bajo responsabilidad de los entes públicos federales cuando las leyes señalen expresamente la competencia del tribunal;
 
-**IX.** Las que nieguen la indemnización por responsabilidad patrimonial del Estado, declaren improcedente su reclamación o cuando habiéndola otorgado no satisfaga al reclamante. También, las que por repetición, impongan la obligac ión a los servidores públicos de resarcir al Estado el pago correspondiente a la indemnización, en los términos de la ley de la materia;
+**IX.** Las que nieguen la indemnización por responsabilidad patrimonial del Estado, declaren improcedente su reclamación o cuando habiéndola otorgado no satisfaga al reclamante. También, las que por repetición, impongan la obligación a los servidores públicos de resarcir al Estado el pago correspondiente a la indemnización, en los términos de la ley de la materia;
 
-**X.** Las que requieran el pago de garantías a favor de la Federación, las entidades federativas o los Municipios, así co mo de sus entidades paraestatales y las empresas productivas del Estado;
+**X.** Las que requieran el pago de garantías a favor de la Federación, las entidades federativas o los Municipios, así como de sus entidades paraestatales y las empresas productivas del Estado;
 
 **XI.** Las que traten las materias señaladas en el artículo 94 de la Ley de Comercio Exterior;
 
@@ -94,23 +104,25 @@ Cuando para fundar su demanda el interesado afirme que le corresponde un mayor n
 
 No será aplicable lo dispuesto en el párrafo anterior en todos aquellos casos en los que se pudiere afectar el derecho de un tercero, reconocido en un registro o anotación ante autoridad administrativa;
 
-**XVI.** Las resoluciones definitivas por las que se impo ngan sanciones administrativas a los servidores públicos en términos de la legislación aplicable, así como contra las que decidan los recursos administrativos previstos en dichos ordenamientos, además de los órganos constitucionales autónomos;
+**XVI.** Las resoluciones definitivas por las que se impongan sanciones administrativas a los servidores públicos en términos de la legislación aplicable, así como contra las que decidan los recursos administrativos previstos en dichos ordenamientos, además de los órganos constitucionales autónomos;
 
-**XVII.** Las r esoluciones de la Contraloría General del Instituto Nacional Electoral que impongan sanciones administrativas no graves, en términos de la Ley General de Instituciones y Procedimientos Electorales;
+**XVII.** Las resoluciones de la Contraloría General del Instituto Nacional Electoral que impongan sanciones administrativas no graves, en términos de la Ley General de Instituciones y Procedimientos Electorales;
 
 **XVIII.** Las sanciones y demás resoluciones emitidas por la Auditoría Superior de la Federación, en términos de la Ley de Fiscalización y Rendición de Cuentas de la Federación, y
 
 **XIX.** Las señaladas en esta y otras leyes como competencia del Tribunal.
 
-El Tribunal podrá llevar a cabo mecanismos alternativos de sol ución de controversias a través del Centro Público, de conformidad con lo dispuesto en la Ley General de Mecanismos Alternativos de Solución de Controversias, el Reglamento que expida el Pleno General y demás disposiciones aplicables. Párrafo adicionado DOF 26-01-2024
+**(ADICIONADO, D.O.F. 26 DE ENERO DE 2024)**
+
+El Tribunal podrá llevar a cabo mecanismos alternativos de solución de controversias a través del Centro Público, de conformidad con lo dispuesto en la Ley General de Mecanismos Alternativos de Solución de Controversias, el Reglamento que expida el Pleno General y demás disposiciones aplicables.
 
 Para los efectos del primer párrafo de este artículo, las resoluciones se considerarán definitivas cuando no admitan recurso administrativo o cuando la interposición de éste sea optativa.
 
-El Tribunal conocerá también de los juicios que promu evan las autoridades para que sean anuladas las resoluciones administrativas favorables a un particular, cuando se consideren contrarias a la ley.
+El Tribunal conocerá también de los juicios que promuevan las autoridades para que sean anuladas las resoluciones administrativas favorables a un particular, cuando se consideren contrarias a la ley.
 
-**Artículo 4.** El Tribunal conocerá de las Responsabilidades Administrativas de los Servidores Públicos y Parti culares Vinculados con Faltas Graves promovidas por la Secretaría de la Función Pública y los Órganos Internos de control de los entes públicos federales, o por la Auditoría Superior de la Federación, para la imposición de sanciones en términos de lo dispu esto por la Ley General de Responsabilidades Administrativas. Así como fincar a los responsables el pago de las indemnizaciones y sanciones pecuniarias que deriven de los daños y perjuicios que afecten a la Hacienda Pública Federal o al Patrimonio de los entes públicos federales.
+**Artículo 4.** El Tribunal conocerá de las Responsabilidades Administrativas de los Servidores Públicos y Particulares Vinculados con Faltas Graves promovidas por la Secretaría de la Función Pública y los Órganos Internos de control de los entes públicos federales, o por la Auditoría Superior de la Federación, para la imposición de sanciones en términos de lo dispuesto por la Ley General de Responsabilidades Administrativas. Así como fincar a los responsables el pago de las indemnizaciones y sanciones pecuniarias que deriven de los daños y perjuicios que afecten a la Hacienda Pública Federal o al Patrimonio de los entes públicos federales.
 
-Bajo ninguna circunstancia se entenderá que la atribución del Tribunal para imponer sanciones a particulares por actos u omisiones vinculadas con faltas administrativas graves se contrapone o menoscaba la facultad que cualquier en te público posea para imponer sanciones a particulares en los términos de la legislación aplicable.
+Bajo ninguna circunstancia se entenderá que la atribución del Tribunal para imponer sanciones a particulares por actos u omisiones vinculadas con faltas administrativas graves se contrapone o menoscaba la facultad que cualquier ente público posea para imponer sanciones a particulares en los términos de la legislación aplicable.
 
 **Artículo 5.** Las y los Magistrados que integran el Tribunal Federal de Justicia Administrativa, están impedidos para conocer de los asuntos por alguna de las siguientes causas:
 
@@ -122,7 +134,7 @@ Bajo ninguna circunstancia se entenderá que la atribución del Tribunal para im
 
 **IV.** Haber presentado denuncia el servidor público, su cónyuge o sus parientes, en los grados que expresa la fracción I, en contra de alguno de los interesados;
 
-**V.** Tener pendiente el servidor público, su cónyuge o sus parientes, en los gr ados de parentesco un juicio contra alguno de los interesados o no haber transcurrido más de un año desde la fecha de la terminación del que hayan seguido hasta la fecha en que tome conocimiento del asunto;
+**V.** Tener pendiente el servidor público, su cónyuge o sus parientes, en los grados de parentesco un juicio contra alguno de los interesados o no haber transcurrido más de un año desde la fecha de la terminación del que hayan seguido hasta la fecha en que tome conocimiento del asunto;
 
 **VI.** Haber sido procesado el servidor público, su cónyuge o parientes, en virtud de querella o denuncia presentada ante las autoridades, por alguno de los interesados, sus representantes, patronos o defensores;
 
@@ -130,7 +142,7 @@ Bajo ninguna circunstancia se entenderá que la atribución del Tribunal para im
 
 **VIII.** Haber solicitado, aceptado o recibido, por sí o por interpósita persona, dinero, bienes, muebles o inmuebles, mediante enajenación en precio notoriamente inferior al que tenga en el mercado ordinario o cualquier tipo de dádivas, sobornos, presentes o servicios de alguno de los interesados;
 
-**IX.** Hacer promesas que impliquen parcialidad a favor o en contra de alguno de los interesados, sus representantes, patronos o defensores, o a menazar de cualquier modo a alguno de ellos;
+**IX.** Hacer promesas que impliquen parcialidad a favor o en contra de alguno de los interesados, sus representantes, patronos o defensores, o amenazar de cualquier modo a alguno de ellos;
 
 **X.** Ser acreedor, deudor, socio, arrendador o arrendatario, dependiente o principal de alguno de los interesados;
 
@@ -138,15 +150,19 @@ Bajo ninguna circunstancia se entenderá que la atribución del Tribunal para im
 
 **XII.** Ser heredero, legatario, donatario o fiador de alguno de los interesados, si el servidor público ha aceptado la herencia o el legado o ha hecho alguna manifestación en este sentido;
 
-**XIII.** Ser cónyuge, concubino o hijo del servi dor público, acreedor, deudor o fiador de alguno de los interesados;
+**XIII.** Ser cónyuge, concubino o hijo del servidor público, acreedor, deudor o fiador de alguno de los interesados;
 
 **XIV.** Haber sido Juez o Magistrado en el mismo asunto, en otra instancia, o
 
 **XV.** Haber sido agente del Ministerio Público, jurado, perito, testigo, apoderado, patrono o defensor en el asunto de que se trata, o haber gestionado o recomendado anteriormente el asunto en favor o en contra de alguno de los interesados.
 
-**TÍTULO SEGUNDO INTEGRACIÓN Y FUNCIONAMIENTO DEL TRIBUNAL**
+**TÍTULO SEGUNDO**
 
-Capítulo I De la Estructura
+**INTEGRACIÓN Y FUNCIONAMIENTO DEL TRIBUNAL**
+
+Capítulo I
+
+De la Estructura
 
 **Artículo 6.** El Tribunal se integra por los órganos colegiados siguientes:
 
@@ -156,23 +172,27 @@ Capítulo I De la Estructura
 
 **III.** Las Salas Regionales.
 
-Capítulo II De la Sala Superior
+Capítulo II
+
+De la Sala Superior
 
 **Artículo 7.** La Sala Superior se integrará por dieciséis Magistrados. Funcionará en un Pleno General, en Pleno Jurisdiccional, y en tres Secciones. De los Magistrados de la Sala Superior, catorce ejercerán funciones jurisdiccionales, uno de los cuales presidirá el Tribunal de conformidad con las reglas establecidas en la presente Ley, y dos formarán parte de la Junta de Gobierno y Administración.
 
-**Artículo 8 .** La Sala Superior tendrá cada año dos períodos de sesiones; el primero comenzará el primer día hábil del mes de enero y terminará el antepenúltimo día hábil de la primera quincena del mes de julio; el segundo comenzará el primer día hábil del mes de agosto y terminará el antepenúltimo día hábil de la primera quincena del mes de diciembre.
+**Artículo 8.** La Sala Superior tendrá cada año dos períodos de sesiones; el primero comenzará el primer día hábil del mes de enero y terminará el antepenúltimo día hábil de la primera quincena del mes de julio; el segundo comenzará el primer día hábil del mes de agosto y terminará el antepenúltimo día hábil de la primera quincena del mes de diciembre.
 
-Capítulo III De los plenos y Secciones de la Sala Superior
+Capítulo III
+
+De los plenos y Secciones de la Sala Superior
 
 **Artículo 9.** El Pleno General se conformará por el Presidente del Tribunal, por los trece Magistrados que integran las Secciones de la Sala Superior y por los dos Magistrados de la Sala Superior que forman parte de la Junta de Gobierno y Administración.
 
-Las sesiones del Pleno General, así como las dil igencias o audiencias que deban practicar serán públicas y se transmitirán por los medios electrónicos que faciliten su seguimiento, en los casos que se estime necesario serán videograbadas, resguardando los datos personales de conformidad con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, la Ley Federal de Transparencia y Acceso a la Información Pública y la Ley General de Transparencia y Acceso a la Información Pública. Sólo en los casos que la ley lo establezca, las ses iones podrán ser privadas, sin embargo, de estas se harán versiones públicas para la consulta ciudadana que, en su caso, sea requerida.
+Las sesiones del Pleno General, así como las diligencias o audiencias que deban practicar serán públicas y se transmitirán por los medios electrónicos que faciliten su seguimiento, en los casos que se estime necesario serán videograbadas, resguardando los datos personales de conformidad con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, la Ley Federal de Transparencia y Acceso a la Información Pública y la Ley General de Transparencia y Acceso a la Información Pública. Sólo en los casos que la ley lo establezca, las sesiones podrán ser privadas, sin embargo, de estas se harán versiones públicas para la consulta ciudadana que, en su caso, sea requerida.
 
 Los debates serán dirigidos por el Presidente del Tribunal, bastará la mayoría simple de los presentes para la validez de la votación y en caso de empate el Presidente del Tribunal tendrá voto de calidad. En caso de ausencia del Presidente del Tribunal, será suplido por el Magistrado con mayor antigüedad.
 
-**Artículo 10 .** El Pleno Jurisdiccional estará integrado por el Presid ente del Tribunal y por los diez Magistrados integrantes de la Primera y Segunda Secciones de la Sala Superior, y bastará la presencia de siete de sus miembros para que se pueda tomar la votación respectiva.
+**Artículo 10.** El Pleno Jurisdiccional estará integrado por el Presidente del Tribunal y por los diez Magistrados integrantes de la Primera y Segunda Secciones de la Sala Superior, y bastará la presencia de siete de sus miembros para que se pueda tomar la votación respectiva.
 
-Sus resoluciones se tomarán por unanimidad o ma yoría de votos. El Presidente del Tribunal dirigirá los debates.
+Sus resoluciones se tomarán por unanimidad o mayoría de votos. El Presidente del Tribunal dirigirá los debates.
 
 Los Magistrados solo podrán abstenerse de votar cuando tengan impedimento legal.
 
@@ -190,11 +210,11 @@ Los debates serán dirigidos por su Presidente.
 
 Los Magistrados de la Tercera Sección serán suplidos de manera temporal por el Magistrado Presidente, los presidentes de Sección o por alguno de los Magistrados del Pleno Jurisdiccional, en orden alfabético de sus apellidos.
 
-En caso de impedimento o en ausencia por causa mayo r; el Presidente del Tribunal solicitará a cualquiera de los presidentes de las otras Secciones para que uno de ellos participe en las sesiones de la Tercera Sección en orden de turno. En caso de que ninguno de los dos se encuentre presente, podrá participar el Presidente del Tribunal o cualquier Magistrado de Sala Superior.
+En caso de impedimento o en ausencia por causa mayor; el Presidente del Tribunal solicitará a cualquiera de los presidentes de las otras Secciones para que uno de ellos participe en las sesiones de la Tercera Sección en orden de turno. En caso de que ninguno de los dos se encuentre presente, podrá participar el Presidente del Tribunal o cualquier Magistrado de Sala Superior.
 
-Siempre que un Magistrado disintiere de la mayoría podrá formular voto particular, el cual se insertará o engrosará al final de la sentencia respectiva si fuere presentado dentro de lo s cinco días siguientes a la fecha de la sesión.
+Siempre que un Magistrado disintiere de la mayoría podrá formular voto particular, el cual se insertará o engrosará al final de la sentencia respectiva si fuere presentado dentro de los cinco días siguientes a la fecha de la sesión.
 
-Transcurrido el plazo señalado en el párrafo anterior sin que se haya emitido el voto particular, se asentará razón en autos y se continuará el trámite correspondiente. Si no fuera aprobado el proyecto, pero el Magistrado ponente aceptare las adiciones o reformas propuestas en la sesión, procederá a redactar la resolución con base en los términos de la discusión. Si el voto de la mayoría de los Magistrados fuera en sentido distinto al del proyecto, uno de el los redactará la resolución correspondiente.
+Transcurrido el plazo señalado en el párrafo anterior sin que se haya emitido el voto particular, se asentará razón en autos y se continuará el trámite correspondiente. Si no fuera aprobado el proyecto, pero el Magistrado ponente aceptare las adiciones o reformas propuestas en la sesión, procederá a redactar la resolución con base en los términos de la discusión. Si el voto de la mayoría de los Magistrados fuera en sentido distinto al del proyecto, uno de ellos redactará la resolución correspondiente.
 
 En ambos casos el plazo para redactar la resolución será de cinco días hábiles. Las resoluciones emitidas de forma colegiada por esta Sección deberán ser firmadas por los tres Magistrados y por el Secretario Adjunto de la Sección.
 
@@ -204,49 +224,53 @@ En ambos casos el plazo para redactar la resolución será de cinco días hábil
 
 **Artículo 14.** Las Secciones Primera y Segunda estarán integradas cada una por cinco Magistrados de Sala Superior.
 
-La Sección Tercera se compondrá de tres Magistrados de Sala Superior, quienes integrarán Pleno General. Por la naturaleza de su especialización no integrarán el Pleno Jurisdiccional, ni podrán ser designados como integrantes de la Junta de Gobierno y Administración. Esta Sección contará con Salas Especializadas en materia de Responsabilidades Administra tivas que le estarán adscritas para imponer las sanciones a los servidores públicos por las responsabilidades administrativas que la ley determine como graves y a los particulares que participen en actos vinculados con dichas responsabilidades, así como fincar a los responsables el pago de las indemnizaciones y sanciones pecuniarias que deriven de los daños y perjuicios que afecten a la Hacienda Pública Federal o al patrimonio de los entes públicos federales.
+La Sección Tercera se compondrá de tres Magistrados de Sala Superior, quienes integrarán Pleno General. Por la naturaleza de su especialización no integrarán el Pleno Jurisdiccional, ni podrán ser designados como integrantes de la Junta de Gobierno y Administración. Esta Sección contará con Salas Especializadas en materia de Responsabilidades Administrativas que le estarán adscritas para imponer las sanciones a los servidores públicos por las responsabilidades administrativas que la ley determine como graves y a los particulares que participen en actos vinculados con dichas responsabilidades, así como fincar a los responsables el pago de las indemnizaciones y sanciones pecuniarias que deriven de los daños y perjuicios que afecten a la Hacienda Pública Federal o al patrimonio de los entes públicos federales.
 
-El Presidente del Tribunal no integrará Sección , salvo cuando sea requerido para integrarla ante la falta de quórum, en cuyo caso presidirá las sesiones, o cuando la Sección se encuentre imposibilitada para elegir su Presidente, en cuyo caso el Presidente del Tribunal fungirá provisionalmente como Presidente de la Sección, hasta que se logre la elección.
+El Presidente del Tribunal no integrará Sección, salvo cuando sea requerido para integrarla ante la falta de quórum, en cuyo caso presidirá las sesiones, o cuando la Sección se encuentre imposibilitada para elegir su Presidente, en cuyo caso el Presidente del Tribunal fungirá provisionalmente como Presidente de la Sección, hasta que se logre la elección.
 
-**Artículo 15 .** Las Secciones sesionarán públicamente, de las cuales se levantará Acta y se tomará versión estenográfica. De las sesiones privadas que así lo establezca la Ley, sólo se levantará Acta y se realizará versión pública de la misma.
+**Artículo 15.** Las Secciones sesionarán públicamente, de las cuales se levantará Acta y se tomará versión estenográfica. De las sesiones privadas que así lo establezca la Ley, sólo se levantará Acta y se realizará versión pública de la misma.
 
-Capítulo IV De las atribuciones del Pleno General
+Capítulo IV
+
+De las atribuciones del Pleno General
 
 **Artículo 16.** Son facultades del Pleno General las siguientes:
 
 **I.** Elegir de entre los Magistrados de la Sala Superior al Presidente del Tribunal;
 
-**II.** Aprobar el pr oyecto de presupuesto del Tribunal con sujeción a las disposiciones contenidas en la Ley Federal de Presupuesto y Responsabilidad Hacendaria, y enviarlo a través del Presidente del Tribunal a la Secretaría de Hacienda y Crédito Público para su incorporación en el proyecto de Presupuesto de Egresos de la Federación, en los términos de los criterios generales de política económica y conforme a los techos globales de gasto establecidos por el Ejecutivo Federal;
+**II.** Aprobar el proyecto de presupuesto del Tribunal con sujeción a las disposiciones contenidas en la Ley Federal de Presupuesto y Responsabilidad Hacendaria, y enviarlo a través del Presidente del Tribunal a la Secretaría de Hacienda y Crédito Público para su incorporación en el proyecto de Presupuesto de Egresos de la Federación, en los términos de los criterios generales de política económica y conforme a los techos globales de gasto establecidos por el Ejecutivo Federal;
 
-**III.** Aprobar y expedir el Reglamento Interior de l Tribunal y las reformas que le proponga la Junta de Gobierno y Administración;
+**III.** Aprobar y expedir el Reglamento Interior del Tribunal y las reformas que le proponga la Junta de Gobierno y Administración;
 
 **IV.** Expedir el Estatuto de Carrera a que se refiere la presente Ley;
 
-**V.** Elegir a los Magistrados de Sala Superior y de las Salas Regionales, y a los que se integrarán la Jun ta de Gobierno y Administración conforme a lo previsto en la presente Ley; en su caso, sustituirlos por razones debidamente fundadas;
+**V.** Elegir a los Magistrados de Sala Superior y de las Salas Regionales, y a los que se (sic) integrarán la Junta de Gobierno y Administración conforme a lo previsto en la presente Ley; en su caso, sustituirlos por razones debidamente fundadas;
 
 **VI.** Aprobar y someter a consideración del Presidente de la República la propuesta para el nombramiento de Magistrados del Tribunal para otros periodos, previa evaluación de la Junta de Gobierno y Administración; o en su caso, para nuevos nombramientos;
 
 **VII.** Fijar y, en su caso, cambiar la adscripción de los Magistrados de las tres Secciones;
 
-**VIII.** Designar al Secretario Ge neral de Acuerdos y al Titular del Órgano Interno del Control a propuesta del Presidente del Tribunal;
+**VIII.** Designar al Secretario General de Acuerdos y al Titular del Órgano Interno del (sic) Control a propuesta del Presidente del Tribunal;
 
-**IX.** Resolver todas aquellas situaciones que sean de interés para el Tribunal y cuya resolución no esté encomendada a algún otro de sus órganos; o acorda r a cuál de éstos corresponde atenderlas;
+**IX.** Resolver todas aquellas situaciones que sean de interés para el Tribunal y cuya resolución no esté encomendada a algún otro de sus órganos; o acordar a cuál de éstos corresponde atenderlas;
 
 **X.** Determinar las Salas Regionales que recibirán apoyo de las Salas Auxiliares;
 
-**XI.** Cada cinco años, presentar el diagnóstico cualitativo y cuantitativo sobre el trabajo de las Salas Especializadas en materia de Responsabilidades Administrativas, el cual deberá ser remitido para su consideración al Comité Coordinador del Sistema Nacional Anticorrupción, por conducto de su secretariado ejecutivo, a efecto de que el citado Comité, emita recomendaciones sobre la crea ción o supresión de Salas Especializadas en la materia, y
+**XI.** Cada cinco años, presentar el diagnóstico cualitativo y cuantitativo sobre el trabajo de las Salas Especializadas en materia de Responsabilidades Administrativas, el cual deberá ser remitido para su consideración al Comité Coordinador del Sistema Nacional Anticorrupción, por conducto de su secretariado ejecutivo, a efecto de que el citado Comité, emita recomendaciones sobre la creación o supresión de Salas Especializadas en la materia, y
 
 **XII.** Las señaladas en las demás leyes como competencia del Pleno General.
 
 En los acuerdos tomados por el Pleno General, en caso de empate, el Presidente del Tribunal tendrá voto de calidad.
 
-Capítulo V De las atribuciones del Pleno Jurisdiccional
+Capítulo V
+
+De las atribuciones del Pleno Jurisdiccional
 
 **Artículo 17.** Son facultades del Pleno Jurisdiccional las siguientes:
 
 **I.** Establecer, modificar y suspender la jurisprudencia del Tribunal conforme a las disposiciones legales aplicables, aprobar las tesis y precedentes del Pleno Jurisdiccional, así como ordenar su publicación en la Revista del Tribunal;
 
-**II.** Resolver las contradicciones de criterios, tesis o jurisprudencias sustentados por las Salas Regionales y Secciones de Sala Superior, según sea el cas o, determinando cuál de ellos debe prevalecer, lo cual constituirá jurisprudencia;
+**II.** Resolver las contradicciones de criterios, tesis o jurisprudencias sustentados por las Salas Regionales y Secciones de Sala Superior, según sea el caso, determinando cuál de ellos debe prevalecer, lo cual constituirá jurisprudencia;
 
 **III.** Resolver los juicios con características especiales, en términos de las disposiciones aplicables, incluidos aquellos que sean de competencia especial de la Primera y Segunda Secciones; con excepción de los que sean competencia exclusiva de la Tercera Sección;
 
@@ -254,9 +278,9 @@ Capítulo V De las atribuciones del Pleno Jurisdiccional
 
 **V.** Resolver la instancia de aclaración de sentencia, la queja relacionada con el cumplimiento de las resoluciones que emita y determinar las medidas que sean procedentes para la efectiva ejecución de sus sentencias;
 
-**VI.** En los asuntos del conocim iento del Pleno Jurisdiccional, ordenar que se reabra la instrucción y la consecuente devolución de los autos que integran el expediente a la Sala de origen, en que se advierta una violación substancial al procedimiento, o cuando considere que se realice algún trámite en la instrucción;
+**VI.** En los asuntos del conocimiento del Pleno Jurisdiccional, ordenar que se reabra la instrucción y la consecuente devolución de los autos que integran el expediente a la Sala de origen, en que se advierta una violación substancial al procedimiento, o cuando considere que se realice algún trámite en la instrucción;
 
-**VII.** Resolver, en Sesión Privada sobre las excusas, excitativas de justicia y recusaciones de los Magistrados del Tribunal. Así como habilitar a los primeros Secretarios de Acuerdos de los Magistrados de las Salas Regionale s para que los sustituyan; y en su caso, señalar la Sala más próxima que conocerá del asunto;
+**VII.** Resolver, en Sesión Privada sobre las excusas, excitativas de justicia y recusaciones de los Magistrados del Tribunal. Así como habilitar a los primeros Secretarios de Acuerdos de los Magistrados de las Salas Regionales para que los sustituyan; y en su caso, señalar la Sala más próxima que conocerá del asunto;
 
 **VIII.** Conocer de asuntos de responsabilidades en los que se encuentren involucrados Magistrados de Salas Regionales;
 
@@ -268,9 +292,11 @@ Capítulo V De las atribuciones del Pleno Jurisdiccional
 
 **XII.** Podrá ejercer de oficio la facultad de atracción para la resolución de los recursos de reclamación y revisión, en casos de trascendencia que así considere o para fijar jurisprudencia, y
 
-**XIII.** Las señaladas en las demás leyes que competa conocer al Pleno Jurisdi ccional de la Sala Superior del Tribunal.
+**XIII.** Las señaladas en las demás leyes que competa conocer al Pleno Jurisdiccional de la Sala Superior del Tribunal.
 
-Capítulo VI De las atribuciones de la Primera y Segunda Sección de la Sala Superior
+Capítulo VI
+
+De las atribuciones de la Primera y Segunda Sección de la Sala Superior
 
 **Artículo 18.** Son facultades de la Primera y Segunda Sección, las siguientes:
 
@@ -280,9 +306,9 @@ Capítulo VI De las atribuciones de la Primera y Segunda Sección de la Sala Sup
 
 **III.** Resolver los juicios con características especiales, en términos de las disposiciones aplicables, con excepción de los que sean competencia exclusiva de la Tercera Sección;
 
-**IV.** Dictar sentencia interlocutoria en los incidentes que proced an respecto de los asuntos de su competencia, y cuya procedencia no esté sujeta al cierre de instrucción;
+**IV.** Dictar sentencia interlocutoria en los incidentes que procedan respecto de los asuntos de su competencia, y cuya procedencia no esté sujeta al cierre de instrucción;
 
-**V.** Resolver la instancia de aclaración de sentencia, la queja relacionada con el cumplimiento de las resoluciones y determinar las medidas que sean p rocedentes para la efectiva ejecución de las sentencias que emitan;
+**V.** Resolver la instancia de aclaración de sentencia, la queja relacionada con el cumplimiento de las resoluciones y determinar las medidas que sean procedentes para la efectiva ejecución de las sentencias que emitan;
 
 **VI.** Ordenar que se reabra la instrucción y la consecuente devolución de los autos que integran el expediente a la Sala de origen, en que se advierta una violación substancial al procedimiento, o en que así lo amerite;
 
@@ -290,7 +316,7 @@ Capítulo VI De las atribuciones de la Primera y Segunda Sección de la Sala Sup
 
 **VIII.** Resolver los conflictos de competencia de conformidad con las disposiciones legales aplicables;
 
-**IX.** Resolver los juicios que se promuevan contra las resoluciones definitivas, actos administrativos y procedimientos que se funden en un tr atado o acuerdo internacional para evitar la doble tributación, o en materia comercial, suscrito por México, o cuando el demandante haga valer como concepto de impugnación que no se haya aplicado a su favor alguno de los referidos tratados o acuerdos.
+**IX.** Resolver los juicios que se promuevan contra las resoluciones definitivas, actos administrativos y procedimientos que se funden en un tratado o acuerdo internacional para evitar la doble tributación, o en materia comercial, suscrito por México, o cuando el demandante haga valer como concepto de impugnación que no se haya aplicado a su favor alguno de los referidos tratados o acuerdos.
 
 Cuando exista una Sala Especializada con competencia en determinada materia, será dicha Sala quien tendrá la competencia original para conocer y resolver los asuntos que se funden en un Convenio, Acuerdo o Tratado Internacional relacionado con las materias de su competencia, salvo que la Sala Superior ejerza su facultad de atracción;
 
@@ -310,7 +336,9 @@ Siempre que un Magistrado disintiere de la mayoría podrá formular voto particu
 
 Para la validez de las sesiones de la Secciones Primera y Segunda se requerirá la presencia de cuatro Magistrados y los debates serán dirigidos por el Presidente de la Sección.
 
-Capítulo VII De las atribuciones de la Sección Tercera de la Sala Superior
+Capítulo VII
+
+De las atribuciones de la Sección Tercera de la Sala Superior
 
 **Artículo 20.** Son facultades de la Tercera Sección las siguientes:
 
@@ -318,7 +346,7 @@ Capítulo VII De las atribuciones de la Sección Tercera de la Sala Superior
 
 **II.** Resolver el recurso de apelación que interpongan las partes en contra de las resoluciones dictadas por las Salas Especializadas en materia de Responsabilidades Administrativas;
 
-**III.** Ejercer su facultad de atracción para resolver los proc edimientos administrativos sancionadores por faltas graves, cuya competencia primigenia corresponda a las Salas Especializadas en materia de Responsabilidades Administrativas, siempre que los mismos revistan los requisitos de importancia y trascendencia; e ntendiendo por lo primero, que el asunto pueda dar lugar a un pronunciamiento novedoso o relevante en materia de Responsabilidades Administrativas; y, por lo segundo, que sea necesario sentar un criterio que trascienda la resolución del caso, a fin de que sea orientador a nivel nacional.
+**III.** Ejercer su facultad de atracción para resolver los procedimientos administrativos sancionadores por faltas graves, cuya competencia primigenia corresponda a las Salas Especializadas en materia de Responsabilidades Administrativas, siempre que los mismos revistan los requisitos de importancia y trascendencia; entendiendo por lo primero, que el asunto pueda dar lugar a un pronunciamiento novedoso o relevante en materia de Responsabilidades Administrativas; y, por lo segundo, que sea necesario sentar un criterio que trascienda la resolución del caso, a fin de que sea orientador a nivel nacional.
 
 El ejercicio de la facultad de atracción podrá ser solicitada por cualquiera de los Magistrados de la Sección Tercera, o bien por el Pleno de las Salas Especializadas en materia de Responsabilidades Administrativas, por mayoría de votos de sus integrantes;
 
@@ -328,27 +356,27 @@ El ejercicio de la facultad de atracción podrá ser solicitada por cualquiera d
 
 **VI.** Designar al Secretario Adjunto de la Tercera Sección, a propuesta del Presidente de la Sección;
 
-**VII.** Conocer de asuntos que le sean turnados para sancionar responsabilidades administrativas que la ley determine como grave s en casos de servidores públicos y de los particulares que participen en dichos actos;
+**VII.** Conocer de asuntos que le sean turnados para sancionar responsabilidades administrativas que la ley determine como graves en casos de servidores públicos y de los particulares que participen en dichos actos;
 
 **VIII.** Conocer del recurso por medio del cual se califica como grave la falta administrativa que se investiga contra un servidor público;
 
 **IX.** Imponer las medidas precautorias y medidas cautelares que le soliciten en términos de lo establecido en la Ley General de Responsabilidades Administrativas, cuando sean procedentes, con una duración no mayor a noventa días hábiles;
 
-**X.** Fincar a los servidores públicos y particular es responsables el pago de las indemnizaciones y sanciones pecuniarias que deriven de los daños y perjuicios que afecten a la Hacienda Pública Federal o al patrimonio de los entes públicos federales;
+**X.** Fincar a los servidores públicos y particulares responsables el pago de las indemnizaciones y sanciones pecuniarias que deriven de los daños y perjuicios que afecten a la Hacienda Pública Federal o al patrimonio de los entes públicos federales;
 
 **XI.** Imponer a los particulares que intervengan en actos vinculados con faltas administrativas graves, inhabilitación para participar en adquisiciones, arrendamientos, servicios u obras públicas, así como posibles nombramientos o encargos públicos del orden federal, en las entidades federativas, municipios o demarcaciones territoriales, según corresponda;
 
-**XII.** Sancionar a las personas morales cuando los actos vinculados con faltas administrativas graves sean realizados por personas físicas que actúen a nombre o representación de la persona moral y en beneficio de ella. En estos casos podrá procederse a la suspensión
+**XII.** Sancionar a las personas morales cuando los actos vinculados con faltas administrativas graves sean realizados por personas físicas que actúen a nombre o representación de la persona moral y en beneficio de ella. En estos casos podrá procederse a la suspensión de actividades, disolución o intervención de la sociedad respectiva cuando se trate de faltas administrativas graves que causen perjuicio a la Hacienda Pública o a los entes públicos, federales, locales o municipales, siempre que la sociedad obtenga un beneficio económico y se acredite participación de sus órganos de administración, de vigilancia o de sus socios, o en aquellos casos que se advierta que la sociedad es utilizada de manera sistemática para vincularse con faltas administrativas graves; en estos supuestos la sanción se ejecutará hasta que sea definitiva;
 
-de actividades, disolución o intervención de la sociedad respectiva cuando se trate de faltas administrativas graves que causen perjuicio a la Hacienda Pública o a los entes públicos, federales, locales o municipales, siempre que la sociedad obtenga un beneficio económico y se acredite participación de sus órganos de administración, de vigilancia o de sus socios, o en aquellos casos que se advierta que la sociedad es utilizada de manera sistemática para vincularse con faltas administrativas graves; en estos supuestos la sanción se ejecutará hasta que sea definitiva;
-
-**XIII.** A petición de su Magistrado Presidente, solicitar al Pleno de la Sala Superior, que por conducto de la Junta de Gobierno, se realic en las gestiones necesarias ante las autoridades competentes para garantizar las condiciones que permitan a los Magistrados de la propia Sección o de las Salas Especializadas en materia de Responsabilidades Administrativas, ejercer con normalidad y autonomía sus atribuciones;
+**XIII.** A petición de su Magistrado Presidente, solicitar al Pleno de la Sala Superior, que por conducto de la Junta de Gobierno, se realicen las gestiones necesarias ante las autoridades competentes para garantizar las condiciones que permitan a los Magistrados de la propia Sección o de las Salas Especializadas en materia de Responsabilidades Administrativas, ejercer con normalidad y autonomía sus atribuciones;
 
 **XIV.** Dar seguimiento y proveer la ejecución de las resoluciones que emita, y
 
 **XV.** Las señaladas en las demás leyes como competencia exclusiva de la Sección.
 
-Capítulo VIII De las atribuciones de la Junta de Gobierno y Administración
+Capítulo VIII
+
+De las atribuciones de la Junta de Gobierno y Administración
 
 **Artículo 21.** La Junta de Gobierno y Administración será el órgano del Tribunal que tendrá a su cargo la administración, vigilancia, disciplina y carrera jurisdiccional, y contará con autonomía técnica y de gestión para el adecuado cumplimiento de sus funciones.
 
@@ -360,29 +388,29 @@ Capítulo VIII De las atribuciones de la Junta de Gobierno y Administración
 
 **III.** Dos Magistrados de Sala Regional.
 
-Los Magistrados de Sala Superior y de Sala Regional que integren la Junta de Gobierno y Administración serán electos por el Pleno General en forma escalonada por periodos de dos años y no podrán ser reelectos para el periodo inmediato siguiente. S ólo serán elegibles aquellos Magistrados cuyos nombramientos cubran el periodo del cargo en dicha Junta.
+Los Magistrados de Sala Superior y de Sala Regional que integren la Junta de Gobierno y Administración serán electos por el Pleno General en forma escalonada por periodos de dos años y no podrán ser reelectos para el periodo inmediato siguiente. Sólo serán elegibles aquellos Magistrados cuyos nombramientos cubran el periodo del cargo en dicha Junta.
 
-Los Magistrados que integren la Junta de Gobierno y Administración no ejercerán funciones jurisdiccionales. Una vez que concluyan su encargo, se reint egrarán a las funciones jurisdiccionales por el tiempo restante del periodo por el cual fueron designados.
+Los Magistrados que integren la Junta de Gobierno y Administración no ejercerán funciones jurisdiccionales. Una vez que concluyan su encargo, se reintegrarán a las funciones jurisdiccionales por el tiempo restante del periodo por el cual fueron designados.
 
 **Artículo 23.** Son facultades de la Junta de Gobierno y Administración, las siguientes:
 
-**I.** Proponer, para aprobación del Pleno General, el proyecto d e Reglamento Interior del Tribunal;
+**I.** Proponer, para aprobación del Pleno General, el proyecto de Reglamento Interior del Tribunal;
 
 **II.** Expedir los acuerdos necesarios para el buen funcionamiento del Tribunal;
 
 **III.** Aprobar la formulación del proyecto de presupuesto del Tribunal, para los efectos señalados en el artículo 16, fracción II de esta Ley;
 
-**IV.** Realizar la evaluación interna de los servidores públicos que le requiera el Pleno General, para los efectos del artículo 16, fracción VI, de esta Ley. La evaluación se basará en los elementos objetivos y datos estadísticos sobre el desempeño del car go, de conformidad con las disposiciones aplicables;
+**IV.** Realizar la evaluación interna de los servidores públicos que le requiera el Pleno General, para los efectos del artículo 16, fracción VI, de esta Ley. La evaluación se basará en los elementos objetivos y datos estadísticos sobre el desempeño del cargo, de conformidad con las disposiciones aplicables;
 
-**V.** Llevar a cabo los estudios necesarios para determinar las regiones, sedes y número de las Salas Regionales; las sedes y número de las Salas Auxiliares; la competencia material y territorial de las Sa las Especializadas, así como las materias específicas de competencia de las Secciones de la Sala Superior y los criterios conforme a los cuales se ejercerá la facultad de atracción, de acuerdo con lo que establezcan las disposiciones aplicables;
+**V.** Llevar a cabo los estudios necesarios para determinar las regiones, sedes y número de las Salas Regionales; las sedes y número de las Salas Auxiliares; la competencia material y territorial de las Salas Especializadas, así como las materias específicas de competencia de las Secciones de la Sala Superior y los criterios conforme a los cuales se ejercerá la facultad de atracción, de acuerdo con lo que establezcan las disposiciones aplicables;
 
 **VI.** Adscribir a las Salas Regionales ordinarias, auxiliares, especializadas o mixtas a los Magistrados Regionales;
 
 **VII.** Designar a los Magistrados Supernumerarios que cubrirán las ausencias de los Magistrados de Sala Regional;
 
-**VIII.** Aprobar los nombramientos de l os servidores públicos jurisdiccionales y administrativos del Tribunal, observando las Condiciones Generales de Trabajo respecto a los trabajadores a los que les sean aplicables;
+**VIII.** Aprobar los nombramientos de los servidores públicos jurisdiccionales y administrativos del Tribunal, observando las Condiciones Generales de Trabajo respecto a los trabajadores a los que les sean aplicables;
 
-**IX.** Establecer, mediante acuerdos generales, las unidades administrativas qu e estime necesarias para el eficiente desempeño de las funciones del Tribunal, de conformidad con su presupuesto autorizado;
+**IX.** Establecer, mediante acuerdos generales, las unidades administrativas que estime necesarias para el eficiente desempeño de las funciones del Tribunal, de conformidad con su presupuesto autorizado;
 
 **X.** Proponer al Pleno General, acorde con los principios de eficiencia, capacidad y experiencia, el Estatuto de la Carrera, que contendrá:
 
@@ -390,7 +418,7 @@ Los Magistrados que integren la Junta de Gobierno y Administración no ejercerá
 
 **b.** Los requisitos que deberán satisfacerse para la permanencia y promoción en los cargos, y
 
-**c.** Las reglas sobre discipl ina y, en su caso, un sistema de estímulos a los servidores públicos jurisdiccionales de acuerdo a la disponibilidad presupuestaria del Tribunal;
+**c.** Las reglas sobre disciplina y, en su caso, un sistema de estímulos a los servidores públicos jurisdiccionales de acuerdo a la disponibilidad presupuestaria del Tribunal;
 
 **XI.** Expedir las normas de carrera para los servidores públicos que corresponda;
 
@@ -398,9 +426,7 @@ Los Magistrados que integren la Junta de Gobierno y Administración no ejercerá
 
 **XIII.** Dictar las reglas conforme a las cuales se deberán practicar visitas para verificar el correcto funcionamiento de las Salas Regionales, ordinarias, auxiliares, especializadas o mixtas, así como señalar las que corresponderá visitar a cada uno de sus miembros;
 
-**XIV.** Acordar la distribución de los recursos presupuestales conforme a la ley y el presupuesto aprobado por la Cámara de Diputados, dictar las órdenes relacionadas con su ejercicio
-
-en los términos de la Ley Fed eral de Presupuesto y Responsabilidad Hacendaria y supervisar su legal y adecuada aplicación;
+**XIV.** Acordar la distribución de los recursos presupuestales conforme a la ley y el presupuesto aprobado por la Cámara de Diputados, dictar las órdenes relacionadas con su ejercicio en los términos de la Ley Federal de Presupuesto y Responsabilidad Hacendaria y supervisar su legal y adecuada aplicación;
 
 **XV.** Establecer las comisiones que estime convenientes para su adecuado funcionamiento, señalando su materia e integración;
 
@@ -414,13 +440,13 @@ en los términos de la Ley Fed eral de Presupuesto y Responsabilidad Hacendaria 
 
 **XX.** Nombrar, a propuesta del superior jerárquico, y remover a los servidores públicos del Tribunal no comprendidos en las fracciones anteriores de este artículo;
 
-**XXI.** Conceder licencias pre pensionarias con goce de sueldo a los Magistrados, Titular del Órgano Interno de Control, Secretario Ge neral de Acuerdos, Secretario Técnico y Secretarios Adjuntos de las Secciones, hasta por tres meses;
+**XXI.** Conceder licencias pre pensionarias con goce de sueldo a los Magistrados, Titular del Órgano Interno de Control, Secretario General de Acuerdos, Secretario Técnico y Secretarios Adjuntos de las Secciones, hasta por tres meses;
 
-**XXII.** Conceder licencias con goce de sueldo a los Magistrados por periodos inferiores a un mes y sin goce de sueldo hasta por dos meses más, siempre que e xista causa fundada que así lo amerite, en el entendido de que en caso de enfermedad y cuando el caso lo amerite, se podrá ampliar esta licencia;
+**XXII.** Conceder licencias con goce de sueldo a los Magistrados por periodos inferiores a un mes y sin goce de sueldo hasta por dos meses más, siempre que exista causa fundada que así lo amerite, en el entendido de que en caso de enfermedad y cuando el caso lo amerite, se podrá ampliar esta licencia;
 
 **XXIII.** Aprobar la suplencia temporal de los Magistrados de Sala Regional, por el primer Secretario de Acuerdos del Magistrado ausente;
 
-**XXIV.** Conceder o negar licencias a los Secretarios, Actuarios y Oficiales Jurisdiccionales, así como al personal administrativo del Tribunal, en los términos de las disposiciones aplicables, previa opinión, en su caso, del Magist rado o del superior jerárquico al que estén adscritos;
+**XXIV.** Conceder o negar licencias a los Secretarios, Actuarios y Oficiales Jurisdiccionales, así como al personal administrativo del Tribunal, en los términos de las disposiciones aplicables, previa opinión, en su caso, del Magistrado o del superior jerárquico al que estén adscritos;
 
 **XXV.** Regular y supervisar las adquisiciones de bienes y servicios, las obras y los arrendamientos que contrate el Tribunal y comprobar que se apeguen a las leyes y disposiciones en dichas materias;
 
@@ -436,37 +462,39 @@ en los términos de la Ley Fed eral de Presupuesto y Responsabilidad Hacendaria 
 
 **XXXI.** Recibir y atender las visitas de verificación ordenadas por la Auditoría Superior de la Federación y supervisar que se solventen las observaciones que formule, a través de la Secretaría Técnica correspondiente;
 
-**XXXII.** Integrar y desarrollar los subsistemas de información estadística sobre el desempeño del Tribunal, de los plenos y de las Secciones de la Sala Superior, así como de las Salas Regionales, que contemple por lo menos el número de asuntos atendidos, su materia, su cuantía, la duración de los procedimientos, el rezago y las r esoluciones confirmadas, revocadas o modificadas, en materia de Responsabilidades Administrativas tomará en consideración los criterios y políticas que al efecto emita el Sistema Nacional Anticorrupción;
+**XXXII.** Integrar y desarrollar los subsistemas de información estadística sobre el desempeño del Tribunal, de los plenos y de las Secciones de la Sala Superior, así como de las Salas Regionales, que contemple por lo menos el número de asuntos atendidos, su materia, su cuantía, la duración de los procedimientos, el rezago y las resoluciones confirmadas, revocadas o modificadas, en materia de Responsabilidades Administrativas tomará en consideración los criterios y políticas que al efecto emita el Sistema Nacional Anticorrupción;
 
-**XXXIII.** Establecer y administrar el Boletín Electró nico para la notificación de las resoluciones y acuerdos, de conformidad con lo establecido por la Ley Federal de Procedimiento Contencioso Administrativo, así como el control de las notificaciones que se realicen por medios electrónicos y supervisar la co rrecta operación y funcionamiento de los sistemas de justicia en línea y de control de juicios del tribunal para la tramitación de los juicios;
+**XXXIII.** Establecer y administrar el Boletín Electrónico para la notificación de las resoluciones y acuerdos, de conformidad con lo establecido por la Ley Federal de Procedimiento Contencioso Administrativo, así como el control de las notificaciones que se realicen por medios electrónicos y supervisar la correcta operación y funcionamiento de los sistemas de justicia en línea y de control de juicios del tribunal para la tramitación de los juicios;
 
-**XXXIV.** Emitir los acuerdos normativos que contengan los lineamientos técnicos y formales que deban observarse e n la substanciación del juicio en línea y de las notificaciones electrónicas, así como del Boletín Electrónico y el sistema de control de juicios;
+**XXXIV.** Emitir los acuerdos normativos que contengan los lineamientos técnicos y formales que deban observarse en la substanciación del juicio en línea y de las notificaciones electrónicas, así como del Boletín Electrónico y el sistema de control de juicios;
 
 **XXXV.** Supervisar la publicación de las jurisprudencias, precedentes y tesis aisladas emitidas por las Salas y Secciones en la Revista del Tribunal;
 
 **XXXVI.** Formular la memoria anual de funcionamiento del Tribunal para ser presentada al Presidente de la República y al Congreso de la Unión;
 
-**XXXVII.** Determinar las sanciones correspondientes a los Magistrados del T ribunal, en aplicación de la Ley General de Responsabilidades Administrativas;
+**XXXVII.** Determinar las sanciones correspondientes a los Magistrados del Tribunal, en aplicación de la Ley General de Responsabilidades Administrativas;
 
 **XXXVIII.** Determinar el establecimiento de Salas Especializadas, incluyendo su ámbito jurisdiccional, que podrá ser nacional o regional, de conformidad con criterios de racionalidad y de accesibilidad a la justicia, y
 
 **XXXIX.** Resolver los demás asuntos que señalen las disposiciones aplicables.
 
-**Artículo 24 .** Para la validez de las sesiones de la Junta de Gobierno y Administración, bastará la presencia de tres de sus miembros.
+**Artículo 24.** Para la validez de las sesiones de la Junta de Gobierno y Administración, bastará la presencia de tres de sus miembros.
 
 **Artículo 25.** Las resoluciones de la Junta de Gobierno y Administración se tomarán por mayoría de votos de los Magistrados miembros presentes, quienes no podrán abstenerse de votar. En caso de empate, el Presidente de dicha sesión tendrá voto de calidad.
 
 Las sesiones de la Junta de Gobierno y Administración serán públicas, sólo en los casos que la ley lo establezca, las sesiones podrán ser privadas, sin embargo, de estas se harán versiones públicas y deberán levantarse actas de las mismas.
 
-**Artículo 26.** El Presidente del Tribunal lo será también de la Junta de Gobierno y Administración. En el caso de faltas temporales del Presidente del Tribunal, será suplido por los Magistrados de Sala Superior integrantes de dicha Junta, siguiendo el orden alfabético de sus a pellidos.
+**Artículo 26.** El Presidente del Tribunal lo será también de la Junta de Gobierno y Administración. En el caso de faltas temporales del Presidente del Tribunal, será suplido por los Magistrados de Sala Superior integrantes de dicha Junta, siguiendo el orden alfabético de sus apellidos.
 
-Ante la falta definitiva, renuncia o sustitución de los Magistrados previstos en las fracciones II y III del artículo 22 de esta Ley que integren la Junta de Gobierno y Administración, el Pleno General designará a un nuevo integrante para conclu ir el periodo del Magistrado faltante. El Magistrado designado para concluir el periodo no estará impedido para ser electo como integrante de la Junta de Gobierno y Administración en el periodo inmediato siguiente.
+Ante la falta definitiva, renuncia o sustitución de los Magistrados previstos en las fracciones II y III del artículo 22 de esta Ley que integren la Junta de Gobierno y Administración, el Pleno General designará a un nuevo integrante para concluir el periodo del Magistrado faltante. El Magistrado designado para concluir el periodo no estará impedido para ser electo como integrante de la Junta de Gobierno y Administración en el periodo inmediato siguiente.
 
-Las faltas temporales de los Magistrados que integren la Junta de Gobierno y Administración serán suplidas por los Magistrados de Sala Superior o de Sala Regional que determine el Pleno General de la Sala Superior, según sea el caso, siempre que sean elegibles para ello en los términos de esta L ey.
+Las faltas temporales de los Magistrados que integren la Junta de Gobierno y Administración serán suplidas por los Magistrados de Sala Superior o de Sala Regional que determine el Pleno General de la Sala Superior, según sea el caso, siempre que sean elegibles para ello en los términos de esta Ley.
 
-**Artículo 27 .** La Junta de Gobierno y Administración, para atender los asuntos de su competencia, contará con los Secretarios Técnicos, Operativos y Auxiliares necesarios.
+**Artículo 27.** La Junta de Gobierno y Administración, para atender los asuntos de su competencia, contará con los Secretarios Técnicos, Operativos y Auxiliares necesarios.
 
-Capítulo IX De las Salas Regionales Ordinarias, Auxiliares, Especializadas o Mixtas
+Capítulo IX
+
+De las Salas Regionales Ordinarias, Auxiliares, Especializadas o Mixtas
 
 **Artículo 28.** Las Salas Regionales tendrán el carácter siguiente:
 
@@ -474,11 +502,11 @@ Capítulo IX De las Salas Regionales Ordinarias, Auxiliares, Especializadas o Mi
 
 **II.** Auxiliares: Apoyarán a las Salas Regionales con carácter de Ordinarias o Especializadas, en el dictado de las sentencias definitivas, diversas a las que se tramiten en la vía sumaria. Su circunscripción territorial la determinará el Pleno General a propuesta de la Junta de Gobierno y Administración, de acuerdo a los estudios cualitativos y cuantitativos;
 
-**III.** Especializadas: Atenderán las materias específicas, con la jurisdicción, competencia y sedes que se determinen en esta Ley o en el Reglamen to Interior de este Tribunal, de acuerdo a los estudios y propuesta de la Junta de Gobierno y Administración, con base en las necesidades del servicio, y
+**III.** Especializadas: Atenderán las materias específicas, con la jurisdicción, competencia y sedes que se determinen en esta Ley o en el Reglamento Interior de este Tribunal, de acuerdo a los estudios y propuesta de la Junta de Gobierno y Administración, con base en las necesidades del servicio, y
 
 **IV.** Mixtas: Serán aquellas que contengan dos de las funciones anteriores.
 
-**Artículo 29 .** El Tribunal t endrá Salas Regionales, integradas por tres Magistrados cada una, con jurisdicción en la circunscripción territorial y sede que les sea asignada en el Reglamento Interior del Tribunal, o en esta Ley.
+**Artículo 29.** El Tribunal tendrá Salas Regionales, integradas por tres Magistrados cada una, con jurisdicción en la circunscripción territorial y sede que les sea asignada en el Reglamento Interior del Tribunal, o en esta Ley.
 
 **Artículo 30.** Para los efectos del artículo anterior, el territorio nacional se dividirá en regiones con los límites territoriales que se determinen en el Reglamento Interior del Tribunal, conforme a los estudios y propuesta de la Junta de Gobierno y Administración, con base en las cargas de trabajo y los requerimientos de administración de justicia, así como la disponibilidad presupuestaria del Tribunal.
 
@@ -488,19 +516,19 @@ Para la validez de las sesiones de la Sala, será indispensable la presencia de 
 
 En los juicios en la vía sumaria, el Magistrado que haya instruido el juicio lo resolverá, en términos de lo previsto en la Ley Federal de Procedimiento Contencioso Administrativo.
 
-Las sesiones de las Salas Regionales, así como las diligencias o audiencias que deban practicar serán públicas y se transmitirán por los medios electrónicos que faciliten su seguimiento, resg uardando los datos personales de conformidad con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, la Ley Federal de Transparencia y Acceso a la Información Pública y la Ley General de Transparencia y Acceso a la Información Pública. Sólo en los casos que la Ley lo establezca, las sesiones podrán ser privadas, sin embargo, de estas se harán versiones públicas para la consulta ciudadana que, en su caso, sea requerida.
+Las sesiones de las Salas Regionales, así como las diligencias o audiencias que deban practicar serán públicas y se transmitirán por los medios electrónicos que faciliten su seguimiento, resguardando los datos personales de conformidad con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, la Ley Federal de Transparencia y Acceso a la Información Pública y la Ley General de Transparencia y Acceso a la Información Pública. Sólo en los casos que la Ley lo establezca, las sesiones podrán ser privadas, sin embargo, de estas se harán versiones públicas para la consulta ciudadana que, en su caso, sea requerida.
 
-**Artículo 32 .** Los presidentes de las Salas Regionales, será n designados por los Magistrados que integren la Sala en la primera sesión de cada ejercicio, durarán en su cargo un año y no podrán ser reelectos para el periodo inmediato siguiente.
+**Artículo 32.** Los presidentes de las Salas Regionales, serán designados por los Magistrados que integren la Sala en la primera sesión de cada ejercicio, durarán en su cargo un año y no podrán ser reelectos para el periodo inmediato siguiente.
 
 En el caso de faltas temporales, los presidentes serán suplidos por los Magistrados de la Sala en orden alfabético de sus apellidos.
 
-Si la falta es definitiva, la Sala designará nuevo Presidente para concluir el periodo del Magistrado faltante. El Magistrado designado para concluir el periodo no estará impedido para ser elec to Presidente en el periodo inmediato siguiente.
+Si la falta es definitiva, la Sala designará nuevo Presidente para concluir el periodo del Magistrado faltante. El Magistrado designado para concluir el periodo no estará impedido para ser electo Presidente en el periodo inmediato siguiente.
 
 **Artículo 33.** Los presidentes de las Salas Regionales tendrán las siguientes atribuciones:
 
 **I.** Atender la correspondencia de la Sala, autorizándola con su firma;
 
-**II.** Rendir los informes previos y justificad os cuando los actos reclamados en los juicios de amparo sean imputados a la Sala, así como informar del cumplimiento dado a las ejecutorias en dichos juicios;
+**II.** Rendir los informes previos y justificados cuando los actos reclamados en los juicios de amparo sean imputados a la Sala, así como informar del cumplimiento dado a las ejecutorias en dichos juicios;
 
 **III.** Dictar las medidas que exijan el orden, buen funcionamiento y la disciplina de la Sala, exigir que se guarde el respeto y consideración debidos e imponer las correspondientes correcciones disciplinarias;
 
@@ -522,31 +550,33 @@ Si la falta es definitiva, la Sala designará nuevo Presidente para concluir el 
 
 **XII.** Las demás que establezcan las disposiciones aplicables.
 
-Capítulo X De las Salas Regionales Ordinarias
+Capítulo X
 
-**Artículo 34 .** Las Salas Regionales Ordinarias conocerán de los juicios por razón de territorio, atendiendo al lugar donde se encuentre el domicilio fiscal del demandante, excepto cuando:
+De las Salas Regionales Ordinarias
+
+**Artículo 34.** Las Salas Regionales Ordinarias conocerán de los juicios por razón de territorio, atendiendo al lugar donde se encuentre el domicilio fiscal del demandante, excepto cuando:
 
 **I.** Se trate de personas morales que:
 
 **a.** Formen parte del sistema financiero, en los términos de la Ley del Impuesto sobre la Renta, o
 
-**b.** Tengan el carácter de controladoras o controladas, de conformid ad con la Ley del Impuesto sobre la Renta, y determinen su resultado fiscal consolidado;
+**b.** Tengan el carácter de controladoras o controladas, de conformidad con la Ley del Impuesto sobre la Renta, y determinen su resultado fiscal consolidado;
 
 **II.** El demandante resida en el extranjero y no tenga domicilio fiscal en el país, y
 
 **III.** Se impugnen resoluciones emitidas por la Administración General de Grandes Contribuyentes del Servicio de Administración Tributaria o por las unidades administrativas adscritas a dicha Administración General.
 
-En los casos señalados en estas fracciones, será competente la Sala Regional ordinaria de la circunscripción territorial e n que se encuentre la sede de la autoridad que haya dictado la resolución impugnada y, siendo varias las resoluciones impugnadas, la Sala Regional ordinaria de la circunscripción territorial en que se encuentre la sede de la autoridad que pretenda ejecutarlas.
+En los casos señalados en estas fracciones, será competente la Sala Regional ordinaria de la circunscripción territorial en que se encuentre la sede de la autoridad que haya dictado la resolución impugnada y, siendo varias las resoluciones impugnadas, la Sala Regional ordinaria de la circunscripción territorial en que se encuentre la sede de la autoridad que pretenda ejecutarlas.
 
 Cuando el demandante resida en territorio nacional y no tenga domicilio fiscal, se atenderá a la ubicación de su domicilio particular.
 
-Si el demandante es una autoridad que promueve la nulidad de alguna resolución administrativa favorable a un parti cular, será competente la Sala Regional de la circunscripción territorial en que se encuentre la sede de la autoridad actora.
+Si el demandante es una autoridad que promueve la nulidad de alguna resolución administrativa favorable a un particular, será competente la Sala Regional de la circunscripción territorial en que se encuentre la sede de la autoridad actora.
 
 Se presumirá que el domicilio señalado en la demanda es el fiscal salvo que la parte demandada demuestre lo contrario.
 
 **Artículo 35.** Además de los juicios a que se refiere el artículo 3, las Salas Regionales conocerán de aquellos que se promuevan contra las resoluciones definitivas, actos administrativos y procedimientos que se indican a continuación:
 
-**I.** Las resoluciones definitiva s relacionadas con la interpretación y cumplimiento de contratos públicos, obra pública, adquisiciones, arrendamientos y servicios celebrados por las dependencias y entidades de la Administración Pública Federal;
+**I.** Las resoluciones definitivas relacionadas con la interpretación y cumplimiento de contratos públicos, obra pública, adquisiciones, arrendamientos y servicios celebrados por las dependencias y entidades de la Administración Pública Federal;
 
 **II.** Las dictadas por autoridades administrativas en materia de licitaciones públicas;
 
@@ -554,9 +584,9 @@ Se presumirá que el domicilio señalado en la demanda es el fiscal salvo que la
 
 **IV.** Las dictadas por las autoridades administrativas que pongan fin a un procedimiento administrativo, a una instancia o resuelvan un expediente, respecto de los supuestos descritos en los incisos anteriores de este artículo;
 
-**V.** Las dictadas en los juicios promovidos por los Secretarios de Acuerdos, Actuarios y demás personal del tribunal, en contra de sanci ones derivadas de actos u omisiones que constituyan faltas administrativas no graves, impuestas por la Junta de Gobierno y Administración o por el Órgano Interno de Control, en aplicación de la Ley General de Responsabilidades Administrativas, y
+**V.** Las dictadas en los juicios promovidos por los Secretarios de Acuerdos, Actuarios y demás personal del tribunal, en contra de sanciones derivadas de actos u omisiones que constituyan faltas administrativas no graves, impuestas por la Junta de Gobierno y Administración o por el Órgano Interno de Control, en aplicación de la Ley General de Responsabilidades Administrativas, y
 
-**VI.** Las q ue resuelvan los recursos administrativos en contra de las resoluciones que se indican en las demás fracciones de este artículo.
+**VI.** Las que resuelvan los recursos administrativos en contra de las resoluciones que se indican en las demás fracciones de este artículo.
 
 **Artículo 36.** Los Magistrados instructores de las Salas Regionales con carácter de ordinarias, tendrán las siguientes atribuciones:
 
@@ -568,7 +598,7 @@ Se presumirá que el domicilio señalado en la demanda es el fiscal salvo que la
 
 **IV.** Admitir, desechar o tener por no ofrecidas las pruebas;
 
-**V.** Sobreseer los juicios antes de que se cierre la instrucción, cuando el demandante se desista de la acción o se revoque la resolución impugnada, así como en los demás cas os que establezcan las disposiciones aplicables;
+**V.** Sobreseer los juicios antes de que se cierre la instrucción, cuando el demandante se desista de la acción o se revoque la resolución impugnada, así como en los demás casos que establezcan las disposiciones aplicables;
 
 **VI.** Admitir, desechar y tramitar los incidentes y recursos que les competan, formular los proyectos de resolución, de aclaraciones de sentencia y de resoluciones de queja relacionadas con el cumplimiento de las sentencias, y someterlos a la consideración de la Sala;
 
@@ -586,21 +616,23 @@ Se presumirá que el domicilio señalado en la demanda es el fiscal salvo que la
 
 **XIII.** Resolver sobre el otorgamiento de medidas cautelares que correspondan;
 
-**XIV.** Formular el proyecto de resolución correspondiente y en caso de determinar la comisión de una falta administrativa grave, preverá la sanción correspondiente, la cual incluirá el pago de las indemnizacion es que deriven de los daños y perjuicios que afecten a la Hacienda Pública Federal o al patrimonio de los entes públicos federales, en los términos de la Ley General de Responsabilidades Administrativas, y
+**XIV.** Formular el proyecto de resolución correspondiente y en caso de determinar la comisión de una falta administrativa grave, preverá la sanción correspondiente, la cual incluirá el pago de las indemnizaciones que deriven de los daños y perjuicios que afecten a la Hacienda Pública Federal o al patrimonio de los entes públicos federales, en los términos de la Ley General de Responsabilidades Administrativas, y
 
 **XV.** Las demás que les correspondan conforme a las disposiciones legales aplicables.
 
-Capítulo XI De las Salas Especializadas en Materia de Responsabilidades Administrativas
+Capítulo XI
 
-**Artículo 37 .** El Tribunal contará con Salas Especializadas en materia de Responsabilidades Administrativas, cada una tendrá competen cia respecto de las entidades que conformen las cinco circunscripciones administrativas, mismas que determinará el Pleno General a propuesta de la Junta de Gobierno y Administración, de acuerdo a estudios cualitativos y cuantitativos.
+De las Salas Especializadas en Materia de Responsabilidades Administrativas
 
-**Artículo 38 .** Las Sal as Especializadas en materia de Responsabilidades Administrativas conocerán de:
+**Artículo 37.** El Tribunal contará con Salas Especializadas en materia de Responsabilidades Administrativas, cada una tendrá competencia respecto de las entidades que conformen las cinco circunscripciones administrativas, mismas que determinará el Pleno General a propuesta de la Junta de Gobierno y Administración, de acuerdo a estudios cualitativos y cuantitativos.
+
+**Artículo 38.** Las Salas Especializadas en materia de Responsabilidades Administrativas conocerán de:
 
 **A)** Los procedimientos y resoluciones a que se refiere el artículo 4 de esta Ley, con las siguientes facultades:
 
-**I.** Resolverán respecto de las faltas administrativas graves, i nvestigadas y substanciadas por la Auditoría Superior de la Federación y los órganos internos de control respectivos, según sea el caso, ya sea que el procedimiento se haya seguido por denuncia, de oficio o derivado de las auditorías practicadas por las autoridades competentes;
+**I.** Resolverán respecto de las faltas administrativas graves, investigadas y substanciadas por la Auditoría Superior de la Federación y los órganos internos de control respectivos, según sea el caso, ya sea que el procedimiento se haya seguido por denuncia, de oficio o derivado de las auditorías practicadas por las autoridades competentes;
 
-**II.** Impondrán sanciones que correspondan a los servidores públicos y particulares, personas físicas o morales, que intervengan en actos vinculados con faltas administrativas graves, con independencia de otro tipo de responsabilidade s. Así como fincar a los responsables el pago de las cantidades por concepto de responsabilidades resarcitorias, las indemnizaciones y sanciones pecuniarias que deriven de los daños y perjuicios que afecten a la Hacienda Pública Federal o al Patrimonio de los entes públicos federales, locales o municipales, y
+**II.** Impondrán sanciones que correspondan a los servidores públicos y particulares, personas físicas o morales, que intervengan en actos vinculados con faltas administrativas graves, con independencia de otro tipo de responsabilidades. Así como fincar a los responsables el pago de las cantidades por concepto de responsabilidades resarcitorias, las indemnizaciones y sanciones pecuniarias que deriven de los daños y perjuicios que afecten a la Hacienda Pública Federal o al Patrimonio de los entes públicos federales, locales o municipales, y
 
 **III.** Dictar las medidas preventivas y cautelares para evitar que el procedimiento sancionador quede sin materia, y el desvío de recursos obtenidos de manera ilegal.
 
@@ -614,7 +646,7 @@ Capítulo XI De las Salas Especializadas en Materia de Responsabilidades Adminis
 
 **IV.** Las resoluciones definitivas por las que se impongan sanciones administrativas a los servidores públicos en términos de la legislación aplicable, así como contra las que decidan los recursos administrativos previstos en dichos ordenamientos.
 
-**Artículo 39 .** Los Magistrados instructores de las Salas Especializadas en materia de Responsabilidades Administrativas, tendrán las siguientes atribuciones:
+**Artículo 39.** Los Magistrados instructores de las Salas Especializadas en materia de Responsabilidades Administrativas, tendrán las siguientes atribuciones:
 
 **I.** Admitir, prevenir, reconducir o mejor proveer, la acción de responsabilidades contenida en el informe de presunta responsabilidad administrativa;
 
@@ -634,7 +666,7 @@ Capítulo XI De las Salas Especializadas en Materia de Responsabilidades Adminis
 
 **IX.** Proponer a la Sala la designación del perito tercero;
 
-**X.** Solicitar la debida integración del expediente para un mejor conocimiento de los hechos en la búsqueda de la verdad material, asimismo los Magistrados Instructores podrán acordar la exhibición de cualquier documento que tenga relación con los mismos, ordenar la práctica de cualquier diligencia o proveer la preparación y desahogo de la prueba pericial cuando se planteen cuestiones de carác ter técnico y no hubiere sido ofrecida por las partes, en el procedimiento de investigación;
+**X.** Solicitar la debida integración del expediente para un mejor conocimiento de los hechos en la búsqueda de la verdad material, asimismo los Magistrados Instructores podrán acordar la exhibición de cualquier documento que tenga relación con los mismos, ordenar la práctica de cualquier diligencia o proveer la preparación y desahogo de la prueba pericial cuando se planteen cuestiones de carácter técnico y no hubiere sido ofrecida por las partes, en el procedimiento de investigación;
 
 **XI.** Dirigir la audiencia de vista con el personal de apoyo administrativo y jurisdiccional que requiera;
 
@@ -642,15 +674,19 @@ Capítulo XI De las Salas Especializadas en Materia de Responsabilidades Adminis
 
 **XIII.** Las demás que les correspondan conforme a las disposiciones legales aplicables.
 
-Capítulo XII De las Salas Regionales Auxiliares
+Capítulo XII
 
-**Artículo 40.** Las Salas Auxiliares ejercerán jurisdicción material mixta y territorial en toda la R epública, y tendrán su sede en el lugar que determine el Reglamento Interior del Tribunal.
+De las Salas Regionales Auxiliares
+
+**Artículo 40.** Las Salas Auxiliares ejercerán jurisdicción material mixta y territorial en toda la República, y tendrán su sede en el lugar que determine el Reglamento Interior del Tribunal.
 
 Dichas Salas auxiliarán a las Salas Regionales, a las Salas Especializadas en materia de Responsabilidades Administrativas y a las Secciones tanto en el dictado de las sentencias definitivas, como en la instrucción de los juicios, según lo defina la Junta de Gobierno y Administración.
 
-**Artículo 41 .** Las Salas Auxiliares también auxiliarán a las Salas Regionales y a las Salas Especializadas en materia de Responsabilida des Administrativas en la instancia de aclaración y en el cumplimiento de ejecutorias del Poder Judicial de la Federación, cuando corresponda a sentencias dictadas por ellas mismas, en los juicios instruidos por las Salas Regionales que se determinen por e l Pleno General de la Sala Superior, en los términos de lo establecido por el artículo 16, fracción X, de esta Ley.
+**Artículo 41.** Las Salas Auxiliares también auxiliarán a las Salas Regionales y a las Salas Especializadas en materia de Responsabilidades Administrativas en la instancia de aclaración y en el cumplimiento de ejecutorias del Poder Judicial de la Federación, cuando corresponda a sentencias dictadas por ellas mismas, en los juicios instruidos por las Salas Regionales que se determinen por el Pleno General de la Sala Superior, en los términos de lo establecido por el artículo 16, fracción X, de esta Ley.
 
-**TÍTULO TERCERO DEL PERSONAL DEL TRIBUNAL**
+**TÍTULO TERCERO**
+
+**DEL PERSONAL DEL TRIBUNAL**
 
 Capítulo Único
 
@@ -690,13 +726,13 @@ El Tribunal contará además con el personal profesional, administrativo y técn
 
 **Artículo 43.** Los Magistrados de la Sala Superior serán designados por el Presidente de la República y ratificados por el voto de las dos terceras partes de los miembros presentes del Senado de la República o, en sus recesos, por la Comisión Permanente. Durarán en su encargo quince años improrrogables.
 
-Los Magistrados de Sala Regional, de Sala Especializada en materia de Responsabilidades Administrativas y los Magistrados Supernumerarios de Sala Regional serán designados por el Presidente de la República y ratificados por mayoría de los miembros presentes del Senado de la República o, en sus recesos, por la Comisión Permanente. Durarán en su encargo diez años, al cabo de los cuales podrán ser ratificados por una sola ocasi ón para otro periodo igual, excepción hecha de los Magistrados de las Salas Especializadas en materia de Responsabilidades Administrativas, cuyo nombramiento en ningún caso podrá ser prorrogable.
+Los Magistrados de Sala Regional, de Sala Especializada en materia de Responsabilidades Administrativas y los Magistrados Supernumerarios de Sala Regional serán designados por el Presidente de la República y ratificados por mayoría de los miembros presentes del Senado de la República o, en sus recesos, por la Comisión Permanente. Durarán en su encargo diez años, al cabo de los cuales podrán ser ratificados por una sola ocasión para otro periodo igual, excepción hecha de los Magistrados de las Salas Especializadas en materia de Responsabilidades Administrativas, cuyo nombramiento en ningún caso podrá ser prorrogable.
 
-Para las designaciones a que se refiere el presente artícul o, el titular del Ejecutivo Federal acompañará una justificación de la idoneidad de las propuestas, para lo cual hará constar la trayectoria profesional y académica de la persona propuesta, a efecto de que sea valorada dentro del procedimiento de ratificación por parte del Senado. Para ello, conforme a la normatividad de ese Órgano Legislativo, se desahogarán las comparecencias correspondientes, en que se garantizará la publicidad y transparencia de su desarrollo.
+Para las designaciones a que se refiere el presente artículo, el titular del Ejecutivo Federal acompañará una justificación de la idoneidad de las propuestas, para lo cual hará constar la trayectoria profesional y académica de la persona propuesta, a efecto de que sea valorada dentro del procedimiento de ratificación por parte del Senado. Para ello, conforme a la normatividad de ese Órgano Legislativo, se desahogarán las comparecencias correspondientes, en que se garantizará la publicidad y transparencia de su desarrollo.
 
 Las Comisiones Legislativas encargadas del dictamen correspondiente, deberán solicitar información a las autoridades, relativas a antecedentes penales y/o administrativos que consideren necesarias para acreditar la idoneidad de las propuestas.
 
-**Artículo 44 .** Los Magistrados sólo podrán ser removido s de sus cargos por las siguientes causas, previo procedimiento seguido ante la Junta de Gobierno y Administración y resuelto por el Pleno de la Sala Superior:
+**Artículo 44.** Los Magistrados sólo podrán ser removidos de sus cargos por las siguientes causas, previo procedimiento seguido ante la Junta de Gobierno y Administración y resuelto por el Pleno de la Sala Superior:
 
 **I.** Incurrir en violaciones graves a los derechos humanos, previstos por la Constitución y los tratados internacionales de los que el Estado Mexicano sea parte;
 
@@ -706,7 +742,7 @@ Las Comisiones Legislativas encargadas del dictamen correspondiente, deberán so
 
 **IV.** Utilizar, en beneficio propio o de terceros, la información confidencial o reservada de que disponga en razón de su cargo, así como divulgar la mencionada información en contravención a la Ley;
 
-**V.** Abstenerse de resolver sin causa justificada y en forma reiterada, los asunt os de su competencia dentro los plazos previstos por la Ley;
+**V.** Abstenerse de resolver sin causa justificada y en forma reiterada, los asuntos de su competencia dentro (sic) los plazos previstos por la Ley;
 
 **VI.** Incurrir en infracciones graves a la Constitución o a las leyes federales causando perjuicios graves a las instituciones democráticas del país, a la sociedad, o motivar alguna deficiencia en el funcionamiento normal de las instituciones del Estado Mexicano, y
 
@@ -726,25 +762,25 @@ Los Magistrados Supernumerarios de Sala Regional, no podrán ser nombrados nueva
 
 **IV.** Contar con buena reputación y haberse distinguido por su honorabilidad, competencia y excelencia profesional en el ejercicio de la actividad jurídica;
 
-**V.** Ser licenciado en derecho con título registrado, expedido cuando menos diez años ante s del nombramiento, y
+**V.** Ser licenciado en derecho con título registrado, expedido cuando menos diez años antes del nombramiento, y
 
 **VI.** Contar como mínimo con ocho años de experiencia en materia fiscal, administrativa o en materia de fiscalización, responsabilidades administrativas, hechos de corrupción o rendición de cuentas.
 
-**Artículo 46.** Son causas de retiro f orzoso de los Magistrados del Tribunal, padecer incapacidad física o mental para desempeñar el cargo, así como cumplir setenta y cinco años de edad.
+**Artículo 46.** Son causas de retiro forzoso de los Magistrados del Tribunal, padecer incapacidad física o mental para desempeñar el cargo, así como cumplir setenta y cinco años de edad.
 
-**Artículo 47.** Cuando los Magistrados estén por concluir el periodo para el que hayan sido nombrados, la sec retaria operativa de administración lo hará saber al Presidente del Tribunal, con tres meses de anticipación, quien notificará esta circunstancia al Presidente de la República y, podrá someter a su consideración la propuesta que previamente haya aprobado el Pleno General.
+**Artículo 47.** Cuando los Magistrados estén por concluir el periodo para el que hayan sido nombrados, la secretaria operativa de administración lo hará saber al Presidente del Tribunal, con tres meses de anticipación, quien notificará esta circunstancia al Presidente de la República y, podrá someter a su consideración la propuesta que previamente haya aprobado el Pleno General.
 
 **Artículo 48.** Las faltas definitivas de Magistrados ocurridas durante el periodo para el cual hayan sido nombrados, se comunicarán de inmediato al Presidente de la República por el Presidente del Tribunal, quien someterá a su consideración la propuesta que, en su caso, haya aprobado el Pleno General, para que se proceda a los nombramientos de los Magistrados que las cubran.
 
 Las faltas definitivas de Magistrados en Salas Regionales, serán cubiertas provisionalmente por los Magistrados Supernumerarios adscritos por la Junta de Gobierno y Administración o a falta de ellos por el primer secretario del Magistrado ausente, hasta en tanto se realice un nuevo nombramiento en los términos de este artículo.
 
-Las faltas temporales y las comisiones a q ue se refiere el artículo 23, fracción XVI de esta Ley hasta por un mes de los Magistrados en Salas Regionales, se suplirán por el primer secretario del Magistrado ausente. Las faltas temporales o las comisiones antes citadas superiores a un mes serán cubi ertas por los Magistrados Supernumerarios o a falta de éstos por el primer secretario del Magistrado ausente. La suplencia comprenderá todo el lapso de la falta temporal, o de la comisión, salvo en aquellos casos en los que la Junta de Gobierno y Administración determine la conclusión anticipada de la misma.
+Las faltas temporales y las comisiones a que se refiere el artículo 23, fracción XVI de esta Ley hasta por un mes de los Magistrados en Salas Regionales, se suplirán por el primer secretario del Magistrado ausente. Las faltas temporales o las comisiones antes citadas superiores a un mes serán cubiertas por los Magistrados Supernumerarios o a falta de éstos por el primer secretario del Magistrado ausente. La suplencia comprenderá todo el lapso de la falta temporal, o de la comisión, salvo en aquellos casos en los que la Junta de Gobierno y Administración determine la conclusión anticipada de la misma.
 
 El Reglamento Interior del Tribunal establecerá las normas para el turno y reasignación de expedientes en los casos de faltas temporales, excusas o recusaciones de los Magistrados de la Sala Superior.
 
-**Artículo 49 .** El Tribunal contará con diez Magistrados Supernumerarios de Sala Regional, que cubrirán las faltas de los Magistrados de dichas Salas, en los casos previstos en esta Ley.
+**Artículo 49.** El Tribunal contará con diez Magistrados Supernumerarios de Sala Regional, que cubrirán las faltas de los Magistrados de dichas Salas, en los casos previstos en esta Ley.
 
-Los Magistrados Supernumerarios, durante el tiempo que no cubran las f altas señaladas en el párrafo anterior, deberán desempeñar las tareas que les encomiende el Pleno General.
+Los Magistrados Supernumerarios, durante el tiempo que no cubran las faltas señaladas en el párrafo anterior, deberán desempeñar las tareas que les encomiende el Pleno General.
 
 **Artículo 50.** Para ser Secretario de Acuerdos se requiere:
 
@@ -764,23 +800,23 @@ Los Actuarios deberán reunir los mismos requisitos que para ser Secretario de A
 
 Los Oficiales Jurisdiccionales deberán ser mexicanos, mayores de dieciocho años, pasantes en derecho y de reconocida buena conducta.
 
-**Artículo 51.** El Tribunal contará con un sistema profesional de carrera jurisdiccional, b asado en los principios de honestidad, eficiencia, capacidad y experiencia, el cual comprenderá a los servidores públicos a que se refieren las fracciones VI a IX del artículo 42 de esta Ley.
+**Artículo 51.** El Tribunal contará con un sistema profesional de carrera jurisdiccional, basado en los principios de honestidad, eficiencia, capacidad y experiencia, el cual comprenderá a los servidores públicos a que se refieren las fracciones VI a IX del artículo 42 de esta Ley.
 
-El sistema abarcará las fases de ingreso, promoción, permanenci a y retiro de dichos servidores públicos, de manera que se procure la excelencia por medio de concursos y evaluaciones periódicas, y de acuerdo con los procedimientos y criterios establecidos en el Estatuto correspondiente.
+El sistema abarcará las fases de ingreso, promoción, permanencia y retiro de dichos servidores públicos, de manera que se procure la excelencia por medio de concursos y evaluaciones periódicas, y de acuerdo con los procedimientos y criterios establecidos en el Estatuto correspondiente.
 
 Con base en lo previsto en este artículo, el Tribunal establecerá y regulará, mediante disposiciones generales, el sistema de carrera de los servidores públicos previstos en las fracciones XI y XIII del artículo 42 de esta Ley.
 
-**Artículo 52 .** El Presidente del Tribunal será electo por el Pleno General de la Sala Superior en la primera sesión del año siguiente a aquél en que concluya el periodo del Presidente en funciones. Durará en su cargo tres años y no podrá ser reelecto para ningún otro periodo.
+**Artículo 52.** El Presidente del Tribunal será electo por el Pleno General de la Sala Superior en la primera sesión del año siguiente a aquél en que concluya el periodo del Presidente en funciones. Durará en su cargo tres años y no podrá ser reelecto para ningún otro periodo.
 
-Serán elegibles los Magistrados de Sal a Superior cuyos nombramientos cubran el periodo antes señalado.
+Serán elegibles los Magistrados de Sala Superior cuyos nombramientos cubran el periodo antes señalado.
 
-**Artículo 53.** En caso de falta temporal, el Presidente será suplido alternativamente, cada treinta días naturales, por los presidentes de la Primera y Segunda Secciones, siguiendo el orden al fabético de sus apellidos.
+**Artículo 53.** En caso de falta temporal, el Presidente será suplido alternativamente, cada treinta días naturales, por los presidentes de la Primera y Segunda Secciones, siguiendo el orden alfabético de sus apellidos.
 
 Si la falta es definitiva, el Pleno General designará nuevo Presidente para concluir el periodo del Presidente faltante. El Magistrado designado para concluir el periodo no estará impedido para ser electo Presidente en el periodo inmediato siguiente.
 
 **Artículo 54.** Son atribuciones del Presidente del Tribunal, las siguientes:
 
-**I.** Representar al Tribunal, a la Sala Superior, al Pleno General y Jurisdiccional de la Sala Superior y a la Junta de Gobierno y Administración, ante toda c lase de autoridades y delegar el ejercicio de esta función en servidores públicos subalternos sin perjuicio de su ejercicio directo, así como atender los recursos de reclamación de responsabilidad patrimonial en contra de las actuaciones atribuidas al propio Tribunal;
+**I.** Representar al Tribunal, a la Sala Superior, al Pleno General y Jurisdiccional de la Sala Superior y a la Junta de Gobierno y Administración, ante toda clase de autoridades y delegar el ejercicio de esta función en servidores públicos subalternos sin perjuicio de su ejercicio directo, así como atender los recursos de reclamación de responsabilidad patrimonial en contra de las actuaciones atribuidas al propio Tribunal;
 
 **II.** Formar parte del Comité Coordinador del Sistema Nacional Anticorrupción en términos de lo dispuesto por el artículo 113 fracción III de la Constitución Política de los Estados Unidos Mexicanos;
 
@@ -788,7 +824,7 @@ Si la falta es definitiva, el Pleno General designará nuevo Presidente para con
 
 **IV.** Convocar a sesiones al Pleno General y Jurisdiccional de la Sala Superior y a la Junta de Gobierno y Administración, dirigir sus debates y conservar el orden en éstas;
 
-**V.** Someter al conocimiento del Pleno General y Jurisdiccional de la Sala Supe rior los asuntos de la competencia del mismo, así como aquéllos que considere necesarios;
+**V.** Someter al conocimiento del Pleno General y Jurisdiccional de la Sala Superior los asuntos de la competencia del mismo, así como aquéllos que considere necesarios;
 
 **VI.** Autorizar, junto con el Secretario General de Acuerdos, las actas en que se hagan constar las deliberaciones y acuerdos del Pleno General y Jurisdiccional de la Sala Superior y firmar el engrose de las resoluciones;
 
@@ -814,19 +850,19 @@ Si la falta es definitiva, el Pleno General designará nuevo Presidente para con
 
 **XVII.** Convocar a congresos y seminarios a Magistrados y servidores públicos de la carrera jurisdiccional del Tribunal, así como a asociaciones profesionales representativas e instituciones de educación superior, a fin de promover el estudio del derecho fiscal y administrativo, evaluar la impartición de justicia fiscal y administrativa y proponer las medidas pertinentes para mejorarla;
 
-**XVIII.** Rendir un informe anual al Senado de la República basado en indicadores en materia de Responsabilidades A dministrativas, tomará en consideración las directrices y políticas que emita el Comité Coordinador del Sistema Nacional Anticorrupción;
+**XVIII.** Rendir un informe anual al Senado de la República basado en indicadores en materia de Responsabilidades Administrativas, tomará en consideración las directrices y políticas que emita el Comité Coordinador del Sistema Nacional Anticorrupción;
 
-**XIX.** Dirigir la Revista del Tribunal Federal de Justicia Administrativa y proponer, compilar, editar y distribuir el m aterial impreso que el Tribunal determine para divulgarlo entre las dependencias y entidades, las instituciones de educación superior, las agrupaciones profesionales y el público en general para el mejor conocimiento de los temas de índole fiscal y administrativa;
+**XIX.** Dirigir la Revista del Tribunal Federal de Justicia Administrativa y proponer, compilar, editar y distribuir el material impreso que el Tribunal determine para divulgarlo entre las dependencias y entidades, las instituciones de educación superior, las agrupaciones profesionales y el público en general para el mejor conocimiento de los temas de índole fiscal y administrativa;
 
 **XX.** Conducir la planeación estratégica del Tribunal, de conformidad con los lineamientos que determine la Sala Superior;
 
 **XXI.** Dirigir la política de comunicación social y de relaciones públicas del Tribunal, informando a la Sala Superior y a la Junta;
 
-**XXII.** Designar a servidores públicos del Tribunal para que lo representen en eventos académicos o de cualquier otra naturaleza, vinculados con el conocimiento y divulgación de materias relacionadas con su competencia, en el entendido de que el cump limiento de esta encomienda por parte de los servidores públicos designados, se entenderá como parte de las labores a su cargo en la residencia del órgano del Tribunal a que esté adscrito, en cuyo caso no requerirá licencia;
+**XXII.** Designar a servidores públicos del Tribunal para que lo representen en eventos académicos o de cualquier otra naturaleza, vinculados con el conocimiento y divulgación de materias relacionadas con su competencia, en el entendido de que el cumplimiento de esta encomienda por parte de los servidores públicos designados, se entenderá como parte de las labores a su cargo en la residencia del órgano del Tribunal a que esté adscrito, en cuyo caso no requerirá licencia;
 
 **XXIII.** Dirigir la ejecución de las determinaciones y/o acuerdos de la Junta de Gobierno y Administración;
 
-**XXIV.** Suscribir convenios de colaboración con todo tipo de instituciones públicas y privadas, así como autoridades administrativas y jurisdiccionales, con el apoyo especializado d e las unidades administrativas correspondientes, a fin de dirigir la buena marcha del Tribunal y fortalecer sus relaciones públicas;
+**XXIV.** Suscribir convenios de colaboración con todo tipo de instituciones públicas y privadas, así como autoridades administrativas y jurisdiccionales, con el apoyo especializado de las unidades administrativas correspondientes, a fin de dirigir la buena marcha del Tribunal y fortalecer sus relaciones públicas;
 
 **XXV.** Nombrar al Director del Centro de Estudios, y
 
@@ -838,9 +874,9 @@ Si la falta es definitiva, el Pleno General designará nuevo Presidente para con
 
 **II.** Convocar a sesiones, dirigir los debates y conservar el orden en las sesiones;
 
-**III.** Autorizar las actas en que se hagan consta r las deliberaciones y acuerdos, así como firmar los engroses de las resoluciones;
+**III.** Autorizar las actas en que se hagan constar las deliberaciones y acuerdos, así como firmar los engroses de las resoluciones;
 
-**IV.** Rendir los informes previos y justificados cuando los actos reclamados en los juicios de amparo sean imputados a la Sección, así como informar del cumplimiento dado a l as ejecutorias en dichos juicios;
+**IV.** Rendir los informes previos y justificados cuando los actos reclamados en los juicios de amparo sean imputados a la Sección, así como informar del cumplimiento dado a las ejecutorias en dichos juicios;
 
 **V.** Tramitar los incidentes, recursos, aclaraciones de sentencias, así como la queja, cuando se trate de juicios que se ventilen ante la Sección;
 
@@ -858,17 +894,17 @@ Si la falta es definitiva, el Pleno General designará nuevo Presidente para con
 
 **I.** Acordar con el Presidente del Tribunal la programación de las sesiones del Pleno General;
 
-**II.** Dar cuenta en las sesiones del Plen o General de los asuntos que se sometan a su consideración, tomar la votación de sus integrantes, formular el acta relativa y comunicar las decisiones que se acuerden;
+**II.** Dar cuenta en las sesiones del Pleno General de los asuntos que se sometan a su consideración, tomar la votación de sus integrantes, formular el acta relativa y comunicar las decisiones que se acuerden;
 
 **III.** Revisar los engroses de las resoluciones del Pleno formulados por el Magistrado ponente, autorizándolos en unión del Presidente del Tribunal;
 
 **IV.** Tramitar y firmar la correspondencia referente a las funciones del Pleno General, cuando ello no corresponda al Presidente del Tribunal;
 
-**V.** Llevar el turno de los Magistrados que deban formu lar ponencias para resolución del Pleno General;
+**V.** Llevar el turno de los Magistrados que deban formular ponencias para resolución del Pleno General;
 
 **VI.** Dirigir los archivos de la Sala Superior;
 
-**VII.** Digitalizar la documentación y actuaciones que se requiera incorporar a un expediente tramitado en línea, así como imprimir y certificar las constancias d e los expedientes electrónicos de la Sala Superior y las reproducciones en medios electrónicos de dichas actuaciones;
+**VII.** Digitalizar la documentación y actuaciones que se requiera incorporar a un expediente tramitado en línea, así como imprimir y certificar las constancias de los expedientes electrónicos de la Sala Superior y las reproducciones en medios electrónicos de dichas actuaciones;
 
 **VIII.** Dar fe y expedir certificados de las constancias contenidas en los expedientes que obran en la Sala Superior, y
 
@@ -878,13 +914,13 @@ Si la falta es definitiva, el Pleno General designará nuevo Presidente para con
 
 **I.** Acordar con el Presidente de la Sección, lo relativo a las sesiones de la misma;
 
-**II.** Dar cuenta en la s sesiones de la Sección de los asuntos que se sometan a su consideración, tomar la votación de sus integrantes, formular el acta relativa y comunicar las decisiones que se acuerden;
+**II.** Dar cuenta en las sesiones de la Sección de los asuntos que se sometan a su consideración, tomar la votación de sus integrantes, formular el acta relativa y comunicar las decisiones que se acuerden;
 
-**III.** Engrosar, en su caso, las resoluciones de la Sección correspondient e, autorizándolas en unión del Presidente de la Sección;
+**III.** Engrosar, en su caso, las resoluciones de la Sección correspondiente, autorizándolas en unión del Presidente de la Sección;
 
 **IV.** Tramitar y firmar la correspondencia de las Secciones, cuando ello no corresponda al Presidente de la Sección;
 
-**V.** Llevar el turno de los Magistrados que deban formular ponencias, estudios o pro yectos para las resoluciones de las Secciones;
+**V.** Llevar el turno de los Magistrados que deban formular ponencias, estudios o proyectos para las resoluciones de las Secciones;
 
 **VI.** Dar fe y expedir certificados de constancias que obran en los expedientes de las Secciones;
 
@@ -902,7 +938,7 @@ Si la falta es definitiva, el Pleno General designará nuevo Presidente para con
 
 **IV.** Dar fe y expedir certificados de las constancias que obren en los expedientes de la Ponencia a la que estén adscritos;
 
-**V.** Digitalizar la documentación y actuaciones que se requiera incorporar a un expediente tramitado en línea, así como imprimir y certificar las constancias de los expedientes electrónicos de la Ponencia a la que estén adscritos y las reproducciones e n medios electrónicos de dichas actuaciones, y
+**V.** Digitalizar la documentación y actuaciones que se requiera incorporar a un expediente tramitado en línea, así como imprimir y certificar las constancias de los expedientes electrónicos de la Ponencia a la que estén adscritos y las reproducciones en medios electrónicos de dichas actuaciones, y
 
 **VI.** Desempeñar las demás atribuciones que las disposiciones aplicables les confieran.
 
@@ -918,7 +954,7 @@ Si la falta es definitiva, el Pleno General designará nuevo Presidente para con
 
 **V.** Dar fe y expedir certificados de las constancias que obren en los expedientes de la Sala a la que estén adscritos;
 
-**VI.** Digitalizar la documentación y actuaciones que se requiera incorporar a un expediente tramitado en línea, así como imprimir y certificar las constancias de los expedientes electrónicos de la Sala a la que estén adscritos y las reproducc iones en medios electrónicos de dichas actuaciones;
+**VI.** Digitalizar la documentación y actuaciones que se requiera incorporar a un expediente tramitado en línea, así como imprimir y certificar las constancias de los expedientes electrónicos de la Sala a la que estén adscritos y las reproducciones en medios electrónicos de dichas actuaciones;
 
 **VII.** Elaborar el proyecto de acuerdo de radicación de las acciones de responsabilidad remitidas por las autoridades competentes en términos de la Ley General de Responsabilidades Administrativas;
 
@@ -942,13 +978,13 @@ Si la falta es definitiva, el Pleno General designará nuevo Presidente para con
 
 **II.** Supervisar la ejecución de los acuerdos tomados por la Junta, y asentarlos en el libro de actas respectivo;
 
-**III.** Asistir al Presidente del Tribunal en las sesiones que se lleven a cabo por la Junta en los asuntos que sean de su competencia conforme a esta Ley, a su Reglamento In terior y a los acuerdos generales correspondientes, levantando las actas respectivas, y
+**III.** Asistir al Presidente del Tribunal en las sesiones que se lleven a cabo por la Junta en los asuntos que sean de su competencia conforme a esta Ley, a su Reglamento Interior y a los acuerdos generales correspondientes, levantando las actas respectivas, y
 
 **IV.** Las demás que prevea esta Ley y el Reglamento Interior del Tribunal.
 
-El Secretario de la Junta de Gobierno y Administración, para el ejercicio de las funciones ci tadas en las fracciones anteriores, se auxiliará del personal que al efecto establezca el Reglamento Interior del Tribunal.
+El Secretario de la Junta de Gobierno y Administración, para el ejercicio de las funciones citadas en las fracciones anteriores, se auxiliará del personal que al efecto establezca el Reglamento Interior del Tribunal.
 
-**Artículo 62.** El Tribunal contará con un Órgano Interno de Control, cuyo titular ejercerá las facultades a que se refiere la fracció n III del artículo 109 de la Constitución Política de los Estados Unidos Mexicanos y la Ley General de Responsabilidades Administrativas.
+**Artículo 62.** El Tribunal contará con un Órgano Interno de Control, cuyo titular ejercerá las facultades a que se refiere la fracción III del artículo 109 de la Constitución Política de los Estados Unidos Mexicanos y la Ley General de Responsabilidades Administrativas.
 
 **Artículo 63.** El Tribunal contará con un registro de peritos, que lo auxiliarán con el carácter de peritos terceros, como profesionales independientes, los cuales deberán tener título debidamente registrado en la ciencia o arte a que pertenezca la cuestión sobre la que deba rendirse el peritaje o proporcionarse la asesoría, si la profesión o el arte estuvieren legalmente reglamentados y, si no lo estuvieren, deberán ser personas versadas en la materia.
 
@@ -964,29 +1000,29 @@ El Centro, coordinará, promoverá e impartirá cursos de estudios superiores en
 
 **Artículo 65.** El personal del Tribunal tendrá cada año dos periodos de vacaciones que coincidirán con los del Poder Judicial de la Federación.
 
-Se suspenderán las labores generales del Tribunal y no correrán los plazos, los días que acuerde el Pleno General del Tribunal. Durante las vacaciones del Tribunal, la Junta de Gobierno y Administr ación, determinará el personal que deberá realizar las guardias necesarias en las diferentes regiones y preverá que entre dicho personal se designe, cuando menos, a un Magistrado, un Secretario de Acuerdos, un Actuario y un Oficial Jurisdiccional en cada r egión, para atender y resolver, en los casos urgentes que no admitan demora, las medidas cautelares y suspensión en términos de lo establecido por la Ley Federal de Procedimiento Contencioso Administrativo.
+Se suspenderán las labores generales del Tribunal y no correrán los plazos, los días que acuerde el Pleno General del Tribunal. Durante las vacaciones del Tribunal, la Junta de Gobierno y Administración, determinará el personal que deberá realizar las guardias necesarias en las diferentes regiones y preverá que entre dicho personal se designe, cuando menos, a un Magistrado, un Secretario de Acuerdos, un Actuario y un Oficial Jurisdiccional en cada región, para atender y resolver, en los casos urgentes que no admitan demora, las medidas cautelares y suspensión en términos de lo establecido por la Ley Federal de Procedimiento Contencioso Administrativo.
 
-Únicamente se recibirán promociones en la oficia lía de partes de cada Sala durante las horas hábiles que determine el Pleno General del Tribunal.
+Únicamente se recibirán promociones en la oficialía de partes de cada Sala durante las horas hábiles que determine el Pleno General del Tribunal.
 
 En el caso de faltas temporales de los presidentes de Sección, serán suplidos por los Magistrados siguiendo el orden alfabético de sus apellidos.
 
-Si la falt a es definitiva, la Sección designará Presidente para concluir el periodo del Presidente faltante. El Magistrado designado para concluir el periodo no estará impedido para ser designado Presidente en el periodo inmediato siguiente.
+Si la falta es definitiva, la Sección designará Presidente para concluir el periodo del Presidente faltante. El Magistrado designado para concluir el periodo no estará impedido para ser designado Presidente en el periodo inmediato siguiente.
 
-En el caso de faltas te mporales, los presidentes serán suplidos por los Magistrados de la Sala en orden alfabético de sus apellidos.
+En el caso de faltas temporales, los presidentes serán suplidos por los Magistrados de la Sala en orden alfabético de sus apellidos.
 
-Si la falta es definitiva, la Sala designará nuevo Presidente para concluir el periodo del Magistrado faltante. El Magistrado designado para conc luir el periodo no estará impedido para ser electo Presidente en el periodo inmediato siguiente.
+Si la falta es definitiva, la Sala designará nuevo Presidente para concluir el periodo del Magistrado faltante. El Magistrado designado para concluir el periodo no estará impedido para ser electo Presidente en el periodo inmediato siguiente.
 
-**Artículo 66 .** Los Magistrados, Secretarios, Actuarios y Oficiales Jurisdiccionales estarán impedidos para desempeñar cualquier otro empleo, cargo o comisión pú blico o privado, excepto los de carácter docente u honorífico.
+**Artículo 66.** Los Magistrados, Secretarios, Actuarios y Oficiales Jurisdiccionales estarán impedidos para desempeñar cualquier otro empleo, cargo o comisión público o privado, excepto los de carácter docente u honorífico.
 
 También estarán impedidos para ejercer su profesión bajo cualquier causa.
 
 **Artículo 67.** Corresponde al Titular del Órgano Interno de Control:
 
-**I.** Resolver sobre las responsabilidades de los se rvidores públicos establecidos en las fracciones XII a XIV y último párrafo del artículo 42 de esta Ley, e imponer, en su caso, las sanciones administrativas correspondientes en términos de la Ley General de Responsabilidades Administrativas;
+**I.** Resolver sobre las responsabilidades de los servidores públicos establecidos en las fracciones XII a XIV y último párrafo del artículo 42 de esta Ley, e imponer, en su caso, las sanciones administrativas correspondientes en términos de la Ley General de Responsabilidades Administrativas;
 
 **II.** Vigilar el cumplimiento de los acuerdos y demás normas que expida la Junta de Gobierno y Administración;
 
-**III.** Comprobar el cumplimiento por parte de los órganos administrativos del Tribunal de las obligaciones derivadas de las disposiciones en materia de planeaci ón, presupuestación, ingresos, egresos, financiamiento, patrimonio y fondos;
+**III.** Comprobar el cumplimiento por parte de los órganos administrativos del Tribunal de las obligaciones derivadas de las disposiciones en materia de planeación, presupuestación, ingresos, egresos, financiamiento, patrimonio y fondos;
 
 **IV.** Llevar el registro y seguimiento de la evolución de la situación patrimonial de los servidores públicos del Tribunal;
 
@@ -994,43 +1030,45 @@ También estarán impedidos para ejercer su profesión bajo cualquier causa.
 
 **VI.** Las demás que determinen las leyes, reglamentos y acuerdos generales correspondientes.
 
-**TÍTULO CUARTO DE LOS PRECEDENTES, TESIS Y JURISPRUDENCIA**
+**TÍTULO CUARTO**
+
+**DE LOS PRECEDENTES, TESIS Y JURISPRUDENCIA**
 
 Capítulo Único
 
-**Artículo 68 .** La jurisprudencia y precedentes que deban establecer la Sala Superior actuando en Pleno o Secciones y los criterios aislados que pronuncien las Salas Regionales, en los asuntos de sus competencias, se regirán por las disposiciones de la Ley Federal de Procedimiento Contencioso Administrativo.
+**Artículo 68.** La jurisprudencia y precedentes que deban establecer la Sala Superior actuando en Pleno o Secciones y los criterios aislados que pronuncien las Salas Regionales, en los asuntos de sus competencias, se regirán por las disposiciones de la Ley Federal de Procedimiento Contencioso Administrativo.
 
-**Artículo 69 .** La coordinación de compilación y sistematización de tesis, será el órgano competente para compilar y sistematizar los criterios aislados precedentes y jurisprudencias emitidas por los órganos colegiados del Tribunal. Su titular deberá satisfacer los requisitos exigidos para ser Secretario de Acuerdos y tendrá el personal subalterno que fije la Junta de Gobierno y Adm inistración. Llevará a cabo todas aquellas tareas que fueren necesarias para la adecuada difusión virtual de las tesis y jurisprudencias que hubieren emitido los órganos colegiados del Tribunal.
+**Artículo 69.** La coordinación de compilación y sistematización de tesis, será el órgano competente para compilar y sistematizar los criterios aislados precedentes y jurisprudencias emitidas por los órganos colegiados del Tribunal. Su titular deberá satisfacer los requisitos exigidos para ser Secretario de Acuerdos y tendrá el personal subalterno que fije la Junta de Gobierno y Administración. Llevará a cabo todas aquellas tareas que fueren necesarias para la adecuada difusión virtual de las tesis y jurisprudencias que hubieren emitido los órganos colegiados del Tribunal.
 
-**Artículo 70 .** En términos de la fracción XXXV del artículo 23 de esta Ley, la Junta de Gobierno y Administración, vigilará que las publicaciones de la Revista se realicen con oportunidad.
+**Artículo 70.** En términos de la fracción XXXV del artículo 23 de esta Ley, la Junta de Gobierno y Administración, vigilará que las publicaciones de la Revista se realicen con oportunidad.
 
 ## Transitorios
 
 **Primero.** El presente Decreto entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación, sin perjuicio de lo previsto en los transitorios siguientes.
 
-**Segundo.** Dentro del año siguiente a la entrada en vigor del presente Decreto, el Congreso de la Unión y las Legislaturas de las entidades federativas, en el ámbito de sus respectivas compe tencias, deberán expedir las leyes y realizar las adecuaciones normativas correspondientes de conformidad con lo previsto en el presente Decreto.
+**Segundo.** Dentro del año siguiente a la entrada en vigor del presente Decreto, el Congreso de la Unión y las Legislaturas de las entidades federativas, en el ámbito de sus respectivas competencias, deberán expedir las leyes y realizar las adecuaciones normativas correspondientes de conformidad con lo previsto en el presente Decreto.
 
 **Tercero.** La Ley General de Responsabilidades Administrativas entrará en vigor al año siguiente de la entrada en vigor del presente Decreto.
 
 En tanto entra en vigor la Ley a que se refiere el presente Transitorio, continuará aplicándose la legislación en materia de Responsabilidades Administrativas, en el ámbito federal y de las entidades federativas, que se encuentre vigente a la fecha de entrada en vigor del presente Decreto.
 
-El cumplimiento de las obligaciones previstas en la Ley General de Responsabilidades Administrativas, una vez que ésta entre en vigor, serán exigibles, en lo que resulte aplicable, hasta e n tanto el Comité Coordinador del Sistema Nacional Anticorrupción, de conformidad con la ley de la materia, emita los lineamientos, criterios y demás resoluciones conducentes de su competencia.
+El cumplimiento de las obligaciones previstas en la Ley General de Responsabilidades Administrativas, una vez que ésta entre en vigor, serán exigibles, en lo que resulte aplicable, hasta en tanto el Comité Coordinador del Sistema Nacional Anticorrupción, de conformidad con la ley de la materia, emita los lineamientos, criterios y demás resoluciones conducentes de su competencia.
 
-Los procedimientos administrativos iniciados por las autorida des federales y locales con anterioridad a la entrada en vigor de la Ley General de Responsabilidades Administrativas, serán concluidos conforme a las disposiciones aplicables vigentes a su inicio.
+Los procedimientos administrativos iniciados por las autoridades federales y locales con anterioridad a la entrada en vigor de la Ley General de Responsabilidades Administrativas, serán concluidos conforme a las disposiciones aplicables vigentes a su inicio.
 
-A la fecha de entrada en vigor de la Ley General de Respo nsabilidades Administrativas, todas las menciones a la Ley Federal de Responsabilidades Administrativas de los Servidores Públicos previstas en las leyes federales y locales así como en cualquier disposición jurídica, se entenderán referidas a la Ley General de Responsabilidades Administrativas.
+A la fecha de entrada en vigor de la Ley General de Responsabilidades Administrativas, todas las menciones a la Ley Federal de Responsabilidades Administrativas de los Servidores Públicos previstas en las leyes federales y locales así como en cualquier disposición jurídica, se entenderán referidas a la Ley General de Responsabilidades Administrativas.
 
-Una vez en vigor la Ley General de Responsabilidades Administrativas y hasta en tanto el Comité Coordinador del Sistema Nacional Anticorrupción determina los formatos para la presentación de las declaraciones patri monial y de intereses, los servidores públicos de todos los órdenes de gobierno presentarán sus declaraciones en los formatos que a la entrada en vigor de la referida Ley General, se utilicen en el ámbito federal.
+Una vez en vigor la Ley General de Responsabilidades Administrativas y hasta en tanto el Comité Coordinador del Sistema Nacional Anticorrupción determina los formatos para la presentación de las declaraciones patrimonial y de intereses, los servidores públicos de todos los órdenes de gobierno presentarán sus declaraciones en los formatos que a la entrada en vigor de la referida Ley General, se utilicen en el ámbito federal.
 
 Con la entrada en vigor de la Ley General de Responsabilidades Administrativas quedarán abrogadas la Ley Federal de Responsabilidades Administrativas de los Servidores Públicos, la Ley Federal Anticorrupción en Contrataciones Públicas, y se derogarán los Títulos Primero, Tercero y Cuarto de la Ley Federal de Responsabilidades de los Servidores Públicos, así como todas aquellas disposiciones que se opongan a lo previsto en la Ley General de Responsabilidades Administrativas.
 
-**Cuarto.** La Ley General del Sistema Nacional Anticorrupción, entrará en vi gor al día siguiente de la publicación del presente Decreto, sin perjuicio de lo previsto en el Tercero Transitorio anterior y en los párrafos siguientes.
+**Cuarto.** La Ley General del Sistema Nacional Anticorrupción, entrará en vigor al día siguiente de la publicación del presente Decreto, sin perjuicio de lo previsto en el Tercero Transitorio anterior y en los párrafos siguientes.
 
 Dentro de los noventa días siguientes a la entrada en vigor del presente Decreto, la Cámara de Senadores, deberá designar a los integrantes de la Comisión de Selección.
 
 La Comisión de Selección nombrará a los integrantes del Comité de Participación Ciudadana, en los términos siguientes:
 
-**a.** Un integrante que durará en su encargo un año, a quién correspo nderá la representación del Comité de Participación Ciudadana ante el Comité Coordinador.
+**a.** Un integrante que durará en su encargo un año, a quién corresponderá la representación del Comité de Participación Ciudadana ante el Comité Coordinador.
 
 **b.** Un integrante que durará en su encargo dos años.
 
@@ -1042,32 +1080,56 @@ La Comisión de Selección nombrará a los integrantes del Comité de Participac
 
 Los integrantes del Comité de Participación Ciudadana a que se refieren los incisos anteriores se rotarán la representación ante el Comité Coordinador en el mismo orden.
 
-La sesión de instalación del Com ité Coordinador del Sistema Nacional Anticorrupción, se llevará a cabo dentro del plazo de sesenta días naturales posteriores a que se haya integrado en su totalidad el Comité de Participación Ciudadana en los términos de los párrafos anteriores.
+La sesión de instalación del Comité Coordinador del Sistema Nacional Anticorrupción, se llevará a cabo dentro del plazo de sesenta días naturales posteriores a que se haya integrado en su totalidad el Comité de Participación Ciudadana en los términos de los párrafos anteriores.
 
-La Secretaría Ejecutiva deberá iniciar sus operaciones, a más tardar a los sesenta días siguientes a la sesión de instalación del Comité Coordinador del Sistema Nacional Anticorrupción . Para tal efecto, el Ejecutivo Federal proveerá los recursos humanos, financier os y materiales correspondientes en términos de las disposiciones aplicables.
+La Secretaría Ejecutiva deberá iniciar sus operaciones, a más tardar a los sesenta días siguientes a la sesión de instalación del Comité Coordinador del Sistema Nacional Anticorrupción. Para tal efecto, el Ejecutivo Federal proveerá los recursos humanos, financieros y materiales correspondientes en términos de las disposiciones aplicables.
 
-**Quinto.** La Ley Orgánica del Tribunal Federal de Justicia Administrativa, entrará en vigor al día siguiente de la publicación del presente Decreto, sin perjuicio de lo previsto e n el Tercero Transitorio anterior y en los párrafos siguientes.
+**Quinto.** La Ley Orgánica del Tribunal Federal de Justicia Administrativa, entrará en vigor al día siguiente de la publicación del presente Decreto, sin perjuicio de lo previsto en el Tercero Transitorio anterior y en los párrafos siguientes.
 
 A partir de la entrada en vigor de la Ley a que se refiere el presente transitorio, se abroga la Ley Orgánica del Tribunal Federal de Justicia Fiscal y Administrativa, publicada en el Diario Oficial de la Federación el seis de diciembre del año dos mil siete.
 
 El Reglamento Interior del Tribunal que se encuentre vigente a la entrada en vigor de la Ley, seguirá aplicándose en aquello que no se oponga a ésta, hasta que el Pleno General expida el nuevo Reglamento Interior de conformidad con lo previsto en este ordenamiento, lo cual deberá hacer en un plazo de noventa días a partir de la entrada en vigor de la Ley.
 
-Los servidores públicos que venían ejerciendo encargos administrativos que desapare cen o se transforman conforme a lo dispuesto por esta Ley, continuarán desempeñando los mismos cargos hasta que la Junta de Gobierno y Administración acuerde la creación de los nuevos órganos administrativos y decida sobre las designaciones mediante acuerdos específicos.
+Los servidores públicos que venían ejerciendo encargos administrativos que desaparecen o se transforman conforme a lo dispuesto por esta Ley, continuarán desempeñando los mismos cargos hasta que la Junta de Gobierno y Administración acuerde la creación de los nuevos órganos administrativos y decida sobre las designaciones mediante acuerdos específicos.
 
-Los Magistrados del Tribunal Federal de Justicia Fiscal y Administrativa que a la entrada en vigor de la presente Ley se encuentren en ejercicio de sus cargos, continuarán en ellos hasta concluir el periodo para el cual fueron designados, de acuerdo con la Ley que se abroga. Al término de dicho periodo entregarán la Magistratura, sin perjuicio de que el Tribunal pueda proponerlos, previa evaluación de su desempeño, de ser elegibles, para ser nombrados como Magistrados en términos de lo disp uesto por esta Ley.
+Los Magistrados del Tribunal Federal de Justicia Fiscal y Administrativa que a la entrada en vigor de la presente Ley se encuentren en ejercicio de sus cargos, continuarán en ellos hasta concluir el periodo para el cual fueron designados, de acuerdo con la Ley que se abroga. Al término de dicho periodo entregarán la Magistratura, sin perjuicio de que el Tribunal pueda proponerlos, previa evaluación de su desempeño, de ser elegibles, para ser nombrados como Magistrados en términos de lo dispuesto por esta Ley.
 
-Los juicios iniciados con anterioridad a la entrada en vigor de la Ley Orgánica del Tribunal Federal de Justicia Administrativa y aquellos que se verifiquen antes de la entrada en vigor de la Ley General de Responsabilidades Administra tivas, continuarán tramitándose hasta su resolución final conforme a las disposiciones aplicables vigentes a su inicio.
+Los juicios iniciados con anterioridad a la entrada en vigor de la Ley Orgánica del Tribunal Federal de Justicia Administrativa y aquellos que se verifiquen antes de la entrada en vigor de la Ley General de Responsabilidades Administrativas, continuarán tramitándose hasta su resolución final conforme a las disposiciones aplicables vigentes a su inicio.
 
-En los casos de nombramientos de Magistrados que integren la Tercera Sección, y las Salas Especializadas en materia de Responsabilidade s Administrativas, el Titular del Ejecutivo Federal deberá enviar sus propuestas al Senado, a más tardar en el periodo ordinario de Sesiones del Congreso de la Unión inmediato anterior a la entrada en vigor de la Ley General de Responsabilidades Administra tivas.
+En los casos de nombramientos de Magistrados que integren la Tercera Sección, y las Salas Especializadas en materia de Responsabilidades Administrativas, el Titular del Ejecutivo Federal deberá enviar sus propuestas al Senado, a más tardar en el periodo ordinario de Sesiones del Congreso de la Unión inmediato anterior a la entrada en vigor de la Ley General de Responsabilidades Administrativas.
 
 Los Magistrados a que se refiere el párrafo anterior, mantendrán su adscripción a la Sección Tercera y a las Salas Especializadas en materia de Responsabilidades Administrativas, al menos durante los primeros cinco años del ejercicio de su encargo. Lo anterior, sin perjuicio de que los Magistrados podrán permanecer en dichas adscripciones durante todo su encargo, de conformidad con lo previsto en la fracción VII del artículo 16 de la Ley Orgánica del Tribunal Federal de Justicia Administrativa.
 
-A partir de la entrada en vigor de la Ley General de Responsabilidades Administrativas, el Tribunal contará con cinco Salas Especializadas en materia de Responsabilidades Administrativas, de conformidad con lo previsto en el artículo 37 de la Ley Orgánica del Tribunal Federal de Justicia Administrativa y hasta en tanto, al menos, el Pleno ejercita la facultad a que se refiere a la fracción X I del artículo 16 de la Ley Orgánica del Tribunal Federal de Justicia Administrativa que se expide por virtud del presente Decreto.
+A partir de la entrada en vigor de la Ley General de Responsabilidades Administrativas, el Tribunal contará con cinco Salas Especializadas en materia de Responsabilidades Administrativas, de conformidad con lo previsto en el artículo 37 de la Ley Orgánica del Tribunal Federal de Justicia Administrativa y hasta en tanto, al menos, el Pleno ejercita la facultad a que se refiere a la fracción XI del artículo 16 de la Ley Orgánica del Tribunal Federal de Justicia Administrativa que se expide por virtud del presente Decreto.
 
 Para efectos del artículo 52 de la Ley Orgánica del Tribunal Federal de Justicia Administrativa, el Presidente del Tribunal Federal de Justicia Fiscal y Administrativa, no podrá ser nombrado Presidente del Tribunal Federal de Justicia Administrativa en el periodo inmediato al que concluye.
 
 Todas las referencias que en las leyes se haga al Tribunal Federal de Justicia Fiscal y Administrativa, se entenderán referidas al Tribunal Federal de Justicia Administrativa.
 
-Ciudad de México, a 6 de julio de 2016.- Sen. Roberto Gil Zuarth , Presidente.- Dip. José de Jesús Zambrano Grijalva , Presidente. - Sen. Hilda Esthela Flores Escalera , Secretaria. - Dip. Juan Manuel Celis Aguirre, Secretario.- Rúbricas."
+Ciudad de México, a 6 de julio de 2016.- Sen. Roberto Gil Zuarth, Presidente.- Dip. José de Jesús Zambrano Grijalva, Presidente.- Sen. Hilda Esthela Flores Escalera, Secretaria.- Dip. Juan Manuel Celis Aguirre, Secretario.- Rúbricas."
 
-En cumplimiento de lo dispuesto por la fracción I d el Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a dieciocho de julio de dos mil dieciséis.- Enrique Peña Nieto.- Rúbrica.- El Secretario de Gobernación, Miguel Ángel Osorio Chong .- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a dieciocho de julio de dos mil dieciséis.- Enrique Peña Nieto.- Rúbrica.- El Secretario de Gobernación, Miguel Ángel Osorio Chong.- Rúbrica.
+
+**D.O.F. 26 DE ENERO DE 2024.**
+
+**Primero.-** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
+
+**Segundo.-** El Congreso General de los Estados Unidos Mexicanos, contará con un plazo máximo de 180 días naturales para la expedición de las adecuaciones normativas correspondientes al cumplimiento del presente Decreto.
+
+**Tercero.-** El Tribunal Federal de Justicia Administrativa, contará con un plazo máximo de 180 días naturales, para la expedición de las disposiciones aplicables para el cumplimiento del presente Decreto.
+
+**D.O.F. 16 DE OCTUBRE DE 2025.**
+
+**Primero.** El presente Decreto entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
+
+**Segundo.** Se derogan todas las disposiciones que se opongan al presente Decreto.
+
+**Tercero.** Al tratarse de una ley procesal, las etapas procesales concluidas que generen derechos adquiridos a las partes se regirán por las disposiciones legales vigentes al inicio de los procesos respectivos. Por lo que hace a las actuaciones procesales posteriores a la entrada en vigor del presente Decreto, de conformidad con la doctrina y la jurisprudencia de la Suprema Corte de Justicia de la Nación, se regirán por las disposiciones de este Decreto, sin que implique aplicación retroactiva ni afectación a derechos adquiridos, pues se trata de actuaciones futuras.
+
+**Cuarto.** El Órgano de Administración Judicial contará con trescientos sesenta días naturales a partir de su entrada en funciones para realizar las adecuaciones al Sistema Electrónico del Poder Judicial de la Federación que resulten necesarias para dar cumplimiento a lo previsto por los artículos 3, 25, 26, 28 y 30 de la Ley de Amparo.
+
+Una vez realizadas las adecuaciones al sistema, el Órgano de Administración Judicial publicará en el Diario Oficial de la Federación y en su propio portal, el aviso de inicio de registro de usuarios digitales para autoridades.
+
+Todas las autoridades de la Federación, entidades federativas, municipios y alcaldías, tendrán un plazo de ciento ochenta días naturales a partir de la publicación del Aviso al que se refiere el párrafo anterior, para dar cumplimiento a este Decreto y crear sus perfiles en el Sistema.
+
+**Quinto.** El Órgano de Administración Judicial contará con ciento ochenta días naturales a partir de la entrada en vigor de este Decreto, para emitir un Acuerdo General que regule la correcta integración tanto del expediente electrónico como físico en el juicio de amparo, procurando en todo momento privilegiar el uso de la tecnología y eficientizar el uso de recursos materiales dentro del Poder Judicial de la Federación, sin menoscabar el derecho de las partes de consultar los expedientes correspondientes.

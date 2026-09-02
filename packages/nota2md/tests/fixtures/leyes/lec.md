@@ -1,46 +1,54 @@
-## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY DE ENERGÍA PARA EL CAMPO**
 
-**VICENTE FOX QUESADA**, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 28 DE DICIEMBRE DE 2012.**
+
+Ley publicada en la Primera Sección del Diario oficial, el lunes 30 de diciembre de 2002.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+VICENTE FOX QUESADA, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **DECRETO**
 
-**“EL CONGRESO DE LOS ESTADOS UNIDOS MEXICANOS, D E C R E T A:**
+**"EL CONGRESO DE LOS ESTADOS UNIDOS MEXICANOS, D E C R E T A:**
 
 **LEY DE ENERGÍA PARA EL CAMPO**
 
-**CAPÍTULO PRIMERO DEL OBJETO Y APLICACIÓN DE LA LEY**
+**CAPÍTULO PRIMERO**
 
-**Artículo 1o. **La presente Ley es reglamentaria de los artículos 25, 27 fracción XX y 28 de la Constitución Política de los Estados Unidos Mexicanos y es de observanci a general en toda la República Mexicana.
+**DEL OBJETO Y APLICACIÓN DE LA LEY**
+
+**Artículo 1o. **La presente Ley es reglamentaria de los artículos 25, 27 fracción XX y 28 de la Constitución Política de los Estados Unidos Mexicanos y es de observancia general en toda la República Mexicana.
 
 Sus disposiciones son de orden público y están dirigidas a coadyuvar al desarrollo rural del país, estableciendo acciones de impulso a la productividad y competitividad, como medidas de apoyo tendientes a reducir las asimetrías con respecto a otros países de conformidad con lo que establece el artículo 13 fracción IX y demás disposiciones de la Ley de Desarrollo Rural Sustentable.
 
-La aplicación de esta Ley corresponde a la Secretaría de Agricultura, Ganadería, De sarrollo Rural, Pesca y Alimentación.
+La aplicación de esta Ley corresponde a la Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación.
 
 **Artículo 2o. **Son sujetos de esta Ley los previstos en el artículo 2o. de la Ley de Desarrollo Rural Sustentable.
 
 **Artículo 3o. **Para los efectos de esta Ley, se entenderá por:
 
-**I.** ACTIVIDADES AGROPECUARIAS. - Los pro cesos productivos primarios basados en recursos naturales renovables: agricultura, ganadería, silvicultura, acuacultura y pesca ribereña;
+**I.** ACTIVIDADES AGROPECUARIAS.- Los procesos productivos primarios basados en recursos naturales renovables: agricultura, ganadería, silvicultura, acuacultura y pesca ribereña;
 
 **II.** CONSTITUCIÓN.- La Constitución Política de los Estados Unidos Mexicanos;
 
-**III.** CUOTA ENERGÉTICA. - El volumen de consumo de energético agropecuario que se establezca para cada beneficiario;
+**III.** CUOTA ENERGÉTICA.- El volumen de consumo de energético agropecuario que se establezca para cada beneficiario;
 
-**IV.** DESARROLLO RURAL SUSTENTABLE. - El mejoramiento integral del bienestar social de la población y de las actividades económicas en el territorio comprendido fuera de los núcle os considerados
+**IV.** DESARROLLO RURAL SUSTENTABLE.- El mejoramiento integral del bienestar social de la población y de las actividades económicas en el territorio comprendido fuera de los núcleos considerados urbanos, de acuerdo con las disposiciones aplicables asegurando la conservación permanente de los recursos naturales, la biodiversidad y los servicios ambientales de dicho territorio;
 
-urbanos, de acuerdo con las disposiciones aplicables asegurando la conservación permanente de los recursos naturales, la biodiversidad y los servicios ambientales de dicho territorio;
-
-**V.** ENERGÉTICOS AGROPECUARIOS. - Son la gasolina, el die sel, el combustóleo y la energía eléctrica empleados directamente en las actividades agropecuarias;
+**V.** ENERGÉTICOS AGROPECUARIOS.- Son la gasolina, el diesel, el combustóleo y la energía eléctrica empleados directamente en las actividades agropecuarias;
 
 **VI.** LEY.- La Ley de Energía para el Campo;
 
-**VII.** PRECIOS Y TARIFAS DE ESTÍMULO. - Son los precios y tarifas cuyo propósito es estimular las actividades agropecuarias, en los términos de esta Ley y su Reglamento, y
+**VII.** PRECIOS Y TARIFAS DE ESTÍMULO.- Son los precios y tarifas cuyo propósito es estimular las actividades agropecuarias, en los términos de esta Ley y su Reglamento, y
 
 **VIII.** PROGRAMA.- Programa de Energía para el Campo.
 
-**CAPÍTULO SEGUNDO DE LAS CUOTAS ENERGÉTICAS**
+**CAPÍTULO SEGUNDO**
+
+**DE LAS CUOTAS ENERGÉTICAS**
 
 **Artículo 4o. **El Poder Ejecutivo Federal establecerá el programa, mediante precios y tarifas de estímulo de los energéticos agropecuarios.
 
@@ -48,11 +56,11 @@ El Poder Ejecutivo Federal incluirá dentro del proyecto de Ley de Ingresos y de
 
 **Artículo 5o. **En los términos de la Ley de Desarrollo Rural Sustentable, los precios y tarifas de estímulo que se otorguen a los productores en cumplimiento de lo establecido en este ordenamiento, impulsarán la productividad y el desarrollo de las actividades agropecuarias.
 
-La Secretaría de Hacienda y Crédito Público, con fundamento en lo dispuesto en el artículo 31 fracción X, de la Ley Orgánica de la Administración Pública Federal, en coordinación con la Secretaría de Energía, la Secretaría de Agricultu ra, Ganadería, Desarrollo Rural, Pesca y Alimentación y la Secretaría de Medio Ambiente y Recursos Naturales, establecerá los precios y tarifas de estímulo de los energéticos agropecuarios, considerando las condiciones económicas y sociales prevalecientes en el ámbito nacional e internacional.
+La Secretaría de Hacienda y Crédito Público, con fundamento en lo dispuesto en el artículo 31 fracción X, de la Ley Orgánica de la Administración Pública Federal, en coordinación con la Secretaría de Energía, la Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación y la Secretaría de Medio Ambiente y Recursos Naturales, establecerá los precios y tarifas de estímulo de los energéticos agropecuarios, considerando las condiciones económicas y sociales prevalecientes en el ámbito nacional e internacional.
 
 También se observarán las disposiciones señaladas en los artículos 12 fracciones VI y VII y 31 de la Ley del Servicio Público de Energía Eléctrica.
 
-Los precios y tarifas de estímulo que se autoricen para las difer entes actividades agropecuarias, serán iguales para todos los productores del país.
+Los precios y tarifas de estímulo que se autoricen para las diferentes actividades agropecuarias, serán iguales para todos los productores del país.
 
 **Artículo 6o. **La cuota energética de consumo por beneficiario a precio y tarifas de estímulo, se entregará de acuerdo con las disposiciones que establezca la Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación en el Reglamento respectivo.
 
@@ -64,25 +72,31 @@ Los precios y tarifas de estímulo que se autoricen para las difer entes activid
 
 **III.** Las demás actividades que establezca la Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación, a través del Reglamento.
 
-El Reglamento establecerá el consumo por hora, mensual o anual, según sea el caso. La adopción del Programa deberá significar mejores resultados en la productividad del sector y establecerá por parte del beneficiario un compromiso de mayor e ficiencia productiva y energética. Los requisitos del mismo serán establecidos en el Reglamento que para tal efecto emita la propia Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación.
+El Reglamento establecerá el consumo por hora, mensual o anual, según sea el caso. La adopción del Programa deberá significar mejores resultados en la productividad del sector y establecerá por parte del beneficiario un compromiso de mayor eficiencia productiva y energética. Los requisitos del mismo serán establecidos en el Reglamento que para tal efecto emita la propia Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación.
 
 La solicitud de cuota energética deberá hacerse por cada ciclo productivo.
 
-**Artículo 8o. **Las cuotas energéticas serán establecidas por la Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación, previa opinión de las Secretarías de Hacienda y Crédito Público y de Energía, toman do en cuenta las características diferenciadas en los sistemas de producción y las diferencias regionales del país.
+**Artículo 8o. **Las cuotas energéticas serán establecidas por la Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación, previa opinión de las Secretarías de Hacienda y Crédito Público y de Energía, tomando en cuenta las características diferenciadas en los sistemas de producción y las diferencias regionales del país.
 
 **Artículo 9o. **El Reglamento de la presente Ley, deberá establecer los mecanismos de supervisión y verificación de la cuota energética en cuanto su aplicación y asignación.
 
-La asignación de la cuota energética será pública, para lo cual al inicio de cada ciclo productivo se publicará en Internet el listado de los beneficiarios de la misma, así como el de las solicitudes desechadas y estará a disposición de los usuarios en las delegaciones y subdelegaciones de la Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación. Párrafo adicionado DOF 28-12-2012
+**(ADICIONADO, D.O.F. 28 DE DICIEMBRE DE 2012)**
 
-**CAPÍTULO TERCERO DE LOS REQUISITOS Y OBLIGACIONES DE LOS BENEFICIARIOS**
+La asignación de la cuota energética será pública, para lo cual al inicio de cada ciclo productivo se publicará en Internet el listado de los beneficiarios de la misma, así como el de las solicitudes desechadas y estará a disposición de los usuarios en las delegaciones y subdelegaciones de la Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación.
 
-**Artículo 10.** Se considera a la cuota energética como parte accesoria e indivisible de la tierra, por lo que el productor que transmita su uso o posesión, deberá hacerlo conjuntamente con dicha cuota. Para tal efecto, la transmisión del uso o posesión de l a tierra, deberá notificarse a la Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación.
+**CAPÍTULO TERCERO**
+
+**DE LOS REQUISITOS Y OBLIGACIONES DE LOS BENEFICIARIOS**
+
+**Artículo 10.** Se considera a la cuota energética como parte accesoria e indivisible de la tierra, por lo que el productor que transmita su uso o posesión, deberá hacerlo conjuntamente con dicha cuota. Para tal efecto, la transmisión del uso o posesión de la tierra, deberá notificarse a la Secretaría de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentación.
 
 **Artículo 11.** Los sujetos beneficiarios del Programa, deberán cumplir las condiciones, trámites y requisitos que establezca el Reglamento de esta Ley.
 
 **Artículo 12.** El beneficiario deberá dar de baja el saldo a su favor de la cuota de energéticos que no haya sido utilizado al final de los trabajos del ciclo productivo, en los términos del Reglamento de la presente Ley.
 
-**CAPÍTULO CUARTO DE LAS INFRACCIONES Y SANCIONES**
+**CAPÍTULO CUARTO**
+
+**DE LAS INFRACCIONES Y SANCIONES**
 
 **Artículo 13.** Son infracciones a la presente Ley:
 
@@ -90,7 +104,7 @@ La asignación de la cuota energética será pública, para lo cual al inicio de
 
 **II.** Comercializar la cuota energética.
 
-**Artículo 14.** Las infracciones señalad as en el artículo anterior, se sancionarán con la pérdida de la cuota energética establecida en la presente Ley, correspondiente a los dos ciclos productivos inmediatos posteriores.
+**Artículo 14.** Las infracciones señaladas en el artículo anterior, se sancionarán con la pérdida de la cuota energética establecida en la presente Ley, correspondiente a los dos ciclos productivos inmediatos posteriores.
 
 En caso de reincidencia, la sanción consistirá en la pérdida definitiva de la cuota energética.
 
@@ -102,6 +116,10 @@ En caso de reincidencia, la sanción consistirá en la pérdida definitiva de la
 
 **TERCERO.** Se derogan todas las disposiciones que se opongan al presente ordenamiento.
 
-México, D.F., a 12 de diciembre de 2002. - Dip. Beatriz El ena Paredes Rangel , Presidenta. - Sen. Enrique Jackson Ramírez, Presidente.- Dip. Adrián Rivera Pérez, Secretario.- Sen. Sara I. Castellanos Cortés, Secretaria.- Rúbricas".
+México, D.F., a 12 de diciembre de 2002.- Dip. Beatriz Elena Paredes Rangel, Presidenta.- Sen. Enrique Jackson Ramírez, Presidente.- Dip. Adrián Rivera Pérez, Secretario.- Sen. Sara I. Castellanos Cortés, Secretaria.- Rúbricas".
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitució n Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a los veintiséis días del mes de diciembre de dos mil dos.- Vicente Fox Quesada .- Rúbrica.- El Secretario de Gobernación, Santiago Creel Miranda.- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a los veintiséis días del mes de diciembre de dos mil dos.- Vicente Fox Quesada.- Rúbrica.- El Secretario de Gobernación, Santiago Creel Miranda.- Rúbrica.
+
+**D.O.F. 28 DE DICIEMBRE DE 2012.**
+
+**Único.** El presente Decreto entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.

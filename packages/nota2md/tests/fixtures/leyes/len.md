@@ -1,6 +1,12 @@
-## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY DE EDUCACIÓN NAVAL**
 
-**ANDRÉS MANUEL LÓPEZ OBRADOR** , Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 24 DE MARZO DE 2023.**
+
+Acuerdo publicado en la Primera Sección al Número 11 del Diario Oficial de la Federación, el martes 12 de marzo de 2019.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+ANDRÉS MANUEL LÓPEZ OBRADOR, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -14,7 +20,9 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **LEY DE EDUCACIÓN NAVAL**
 
-CAPÍTULO I De las Disposiciones Generales
+**CAPÍTULO I**
+
+De las Disposiciones Generales
 
 **Artículo 1.** La presente Ley tiene por objeto normar la educación pública que imparte la Secretaría de Marina a través de la Universidad Naval, en sus diversos niveles educativos, la cual está orientada al conocimiento, difusión, aplicación de la ciencia, la doctrina y Cultura Naval, a fin de contribuir con el desarrollo marítimo nacional.
 
@@ -26,17 +34,17 @@ La Universidad Naval, dependerá orgánica y administrativamente de la Oficialí
 
 **Artículo 3.** Para los efectos de esta Ley y su Reglamento, se entenderá por:
 
-**I.** Autoridad Educativa N aval:·El Secretario de Marina, Oficial Mayor de Marina y Rector de la Universidad Naval;
+**I.** Autoridad Educativa Naval: El Secretario de Marina, Oficial Mayor de Marina y Rector de la Universidad Naval;
 
-**II.** Cultura Naval: Tradiciones y costumbres, que se han forjado como rasgo de identidad, reflejados en la memoria histórica a través de hechos heroicos, así como en l os valores en el actuar del marino;
+**II.** Cultura Naval: Tradiciones y costumbres, que se han forjado como rasgo de identidad, reflejados en la memoria histórica a través de hechos heroicos, así como en los valores en el actuar del marino;
 
 **III.** Director: El titular de cada Establecimiento Educativo Naval;
 
 **IV.** Discente: Personal naval, militar o civil, nacional o extranjero, que se encuentre realizando estudios en el Sistema Educativo;
 
-**V.** Docente: Person al naval, militar o civil, nacional o extranjero, encargado de aplicar los procesos enseñanza -aprendizaje en sus diferentes niveles y modalidades en los Establecimientos Educativos Navales;
+**V.** Docente: Personal naval, militar o civil, nacional o extranjero, encargado de aplicar los procesos enseñanza-aprendizaje en sus diferentes niveles y modalidades en los Establecimientos Educativos Navales;
 
-**VI.** Establecimiento Educativo Naval: Lugar de enseñanza -aprendizaje perteneciente a la Universidad Naval;
+**VI.** Establecimiento Educativo Naval: Lugar de enseñanza-aprendizaje perteneciente a la Universidad Naval;
 
 **VII.** Ley: La Ley de Educación Naval;
 
@@ -60,15 +68,17 @@ La Universidad Naval, dependerá orgánica y administrativamente de la Oficialí
 
 Asimismo, personal invitado de otra nacionalidad, podrá acceder al Sistema Educativo por medio de la extensión académica que la Rectoría establezca a través de convenios suscritos.
 
-**Artículo 5.** Las faltas en contra de la discipl ina naval, cometidas por los Discentes serán procesadas conforme a los reglamentos correspondientes de cada Establecimiento Educativo Naval.
+**Artículo 5.** Las faltas en contra de la disciplina naval, cometidas por los Discentes serán procesadas conforme a los reglamentos correspondientes de cada Establecimiento Educativo Naval.
 
-CAPÍTULO II Del Rector de la Universidad Naval
+**CAPÍTULO II**
 
-**Artículo 6.** Al frente de la Universidad Naval estará el Rector, co n grado de Almirante, el cual deberá contar con al menos dos posgrados o equivalentes.
+Del Rector de la Universidad Naval
+
+**Artículo 6.** Al frente de la Universidad Naval estará el Rector, con grado de Almirante, el cual deberá contar con al menos dos posgrados o equivalentes.
 
 **Artículo 7.** El Rector tendrá las facultades que le confieren el Reglamento Interior de la Secretaría de Marina, asimismo, será responsable de:
 
-**I.** Supervisar la educaci ón pública naval, al adiestrar, capacitar, formar y especializar al recurso humano de la Secretaría, garantizando el desarrollo armónico e integral de sus capacidades y potencialidades, a efecto de ser más eficiente y competitivo en sus funciones y con ello coadyuvar al logro de los objetivos institucionales y nacionales;
+**I.** Supervisar la educación pública naval, al adiestrar, capacitar, formar y especializar al recurso humano de la Secretaría, garantizando el desarrollo armónico e integral de sus capacidades y potencialidades, a efecto de ser más eficiente y competitivo en sus funciones y con ello coadyuvar al logro de los objetivos institucionales y nacionales;
 
 **II.** Proponer a la Autoridad Educativa Naval, los convenios de colaboración de educación superior nacionales o del extranjero para ampliar las opciones de formación, actualización y superación;
 
@@ -78,7 +88,9 @@ CAPÍTULO II Del Rector de la Universidad Naval
 
 **V.** Las demás que establecen las disposiciones jurídicas aplicables.
 
-CAPÍTULO III Del Sistema Educativo
+**CAPÍTULO III**
+
+Del Sistema Educativo
 
 **Artículo 8.** El Sistema Educativo es el conjunto de recursos humanos, financieros, de infraestructura y procesos educativos a través de los cuales, la Secretaría de Marina, ofrece una educación naval integral de calidad, mediante el desarrollo de competencias y valores.
 
@@ -86,11 +98,13 @@ CAPÍTULO III Del Sistema Educativo
 
 **Artículo 10.** Los objetivos del Sistema Educativo son:
 
-**I.** Desarrollar en los Discentes de la Armada de México, una formación académica integral de calidad que provea los valores y competencias en cumplim iento a las atribuciones de la Secretaría y sus funciones, con ·sujeción a los principios doctrinarios navales vigentes;
+**I.** Desarrollar en los Discentes de la Armada de México, una formación académica integral de calidad que provea los valores y competencias en cumplimiento a las atribuciones de la Secretaría y sus funciones, con sujeción a los principios doctrinarios navales vigentes;
 
 **II.** Vincular permanentemente la educación del personal naval;
 
-**III.** Preparar profesionistas competitivos con una formación naval, científica, tecnológica, incluyente, humanista, de calidad ciudadana, intercultural, con enfoque de derechos humanos y perspectiva de género; Fracción reformada DOF 24-03-2023
+**(REFORMADA, D.O.F. 24 DE MARZO DE 2023)**
+
+**III.** Preparar profesionistas competitivos con una formación naval, científica, tecnológica, incluyente, humanista, de calidad ciudadana, intercultural, con enfoque de derechos humanos y perspectiva de género;
 
 **IV.** Fortalecer la educación naval, implementando en el proceso educativo estrategias educativas innovadoras de acuerdo a los avances tecnológicos vigentes, con el propósito de realizar eficaz y eficientemente las actividades educativas;
 
@@ -146,7 +160,9 @@ CAPÍTULO III Del Sistema Educativo
 
 **III.** Mixta: Es la educación del tipo formal, la cual se desarrolla bajo la combinación de las modalidades anteriormente descritas.
 
-CAPÍTULO IV Del Plan General
+**CAPÍTULO IV**
+
+Del Plan General
 
 **Artículo 15.** El Plan General establece, los planes y programas para alcanzar una educación integral de calidad, conforme al Modelo Educativo que deberá cubrir las necesidades de la Secretaría.
 
@@ -158,7 +174,7 @@ CAPÍTULO IV Del Plan General
 
 **III.** La permanente profesionalización de los Docentes.
 
-**Artículo 17.** Los Directores de los Establecimientos Educativos Navales supervisarán que la cu rrícula sea analizada y evaluada anualmente y del resultado propondrán al Rector las modificaciones que procedan con el sustento que avale la propuesta y deberán considerar además:
+**Artículo 17.** Los Directores de los Establecimientos Educativos Navales supervisarán que la currícula sea analizada y evaluada anualmente y del resultado propondrán al Rector las modificaciones que procedan con el sustento que avale la propuesta y deberán considerar además:
 
 **I.** Las necesidades de la Secretaría;
 
@@ -166,7 +182,9 @@ CAPÍTULO IV Del Plan General
 
 **III.** Los avances en las áreas humanística, científica, tecnológica y náutica.
 
-CAPÍTULO V Del Modelo Educativo
+**CAPÍTULO V**
+
+Del Modelo Educativo
 
 **Artículo 18.** El Modelo Educativo define el diseño, estructura, planes y programas; que sirve de guía para la ejecución y evaluación del proceso formativo de calidad, así como también la evaluación de los Docentes y Discentes pertenecientes al modelo.
 
@@ -174,7 +192,9 @@ CAPÍTULO V Del Modelo Educativo
 
 **Artículo 20.** Los Directores de los Establecimientos Educativos Navales, serán los responsables de aplicar el desarrollo del Modelo Educativo de acuerdo al nivel y modalidad correspondiente.
 
-CAPÍTULO VI De la Extensión Académica
+**CAPÍTULO VI**
+
+De la Extensión Académica
 
 **Artículo 21.** La extensión académica comprenderá los siguientes aspectos:
 
@@ -184,15 +204,13 @@ CAPÍTULO VI De la Extensión Académica
 
 **III.** La difusión de la Cultura Naval.
 
-**Artículo 22.** Los convenios académicos realizados por la Universidad Naval con Instituciones de educación pública y privada, nacional o extranjera para la mejor prestación de los servicios educativos a
-
-su cargo, estarán orientados a contribuir con los valores, competencias, objetivos y desarrollo de la Secretaría en las áreas educativas, científicas, tecnológicas, humanista, naval y marítima, considerando los avances científicos y tecnológicos.
+**Artículo 22.** Los convenios académicos realizados por la Universidad Naval con Instituciones de educación pública y privada, nacional o extranjera para la mejor prestación de los servicios educativos a su cargo, estarán orientados a contribuir con los valores, competencias, objetivos y desarrollo de la Secretaría en las áreas educativas, científicas, tecnológicas, humanista, naval y marítima, considerando los avances científicos y tecnológicos.
 
 **Artículo 23.** La Secretaría por conducto del Estado Mayor General de la Armada y en coordinación con la Autoridad Educativa Naval, ofrecerá a nivel nacional e internacional los estudios previstos en el Sistema Educativo, para que realicen los intercambios académicos en los Establecimientos Educativos Navales, de conformidad con los convenios suscritos.
 
-Los estudios que realice el personal naval, en el extranjero, serán valid ados por las Autoridades Educativas competentes, a fin de determinar el grado académico que corresponda.
+Los estudios que realice el personal naval, en el extranjero, serán validados por las Autoridades Educativas competentes, a fin de determinar el grado académico que corresponda.
 
-**Artículo 24.** La difusión de la Cultura Naval de la Secretaría estará a cargo de la Universidad Naval, la cual será promovida a través de los Estableci mientos Educativos Navales, orientada al fortalecimiento de la filosofía institucional que contribuya al desarrollo académico y profesional de los Discentes.
+**Artículo 24.** La difusión de la Cultura Naval de la Secretaría estará a cargo de la Universidad Naval, la cual será promovida a través de los Establecimientos Educativos Navales, orientada al fortalecimiento de la filosofía institucional que contribuya al desarrollo académico y profesional de los Discentes.
 
 ## Transitorios
 
@@ -204,6 +222,10 @@ Los estudios que realice el personal naval, en el extranjero, serán valid ados 
 
 **Cuarto.** Las erogaciones que se generen con motivo de la entrada en vigor de la presente Ley se realizarán con cargo al presupuesto autorizado a la Secretaría de Marina en cada ejercicio fiscal, por lo que no se requerirán recursos adicionales para el ejercicio fiscal de que se trate.
 
-Ciudad de México, a 19 de febrero de 2019. - Dip. Porfirio Muñoz Ledo , Presidente. - Sen. Martí Batres Guadarrama , Presidente.- Dip. Lizeth Sánchez García , Secretaria.- Sen. Antares G. Vázquez Alatorre, Secretaria.- Rúbricas."
+Ciudad de México, a 19 de febrero de 2019.- Dip. Porfirio Muñoz Ledo, Presidente.- Sen. Martí Batres Guadarrama, Presidente.- Dip. Lizeth Sánchez García, Secretaria.- Sen. Antares G. Vázquez Alatorre, Secretaria.- Rúbricas."
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a 8 de marzo de 2019.- Andrés Manuel López Obrador .- Rúbrica.- La Secretaria de Gobernación, Dra. Olga María del Carmen Sánchez Cordero Dávila.- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a 8 de marzo de 2019.- Andrés Manuel López Obrador.- Rúbrica.- La Secretaria de Gobernación, Dra. Olga María del Carmen Sánchez Cordero Dávila.- Rúbrica.
+
+**D.O.F. 24 DE MARZO DE 2023.**
+
+**Único.-** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.

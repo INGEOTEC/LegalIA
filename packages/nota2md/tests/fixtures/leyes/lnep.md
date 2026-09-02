@@ -1,12 +1,18 @@
-## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY NACIONAL DE EJECUCIÓN PENAL**
 
-**ENRIQUE PEÑA NIETO**, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 1 DE ABRIL DE 2024.**
+
+Ley publicada en la Edición Vespertina del Diario Oficial de la Federación, el jueves 16 de junio de 2016.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+ENRIQUE PEÑA NIETO, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **DECRETO**
 
-**EL CONGRESO GENERAL DE LOS ESTADOS UNIDOS MEXICANOS , DE C R E T A :**
+**EL CONGRESO GENERAL DE LOS ESTADOS UNIDOS MEXICANOS, DECRETA:**
 
 **SE EXPIDE LA LEY NACIONAL DE EJECUCIÓN PENAL; SE ADICIONAN LAS FRACCIONES XXXV, XXXVI Y XXXVII Y UN QUINTO PÁRRAFO, Y SE REFORMA EL TERCER PÁRRAFO DEL ARTÍCULO 225 DEL CÓDIGO PENAL FEDERAL**
 
@@ -14,13 +20,19 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **LEY NACIONAL DE EJECUCIÓN PENAL**
 
-**TÍTULO PRIMERO DISPOSICIONES GENERALES**
+**TÍTULO PRIMERO**
 
-Capítulo I Objeto, Ámbito de Aplicación y Supletoriedad de la Ley
+**DISPOSICIONES GENERALES**
 
-**Artículo 1.** Objeto de la Ley La presente Ley tiene por objeto:
+Capítulo I
 
-**I.** Establecer las normas que deben de observa rse durante el internamiento por prisión preventiva, en la ejecución de penas y en las medidas de seguridad impuestas como consecuencia de una resolución judicial;
+Objeto, Ámbito de Aplicación y Supletoriedad de la Ley
+
+**Artículo 1.** Objeto de la Ley
+
+La presente Ley tiene por objeto:
+
+**I.** Establecer las normas que deben de observarse durante el internamiento por prisión preventiva, en la ejecución de penas y en las medidas de seguridad impuestas como consecuencia de una resolución judicial;
 
 **II.** Establecer los procedimientos para resolver las controversias que surjan con motivo de la ejecución penal, y
 
@@ -28,25 +40,27 @@ Capítulo I Objeto, Ámbito de Aplicación y Supletoriedad de la Ley
 
 Lo anterior, sobre la base de los principios, garantías y derechos consagrados en la Constitución, Tratados Internacionales de los que el Estado mexicano sea parte y en esta Ley.
 
-**Artículo 2.** Ámbito de aplicación Las disposiciones de esta Ley son de orden público y de observancia general en la Federación y las entidades federativas, respecto del internamiento por prisión preventiva, así como en la ejecución de
+**Artículo 2.** Ámbito de aplicación
 
-penas y medidas de seguridad por delitos que sean competencia de los tribunales de fuero federal y local, según corresponda, sobre la base de los principios, garantías y derechos consagrados en la Constitución, en los Tratados Internacionales de los que el Estado mexicano sea parte, y en esta Ley.
+Las disposiciones de esta Ley son de orden público y de observancia general en la Federación y las entidades federativas, respecto del internamiento por prisión preventiva, así como en la ejecución de penas y medidas de seguridad por delitos que sean competencia de los tribunales de fuero federal y local, según corresponda, sobre la base de los principios, garantías y derechos consagrados en la Constitución, en los Tratados Internacionales de los que el Estado mexicano sea parte, y en esta Ley.
 
 Tratándose de personas sujetas a prisión preventiva o sentenciadas por delincuencia organizada, debe estarse además a las excepciones previstas en la Constitución y en la ley de la materia.
 
-En lo conducente y para la aplicació n de esta Ley deben atenderse también los estándares internacionales.
+En lo conducente y para la aplicación de esta Ley deben atenderse también los estándares internacionales.
 
-**Artículo 3.** Glosario Para los efectos de esta Ley, según corresponda, debe entenderse por:
+**Artículo 3.** Glosario
+
+Para los efectos de esta Ley, según corresponda, debe entenderse por:
 
 **I.** Autoridad Penitenciaria: A la autoridad administrativa que depende del Poder Ejecutivo Federal o de los poderes ejecutivos de las entidades federativas encargada de operar el Sistema Penitenciario;
 
-**II.** Autoridades Corresponsables: A las Secretarías de Gobernación, de Desarrollo Social, de Economía, de Educación Pública, de Salud, del Trabajo y Previsión Social, de Cultura, la Comisión Nacional de Cultura Física y Deporte, el Sistema Nacional para el Desarrollo Integral de la Familia y la Secretaría Ejecutiva del Sistema Nacional de Protección Integral de Niñas, Niños y Adolescentes y sus equiva lentes en las entidades federativas, así como aquellas que por su naturaleza deben intervenir en el cumplimiento de la Ley, en el ámbito de sus atribuciones;
+**II.** Autoridades Corresponsables: A las Secretarías de Gobernación, de Desarrollo Social, de Economía, de Educación Pública, de Salud, del Trabajo y Previsión Social, de Cultura, la Comisión Nacional de Cultura Física y Deporte, el Sistema Nacional para el Desarrollo Integral de la Familia y la Secretaría Ejecutiva del Sistema Nacional de Protección Integral de Niñas, Niños y Adolescentes y sus equivalentes en las entidades federativas, así como aquellas que por su naturaleza deben intervenir en el cumplimiento de la Ley, en el ámbito de sus atribuciones;
 
-**III.** Centro o Centro Penitenciario: Al espacio físico destinado para el cumplimiento de la prisió n preventiva, así como para la ejecución de penas;
+**III.** Centro o Centro Penitenciario: Al espacio físico destinado para el cumplimiento de la prisión preventiva, así como para la ejecución de penas;
 
 **IV.** Código: Al Código Nacional de Procedimientos Penales;
 
-**V.** Comité Técnico: Al Órgano Colegiado Consultivo y de autoridad en aquellos asuntos que le corresponda resolver del Centro Penitenciario, de con formidad con las disposiciones aplicables;
+**V.** Comité Técnico: Al Órgano Colegiado Consultivo y de autoridad en aquellos asuntos que le corresponda resolver del Centro Penitenciario, de conformidad con las disposiciones aplicables;
 
 **VI.** Conferencia: A la Conferencia Nacional del Sistema Penitenciario;
 
@@ -58,7 +72,7 @@ En lo conducente y para la aplicació n de esta Ley deben atenderse también los
 
 **X.** Juez de Control: Al Órgano Jurisdiccional del fuero federal o del fuero común que interviene desde el principio del procedimiento y hasta el dictado del auto de apertura a juicio, ya sea federal o local;
 
-**XI.** Juez de Ejecución: A la autoridad judicial espec ializada del fuero federal o local, competente para resolver las controversias en materia de ejecución penal, así como aquellas atribuciones que prevé la presente Ley;
+**XI.** Juez de Ejecución: A la autoridad judicial especializada del fuero federal o local, competente para resolver las controversias en materia de ejecución penal, así como aquellas atribuciones que prevé la presente Ley;
 
 **XII.** Ley: A la Ley Nacional de Ejecución Penal;
 
@@ -70,7 +84,7 @@ En lo conducente y para la aplicació n de esta Ley deben atenderse también los
 
 **XVI.** Órgano Jurisdiccional: Al Juez de Control, el Tribunal de enjuiciamiento o el Tribunal de alzada ya sea del fuero federal o local;
 
-**XVII.** Persona privada de su libertad : A la persona procesada o sentenciada que se encuentre en un Centro Penitenciario;
+**XVII.** Persona privada de su libertad: A la persona procesada o sentenciada que se encuentre en un Centro Penitenciario;
 
 **XVIII.** Persona procesada: A la persona sujeta a proceso penal sometida a prisión preventiva;
 
@@ -80,43 +94,45 @@ En lo conducente y para la aplicació n de esta Ley deben atenderse también los
 
 **XXI.** Procuraduría: A la Procuraduría General de la República, o Procuradurías Generales de Justicia o Fiscalías Generales en las entidades federativas, según corresponda;
 
-**XXII.** Servicios: A las actividades educativas, culturales, recreativas, de trabajo, de capacitaci ón para el trabajo, de protección para la salud, deportivas y otras similares que deben tener disponibles los Centros de manera accesible, aceptable, progresiva y adaptable a las necesidades de las personas privadas de la libertad, en términos del artículo 32 de esta Ley. Entre los servicios se comprende el abasto de productos que, sin formar parte de los suministros gratuitos, deben ser accesibles y asequibles para las personas internas;
+**XXII.** Servicios: A las actividades educativas, culturales, recreativas, de trabajo, de capacitación para el trabajo, de protección para la salud, deportivas y otras similares que deben tener disponibles los Centros de manera accesible, aceptable, progresiva y adaptable a las necesidades de las personas privadas de la libertad, en términos del artículo 32 de esta Ley. Entre los servicios se comprende el abasto de productos que, sin formar parte de los suministros gratuitos, deben ser accesibles y asequibles para las personas internas;
 
 **XXIII.** Sistema Nacional de Información Estadística Penitenciaria: Al compendio de Registros Administrativos, Censos y Encuestas relativos al sistema penitenciario, en los ámbitos federal y local, de conformidad con el artículo 29 de esta Ley;
 
-**XXIV.** Sistema Penitenciario: Al conjunto de normas jurídicas y de instituciones del Estado que tiene por objeto la supervisión de la prisión preventiva y la ejecución de sanciones penales, así como de las medidas de seguridad derivadas de una sentencia, el cual está organizado sobre la base del respeto de los derechos humanos, del tra bajo, la capacitación para el mismo, la educación, la salud y el deporte como medios para lograr la reinserción de la persona sentenciada a la sociedad y procurar que no vuelva a delinquir;
+**XXIV.** Sistema Penitenciario: Al conjunto de normas jurídicas y de instituciones del Estado que tiene por objeto la supervisión de la prisión preventiva y la ejecución de sanciones penales, así como de las medidas de seguridad derivadas de una sentencia, el cual está organizado sobre la base del respeto de los derechos humanos, del trabajo, la capacitación para el mismo, la educación, la salud y el deporte como medios para lograr la reinserción de la persona sentenciada a la sociedad y procurar que no vuelva a delinquir;
 
-**XXV.** Suministros: A todos aquellos bienes que deben ofrecer los C entros Penitenciarios, gratuitamente, entre ellos, el agua corriente y potable, alimentos, medicinas, anticonceptivos ordinarios y de emergencia; ropa, colchones y ropa de cama, artículos de aseo personal y de limpieza, libros y útiles escolares, así como los instrumentos de trabajo y artículos para el deporte y la recreación;
+**XXV.** Suministros: A todos aquellos bienes que deben ofrecer los Centros Penitenciarios, gratuitamente, entre ellos, el agua corriente y potable, alimentos, medicinas, anticonceptivos ordinarios y de emergencia; ropa, colchones y ropa de cama, artículos de aseo personal y de limpieza, libros y útiles escolares, así como los instrumentos de trabajo y artículos para el deporte y la recreación;
 
 **XXVI.** Supervisor de libertad condicionada: A la autoridad administrativa que depende del Poder Ejecutivo Federal o de los poderes ejecutivos de las entidades federativas, que da seguimiento a las personas sentenciadas que gozan de libertad condicionada, y
 
-**XXVII.** Visitantes: A las personas que ingresan a los Centros Penitenciarios, o que solicitan su ingreso, para realizar una visita personal, familiar, íntima, cultural, deportiva, re creativa, religiosa, humanitaria u otras similares.
+**XXVII.** Visitantes: A las personas que ingresan a los Centros Penitenciarios, o que solicitan su ingreso, para realizar una visita personal, familiar, íntima, cultural, deportiva, recreativa, religiosa, humanitaria u otras similares.
 
-**Artículo 4.** Principios rectores del Sistema Penitenciario El desarrollo de los procedimientos dentro del Sistema Penitenciario debe regirse por los siguientes principios:
+**Artículo 4.** Principios rectores del Sistema Penitenciario
+
+El desarrollo de los procedimientos dentro del Sistema Penitenciario debe regirse por los siguientes principios:
 
 Dignidad. Toda persona es titular y sujeta de derechos y, por lo tanto, no debe ser objeto de violencia o arbitrariedades por parte del Estado o los particulares.
 
-Igualdad. Las personas sujetas a esta Ley deben recibir el mismo trato y oportunidades para acceder a los derechos reconocidos por la Constitución, Tratados Internacionales y la legislación aplicable, en los términos y bajo las condiciones que éstas señalan. No debe admitirse discriminación motivada por origen étnico o nacional, el color de piel, la cultura, el sexo, el género , la edad, las discapacidades, la condición social, económica, de salud o jurídica, la religión, la apariencia física, las características genéticas, la situación migratoria, el embarazo, la lengua, las opiniones, las preferencias sexuales, la identidad o filiación política, el estado civil, la situación familiar, las responsabilidades familiares, el idioma, los antecedentes penales o cualquier otra que atente contra la dignidad humana y con el objeto de anular o menoscabar los derechos y las libertades de las personas.
+Igualdad. Las personas sujetas a esta Ley deben recibir el mismo trato y oportunidades para acceder a los derechos reconocidos por la Constitución, Tratados Internacionales y la legislación aplicable, en los términos y bajo las condiciones que éstas señalan. No debe admitirse discriminación motivada por origen étnico o nacional, el color de piel, la cultura, el sexo, el género, la edad, las discapacidades, la condición social, económica, de salud o jurídica, la religión, la apariencia física, las características genéticas, la situación migratoria, el embarazo, la lengua, las opiniones, las preferencias sexuales, la identidad o filiación política, el estado civil, la situación familiar, las responsabilidades familiares, el idioma, los antecedentes penales o cualquier otra que atente contra la dignidad humana y con el objeto de anular o menoscabar los derechos y las libertades de las personas.
 
 Las autoridades deben velar porque las personas sujetas a esta Ley, sean atendidas a fin de garantizar la igualdad sobre la base de la equidad en el ejercicio de sus derechos. En el caso de las personas con discapacidad o inimputabilidad deben preverse ajustes razonables al procedimiento cuando son requeridos, así como el diseño universal de las instalaciones para la adecuada accesibilidad.
 
-Legalidad. El Órgano Jurisdiccional, el Juez de Ejecución y la Autoridad Penitenciaria, en el ámbito d e sus atribuciones, deben fundar y motivar sus resoluciones y determinaciones en la Constitución, en los Tratados, en el Código y en esta Ley.
+Legalidad. El Órgano Jurisdiccional, el Juez de Ejecución y la Autoridad Penitenciaria, en el ámbito de sus atribuciones, deben fundar y motivar sus resoluciones y determinaciones en la Constitución, en los Tratados, en el Código y en esta Ley.
 
 Debido Proceso. La ejecución de medidas penales y disciplinarias debe realizarse en virtud de resolución dictada por un Órgano Jurisdiccional, el Juez de Ejecución o la autoridad administrativa de conformidad con la legislación aplicable, mediante procedimientos que permitan a las personas sujetas a una medida penal ejercer debidamente sus derechos ante la instancia que corresponda, de conformidad con los principios internacionales en materia de derechos humanos.
 
-Transparencia. En la ejecución de las sanciones penales, exceptuando el expediente personal de la persona sentenciada, debe garantizarse el acceso a la inf ormación, así como a las instalaciones penitenciarias, en los términos que al efecto establezcan las leyes aplicables.
+Transparencia. En la ejecución de las sanciones penales, exceptuando el expediente personal de la persona sentenciada, debe garantizarse el acceso a la información, así como a las instalaciones penitenciarias, en los términos que al efecto establezcan las leyes aplicables.
 
-Confidencialidad. El expediente personal de la persona privada de su libertad tendrá trato confidencial, de conformidad con la ley en la materia, y sólo podrán imponerse de su contenido las autoridades competentes, la persona privada de la libertad y su defensor o las personas directamente interesadas en la tramitación del caso salvo las excepciones establecidas en la Constitución y las le yes aplicables.
+Confidencialidad. El expediente personal de la persona privada de su libertad tendrá trato confidencial, de conformidad con la ley en la materia, y sólo podrán imponerse de su contenido las autoridades competentes, la persona privada de la libertad y su defensor o las personas directamente interesadas en la tramitación del caso salvo las excepciones establecidas en la Constitución y las leyes aplicables.
 
-Publicidad. Todas las cuestiones que impliquen una sustitución, modificación o extinción de las penas y que por su naturaleza e importancia requieran celebración de debate o producción de prueba, se
-
-ventilarán en audiencia pública ante el Juez de Ejecución. La publicidad sólo podrá restringirse en los casos de excepción que determinen las leyes aplicables.
+Publicidad. Todas las cuestiones que impliquen una sustitución, modificación o extinción de las penas y que por su naturaleza e importancia requieran celebración de debate o producción de prueba, se ventilarán en audiencia pública ante el Juez de Ejecución. La publicidad sólo podrá restringirse en los casos de excepción que determinen las leyes aplicables.
 
 Proporcionalidad. Toda intervención que tenga como consecuencia una afectación o limitación de los derechos de las personas privadas de la libertad por parte de las autoridades competentes debe ser adecuada, estrictamente necesaria y proporcional al objeto que persigue la restricción.
 
 Reinserción social. Restitución del pleno ejercicio de las libertades tras el cumplimiento de una sanción o medida ejecutada con respeto a los derechos humanos.
 
-**Artículo 5.** Ubicación de las personas privadas de la libertad en un Centro Penitenciario Los Centros Penitenciarios garantizarán la separación de las personas privadas de la libertad, de conformidad con lo siguiente:
+**Artículo 5.** Ubicación de las personas privadas de la libertad en un Centro Penitenciario
+
+Los Centros Penitenciarios garantizarán la separación de las personas privadas de la libertad, de conformidad con lo siguiente:
 
 **I.** Las mujeres compurgarán sus penas en lugares separados de los destinados a los hombres;
 
@@ -128,31 +144,41 @@ Reinserción social. Restitución del pleno ejercicio de las libertades tras el 
 
 Adicionalmente la Autoridad Administrativa podrá establecer sistemas de clasificación de acuerdo en los criterios de igualdad, integridad y seguridad.
 
-**Artículo 6.** Organización del Centro Penitenciario El régimen de planeación, organización y funcionamiento de la Autoridad Penitenciaria y de los Centros Penitenciarios estará sujeto a su normatividad reglamentaria respectiva, siempre de conformidad con la presente Ley.
+**Artículo 6.** Organización del Centro Penitenciario
+
+El régimen de planeación, organización y funcionamiento de la Autoridad Penitenciaria y de los Centros Penitenciarios estará sujeto a su normatividad reglamentaria respectiva, siempre de conformidad con la presente Ley.
 
 La Autoridad Penitenciaria promoverá que los Centros Penitenciarios sean sustentables.
 
-**Artículo 7.** Coordinación interinstitucional Los poderes judicial y ejecutivo competentes, se organizarán, en el ámbito de sus respectivas competencias, para el cumplimiento y aplicación de esta Ley y demás normatividad aplicable, así como para la cooperación con l as autoridades penitenciarias e instituciones que intervienen en la ejecución de la prisión preventiva, de las sanciones penales y de las medidas de seguridad impuestas.
+**Artículo 7.** Coordinación interinstitucional
 
-Son autoridades corresponsables para el cumplimiento de esta Ley, las Secretarías de Gobernación, de Desarrollo Social, de Economía, de Educación Pública, de Cultura, de Salud, del Trabajo y Previsión Social y la Comisión Nacional de Cultura Física y Deporte, el Sistema Nacional para el Desarrollo Integral de la Familia y la Secretaría Eje cutiva del Sistema Nacional de Protección Integral de Niñas, Niños y Adolescentes o sus equivalentes en las entidades federativas y la Ciudad de México, así como las demás que por la naturaleza de sus atribuciones deban intervenir en el cumplimiento de la presente Ley.
+Los poderes judicial y ejecutivo competentes, se organizarán, en el ámbito de sus respectivas competencias, para el cumplimiento y aplicación de esta Ley y demás normatividad aplicable, así como para la cooperación con las autoridades penitenciarias e instituciones que intervienen en la ejecución de la prisión preventiva, de las sanciones penales y de las medidas de seguridad impuestas.
+
+Son autoridades corresponsables para el cumplimiento de esta Ley, las Secretarías de Gobernación, de Desarrollo Social, de Economía, de Educación Pública, de Cultura, de Salud, del Trabajo y Previsión Social y la Comisión Nacional de Cultura Física y Deporte, el Sistema Nacional para el Desarrollo Integral de la Familia y la Secretaría Ejecutiva del Sistema Nacional de Protección Integral de Niñas, Niños y Adolescentes o sus equivalentes en las entidades federativas y la Ciudad de México, así como las demás que por la naturaleza de sus atribuciones deban intervenir en el cumplimiento de la presente Ley.
 
 Encabezada por la Secretaría de Gobernación o su equivalente en las entidades federativas, se establecerán comisiones intersecretariales que incluirán a todas las autoridades corresponsables establecidas en esta Ley a nivel federal y en cada entidad federativa.
 
-Adicionalmente serán las encargadas de diseñar e implementar los distintos programas de servicios para la reinserción al interior de los Centros Penitenciarios y de servicios post -penales a nivel federal y estatal. Las autoridades cor responsables en las entidades federativas establecerán su propia comisión a fin de cumplir con los mismos fines a nivel local.
+Adicionalmente serán las encargadas de diseñar e implementar los distintos programas de servicios para la reinserción al interior de los Centros Penitenciarios y de servicios post-penales a nivel federal y estatal. Las autoridades corresponsables en las entidades federativas establecerán su propia comisión a fin de cumplir con los mismos fines a nivel local.
 
-La Autoridad Penitenciaria y las autoridades corresponsables podrán implementar mecanismos de participación y firmar convenios d e colaboración con organizaciones de la sociedad civil a fin de diseñar, implementar o brindar servicios en internamiento o de naturaleza post-penal.
+La Autoridad Penitenciaria y las autoridades corresponsables podrán implementar mecanismos de participación y firmar convenios de colaboración con organizaciones de la sociedad civil a fin de diseñar, implementar o brindar servicios en internamiento o de naturaleza post-penal.
 
-**Artículo 8.** Supletoriedad En todo lo no previsto por la presente Ley se atenderá en lo conducente a lo di spuesto por el Código Nacional de Procedimientos Penales, a la Ley Nacional de Mecanismos Alternativos de Solución de Controversias en Materia Penal y a las leyes penales aplicables.
+**Artículo 8.** Supletoriedad
 
-Capítulo II Derechos y Obligaciones de las personas
+En todo lo no previsto por la presente Ley se atenderá en lo conducente a lo dispuesto por el Código Nacional de Procedimientos Penales, a la Ley Nacional de Mecanismos Alternativos de Solución de Controversias en Materia Penal y a las leyes penales aplicables.
 
-**Artículo 9.** Derechos de las personas privadas de su libertad en un Centro Penitenciario Las personas privadas de su libertad en un Centro Penitenciario, durante la ejecución de la prisión preventiva o las sanciones penales impuestas, gozarán de todos los derechos previstos p or la Constitución y los Tratados Internacionales de los que el Estado mexicano sea parte, siempre y cuando estos no hubieren sido restringidos por la resolución o la sentencia, o su ejercicio fuese incompatible con el objeto de éstas.
+Capítulo II
 
-Para los efectos de l párrafo anterior, se garantizarán, de manera enunciativa y no limitativa, los siguientes derechos:
+Derechos y Obligaciones de las personas
 
-**I.** Recibir un trato digno del personal penitenciario sin diferencias fundadas en prejuicios por razón de género, origen étnico o nacional, sexo, edad, dis capacidades, condición social, posición económica, condiciones de salud, religión, opiniones, preferencias sexuales o identidad de género, estado civil o cualquier otra que atente contra la dignidad humana;
+**Artículo 9.** Derechos de las personas privadas de su libertad en un Centro Penitenciario
 
-**II.** Recibir asistencia médica preventiva y de tr atamiento para el cuidado de la salud, atendiendo a las necesidades propias de su edad y sexo en por lo menos unidades médicas que brinden asistencia médica de primer nivel, en términos de la Ley General de Salud, en el Centro Penitenciario, y en caso de q ue sea insuficiente la atención brindada dentro de reclusión, o se necesite asistencia médica avanzada, se podrá solicitar el ingreso de atención especializada al Centro Penitenciario o que la persona sea remitida a un Centro de Salud Público en los términos que establezca la ley;
+Las personas privadas de su libertad en un Centro Penitenciario, durante la ejecución de la prisión preventiva o las sanciones penales impuestas, gozarán de todos los derechos previstos por la Constitución y los Tratados Internacionales de los que el Estado mexicano sea parte, siempre y cuando estos no hubieren sido restringidos por la resolución o la sentencia, o su ejercicio fuese incompatible con el objeto de éstas.
+
+Para los efectos del párrafo anterior, se garantizarán, de manera enunciativa y no limitativa, los siguientes derechos:
+
+**I.** Recibir un trato digno del personal penitenciario sin diferencias fundadas en prejuicios por razón de género, origen étnico o nacional, sexo, edad, discapacidades, condición social, posición económica, condiciones de salud, religión, opiniones, preferencias sexuales o identidad de género, estado civil o cualquier otra que atente contra la dignidad humana;
+
+**II.** Recibir asistencia médica preventiva y de tratamiento para el cuidado de la salud, atendiendo a las necesidades propias de su edad y sexo en por lo menos unidades médicas que brinden asistencia médica de primer nivel, en términos de la Ley General de Salud, en el Centro Penitenciario, y en caso de que sea insuficiente la atención brindada dentro de reclusión, o se necesite asistencia médica avanzada, se podrá solicitar el ingreso de atención especializada al Centro Penitenciario o que la persona sea remitida a un Centro de Salud Público en los términos que establezca la ley;
 
 **III.** Recibir alimentación nutritiva, suficiente y de calidad, adecuada para la protección de su salud;
 
@@ -174,13 +200,15 @@ Para los efectos de l párrafo anterior, se garantizarán, de manera enunciativa
 
 **XII.** Los demás previstos en la Constitución, Tratados y las demás disposiciones legales aplicables.
 
-Toda limitación de derechos sólo podrá imponerse cuando tenga como objetivo garantizar condiciones de internamiento dignas y seguras, en su caso, la limitación se regirá por los pr incipios de necesidad, proporcionalidad e idoneidad.
+Toda limitación de derechos sólo podrá imponerse cuando tenga como objetivo garantizar condiciones de internamiento dignas y seguras, en su caso, la limitación se regirá por los principios de necesidad, proporcionalidad e idoneidad.
 
-**Artículo 10.** Derechos de las mujeres privadas de su libertad en un Centro Penitenciario Además de los derechos establecidos en el artículo anterior, las mujeres privadas de la libertad tendrán derecho a:
+**Artículo 10.** Derechos de las mujeres privadas de su libertad en un Centro Penitenciario
+
+Además de los derechos establecidos en el artículo anterior, las mujeres privadas de la libertad tendrán derecho a:
 
 **I.** La maternidad y la lactancia;
 
-**II.** Recibir trato directo de personal penitenciario de sexo femenino, específicamente en las áreas de custodia y registro. Tratándose de la atención médica podrá solicitar que la examine personal médico de sexo femenino , se accederá a esa petición en la medida de lo posible, excepto en las situaciones que requieran intervención médica urgente. Si pese a lo solicitado, la atención médica es realizada por personal médico de sexo masculino, deberá estar presente un miembro del personal del Centro Penitenciario de sexo femenino;
+**II.** Recibir trato directo de personal penitenciario de sexo femenino, específicamente en las áreas de custodia y registro. Tratándose de la atención médica podrá solicitar que la examine personal médico de sexo femenino, se accederá a esa petición en la medida de lo posible, excepto en las situaciones que requieran intervención médica urgente. Si pese a lo solicitado, la atención médica es realizada por personal médico de sexo masculino, deberá estar presente un miembro del personal del Centro Penitenciario de sexo femenino;
 
 **III.** Contar con las instalaciones adecuadas y los artículos necesarios para una estancia digna y segura, siendo prioritarios los artículos para satisfacer las necesidades de higiene propias de su género;
 
@@ -188,7 +216,7 @@ Toda limitación de derechos sólo podrá imponerse cuando tenga como objetivo g
 
 **V.** Recibir la atención médica, la cual deberá brindarse en hospitales o lugares específicos establecidos en el Centro Penitenciario para tal efecto, en los términos establecidos en la presente Ley;
 
-**VI.** Conservar la guardia y custodia de su hija o hijo menor de tres años a fin de que pueda permanecer con la ma dre en el Centro Penitenciario, de conformidad a las disposiciones aplicables;
+**VI.** Conservar la guardia y custodia de su hija o hijo menor de tres años a fin de que pueda permanecer con la madre en el Centro Penitenciario, de conformidad a las disposiciones aplicables;
 
 **VII.** Recibir la alimentación adecuada y saludable para sus hijas e hijos, acorde con su edad y sus necesidades de salud con la finalidad de contribuir a su desarrollo físico y mental, en caso de que permanezcan con sus madres en el Centro Penitenciario;
 
@@ -200,25 +228,27 @@ Para el caso de las mujeres que deseen conservar la custodia de la hija o el hij
 
 Se notificará a la Procuraduría Federal de Protección de Niñas, Niños y Adolescentes o a sus equivalentes en las entidades federativas;
 
-**X.** Contar con las instalaciones adecuadas para que sus hijas e hijos r eciban la atención médica, de conformidad con el interés superior de la niñez, atendiendo a su edad, condiciones y a sus necesidades de salud específicas, y
+**X.** Contar con las instalaciones adecuadas para que sus hijas e hijos reciban la atención médica, de conformidad con el interés superior de la niñez, atendiendo a su edad, condiciones y a sus necesidades de salud específicas, y
 
 **XI.** Los demás previstos en las disposiciones legales aplicables.
 
-La Autoridad Penitenciaria coady uvará con las autoridades corresponsables, en el ámbito de su competencia, para proporcionar las condiciones de vida que garanticen el sano desarrollo de niñas y niños.
+La Autoridad Penitenciaria coadyuvará con las autoridades corresponsables, en el ámbito de su competencia, para proporcionar las condiciones de vida que garanticen el sano desarrollo de niñas y niños.
 
-Para los efectos de las fracciones I y IV de este artículo, las mujeres en reclusión p odrán conservar la custodia de sus hijas e hijos en el interior de los Centros Penitenciarios. La Autoridad Penitenciaria, atendiendo el interés superior de la niñez, deberá emitir el dictamen correspondiente.
+Para los efectos de las fracciones I y IV de este artículo, las mujeres en reclusión podrán conservar la custodia de sus hijas e hijos en el interior de los Centros Penitenciarios. La Autoridad Penitenciaria, atendiendo el interés superior de la niñez, deberá emitir el dictamen correspondiente.
 
-Si la hija o el hijo tuviera una discapacidad , se podrá solicitar a la Autoridad Penitenciaria la ampliación del plazo de estancia al cuidado de la madre. En todo caso, se resolverá ponderando el interés superior de la niñez.
+Si la hija o el hijo tuviera una discapacidad, se podrá solicitar a la Autoridad Penitenciaria la ampliación del plazo de estancia al cuidado de la madre. En todo caso, se resolverá ponderando el interés superior de la niñez.
 
-En el supuesto de que la madre no deseara conservar la custodia de sus hij as e hijos, estos serán entregados a la institución de asistencia social competente, en un término no mayor a veinticuatro horas, en donde se harán los trámites correspondientes, de acuerdo con la legislación aplicable.
+En el supuesto de que la madre no deseara conservar la custodia de sus hijas e hijos, estos serán entregados a la institución de asistencia social competente, en un término no mayor a veinticuatro horas, en donde se harán los trámites correspondientes, de acuerdo con la legislación aplicable.
 
-La Autoridad Penitenciaria deberá g arantizar que en los Centros Penitenciarios para mujeres haya espacios adecuados para el desarrollo integral de los hijas o hijos de las mujeres privadas de su libertad, o en su defecto, para el esparcimiento del niño o niña en las visitas a su madre.
+La Autoridad Penitenciaria deberá garantizar que en los Centros Penitenciarios para mujeres haya espacios adecuados para el desarrollo integral de los (sic) hijas o hijos de las mujeres privadas de su libertad, o en su defecto, para el esparcimiento del niño o niña en las visitas a su madre.
 
 En el supuesto en el que las Autoridades determinen el traslado de una mujer embarazada o cuyos hijas o hijos vivan en el Centro Penitenciario con ella, se garantizará en todo momento el interés superior de la niñez.
 
-Las disposiciones aplicables preverán un régimen específico de visitas para las personas menores de edad que no superen los diez años y no convivan con la madre en el Centro Penitenciario. Estas visitas se realizarán sin restricciones de ningún tipo en cuanto a frecuencia e intimidad, y su duraci ón y horario se ajustarán a la organización interna de los Centros.
+Las disposiciones aplicables preverán un régimen específico de visitas para las personas menores de edad que no superen los diez años y no convivan con la madre en el Centro Penitenciario. Estas visitas se realizarán sin restricciones de ningún tipo en cuanto a frecuencia e intimidad, y su duración y horario se ajustarán a la organización interna de los Centros.
 
-**Artículo 11.** Obligaciones de las personas privadas de su libertad en un Centro Penitenciario Las personas privadas de su libertad tendrán las siguientes obligaciones:
+**Artículo 11.** Obligaciones de las personas privadas de su libertad en un Centro Penitenciario
+
+Las personas privadas de su libertad tendrán las siguientes obligaciones:
 
 **I.** Conocer y acatar la normatividad vigente al interior de los Centros Penitenciarios;
 
@@ -238,17 +268,21 @@ Las disposiciones aplicables preverán un régimen específico de visitas para l
 
 **IX.** Las demás previstas en las disposiciones legales aplicables.
 
-**Artículo 12.** Derechos de las personas sentenciadas que gocen de libertad condicionada Las personas sentenciadas que gozan de libertad condicionada, tendrán los siguientes derechos:
+**Artículo 12.** Derechos de las personas sentenciadas que gocen de libertad condicionada
+
+Las personas sentenciadas que gozan de libertad condicionada, tendrán los siguientes derechos:
 
 **I.** Ser informadas de su situación jurídica cuando lo soliciten o cuando ésta se modifique;
 
-**II.** Solicitar modificaciones a sus obli gaciones, conforme a situaciones supervinientes debidamente justificadas;
+**II.** Solicitar modificaciones a sus obligaciones, conforme a situaciones supervinientes debidamente justificadas;
 
-**III.** Solicitar la intervención del Juez de Ejecución cuando exista una irregularidad por parte del supervisor de libertad en el desarrollo o cumplimiento a las obligaciones derivada s de la medida otorgada, y
+**III.** Solicitar la intervención del Juez de Ejecución cuando exista una irregularidad por parte del supervisor de libertad en el desarrollo o cumplimiento a las obligaciones derivadas de la medida otorgada, y
 
 **IV.** Los demás que esta Ley u otros ordenamientos establezcan.
 
-**Artículo 13.** Obligaciones de las personas sentenciadas que gocen de libertad condicionada Las personas sentenciadas que hayan obtenido alguna medida de libertad cond icionada, tendrán las siguientes obligaciones:
+**Artículo 13.** Obligaciones de las personas sentenciadas que gocen de libertad condicionada
+
+Las personas sentenciadas que hayan obtenido alguna medida de libertad condicionada, tendrán las siguientes obligaciones:
 
 **I.** En caso de necesitar cambio de residencia, solicitar autorización judicial;
 
@@ -256,19 +290,25 @@ Las disposiciones aplicables preverán un régimen específico de visitas para l
 
 **III.** Usar, conservar y mantener en óptimas condiciones todas las herramientas tecnológicas y recursos materiales que les proporcionen para el control y seguimiento de su liberación;
 
-**IV.** Colaborar con los supervisores de libertad a fin de darle cumplimiento a los objeti vos del proceso de reinserción social;
+**IV.** Colaborar con los supervisores de libertad a fin de darle cumplimiento a los objetivos del proceso de reinserción social;
 
 **V.** Presentar los documentos que le sean requeridos por el Juez de Ejecución;
 
 **VI.** Las demás que establezcan esta Ley, u otras disposiciones aplicables.
 
-Capítulo III Autoridades en la Ejecución Penal
+Capítulo III
 
-**Artículo 14.** De la Autoridad Penitenciaria La Autoridad Penitenciaria organizará la administración y operación del Sistema Penitenciario sobre la base del respeto a los derechos humanos, el trabajo, la capacitación para el mismo, la educación, la salud y el deporte, como medios para procurar la reinserción de la persona sentenciada a la sociedad y procurar que no vuelva a delinquir, y supervisará las instalaciones de los Centros Penitenciarios para mantener la seguridad, tranquilidad e integridad, de las personas privadas de la libertad, del personal y de los visitantes, ejerciendo las medidas y acciones pertinentes para el buen funcionamiento de éstas.
+Autoridades en la Ejecución Penal
+
+**Artículo 14.** De la Autoridad Penitenciaria
+
+La Autoridad Penitenciaria organizará la administración y operación del Sistema Penitenciario sobre la base del respeto a los derechos humanos, el trabajo, la capacitación para el mismo, la educación, la salud y el deporte, como medios para procurar la reinserción de la persona sentenciada a la sociedad y procurar que no vuelva a delinquir, y supervisará las instalaciones de los Centros Penitenciarios para mantener la seguridad, tranquilidad e integridad, de las personas privadas de la libertad, del personal y de los visitantes, ejerciendo las medidas y acciones pertinentes para el buen funcionamiento de éstas.
 
 Corresponde al Poder Ejecutivo Federal o Local, según su competencia, a través de las Autoridades Penitenciarias señaladas en las disposiciones legales, la ejecución material de la prisión preventiva, así como de las sanciones y medidas de seguridad previstas en las leyes penales, así como la administración y operación del Sistema Penitenciario.
 
-**Artículo 15.** Funciones de la Autoridad Penitenciaria La Autoridad Penitenciaria deberá llevar a cabo las siguientes funciones básicas:
+**Artículo 15.** Funciones de la Autoridad Penitenciaria
+
+La Autoridad Penitenciaria deberá llevar a cabo las siguientes funciones básicas:
 
 **I.** Garantizar el respeto a los derechos humanos de todas las personas que se encuentren sujetas al régimen de custodia y vigilancia en un Centro Penitenciario;
 
@@ -278,9 +318,9 @@ Corresponde al Poder Ejecutivo Federal o Local, según su competencia, a través
 
 **IV.** Entregar al Juez de Ejecución, a solicitud fundada de parte, la información para la realización del cómputo de las penas y abono del tiempo de la prisión preventiva o resguardo en el propio domicilio cumplidos por la persona sentenciada;
 
-**V.** Dar aviso al Juez de Ejecución, cuando menos cinco días hábiles previos al cumplimiento de la pena, acerca de la e xtinción de la pena o medida de seguridad, una vez transcurrido el plazo fijado en la sentencia ejecutoriada;
+**V.** Dar aviso al Juez de Ejecución, cuando menos cinco días hábiles previos al cumplimiento de la pena, acerca de la extinción de la pena o medida de seguridad, una vez transcurrido el plazo fijado en la sentencia ejecutoriada;
 
-**VI.** Autorizar el acceso a particulares y autoridades a los Centros Penitenciarios, quienes deberán acatar en todo momento las disposiciones aplic ables y de seguridad aplicables, en los términos, condiciones y plazos que establece esta Ley;
+**VI.** Autorizar el acceso a particulares y autoridades a los Centros Penitenciarios, quienes deberán acatar en todo momento las disposiciones aplicables y de seguridad aplicables, en los términos, condiciones y plazos que establece esta Ley;
 
 **VII.** Imponer y ejecutar las medidas disciplinarias a las personas privadas de la libertad por violación al régimen de disciplina, sin que con ellas se menoscabe su dignidad ni se vulneren sus derechos humanos;
 
@@ -288,21 +328,23 @@ Corresponde al Poder Ejecutivo Federal o Local, según su competencia, a través
 
 **IX.** Realizar propuestas o hacer llegar solicitudes de otorgamiento de beneficios que supongan una modificación a las condiciones de cumplimiento de la pena o una reducción de la misma a favor de las personas sentenciadas;
 
-**X.** Presentar al Juez de Ejecución el diagnóstico médico especializado en el que se determine el padecimiento físico o mental, crónico, continuo, irreversible y con tratamiento asilar que presente la persona privada de la libertad, con el propósito de abrir la ví a incidental tendiente a la modificación de la ejecución de la pena por la causal que corresponda y en los términos previstos por la legislación aplicable;
+**X.** Presentar al Juez de Ejecución el diagnóstico médico especializado en el que se determine el padecimiento físico o mental, crónico, continuo, irreversible y con tratamiento asilar que presente la persona privada de la libertad, con el propósito de abrir la vía incidental tendiente a la modificación de la ejecución de la pena por la causal que corresponda y en los términos previstos por la legislación aplicable;
 
 **XI.** Ejecutar, controlar, vigilar y dar seguimiento a las penas y medidas de seguridad que imponga o modifiquen tanto el órgano jurisdiccional como el Juez de Ejecución;
 
 **XII.** Aplicar las sanciones penales impuestas por los órganos jurisdiccionales y que se cumplan en los Centros;
 
-**XIII.** Aplicar las medidas de seguridad o vigilancia a las personas privad as de la libertad que lo requieran;
+**XIII.** Aplicar las medidas de seguridad o vigilancia a las personas privadas de la libertad que lo requieran;
 
 **XIV.** Promover ante las autoridades judiciales las acciones dentro del ámbito de su competencia y cumplir los mandatos de las autoridades judiciales;
 
-**XV.** Brindar servicios de mediación para la solución de conflictos int erpersonales derivados de las condiciones de convivencia interna del Centro, y de justicia restaurativa en términos de esta Ley, y
+**XV.** Brindar servicios de mediación para la solución de conflictos interpersonales derivados de las condiciones de convivencia interna del Centro, y de justicia restaurativa en términos de esta Ley, y
 
 **XVI.** Las demás que le confieran las leyes, reglamentos y decretos.
 
-**Artículo 16.** Funciones del Titular de los Centros Penitenciarios Los titulares de los Centros Penitenciarios, tendrán las siguientes obligaciones:
+**Artículo 16.** Funciones del Titular de los Centros Penitenciarios
+
+Los titulares de los Centros Penitenciarios, tendrán las siguientes obligaciones:
 
 **I.** Administrar, organizar y operar los Centros conforme a lo que disponga esta Ley y demás disposiciones aplicables;
 
@@ -316,21 +358,23 @@ Corresponde al Poder Ejecutivo Federal o Local, según su competencia, a través
 
 **VI.** Solicitar el apoyo de las fuerzas de seguridad pública local y federal en casos de emergencia;
 
-**VII.** Asegurar el cumplimien to de las sanciones disciplinarias aplicables a las personas privadas de la libertad que incurran en infracciones, con respeto a sus derechos humanos;
+**VII.** Asegurar el cumplimiento de las sanciones disciplinarias aplicables a las personas privadas de la libertad que incurran en infracciones, con respeto a sus derechos humanos;
 
-**VIII.** Expedir y vigilar que se emitan los documentos que le sean requeridos de conformidad con las disposiciones jurídicas aplicables; así como, expedir certificaciones que le requieran las
-
-autoridades o instituciones públicas, el Ministerio Público, la víctima u ofendido y el asesor jurídico, la persona sentenciada y su defensor de los documentos que obren en los archivos del Centro Penitenciario;
+**VIII.** Expedir y vigilar que se emitan los documentos que le sean requeridos de conformidad con las disposiciones jurídicas aplicables; así como, expedir certificaciones que le requieran las autoridades o instituciones públicas, el Ministerio Público, la víctima u ofendido y el asesor jurídico, la persona sentenciada y su defensor de los documentos que obren en los archivos del Centro Penitenciario;
 
 **IX.** Dar cumplimiento en el ámbito de sus atribuciones a las determinaciones del Juez de Ejecución u órgano jurisdiccional correspondiente;
 
-**X.** Realizar las demás funciones que señalen los ordenamientos jurídicos a plicables, en el ámbito de su competencia, y
+**X.** Realizar las demás funciones que señalen los ordenamientos jurídicos aplicables, en el ámbito de su competencia, y
 
 **XI.** Además de las señaladas en esta Ley, las que prevea la normatividad de la administración penitenciaria.
 
-**Artículo 17.** Comité Técnico El Comité Técnico, presidido por el Titular del Centro, o por el funciona rio que le sustituya en sus ausencias, se integrará con los miembros de superior jerarquía del personal administrativo, técnico, jurídico y de custodia penitenciaria.
+**Artículo 17.** Comité Técnico
 
-**Artículo 18.** Funciones del Comité El Comité tendrá las funciones siguientes:
+El Comité Técnico, presidido por el Titular del Centro, o por el funcionario que le sustituya en sus ausencias, se integrará con los miembros de superior jerarquía del personal administrativo, técnico, jurídico y de custodia penitenciaria.
+
+**Artículo 18.** Funciones del Comité
+
+El Comité tendrá las funciones siguientes:
 
 **I.** Determinar la ubicación que le corresponde a cada persona privada de la libertad al ingresar al Centro, para los efectos del artículo 5 de la presente Ley;
 
@@ -346,19 +390,23 @@ autoridades o instituciones públicas, el Ministerio Público, la víctima u ofe
 
 Las formalidades para la celebración de sesiones del Comité Técnico se regirán por las disposiciones aplicables de los Centros Penitenciarios.
 
-**Artículo 19.** Custodia Penitenciaria La Custodia Penitenciaria será una atribución de la Autoridad Penitenciaria consistente en:
+**Artículo 19.** Custodia Penitenciaria
+
+La Custodia Penitenciaria será una atribución de la Autoridad Penitenciaria consistente en:
 
 **I.** Mantener la vigilancia, orden y tranquilidad de los Centros Penitenciarios y las demás instalaciones que determinen las disposiciones aplicables;
 
-**II.** Salvaguardar la vida, la integridad, la seguri dad y los derechos de las personas privadas de la libertad, visitantes y personal adscrito a los Centros Penitenciarios y las demás instalaciones que determinen las disposiciones aplicables; así como hacer cumplir su normatividad;
+**II.** Salvaguardar la vida, la integridad, la seguridad y los derechos de las personas privadas de la libertad, visitantes y personal adscrito a los Centros Penitenciarios y las demás instalaciones que determinen las disposiciones aplicables; así como hacer cumplir su normatividad;
 
 **III.** Dar cumplimiento a lo dispuesto en las resoluciones judiciales respecto a la pena privativa de libertad en los rubros de seguridad y custodia, ya sea en los Centros Penitenciarios, fuera de estos y de los recintos judiciales, en coordinación con las demás autoridades competentes, y
 
 **IV.** Las demás que esta Ley u otros ordenamientos le confieran.
 
-**Artículo 20.** Funciones de la Custodia Penitenciaria La Custodia Penitenciaria tendrá las funciones siguientes:
+**Artículo 20.** Funciones de la Custodia Penitenciaria
 
-**I.** Mantener recluidos y en custodia a las personas privadas de la liber tad por disposición de la autoridad competente;
+La Custodia Penitenciaria tendrá las funciones siguientes:
+
+**I.** Mantener recluidos y en custodia a las personas privadas de la libertad por disposición de la autoridad competente;
 
 **II.** Implementar las políticas, los programas y las estrategias establecidas en materia de seguridad y custodia penitenciaria, que para tal efecto diseñe la Autoridad Penitenciaria;
 
@@ -370,7 +418,7 @@ Las formalidades para la celebración de sesiones del Comité Técnico se regir�
 
 **VI.** Revisar a las personas, objetos o vehículos que pretendan ingresar o salir de los Centros, bajo los protocolos de actuación respectivos;
 
-**VII.** Salvaguardar la integridad de las personas y bienes en los Centros, así como garantizar, mantener y restablecer el orden y la paz en los mismos, utilizando para ello los protocolos aplicables, con apoyo en las herramientas, mecanismos y equi po necesarios disponibles para el cumplimiento de sus atribuciones;
+**VII.** Salvaguardar la integridad de las personas y bienes en los Centros, así como garantizar, mantener y restablecer el orden y la paz en los mismos, utilizando para ello los protocolos aplicables, con apoyo en las herramientas, mecanismos y equipo necesarios disponibles para el cumplimiento de sus atribuciones;
 
 **VIII.** Efectuar revisiones periódicas en los Centros, con el objeto de prevenir la comisión de delitos con acatamiento de los protocolos y normatividad correspondientes, y
 
@@ -378,11 +426,15 @@ Las formalidades para la celebración de sesiones del Comité Técnico se regir�
 
 En la ejecución de las anteriores atribuciones, la Custodia Penitenciaria observará de manera irrestricta los derechos humanos de las personas privadas de la libertad, visitas y personal del Centro.
 
-**Artículo 21.** Intervención para el restablecimiento del orden A solicitud de la autoridad competente, las instituciones encargadas de la seguridad pública podrán intervenir en el restablecimiento del orden al interior de los Centros en caso de emergencia y/o contingencia de conformidad con lo que se encuentre establecido en los Protocolos de intervención en casos de restablecimiento del orden, con el uso proporcional de la fuerza y con los protocolos de uso de las armas letales y no letales respectivamente.
+**Artículo 21.** Intervención para el restablecimiento del orden
 
-**Artículo 22.** Policía Procesal La Policía Procesal es la unidad dependiente de la Policía Federal o de las instituciones de seguridad pública de las entidades federativas, que tendrá las funciones siguientes:
+A solicitud de la autoridad competente, las instituciones encargadas de la seguridad pública podrán intervenir en el restablecimiento del orden al interior de los Centros en caso de emergencia y/o contingencia de conformidad con lo que se encuentre establecido en los Protocolos de intervención en casos de restablecimiento del orden, con el uso proporcional de la fuerza y con los protocolos de uso de las armas letales y no letales respectivamente.
 
-**I.** Realizar los traslados de personas procesadas y senten ciadas a los recintos judiciales en donde se celebrarán sus audiencias;
+**Artículo 22.** Policía Procesal
+
+La Policía Procesal es la unidad dependiente de la Policía Federal o de las instituciones de seguridad pública de las entidades federativas, que tendrá las funciones siguientes:
+
+**I.** Realizar los traslados de personas procesadas y sentenciadas a los recintos judiciales en donde se celebrarán sus audiencias;
 
 **II.** Prestar la seguridad y custodia de la persona privada de su libertad en los recintos judiciales, en coordinación con las demás autoridades de seguridad competentes;
 
@@ -390,13 +442,15 @@ En la ejecución de las anteriores atribuciones, la Custodia Penitenciaria obser
 
 **IV.** Las demás que le confieran ésta y otras disposiciones aplicables.
 
-**Artículo 23.** Ministerio Público La intervención del Ministerio Público en el procedimiento de ejecución penal, versará primordialmente en el resguardo del respeto de los derechos humanos de las personas que tengan interés en la ejecución de las sentencias y de las disposiciones legales relativas al debido cumplimiento de la sentencia.
+**Artículo 23.** Ministerio Público
+
+La intervención del Ministerio Público en el procedimiento de ejecución penal, versará primordialmente en el resguardo del respeto de los derechos humanos de las personas que tengan interés en la ejecución de las sentencias y de las disposiciones legales relativas al debido cumplimiento de la sentencia.
 
 El Ministerio Público procurará en el ámbito de su competencia el cumplimiento de las cuestiones de orden público e interés social en los procedimientos de Ejecución Penal, y tendrá las siguientes obligaciones y atribuciones:
 
 **I.** Pronunciarse, ante la autoridad judicial respecto de la concesión, modificación o revocación de la libertad condicional y el cumplimiento de las penas o medidas de seguridad, de conformidad en lo establecido en la presente Ley;
 
-**II.** Promover ante la autori dad judicial, en coadyuvancia de la Autoridad Penitenciaria o de la autoridad corresponsable competente, la imposición de las medidas necesarias para garantizar el cumplimiento de las penas y medidas de seguridad o de tratamiento, que no impliquen prisión o internamiento;
+**II.** Promover ante la autoridad judicial, en coadyuvancia de la Autoridad Penitenciaria o de la autoridad corresponsable competente, la imposición de las medidas necesarias para garantizar el cumplimiento de las penas y medidas de seguridad o de tratamiento, que no impliquen prisión o internamiento;
 
 **III.** Verificar la acreditación de los requisitos legales que se exijan en el otorgamiento de cualquier sustitutivo, beneficio o prerrogativa y, en su caso, apelar su admisión;
 
@@ -404,27 +458,31 @@ El Ministerio Público procurará en el ámbito de su competencia el cumplimient
 
 **V.** Solicitar u oponerse a la compurgación simultánea de penas, en los casos que marque la ley;
 
-**VI.** Conocer de los hechos delictuosos cometidos por la person a sentenciada durante el periodo de ejecución de la pena, así como del incumplimiento de las condiciones o medidas de seguridad que se le hayan impuesto;
+**VI.** Conocer de los hechos delictuosos cometidos por la persona sentenciada durante el periodo de ejecución de la pena, así como del incumplimiento de las condiciones o medidas de seguridad que se le hayan impuesto;
 
 **VII.** Participar en los procedimientos de ejecución de multas, reparación del daño, decomisos y abandono de bienes, en los términos que dispongan las leyes;
 
 **VIII.** Las demás que prevean las leyes y disposiciones aplicables.
 
-**Artículo 24.** Jueces de Ejecución El Poder Judicial de la Federación y Órganos Jurisdiccionales de las entidades federativas establecerán jueces que tendrán las competencias para resolver las controversias con motivo de la aplicación de esta Ley establecidas en el Capítulo II del Título Cuarto de esta Ley.
+**Artículo 24.** Jueces de Ejecución
 
-Son competentes para conocer del procedimiento de ejecución penal los jueces cuya circunscripción territorial se encuentre la persona privada de la libertad, independientemente de la circunscripción territorial en la que se hubiese impuesto la sanción en ejecución.
+El Poder Judicial de la Federación y Órganos Jurisdiccionales de las entidades federativas establecerán jueces que tendrán las competencias para resolver las controversias con motivo de la aplicación de esta Ley establecidas en el Capítulo II del Título Cuarto de esta Ley.
 
-Los Jueces de Ejecución tendrán la competencia y adscripción que se de termine en su respectiva ley orgánica y demás disposiciones legales.
+Son competentes para conocer del procedimiento de ejecución penal los jueces (sic) cuya circunscripción territorial se encuentre la persona privada de la libertad, independientemente de la circunscripción territorial en la que se hubiese impuesto la sanción en ejecución.
+
+Los Jueces de Ejecución tendrán la competencia y adscripción que se determine en su respectiva ley orgánica y demás disposiciones legales.
 
 La jurisdicción territorial de los Jueces de Ejecución se podrá establecer o modificar mediante acuerdos generales.
 
-**Artículo 25.** Competencias del Juez de Ejecución En las competencias a que se refiere el artículo anterior, el Juez de Ejecución deberá observar lo siguiente:
+**Artículo 25.** Competencias del Juez de Ejecución
 
-**I.** Garantizar a las personas privadas de la libertad, en el ejercicio de sus atribuciones, el goce de los derechos y garantías fundamentales que le reconoce la Consti tución, los Tratados Internacionales, demás disposiciones legales y esta Ley;
+En las competencias a que se refiere el artículo anterior, el Juez de Ejecución deberá observar lo siguiente:
+
+**I.** Garantizar a las personas privadas de la libertad, en el ejercicio de sus atribuciones, el goce de los derechos y garantías fundamentales que le reconoce la Constitución, los Tratados Internacionales, demás disposiciones legales y esta Ley;
 
 **II.** Garantizar que la sentencia condenatoria se ejecute en sus términos, salvaguardando la invariabilidad de la cosa juzgada con los ajustes que la presente legislación permita;
 
-**III.** Decretar como medidas de seguridad, la custodia de la persona privada de la libertad que llegue a padecer enfermedad mental de tipo crónico, continuo e irreversible a cargo de una institución del sector salud, representante legal o tutor, para que s e le brinde atención, trato y tratamiento de tipo asilar;
+**III.** Decretar como medidas de seguridad, la custodia de la persona privada de la libertad que llegue a padecer enfermedad mental de tipo crónico, continuo e irreversible a cargo de una institución del sector salud, representante legal o tutor, para que se le brinde atención, trato y tratamiento de tipo asilar;
 
 **IV.** Sustanciar y resolver los incidentes que se promuevan para lograr el cumplimiento del pago de la reparación del daño, así como los demás que se promuevan con motivo de la ejecución de sanciones penales;
 
@@ -432,7 +490,7 @@ La jurisdicción territorial de los Jueces de Ejecución se podrá establecer o 
 
 **VI.** Aplicar la ley más favorable a las personas privadas de la libertad;
 
-**VII.** Establecer las modalidades sobre las condiciones de supervisión est ablecidas para los supuestos de libertad condicionada, sustitución de penas y permisos especiales;
+**VII.** Establecer las modalidades sobre las condiciones de supervisión establecidas para los supuestos de libertad condicionada, sustitución de penas y permisos especiales;
 
 **VIII.** Rehabilitar los derechos de la persona sentenciada una vez que se cumpla con el término de suspensión señalado en la sentencia, así como en los casos de indulto o en los casos de reconocimiento de inocencia;
 
@@ -440,7 +498,9 @@ La jurisdicción territorial de los Jueces de Ejecución se podrá establecer o 
 
 **X.** Las demás que esta Ley y otros ordenamientos le confieran.
 
-**Artículo 26.** Autoridades para la supervisión de libertad La autoridad para la supervisión de libertad condicionada, deberá ser distinta a la Autoridad Penitenciaria o instituciones policiales, dependerá orgánicamente del Poder Ejecutivo Federal y de las entidades federativas, y tendrá las siguientes atribuciones:
+**Artículo 26.** Autoridades para la supervisión de libertad
+
+La autoridad para la supervisión de libertad condicionada, deberá ser distinta a la Autoridad Penitenciaria o instituciones policiales, dependerá orgánicamente del Poder Ejecutivo Federal y de las entidades federativas, y tendrá las siguientes atribuciones:
 
 **I.** Dar seguimiento a la ejecución de las sanciones penales, medidas de seguridad y restrictivas impuestas por el Juez de Ejecución fuera de los Centros con motivo de la obtención de libertad condicionada;
 
@@ -450,13 +510,17 @@ La jurisdicción territorial de los Jueces de Ejecución se podrá establecer o 
 
 **IV.** Las demás que determine el Juez de Ejecución.
 
-La autoridad para la supervisión de libertad podrá celebrar convenios de colaboración con organizaciones de la sociedad civil sin fines de lucro y certific adas. Para tal efecto, el Poder Ejecutivo Federal y de las entidades federativas, en el ámbito de sus respectivas competencias establecerán el proceso de certificación para que una organización de la sociedad civil pueda coadyuvar en la supervisión de la libertad.
+La autoridad para la supervisión de libertad podrá celebrar convenios de colaboración con organizaciones de la sociedad civil sin fines de lucro y certificadas. Para tal efecto, el Poder Ejecutivo Federal y de las entidades federativas, en el ámbito de sus respectivas competencias establecerán el proceso de certificación para que una organización de la sociedad civil pueda coadyuvar en la supervisión de la libertad.
 
 **TÍTULO SEGUNDO**
 
-Capítulo I De la Información en el Sistema Penitenciario
+Capítulo I
 
-**Artículo 27.** Bases de datos de personas privadas de la libertad La Autoridad Penitenciaria estará obligada a mantener una base de datos de personas privadas de la libertad con la información de cada persona que ingrese al sistema penitenciario, de conformidad con lo establecido en el Sistema Único de Información Criminal, definido en la Ley General del Sistema Nacional de Seguridad Pública. La Autoridad Penitenciaria deberá mantener también un expediente médico y un expediente único de ejecución penal para cada persona que ingrese al sistema penitenciario, de acuerdo con lo siguiente:
+De la Información en el Sistema Penitenciario
+
+**Artículo 27.** Bases de datos de personas privadas de la libertad
+
+La Autoridad Penitenciaria estará obligada a mantener una base de datos de personas privadas de la libertad con la información de cada persona que ingrese al sistema penitenciario, de conformidad con lo establecido en el Sistema Único de Información Criminal, definido en la Ley General del Sistema Nacional de Seguridad Pública. La Autoridad Penitenciaria deberá mantener también un expediente médico y un expediente único de ejecución penal para cada persona que ingrese al sistema penitenciario, de acuerdo con lo siguiente:
 
 **I.** La base de datos con registros de personas privadas de la libertad contendrá, al menos, la siguiente información y se repetirá para cada ingreso a un Centro Penitenciario:
 
@@ -476,9 +540,7 @@ Capítulo I De la Información en el Sistema Penitenciario
 
 **H.** Las variables del expediente de ejecución que se definen en la fracción III.
 
-Esta base de datos deberá servir a la Autoridad Penitenciaria para garantizar que la duración y condiciones de la privación de la libertad sean conforme a la ley. Existirá una
-
-versión pública de la base de datos para atender el Sistema de Información E stadística Penitenciaria;
+Esta base de datos deberá servir a la Autoridad Penitenciaria para garantizar que la duración y condiciones de la privación de la libertad sean conforme a la ley. Existirá una versión pública de la base de datos para atender el Sistema de Información Estadística Penitenciaria;
 
 **II.** El expediente médico contará con el historial clínico de cada persona privada de la libertad, mismo que se integrará por lo menos con:
 
@@ -534,17 +596,17 @@ versión pública de la base de datos para atender el Sistema de Información E 
 
 **T.** Plan de actividades;
 
-**IV.** La constancia relativa a los anteceden tes penales sólo se podrá extender en los siguientes supuestos:
+**IV.** La constancia relativa a los antecedentes penales sólo se podrá extender en los siguientes supuestos:
 
 **A.** Cuando la soliciten las autoridades administrativas y judiciales competentes, para fines de investigación criminal, procesales o por requerimiento de autoridad judicial;
 
-**B.** Cuando sea sol icitada por ser necesaria para ejercitar un derecho o cumplir un deber legalmente previstos;
+**B.** Cuando sea solicitada por ser necesaria para ejercitar un derecho o cumplir un deber legalmente previstos;
 
-**C.** En los casos específicos en los que la normatividad lo establezca como requisito para desempeñar un empleo, cargo o comisión en el servicio público, o bien par a el ingreso a instituciones de seguridad pública o privada, así como cuando por la naturaleza del empleo o por razones de interés público se considere exigible;
+**C.** En los casos específicos en los que la normatividad lo establezca como requisito para desempeñar un empleo, cargo o comisión en el servicio público, o bien para el ingreso a instituciones de seguridad pública o privada, así como cuando por la naturaleza del empleo o por razones de interés público se considere exigible;
 
 **D.** Cuando sea solicitada por una embajada o consulado extranjero en México, o bien, a través de una embajada o consulado de México en el extranjero;
 
-**V.** Para efectos de la emisión de la constancia de antecedentes penales, la información contenida en la fracción I del presente artículo, así como la registrada en el Sistema Nacional de Información P enitenciaria del Sistema Único de Información Criminal a que se refiere la Ley General del Sistema Nacional de Seguridad Pública, se cancelará cuando:
+**V.** Para efectos de la emisión de la constancia de antecedentes penales, la información contenida en la fracción I del presente artículo, así como la registrada en el Sistema Nacional de Información Penitenciaria del Sistema Único de Información Criminal a que se refiere la Ley General del Sistema Nacional de Seguridad Pública, se cancelará cuando:
 
 **A.** Se resuelva la libertad del detenido;
 
@@ -558,7 +620,7 @@ versión pública de la base de datos para atender el Sistema de Información E 
 
 **F.** La persona sentenciada sea declarada inocente por resolución dictada en recurso de revisión correspondiente;
 
-**G.** La persona sentenciada cumpla con la pena que le fue impuesta en s entencia ejecutoriada, salvo en los casos de delitos graves previstos en la ley;
+**G.** La persona sentenciada cumpla con la pena que le fue impuesta en sentencia ejecutoriada, salvo en los casos de delitos graves previstos en la ley;
 
 **H.** Cuando la pena se haya declarado extinguida;
 
@@ -568,19 +630,21 @@ versión pública de la base de datos para atender el Sistema de Información E 
 
 **K.** Se emita cualquier otra resolución que implique la ausencia de responsabilidad penal.
 
-**Artículo 28.** Bases de datos generales La Autoridad Penitenciaria estará obli gada a establecer los registros fidedignos necesarios con información precisa respecto al Centro Penitenciario que contenga:
+**Artículo 28.** Bases de datos generales
+
+La Autoridad Penitenciaria estará obligada a establecer los registros fidedignos necesarios con información precisa respecto al Centro Penitenciario que contenga:
 
 **I.** La plantilla de su personal y sus funciones;
 
-**II.** El registro de las visitas de inspección por parte de personal del Centro Pen itenciario, de las comisiones públicas de protección de derechos humanos, dependencias o entidades facultadas a realizar visitas de inspección y de las personas observadoras penitenciarias;
+**II.** El registro de las visitas de inspección por parte de personal del Centro Penitenciario, de las comisiones públicas de protección de derechos humanos, dependencias o entidades facultadas a realizar visitas de inspección y de las personas observadoras penitenciarias;
 
 **III.** Recomendaciones y evaluaciones de los organismos públicos de protección a los derechos humanos, así como del Mecanismo Nacional para la Prevención de la Tortura;
 
 **IV.** El presupuesto del Centro Penitenciario y el ejercicio del mismo en los términos de la ley aplicable;
 
-**V.** Las observaciones derivadas de las auditorí as que se hubiesen practicado al Centro Penitenciario según la ley aplicable, su grado de cumplimiento y las responsabilidades administrativas por ellas generadas;
+**V.** Las observaciones derivadas de las auditorías que se hubiesen practicado al Centro Penitenciario según la ley aplicable, su grado de cumplimiento y las responsabilidades administrativas por ellas generadas;
 
-**VI.** Las resoluciones dictadas por las y los Jueces y Tribunales de ejecución que tengan efe ctos generales o que constituyan un precedente para la resolución de casos posteriores;
+**VI.** Las resoluciones dictadas por las y los Jueces y Tribunales de ejecución que tengan efectos generales o que constituyan un precedente para la resolución de casos posteriores;
 
 **VII.** Los informes que mensualmente deberá rendir la Autoridad Penitenciaria;
 
@@ -596,23 +660,29 @@ versión pública de la base de datos para atender el Sistema de Información E 
 
 **XIII.** La demás información que sea necesaria para garantizar que las condiciones de internamiento sean dignas y seguras para las personas privadas de la libertad y condiciones adecuadas de trabajo para el personal penitenciario.
 
-**Artículo 29.** Sistema Nacional de Información Estadística Penitenciaria El Sistema Nacional de Información Estadística Penitenciaria compartirá los registros administrativos, derivados de la Ley General del Sistema Nacional de Seguridad Pública, que por su naturaleza estadística sean requeridos por el Instituto Nacional de Estadística y Geografía para el adecuado desarrollo de los Censos Nacionales de Gobierno, Seguridad Pública y Sistema Penitenciario, así como de la Encuesta Nacional de Población Privada de la Libertad.
+**Artículo 29.** Sistema Nacional de Información Estadística Penitenciaria
 
-Para el caso de los Censos Nacionales de Gobierno, Seguridad Pública y Sistema Penitenciario, el Instituto recolectará y publicará los datos estadísticos sobre infraestructura y recursos con los que cuentan los sistemas penitenciarios en el ámbito fed eral y local para ejercer sus funciones, en el marco del Subsistema Nacional de Información de Gobierno, Seguridad Pública e Impartición de Justicia. El
+El Sistema Nacional de Información Estadística Penitenciaria compartirá los registros administrativos, derivados de la Ley General del Sistema Nacional de Seguridad Pública, que por su naturaleza estadística sean requeridos por el Instituto Nacional de Estadística y Geografía para el adecuado desarrollo de los Censos Nacionales de Gobierno, Seguridad Pública y Sistema Penitenciario, así como de la Encuesta Nacional de Población Privada de la Libertad.
 
-Instituto recabará también información estadística sobre características demográficas, socioeconómicas y familiares de la población penitenciaria, así como de su situación jurídica. De igual forma, el Instituto recabará la información sobre los delitos y penalidad por los cuales son ingresadas las personas y recolectará información sobre las víctimas de los delitos por los cuales fueron sujetos a proceso, entre otras cosas.
+Para el caso de los Censos Nacionales de Gobierno, Seguridad Pública y Sistema Penitenciario, el Instituto recolectará y publicará los datos estadísticos sobre infraestructura y recursos con los que cuentan los sistemas penitenciarios en el ámbito federal y local para ejercer sus funciones, en el marco del Subsistema Nacional de Información de Gobierno, Seguridad Pública e Impartición de Justicia. El Instituto recabará también información estadística sobre características demográficas, socioeconómicas y familiares de la población penitenciaria, así como de su situación jurídica. De igual forma, el Instituto recabará la información sobre los delitos y penalidad por los cuales son ingresadas las personas y recolectará información sobre las víctimas de los delitos por los cuales fueron sujetos a proceso, entre otras cosas.
 
-Por su parte, la Encuesta Nacional de Población Privada de la Libertad tendrá como finalidad generar información estadística que permita conocer las condiciones de procesamiento e intern amiento de las Personas privadas de su libertad, su perfil demográfico y socioeconómico, los delitos por los que fueron procesados o sentenciados, entre otras características. Dicha encuesta se levantará de manera periódica y conforme a criterios estadísticos y técnicos, será de tipo probabilística, incluirá a población privada de la libertad tanto del fuero común como federal y será representativa a nivel nacional y estatal. El Instituto Nacional de Estadística y Geografía realizará dicha Encuesta conforme a su presupuesto. Asimismo, los Centros Penitenciarios seleccionados en la muestra determinada para la Encuesta deberán brindar todas las facilidades al Instituto para realizar entrevistas directas a la población privada de la libertad.
+Por su parte, la Encuesta Nacional de Población Privada de la Libertad tendrá como finalidad generar información estadística que permita conocer las condiciones de procesamiento e internamiento de las Personas privadas de su libertad, su perfil demográfico y socioeconómico, los delitos por los que fueron procesados o sentenciados, entre otras características. Dicha encuesta se levantará de manera periódica y conforme a criterios estadísticos y técnicos, será de tipo probabilística, incluirá a población privada de la libertad tanto del fuero común como federal y será representativa a nivel nacional y estatal. El Instituto Nacional de Estadística y Geografía realizará dicha Encuesta conforme a su presupuesto. Asimismo, los Centros Penitenciarios seleccionados en la muestra determinada para la Encuesta deberán brindar todas las facilidades al Instituto para realizar entrevistas directas a la población privada de la libertad.
 
-Capítulo II Régimen de Internamiento
+Capítulo II
 
-**Artículo 30.** Condiciones de internamiento Las condiciones de internamiento deberán garantizar una vida digna y segura para todas las personas privadas de la libertad.
+Régimen de Internamiento
+
+**Artículo 30.** Condiciones de internamiento
+
+Las condiciones de internamiento deberán garantizar una vida digna y segura para todas las personas privadas de la libertad.
 
 Las personas privadas de la libertad podrán ejercer los derechos y hacer valer los procedimientos administrativos y jurisdiccionales que estuvieren pendientes al momento de su ingreso o aquellos que se generen con posterioridad, salvo aquellos que sean incompatibles con la aplicación de las sanciones y medidas penales impuestas.
 
-**Artículo 31.** Clasificación de áreas La Autoridad Penitenciaria estará obligada a instrumentar una clasificación de las distintas áreas y espacios en el Centro Penitenciario, en particular, de los dormitorios, obedeciendo a criterios basados en la edad, el estado de salud, duración de la sentencia, situación jurídica y otros datos objetivos sobre las personas privadas de la libertad, tendientes a armonizar la gobernabilidad del mismo y la convivencia entre las personas privadas de la libertad.
+**Artículo 31.** Clasificación de áreas
 
-Las personas sentenciadas por los delitos de secuestro, previstos en la Ley General para Prevenir y Sancionar los Delitos en Materia de Secuestro, así como por las conductas de privación ilegal de la libertad con el propósito de obtener un rescate, lucro o ben eficio, independientemente de su denominación, tipificadas en las legislaciones penales, deberán compurgar su pena privativa de la libertad en espacios especiales ubicados dentro de los Centros Penitenciarios, en términos de lo que dispongan las normas administrativas aplicables.
+La Autoridad Penitenciaria estará obligada a instrumentar una clasificación de las distintas áreas y espacios en el Centro Penitenciario, en particular, de los dormitorios, obedeciendo a criterios basados en la edad, el estado de salud, duración de la sentencia, situación jurídica y otros datos objetivos sobre las personas privadas de la libertad, tendientes a armonizar la gobernabilidad del mismo y la convivencia entre las personas privadas de la libertad.
+
+Las personas sentenciadas por los delitos de secuestro, previstos en la Ley General para Prevenir y Sancionar los Delitos en Materia de Secuestro, así como por las conductas de privación ilegal de la libertad con el propósito de obtener un rescate, lucro o beneficio, independientemente de su denominación, tipificadas en las legislaciones penales, deberán compurgar su pena privativa de la libertad en espacios especiales ubicados dentro de los Centros Penitenciarios, en términos de lo que dispongan las normas administrativas aplicables.
 
 Lo anterior será aplicable a las personas sentenciadas por delitos en materia de delincuencia organizada, conforme a la ley en la materia, así como para las personas privadas de la libertad que requieran medidas especiales de seguridad.
 
@@ -624,17 +694,19 @@ La Autoridad Penitenciaria estará obligada a prestar sus servicios a todas las 
 
 La Autoridad Penitenciaria está obligada a brindar gratuitamente todos los suministros a la población penitenciaria.
 
-**Artículo 33.** Protocolos La Conferencia dictará los protocolo s que serán observados en los Centros Penitenciarios. La Autoridad Penitenciaria estará obligada a cumplir con los protocolos para garantizar las condiciones de internamiento dignas y seguras para la población privada de la libertad y la seguridad y bienes tar del personal y otras personas que ingresan a los Centros. La Conferencia dictará protocolos, al menos, en las siguientes materias:
+**Artículo 33.** Protocolos
+
+La Conferencia dictará los protocolos que serán observados en los Centros Penitenciarios. La Autoridad Penitenciaria estará obligada a cumplir con los protocolos para garantizar las condiciones de internamiento dignas y seguras para la población privada de la libertad y la seguridad y bienestar del personal y otras personas que ingresan a los Centros. La Conferencia dictará protocolos, al menos, en las siguientes materias:
 
 **I.** De protección civil;
 
-**II.** De ingreso, egreso y de las medidas necesarias para poner a la persona en libertad inmediat a cuando la autoridad judicial así lo disponga y no exista otra causa para mantener a la persona privada de la libertad;
+**II.** De ingreso, egreso y de las medidas necesarias para poner a la persona en libertad inmediata cuando la autoridad judicial así lo disponga y no exista otra causa para mantener a la persona privada de la libertad;
 
 **III.** De capacitación en materia de derechos humanos para el personal del Centro;
 
 **IV.** De uso de la fuerza;
 
-**V.** De manejo de motines, e vasiones, incidencias, lesiones, muertes en custodia o de cualquier otra alteración del orden interno;
+**V.** De manejo de motines, evasiones, incidencias, lesiones, muertes en custodia o de cualquier otra alteración del orden interno;
 
 **VI.** De revisiones a visitantes y otras personas que ingresen a los Centros asegurando el respeto a la dignidad humana y la incorporación transversal de la perspectiva de género;
 
@@ -648,13 +720,15 @@ La Autoridad Penitenciaria está obligada a brindar gratuitamente todos los sumi
 
 **XI.** De cadena de custodia de objetos relacionados con una probable causa penal o procedimiento de responsabilidad administrativa;
 
-**XII.** De trato respecto del procedimiento para su ingreso, permanencia o egreso temporal o definitivo el centro correspondiente de las hijas e hijos que vivan en los Centros con sus madres privadas de la libertad;
+**XII.** De trato respecto del procedimiento para su ingreso, permanencia o egreso temporal o definitivo el (sic) centro correspondiente de las hijas e hijos que vivan en los Centros con sus madres privadas de la libertad;
 
 **XIII.** De clasificación de áreas;
 
 **XIV.** De visitas y entrevistas con las personas defensoras;
 
-**XV.** De actuación en casos que involucren personas pertenecientes a pu eblos o comunidades indígenas o afromexicanas privadas de la libertad; Fracción reformada DOF 01-04-2024
+**(REFORMADA, D.O.F. 1 DE ABRIL DE 2024)**
+
+**XV.** De actuación en casos que involucren personas pertenecientes a pueblos o comunidades indígenas o afromexicanas privadas de la libertad;
 
 **XVI.** Del tratamiento de adicciones;
 
@@ -672,29 +746,41 @@ La Autoridad Penitenciaria está obligada a brindar gratuitamente todos los sumi
 
 **XXIII.** De urgencias médicas y traslado a hospitales.
 
-**Artículo 34.** Atención médica La Autoridad Penitenciaria en coordinación con la Secretaría de Salud Federal o sus homólogas en las entidades federativas y de acuerdo con el régimen interior y la s condiciones de seguridad del Centro deberán brindar la atención médica en los términos de la Ley General de Salud.
+**Artículo 34.** Atención médica
 
-La Autoridad Penitenciaria deberá tomar las medidas necesarias para garantizar la atención médica de urgencia en los casos en que las pers onas privadas de la libertad o las hijas e hijos que se encuentren bajo la custodia de las madres en reclusión la requieran.
+La Autoridad Penitenciaria en coordinación con la Secretaría de Salud Federal o sus homólogas en las entidades federativas y de acuerdo con el régimen interior y las condiciones de seguridad del Centro deberán brindar la atención médica en los términos de la Ley General de Salud.
+
+La Autoridad Penitenciaria deberá tomar las medidas necesarias para garantizar la atención médica de urgencia en los casos en que las personas privadas de la libertad o las hijas e hijos que se encuentren bajo la custodia de las madres en reclusión la requieran.
 
 Sólo en casos extraordinarios en que por su gravedad así lo requieran, podrán ser trasladados a instituciones públicas del sector salud para su atención médica, observándose las medidas de seguridad que se requieran.
 
-La Autoridad Penitenciaria, en coordinación con las instituciones públicas del Sistema Nacional de Salud competentes, garantizarán la permanente disponibilidad de medic amentos que correspondan al cuadro básico de insumos para el primer nivel de atención médica, y establecerán los procedimientos necesarios para proporcionar oportunamente los servicios e insumos requeridos para otros niveles de atención.
+La Autoridad Penitenciaria, en coordinación con las instituciones públicas del Sistema Nacional de Salud competentes, garantizarán la permanente disponibilidad de medicamentos que correspondan al cuadro básico de insumos para el primer nivel de atención médica, y establecerán los procedimientos necesarios para proporcionar oportunamente los servicios e insumos requeridos para otros niveles de atención.
 
-Es obligación del personal que preste servicios médicos en los Centros Penitenciarios guardar la confidencialidad de la información a la que tengan acceso con motivo de los mismos. La Autoridad Penitenciaria sólo podrá conocer dicha información por razones de salud pública . La información clínica no formará parte del expediente de ejecución.
+Es obligación del personal que preste servicios médicos en los Centros Penitenciarios guardar la confidencialidad de la información a la que tengan acceso con motivo de los mismos. La Autoridad Penitenciaria sólo podrá conocer dicha información por razones de salud pública. La información clínica no formará parte del expediente de ejecución.
 
-Los exámenes para detectar si las personas privadas de la libertad cuentan con el síndrome de inmunodeficiencia adquirida o son portadores del virus de inmunodeficiencia humana sólo po drán aplicarse con su consentimiento.
+Los exámenes para detectar si las personas privadas de la libertad cuentan con el síndrome de inmunodeficiencia adquirida o son portadores del virus de inmunodeficiencia humana sólo podrán aplicarse con su consentimiento.
 
 Las intervenciones psicológicas, psiquiátricas o médicas contarán con el consentimiento informado de la persona privada de la libertad, con excepción de los casos en los que, por requerimiento de autoridad judicial, se examine la calidad de inimputable o de incapaz de una persona privada de la libertad.
 
-Los servicios de atención psicológica o psiquiátrica se prestarán por personal certificado del Centro, o en su defecto, personal externo a los Centros Penitenciarios q ue dependa del Sistema Nacional de Salud.
+Los servicios de atención psicológica o psiquiátrica se prestarán por personal certificado del Centro, o en su defecto, personal externo a los Centros Penitenciarios que dependa del Sistema Nacional de Salud.
 
-**Artículo 35.** Personas pertenecientes a pueblos o comunidades indígenas o afromexicanas privadas de la libertad. Para determinar el Centro Penitenciario en el que tendrá lugar la privación de la libertad de las personas pertenecientes a pueblos o comunidades indígenas o afromexicanas se ponderará la importancia que para la persona tenga la pertenencia a su comunidad. Párrafo y epígrafe del artículo reformados DOF 01-04-2024
+**(REFORMADO PRIMER PÁRRAFO, D.O.F. 1 DE ABRIL DE 2024)**
 
-La Autoridad Penitenciaria debe adoptar l os medios necesarios para que las personas pertenecientes a pueblos o comunidades indígenas o afromexicanas privadas de la libertad puedan conservar sus usos y costumbres, dentro de las limitaciones naturales que impone el régimen de disciplina del Centro y que no padezcan formas de asimilación forzada, se menoscabe su cultura, o se les segregue. La educación básica que reciban será bilingüe. Párrafo reformado DOF 01-04-2024
+**Artículo 35.** Personas pertenecientes a pueblos o comunidades indígenas o afromexicanas privadas de la libertad.
 
-Se deberá contar con un intérprete certificado por el Instituto Nacional de Lengua s Indígenas que hable y entienda la lengua madre de la persona privada de su libertad para asegurar que entienda todo el proceso que se sigue en su contra, así como sus obligaciones y derechos.
+**(REFORMADO, D.O.F. 1 DE ABRIL DE 2024)**
 
-**Artículo 36.** Mujeres privadas de la libertad con hijas o hijos Las mujeres privadas de la libertad embarazadas deberán contar con atención médica obstétrico - ginecológica y pediátrica, durante el embarazo, el parto y el puerperio, el cual deberá realizarse en hospitales o lugares específicos establecidos en el Centro Penitenciario cuando cuenten con las instalaciones y el personal de salud especializado. En caso de no contar con las instalaciones o con personal médico y que la condición de salud de la mujer o del producto de la concepción requieran de atención, ésta se garantizará en instituciones públicas del Sector Salud.
+Para determinar el Centro Penitenciario en el que tendrá lugar la privación de la libertad de las personas pertenecientes a pueblos o comunidades indígenas o afromexicanas se ponderará la importancia que para la persona tenga la pertenencia a su comunidad.
+
+**(REFORMADO, D.O.F. 1 DE ABRIL DE 2024)**
+
+La Autoridad Penitenciaria debe adoptar los medios necesarios para que las personas pertenecientes a pueblos o comunidades indígenas o afromexicanas privadas de la libertad puedan conservar sus usos y costumbres, dentro de las limitaciones naturales que impone el régimen de disciplina del Centro y que no padezcan formas de asimilación forzada, se menoscabe su cultura, o se les segregue. La educación básica que reciban será bilingüe.
+
+Se deberá contar con un intérprete certificado por el Instituto Nacional de Lenguas Indígenas que hable y entienda la lengua madre de la persona privada de su libertad para asegurar que entienda todo el proceso que se sigue en su contra, así como sus obligaciones y derechos.
+
+**Artículo 36.** Mujeres privadas de la libertad con hijas o hijos
+
+Las mujeres privadas de la libertad embarazadas deberán contar con atención médica obstétrico-ginecológica y pediátrica, durante el embarazo, el parto y el puerperio, el cual deberá realizarse en hospitales o lugares específicos establecidos en el Centro Penitenciario cuando cuenten con las instalaciones y el personal de salud especializado. En caso de no contar con las instalaciones o con personal médico y que la condición de salud de la mujer o del producto de la concepción requieran de atención, ésta se garantizará en instituciones públicas del Sector Salud.
 
 En los casos de nacimiento de hijas e hijos de mujeres privadas de la libertad dentro de los Centros Penitenciarios, queda prohibida toda alusión a esa circunstancia en el acta del registro civil correspondiente.
 
@@ -710,21 +796,21 @@ Se notificará a la Procuraduría Federal de Protección de Niñas, Niños y Ado
 
 Si la hija o el hijo tuviera una discapacidad que requiriera los cuidados de la madre privada de la libertad, si esta sigue siendo la única persona que pueda hacerse cargo, se podrá solicitar la ampliación del plazo de estancia al Juez de Ejecución, quien resolverá ponderando el interés superior de la niñez.
 
-**II.** A que su hija o hijo disfrute del más alto nivel posib le de salud, así como a recibir la prestación de servicios de atención médica gratuita y de calidad de conformidad con la legislación aplicable, con el fin de prevenir, proteger y restaurar su salud.
+**II.** A que su hija o hijo disfrute del más alto nivel posible de salud, así como a recibir la prestación de servicios de atención médica gratuita y de calidad de conformidad con la legislación aplicable, con el fin de prevenir, proteger y restaurar su salud.
 
-En caso de no contar con las instalaciones o con perso nal médico y que la condición de salud de la mujer o del producto requieran de atención, ésta se garantizará en instituciones públicas del Sector Salud.
+En caso de no contar con las instalaciones o con personal médico y que la condición de salud de la mujer o del producto requieran de atención, ésta se garantizará en instituciones públicas del Sector Salud.
 
 **III.** A que su hija o hijo reciba educación inicial y tenga acceso a participar en actividades recreativas y lúdicas hasta los tres años de edad.
 
 **IV.** A que su hija o hijo la acompañe en el Centro Penitenciario, al momento de su ingreso sea examinado, preferentemente por un pediatra, a fin de determinar sus necesidades médicas y, en su caso, el tratamiento que proceda.
 
-Todas las decisiones y actuaciones, así como disposiciones jurídicas adoptadas por las autoridades del Centro Penitenciario, respecto al cuidado y atención de las madres privadas de su libertad y de su hija o hijo con quien convive, deberán v elar el cumplimiento de los principios pro persona y el interés superior de la niñez, así como el reconocimiento de niñas y niños como titulares de derechos.
+Todas las decisiones y actuaciones, así como disposiciones jurídicas adoptadas por las autoridades del Centro Penitenciario, respecto al cuidado y atención de las madres privadas de su libertad y de su hija o hijo con quien convive, deberán velar el cumplimiento de los principios pro persona y el interés superior de la niñez, así como el reconocimiento de niñas y niños como titulares de derechos.
 
-Los Centros habilitarán servicios o se adoptarán disposiciones para el cuidado de las niñas y niñ os, a fin de que las mujeres privadas de la libertad puedan participar en actividades de reinserción social apropiadas para las embarazadas, las madres lactantes y las que tienen hijas o hijos.
+Los Centros habilitarán servicios o se adoptarán disposiciones para el cuidado de las niñas y niños, a fin de que las mujeres privadas de la libertad puedan participar en actividades de reinserción social apropiadas para las embarazadas, las madres lactantes y las que tienen hijas o hijos.
 
-En el supuesto de que la madre no deseara conservar la custod ia de su hija e hijo y a petición de ella se facilitará la comunicación con el exterior para que se ponga en contacto con la familia de origen y se hará del conocimiento de la Procuraduría Federal de Protección de Niñas, Niños y Adolescentes o a sus equivalentes en las entidades federativas en un término no mayor a veinticuatro horas contado a partir del nacimiento, a efecto de que adopte las medidas especiales, previstas en las disposiciones aplicables.
+En el supuesto de que la madre no deseara conservar la custodia de su hija e hijo y a petición de ella se facilitará la comunicación con el exterior para que se ponga en contacto con la familia de origen y se hará del conocimiento de la Procuraduría Federal de Protección de Niñas, Niños y Adolescentes o a sus equivalentes en las entidades federativas en un término no mayor a veinticuatro horas contado a partir del nacimiento, a efecto de que adopte las medidas especiales, previstas en las disposiciones aplicables.
 
-Las sanciones disciplinarias que se adopten a mujere s embarazadas y de quienes hayan obtenido la autorización de permanencia de su hija o hijo, deberán tener en cuenta en todo momento su condición, así como sus obligaciones como madre. No podrá figurar la prohibición del contacto con sus familiares especialmente con sus hijas o hijos. Sólo se podrán restringir los medios de contacto familiar por un período limitado y en la estricta medida en que lo exija el mantenimiento de la seguridad y el orden.
+Las sanciones disciplinarias que se adopten a mujeres embarazadas y de quienes hayan obtenido la autorización de permanencia de su hija o hijo, deberán tener en cuenta en todo momento su condición, así como sus obligaciones como madre. No podrá figurar la prohibición del contacto con sus familiares especialmente con sus hijas o hijos. Sólo se podrán restringir los medios de contacto familiar por un período limitado y en la estricta medida en que lo exija el mantenimiento de la seguridad y el orden.
 
 No podrán aplicarse sanciones de aislamiento a las mujeres embarazadas, a las mujeres en período de lactancia o las que convivan con hijas o hijos.
 
@@ -734,11 +820,13 @@ El personal penitenciario deberá proceder de manera competente, profesional y r
 
 Las visitas en que participen niñas, niños y adolescentes, se realizarán en un entorno propicio, incluso por lo que atañe al comportamiento del personal, y en ellas se deberá permitir el libre contacto entre la madre y su hijo o sus hijos.
 
-El Centro Penitenciario, en el protocolo correspondiente, establecerá las disposiciones necesarias para garantizar los términos y condic iones bajo las cuales las hijas e hijos que viven con sus madres en el Centro pueden salir del mismo para realizar visitas a otros familiares, actividades de esparcimiento u otra actividad que deba realizarse fuera del mismo.
+El Centro Penitenciario, en el protocolo correspondiente, establecerá las disposiciones necesarias para garantizar los términos y condiciones bajo las cuales las hijas e hijos que viven con sus madres en el Centro pueden salir del mismo para realizar visitas a otros familiares, actividades de esparcimiento u otra actividad que deba realizarse fuera del mismo.
 
-Lo anterior, no implica la pé rdida de la guardia y custodia de la madre privada de la libertad, ni el egreso definitivo del Centro.
+Lo anterior, no implica la pérdida de la guardia y custodia de la madre privada de la libertad, ni el egreso definitivo del Centro.
 
-**Artículo 37.** Medidas de vigilancia especial Las personas privadas de la libertad por delincuencia organizada y aquellos que requieran medidas especiales de seguridad compurgarán sus penas en espacios especiales, de conformidad con el artículo 18 Constitucional.
+**Artículo 37.** Medidas de vigilancia especial
+
+Las personas privadas de la libertad por delincuencia organizada y aquellos que requieran medidas especiales de seguridad compurgarán sus penas en espacios especiales, de conformidad con el artículo 18 Constitucional.
 
 Las medidas de vigilancia especial consistirán en:
 
@@ -758,29 +846,37 @@ Las medidas de vigilancia especial consistirán en:
 
 El plan de actividades se deberá ajustar a las medidas de vigilancia y estará orientado a lograr la reinserción de las personas privadas de la libertad, con estricto apego a las disposiciones legales aplicables.
 
-Sin menoscabo de lo anterior, la Autoridad Pen itenciaria podrá decretar en cualquier momento estado de alerta o, en su caso, alerta máxima cuando exista riesgo o amenaza inminente que ponga en peligro la seguridad del Centro Penitenciario, de la población penitenciaria, de su personal o de las visitas .
+Sin menoscabo de lo anterior, la Autoridad Penitenciaria podrá decretar en cualquier momento estado de alerta o, en su caso, alerta máxima cuando exista riesgo o amenaza inminente que ponga en peligro la seguridad del Centro Penitenciario, de la población penitenciaria, de su personal o de las visitas.
 
 En caso de declaratoria de alerta, el Director del Centro Penitenciario deberá solicitar el apoyo a las fuerzas de seguridad pública, así como dar vista al Ministerio Público y al organismo público de protección de derechos humanos competentes.
 
-Capítulo III Régimen Disciplinario
+Capítulo III
 
-**Artículo 38.** Normas Disciplinarias El Poder Ejecutivo Federal y de las entidades federativas establecerán en el ámbito de su respectiva competencia, las normas disciplinarias que rijan en el Centro Penitenciario, de conformidad con el artículo 18 y el párrafo tercero del artículo 21 de la Constitución, mismas que se aplicarán de acuerdo con los procedimientos establecidos en esta Ley.
+Régimen Disciplinario
 
-La Autoridad Penitenciaria estará obligada a hacer saber a las personas privadas de la liberta d, al momento de su ingreso y por escrito, las normas disciplinarias, asegurándose en todo momento que éstas se encuentren disponibles para su consulta. En el caso de personas con alguna discapacidad, la Autoridad Penitenciaria deberá proveer los medios ne cesarios para su comprensión. De necesitar un traductor o intérprete, la Autoridad Penitenciaria deberá proporcionarlo.
+**Artículo 38.** Normas Disciplinarias
+
+El Poder Ejecutivo Federal y de las entidades federativas establecerán en el ámbito de su respectiva competencia, las normas disciplinarias que rijan en el Centro Penitenciario, de conformidad con el artículo 18 y el párrafo tercero del artículo 21 de la Constitución, mismas que se aplicarán de acuerdo con los procedimientos establecidos en esta Ley.
+
+La Autoridad Penitenciaria estará obligada a hacer saber a las personas privadas de la libertad, al momento de su ingreso y por escrito, las normas disciplinarias, asegurándose en todo momento que éstas se encuentren disponibles para su consulta. En el caso de personas con alguna discapacidad, la Autoridad Penitenciaria deberá proveer los medios necesarios para su comprensión. De necesitar un traductor o intérprete, la Autoridad Penitenciaria deberá proporcionarlo.
 
 Desde el momento de su ingreso, la persona privada de su libertad, estará obligada a cumplir con las normas de conducta que rijan en el Centro, así como las disposiciones que regulen la convivencia interior.
 
-**Artículo 39.** Determinación de Faltas Disciplinarias La determinación de las faltas disciplinarias estará a cargo del Comité Técnico. Para la determinación de las faltas, las normas d isciplinarias deberán apegarse estrictamente a los principios de necesidad, proporcionalidad y razonabilidad, así como a la culpabilidad y respeto a los derechos humanos, por lo que sólo podrán establecerse sanciones para las conductas que afecten bienes j urídicamente tutelados o que no impliquen el ejercicio de un derecho, y cuya autoría sea plenamente identificada, evitando así la imposición de medidas disciplinarias de carácter general.
+**Artículo 39.** Determinación de Faltas Disciplinarias
 
-**Artículo 40.** Faltas disciplinarias graves Las sanciones que estable zcan las normas disciplinarias serán proporcionales al daño que ocasione la infracción. Sólo se podrán considerar como faltas disciplinarias graves:
+La determinación de las faltas disciplinarias estará a cargo del Comité Técnico. Para la determinación de las faltas, las normas disciplinarias deberán apegarse estrictamente a los principios de necesidad, proporcionalidad y razonabilidad, así como a la culpabilidad y respeto a los derechos humanos, por lo que sólo podrán establecerse sanciones para las conductas que afecten bienes jurídicamente tutelados o que no impliquen el ejercicio de un derecho, y cuya autoría sea plenamente identificada, evitando así la imposición de medidas disciplinarias de carácter general.
+
+**Artículo 40.** Faltas disciplinarias graves
+
+Las sanciones que establezcan las normas disciplinarias serán proporcionales al daño que ocasione la infracción. Sólo se podrán considerar como faltas disciplinarias graves:
 
 **I.** La participación activa en disturbios;
 
-**II.** Evadirse, intentar evadirse y/o favorecer la evasión de per sonas privadas de la libertad; sin perjuicio de la responsabilidad penal;
+**II.** Evadirse, intentar evadirse y/o favorecer la evasión de personas privadas de la libertad; sin perjuicio de la responsabilidad penal;
 
 **III.** Los actos que impliquen la comisión de un delito en agravio del personal del Centro Penitenciario o de las personas privadas de la libertad;
 
-**IV.** La posesión de instrumentos pu nzo cortantes, armas o cualquier otro objeto que ponga en riesgo la seguridad del Centro Penitenciario y/o la vida de otra persona;
+**IV.** La posesión de instrumentos punzo cortantes, armas o cualquier otro objeto que ponga en riesgo la seguridad del Centro Penitenciario y/o la vida de otra persona;
 
 **V.** La posesión o el consumo de sustancias psicotrópicas, estupefacientes o bebidas alcohólicas;
 
@@ -794,13 +890,15 @@ Desde el momento de su ingreso, la persona privada de su libertad, estará oblig
 
 **X.** Las conductas dolosas que afecten el funcionamiento de los servicios o la provisión de suministros en el Centro Penitenciario;
 
-**XI.** Las acciones que tengan por objeto controlar algún e spacio o servicio dentro del Centro Penitenciario, ejercer alguna función exclusiva de la autoridad o propiciar la subordinación entre personas privadas de la libertad, y
+**XI.** Las acciones que tengan por objeto controlar algún espacio o servicio dentro del Centro Penitenciario, ejercer alguna función exclusiva de la autoridad o propiciar la subordinación entre personas privadas de la libertad, y
 
-**XII.** Evadirse o incumplir con las medidas de vigilancia, supervisión o monitoreo est ablecidas durante el goce de un permiso extraordinario por razones humanitarias.
+**XII.** Evadirse o incumplir con las medidas de vigilancia, supervisión o monitoreo establecidas durante el goce de un permiso extraordinario por razones humanitarias.
 
 Si alguna de las conductas previstas en el presente artículo llegase a constituir delito, tales hechos se harán del conocimiento del Ministerio Público para los efectos legales conducentes.
 
-**Artículo 41.** Sanciones Disciplinarias La persona privada de la libertad no podrá ser sancionada dos veces por los mismos hechos. Sólo podrán ser aplicadas las sanciones disciplinarias siguientes:
+**Artículo 41.** Sanciones Disciplinarias
+
+La persona privada de la libertad no podrá ser sancionada dos veces por los mismos hechos. Sólo podrán ser aplicadas las sanciones disciplinarias siguientes:
 
 **I.** Amonestación en privado o en público;
 
@@ -814,51 +912,75 @@ Si alguna de las conductas previstas en el presente artículo llegase a constitu
 
 **VI.** Restricción temporal de las horas de visita semanales.
 
-No se permitirá que las personas privadas de libertad tengan bajo su r esponsabilidad la ejecución de medidas disciplinarias, o la realización de actividades de custodia y vigilancia.
+No se permitirá que las personas privadas de libertad tengan bajo su responsabilidad la ejecución de medidas disciplinarias, o la realización de actividades de custodia y vigilancia.
 
 Las restricciones temporales a las que hace referencia este párrafo, deberán atender a criterios de proporcionalidad, racionalidad y necesidad.
 
 La imposición de medidas disciplinarias deberá ser comunicada al organismo público de protección de los derechos humanos competente.
 
-**Artículo 42.** Restricciones a las medidas disciplinarias Queda prohibido imponer medidas disciplinarias que impliquen to rtura y tratos o penas crueles, inhumanos o degradantes, el encierro en celda oscura o sin ventilación y el aislamiento indefinido o por más de quince días continuos.
+**Artículo 42.** Restricciones a las medidas disciplinarias
 
-Durante el aislamiento, la Autoridad Penitenciaria estará obligada a garantizar un mínim o de contacto humano apreciable por lo menos cada veintidós horas durante el tiempo que dure la medida.
+Queda prohibido imponer medidas disciplinarias que impliquen tortura y tratos o penas crueles, inhumanos o degradantes, el encierro en celda oscura o sin ventilación y el aislamiento indefinido o por más de quince días continuos.
 
-**Artículo 43.** Restricciones al Aislamiento El aislamiento temporal no será motivo de restricción o impedimento para la comunicación con el defensor en los términos de esta Ley.
+Durante el aislamiento, la Autoridad Penitenciaria estará obligada a garantizar un mínimo de contacto humano apreciable por lo menos cada veintidós horas durante el tiempo que dure la medida.
+
+**Artículo 43.** Restricciones al Aislamiento
+
+El aislamiento temporal no será motivo de restricción o impedimento para la comunicación con el defensor en los términos de esta Ley.
 
 En el caso de mujeres embarazadas y de las madres que conviven con sus hijas e hijos al interior del Centro Penitenciario no procederá el aislamiento.
 
 **Artículo 44.** Atención Médica durante Aislamiento
 
-La persona sometida a una med ida de aislamiento tendrá derecho a atención médica durante el mismo y no podrá limitarse el acceso de su defensor, los organismos de protección de los derechos humanos, del Ministerio Público y de personal médico que deseen visitarlo.
+La persona sometida a una medida de aislamiento tendrá derecho a atención médica durante el mismo y no podrá limitarse el acceso de su defensor, los organismos de protección de los derechos humanos, del Ministerio Público y de personal médico que deseen visitarlo.
 
-**Artículo 45.** Examen Médico El Centro Penitenciario deberá realizar a las personas privadas de la libertad un examen médico antes, durante y después del cumplimiento de una medida disciplinaria de aislamiento.
+**Artículo 45.** Examen Médico
 
-Capítulo IV De la Imposición de Sanciones Disciplinarias
+El Centro Penitenciario deberá realizar a las personas privadas de la libertad un examen médico antes, durante y después del cumplimiento de una medida disciplinaria de aislamiento.
 
-**Artículo 46.** Debido proceso Los procedimientos disciplinarios garantizarán el derecho a la defensa, de audiencia y la oportunidad de allegarse de medios de prueba en favor de la persona privada de la libertad.
+Capítulo IV
 
-**Artículo 47.** Notificación de sanción El Comité Técni co deberá notificar por escrito a la persona privada de la libertad sobre la sanción impuesta, el tiempo de duración, las condiciones de ésta, así como su derecho a impugnarla.
+De la Imposición de Sanciones Disciplinarias
 
-**Artículo 48.** Impugnación de resoluciones Las resoluciones del Comité Técnico s e impugnarán dentro de los tres días siguientes a su notificación y procederá su revisión ante el Juez de Ejecución. Cuando se impugne resoluciones administrativas por faltas disciplinarias, se dejará en suspenso la aplicación de las sanciones impuestas, hasta que el Juez de Ejecución resuelva en definitiva, sin perjuicio de que se adopten las medidas administrativas necesarias que salvaguarden la seguridad y orden en el Centro Penitenciario.
+**Artículo 46.** Debido proceso
 
-Capítulo V Traslados
+Los procedimientos disciplinarios garantizarán el derecho a la defensa, de audiencia y la oportunidad de allegarse de medios de prueba en favor de la persona privada de la libertad.
 
-**Artículo 49.** Previsión general Las persona s sujetas a prisión preventiva deberán cumplir con la resolución judicial privativa de la libertad en los Centros Penitenciarios más cercanos al lugar donde se está llevando a cabo su proceso. Las personas sentenciadas podrán cumplir con la resolución judi cial privativa de la libertad en los Centros Penitenciarios más cercanos a su domicilio. Esta disposición no aplica en el caso de delincuencia organizada y respecto de otras personas privadas de la libertad que requieran medidas especiales de seguridad en los términos del penúltimo párrafo del artículo 18 Constitucional.
+**Artículo 47.** Notificación de sanción
 
-**Artículo 50.** Traslados voluntarios Los traslados voluntarios de las personas privadas de la libertad dentro del territorio nacional operarán cuando exista un acuerdo entre la entidad de or igen y la entidad de destino o, en su caso, entre la entidad correspondiente y la Federación, de acuerdo con el párrafo tercero del artículo 18 de la Constitución. En estos casos no podrá negarse el traslado cuando se acrediten los supuestos establecidos en el párrafo octavo del artículo 18 de la Constitución.
+El Comité Técnico deberá notificar por escrito a la persona privada de la libertad sobre la sanción impuesta, el tiempo de duración, las condiciones de ésta, así como su derecho a impugnarla.
+
+**Artículo 48.** Impugnación de resoluciones
+
+Las resoluciones del Comité Técnico se impugnarán dentro de los tres días siguientes a su notificación y procederá su revisión ante el Juez de Ejecución. Cuando se impugne resoluciones administrativas por faltas disciplinarias, se dejará en suspenso la aplicación de las sanciones impuestas, hasta que el Juez de Ejecución resuelva en definitiva, sin perjuicio de que se adopten las medidas administrativas necesarias que salvaguarden la seguridad y orden en el Centro Penitenciario.
+
+Capítulo V
+
+Traslados
+
+**Artículo 49.** Previsión general
+
+Las personas sujetas a prisión preventiva deberán cumplir con la resolución judicial privativa de la libertad en los Centros Penitenciarios más cercanos al lugar donde se está llevando a cabo su proceso. Las personas sentenciadas podrán cumplir con la resolución judicial privativa de la libertad en los Centros Penitenciarios más cercanos a su domicilio. Esta disposición no aplica en el caso de delincuencia organizada y respecto de otras personas privadas de la libertad que requieran medidas especiales de seguridad en los términos del penúltimo párrafo del artículo 18 Constitucional.
+
+**Artículo 50.** Traslados voluntarios
+
+Los traslados voluntarios de las personas privadas de la libertad dentro del territorio nacional operarán cuando exista un acuerdo entre la entidad de origen y la entidad de destino o, en su caso, entre la entidad correspondiente y la Federación, de acuerdo con el párrafo tercero del artículo 18 de la Constitución. En estos casos no podrá negarse el traslado cuando se acrediten los supuestos establecidos en el párrafo octavo del artículo 18 de la Constitución.
 
 Cuando exista el interés de una persona sentenciada para ser trasladada a otro Centro Penitenciario, el Juez de Ejecución requerirá su consentimiento expreso en presencia de la persona que sea su defensora. No procederá el traslado a petición de parte tratándose de personas sentenciadas por delitos de delincuencia organizada.
 
 Los traslados voluntarios de las personas privadas de la libertad a otro país operarán cuando exista un tratado internacional en términos de lo dispuesto en el párrafo séptimo del artículo 18 de la Constitución.
 
-**Artículo 51.** Traslados involuntarios El traslado involuntario de las personas privadas de la libertad procesadas o sentenciadas deberá ser autorizado previamente en audi encia pública por el Juez de Control o de Ejecución, en su caso. Dicha resolución podrá ser impugnada a través del recurso de apelación.
+**Artículo 51.** Traslados involuntarios
+
+El traslado involuntario de las personas privadas de la libertad procesadas o sentenciadas deberá ser autorizado previamente en audiencia pública por el Juez de Control o de Ejecución, en su caso. Dicha resolución podrá ser impugnada a través del recurso de apelación.
 
 En audiencia ante el Juez de Ejecución se podrá solicitar el traslado. La Autoridad Penitenciaria podrá solicitar el traslado involuntario en casos de emergencia por cualquier medio.
 
 En el caso de las personas sujetas a prisión preventiva, el traslado podrá realizarse a petición del Ministerio Público ante el Juez de Control, en términos de lo establecido en el Código.
 
-**Artículo 52.** Excepción al Traslado voluntario La Autoridad Penitenciaria, como caso de excepción a lo dispuesto en el artículo 50, podrá ordenar y ejecutar el traslado de personas privadas de la libertad, mediante resolución administrativa con el único requisito de notificar al juez competente dentro de las veinticuatro horas siguientes de realizado el traslado, en los siguientes supuestos:
+**Artículo 52.** Excepción al Traslado voluntario
+
+La Autoridad Penitenciaria, como caso de excepción a lo dispuesto en el artículo 50, podrá ordenar y ejecutar el traslado de personas privadas de la libertad, mediante resolución administrativa con el único requisito de notificar al juez competente dentro de las veinticuatro horas siguientes de realizado el traslado, en los siguientes supuestos:
 
 **I.** En casos de delincuencia organizada y medidas especiales de seguridad;
 
@@ -866,101 +988,119 @@ En el caso de las personas sujetas a prisión preventiva, el traslado podrá rea
 
 **III.** En caso de que se ponga en riesgo la seguridad o gobernabilidad del Centro Penitenciario.
 
-En todos los supuestos de excepción a los traslados sin autorización previa, el juez tendrá un plaz o de cuarenta y ocho horas posteriores a la notificación para calificar la legalidad de la determinación administrativa de traslado. En contra de la resolución judicial se podrá interponer el recurso de apelación en los términos previstos en esta Ley.
+En todos los supuestos de excepción a los traslados sin autorización previa, el juez tendrá un plazo de cuarenta y ocho horas posteriores a la notificación para calificar la legalidad de la determinación administrativa de traslado. En contra de la resolución judicial se podrá interponer el recurso de apelación en los términos previstos en esta Ley.
 
 En caso que dentro del plazo establecido, la autoridad jurisdiccional no se pronuncie respecto de la legalidad del acto, la persona privada de la libertad podrá interponer una controversia judicial contra la determinación administrativa.
 
-**Artículo 53.** Limitaciones al traslado de mujeres privadas de la libertad Queda prohibido el traslado involuntario de mujeres embarazadas o de las mujeres privadas de la libertad cuyas hijas o hijos vivan con ellas en el Centro Penitenciario. Si la mujer privada de la libertad solicitase el traslado, se atenderá al interés superior de la niñez.
+**Artículo 53.** Limitaciones al traslado de mujeres privadas de la libertad
 
-**Artículo 54.** Traslado Internacional de personas sentenciadas Las personas sentenciadas de nacionalidad mexicana que se encuentren compurgando penas en países extranjeros, así como las d e nacionalidad extranjera que hayan sido sentenciadas por autoridades judiciales mexicanas del fuero federal o local, podrán ser trasladadas a sus países de origen o residencia, en términos de los tratados o convenciones internacionales que se hayan celebr ado para ese efecto. La falta de tratado, no impedirá dar curso a una solicitud de traslado internacional de personas sentenciadas. En estos casos, el trámite correspondiente se efectuará bajo el principio internacional de reciprocidad, bajo las siguientes bases:
+Queda prohibido el traslado involuntario de mujeres embarazadas o de las mujeres privadas de la libertad cuyas hijas o hijos vivan con ellas en el Centro Penitenciario. Si la mujer privada de la libertad solicitase el traslado, se atenderá al interés superior de la niñez.
+
+**Artículo 54.** Traslado Internacional de personas sentenciadas
+
+Las personas sentenciadas de nacionalidad mexicana que se encuentren compurgando penas en países extranjeros, así como las de nacionalidad extranjera que hayan sido sentenciadas por autoridades judiciales mexicanas del fuero federal o local, podrán ser trasladadas a sus países de origen o residencia, en términos de los tratados o convenciones internacionales que se hayan celebrado para ese efecto. La falta de tratado, no impedirá dar curso a una solicitud de traslado internacional de personas sentenciadas. En estos casos, el trámite correspondiente se efectuará bajo el principio internacional de reciprocidad, bajo las siguientes bases:
 
 **I.** Que la persona sentenciada otorgue y exprese libremente su deseo y consentimiento a ser trasladado a su país de origen.
 
 **II.** Que sean nacionales del país al cual desean ser trasladados.
 
-**III.** Que la sentencia se encuentre firme, es decir que ni ngún procedimiento de apelación, recurso o juicio en contra de la misma esté pendiente de resolución.
+**III.** Que la sentencia se encuentre firme, es decir que ningún procedimiento de apelación, recurso o juicio en contra de la misma esté pendiente de resolución.
 
 **IV.** En caso de haber sido sentenciados a pena pecuniaria, esta haya sido liquidada, o exista acuerdo de prescripción de la misma. Asimismo, de haber sido condenadas a reparación de daño, este debe estar finiquitado o prescrito.
 
 **V.** Que la pena que falte por cumplir a las personas sentenciadas al momento de su petición de traslado sea de por lo menos 6 meses.
 
-**VI.** Que el delito por el cual fueron sancionado s en México también se encuentre contemplado y sancionado en su país. Lo cual no significa que sea contemplado en los mismos términos o condiciones, sino que genéricamente se encuentre tipificado y sancionado por una ley del país de traslado.
+**VI.** Que el delito por el cual fueron sancionados en México también se encuentre contemplado y sancionado en su país. Lo cual no significa que sea contemplado en los mismos términos o condiciones, sino que genéricamente se encuentre tipificado y sancionado por una ley del país de traslado.
 
 **VII.** Que el traslado contribuya a la reinserción o reintegración de las personas sentenciadas en la vida social.
 
-**VIII.** Que no exista procedimiento penal o de extradición pendiente en contra la persona sentenciada.
+**VIII.** Que no exista procedimiento penal o de extradición pendiente en contra (sic) la persona sentenciada.
 
-Para este procedimiento se entenderá como Estado Tra sladante, aquel Estado en el que la persona fue sentenciada y Estado Receptor, aquél al cual desea ser trasladado.
+Para este procedimiento se entenderá como Estado Trasladante, aquel Estado en el que la persona fue sentenciada y Estado Receptor, aquél al cual desea ser trasladado.
 
-El Ejecutivo Federal determinará la autoridad Coordinadora entre el Estado Trasladante y el Estado Receptor para la tramitación del procedim iento de traslado, salvo que el Tratado o Convención aplicable establezca disposición en contrario.
+El Ejecutivo Federal determinará la autoridad Coordinadora entre el Estado Trasladante y el Estado Receptor para la tramitación del procedimiento de traslado, salvo que el Tratado o Convención aplicable establezca disposición en contrario.
 
-**Artículo 55.** Competencia para la resolución de un Traslado Internacional de Personas sentenciadas Cuando la solicitud de traslado sea presentada por un ext ranjero que fue sentenciado por una autoridad judicial mexicana, corresponderá conocer y resolver de la petición de traslado al Juez de Ejecución del centro de reclusión donde se encuentre físicamente la persona sentenciada o, en su caso, el de la jurisdicción de emisión de sentencia.
+**Artículo 55.** Competencia para la resolución de un Traslado Internacional de Personas sentenciadas
 
-Tratándose de solicitudes de traslado de ciudadanos mexicanos en el extranjero, será competente para conocer y resolver de la petición que se trate la Autoridad Penitenciaria competente, quien de resolver procedente el trasla do también señalará el lugar de reclusión al cual deberá ingresar la persona trasladada y una vez ingresado al Centro Penitenciario lo hará del conocimiento inmediatamente del Juez de Ejecución competente para iniciar el procedimiento de ejecución de acuerdo con esta Ley.
+Cuando la solicitud de traslado sea presentada por un extranjero que fue sentenciado por una autoridad judicial mexicana, corresponderá conocer y resolver de la petición de traslado al Juez de Ejecución del centro de reclusión donde se encuentre físicamente la persona sentenciada o, en su caso, el de la jurisdicción de emisión de sentencia.
+
+Tratándose de solicitudes de traslado de ciudadanos mexicanos en el extranjero, será competente para conocer y resolver de la petición que se trate la Autoridad Penitenciaria competente, quien de resolver procedente el traslado también señalará el lugar de reclusión al cual deberá ingresar la persona trasladada y una vez ingresado al Centro Penitenciario lo hará del conocimiento inmediatamente del Juez de Ejecución competente para iniciar el procedimiento de ejecución de acuerdo con esta Ley.
 
 En todo trámite de traslado internacional de sentenciados, la autoridad correspondiente que conozca del caso, únicamente verificará que se sigan las formalidades y requisitos que establece el tratado o convención aplicable y de no existir éste, los requisitos del artículo anterior.
 
 Una vez resuelta la procedencia de traslado, el Ejecutivo Federal, llevará a cabo las gestiones y logística necesarias para materializar y ejecutar el traslado correspondiente.
 
-**Artículo 56.** Prioridades en caso de Traslados Internacionales Cuando exista anuencia para trasladar a diversas personas a la vez y no sea posible realizar de manera material o inmediata todos los traslados en un mismo acto, se dará prioridad a aquellos casos en los que se compruebe que e l traslado impera inmediatez por una cuestión humanitaria tratándose de
+**Artículo 56.** Prioridades en caso de Traslados Internacionales
 
-enfermedad grave o terminal de la persona sentenciada o de alguno de sus familiares consanguíneos en línea directa de primer y segundo grado ascendiente y descendiente.
+Cuando exista anuencia para trasladar a diversas personas a la vez y no sea posible realizar de manera material o inmediata todos los traslados en un mismo acto, se dará prioridad a aquellos casos en los que se compruebe que el traslado impera inmediatez por una cuestión humanitaria tratándose de enfermedad grave o terminal de la persona sentenciada o de alguno de sus familiares consanguíneos en línea directa de primer y segundo grado ascendiente y descendiente.
 
-**Artículo 57.** Competencia de controversias con motivo de traslados nacionales Las controversias con motivo de los traslados nacionales podrán ser conocidas por el Juez de Ejecución del Centro Penitenciario de origen o por el Juez de Ejecución del Centro Penitenciario rec eptor competente, a prevención de quien conozca primero del asunto.
+**Artículo 57.** Competencia de controversias con motivo de traslados nacionales
+
+Las controversias con motivo de los traslados nacionales podrán ser conocidas por el Juez de Ejecución del Centro Penitenciario de origen o por el Juez de Ejecución del Centro Penitenciario receptor competente, a prevención de quien conozca primero del asunto.
 
 En el caso de traslados internacionales, será competente el Juez de Ejecución con jurisdicción en los Centros Penitenciarios donde se encuentre la persona privada de la libertad o, en su caso, el de la jurisdicción donde se hubiere dictado la sentencia correspondiente, a elección de la persona privada de la libertad, siguiendo el procedimiento que para tal efecto se establezca en el tratado aplicable.
 
 Las mismas reglas de competencia se observarán en relación con las personas inimputables sujetas a medidas de seguridad en los establecimientos previstos en la ley.
 
-Capítulo VI Ingresos, Visitas, Revisiones Personales y Entrevistas en los Centros Penitenciarios
+Capítulo VI
 
-**Artículo 58.** Entrevistas y vi sitas de organismos públicos de protección de los derechos humanos Las normas reglamentarias establecerán las provisiones para facilitar a los organismos públicos de protección a los derechos humanos, así como al Mecanismo Nacional para la Prevención de la Tortura, el acceso irrestricto al Centro Penitenciario, archivos, y registros penitenciarios, sin necesidad de aviso previo así como asegurar que se facilite el ingreso a los servidores públicos de éstos y que puedan portar el equipo necesario para el des empeño de sus atribuciones y entrevistarse en privado con las personas privadas de la libertad.
+Ingresos, Visitas, Revisiones Personales y Entrevistas en los Centros Penitenciarios
 
-Los defensores, en todo momento, podrán entrevistar a las personas privadas de la libertad en privado. No podrá limitárseles el ingreso de los objetos necesari os para el desempeño de su tarea, ni podrá revisarse el contenido de los documentos que introdujesen o retirasen de los Centros Penitenciarios.
+**Artículo 58.** Entrevistas y visitas de organismos públicos de protección de los derechos humanos
+
+Las normas reglamentarias establecerán las provisiones para facilitar a los organismos públicos de protección a los derechos humanos, así como al Mecanismo Nacional para la Prevención de la Tortura, el acceso irrestricto al Centro Penitenciario, archivos, y registros penitenciarios, sin necesidad de aviso previo así como asegurar que se facilite el ingreso a los servidores públicos de éstos y que puedan portar el equipo necesario para el desempeño de sus atribuciones y entrevistarse en privado con las personas privadas de la libertad.
+
+Los defensores, en todo momento, podrán entrevistar a las personas privadas de la libertad en privado. No podrá limitárseles el ingreso de los objetos necesarios para el desempeño de su tarea, ni podrá revisarse el contenido de los documentos que introdujesen o retirasen de los Centros Penitenciarios.
 
 Los Centros deberán contar con un área adecuada para que la persona privada de la libertad pueda entrevistarse en forma libre y privada con su defensor y a disponer del tiempo y medios razonables para su defensa.
 
-Se deberá establecer las normas necesarias para facilitar el ingreso de las instituciones públicas que tengan como mandato vigilar, promover o garantizar los derechos de los grupos vulnerables o personas que por sus condiciones o características requieran cuidados especiales o estén en riesgo de sufrir algún tipo de discriminación, así como las condiciones en las que los representantes de organismos privad os y civiles de protección y defensa de los derechos humanos podrán acceder a entrevistar o documentar lo que consideren necesario, pudiendo mediar para ello una petición expresa de la persona privada de su libertad.
+Se deberá (sic) establecer las normas necesarias para facilitar el ingreso de las instituciones públicas que tengan como mandato vigilar, promover o garantizar los derechos de los grupos vulnerables o personas que por sus condiciones o características requieran cuidados especiales o estén en riesgo de sufrir algún tipo de discriminación, así como las condiciones en las que los representantes de organismos privados y civiles de protección y defensa de los derechos humanos podrán acceder a entrevistar o documentar lo que consideren necesario, pudiendo mediar para ello una petición expresa de la persona privada de su libertad.
 
-Queda prohibida toda reprimenda, acció n de castigo o sanción que busque inhibir o limitar el derecho de la persona privada de su libertad para acudir ante las instituciones públicas y privadas de protección de los derechos humanos.
+Queda prohibida toda reprimenda, acción de castigo o sanción que busque inhibir o limitar el derecho de la persona privada de su libertad para acudir ante las instituciones públicas y privadas de protección de los derechos humanos.
 
-La obstrucción de la labor del personal judicial, de las pers onas visitadoras de los organismos públicos de protección de los derechos humanos, de las defensoras, del Ministerio Público y de las observadoras será sancionada administrativa y penalmente, en términos de la legislación aplicable.
+La obstrucción de la labor del personal judicial, de las personas visitadoras de los organismos públicos de protección de los derechos humanos, de las defensoras, del Ministerio Público y de las observadoras será sancionada administrativa y penalmente, en términos de la legislación aplicable.
 
-**Artículo 59.** Régimen de visitas El Protocolo respectivo, establecerá el régimen de visitas personales, familiares, íntimas, religiosas, humanitarias y asistenciales, sin que en caso alguno pueda impedirse el contacto corporal de la persona visitante con la persona visitada, sal vo que alguna de las dos solicite tal restricción. Asimismo, se establecerán mecanismos para informar clara y puntualmente sobre el tipo de objetos cuyo ingreso está permitido o prohibido durante las visitas, garantizando que tales disposiciones puedan ser conocidas por las personas que realizan las visitas.
+**Artículo 59.** Régimen de visitas
+
+El Protocolo respectivo, establecerá el régimen de visitas personales, familiares, íntimas, religiosas, humanitarias y asistenciales, sin que en caso alguno pueda impedirse el contacto corporal de la persona visitante con la persona visitada, salvo que alguna de las dos solicite tal restricción. Asimismo, se establecerán mecanismos para informar clara y puntualmente sobre el tipo de objetos cuyo ingreso está permitido o prohibido durante las visitas, garantizando que tales disposiciones puedan ser conocidas por las personas que realizan las visitas.
 
 Las visitas se limitarán en la medida necesaria para favorecer la gobernabilidad y el buen funcionamiento del Centro Penitenciario, debiendo permitirse por lo menos un tiempo mínimo de visita de cinco horas semanales y máximo de quince horas semanales. Las horas de visita semanal se considerarán sumando el tiempo efectivo de todos los tipos de visita, excepto aquellas destinadas a la visita íntima.
 
-En casos de restricción de visitas por sanción discipl inaria grave, estas podrán limitarse hasta una hora de visita semanal, de conformidad a lo establecido en la presente Ley.
+En casos de restricción de visitas por sanción disciplinaria grave, estas podrán limitarse hasta una hora de visita semanal, de conformidad a lo establecido en la presente Ley.
 
-Para obtener la autorización de visita íntima, la persona privada de la libertad deberá presentar solicitud a la Autoridad Penitenci aria, quien resolverá de acuerdo a las disposiciones aplicables al régimen de visitas.
+Para obtener la autorización de visita íntima, la persona privada de la libertad deberá presentar solicitud a la Autoridad Penitenciaria, quien resolverá de acuerdo a las disposiciones aplicables al régimen de visitas.
 
-Las disposiciones aplicables del Centro Penitenciario establecerán los alimentos que excepcionalmente puedan ser suministrados a las personas privadas de la libertad po r las personas visitantes, así como los objetos que puedan ser introducidos por éstas.
+Las disposiciones aplicables del Centro Penitenciario establecerán los alimentos que excepcionalmente puedan ser suministrados a las personas privadas de la libertad por las personas visitantes, así como los objetos que puedan ser introducidos por éstas.
 
-En el caso de las mujeres privadas de su libertad, la Autoridad Penitenciaria deberá generar disposiciones aplicables flexibles que alienten y faciliten las visitas fam iliares, especialmente de sus hijas e hijos de conformidad con los principios establecidos en esta Ley.
+En el caso de las mujeres privadas de su libertad, la Autoridad Penitenciaria deberá generar disposiciones aplicables flexibles que alienten y faciliten las visitas familiares, especialmente de sus hijas e hijos de conformidad con los principios establecidos en esta Ley.
 
 Las personas privadas de la libertad deberán ser consultadas sobre a qué personas adultas autorizan para la visita familiar o personal, así como para el acompañamiento de la visita de sus hijas e hijos.
 
-Las personas privadas de la libertad tendrán derecho a la visita íntima por un plazo de dos horas mínimo y cinco máximo, y con una periodicidad de al menos una vez cada dos semanas. En ningún caso estará permitido el acompañamiento de niñas, niños o adolescente en las visitas íntimas.
+Las personas privadas de la libertad tendrán derecho a la visita íntima por un plazo de dos horas mínimo y cinco máximo, y con una periodicidad de al menos una vez cada dos semanas. En ningún caso estará permitido el acompañamiento de niñas, niños o adolescente (sic) en las visitas íntimas.
 
 No podrá condicionarse la visita íntima de las mujeres privadas de su libertad al uso obligatorio de métodos anticonceptivos.
 
-La Autoridad Penitenciaria debe asegurar la e xistencia de espacios apropiados para la realización de la visita íntima, la cual será privada, consentida, ininterrumpida e informada, además deberá reunir las condiciones de aseo e higiene necesarias.
+La Autoridad Penitenciaria debe asegurar la existencia de espacios apropiados para la realización de la visita íntima, la cual será privada, consentida, ininterrumpida e informada, además deberá reunir las condiciones de aseo e higiene necesarias.
 
-Existirá un registro de personas autorizadas a reali zar visitas íntimas, en el que se especificará la persona autorizada para realizarla.
+Existirá un registro de personas autorizadas a realizar visitas íntimas, en el que se especificará la persona autorizada para realizarla.
 
 Los Centros Penitenciarios deberán garantizar el ejercicio del derecho a la visita íntima bajo los principios de igualdad y no discriminación.
 
-Los protocolos y disposic iones aplicables del Centro Penitenciario deberán establecer las disposiciones que permitan la visita íntima ínter e intracarcelaria cuando la pareja de la persona privada de la libertad también se encuentre privada de su libertad.
+Los protocolos y disposiciones aplicables del Centro Penitenciario deberán establecer las disposiciones que permitan la visita íntima ínter e intracarcelaria cuando la pareja de la persona privada de la libertad también se encuentre privada de su libertad.
 
-**Artículo 60.** Comunicaciones al exterior Las personas privadas de la libertad podrán comunicarse de forma escrita o telefónica con personas que se encuentren fuera del Centro Penitenciario. Estas comunicaciones serán confidenciales y sólo podrán ser intervenidas o restringidas en los casos previstos por la normatividad de la materia. Igualmente podrán restringirse como consecuencia de la imposición de una medida disciplinaria.
+**Artículo 60.** Comunicaciones al exterior
+
+Las personas privadas de la libertad podrán comunicarse de forma escrita o telefónica con personas que se encuentren fuera del Centro Penitenciario. Estas comunicaciones serán confidenciales y sólo podrán ser intervenidas o restringidas en los casos previstos por la normatividad de la materia. Igualmente podrán restringirse como consecuencia de la imposición de una medida disciplinaria.
 
 La normatividad reglamentaria establecerá disposiciones preferenciales para el uso de los servicios telefónicos y los casos en que este será gratuito para las personas privadas de la libertad que no se encuentren en el Centro Penitenciario más próximo a su domicilio, la comunicación con su defensor o para aquellas que no reciban visita familiar con frecuencia.
 
 La disponibilidad de las comunicaciones no se verá afectada por la situación jurídica o la ubicación de la persona privada de la libertad.
 
-**Artículo 61.** Actos de revisión Todos los actos de revisión deben obedecer a principios de necesidad, razonabilid ad y proporcionalidad, y realizarse bajo criterios no discriminatorios y en condiciones dignas. Los actos de revisión se llevarán a cabo de la manera menos intrusiva posible y que causen las menores molestias a las personas en su intimidad, integridad, libertad, posesiones y derechos.
+**Artículo 61.** Actos de revisión
 
-Se considerarán actos de revisión personal los que se lleven a cabo en la aduana de los Centros Penitenciarios o en su interior, en las personas o en sus pertenencias. Dicha revisión se realizará mediante la exploración visua l, el empleo de sensores o detectores no intrusivos, la exploración manual exterior y la revisión corporal.
+Todos los actos de revisión deben obedecer a principios de necesidad, razonabilidad y proporcionalidad, y realizarse bajo criterios no discriminatorios y en condiciones dignas. Los actos de revisión se llevarán a cabo de la manera menos intrusiva posible y que causen las menores molestias a las personas en su intimidad, integridad, libertad, posesiones y derechos.
+
+Se considerarán actos de revisión personal los que se lleven a cabo en la aduana de los Centros Penitenciarios o en su interior, en las personas o en sus pertenencias. Dicha revisión se realizará mediante la exploración visual, el empleo de sensores o detectores no intrusivos, la exploración manual exterior y la revisión corporal.
 
 La revisión corporal sólo tendrá lugar de manera excepcional, cuando a partir de otro método de revisión se detecten posibles objetos o sustancias prohibidas debajo de alguna prenda de vestir y la persona revisada se niegue a mostrarla. La revisión interior sólo se realizará sobre prendas y partes corporales específicas y no comprenderá el desnudo integral ni la revisión de las cavidades vaginal y/o rectal.
 
@@ -970,71 +1110,105 @@ La persona sobre quien se practique este tipo de revisión podrá solicitar la p
 
 El personal del Centro estará sujeto al mismo régimen de revisión establecido en este artículo.
 
-**Artículo 62.** Revisión corporal a personas menores de edad De practicarse revisiones corporales a personas menores de 18 años de edad, deberán realizarse en presencia de la persona adulta bajo cuya responsabilidad se encuent re o, en su defecto, de personal de los sistemas nacional, estatal o de la Ciudad de México para el Desarrollo Integral de la Familia.
+**Artículo 62.** Revisión corporal a personas menores de edad
 
-**Artículo 63.** Flagrancia en la posesión de sustancias u objetos prohibidos De encontrarse sustancias u objetos prohibidos detectados en una revisión, se levantará el acta correspondiente y se procederá de la manera siguiente:
+De practicarse revisiones corporales a personas menores de 18 años de edad, deberán realizarse en presencia de la persona adulta bajo cuya responsabilidad se encuentre o, en su defecto, de personal de los sistemas nacional, estatal o de la Ciudad de México para el Desarrollo Integral de la Familia.
 
-**I.** Tratándose de personas privadas de la libertad, se sustanciará el procedimiento disciplinario por el Comité Técnico. Si el hecho fuese constitutivo de flagrante delito, se denunciarán los
+**Artículo 63.** Flagrancia en la posesión de sustancias u objetos prohibidos
 
-hechos de forma inmediata al Ministerio Público, para que inicie la investigación correspondiente, de conformidad con el Código;
+De encontrarse sustancias u objetos prohibidos detectados en una revisión, se levantará el acta correspondiente y se procederá de la manera siguiente:
+
+**I.** Tratándose de personas privadas de la libertad, se sustanciará el procedimiento disciplinario por el Comité Técnico. Si el hecho fuese constitutivo de flagrante delito, se denunciarán los hechos de forma inmediata al Ministerio Público, para que inicie la investigación correspondiente, de conformidad con el Código;
 
 **II.** Si se trata de una persona no privada de la libertad se pondrá a disposición del Ministerio Público de forma inmediata, a fin de que inicie la investigación correspondiente, de conformidad con el Código;
 
 **III.** Cuando la comisión de un hecho delictivo realizado o evidenciado en una revisión ameritare la práctica de exploraciones de las cavidades vaginal o anal, esta sólo podrá ser realizada por las autoridades que establezca el Código, por lo que el personal del Centro Penitenciario no podrá practicar estas exploraciones bajo ningún supuesto, quedando obligado a detener a la persona si se trata de un individuo no privado de la libertad, o a resguardarlo tratándose de una persona privada de la libertad, mientras se presentan el Ministerio Público y sus auxiliares, que de conformidad con el Código puedan realizar dichas diligencias. En todo caso, el personal del Centro Penitenciario deberá preservar la cadena de custodia de la evidencia del hecho;
 
-**IV.** La persona detenida o resguardada de conformidad con este artículo deberá ser custodiada por el personal del Centro Penitenciario y tendrá de recho a ser acompañada por la persona que realiza su defensa.
+**IV.** La persona detenida o resguardada de conformidad con este artículo deberá ser custodiada por el personal del Centro Penitenciario y tendrá derecho a ser acompañada por la persona que realiza su defensa.
 
-Capítulo VII Revisiones a los Centros Penitenciarios
+Capítulo VII
 
-**Artículo 64.** Revisión a Centros Son actos de revisión a lugares en los Centros Penitenciarios los que se realicen en su interior para verificar la existencia de objetos o sustancias cuya posesión esté prohibida; constatar la integridad de las instalaciones, con la finalidad de evitar que se ponga en riesgo a la población y personal del Centro Penitenciario, a sus pertenencias, a la seguridad y a la gobernabilidad de los Centros.
+Revisiones a los Centros Penitenciarios
 
-**Artículo 65.** Actos de revisión Se deberán realizar revisiones a los sitios donde las personas privadas de la libertad viven, trabajan y se reúnen, de manera regular y con especial atención a las áreas dedicadas a dorm itorio. Todos los actos de revisión e inspección de lugares deben obedecer a los principios de necesidad, razonabilidad y proporcionalidad, y realizarse bajo criterios no discriminatorios y en condiciones dignas. Los actos de revisión se llevarán a cabo de la manera menos intrusiva y molesta a las personas privadas de la libertad en su intimidad y posesiones, sin dañar los objetos inspeccionados.
+**Artículo 64.** Revisión a Centros
+
+Son actos de revisión a lugares en los Centros Penitenciarios los que se realicen en su interior para verificar la existencia de objetos o sustancias cuya posesión esté prohibida; constatar la integridad de las instalaciones, con la finalidad de evitar que se ponga en riesgo a la población y personal del Centro Penitenciario, a sus pertenencias, a la seguridad y a la gobernabilidad de los Centros.
+
+**Artículo 65.** Actos de revisión
+
+Se deberán realizar revisiones a los sitios donde las personas privadas de la libertad viven, trabajan y se reúnen, de manera regular y con especial atención a las áreas dedicadas a dormitorio. Todos los actos de revisión e inspección de lugares deben obedecer a los principios de necesidad, razonabilidad y proporcionalidad, y realizarse bajo criterios no discriminatorios y en condiciones dignas. Los actos de revisión se llevarán a cabo de la manera menos intrusiva y molesta a las personas privadas de la libertad en su intimidad y posesiones, sin dañar los objetos inspeccionados.
 
 Cuando en el curso de una revisión a lugares fuese necesaria una revisión o inspección corporal, se procederá de conformidad con el Capítulo respectivo de esta Ley.
 
-**Artículo 66.** Revisión a celdas Las revisiones a las celdas se realizarán en presencia de sus ocupantes, examinando con detalle las pertenencias de las personas privadas de la libertad y los objetos del lugar, para lo cual se deberán utilizar los sensores y la tecnología adecuada.
+**Artículo 66.** Revisión a celdas
 
-De toda revisión en la que se hallen sustancias u objetos prohibidos se levantará un acta circunstanciada en presencia de dos testigos propuestos por la persona ocupante del l ugar revisado o, en su ausencia o negativa, por quien practique la diligencia.
+Las revisiones a las celdas se realizarán en presencia de sus ocupantes, examinando con detalle las pertenencias de las personas privadas de la libertad y los objetos del lugar, para lo cual se deberán utilizar los sensores y la tecnología adecuada.
+
+De toda revisión en la que se hallen sustancias u objetos prohibidos se levantará un acta circunstanciada en presencia de dos testigos propuestos por la persona ocupante del lugar revisado o, en su ausencia o negativa, por quien practique la diligencia.
 
 Las revisiones a las celdas se practicarán exclusivamente por personal de custodia penitenciaria del mismo sexo de la persona privada de la libertad.
 
-**Artículo 67.** Registro de la revisión La Autoridad Penitenciaria guardará los datos que permitan identificar fehacientemente al personal de custodia penitenciaria que realice una revisión, bien sea que pertenezca al Centro o no, a efecto de fincar la responsabilidad en que puedan incurrir.
+**Artículo 67.** Registro de la revisión
 
-**Artículo 68.** Sustancias u objetos prohibidos Si al momento de la revisión les son encontrados a las personas privadas de la libertad objetos o sustancias prohibidos por el régimen disciplinario del Centro Penitenciario, pero cuya posesión no constituya delito, les serán recogidos, debiendo levantarse el acta correspondiente, y se sustanciará el procedimiento disciplinario.
+La Autoridad Penitenciaria guardará los datos que permitan identificar fehacientemente al personal de custodia penitenciaria que realice una revisión, bien sea que pertenezca al Centro o no, a efecto de fincar la responsabilidad en que puedan incurrir.
+
+**Artículo 68.** Sustancias u objetos prohibidos
+
+Si al momento de la revisión les son encontrados a las personas privadas de la libertad objetos o sustancias prohibidos por el régimen disciplinario del Centro Penitenciario, pero cuya posesión no constituya delito, les serán recogidos, debiendo levantarse el acta correspondiente, y se sustanciará el procedimiento disciplinario.
 
 Tales objetos o sustancias serán resguardados y entregados a quien su legítimo poseedor indique para que sean retirados del Centro Penitenciario.
 
 Si al momento de la revisión les son encontrados a las personas privadas de la libertad objetos o sustancias cuya posesión constituya delito, se dará vista inmediata al Ministerio Público, a efecto de que realice la investigación correspondiente.
 
-**Artículo 69.** Autoridades responsables en la revisión La Autoridad Penitenciaria y el titular del Centro, o quien en su ausencia le sustituya legalmente, serán responsables de las revisiones que se lleven a cabo en su interior. Igualmente, res ponderá por todo abuso que se lleve a cabo sobre las personas privadas de la libertad con motivo de la revisión. No podrán evadir su responsabilidad como superior jerárquico alegando que el personal que lleve a cabo las revisiones no estaba bajo su mando.
+**Artículo 69.** Autoridades responsables en la revisión
 
-**Artículo 70.** Uso de la fuerza El uso de la fuerza y el empleo de medios coercitivos durante las revisiones quedarán sujetos a las normas y protocolos aplicables, mismos que atenderán los estándares y las normas internacionales en materia de derechos humanos.
+La Autoridad Penitenciaria y el titular del Centro, o quien en su ausencia le sustituya legalmente, serán responsables de las revisiones que se lleven a cabo en su interior. Igualmente, responderá por todo abuso que se lleve a cabo sobre las personas privadas de la libertad con motivo de la revisión. No podrán evadir su responsabilidad como superior jerárquico alegando que el personal que lleve a cabo las revisiones no estaba bajo su mando.
 
-**Artículo 71.** Supervisión independiente Las revisiones a los Centros Penitenciarios podrán llevarse a cabo con la supervisión independiente de organismos públicos de protección a los derechos humanos.
+**Artículo 70.** Uso de la fuerza
 
-Los organismos públicos de protección de los derec hos humanos deberán hacer del conocimiento de la Autoridad Penitenciaria y del Juez de Ejecución toda situación de privilegio en la imposición de la pena o de la prisión preventiva que observen en el ejercicio de sus funciones para que éste ordene su cese inmediato y exija garantías de no repetición. Con independencia de lo anterior, lo hará del conocimiento del Ministerio Público cuando dichas conductas constituyan un hecho que la ley señale como delito.
+El uso de la fuerza y el empleo de medios coercitivos durante las revisiones quedarán sujetos a las normas y protocolos aplicables, mismos que atenderán los estándares y las normas internacionales en materia de derechos humanos.
+
+**Artículo 71.** Supervisión independiente
+
+Las revisiones a los Centros Penitenciarios podrán llevarse a cabo con la supervisión independiente de organismos públicos de protección a los derechos humanos.
+
+Los organismos públicos de protección de los derechos humanos deberán hacer del conocimiento de la Autoridad Penitenciaria y del Juez de Ejecución toda situación de privilegio en la imposición de la pena o de la prisión preventiva que observen en el ejercicio de sus funciones para que éste ordene su cese inmediato y exija garantías de no repetición. Con independencia de lo anterior, lo hará del conocimiento del Ministerio Público cuando dichas conductas constituyan un hecho que la ley señale como delito.
 
 **TÍTULO TERCERO**
 
-Capítulo I Bases de Organización del Sistema Penitenciario
+Capítulo I
 
-**Artículo 72.** Bases de organización Son bases de la organización del sistema penitenciario para lograr la reinserción social: el respeto a los derechos humanos, el trabajo, la capacitación para el mismo, la educación, la salud y el deporte. Estas bases serán elementos esenciales del Plan de Actividades diseñado para las personas privadas de su libertad en los Centros Penitenciarios.
+Bases de Organización del Sistema Penitenciario
 
-**Artículo 73.** Observancia de los derechos humanos Durante los procedimientos de ejecución penal, todas las autoridades, en el ámbito de sus competencias, tienen la obligación de promover, respetar, proteger y garantizar los derechos humanos consagrados en la Constitución y los Tratados Internacionales de los que el Estado mexicano sea parte, de conformidad con los principios de universalidad, interdependencia, indivisibilidad y progresividad.
+**Artículo 72.** Bases de organización
+
+Son bases de la organización del sistema penitenciario para lograr la reinserción social: el respeto a los derechos humanos, el trabajo, la capacitación para el mismo, la educación, la salud y el deporte. Estas bases serán elementos esenciales del Plan de Actividades diseñado para las personas privadas de su libertad en los Centros Penitenciarios.
+
+**Artículo 73.** Observancia de los derechos humanos
+
+Durante los procedimientos de ejecución penal, todas las autoridades, en el ámbito de sus competencias, tienen la obligación de promover, respetar, proteger y garantizar los derechos humanos consagrados en la Constitución y los Tratados Internacionales de los que el Estado mexicano sea parte, de conformidad con los principios de universalidad, interdependencia, indivisibilidad y progresividad.
 
 De igual forma, se deberán de establecer programas específicos de derechos humanos tendientes a sensibilizar y concientizar a las personas privadas de la libertad de su importancia en la sociedad.
 
-Capítulo II Salud
+Capítulo II
 
-**Artículo 74.** Derecho a la salud La salud es un derecho humano reconocido por la Constitución Política de los Estados Unidos Mexicanos y será uno de los servicios fundamentales en el sistema penitenciario y tiene el propósito de garantizar la integridad física y psicológica de las personas privadas de su libertad, como medio para proteger, promover y restaurar su salud.
+Salud
 
-**Artículo 75.** Examen Médico de Ingreso A toda persona privada de su libertad recluida en un Centro se le practicará un examen psicofísico a su ingreso, para determinar el tratamiento de primer nivel que requiera.
+**Artículo 74.** Derecho a la salud
+
+La salud es un derecho humano reconocido por la Constitución Política de los Estados Unidos Mexicanos y será uno de los servicios fundamentales en el sistema penitenciario y tiene el propósito de garantizar la integridad física y psicológica de las personas privadas de su libertad, como medio para proteger, promover y restaurar su salud.
+
+**Artículo 75.** Examen Médico de Ingreso
+
+A toda persona privada de su libertad recluida en un Centro se le practicará un examen psicofísico a su ingreso, para determinar el tratamiento de primer nivel que requiera.
 
 En caso de advertirse lesiones o señales de tortura, tratos crueles, inhumanos o degradantes, dicha situación deberá certificarse a través del Protocolo de Estambul y se hará del conocimiento de la Autoridad Penitenciaria, la cual dará vista al Ministerio Público para que inicie la investigación correspondiente.
 
-En caso de que el servidor público encargado de revisar a la persona suj eta al examen psicofísico, se percatara de la existencia de señales de malos tratos o tortura y no lo hiciera del conocimiento al Ministerio Público, incurrirá en responsabilidad penal por omisión.
+En caso de que el servidor público encargado de revisar a la persona sujeta al examen psicofísico, se percatara de la existencia de señales de malos tratos o tortura y no lo hiciera del conocimiento al Ministerio Público, incurrirá en responsabilidad penal por omisión.
 
-**Artículo 76.** Servicios Médicos Los servicios médicos tend rán por objeto la atención médica de las personas privadas de su libertad, desde su ingreso y durante su permanencia, de acuerdo a los términos establecidos en las siguientes fracciones:
+**Artículo 76.** Servicios Médicos
+
+Los servicios médicos tendrán por objeto la atención médica de las personas privadas de su libertad, desde su ingreso y durante su permanencia, de acuerdo a los términos establecidos en las siguientes fracciones:
 
 **I.** Realizar campañas permanentes de prevención de enfermedades;
 
@@ -1044,55 +1218,83 @@ En caso de que el servidor público encargado de revisar a la persona suj eta al
 
 **IV.** Suministrar los medicamentos y terapias básicas necesarias para la atención médica de las personas privadas de la libertad, y
 
-**V.** Contener en primera instancia y poner en aviso a las autoridades competentes en mater ia de salud en caso de brote de enfermedad transmisible que pueda ser fuente de epidemia.
+**V.** Contener en primera instancia y poner en aviso a las autoridades competentes en materia de salud en caso de brote de enfermedad transmisible que pueda ser fuente de epidemia.
 
 **Artículo 77.** Características de los Servicios de Atención Médica
 
 Los servicios de atención médica serán gratuitos y obligatorios para las personas privadas de su libertad. Éstos contemplarán actividades de prevención, curación y rehabilitación, en estricto apego a las disposiciones legales aplicables en materia de servicios de salud.
 
-Las instalaciones serán higiénicas y contarán con los espacios adecuados para garant izar el derecho a la salud de las personas privadas de su libertad en un Centro Penitenciario.
+Las instalaciones serán higiénicas y contarán con los espacios adecuados para garantizar el derecho a la salud de las personas privadas de su libertad en un Centro Penitenciario.
 
-**Artículo 78.** Responsable Médico En cada uno de los Centros Penitenciarios existirá como mínimo atención de primer nivel en todo momento, procurada cuando menos por un médico responsable de cuidar la salud física y mental de las personas internas y vigilar las condiciones de higiene y salubridad. Asimismo, habrá por lo menos un auxiliar técnico-sanitario y un odontólogo.
+**Artículo 78.** Responsable Médico
 
-**Artículo 79.** Medidas Terapéuticas Cuando del diagnóstico del área de servicios médicos se desprenda la necesidad de aplicar medidas terapéuticas que impliquen riesgo para la vida o la integridad física de la persona privada de su libertad, se requerirá del consentimiento por escrito del mismo, sal vo en los casos de emergencia y en los que atente contra su integridad, podrá determinarlo la Autoridad Penitenciaria competente.
+En cada uno de los Centros Penitenciarios existirá como mínimo atención de primer nivel en todo momento, procurada cuando menos por un médico responsable de cuidar la salud física y mental de las personas internas y vigilar las condiciones de higiene y salubridad. Asimismo, habrá por lo menos un auxiliar técnico-sanitario y un odontólogo.
 
-Si la persona privada de su libertad no se encuentra en condiciones de otorgar su consentimiento, éste podrá requerirse a su cónyuge, familiar ascendiente o descend iente, o a la persona previamente designada por él. En caso de no contar con ningún consentimiento, será responsabilidad de la Autoridad Penitenciaria competente determinar lo conducente.
+**Artículo 79.** Medidas Terapéuticas
 
-**Artículo 80.** Convenios con instituciones del sector salud Se deberán celebrar convenios con instituciones públicas y privadas del sector salud en los ámbitos federal y local, a efecto de atender las urgencias médico -quirúrgicas cuya intervención no se pueda llevar a cabo en los Centr os Penitenciarios, así como para la designación del personal médico que proporcione servicios de salud de manera continua y permanentemente en el Sistema Penitenciario Nacional.
+Cuando del diagnóstico del área de servicios médicos se desprenda la necesidad de aplicar medidas terapéuticas que impliquen riesgo para la vida o la integridad física de la persona privada de su libertad, se requerirá del consentimiento por escrito del mismo, salvo en los casos de emergencia y en los que atente contra su integridad, podrá determinarlo la Autoridad Penitenciaria competente.
 
-Capítulo III Actividades Físicas y Deportivas
+Si la persona privada de su libertad no se encuentra en condiciones de otorgar su consentimiento, éste podrá requerirse a su cónyuge, familiar ascendiente o descendiente, o a la persona previamente designada por él. En caso de no contar con ningún consentimiento, será responsabilidad de la Autoridad Penitenciaria competente determinar lo conducente.
 
-**Artículo 81.** Participación en actividades físicas y deportivas La persona privada de su libertad podrá participar en actividades físicas y deportivas, atendiendo a su estado físico, con el propósito de mantener esquemas de esparcimiento y ocupacionales.
+**Artículo 80.** Convenios con instituciones del sector salud
 
-**Artículo 82.** Planificación para la práctica de actividades físicas y deportivas Para la instrumentación de las actividades físicas y deportivas se planificará, organizará y establecerán métodos, horarios y medidas necesarias para la práctica de esas actividades, las cuales estarán reguladas por la Autoridad Penitenciaria en los términos que establece esta Ley.
+Se deberán celebrar convenios con instituciones públicas y privadas del sector salud en los ámbitos federal y local, a efecto de atender las urgencias médico-quirúrgicas cuya intervención no se pueda llevar a cabo en los Centros Penitenciarios, así como para la designación del personal médico que proporcione servicios de salud de manera continua y permanentemente en el Sistema Penitenciario Nacional.
+
+Capítulo III
+
+Actividades Físicas y Deportivas
+
+**Artículo 81.** Participación en actividades físicas y deportivas
+
+La persona privada de su libertad podrá participar en actividades físicas y deportivas, atendiendo a su estado físico, con el propósito de mantener esquemas de esparcimiento y ocupacionales.
+
+**Artículo 82.** Planificación para la práctica de actividades físicas y deportivas
+
+Para la instrumentación de las actividades físicas y deportivas se planificará, organizará y establecerán métodos, horarios y medidas necesarias para la práctica de esas actividades, las cuales estarán reguladas por la Autoridad Penitenciaria en los términos que establece esta Ley.
 
 Se celebrarán los convenios con instituciones y organizaciones que apoyen y amplíen las actividades deportivas de las personas privadas de su libertad.
 
-Capítulo IV Educación
+Capítulo IV
 
-**Artículo 83.** El derecho a la educación La educación es el conjunto de actividades de orientación, enseñanza y aprendizaje, contenidas en planes y programas educativos, otorgadas por instituciones públicas o privadas que permitan a las
+Educación
 
-personas privadas de su libertad alcanzar mejores niveles de conocimiento para su desarrollo personal, de conformidad con lo establecido en el artículo 3o. Constitucional.
+**Artículo 83.** El derecho a la educación
 
-La educación que se imparta en los Centros Penitenciarios será laica, gratuita y tendrá contenidos de carácter académico, cívico, social, higiénico, artístico, físico y ético, orientados en el respeto a la ley, las instituciones y los derechos humanos. Será, en todo caso, orientada por las técnicas de la pedagogía y quedará a cargo de profesores o maestros espe cializados. Así mismo las personas privadas de su libertad que obtengan una certificación por la autoridad educativa correspondiente podrán realizar las labores de docencia a las que hace referencia el presente artículo.
+La educación es el conjunto de actividades de orientación, enseñanza y aprendizaje, contenidas en planes y programas educativos, otorgadas por instituciones públicas o privadas que permitan a las personas privadas de su libertad alcanzar mejores niveles de conocimiento para su desarrollo personal, de conformidad con lo establecido en el artículo 3o. Constitucional.
 
-Tratándose de personas pertenecien tes a pueblos o comunidades indígenas o afromexicanas, la educación que se les imparta será bilingüe y acorde a su cultura, para conservar y enriquecer sus lenguas, y la instrucción deberá ser proporcionada por maestros o profesores que comprendan su lengua. Párrafo reformado DOF 01-04-2024
+La educación que se imparta en los Centros Penitenciarios será laica, gratuita y tendrá contenidos de carácter académico, cívico, social, higiénico, artístico, físico y ético, orientados en el respeto a la ley, las instituciones y los derechos humanos. Será, en todo caso, orientada por las técnicas de la pedagogía y quedará a cargo de profesores o maestros especializados. Así mismo las personas privadas de su libertad que obtengan una certificación por la autoridad educativa correspondiente podrán realizar las labores de docencia a las que hace referencia el presente artículo.
 
-**Artículo 84.** Posibilidad de obtención de grados académicos Las personas privadas de su libertad podrán acceder al sistema educativo con la finalidad de obtener grados académicos o técnicos.
+**(REFORMADO, D.O.F. 1 DE ABRIL DE 2024)**
 
-**Artículo 85.** Enseñanza básica, de media superior y superior Las personas privadas de la libertad tendrán derecho a realizar estudios de enseñanza básica y media superior en forma gratuita. Asimismo, la Autoridad Penitenciaria incentivará la enseñanza media superior y superior, median te convenios con instituciones educativas del sector público, que les otorgarán la validez oficial correspondiente de los estudios culminados.
+Tratándose de personas pertenecientes a pueblos o comunidades indígenas o afromexicanas, la educación que se les imparta será bilingüe y acorde a su cultura, para conservar y enriquecer sus lenguas, y la instrucción deberá ser proporcionada por maestros o profesores que comprendan su lengua.
 
-**Artículo 86.** Programas educativos Los programas educativos serán conforme a los planes y programas oficiales que autorice la Secretaría de Educación Pública, o en su caso sus similares en las entidades federativas.
+**Artículo 84.** Posibilidad de obtención de grados académicos
 
-La Autoridad Penitenciaria deberá celebrar convenios de colaboración con Instituciones públicas y privadas de carácter nacional e internacional en mater ia educativa para ampliar la oferta educativa y su calidad.
+Las personas privadas de su libertad podrán acceder al sistema educativo con la finalidad de obtener grados académicos o técnicos.
 
-Capítulo V Capacitación para el Trabajo
+**Artículo 85.** Enseñanza básica, de media superior y superior
 
-**Artículo 87.** De la capacitación para el trabajo La capacitación para el trabajo se define como un proceso formativo que utiliza un procedimiento planeado, sistemático y organizado, mediante el cual las personas privadas de la libertad adquieren los conocimientos, aptitudes, habilidades técnicas y competencias laborales necesarias para realizar actividades productivas durante su reclusión y la posibilidad de seguir desarrollándolas en libertad.
+Las personas privadas de la libertad tendrán derecho a realizar estudios de enseñanza básica y media superior en forma gratuita. Asimismo, la Autoridad Penitenciaria incentivará la enseñanza media superior y superior, mediante convenios con instituciones educativas del sector público, que les otorgarán la validez oficial correspondiente de los estudios culminados.
+
+**Artículo 86.** Programas educativos
+
+Los programas educativos serán conforme a los planes y programas oficiales que autorice la Secretaría de Educación Pública, o en su caso sus similares en las entidades federativas.
+
+La Autoridad Penitenciaria deberá celebrar convenios de colaboración con Instituciones públicas y privadas de carácter nacional e internacional en materia educativa para ampliar la oferta educativa y su calidad.
+
+Capítulo V
+
+Capacitación para el Trabajo
+
+**Artículo 87.** De la capacitación para el trabajo
+
+La capacitación para el trabajo se define como un proceso formativo que utiliza un procedimiento planeado, sistemático y organizado, mediante el cual las personas privadas de la libertad adquieren los conocimientos, aptitudes, habilidades técnicas y competencias laborales necesarias para realizar actividades productivas durante su reclusión y la posibilidad de seguir desarrollándolas en libertad.
 
 La capacitación para el trabajo tendrá una secuencia ordenada para el desarrollo de las aptitudes y habilidades propias, la metodología estará basada en la participación, repetición, pertinencia, transferencia y retroalimentación.
 
-**Artículo 88.** Bases de la capacitación Las bases de la capacitación son:
+**Artículo 88.** Bases de la capacitación
+
+Las bases de la capacitación son:
 
 **I.** El adiestramiento y los conocimientos del propio oficio o actividad;
 
@@ -1100,13 +1302,21 @@ La capacitación para el trabajo tendrá una secuencia ordenada para el desarrol
 
 **III.** El desarrollo de aptitudes, habilidades y competencias laborales.
 
-**Artículo 89.** Tipos de capacitación Los tipos de capacitación para el trabajo se regularán de acuerdo a las competencias de la federación y de las entidades federativas y serán acordes a los fines de la reinserción social y al Plan de Actividades de la persona privada de la libertad.
+**Artículo 89.** Tipos de capacitación
 
-**Artículo 90.** Planificación para la capacitación del trabajo Para realizar una adecuada capacitación para el trabajo, se planificarán, regularán, organizarán y establecerán métodos, horarios y medidas preventivas de ingreso y seguridad.
+Los tipos de capacitación para el trabajo se regularán de acuerdo a las competencias de la federación y de las entidades federativas y serán acordes a los fines de la reinserción social y al Plan de Actividades de la persona privada de la libertad.
 
-Capítulo VI Trabajo
+**Artículo 90.** Planificación para la capacitación del trabajo
 
-**Artículo 91.** Naturaleza y Finalidad del Trabajo El trabajo constituye uno de los ejes de la reinserción social de las personas privadas de la libertad y tiene como propósito prepararlas para su integración o reintegración al mer cado laboral una vez obtenida su libertad.
+Para realizar una adecuada capacitación para el trabajo, se planificarán, regularán, organizarán y establecerán métodos, horarios y medidas preventivas de ingreso y seguridad.
+
+Capítulo VI
+
+Trabajo
+
+**Artículo 91.** Naturaleza y Finalidad del Trabajo
+
+El trabajo constituye uno de los ejes de la reinserción social de las personas privadas de la libertad y tiene como propósito prepararlas para su integración o reintegración al mercado laboral una vez obtenida su libertad.
 
 El trabajo se entenderá como una actividad productiva lícita que llevan a cabo las personas privadas de la libertad en el Centro Penitenciario, bajo las siguientes modalidades:
 
@@ -1116,13 +1326,15 @@ El trabajo se entenderá como una actividad productiva lícita que llevan a cabo
 
 **III.** Las actividades productivas realizadas a cuenta de terceros.
 
-Para la participación de las personas privadas de la libertad en cualquiera de las modalidades del trabajo, la Auto ridad Penitenciaria determinará lo conducente con base en la normatividad vigente y el régimen disciplinario del Centro Penitenciario.
+Para la participación de las personas privadas de la libertad en cualquiera de las modalidades del trabajo, la Autoridad Penitenciaria determinará lo conducente con base en la normatividad vigente y el régimen disciplinario del Centro Penitenciario.
 
-Conforme a las modalidades a que se refiere esta Ley, las personas privadas de la libertad tendrán acceso a seguros, pre staciones y servicios de seguridad social, con base en la legislación en la materia, cuyo ejercicio sea compatible con su situación jurídica.
+Conforme a las modalidades a que se refiere esta Ley, las personas privadas de la libertad tendrán acceso a seguros, prestaciones y servicios de seguridad social, con base en la legislación en la materia, cuyo ejercicio sea compatible con su situación jurídica.
 
 En ningún caso la Autoridad Penitenciaria podrá ser considerada como patrón, ni tampoco como patrón solidario, subsidiario o sustituto.
 
-**Artículo 92.** Bases del trabajo El trabajo se sujetará a las siguientes bases mínimas:
+**Artículo 92.** Bases del trabajo
+
+El trabajo se sujetará a las siguientes bases mínimas:
 
 **I.** No tendrá carácter aflictivo, ni será aplicado como medida correctiva;
 
@@ -1134,79 +1346,111 @@ En ningún caso la Autoridad Penitenciaria podrá ser considerada como patrón, 
 
 **V.** Preverá el acceso a la seguridad social por parte de las personas privadas de la libertad conforme a la modalidad en la que participen, con apego a las disposiciones legales aplicables en la materia;
 
-**VI.** Se crearán mecanismos de partic ipación del sector privado para la generación de trabajo que permita lograr los fines de la reinserción social y otorgar oportunidades de empleo a las personas privadas de la libertad, y
+**VI.** Se crearán mecanismos de participación del sector privado para la generación de trabajo que permita lograr los fines de la reinserción social y otorgar oportunidades de empleo a las personas privadas de la libertad, y
 
 **VII.** Será una fuente de ingresos para quienes lo desempeñen.
 
 La administración de las ganancias o salarios que obtengan las personas privadas de la libertad con motivo de las modalidades de trabajo que realicen, se llevará a cabo a través de una cuenta que se regirá bajo las condiciones que se establezcan en esta Ley y en las disposiciones aplicables correspondientes.
 
-El ejercicio de los derechos que emanen con motivo del desarrollo del trabajo o, en su caso, de las relaciones laborales, en ningún supuesto pondrán en riesgo las condiciones de operación o de seguridad de l os Centros Penitenciarios. Invariablemente, el ejercicio de los derechos laborales o contractuales deberán ser compatibles con la situación jurídica de las personas privadas de la libertad.
+El ejercicio de los derechos que emanen con motivo del desarrollo del trabajo o, en su caso, de las relaciones laborales, en ningún supuesto pondrán en riesgo las condiciones de operación o de seguridad de los Centros Penitenciarios. Invariablemente, el ejercicio de los derechos laborales o contractuales deberán ser compatibles con la situación jurídica de las personas privadas de la libertad.
 
-**Artículo 93.** Cuenta para la administración de las ganancias o salarios con motivo del trabajo La cuenta para la administración de las ganancias o salarios que obtengan las personas privadas de la libertad con motivo del trabajo, será administrada por la Autoridad Penitenciaria correspondiente y deberá observar las condiciones mínimas siguientes:
+**Artículo 93.** Cuenta para la administración de las ganancias o salarios con motivo del trabajo
+
+La cuenta para la administración de las ganancias o salarios que obtengan las personas privadas de la libertad con motivo del trabajo, será administrada por la Autoridad Penitenciaria correspondiente y deberá observar las condiciones mínimas siguientes:
 
 **I.** Se integrará de forma individualizada en atención a cada persona privada de la libertad que realice alguna de las modalidades del trabajo;
 
-**II.** Será administrada bajo los principios de transparencia, por lo que se deberá noti ficar de manera periódica a cada persona privada de la libertad que participe, el estado que guarda la misma;
+**II.** Será administrada bajo los principios de transparencia, por lo que se deberá notificar de manera periódica a cada persona privada de la libertad que participe, el estado que guarda la misma;
 
-**III.** A solicitud de la persona privada de la libertad, las ganancias o salarios que se acumulen a su favor en la cuenta, podrán destinarse para e fectos de reparación del daño y de seguridad social;
+**III.** A solicitud de la persona privada de la libertad, las ganancias o salarios que se acumulen a su favor en la cuenta, podrán destinarse para efectos de reparación del daño y de seguridad social;
 
 **IV.** A solicitud de la persona privada de la libertad, un porcentaje de las ganancias o salarios que acumule en la cuenta podrá ser entregado a sus familiares, y
 
-**V.** Las ganancias o salarios acumulados e n la cuenta, serán restituidos a la persona una vez que obtenga su libertad.
+**V.** Las ganancias o salarios acumulados en la cuenta, serán restituidos a la persona una vez que obtenga su libertad.
 
-**Artículo 94.** Complementariedad del trabajo La participación de las personas privadas de la libertad en los programas de trabajo será independiente de las actividades educativas, artísticas, culturales, deportivas, cívicas, sociales y de recreación que se establezcan a su favor en el Centro Penitenciario.
+**Artículo 94.** Complementariedad del trabajo
 
-**Artículo 95.** Programa de Trabajo El Plan de Actividades y las normas para establecer el trabajo serán previstos por la Autorida d Penitenciaria y tendrán como propósito planificar, regular, organizar y establecer métodos, condiciones generales de trabajo, condiciones de seguridad y salud, así como medidas preventivas para su desarrollo.
+La participación de las personas privadas de la libertad en los programas de trabajo será independiente de las actividades educativas, artísticas, culturales, deportivas, cívicas, sociales y de recreación que se establezcan a su favor en el Centro Penitenciario.
+
+**Artículo 95.** Programa de Trabajo
+
+El Plan de Actividades y las normas para establecer el trabajo serán previstos por la Autoridad Penitenciaria y tendrán como propósito planificar, regular, organizar y establecer métodos, condiciones generales de trabajo, condiciones de seguridad y salud, así como medidas preventivas para su desarrollo.
 
 El trabajo se desarrollará en las distintas áreas de los sectores productivos, mismo que se aplicará tomando como límites la seguridad y custodia a que estén sujetas las personas privadas de la libertad.
 
-**Artículo 96.** Coordinación interinstitucional Las autoridades penitenciarias conjuntamente con l as autoridades corresponsables impulsarán espacios de coordinación interinstitucional en las entidades federativas y en el orden federal con la participación de los sectores privado y social, con el propósito de favorecer la inclusión laboral de las personas privadas de la libertad próximas a ser liberadas.
+**Artículo 96.** Coordinación interinstitucional
 
-**Artículo 97.** Autoempleo El autoempleo es la modalidad a través de la cual las personas privadas de la libertad realizan una actividad productiva lícita desarrollada por ellas mismas.
+Las autoridades penitenciarias conjuntamente con las autoridades corresponsables impulsarán espacios de coordinación interinstitucional en las entidades federativas y en el orden federal con la participación de los sectores privado y social, con el propósito de favorecer la inclusión laboral de las personas privadas de la libertad próximas a ser liberadas.
+
+**Artículo 97.** Autoempleo
+
+El autoempleo es la modalidad a través de la cual las personas privadas de la libertad realizan una actividad productiva lícita desarrollada por ellas mismas.
 
 Para el desarrollo de esta modalidad, la Autoridad Penitenciaria podrá autorizar la proveeduría de los insumos necesarios desde el exterior, siempre que no se contravenga ninguna disposición ni se ponga en riesgo la seguridad de las personas o del Centro Penitenciario.
 
-**Artículo 98.** Actividades productivas no remuneradas para fines del sistema de reinserción Las actividades productivas no remuneradas para fines del sistema de reinserción es la modalidad a través de la cual las personas privadas de la libertad realizan activi dades de servicios generales para la higiene, operación, mantenimiento y conservación del Centro Penitenciario.
+**Artículo 98.** Actividades productivas no remuneradas para fines del sistema de reinserción
 
-De manera igualitaria, equitativa y sin discriminación alguna, toda persona privada de la libertad deberá participar de las labores de orden, m antenimiento, limpieza, higiene y demás funciones no remuneradas que compongan los servicios generales del Centro.
+Las actividades productivas no remuneradas para fines del sistema de reinserción es la modalidad a través de la cual las personas privadas de la libertad realizan actividades de servicios generales para la higiene, operación, mantenimiento y conservación del Centro Penitenciario.
+
+De manera igualitaria, equitativa y sin discriminación alguna, toda persona privada de la libertad deberá participar de las labores de orden, mantenimiento, limpieza, higiene y demás funciones no remuneradas que compongan los servicios generales del Centro.
 
 En la normatividad respectiva se establecerá el sistema de rotaciones semanales de acuerdo a la población y necesidades del Centro.
 
-**Artículo 99.** Actividades productivas realizadas a cuenta de terceros Las actividades productivas realizadas a cuenta de terceros son la modalidad a través de la cual las personas privadas de la libertad realizan actividades productivas lícitas, en el marco de los convenios que para tal efecto suscriba la Autoridad Penitenciaria con las instituciones del Estado y las personas físicas o jurídicas correspondientes.
+**Artículo 99.** Actividades productivas realizadas a cuenta de terceros
 
-TÍTULO CUARTO Del Procedimiento de Ejecución
+Las actividades productivas realizadas a cuenta de terceros son la modalidad a través de la cual las personas privadas de la libertad realizan actividades productivas lícitas, en el marco de los convenios que para tal efecto suscriba la Autoridad Penitenciaria con las instituciones del Estado y las personas físicas o jurídicas correspondientes.
 
-Capítulo I Disposiciones Generales
+**TÍTULO CUARTO**
 
-**Artículo 100.** Ejecución de la sentencia El Juez de Ejecución dará trámite a los procedimientos que correspondan a la Ejecución de Sentencia, para dar cumplimiento al fallo emitido por el Juez de Control o Tribunal de Enjuiciamiento en los términos establecidos por esta Ley, por el Código y demás leyes penales aplicables.
+Del Procedimiento de Ejecución
 
-**Artículo 101.** Tipos de resoluciones que ejecutará el Juez de Ejecución El Juez de Ejecución deberá cumplimentar las sentencias condenatorias y firmes.
+Capítulo I
 
-**Artículo 102.** Puesta a Disposición El Juez o Tribunal de enjuiciamiento, dentro de los tres días siguientes a que haya causado ejecutoria la sentencia, la remitirá al Juez de Ejecución y a la Autoridad Penitenciaria.
+Disposiciones Generales
 
-Cuando el sentenciado se encuentre privado de la libertad, el Juez o Tribunal de enjuiciamient o dentro de los tres días siguientes a que haya causado ejecutoria la sentencia, lo pondrá a disposición del Juez de Ejecución.
+**Artículo 100.** Ejecución de la sentencia
 
-Si el sentenciado se encuentra en libertad y se dicta una sentencia condenatoria sin otorgamiento de algún sustitutivo penal, e l Juez de Ejecución lo requerirá para que en el plazo de cinco días se interne voluntariamente, y en caso de no hacerlo, ordenará su reaprehensión inmediata.
+El Juez de Ejecución dará trámite a los procedimientos que correspondan a la Ejecución de Sentencia, para dar cumplimiento al fallo emitido por el Juez de Control o Tribunal de Enjuiciamiento en los términos establecidos por esta Ley, por el Código y demás leyes penales aplicables.
+
+**Artículo 101.** Tipos de resoluciones que ejecutará el Juez de Ejecución
+
+El Juez de Ejecución deberá cumplimentar las sentencias condenatorias y firmes.
+
+**Artículo 102.** Puesta a Disposición
+
+El Juez o Tribunal de enjuiciamiento, dentro de los tres días siguientes a que haya causado ejecutoria la sentencia, la remitirá al Juez de Ejecución y a la Autoridad Penitenciaria.
+
+Cuando el sentenciado se encuentre privado de la libertad, el Juez o Tribunal de enjuiciamiento dentro de los tres días siguientes a que haya causado ejecutoria la sentencia, lo pondrá a disposición del Juez de Ejecución.
+
+Si el sentenciado se encuentra en libertad y se dicta una sentencia condenatoria sin otorgamiento de algún sustitutivo penal, el Juez de Ejecución lo requerirá para que en el plazo de cinco días se interne voluntariamente, y en caso de no hacerlo, ordenará su reaprehensión inmediata.
 
 En caso de que el sentenciado se encuentre en libertad y se dicte una sentencia condenatoria con otorgamiento de sustitutivo penal, el Juez de Ejecución lo prevendrá para que en un plazo de tres días manifieste si se acoge a dicho beneficio, bajo el apercibimiento que de no pronunciarse se ordenará su reaprehensión.
 
-Capítulo II Trámite de Ejecución
+Capítulo II
 
-**Artículo 103.** Inicio de la Ejecución La administración del Juzgado de Ejecución al recibir la sentencia o el auto por el que se impone la prisión preventiva, generará un número de registro y procederá a turnarlo al Juez de Ejecución competente, para que proceda a dar cumplimiento a tales resoluciones judiciales.
+Trámite de Ejecución
+
+**Artículo 103.** Inicio de la Ejecución
+
+La administración del Juzgado de Ejecución al recibir la sentencia o el auto por el que se impone la prisión preventiva, generará un número de registro y procederá a turnarlo al Juez de Ejecución competente, para que proceda a dar cumplimiento a tales resoluciones judiciales.
 
 Una vez recibidos por el Juez de Ejecución, la sentencia y el auto que la declare ejecutoriada, dentro de los tres días siguientes dictará el auto de inicio al procedimiento ordinario de ejecución, y en su caso prevendrá para que se subsanen errores u omisiones en la documentación correspondiente en el plazo de tres días.
 
 Se ordenará asimismo la notificación al Ministerio Público, a la persona sentenciada y a su defensor.
 
-El Juez de Ejecución prev endrá al sentenciado para que, dentro del término de tres días, designe un Defensor Particular y, sino lo hiciera, se le designará un Defensor Público, para que lo asista durante el procedimiento de ejecución en los términos de esta Ley, de la Ley Orgánica respectiva y del Código.
+El Juez de Ejecución prevendrá al sentenciado para que, dentro del término de tres días, designe un Defensor Particular y, sino lo hiciera, se le designará un Defensor Público, para que lo asista durante el procedimiento de ejecución en los términos de esta Ley, de la Ley Orgánica respectiva y del Código.
 
 El Juez de Ejecución solicitará a la Autoridad Penitenciaria que en el término de tres días remita la información correspondiente, para la realización del cómputo de las penas y abonará el tiempo de la prisión preventiva o arresto domiciliario cumplidos por el sentenciado.
 
-**Artículo 104.** Elaboración del Plan de Actividades Para la elaboración del Plan de Actividades, al ingreso al Centro, la Autoridad Penitenciaria informará a la persona privada de la libertad las actividades disp onibles en dicho Centro y de manera participativa se diseñará un Plan de Actividades acorde a las necesidades, preferencias y capacidades de la persona privada de la libertad. Las normas reglamentarias determinarán el número de actividades y de horas que constituirán un Plan de Actividades satisfactorio. Dicho plan será remitido al Juez de Ejecución dentro de los quince días hábiles siguientes a la puesta a disposición del sentenciado, para su conocimiento.
+**Artículo 104.** Elaboración del Plan de Actividades
 
-La determinación del Plan de Actividades por part e de la Autoridad Penitenciaria podrá ser recurrida ante el Juez de Ejecución.
+Para la elaboración del Plan de Actividades, al ingreso al Centro, la Autoridad Penitenciaria informará a la persona privada de la libertad las actividades disponibles en dicho Centro y de manera participativa se diseñará un Plan de Actividades acorde a las necesidades, preferencias y capacidades de la persona privada de la libertad. Las normas reglamentarias determinarán el número de actividades y de horas que constituirán un Plan de Actividades satisfactorio. Dicho plan será remitido al Juez de Ejecución dentro de los quince días hábiles siguientes a la puesta a disposición del sentenciado, para su conocimiento.
 
-**Artículo 105.** Contenido de la carpeta de ejecución La carpeta de ejecución deberá contener cuando menos los siguientes documentos:
+La determinación del Plan de Actividades por parte de la Autoridad Penitenciaria podrá ser recurrida ante el Juez de Ejecución.
+
+**Artículo 105.** Contenido de la carpeta de ejecución
+
+La carpeta de ejecución deberá contener cuando menos los siguientes documentos:
 
 **I.** Sentencia definitiva de primera instancia y auto que la declare ejecutoriada;
 
@@ -1214,7 +1458,7 @@ La determinación del Plan de Actividades por part e de la Autoridad Penitenciar
 
 **III.** Sentencia de amparo vinculada a dichas resoluciones, en su caso;
 
-**IV.** Auto de ejecución de la sentencia en el cual se determinen el cómputo de la pe na, considerando el tiempo de prisión preventiva o arresto domiciliario cumplidos por el sentenciado, las condiciones de cumplimiento del pago de multa, la reparación del daño, así como el pronunciamiento respecto del otorgamiento o negativa del sustitutivo penal;
+**IV.** Auto de ejecución de la sentencia en el cual se determinen el cómputo de la pena, considerando el tiempo de prisión preventiva o arresto domiciliario cumplidos por el sentenciado, las condiciones de cumplimiento del pago de multa, la reparación del daño, así como el pronunciamiento respecto del otorgamiento o negativa del sustitutivo penal;
 
 **V.** Plan de Actividades;
 
@@ -1232,27 +1476,33 @@ La determinación del Plan de Actividades por part e de la Autoridad Penitenciar
 
 **XII.** Los demás registros de actividad procesal.
 
-**Artículo 106.** Cómputo de la pena El Juez de Ejecución deberá hacer el cómputo de la pena y abonará el tiemp o de la prisión preventiva o arresto domiciliario cumplidos por el sentenciado, con base en la información remitida por la Autoridad Penitenciaria, y de las constancias que el Juez o Tribunal de enjuiciamiento le notificó en su momento, a fin de determinar con precisión la fecha en la que se dará por compurgada.
+**Artículo 106.** Cómputo de la pena
+
+El Juez de Ejecución deberá hacer el cómputo de la pena y abonará el tiempo de la prisión preventiva o arresto domiciliario cumplidos por el sentenciado, con base en la información remitida por la Autoridad Penitenciaria, y de las constancias que el Juez o Tribunal de enjuiciamiento le notificó en su momento, a fin de determinar con precisión la fecha en la que se dará por compurgada.
 
 El cómputo podrá ser modificado por el Juez de Ejecución durante el procedimiento de ejecución, de conformidad con lo dispuesto en la legislación aplicable.
 
 Cuando para el cómputo se establezca el orden de compurgación de las penas impuestas en diversos procesos, se dará aviso al resto de los jueces.
 
-El Ministerio Público, la víctima o el ofendido podrán oponerse al cómputo de la pena, en caso de que consideren, éste se realizó de manera incorrect a; en tal supuesto, deberán aportar los elementos necesarios para realizar la verificación correspondiente.
+El Ministerio Público, la víctima o el ofendido podrán oponerse al cómputo de la pena, en caso de que consideren, éste se realizó de manera incorrecta; en tal supuesto, deberán aportar los elementos necesarios para realizar la verificación correspondiente.
 
 Una vez cumplida la sentencia, el Juez de Ejecución a través del auto respectivo, determinará tal circunstancia.
 
-Capítulo III Procedimiento Administrativo
+Capítulo III
+
+Procedimiento Administrativo
 
 **Artículo 107.** Peticiones administrativas
 
 Las personas privadas de la libertad y aquellas legitimadas en esta Ley podrán formular peticiones administrativas ante la Autoridad Penitenciaria en contra de los hechos, actos u omisiones respecto de las condiciones de internamiento.
 
-**Artículo 108.** Legitimación Se reconoce legitimidad para formular las peticiones ante las direcciones de los Centros a:
+**Artículo 108.** Legitimación
+
+Se reconoce legitimidad para formular las peticiones ante las direcciones de los Centros a:
 
 **I.** La persona privada de la libertad, a nombre propio o de manera colectiva;
 
-**II.** Los familiares hasta e l cuarto grado de parentesco por consanguinidad de la persona privada de la libertad, su cónyuge, concubinario o pareja de hecho;
+**II.** Los familiares hasta el cuarto grado de parentesco por consanguinidad de la persona privada de la libertad, su cónyuge, concubinario o pareja de hecho;
 
 **III.** Los visitantes;
 
@@ -1260,47 +1510,65 @@ Las personas privadas de la libertad y aquellas legitimadas en esta Ley podrán 
 
 **V.** El Ministerio Público;
 
-**VI.** Cualquier autoridad, entidad, ó rgano u organismo de protección de los derechos humanos en el orden federal o de las entidades federativas, que tengan dentro de su mandato la protección de las personas privadas de la libertad o de grupos o individuos que se encuentren privados de la misma, y
+**VI.** Cualquier autoridad, entidad, órgano u organismo de protección de los derechos humanos en el orden federal o de las entidades federativas, que tengan dentro de su mandato la protección de las personas privadas de la libertad o de grupos o individuos que se encuentren privados de la misma, y
 
 **VII.** Las organizaciones de la sociedad civil que tengan dentro de su objeto la protección de los derechos de las personas privadas de la libertad y que se encuentren debidamente acreditadas.
 
-**Artículo 109.** Sustanciación de las peticiones Las peticion es se sustanciarán conforme a las reglas establecidas en esta Ley, a fin de que la Autoridad Penitenciaria se pronuncie sobre si ha existido o no una afectación en las condiciones de vida digna y segura en reclusión para las personas privadas de la liberta d o afectación a los derechos de terceras personas y, en su caso, la subsanación de dicha afectación.
+**Artículo 109.** Sustanciación de las peticiones
+
+Las peticiones se sustanciarán conforme a las reglas establecidas en esta Ley, a fin de que la Autoridad Penitenciaria se pronuncie sobre si ha existido o no una afectación en las condiciones de vida digna y segura en reclusión para las personas privadas de la libertad o afectación a los derechos de terceras personas y, en su caso, la subsanación de dicha afectación.
 
 Los solicitantes podrán desistir de su petición en cualquier momento, salvo que el tema planteado se refiera al interés general del Centro o de un sector de su población. El desistimiento no implica la pérdida del derecho a formular una petición sobre la misma materia con posterioridad.
 
-**Artículo 110.** Formulación de la petición Las peticiones administrativas se formularán por escrito sin formalidad alguna ante el director del Centro, para lo cual se podrá aportar la información que se considere pertinente, con el objeto de atender las condiciones de vida digna y segura en reclusión.
+**Artículo 110.** Formulación de la petición
 
-La autoridad administrativa del Centro auxiliará a las personas privadas d e la libertad cuando lo soliciten para formular el escrito.
+Las peticiones administrativas se formularán por escrito sin formalidad alguna ante el director del Centro, para lo cual se podrá aportar la información que se considere pertinente, con el objeto de atender las condiciones de vida digna y segura en reclusión.
 
-En caso de que la petición sea formulada por persona distinta a la privada de la libertad, ésta deberá señalar nombre, domicilio, teléfono y, en su caso, correo electrónico, para que le sean prac ticadas las determinaciones respectivas.
+La autoridad administrativa del Centro auxiliará a las personas privadas de la libertad cuando lo soliciten para formular el escrito.
 
-**Artículo 111.** Acuerdo de inicio Una vez recibida la petición, la Autoridad Penitenciaria, por escrito y dentro de las veinticuatro horas siguientes, admitirá la petición e iniciará el trámite del procedimiento, o b ien, prevendrá en caso de ser confusa. Esta determinación deberá notificarse personalmente al promovente.
+En caso de que la petición sea formulada por persona distinta a la privada de la libertad, ésta deberá señalar nombre, domicilio, teléfono y, en su caso, correo electrónico, para que le sean practicadas las determinaciones respectivas.
+
+**Artículo 111.** Acuerdo de inicio
+
+Una vez recibida la petición, la Autoridad Penitenciaria, por escrito y dentro de las veinticuatro horas siguientes, admitirá la petición e iniciará el trámite del procedimiento, o bien, prevendrá en caso de ser confusa. Esta determinación deberá notificarse personalmente al promovente.
 
 En caso de prevención, el peticionario tendrá un plazo de setenta y dos horas a partir de su notificación para subsanarla. En caso de no hacerlo, la Autoridad Penitenciaria citará al promovente para que de manera personal y oral aclare su petición. Hecho lo anterior, se emitirá la resolución sobre el fondo de la cuestión planteada. En caso de no acudir a la citación, se tendrá por desechada la petición formulada.
 
-**Artículo 112.** Trámite del procedimiento Una vez admitida la petición, el director del Centro tendrá la obligación de allegarse por cualquier medio de la información necesaria, dentro del plazo señalado para resolver, considerando siempre la que, en su caso, hubiese aportado el peticionario, y con la finalidad de emitir una resolución que atienda de manera óptima la petición, en caso de que así procediera.
+**Artículo 112.** Trámite del procedimiento
+
+Una vez admitida la petición, el director del Centro tendrá la obligación de allegarse por cualquier medio de la información necesaria, dentro del plazo señalado para resolver, considerando siempre la que, en su caso, hubiese aportado el peticionario, y con la finalidad de emitir una resolución que atienda de manera óptima la petición, en caso de que así procediera.
 
 La obligación de allegarse de información deberá estar acompañada de acciones diligentes a fin de no retrasar la resolución de la petición.
 
-**Artículo 113.** Acumulación de peticiones Las peticiones administrativas que tengan un mismo objeto, total o parcialmente, serán acumulables, cuando así proceda, para ser resueltas en un solo acto conjuntam ente, continuándose la substanciación por separado de la parte que no se hubiese acumulado.
+**Artículo 113.** Acumulación de peticiones
 
-**Artículo 114.** Resolución de peticiones administrativas El director del Centro estará obligado a resolver dentro de un término de cinco días contados a partir de la admisión de la petición y notificar al peticionario en un plazo no mayor a veinticuatro horas posteriores al dictado de la resolución.
+Las peticiones administrativas que tengan un mismo objeto, total o parcialmente, serán acumulables, cuando así proceda, para ser resueltas en un solo acto conjuntamente, continuándose la substanciación por separado de la parte que no se hubiese acumulado.
+
+**Artículo 114.** Resolución de peticiones administrativas
+
+El director del Centro estará obligado a resolver dentro de un término de cinco días contados a partir de la admisión de la petición y notificar al peticionario en un plazo no mayor a veinticuatro horas posteriores al dictado de la resolución.
 
 Si la petición fue resuelta en sentido contrario a los intereses del peticionario, éste podrá formular controversia ante el Juez de Ejecución dentro de los diez días siguientes a la fecha de notificación de la referida resolución. Si los efectos del acto son continuos o permanentes, la controversia ante el Juez de Ejecución podrá plantearse en cualquier momento.
 
-Si la pet ición no fuere resuelta dentro del término legal, el promovente podrá acudir ante el Juez de Ejecución competente y demandar esta omisión. Hecho lo anterior, el juez resolverá en un plazo no mayor a setenta y dos horas. En caso de ser procedente la acción, el juez requerirá a la Autoridad Penitenciaria que responda la petición formulada de fondo y en el plazo previsto en esta Ley y dará cuenta al inmediato superior jerárquico de la Autoridad Penitenciaria.
+Si la petición no fuere resuelta dentro del término legal, el promovente podrá acudir ante el Juez de Ejecución competente y demandar esta omisión. Hecho lo anterior, el juez resolverá en un plazo no mayor a setenta y dos horas. En caso de ser procedente la acción, el juez requerirá a la Autoridad Penitenciaria que responda la petición formulada de fondo y en el plazo previsto en esta Ley y dará cuenta al inmediato superior jerárquico de la Autoridad Penitenciaria.
 
-La Autoridad Penitenciaria le hará saber a la pers ona privada de la libertad el derecho que tiene a la interposición del presente recurso, dejando constancia por escrito.
+La Autoridad Penitenciaria le hará saber a la persona privada de la libertad el derecho que tiene a la interposición del presente recurso, dejando constancia por escrito.
 
-**Artículo 115.** Casos urgentes Cuando las peticiones recaigan sobre hechos, actos u omisiones respecto de las condiciones de internamiento que, de no atenderse de inmediato, quedaría sin materia la petición, constituyendo un caso urgente, la persona legitimada podrá acudir directamente ante el Juez de Ejecución para plantear su petición.
+**Artículo 115.** Casos urgentes
 
-En este caso, el Juez de Ejecución, de oficio, susp enderá de inmediato el hecho o acto que motivó la petición, así como los efectos que tuviere, hasta en tanto se resuelva en definitiva. Tratándose de omisiones, el Juez de Ejecución determinará las acciones a realizar por la Autoridad Penitenciaria.
+Cuando las peticiones recaigan sobre hechos, actos u omisiones respecto de las condiciones de internamiento que, de no atenderse de inmediato, quedaría sin materia la petición, constituyendo un caso urgente, la persona legitimada podrá acudir directamente ante el Juez de Ejecución para plantear su petición.
+
+En este caso, el Juez de Ejecución, de oficio, suspenderá de inmediato el hecho o acto que motivó la petición, así como los efectos que tuviere, hasta en tanto se resuelva en definitiva. Tratándose de omisiones, el Juez de Ejecución determinará las acciones a realizar por la Autoridad Penitenciaria.
 
 Cuando los jueces de ejecución reciban promociones que por su naturaleza no sean casos urgentes, las turnarán al centro para su tramitación, recabando registro de su entrega.
 
-Capítulo IV Controversias ante el Juez de Ejecución
+Capítulo IV
 
-**Artículo 116.** Controversias Los jueces de ejecución conocerán controversias relacionadas con:
+Controversias ante el Juez de Ejecución
+
+**Artículo 116.** Controversias
+
+Los jueces de ejecución conocerán controversias relacionadas con:
 
 **I.** Las condiciones de internamiento y cuestiones relacionadas con las mismas;
 
@@ -1312,7 +1580,9 @@ Capítulo IV Controversias ante el Juez de Ejecución
 
 **V.** La duración, modificación y extinción de las medidas de seguridad.
 
-**Artículo 117.** Controversias sobre condiciones de internamiento, el plan de actividades y cuestiones relacionadas con ambas Los sujetos legitimados por esta Ley para interponer peticiones administrativas también tendrán acción judicial ante el Juez de Control o de Ejecución según corresponda, con el objeto de resolver las controversias sobre los siguientes aspectos:
+**Artículo 117.** Controversias sobre condiciones de internamiento, el plan de actividades y cuestiones relacionadas con ambas
+
+Los sujetos legitimados por esta Ley para interponer peticiones administrativas también tendrán acción judicial ante el Juez de Control o de Ejecución según corresponda, con el objeto de resolver las controversias sobre los siguientes aspectos:
 
 **I.** Las condiciones de internamiento, el plan de actividades y cuestiones relacionadas con ambas, en cuyo caso será requisito indispensable haber agotado la petición administrativa;
 
@@ -1320,15 +1590,17 @@ Capítulo IV Controversias ante el Juez de Ejecución
 
 **III.** Los derechos de las personas privadas de la libertad en materia de traslados. Esta acción podrá ejercitarse en el momento de la notificación de traslado, dentro de los diez días siguientes a la misma, o dentro de los diez días siguientes a su ejecución, cuando la persona privada de la libertad no hubiese sido notificada previamente, y
 
-**IV.** Los derechos de las pers onas que soliciten ingresar o hayan ingresado al Centro como visitantes, defensores públicos o privados, los defensores en los tribunales de amparo, y observadores por parte de organizaciones de la sociedad civil.
+**IV.** Los derechos de las personas que soliciten ingresar o hayan ingresado al Centro como visitantes, defensores públicos o privados, los defensores en los tribunales de amparo, y observadores por parte de organizaciones de la sociedad civil.
 
 En relación a la facción II, en tanto no quede firme la sanción administrativa no podrá ejecutarse.
 
 Por cuanto hace a la fracción III, los traslados por razones urgentes, relacionados con la integridad física o la salud de la persona privada de la libertad o bien, por cuestiones de seguridad del Centro, no requerirán autorización previa del Juez de Ejecución, sin perjuicio de que dicha determinación pueda ser recurrida y en su caso, confirmada o revocada.
 
-**Artículo 118.** Controversia sobre la duración, modificación y extinción de la pena La Autoridad Penitenciaria es la competente para determinar el día a partir del cual deberá empezar a computarse la pena privativa de la libertad, que incluirá el tiempo en detención, la prisión preventiva y el arresto domiciliario.
+**Artículo 118.** Controversia sobre la duración, modificación y extinción de la pena
 
-La persona sentenciada, su defe nsor o el Ministerio Público, podrán acudir ante el Juez de Ejecución para obtener una resolución judicial cuando surja alguna controversia respecto de alguna de las siguientes cuestiones:
+La Autoridad Penitenciaria es la competente para determinar el día a partir del cual deberá empezar a computarse la pena privativa de la libertad, que incluirá el tiempo en detención, la prisión preventiva y el arresto domiciliario.
+
+La persona sentenciada, su defensor o el Ministerio Público, podrán acudir ante el Juez de Ejecución para obtener una resolución judicial cuando surja alguna controversia respecto de alguna de las siguientes cuestiones:
 
 **I.** El informe anual sobre el tiempo transcurrido en el Centro o el reporte anual sobre el buen comportamiento presentados por la Autoridad Penitenciaria;
 
@@ -1350,17 +1622,25 @@ Cualquiera que sea el promovente, se emplazará a las demás partes procesales y
 
 La víctima o su asesor jurídico, sólo podrán participar en los procedimientos ante el Juez de Ejecución, cuando el debate esté relacionado con la reparación del daño y cuando se afecte de manera directa o indirecta su derecho al esclarecimiento de los hechos y a la justicia.
 
-**Artículo 119.** Controversias sobre medidas de seguridad Las controversias sobre la modificación, extinción o cesación de las medidas de seguridad, se resolverán de acuerdo con las normas previstas en el Código para pers onas imputables con los ajustes razonables que en el caso concreto acuerde el Juez de Ejecución, para garantizar su derecho a la defensa.
+**Artículo 119.** Controversias sobre medidas de seguridad
 
-Capítulo V Procedimiento Jurisdiccional
+Las controversias sobre la modificación, extinción o cesación de las medidas de seguridad, se resolverán de acuerdo con las normas previstas en el Código para personas imputables con los ajustes razonables que en el caso concreto acuerde el Juez de Ejecución, para garantizar su derecho a la defensa.
 
-**Artículo 120.** Principios del procedimiento Las acciones y recursos judiciale s se sustanciarán conforme a un sistema adversarial y oral y se regirán por los principios de contradicción, concentración, continuidad, inmediación y publicidad.
+Capítulo V
 
-La persona privada de la libertad deberá contar con un defensor en las acciones y recursos j udiciales; mientras que la Autoridad Penitenciaria podrá intervenir por conducto de la persona titular de la dirección del Centro o de la persona que ésta designe.
+Procedimiento Jurisdiccional
+
+**Artículo 120.** Principios del procedimiento
+
+Las acciones y recursos judiciales se sustanciarán conforme a un sistema adversarial y oral y se regirán por los principios de contradicción, concentración, continuidad, inmediación y publicidad.
+
+La persona privada de la libertad deberá contar con un defensor en las acciones y recursos judiciales; mientras que la Autoridad Penitenciaria podrá intervenir por conducto de la persona titular de la dirección del Centro o de la persona que ésta designe.
 
 El promovente podrá desistirse de la acción y del recurso judicial en cualquier etapa del procedimiento, siempre que esto no implique la renuncia a un derecho fundamental.
 
-**Artículo 121.** Partes procesales En los procedimientos ante el Juez de Ejecución podrán intervenir como partes procesales, de acuerdo a la naturaleza de la controversia:
+**Artículo 121.** Partes procesales
+
+En los procedimientos ante el Juez de Ejecución podrán intervenir como partes procesales, de acuerdo a la naturaleza de la controversia:
 
 **I.** La persona privada de la libertad;
 
@@ -1372,17 +1652,21 @@ El promovente podrá desistirse de la acción y del recurso judicial en cualquie
 
 **V.** El promovente de la acción o recurso, y
 
-**VI.** La víctima y su asesor juríd ico, cuando el debate esté relacionado con la reparación del daño y cuando se afecte de manera directa o indirecta su derecho al esclarecimiento de los hechos y a la justicia.
+**VI.** La víctima y su asesor jurídico, cuando el debate esté relacionado con la reparación del daño y cuando se afecte de manera directa o indirecta su derecho al esclarecimiento de los hechos y a la justicia.
 
 Cuando se trate de controversias sobre duración, modificación o extinción de la pena o medidas de seguridad, sólo podrán intervenir las personas señaladas en las fracciones I, II, III, IV y VI, del presente artículo y en este último caso respecto de la reparación del daño.
 
-Cuando el promovente no sea la persona privada de la liberta d, el Juez de Ejecución podrá hacerlo comparecer a la audiencia si lo estima necesario.
+Cuando el promovente no sea la persona privada de la libertad, el Juez de Ejecución podrá hacerlo comparecer a la audiencia si lo estima necesario.
 
-**Artículo 122.** Formulación de la controversia La controversia judicial deberá presentarse por escrito ante la administración del juzgado de ejecución, precisando el nom bre del promovente, datos de localización, el relato de su inconformidad, los medios de prueba en caso de contar con ellos, la solicitud de suspensión del acto cuando considere que se trata de caso urgente y la firma o huella digital.
+**Artículo 122.** Formulación de la controversia
 
-El Juez de Ejecución , de acuerdo con la naturaleza de la pretensión, de oficio o a petición de parte, ordenará la suspensión del acto si lo considera pertinente, así como el desahogo de las pruebas que estime conducentes para resolver el conflicto.
+La controversia judicial deberá presentarse por escrito ante la administración del juzgado de ejecución, precisando el nombre del promovente, datos de localización, el relato de su inconformidad, los medios de prueba en caso de contar con ellos, la solicitud de suspensión del acto cuando considere que se trata de caso urgente y la firma o huella digital.
 
-**Artículo 123.** Auto de inicio Una vez recibida la solicitud, la administración del juzgado de ejecución registrará la causa y la turnará al juez competente. Recibida la causa, el Juez de Ejecución contará con un plazo de setenta y dos horas para emitir un auto en cualquiera de los siguientes sentidos:
+El Juez de Ejecución, de acuerdo con la naturaleza de la pretensión, de oficio o a petición de parte, ordenará la suspensión del acto si lo considera pertinente, así como el desahogo de las pruebas que estime conducentes para resolver el conflicto.
+
+**Artículo 123.** Auto de inicio
+
+Una vez recibida la solicitud, la administración del juzgado de ejecución registrará la causa y la turnará al juez competente. Recibida la causa, el Juez de Ejecución contará con un plazo de setenta y dos horas para emitir un auto en cualquiera de los siguientes sentidos:
 
 **I.** Admitir la solicitud e iniciar el trámite del procedimiento;
 
@@ -1390,27 +1674,33 @@ El Juez de Ejecución , de acuerdo con la naturaleza de la pretensión, de ofici
 
 **III.** Desechar por ser notoriamente improcedente.
 
-Cuando se realice una prevención, el solicit ante tendrá un plazo de setenta y dos horas para que aclare o corrija la solicitud, en caso de no hacerlo, se desechará de plano.
+Cuando se realice una prevención, el solicitante tendrá un plazo de setenta y dos horas para que aclare o corrija la solicitud, en caso de no hacerlo, se desechará de plano.
 
-El auto que admita la solicitud deberá realizarse por escrito y notificarse al promovente de manera inmediata sin que pueda e xceder del término de veinticuatro horas. En caso de que no se notifique, se entenderá que fue admitida la solicitud.
+El auto que admita la solicitud deberá realizarse por escrito y notificarse al promovente de manera inmediata sin que pueda exceder del término de veinticuatro horas. En caso de que no se notifique, se entenderá que fue admitida la solicitud.
 
-Las solicitudes que tengan un mismo objeto, total o parcialmente, serán acumuladas en el auto admisorio para ser resueltas en un solo act o conjuntamente, continuándose la substanciación por separado de la parte que no se hubiese acumulado. El auto que admite o niega la acumulación podrá ser reclamado mediante revocación.
+Las solicitudes que tengan un mismo objeto, total o parcialmente, serán acumuladas en el auto admisorio para ser resueltas en un solo acto conjuntamente, continuándose la substanciación por separado de la parte que no se hubiese acumulado. El auto que admite o niega la acumulación podrá ser reclamado mediante revocación.
 
-**Artículo 124.** Sustanciación En caso de ser admitida la solicitud o su bsanada la prevención, la administración del juzgado de ejecución notificará y entregará a las partes copia de la solicitud y sus anexos, para que dentro del plazo de cinco días contesten la acción y ofrezcan los medios de prueba que estimen pertinentes; a demás se requerirá a la Autoridad Penitenciaria para que dentro del mismo término rinda el informe que corresponda.
+**Artículo 124.** Sustanciación
+
+En caso de ser admitida la solicitud o subsanada la prevención, la administración del juzgado de ejecución notificará y entregará a las partes copia de la solicitud y sus anexos, para que dentro del plazo de cinco días contesten la acción y ofrezcan los medios de prueba que estimen pertinentes; además se requerirá a la Autoridad Penitenciaria para que dentro del mismo término rinda el informe que corresponda.
 
 En caso de tratarse de medidas disciplinarias y de violación a derechos que constituyan un caso urgente que, de no atenderse de inmediato, quedará sin materia la acción o el recurso jurisdiccional, el Juez de Ejecución de oficio o a solicitud de parte decretará de inmediato la suspensión del acto, hasta en tanto se resuelve en definitiva.
 
-Rendido el informe y contestada la acción, se entrega rá copia de las mismas a las partes que correspondan y se señalará hora y fecha para la celebración de la audiencia, la cual deberá realizarse al menos tres días después de la notificación sin exceder de diez días.
+Rendido el informe y contestada la acción, se entregará copia de las mismas a las partes que correspondan y se señalará hora y fecha para la celebración de la audiencia, la cual deberá realizarse al menos tres días después de la notificación sin exceder de diez días.
 
-En caso de que las partes ofrezcan testi gos, deberán indicar el nombre, domicilio y lugar donde podrán ser citados, así como el objeto sobre el cual versará su testimonio.
+En caso de que las partes ofrezcan testigos, deberán indicar el nombre, domicilio y lugar donde podrán ser citados, así como el objeto sobre el cual versará su testimonio.
 
 En la fecha fijada se celebrará la audiencia, a la cual deberán acudir todos los interesados. La ausencia del director del Centro o quien lo represente y de la víctima o su asesor jurídico no suspenderá la audiencia.
 
-**Artículo 125.** Reglas de la audiencia Previo a cualquier audiencia, el personal de la administración del juzgado de ejecución llevará a cabo la identificación de toda persona que vaya a participar, para lo cual deberá proporcionar su nombre, apellidos, edad y domicilio.
+**Artículo 125.** Reglas de la audiencia
+
+Previo a cualquier audiencia, el personal de la administración del juzgado de ejecución llevará a cabo la identificación de toda persona que vaya a participar, para lo cual deberá proporcionar su nombre, apellidos, edad y domicilio.
 
 Las audiencias serán presididas por el Juez de Ejecución, y se realizarán en los términos previstos en esta Ley y el Código.
 
-**Artículo 126.** Desarrollo de la audiencia La audiencia se desarrollará sujetándose a las reglas siguientes:
+**Artículo 126.** Desarrollo de la audiencia
+
+La audiencia se desarrollará sujetándose a las reglas siguientes:
 
 **I.** El Juez de Ejecución se constituirá en la sala de audiencias el día y hora fijados y verificará la asistencia de los intervinientes, declarará abierta la audiencia y dará una breve explicación de los motivos de la misma;
 
@@ -1420,7 +1710,7 @@ Las audiencias serán presididas por el Juez de Ejecución, y se realizarán en 
 
 **IV.** Las partes discutirán sobre la admisión de los medios de prueba y podrán apelar el desechamiento;
 
-**V.** El Juez de Ejecución admitirá los medios de prueba y se p rocederá a su desahogo conforme a las reglas del Código;
+**V.** El Juez de Ejecución admitirá los medios de prueba y se procederá a su desahogo conforme a las reglas del Código;
 
 **VI.** Las partes formularán los alegatos finales y de ser procedente, el Juez de Ejecución observará el derecho de réplica y dúplica cuando el debate así lo requiera;
 
@@ -1428,23 +1718,29 @@ Las audiencias serán presididas por el Juez de Ejecución, y se realizarán en 
 
 **VIII.** Emitirá su resolución y la explicará a las partes en la misma audiencia.
 
-**Artículo 127.** Resolución El Juez de Ejecución tendrá un término de cinco días para redactar, notificar y entregar copia a las partes de la resolución final.
+**Artículo 127.** Resolución
+
+El Juez de Ejecución tendrá un término de cinco días para redactar, notificar y entregar copia a las partes de la resolución final.
 
 En la resolución el juez deberá pronunciarse, incluso de oficio, sobre cualquier violación a los derechos fundamentales de los sentenciados.
 
-**Artículo 128.** Efectos generales Los jueces de ejecución podrán dar efectos generales a las resoluciones re lativas a las condiciones de internamiento, extendiendo sus efectos a todas las personas privadas de la libertad que se encuentren en las mismas condiciones que motivaron la resolución. El juez establecerá un calendario para la instrumentación progresiva de la resolución, previa audiencia a las partes.
+**Artículo 128.** Efectos generales
 
-**Artículo 129.** Ejecución de la resolución La resolución definitiva se ejecutará una vez que quede firme.
+Los jueces de ejecución podrán dar efectos generales a las resoluciones relativas a las condiciones de internamiento, extendiendo sus efectos a todas las personas privadas de la libertad que se encuentren en las mismas condiciones que motivaron la resolución. El juez establecerá un calendario para la instrumentación progresiva de la resolución, previa audiencia a las partes.
+
+**Artículo 129.** Ejecución de la resolución
+
+La resolución definitiva se ejecutará una vez que quede firme.
 
 Transcurrido el término para el cumplimiento de la resolución por parte de la Autoridad Penitenciaria, el Juez de Ejecución, de oficio o a petición de parte, requerirá a la autoridad el cumplimiento de la misma.
 
 Cuando la Autoridad Penitenciaria manifieste haber cumplido con la resolución respectiva, el Juez de Ejecución notificará tal circunstancia al promovente, para que dentro del término de tres días manifieste lo que a su interés convenga; transcurrido dicho término sin que hubiese objeción, el Juez de Ejecución dará por cumplida la resolución y ordenará el archivo del asunto.
 
-Cuando el interesado ma nifieste su inconformidad en el cumplimiento de la resolución, el Juez de Ejecución notificará a la Autoridad Penitenciaria tal inconformidad por el término de tres días para que manifieste lo que conforme a derecho corresponda y transcurrido el mismo, se resolverá sobre el cumplimiento o no de la resolución.
+Cuando el interesado manifieste su inconformidad en el cumplimiento de la resolución, el Juez de Ejecución notificará a la Autoridad Penitenciaria tal inconformidad por el término de tres días para que manifieste lo que conforme a derecho corresponda y transcurrido el mismo, se resolverá sobre el cumplimiento o no de la resolución.
 
 Cuando la autoridad informe que la resolución sólo fue cumplida parcialmente o que es de imposible cumplimiento, el juez, si considera que las razones no son fundadas ni motivadas, dará a la Autoridad Penitenciaria un término que no podrá exceder de tres días para que dé cumplimiento a la resolución, de no hacerlo se aplicarán las medidas de apremio que correspondan.
 
-Cuando la Autoridad Penitenciaria alegue imposibilidad material o económica para el c umplimiento total o parcial de la resolución, el Juez de Ejecución, escuchando a las partes, fijará un plazo razonable para el cumplimiento.
+Cuando la Autoridad Penitenciaria alegue imposibilidad material o económica para el cumplimiento total o parcial de la resolución, el Juez de Ejecución, escuchando a las partes, fijará un plazo razonable para el cumplimiento.
 
 Cuando la Autoridad Penitenciaria responsable del Centro no cumpliere dentro del plazo establecido, el juez requerirá a sus superiores jerárquicos por su cumplimiento aplicando, en su caso, las medidas de apremio conducentes.
 
@@ -1452,17 +1748,23 @@ Capítulo VI
 
 Recursos
 
-**Artículo 130.** Revocación El recurso de revocación se interpondrá ante el Juez de Ejecución en contra de las determinacion es de mero trámite y en los casos previstos en esta Ley.
+**Artículo 130.** Revocación
+
+El recurso de revocación se interpondrá ante el Juez de Ejecución en contra de las determinaciones de mero trámite y en los casos previstos en esta Ley.
 
 El objeto de este recurso será que el mismo Juez de Ejecución que dictó la resolución impugnada, la examine de nueva cuenta y dicte la resolución que corresponda.
 
 Si el recurso se hace valer contra las resoluciones pronunciadas durante la audiencia, se dará el uso de la palabra a las demás partes, para que manifiesten lo que a su derecho corresponda y en la misma audiencia se dictará la resolución respectiva.
 
-Si el recurso se hace valer contra reso luciones pronunciadas fuera de audiencia, se interpondrá al día siguiente de notificada la determinación, se dará traslado a las demás partes por el término de dos días para que manifiesten lo que a su derecho corresponda, y se resolverá al día siguiente, bien de desahogada la audiencia conforme al Código, o de haber transcurrido el término concedido.
+Si el recurso se hace valer contra resoluciones pronunciadas fuera de audiencia, se interpondrá al día siguiente de notificada la determinación, se dará traslado a las demás partes por el término de dos días para que manifiesten lo que a su derecho corresponda, y se resolverá al día siguiente, bien (sic) de desahogada la audiencia conforme al Código, o de haber transcurrido el término concedido.
 
-**Artículo 131.** Apelación El recurso de apelación se interpondrá dentro de los tres días siguientes a la notificación del auto o resolución que se impugna y ti ene por objeto que el tribunal de alzada revise la legalidad de la resolución impugnada, a fin de confirmarla, modificarla o revocarla.
+**Artículo 131.** Apelación
 
-**Artículo 132.** Procedencia del recurso de apelación El recurso de apelación procederá en contra de las resoluciones que se pronuncien sobre:
+El recurso de apelación se interpondrá dentro de los tres días siguientes a la notificación del auto o resolución que se impugna y tiene por objeto que el tribunal de alzada revise la legalidad de la resolución impugnada, a fin de confirmarla, modificarla o revocarla.
+
+**Artículo 132.** Procedencia del recurso de apelación
+
+El recurso de apelación procederá en contra de las resoluciones que se pronuncien sobre:
 
 **I.** Desechamiento de la solicitud;
 
@@ -1482,25 +1784,39 @@ Si el recurso se hace valer contra reso luciones pronunciadas fuera de audiencia
 
 **IX.** Las demás previstas en esta Ley.
 
-**Artículo 133.** Efectos de la apelación La interposición del recurso de apelación durante la tramitación del asunto no suspende éste.
+**Artículo 133.** Efectos de la apelación
 
-**Artículo 134.** Emplazamiento y remisión Interpuesto el recurso, el Juez de Ejecución correrá traslado a las partes para que en el plazo de tres días manifiesten lo que a su derecho convenga, y en su caso, ejerciten su derecho de adhesión.
+La interposición del recurso de apelación durante la tramitación del asunto no suspende éste.
+
+**Artículo 134.** Emplazamiento y remisión
+
+Interpuesto el recurso, el Juez de Ejecución correrá traslado a las partes para que en el plazo de tres días manifiesten lo que a su derecho convenga, y en su caso, ejerciten su derecho de adhesión.
 
 Una vez realizado el traslado, la unidad de gestión remitirá dentro de las veinticuatro horas siguientes las actuaciones al tribunal de alzada que corresponda.
 
-**Artículo 135.** Tramitación y resolución de la apelación En el auto que se tengan por recibidas las actuaciones enviadas por el Juez de Ejecución, se determinará si el recurso fue interpuesto en tiempo, si la persona tiene derecho de recurrir y si el auto impugnado es apelable.
+**Artículo 135.** Tramitación y resolución de la apelación
+
+En el auto que se tengan por recibidas las actuaciones enviadas por el Juez de Ejecución, se determinará si el recurso fue interpuesto en tiempo, si la persona tiene derecho de recurrir y si el auto impugnado es apelable.
 
 Si fuese necesario el desahogo de una audiencia, el tribunal de alzada en el auto que tuvo por recibidas las actuaciones, señalará día y hora para la celebración de la misma dentro de los cinco días siguientes. En este caso, el tribunal de alzada resolverá el recurso de apelación dentro de los tres días siguientes a la celebración de la audiencia.
 
 En caso de no darse el supuesto a que se refiere el párrafo anterior el tribunal de alzada resolverá el recurso de apelación dentro de los tres días siguientes a la notificación del auto que tuvo por recibidas las actuaciones.
 
-TÍTULO QUINTO Beneficios Preliberacionales y Sanciones no Privativas de la Libertad
+**TÍTULO QUINTO**
 
-Capítulo I Libertad Condicionada
+Beneficios Preliberacionales y Sanciones no Privativas de la Libertad
 
-**Artículo 136.** Libertad condicionada El Juez de Ejecución podrá conceder a la persona sentenciada el beneficio de libertad condicion ada bajo la modalidad de supervisión con o sin monitoreo electrónico.
+Capítulo I
 
-**Artículo 137.** Requisitos para la obtención de la libertad condicionada Para la obtención de alguna de las medidas de libertad condicionada, el Juez deberá observar que la persona sentenciada cumpla los siguientes requisitos:
+Libertad Condicionada
+
+**Artículo 136.** Libertad condicionada
+
+El Juez de Ejecución podrá conceder a la persona sentenciada el beneficio de libertad condicionada bajo la modalidad de supervisión con o sin monitoreo electrónico.
+
+**Artículo 137.** Requisitos para la obtención de la libertad condicionada
+
+Para la obtención de alguna de las medidas de libertad condicionada, el Juez deberá observar que la persona sentenciada cumpla los siguientes requisitos:
 
 **I.** Que no se le haya dictado diversa sentencia condenatoria firme;
 
@@ -1524,19 +1840,31 @@ No gozarán de la libertad condicionada los sentenciados por delitos en materia 
 
 La persona que obtenga la libertad condicionada, deberá comprometerse a no molestar a la víctima u ofendido y a los testigos que depusieron en su contra.
 
-**Artículo 138.** Suspensión de obligaciones Una vez otorgada la medida de libertad condicionada, la autoridad de supervisión dará seguimiento a las obligaciones y condiciones establecidas en la resolución e informará al Juez de Ejec ución de conformidad con lo establecido en el Código Nacional de Procedimientos Penales para la autoridad de supervisión de medidas cautelares y en las disposiciones aplicables correspondientes.
+**Artículo 138.** Suspensión de obligaciones
 
-Esta obligación quedará a cargo de las autoridades encargada s de llevar a cabo las funciones de supervisión de las personas beneficiadas con alguna de las medidas de libertad condicionada establecidas en esta Ley.
+Una vez otorgada la medida de libertad condicionada, la autoridad de supervisión dará seguimiento a las obligaciones y condiciones establecidas en la resolución e informará al Juez de Ejecución de conformidad con lo establecido en el Código Nacional de Procedimientos Penales para la autoridad de supervisión de medidas cautelares y en las disposiciones aplicables correspondientes.
 
-**Artículo 139.** Reducción de obligaciones en el régimen de supervisión Las personas sentenciadas que se encuentren en los supuestos de libertad condicional podrán solicitar la reducción de obligaciones en el régimen de supervisión, siempre y cuando se hubieren dedicado [de forma exclusiva ] a actividades productivas, educativas, culturales o deportivas no remuneradas. En el caso de las actividades culturales y deportivas, el sentenciado deberá acreditar participar en la difusión, promoción, representación, y en su caso, competencias en dichas actividades. En el caso de actividades educativas, se deberá acreditar la obtención de grados académicos. Artículo declarado inválido por sentencia de la SCJN a Acción de Inconstitucionalidad DOF 09-05-2018 (En la porción normativa que indica “de forma exclusiva”)
+Esta obligación quedará a cargo de las autoridades encargadas de llevar a cabo las funciones de supervisión de las personas beneficiadas con alguna de las medidas de libertad condicionada establecidas en esta Ley.
 
-**Artículo 140.** Cancelación de la libertad condicionada La medida de libertad condicionada terminará por revocación en los casos de violación reiterada a los términos establecidos por el Juez de Ejecución, por sustitución, por la extinción de la pena en su totalidad o por el otorgamiento de la libertad anticipada, o cometa un nuevo delito en el plazo que resta para el cumplimiento de la pena originalmente impuesta.
+**Artículo 139.** Reducción de obligaciones en el régimen de supervisión
 
-Capítulo II Libertad Anticipada
+(NOTA: EL 4 DE ABRIL DE 2017, EL PLENO DE LA SUPREMA CORTE DE JUSTICIA DE LA NACIÓN, EN LOS CONSIDERANDOS QUINTO Y SEXTO, ASÍ COMO EN LOS RESOLUTIVOS CUARTO Y QUINTO DE LA SENTENCIA DICTADA AL RESOLVER LA ACCIÓN DE INCONSTITUCIONALIDAD 61/2016, DECLARÓ LA INVALIDEZ DE LA PORCIÓN NORMATIVA DE ESTE ARTÍCULO INDICADA CON MAYÚSCULAS, LA CUAL SURTIÓ EFECTOS RETROACTIVOS AL 17 DE JUNIO DE 2016 FECHA EN QUE ENTRÓ EN VIGOR DICHA NORMA DE ACUERDO A LAS CONSTANCIAS QUE OBRAN EN LA SECRETARÍA GENERAL DE ACUERDOS DE LA SUPREMA CORTE DE JUSTICIA DE LA NACIÓN. DICHA SENTENCIA PUEDE SER CONSULTADA EN LA DIRECCIÓN ELECTRÓNICA http://www2.scjn.gob.mx/).
 
-**Artículo 141.** Solicitud de la libertad anticipada El otorgamiento de la libertad anticipada extingue la pena de prisió n y otorga libertad al sentenciado. Solamente persistirán, en su caso, las medidas de seguridad o sanciones no privativas de la libertad que se hayan determinado en la sentencia correspondiente.
+Las personas sentenciadas que se encuentren en los supuestos de libertad condicional podrán solicitar la reducción de obligaciones en el régimen de supervisión, siempre y cuando se hubieren dedicado DE FORMA EXCLUSIVA a actividades productivas, educativas, culturales o deportivas no remuneradas. En el caso de las actividades culturales y deportivas, el sentenciado deberá acreditar participar en la difusión, promoción, representación, y en su caso, competencias en dichas actividades. En el caso de actividades educativas, se deberá acreditar la obtención de grados académicos.
 
-El beneficio de libertad anticipada se tramitará ante el Jue z de Ejecución, a petición del sentenciado, su defensor, el Ministerio Público o a propuesta de la Autoridad Penitenciaria, notificando a la víctima u ofendido.
+**Artículo 140.** Cancelación de la libertad condicionada
+
+La medida de libertad condicionada terminará por revocación en los casos de violación reiterada a los términos establecidos por el Juez de Ejecución, por sustitución, por la extinción de la pena en su totalidad o por el otorgamiento de la libertad anticipada, o cometa un nuevo delito en el plazo que resta para el cumplimiento de la pena originalmente impuesta.
+
+Capítulo II
+
+Libertad Anticipada
+
+**Artículo 141.** Solicitud de la libertad anticipada
+
+El otorgamiento de la libertad anticipada extingue la pena de prisión y otorga libertad al sentenciado. Solamente persistirán, en su caso, las medidas de seguridad o sanciones no privativas de la libertad que se hayan determinado en la sentencia correspondiente.
+
+El beneficio de libertad anticipada se tramitará ante el Juez de Ejecución, a petición del sentenciado, su defensor, el Ministerio Público o a propuesta de la Autoridad Penitenciaria, notificando a la víctima u ofendido.
 
 Para conceder la medida de libertad anticipada la persona sentenciada deberá además contar con los siguientes requisitos:
 
@@ -1554,35 +1882,45 @@ Para conceder la medida de libertad anticipada la persona sentenciada deberá ad
 
 **VII.** Que hayan cumplido el setenta por ciento de la pena impuesta en los delitos dolosos o la mitad de la pena tratándose de delitos culposos.
 
-No gozarán de la libertad anticipada los sentenci ados por delitos en materia de delincuencia organizada, secuestro y trata de personas.
+No gozarán de la libertad anticipada los sentenciados por delitos en materia de delincuencia organizada, secuestro y trata de personas.
 
-Capítulo III Sustitución y Suspensión Temporal de las Penas
+Capítulo III
 
-**Artículo 142.** Modificación de las penas Las penas privativas de la libertad impuestas por las o los jueces y tribunales penales deberán ser cumplidas hasta el término de su duración, salvo su modificación judicial por traslación de tipo, adecuación o sustitución en los casos establecidos en esta Ley.
+Sustitución y Suspensión Temporal de las Penas
 
-**Artículo 143.** Sustanciación La adecuación y modificación de la pena se sustanciará oficiosamente por el Juez de Ejecución o a petición de cualquier persona legitimada.
+**Artículo 142.** Modificación de las penas
 
-**Artículo 144.** Sustitución de la pena El Juez de Ejecución podrá sustituir la pena privativa de la libertad por alguna pena o medida de seguridad no privativa de la libertad, previstas en esta Ley cuando durante el periodo de ejecución se actualicen los siguientes supuestos:
+Las penas privativas de la libertad impuestas por las o los jueces y tribunales penales deberán ser cumplidas hasta el término de su duración, salvo su modificación judicial por traslación de tipo, adecuación o sustitución en los casos establecidos en esta Ley.
 
-**I.** Cuando se busque la protección de las hijas e hijos de personas privadas de la libertad, siempre que éstos sean menores de 1 2 años de edad o tengan una condición de discapacidad que no les permita valerse por sí mismos. Esto cuando la persona privada de la libertad sea su cuidadora principal o única cuidadora, de acuerdo con lo dispuesto en esta Ley.
+**Artículo 143.** Sustanciación
+
+La adecuación y modificación de la pena se sustanciará oficiosamente por el Juez de Ejecución o a petición de cualquier persona legitimada.
+
+**Artículo 144.** Sustitución de la pena
+
+El Juez de Ejecución podrá sustituir la pena privativa de la libertad por alguna pena o medida de seguridad no privativa de la libertad, previstas en esta Ley cuando durante el periodo de ejecución se actualicen los siguientes supuestos:
+
+**I.** Cuando se busque la protección de las hijas e hijos de personas privadas de la libertad, siempre que éstos sean menores de 12 años de edad o tengan una condición de discapacidad que no les permita valerse por sí mismos. Esto cuando la persona privada de la libertad sea su cuidadora principal o única cuidadora, de acuerdo con lo dispuesto en esta Ley.
 
 **II.** Cuando la permanencia de la persona sentenciada con la hija, hijo o persona con discapacidad, no representa un riesgo objetivo para aquellos.
 
-**III.** Cuando esta fuere innecesaria o incompatible con las condiciones de la persona privada de la libertad por senilidad, edad avanzada , o su grave estado de salud, en los casos regulados en la legislación penal sustantiva, de acuerdo con las reglas de competencia establecidas en esta Ley.
+**III.** Cuando esta fuere innecesaria o incompatible con las condiciones de la persona privada de la libertad por senilidad, edad avanzada, o su grave estado de salud, en los casos regulados en la legislación penal sustantiva, de acuerdo con las reglas de competencia establecidas en esta Ley.
 
-**IV.** Cuando, en términos de la implementación de programas de tratamiento de adicciones, reinserción en libertad, justicia colaborativa o restitutiva, política criminal o trabajo comunitario, el Juez de Ejecución reciba de la Autoridad Penitenciaria o de la autoridad de
+**IV.** Cuando, en términos de la implementación de programas de tratamiento de adicciones, reinserción en libertad, justicia colaborativa o restitutiva, política criminal o trabajo comunitario, el Juez de Ejecución reciba de la Autoridad Penitenciaria o de la autoridad de supervisión un informe sobre la conveniencia para aplicar la medida y si el sentenciado no representa un riesgo objetivo y razonable para la víctima u ofendido, los testigos que depusieron en su contra y para la sociedad. Dicha autoridad deberá fungir como aval para la sustitución.
 
-supervisión un informe sobre la conveniencia para aplicar la medida y si el sentencia do no representa un riesgo objetivo y razonable para la víctima u ofendido, los testigos que depusieron en su contra y para la sociedad. Dicha autoridad deberá fungir como aval para la sustitución.
+En todos los casos a que se refiere este artículo se considerará el interés superior de la niñez y en su caso se tomará en cuenta la opinión de las personas menores de 12 años o con discapacidad afectadas, atendiendo su grado de desarrollo evolutivo o cognitivo, o en su caso, el grado de discapacidad.
 
-En todos los casos a que se refiere este artículo se cons iderará el interés superior de la niñez y en su caso se tomará en cuenta la opinión de las personas menores de 12 años o con discapacidad afectadas, atendiendo su grado de desarrollo evolutivo o cognitivo, o en su caso, el grado de discapacidad.
-
-Sólo podrán aplicarse los sustitutivos descritos en las fracciones anteriores cuando se actualicen los supuestos durante la ejecución de la pena, así como a las personas que al momento de ser sentenciadas se ubiquen en las hipótesis previstas en este artículo, siem pre que subsistan las causas durante la ejecución.
+Sólo podrán aplicarse los sustitutivos descritos en las fracciones anteriores cuando se actualicen los supuestos durante la ejecución de la pena, así como a las personas que al momento de ser sentenciadas se ubiquen en las hipótesis previstas en este artículo, siempre que subsistan las causas durante la ejecución.
 
 No procederá la sustitución de pena por delitos en materia de delincuencia organizada, secuestro y trata de personas.
 
-Capítulo IV Permisos Humanitarios
+Capítulo IV
 
-**Artículo 145.** Permisos extraordinarios de salida por razones humanitarias La persona privada de su libertad, podrá solicitar al Juez de Ejecución un permiso extraordinario de salida cuando se justifique por enfermedad terminal, fallecimiento de un pariente consanguíneo en línea ascendiente o descendiente de primer grado, cónyuge, concubina o concubinario, o socioconviviente.
+Permisos Humanitarios
+
+**Artículo 145.** Permisos extraordinarios de salida por razones humanitarias
+
+La persona privada de su libertad, podrá solicitar al Juez de Ejecución un permiso extraordinario de salida cuando se justifique por enfermedad terminal, fallecimiento de un pariente consanguíneo en línea ascendiente o descendiente de primer grado, cónyuge, concubina o concubinario, o socioconviviente.
 
 Esta medida no aplicará para las personas privadas de su libertad por delincuencia organizada o aquellas sujetas a medidas especiales de seguridad.
 
@@ -1592,57 +1930,77 @@ La Autoridad Penitenciaria deberá emitir opinión sobre la idoneidad del permis
 
 La temporalidad debe ser determinada por el Juez de Ejecución, quién deberá atender a los méritos y racionalidad de la propia solicitud, y en ningún caso podrá exceder de veinticuatro horas contadas a partir del arribo al lugar para el cual fue concedido el permiso.
 
-El Juez de Ejecución establecerá las condiciones, obligaciones de la persona privada de s u libertad, temporalidad y medidas de seguimiento, vigilancia o monitoreo, para lo cual podrá solicitar el auxilio de las instancias de seguridad pública.
+El Juez de Ejecución establecerá las condiciones, obligaciones de la persona privada de su libertad, temporalidad y medidas de seguimiento, vigilancia o monitoreo, para lo cual podrá solicitar el auxilio de las instancias de seguridad pública.
 
 La violación a las condiciones u obligaciones por parte de la persona privada de su libertad tendrá como consecuencia su revocación y reaprehensión inmediata, sin menoscabo de las sanciones a las que se haga acreedor en términos de las disposiciones disciplinarias aplicables.
 
-Capítulo V Preliberación por Criterios de Política Penitenciaria
+Capítulo V
+
+Preliberación por Criterios de Política Penitenciaria
 
 **Artículo 146.** Solicitud de preliberación
 
-La Autoridad Penitenciaria, con opinión de la Procuraduría, podrá solicitar al Poder Judicial de la Federación o ante el Tribunal Superior de Justicia que corresponda, la conmutación de pena, liberación condicionada o liberació n anticipada de un grupo determinado de personas sentenciadas de acuerdo a alguno de los siguientes criterios:
+La Autoridad Penitenciaria, con opinión de la Procuraduría, podrá solicitar al Poder Judicial de la Federación o ante el Tribunal Superior de Justicia que corresponda, la conmutación de pena, liberación condicionada o liberación anticipada de un grupo determinado de personas sentenciadas de acuerdo a alguno de los siguientes criterios:
 
 **I.** Se trate de un delito cuya pena máxima sea de cinco años de prisión, siempre que el delito no se haya cometido con violencia;
 
 **II.** Se trate de delitos de contenido patrimonial cometidos sin violencia sobre las personas o de delitos culposos;
 
-**III.** Por motivos humanitarios cuando se trate de personas sentenciadas adultas mayores, portadoras de una enfermedad crónico -degenerativa o terminal, inde pendientemente del tiempo que lleven compurgando o les falte por compurgar de la sentencia;
+**III.** Por motivos humanitarios cuando se trate de personas sentenciadas adultas mayores, portadoras de una enfermedad crónico-degenerativa o terminal, independientemente del tiempo que lleven compurgando o les falte por compurgar de la sentencia;
 
 **IV.** Cuando se trate de personas sentenciadas que hayan colaborado con la procuración de justicia o la Autoridad Penitenciaria, y no hayan sido acreedoras a otra medida de liberación;
 
 **V.** Cuando se trate de delitos de cuyo bien jurídico sea titular la federación o la entidad federativa, o aquellos en que corresponda extender el perdón a estos;
 
-**VI.** Cuando la continuidad de la aplicación de la pena sea irrelevante par a los fines de la reinserción del sentenciado a la sociedad o prevenir la reincidencia.
+**VI.** Cuando la continuidad de la aplicación de la pena sea irrelevante para los fines de la reinserción del sentenciado a la sociedad o prevenir la reincidencia.
 
-No podrá aplicarse la medida por criterios de política penitenciaria en los casos de delitos contra el libre desarrollo de la personalidad, trata de personas, delincue ncia organizada, secuestro, ni otros delitos que conforme a la ley aplicable merezcan prisión preventiva oficiosa, de conformidad con el artículo 19 de la Constitución Política de los Estados Unidos Mexicanos.
+No podrá aplicarse la medida por criterios de política penitenciaria en los casos de delitos contra el libre desarrollo de la personalidad, trata de personas, delincuencia organizada, secuestro, ni otros delitos que conforme a la ley aplicable merezcan prisión preventiva oficiosa, de conformidad con el artículo 19 de la Constitución Política de los Estados Unidos Mexicanos.
 
 En cualquier caso, la Autoridad Penitenciaria deberá aplicar los principios de objetividad y no discriminación en el proceso y ejecución de la medida.
 
-**Artículo 147.** Opinión técnica de la representación social Tomando en cuenta alguna de las causales descritas en el artículo anterior, así como los cr uces de información estadística, de carpetas de ejecución y demás información disponible, la Autoridad Penitenciaria dará vista a la Procuraduría correspondiente, a fin de recibir la opinión técnica de la representación social en términos de la política cr iminal vigente. Dicha opinión no será vinculante, pero la Autoridad Penitenciaria deberá fundar y motivar en sus méritos, las razones por las que no tome en consideración la opinión vertida por la representación social.
+**Artículo 147.** Opinión técnica de la representación social
 
-La solicitud, junto con la opinión técnica emitida por la Procuraduría, será entregada por escrito ante el Juez de Ejecución, instancia que tendrá treinta días naturales para analizar los escritos, emplazar y solicitar los informes necesarios a servidores públicos o expertos que considere p ertinentes, y finalmente otorgar, denegar o modificar la medida solicitada.
+Tomando en cuenta alguna de las causales descritas en el artículo anterior, así como los cruces de información estadística, de carpetas de ejecución y demás información disponible, la Autoridad Penitenciaria dará vista a la Procuraduría correspondiente, a fin de recibir la opinión técnica de la representación social en términos de la política criminal vigente. Dicha opinión no será vinculante, pero la Autoridad Penitenciaria deberá fundar y motivar en sus méritos, las razones por las que no tome en consideración la opinión vertida por la representación social.
+
+La solicitud, junto con la opinión técnica emitida por la Procuraduría, será entregada por escrito ante el Juez de Ejecución, instancia que tendrá treinta días naturales para analizar los escritos, emplazar y solicitar los informes necesarios a servidores públicos o expertos que considere pertinentes, y finalmente otorgar, denegar o modificar la medida solicitada.
 
 En casos de imprecisión, vaguedad o cualquier otro motivo que el Juez de Ejecución considere pertinente, se emplazará a la Autoridad Penitenciaria para que en un término de cinco días rectifique su escrito. En todos los casos, la autoridad judicial deberá emitir un acuerdo sobre la admisibilidad y procedencia de la solicitud en términos de la Constitución Política de los Estados Unidos Mexicanos y las demás disposiciones aplicables.
 
 El principio constitucional de la inalterabilidad y modificación exclusivamente jurisdiccional de una sentencia firme deberán permear en todo el procedimiento, así como en su ejecución.
 
-**Artículo 148.** Solicitud al Poder Judicial La Autoridad Penitenciaria para plantear la solicitud al Poder Judicial, deberá aplicar criterios objetivos de política criminal, política penitenciaria, criterios humanitarios, el impacto objetivo en el abatimiento de la sobrepoblación de los Centros Penitenciarios, así como el número total documentado de casos que dicha medida beneficiaría.
+**Artículo 148.** Solicitud al Poder Judicial
 
-La aplicación de la medida podrá beneficiar a cualquier persona sentenciada al momento de la determinación, así como a cualquier otra persona sentenciada bajo el mismo supuesto beneficiado h asta un año después de su ratificación.
+La Autoridad Penitenciaria para plantear la solicitud al Poder Judicial, deberá aplicar criterios objetivos de política criminal, política penitenciaria, criterios humanitarios, el impacto objetivo en el abatimiento de la sobrepoblación de los Centros Penitenciarios, así como el número total documentado de casos que dicha medida beneficiaría.
 
-**Artículo 149.** Notificación a la Autoridad Penitenciaria La determinación a través de la cual se ratifique, modifique o deniegue la medida por criterios de política penitenciaria, deberá ser notificada a la Autoridad Penitenciaria para su ejecución inmediata.
+La aplicación de la medida podrá beneficiar a cualquier persona sentenciada al momento de la determinación, así como a cualquier otra persona sentenciada bajo el mismo supuesto beneficiado hasta un año después de su ratificación.
 
-**Artículo 150.** Homologación de supuestos Una vez notificada la determinación, cualquier persona sentenciada, que no hubiere sido contemplada, y que considere encontrarse en el supuesto de la misma, podrá solicita r ante el Juez competente la consideración correspondiente.
+**Artículo 149.** Notificación a la Autoridad Penitenciaria
 
-**Artículo 151.** Previsiones para la reparación del daño Toda persona sentenciada, candidata a disfrutar de la medida contemplada en este Capítulo deberá concluir con la reparación del daño antes de que la misma pueda hacerse efectiva. En los casos en que la persona sentenciada no cuente con los medios inmediatos para finiquitar la indemnización como parte de la reparación del daño, ésta deberá presentar una caución suficiente para cumplir con la obl igación. En ningún caso, una persona sentenciada potencialmente beneficiaria de la determinación de preliberación podrá permanecer en prisión por escasez de recursos económicos, para lo cual podrán aplicarse los Mecanismos Alternativos o procedimientos de justicia restaurativa que correspondan. Los defensores deberán velar en todo momento para hacer efectivo este derecho.
+La determinación a través de la cual se ratifique, modifique o deniegue la medida por criterios de política penitenciaria, deberá ser notificada a la Autoridad Penitenciaria para su ejecución inmediata.
 
-Capítulo VI Sanciones y Medidas Penales no Privativas de la Libertad
+**Artículo 150.** Homologación de supuestos
 
-**Artículo 152.** Disposición general En lo no dispuesto por la legisl ación penal sustantiva respecto de las sanciones y medidas penales no privativas de la libertad se estará a lo dispuesto por esta Ley.
+Una vez notificada la determinación, cualquier persona sentenciada, que no hubiere sido contemplada, y que considere encontrarse en el supuesto de la misma, podrá solicitar ante el Juez competente la consideración correspondiente.
 
-**Artículo 153.** Órganos Los gobiernos Federal y de las entidades federativas, a través de sus autoridades competentes, dar án el pleno cumplimiento de las sanciones y medidas penales no privativas de la libertad.
+**Artículo 151.** Previsiones para la reparación del daño
 
-**Artículo 154.** Expediente de ejecución Los órganos de la administración pública responsables del cumplimiento de las sanciones y medidas penales no privativas de la l ibertad estarán obligados a abrir un expediente de ejecución, así como establecer los registros fidedignos necesarios con información precisa, actualizada e informatizada respecto del cumplimiento de cada sanción o medida penal no privativa de la libertad.
+Toda persona sentenciada, candidata a disfrutar de la medida contemplada en este Capítulo deberá concluir con la reparación del daño antes de que la misma pueda hacerse efectiva. En los casos en que la persona sentenciada no cuente con los medios inmediatos para finiquitar la indemnización como parte de la reparación del daño, ésta deberá presentar una caución suficiente para cumplir con la obligación. En ningún caso, una persona sentenciada potencialmente beneficiaria de la determinación de preliberación podrá permanecer en prisión por escasez de recursos económicos, para lo cual podrán aplicarse los Mecanismos Alternativos o procedimientos de justicia restaurativa que correspondan. Los defensores deberán velar en todo momento para hacer efectivo este derecho.
+
+Capítulo VI
+
+Sanciones y Medidas Penales no Privativas de la Libertad
+
+**Artículo 152.** Disposición general
+
+En lo no dispuesto por la legislación penal sustantiva respecto de las sanciones y medidas penales no privativas de la libertad se estará a lo dispuesto por esta Ley.
+
+**Artículo 153.** Órganos
+
+Los gobiernos Federal y de las entidades federativas, a través de sus autoridades competentes, darán el pleno cumplimiento de las sanciones y medidas penales no privativas de la libertad.
+
+**Artículo 154.** Expediente de ejecución
+
+Los órganos de la administración pública responsables del cumplimiento de las sanciones y medidas penales no privativas de la libertad estarán obligados a abrir un expediente de ejecución, así como establecer los registros fidedignos necesarios con información precisa, actualizada e informatizada respecto del cumplimiento de cada sanción o medida penal no privativa de la libertad.
 
 El expediente de ejecución contendrá la resolución no privativa de la libertad, las resoluciones que recaigan en las peticiones, los procedimientos judiciales y los documentos que afecten la situación jurídica de la persona.
 
@@ -1650,9 +2008,11 @@ El expediente de ejecución contendrá la resolución no privativa de la liberta
 
 Su ejecución se sujetará a la regulación de esta Ley, de las Leyes Orgánicas de los Poderes Judiciales, del Código Nacional de Procedimientos Penales, respecto al régimen de audiencias y actos procesales, aplicando supletoriamente las demás disposiciones en materia de ejecución de medidas cautelares, en lo conducente a las condiciones diversas a la prisión preventiva.
 
-**Artículo 156.** Liquidación de la reparación del daño Una vez que el Juez o Tribunal de enjuiciamiento se haya pronunciado acerca de la reparaci ón del daño, pero no de su monto, el Juez de Ejecución determinará el monto a cubrir e iniciará el procedimiento de liquidación conforme a lo dispuesto por esta Ley y el Código.
+**Artículo 156.** Liquidación de la reparación del daño
 
-Una vez determinado el monto, el Juez de Ejecución ordenará al sentenciado qu e realice el pago correspondiente dentro de los cinco días siguientes a la determinación.
+Una vez que el Juez o Tribunal de enjuiciamiento se haya pronunciado acerca de la reparación del daño, pero no de su monto, el Juez de Ejecución determinará el monto a cubrir e iniciará el procedimiento de liquidación conforme a lo dispuesto por esta Ley y el Código.
+
+Una vez determinado el monto, el Juez de Ejecución ordenará al sentenciado que realice el pago correspondiente dentro de los cinco días siguientes a la determinación.
 
 Cuando la reparación del daño consista en hacer una actividad, el Juez de Ejecución ordenará que se ejecuten los actos de cumplimiento dentro de los cinco días siguientes a la determinación.
 
@@ -1664,103 +2024,135 @@ En caso de incumplimiento, se observarán las siguientes disposiciones:
 
 **III.** Se negará todo beneficio a que tenga derecho el sentenciado, hasta que se cubra el monto de la reparación, y
 
-**IV.** Tratándose del delito de despojo, cuando la autoridad judicial haya ordenado la restit ución del bien inmueble a la víctima u ofendido el Juez de Ejecución, una vez que reciba la sentencia ejecutoriada, ordenará la comparecencia del sentenciado y lo apercibirá para que en un plazo de tres días haga voluntariamente entrega física y material del inmueble.
+**IV.** Tratándose del delito de despojo, cuando la autoridad judicial haya ordenado la restitución del bien inmueble a la víctima u ofendido el Juez de Ejecución, una vez que reciba la sentencia ejecutoriada, ordenará la comparecencia del sentenciado y lo apercibirá para que en un plazo de tres días haga voluntariamente entrega física y material del inmueble.
 
 En caso de negativa de devolverlo, el Juez de Ejecución ordenará se ponga en posesión material a la víctima u ofendido o su representante, utilizando la fuerza pública para el cumplimiento de la sentencia.
 
-Cuando la persona privada de su lib ertad no contase con recursos propios y/o suficientes para liquidar el pago de la reparación del daño y solicite algún beneficio, el Juez en la celebración de la audiencia verificará que efectivamente no se cuenta con la solvencia económica suficiente y po drá dictar un acuerdo para que dicho pago sea garantizado o bien solventado en un plazo razonable, quedando este compromiso establecido como una obligación procesal; en caso de incumplimiento la persona perderá cualquier beneficio que se haya acordado en su favor.
+Cuando la persona privada de su libertad no contase con recursos propios y/o suficientes para liquidar el pago de la reparación del daño y solicite algún beneficio, el Juez en la celebración de la audiencia verificará que efectivamente no se cuenta con la solvencia económica suficiente y podrá dictar un acuerdo para que dicho pago sea garantizado o bien solventado en un plazo razonable, quedando este compromiso establecido como una obligación procesal; en caso de incumplimiento la persona perderá cualquier beneficio que se haya acordado en su favor.
 
-**Artículo 157.** Sanción pecuniaria La sanción pecuniaria comprende la multa.
+**Artículo 157.** Sanción pecuniaria
 
-**Artículo 158.** Imposición de la multa Al imponerse multa al sentenciado, el Juez de Ejecución procederá de acuerdo con las siguientes reglas:
+La sanción pecuniaria comprende la multa.
+
+**Artículo 158.** Imposición de la multa
+
+Al imponerse multa al sentenciado, el Juez de Ejecución procederá de acuerdo con las siguientes reglas:
 
 **I.** Notificará al sentenciado el plazo para cubrirla, para ese efecto se considerará su capacidad económica, si el órgano judicial que dictó la sentencia no lo fijó para el otorgamiento del plazo se considerará lo manifestado por las partes intervinientes y resolverá;
 
-**II.** Si dentro d el plazo concedido, el sentenciado demuestra que carece de recursos para cubrirla el Juez de Ejecución podrá sustituirla total o parcialmente, por trabajo en favor de la comunidad;
+**II.** Si dentro del plazo concedido, el sentenciado demuestra que carece de recursos para cubrirla el Juez de Ejecución podrá sustituirla total o parcialmente, por trabajo en favor de la comunidad;
 
-**III.** Si dentro del plazo concedido el sentenciado demuestra que puede cubr ir solamente una parte de la multa, el Juez de Ejecución también podrá establecer un plazo que no excederá del total de la pena de prisión impuesta, para cubrir la cantidad restante; para tal efecto el sentenciado hará los depósitos en la institución públi ca o institución financiera que corresponda conforme la normatividad aplicable, y
+**III.** Si dentro del plazo concedido el sentenciado demuestra que puede cubrir solamente una parte de la multa, el Juez de Ejecución también podrá establecer un plazo que no excederá del total de la pena de prisión impuesta, para cubrir la cantidad restante; para tal efecto el sentenciado hará los depósitos en la institución pública o institución financiera que corresponda conforme la normatividad aplicable, y
 
-**IV.** Cada jornada de trabajo diario en favor de la comunidad saldará un día multa. En cualquier tiempo podrá cubrirse el importe de la multa, descontándose de ésta la parte p roporcional a las jornadas de trabajo prestado en favor de la comunidad.
+**IV.** Cada jornada de trabajo diario en favor de la comunidad saldará un día multa. En cualquier tiempo podrá cubrirse el importe de la multa, descontándose de ésta la parte proporcional a las jornadas de trabajo prestado en favor de la comunidad.
 
 Tratándose de la multa sustitutiva de la sanción privativa de libertad, la equivalencia será a razón de un día multa por un día de prisión, salvo disposición diversa en esta Ley.
 
-**Artículo 159.** Plazos El Juez de Ejecución podrá conceder plazos para el pago de las multas en los casos siguientes:
+**Artículo 159.** Plazos
 
-**I.** Si no excediere de cincuenta días multa, se podrá conceder un plazo de hasta tres meses para pagarla, siempre que el deudor compruebe esta r imposibilitado para hacerlo en menor tiempo, y
+El Juez de Ejecución podrá conceder plazos para el pago de las multas en los casos siguientes:
+
+**I.** Si no excediere de cincuenta días multa, se podrá conceder un plazo de hasta tres meses para pagarla, siempre que el deudor compruebe estar imposibilitado para hacerlo en menor tiempo, y
 
 **II.** Si excediere de cincuenta días multa, se podrá conceder un plazo de hasta un año para pagarla.
 
-**Artículo 160.** Cobro de la multa no pagada Todas las multas impuestas por la autoridad judicial en sentenci a definitiva ejecutoriada que no sean pagadas en los plazos fijados, adquirirán él carácter de crédito fiscal líquido y exigible para su cobro, haciéndose efectivas a través del procedimiento administrativo de ejecución.
+**Artículo 160.** Cobro de la multa no pagada
 
-**Artículo 161.** Ejecución de la multa La Autoridad Fiscal que inicie y sustancie el procedimiento administrativo para la ejecución de las multas informará al Juez de Ejecución lo conducente.
+Todas las multas impuestas por la autoridad judicial en sentencia definitiva ejecutoriada que no sean pagadas en los plazos fijados, adquirirán él carácter de crédito fiscal líquido y exigible para su cobro, haciéndose efectivas a través del procedimiento administrativo de ejecución.
 
-En caso de incumplimiento de la ejecución de las multas por la Autoridad Fiscal, el Juez de Ejecució n impondrá las vías de apremio correspondientes.
+**Artículo 161.** Ejecución de la multa
+
+La Autoridad Fiscal que inicie y sustancie el procedimiento administrativo para la ejecución de las multas informará al Juez de Ejecución lo conducente.
+
+En caso de incumplimiento de la ejecución de las multas por la Autoridad Fiscal, el Juez de Ejecución impondrá las vías de apremio correspondientes.
 
 El recurso obtenido del crédito fiscal cobrado, será destinado en partes iguales al fondo previsto en la Ley General de Víctimas, al Poder Judicial, a la Procuraduría, y a la Secretaría de Salud.
 
-**Artículo 162.** De la pérdida, suspensión o restricción de derechos de familia Cuando se trate de pérdida, suspensión o restricción de derechos de familia, el Juez de Ejecución notificará al Ministerio Público para que promueva el procedimiento respectivo ante el Jue z de lo Familiar competente.
+**Artículo 162.** De la pérdida, suspensión o restricción de derechos de familia
+
+Cuando se trate de pérdida, suspensión o restricción de derechos de familia, el Juez de Ejecución notificará al Ministerio Público para que promueva el procedimiento respectivo ante el Juez de lo Familiar competente.
 
 Se remitirán junto con la notificación de la sentencia los datos necesarios para la efectiva ejecución de la sanción y se podrán recabar del sentenciado o de las autoridades correspondientes, los informes que se estimen necesarios para verificar el cumplimiento de la privación.
 
 **Artículo 163.** Suspensión, destitución o inhabilitación de derechos
 
-Si se trata de suspensión, destitución o inhabilitación de funciones de un servidor público, el Juez de Ejecución notificará la resoluc ión al titular de la dependencia o entidad del orden de gobierno correspondiente, a efecto de que materialmente ejecute la medida
+Si se trata de suspensión, destitución o inhabilitación de funciones de un servidor público, el Juez de Ejecución notificará la resolución al titular de la dependencia o entidad del orden de gobierno correspondiente, a efecto de que materialmente ejecute la medida
 
 Si se trata de suspensión, destitución o inhabilitación para el ejercicio de una profesión, se notificará a la dependencia encargada del registro de profesiones, para los efectos conducentes.
 
-Si se trata de suspensión o rehabilitación de derechos políticos, el Juez de Ejecución notificará la resolución al Registro Federal de Electores en términos de la Ley General de Institucio nes y Procedimientos Electorales.
+Si se trata de suspensión o rehabilitación de derechos políticos, el Juez de Ejecución notificará la resolución al Registro Federal de Electores en términos de la Ley General de Instituciones y Procedimientos Electorales.
 
 En este caso se remitirán junto con la notificación de la resolución los datos necesarios para la efectiva ejecución de la sanción y se podrán recabar del sentenciado o de las autoridades correspondientes, los informes que se estimen necesarios para verificar el cumplimiento de la sanción.
 
-**Artículo 164.** Suspensión o disolución de personas morales Decretada la suspensión o la disolución, el Juez de Ejecución notificará a los representantes de la persona moral afectada, par a que, en el término de treinta días, cumplan la sanción. De igual modo, la suspensión o la disolución será comunicada por el Juez de Ejecución al Titular del Registro Público de la Propiedad y del Comercio o análogos en las entidades federativas para la a notación que corresponda y publicada en el Diario Oficial de la Federación o en el correspondiente instrumento de publicación oficial de las entidades federativas, así como en el del domicilio de la sociedad de que se trate.
+**Artículo 164.** Suspensión o disolución de personas morales
 
-Durante la suspensión, la pers ona moral afectada no podrá, válidamente, realizar nuevos trabajos, gestiones o empresas, ni contraer nuevos compromisos, ni adquirir nuevos derechos, conforme a los fines para los que fue constituida. Sin embargo, mientras dure la suspensión deberá cumpli r todos los compromisos y obligaciones correspondientes y se podrán hacer efectivos los derechos adquiridos anteriormente.
+Decretada la suspensión o la disolución, el Juez de Ejecución notificará a los representantes de la persona moral afectada, para que, en el término de treinta días, cumplan la sanción. De igual modo, la suspensión o la disolución será comunicada por el Juez de Ejecución al Titular del Registro Público de la Propiedad y del Comercio o análogos en las entidades federativas para la anotación que corresponda y publicada en el Diario Oficial de la Federación o en el correspondiente instrumento de publicación oficial de las entidades federativas, así como en el del domicilio de la sociedad de que se trate.
 
-En el caso de la disolución, el Juez de Ejecución designará en el mismo acto al liquidador que procederá a cumplir todas las obligac iones contraídas hasta entonces por la persona moral, inclusive las responsabilidades derivadas del delito cometido, observando las disposiciones legales sobre prelación de créditos, conforme a la naturaleza de éstos y de la entidad objeto de la liquidació n.
+Durante la suspensión, la persona moral afectada no podrá, válidamente, realizar nuevos trabajos, gestiones o empresas, ni contraer nuevos compromisos, ni adquirir nuevos derechos, conforme a los fines para los que fue constituida. Sin embargo, mientras dure la suspensión deberá cumplir todos los compromisos y obligaciones correspondientes y se podrán hacer efectivos los derechos adquiridos anteriormente.
+
+En el caso de la disolución, el Juez de Ejecución designará en el mismo acto al liquidador que procederá a cumplir todas las obligaciones contraídas hasta entonces por la persona moral, inclusive las responsabilidades derivadas del delito cometido, observando las disposiciones legales sobre prelación de créditos, conforme a la naturaleza de éstos y de la entidad objeto de la liquidación.
 
 La conclusión de toda actividad social se hará sin perjuicio de la realización de los actos necesarios para la disolución y liquidación total.
 
-En caso de prohibición de realizar determinados negocios, operaciones o actividades, el Juez de Ejecución se limitará a supervisar y revisar aquellas determinadas en la sentencia condenatoria, mismas que deberán tener relación directa con el delito cometido. Los administradores y el comisario de la sociedad serán responsables ante el Juez de Ejecución del cumpli miento de esta prohibición e incurrirán en las penas que establecen las leyes por desobediencia a un mandato de autoridad.
+En caso de prohibición de realizar determinados negocios, operaciones o actividades, el Juez de Ejecución se limitará a supervisar y revisar aquellas determinadas en la sentencia condenatoria, mismas que deberán tener relación directa con el delito cometido. Los administradores y el comisario de la sociedad serán responsables ante el Juez de Ejecución del cumplimiento de esta prohibición e incurrirán en las penas que establecen las leyes por desobediencia a un mandato de autoridad.
 
-En caso de intervención, el Juez de Ejecución llevará a cabo la vigilancia de las funciones que realizan los órganos de representaci ón de la persona moral o jurídica y se ejercerá con las atribuciones que la ley confiere al interventor.
+En caso de intervención, el Juez de Ejecución llevará a cabo la vigilancia de las funciones que realizan los órganos de representación de la persona moral o jurídica y se ejercerá con las atribuciones que la ley confiere al interventor.
 
-En caso de remoción o sustitución de los administradores por uno designado por el Juez o Tribunal de enjuiciamiento, durante el periodo estipulado en la sentencia, el Juez de Ejecución podrá atender las solicitudes que formulen los socios o asociados que no hubiesen tenido participación en el delito. El Juez de Ejecución deberá velar por la buena administración de la sociedad, pudiendo sustituir o remov er administradores si se presentan pruebas de su mala gestión.
+En caso de remoción o sustitución de los administradores por uno designado por el Juez o Tribunal de enjuiciamiento, durante el periodo estipulado en la sentencia, el Juez de Ejecución podrá atender las solicitudes que formulen los socios o asociados que no hubiesen tenido participación en el delito. El Juez de Ejecución deberá velar por la buena administración de la sociedad, pudiendo sustituir o remover administradores si se presentan pruebas de su mala gestión.
 
-El Juez de Ejecución podrá escuchar en todo momento las solicitudes que hagan los socios, asociados, administradores, trabajadores, interventores o acreedores de la persona jurídica, con el fi n de salvaguardar sus derechos e intereses. El Juez de Ejecución, deberá velar por la reparación del daño de la víctima, los derechos de los trabajadores y de terceros.
+El Juez de Ejecución podrá escuchar en todo momento las solicitudes que hagan los socios, asociados, administradores, trabajadores, interventores o acreedores de la persona jurídica, con el fin de salvaguardar sus derechos e intereses. El Juez de Ejecución, deberá velar por la reparación del daño de la víctima, los derechos de los trabajadores y de terceros.
 
-Al imponer la suspensión, intervención, remoción o disolución a las personas morales, la autoridad judicial tomará las medidas pertinentes para dejar a salvo los derechos de los trabajadores y terceros frente a la persona jurídica colectiva, así como aquellos otros derechos que sean exigibles frente a otras personas, derivados de actos cele brados con la persona moral sancionada. Estos derechos quedarán a salvo, aun cuando la autoridad judicial no tome las medidas a que se refiere el párrafo anterior.
+Al imponer la suspensión, intervención, remoción o disolución a las personas morales, la autoridad judicial tomará las medidas pertinentes para dejar a salvo los derechos de los trabajadores y terceros frente a la persona jurídica colectiva, así como aquellos otros derechos que sean exigibles frente a otras personas, derivados de actos celebrados con la persona moral sancionada. Estos derechos quedarán a salvo, aun cuando la autoridad judicial no tome las medidas a que se refiere el párrafo anterior.
 
-**Artículo 165.** Trabajo en favor de la comunidad El trabajo a favor de la comunidad consiste en la prestación de servicios personales no remunerados, en instituciones públicas en general, así como de carácter educativo o de asistencia social públicas o privadas.
+**Artículo 165.** Trabajo en favor de la comunidad
+
+El trabajo a favor de la comunidad consiste en la prestación de servicios personales no remunerados, en instituciones públicas en general, así como de carácter educativo o de asistencia social públicas o privadas.
 
 La intervención de las instituciones privadas se hará sobre la base de los convenios que celebre la Autoridad Penitenciaria con aquellas.
 
 Por ningún concepto se desarrollará este trabajo en forma que resulte degradante o humillante para el beneficiado.
 
-**Artículo 166.** Convenios de colaboración El Consejo de la Judicatura Federal y los resp ectivos órganos de los poderes judiciales en las entidades federativas, podrán celebrar convenios con la Federación, las entidades federativas, Municipios, organismos públicos descentralizados, municipales o estatales, instituciones de asistencia privada, organizaciones de la sociedad civil, clubes u otros organismos de servicio social y con las Autoridades Auxiliares, para que el sentenciado cumpla en ellos, total o parcialmente el trabajo en favor de la comunidad.
+**Artículo 166.** Convenios de colaboración
 
-**Artículo 167.** Incumplimiento del trabajo en favor de la comunidad Si los trabajos a favor de la comunidad se le hubieren impuesto al sentenciado como sustitutivo de la pena de prisión y no cumpla, en audiencia se ordenará su reaprehensión en los términos de esta Ley. Asimismo, será recluido en e l Centro Penitenciario durante un tiempo igual al de la pena de prisión que haya sido sustituida y que haya quedado pendiente de compurgarse, descontándose únicamente las jornadas que haya efectivamente laborado, correspondiendo un día de reclusión por cad a jornada laborada.
+El Consejo de la Judicatura Federal y los respectivos órganos de los poderes judiciales en las entidades federativas, podrán celebrar convenios con la Federación, las entidades federativas, Municipios, organismos públicos descentralizados, municipales o estatales, instituciones de asistencia privada, organizaciones de la sociedad civil, clubes u otros organismos de servicio social y con las Autoridades Auxiliares, para que el sentenciado cumpla en ellos, total o parcialmente el trabajo en favor de la comunidad.
 
-Capítulo VII Medidas de Seguridad
+**Artículo 167.** Incumplimiento del trabajo en favor de la comunidad
 
-**Artículo 168.** Vigilancia de la autoridad La vigilancia de la autoridad consiste en la supervisión y orientación de la conducta del sentenciado, ejercidas por las Autoridades Auxiliares, con la finalid ad exclusiva de coadyuvar a la reinserción social del sentenciado y a la protección de la comunidad o las víctimas del delito.
+Si los trabajos a favor de la comunidad se le hubieren impuesto al sentenciado como sustitutivo de la pena de prisión y no cumpla, en audiencia se ordenará su reaprehensión en los términos de esta Ley. Asimismo, será recluido en el Centro Penitenciario durante un tiempo igual al de la pena de prisión que haya sido sustituida y que haya quedado pendiente de compurgarse, descontándose únicamente las jornadas que haya efectivamente laborado, correspondiendo un día de reclusión por cada jornada laborada.
+
+Capítulo VII
+
+Medidas de Seguridad
+
+**Artículo 168.** Vigilancia de la autoridad
+
+La vigilancia de la autoridad consiste en la supervisión y orientación de la conducta del sentenciado, ejercidas por las Autoridades Auxiliares, con la finalidad exclusiva de coadyuvar a la reinserción social del sentenciado y a la protección de la comunidad o las víctimas del delito.
 
 La ejecución de la vigilancia de la autoridad no deberá exceder de la correspondiente a la pena o medida de seguridad impuesta.
 
 Cuando el Juez de Ejecución conforme a lo previsto por la Ley Penal aplicable, imponga una medida de seguridad consistente en la vigilancia personal o monitoreo del sentenciado corresponderá aplicarla a la autoridad de seguridad pública competente.
 
-Capítulo VIII Justicia Terapéutica
+Capítulo VIII
 
-Sección Primera Generalidades
+Justicia Terapéutica
 
-**Artículo 169.** Objeto El objeto de este Capítulo es establecer las bases para regular en coordinación con las Instituciones operadoras, la atención integral sobre la dependencia a sustancias de l as personas sentenciadas y su relación con la comisión de delitos, a través de programas de justicia terapéutica, que se desarrollarán conforme a los términos previstos en esta Ley y la normatividad correspondiente.
+Sección Primera
 
-El programa de justicia terapéutica es un beneficio de la sustitución de la ejecución de la pena que determina el Juez de Ejecución, por delitos patrimoniales sin violencia, cuya finalidad es propiciar la rehabilitación e integración de las personas sentenciadas relacionadas con el consumo de s ustancias, bajo la supervisión del Juez de Ejecución, para lograr la reducción de los índices delictivos.
+Generalidades
 
-**Artículo 170.** Bases del programa El programa debe contemplar los siguientes aspectos fundamentales:
+**Artículo 169.** Objeto
 
-**I.** Los trastornos por la dependencia de sustanci as son considerados una enfermedad biopsicosocial crónica, progresiva y recurrente que puede afectar el juicio, el comportamiento y el desenvolvimiento social de las personas;
+El objeto de este Capítulo es establecer las bases para regular en coordinación con las Instituciones operadoras, la atención integral sobre la dependencia a sustancias de las personas sentenciadas y su relación con la comisión de delitos, a través de programas de justicia terapéutica, que se desarrollarán conforme a los términos previstos en esta Ley y la normatividad correspondiente.
 
-**II.** Debe impulsar acciones para reducir situaciones de riesgo de la persona sen tenciada frente a la justicia sobre la dependencia en el consumo de sustancias;
+El programa de justicia terapéutica es un beneficio de la sustitución de la ejecución de la pena que determina el Juez de Ejecución, por delitos patrimoniales sin violencia, cuya finalidad es propiciar la rehabilitación e integración de las personas sentenciadas relacionadas con el consumo de sustancias, bajo la supervisión del Juez de Ejecución, para lograr la reducción de los índices delictivos.
+
+**Artículo 170.** Bases del programa
+
+El programa debe contemplar los siguientes aspectos fundamentales:
+
+**I.** Los trastornos por la dependencia de sustancias son considerados una enfermedad biopsicosocial crónica, progresiva y recurrente que puede afectar el juicio, el comportamiento y el desenvolvimiento social de las personas;
+
+**II.** Debe impulsar acciones para reducir situaciones de riesgo de la persona sentenciada frente a la justicia sobre la dependencia en el consumo de sustancias;
 
 **III.** Debe garantizar la protección de los derechos de la persona sentenciada;
 
@@ -1768,39 +2160,47 @@ El programa de justicia terapéutica es un beneficio de la sustitución de la ej
 
 **V.** Debe mantener una interacción constante entre la persona sentenciada, el Centro de Tratamiento, el Juez de Ejecución y los demás operadores;
 
-**VI.** Debe medir el logro de metas y su impacto, mediante evaluacione s constantes y realimentar el procedimiento, a efecto de lograr una mejora continua, y
+**VI.** Debe medir el logro de metas y su impacto, mediante evaluaciones constantes y realimentar el procedimiento, a efecto de lograr una mejora continua, y
 
 **VII.** Debe promover la capacitación interdisciplinaria y actualización constante del personal de las instituciones operadoras del sistema.
 
-**Artículo 171.** Principios del Procedimiento Las estrategias del programa de las personas sentenciadas deben estar fundamentadas en una política de salud pública, reconociendo que los trastornos por la dependencia de sustancias representan una enfermedad biopsicosocial crónica, progresi va y recurrente que requiere de un tratamiento integral. Por tal motivo, el procedimiento se regirá bajo los siguientes principios:
+**Artículo 171.** Principios del Procedimiento
 
-**I.** Voluntariedad. La persona sentenciada debe aceptar someterse al programa de manera libre e informada respecto de los ben eficios, condiciones y medidas disciplinarias que exige el procedimiento;
+Las estrategias del programa de las personas sentenciadas deben estar fundamentadas en una política de salud pública, reconociendo que los trastornos por la dependencia de sustancias representan una enfermedad biopsicosocial crónica, progresiva y recurrente que requiere de un tratamiento integral. Por tal motivo, el procedimiento se regirá bajo los siguientes principios:
 
-**II.** Flexibilidad. Para la aplicación de incentivos y medidas disciplinarias, se considerará la evolución intermitente del trastorno por dependencia de sustancias durante el tratamie nto como parte del proceso de rehabilitación;
+**I.** Voluntariedad. La persona sentenciada debe aceptar someterse al programa de manera libre e informada respecto de los beneficios, condiciones y medidas disciplinarias que exige el procedimiento;
 
-**III.** Confidencialidad. La información personal de las personas sentenciadas en tratamiento estará debidamente resguardada y únicamente tendrán acceso a ella los operadores como un principio ético aplicable tan to a la información de carácter médica como la derivada del proceso judicial;
+**II.** Flexibilidad. Para la aplicación de incentivos y medidas disciplinarias, se considerará la evolución intermitente del trastorno por dependencia de sustancias durante el tratamiento como parte del proceso de rehabilitación;
+
+**III.** Confidencialidad. La información personal de las personas sentenciadas en tratamiento estará debidamente resguardada y únicamente tendrán acceso a ella los operadores como un principio ético aplicable tanto a la información de carácter médica como la derivada del proceso judicial;
 
 **IV.** Oportunidad. Debe fomentar la armonía social mediante acciones basadas en el compromiso de las personas sentenciadas y la satisfacción de la víctima u ofendido en cuanto a la reparación del daño;
 
 **V.** Transversalidad. Es la articulación, complementación y homologación de las acciones e instrumentos aplicables en materia de los trastornos por dependencia de sustancias, por las instituciones del sector público y social en torno a la realización armónica y funcional de las actividades previstas en el marco de esta Ley, tomando en cuenta las características de la población a atender y sus factores específicos de riesgo;
 
-**VI.** Jurisdiccionalidad. La supervisión judicial debe ser ampl ia y coordinada para garantizar el cumplimiento de la persona sentenciada;
+**VI.** Jurisdiccionalidad. La supervisión judicial debe ser amplia y coordinada para garantizar el cumplimiento de la persona sentenciada;
 
 **VII.** Complementariedad. Convivencia de programas dirigidos a la abstinencia y a la reducción de riesgos y daños, garantizando la optimización de los recursos existentes, analizando los planes y estrategias para el desarrollo eficaz del procedimiento;
 
 **VIII.** Igualdad Sustantiva. Los beneficios del procedimiento deben garantizarse por igual a las personas sentenciadas;
 
-**IX.** Integralidad. Considerar a cada persona de forma integral y a bordar la problemática considerándola un fenómeno multifactorial, y
+**IX.** Integralidad. Considerar a cada persona de forma integral y abordar la problemática considerándola un fenómeno multifactorial, y
 
 **X.** Diversificación. Utilizar diferentes estrategias y métodos, abriendo nuevos campos de investigación y evaluación en las diferentes etapas del procedimiento.
 
-Sección Segunda Tratamiento
+Sección Segunda
 
-**Artículo 172.** Elaboración del programa El programa iniciará una vez que la persona sentenciada haya sido admitida para atender el trastorno por la dependencia en el consumo de sustancias que padece, así como otras enfermedades relacionadas al mismo.
+Tratamiento
 
-El Centro de Tratamiento debe elaborar el programa a partir del diagnóstico confirmatorio, de acuerdo con las necesidades y características de la persona sentenciada, así como la severidad del trastorno por su dependencia en el consumo de sustancias. El prog rama podrá ser bajo la modalidad residencial o ambulatoria.
+**Artículo 172.** Elaboración del programa
 
-**Artículo 173.** Ámbitos de intervención El programa debe ser integral y debe considerar los siguientes ámbitos de intervención:
+El programa iniciará una vez que la persona sentenciada haya sido admitida para atender el trastorno por la dependencia en el consumo de sustancias que padece, así como otras enfermedades relacionadas al mismo.
+
+El Centro de Tratamiento debe elaborar el programa a partir del diagnóstico confirmatorio, de acuerdo con las necesidades y características de la persona sentenciada, así como la severidad del trastorno por su dependencia en el consumo de sustancias. El programa podrá ser bajo la modalidad residencial o ambulatoria.
+
+**Artículo 173.** Ámbitos de intervención
+
+El programa debe ser integral y debe considerar los siguientes ámbitos de intervención:
 
 **I.** Judicial: La participación del Juez de Ejecución durante el desarrollo del procedimiento;
 
@@ -1810,9 +2210,11 @@ El Centro de Tratamiento debe elaborar el programa a partir del diagnóstico con
 
 La intervención se establecerá con base a la Ley General de Salud, la ley de salud local y demás instrumentos jurídicos aplicables.
 
-**Artículo 174.** Modalidades de intervención El programa puede llevarse mediante las siguientes modalidades de intervención:
+**Artículo 174.** Modalidades de intervención
 
-**I.** Tratamiento psico-farmacológico, en caso de ser necesario de acuerdo al criterio del médico para el manejo de la intoxicación, d e la abstinencia o de los trastornos psiquiátricos concomitantes;
+El programa puede llevarse mediante las siguientes modalidades de intervención:
+
+**I.** Tratamiento psico-farmacológico, en caso de ser necesario de acuerdo al criterio del médico para el manejo de la intoxicación, de la abstinencia o de los trastornos psiquiátricos concomitantes;
 
 **II.** Psicoterapia individual;
 
@@ -1828,7 +2230,9 @@ La intervención se establecerá con base a la Ley General de Salud, la ley de s
 
 **VIII.** Terapia ocupacional y capacitación para el trabajo.
 
-**Artículo 175.** Etapas del tratamiento El programa contemplará:
+**Artículo 175.** Etapas del tratamiento
+
+El programa contemplará:
 
 **I.** La evaluación diagnóstica inicial;
 
@@ -1840,13 +2244,19 @@ La intervención se establecerá con base a la Ley General de Salud, la ley de s
 
 **V.** La evaluación y seguimiento.
 
-Sección Tercera Centros de Tratamiento
+Sección Tercera
 
-**Artículo 176.** Naturaleza de los Centros de Tratamiento La Federación y las entidades federativas deben c ontar con Centros de Tratamiento. El programa debe ser proporcionado por los Centros de Tratamiento sin costo, se aplicará con respeto de los derechos humanos y con perspectiva de género siguiendo los estándares de profesionalismo y de ética médica en la p restación de servicios de salud y cuidando la integridad física y mental de las personas sentenciadas.
+Centros de Tratamiento
 
-**Artículo 177.** Obligaciones del Centro de Tratamiento El Centro de Tratamiento debe:
+**Artículo 176.** Naturaleza de los Centros de Tratamiento
 
-**I.** Realizar la evaluación diagnóstica inicial, que incluya los tras tornos por dependencia en el consumo de sustancias para determinar la admisión de la persona sentenciada al programa;
+La Federación y las entidades federativas deben contar con Centros de Tratamiento. El programa debe ser proporcionado por los Centros de Tratamiento sin costo, se aplicará con respeto de los derechos humanos y con perspectiva de género siguiendo los estándares de profesionalismo y de ética médica en la prestación de servicios de salud y cuidando la integridad física y mental de las personas sentenciadas.
+
+**Artículo 177.** Obligaciones del Centro de Tratamiento
+
+El Centro de Tratamiento debe:
+
+**I.** Realizar la evaluación diagnóstica inicial, que incluya los trastornos por dependencia en el consumo de sustancias para determinar la admisión de la persona sentenciada al programa;
 
 **II.** Esta evaluación incluye las pruebas de laboratorio y gabinete pertinentes para la detección oportuna de los diferentes padecimientos;
 
@@ -1868,9 +2278,13 @@ Sección Tercera Centros de Tratamiento
 
 **XI.** Integrar recursos familiares que sirvan de apoyo al mismo.
 
-Sección Cuarta Del Procedimiento
+Sección Cuarta
 
-**Artículo 178.** Admisión Para ser admitida al programa la persona sentenciada debe:
+Del Procedimiento
+
+**Artículo 178.** Admisión
+
+Para ser admitida al programa la persona sentenciada debe:
 
 **I.** Garantizar la reparación del daño, y
 
@@ -1878,25 +2292,33 @@ Sección Cuarta Del Procedimiento
 
 Una vez que cumpla con los requisitos de elegibilidad, se considerará sujeta al programa.
 
-**Artículo 179.** Solicitud La persona sentenciada por delitos patr imoniales sin violencia, por sí misma o a través de su defensor, podrá solicitar por escrito al Juez de Ejecución someterse al programa.
+**Artículo 179.** Solicitud
+
+La persona sentenciada por delitos patrimoniales sin violencia, por sí misma o a través de su defensor, podrá solicitar por escrito al Juez de Ejecución someterse al programa.
 
 El Juez de Ejecución debe verificar que la persona sentenciada cumpla con los requisitos de elegibilidad previstos en esta Ley.
 
 En caso de cumplir con los requisitos, el Juez de Ejecución debe requerir al Centro de Tratamiento la Evaluación Diagnóstica Inicial a efecto de que sea remitida en un término de tres días hábiles contados a partir de su recepción.
 
-En caso de n o cumplir con los requisitos, el Juez de Ejecución debe desechar de plano la solicitud, contra dicha resolución procede el recurso de apelación.
+En caso de no cumplir con los requisitos, el Juez de Ejecución debe desechar de plano la solicitud, contra dicha resolución procede el recurso de apelación.
 
 El trámite de este procedimiento no suspenderá la ejecución de la pena.
 
-**Artículo 180.** Programa El Juez de Eje cución, una vez que cuente con la Evaluación Diagnóstica Inicial en sentido positivo, debe solicitar al Centro de Tratamiento la elaboración del diagnóstico confirmatorio, así como del Programa en un plazo no mayor a cinco días hábiles.
+**Artículo 180.** Programa
 
-**Artículo 181.** Admisión al Programa El Juez de Ejecución admitirá el ingreso al programa de la persona sentenciada, una vez que reciba el diagnóstico confirmatorio, señalando fecha y hora para la celebración de la audiencia, la cual debe llevarse a cabo dentro de los diez días posteriores.
+El Juez de Ejecución, una vez que cuente con la Evaluación Diagnóstica Inicial en sentido positivo, debe solicitar al Centro de Tratamiento la elaboración del diagnóstico confirmatorio, así como del Programa en un plazo no mayor a cinco días hábiles.
+
+**Artículo 181.** Admisión al Programa
+
+El Juez de Ejecución admitirá el ingreso al programa de la persona sentenciada, una vez que reciba el diagnóstico confirmatorio, señalando fecha y hora para la celebración de la audiencia, la cual debe llevarse a cabo dentro de los diez días posteriores.
 
 En caso de que se trate de diagnóstico no confirmatorio, el Juez de Ejecución debe dictar la no admisión al programa.
 
-**Artículo 182.** Audiencia Inicial En la audiencia inicial el Juez de Ejecución debe:
+**Artículo 182.** Audiencia Inicial
 
-**I.** Precisar los antecedentes del cas o, así como el cumplimiento de los requisitos de elegibilidad y de admisión;
+En la audiencia inicial el Juez de Ejecución debe:
+
+**I.** Precisar los antecedentes del caso, así como el cumplimiento de los requisitos de elegibilidad y de admisión;
 
 **II.** Escuchar a la persona sentenciada sobre la voluntad libre e informada de someterse a las condiciones del programa;
 
@@ -1912,11 +2334,15 @@ En caso de que se trate de diagnóstico no confirmatorio, el Juez de Ejecución 
 
 **VIII.** Fijar la periodicidad de las audiencias de seguimiento.
 
-**Artículo 183.** Audiencias de seguimiento Las audiencias de seguimiento, tienen por objeto que el Juez de Ejecución constate el cumplimiento del programa y escuche a la persona sentenciada sobre su avance y progreso. Cuando m enos se celebrarán dos audiencias por programa.
+**Artículo 183.** Audiencias de seguimiento
+
+Las audiencias de seguimiento, tienen por objeto que el Juez de Ejecución constate el cumplimiento del programa y escuche a la persona sentenciada sobre su avance y progreso. Cuando menos se celebrarán dos audiencias por programa.
 
 A estas audiencias asistirán el Ministerio Público, el Centro de Tratamiento, la persona sentenciada y su defensor.
 
-**Artículo 184.** Audiencias especiales El Juez de Ejecución puede llevar a cabo audiencias es peciales, fuera de las audiencias de seguimiento, a estas audiencias asistirán el Ministerio Público, el Centro de Tratamiento, la persona sentenciada y su defensor.
+**Artículo 184.** Audiencias especiales
+
+El Juez de Ejecución puede llevar a cabo audiencias especiales, fuera de las audiencias de seguimiento, a estas audiencias asistirán el Ministerio Público, el Centro de Tratamiento, la persona sentenciada y su defensor.
 
 Se consideran audiencias especiales las siguientes:
 
@@ -1926,21 +2352,31 @@ Se consideran audiencias especiales las siguientes:
 
 **III.** Cuando la persona sentenciada solicite una autorización para salir de la jurisdicción, o
 
-**IV.** Cualquier otra que pudiera beneficiar a la pe rsona sentenciada en su proceso de rehabilitación.
+**IV.** Cualquier otra que pudiera beneficiar a la persona sentenciada en su proceso de rehabilitación.
 
-**Artículo 185.** Conclusión del Programa Concluido el programa, el Centro de Tratamiento solicitará al Juez de Ejecución la audiencia de egreso. A esta audiencia asistirá el Ministerio Público, el Centro de Tratamiento, la persona sentenciada y su defensor.
+**Artículo 185.** Conclusión del Programa
 
-**Artículo 186.** Audiencia de egreso En la audiencia de egreso, el Juez de Ejecución, evaluará los informes del Centro de Tratamiento y se pronunciará respecto a la conclusión del programa, así como el pago que la persona sentenciada haya realizado para reparar el daño a la víctima u ofendido, concluido el programa y pagada la reparación del daño, el Juez de Ejecución dará por cumplida la sentencia.
+Concluido el programa, el Centro de Tratamiento solicitará al Juez de Ejecución la audiencia de egreso. A esta audiencia asistirá el Ministerio Público, el Centro de Tratamiento, la persona sentenciada y su defensor.
 
-Sección Quinta Incentivos y Medidas Disciplinarias
+**Artículo 186.** Audiencia de egreso
 
-**Artículo 187.** Incentivos Durante el programa, la persona sentenciada o su defensor podrán solicitar incentivos. El Juez de Ejecución basándose en los informes de evaluación del Centro de Tratamiento y tomando en cuenta la manifestación de la persona sentenciada, podrá otorgar en su caso uno de los siguientes incentivos en audiencia:
+En la audiencia de egreso, el Juez de Ejecución, evaluará los informes del Centro de Tratamiento y se pronunciará respecto a la conclusión del programa, así como el pago que la persona sentenciada haya realizado para reparar el daño a la víctima u ofendido, concluido el programa y pagada la reparación del daño, el Juez de Ejecución dará por cumplida la sentencia.
+
+Sección Quinta
+
+Incentivos y Medidas Disciplinarias
+
+**Artículo 187.** Incentivos
+
+Durante el programa, la persona sentenciada o su defensor podrán solicitar incentivos. El Juez de Ejecución basándose en los informes de evaluación del Centro de Tratamiento y tomando en cuenta la manifestación de la persona sentenciada, podrá otorgar en su caso uno de los siguientes incentivos en audiencia:
 
 **I.** Reducir la frecuencia de la supervisión judicial, y
 
 **II.** Autorizar la participación libre en actividades de la comunidad.
 
-**Artículo 188.** Medidas Disciplinarias El Juez de Ejecución , a petición del Ministerio Público o del Centro de Tratamiento, impondrá durante el desarrollo del programa las medidas disciplinarias en aquellos casos en que la persona sentenciada incumpla con el programa, en alguna de las etapas siguientes:
+**Artículo 188.** Medidas Disciplinarias
+
+El Juez de Ejecución, a petición del Ministerio Público o del Centro de Tratamiento, impondrá durante el desarrollo del programa las medidas disciplinarias en aquellos casos en que la persona sentenciada incumpla con el programa, en alguna de las etapas siguientes:
 
 **I.** El desarrollo del tratamiento clínico;
 
@@ -1954,7 +2390,9 @@ Las medidas disciplinarias podrán ser:
 
 **III.** Ordenar su arresto hasta por treinta y seis horas.
 
-**Artículo 189.** Causas de revocación Serán causa de revocación del programa, las siguientes:
+**Artículo 189.** Causas de revocación
+
+Serán causa de revocación del programa, las siguientes:
 
 **I.** Falsear información sobre el cumplimiento del tratamiento;
 
@@ -1978,33 +2416,57 @@ También serán causas de revocación la reiteración de las siguientes conducta
 
 **III.** No acudir a las audiencias judiciales, sin justificación.
 
-Para efect o de lo anterior, la reiteración debe entenderse como aquella conducta que haya sido sancionada con una medida disciplinaria con anterioridad por el Juez de Ejecución.
+Para efecto de lo anterior, la reiteración debe entenderse como aquella conducta que haya sido sancionada con una medida disciplinaria con anterioridad por el Juez de Ejecución.
 
-Capítulo IX De las Medidas de Seguridad para Personas Inimputables
+Capítulo IX
 
-**Artículo 190.** Disposición general Las disposiciones de la presente Ley serán aplicables, en lo conducente, a las personas inimputables privadas de la libertad con motivo de la ejecución de una medida de seguridad, impuesta de acuerdo a la legislación penal y procesal penal vigente.
+De las Medidas de Seguridad para Personas Inimputables
 
-**Artículo 191.** Tratamiento de inimputables Cuando el estado de inimputabilidad sobrevenga en la ejecución de la pena, el Juez de Ejecución dispondrá de la medida de tratamiento aplicable, ya sea en internamiento o en libertad.
+**Artículo 190.** Disposición general
 
-**Artículo 192.** Establecimientos Las personas sujetas a una medida de seguridad privativa de la libertad deberán cumplirla únicamente en los establecimientos destinados para ese propósito, distintos de los centros de extinción de penas y de prisión preventiva. Los establecimien tos dependerán de las autoridades administrativas en materia de salud.
+Las disposiciones de la presente Ley serán aplicables, en lo conducente, a las personas inimputables privadas de la libertad con motivo de la ejecución de una medida de seguridad, impuesta de acuerdo a la legislación penal y procesal penal vigente.
 
-**Artículo 193.** Organización en establecimientos Los establecimientos para personas inimputables deberán estar separados para mujeres y hombres y deberán contar con el personal especiali zado masculino y femenino para la atención de las personas privadas de la libertad. Estos establecimientos deberán ofrecer los programas pertinentes que apoyen a las y los pacientes privados de la libertad para su atención médica integral.
+**Artículo 191.** Tratamiento de inimputables
 
-**Artículo 194.** Atención externa Las instituciones que proporcionen atención externa a las personas sujetas a medidas de seguridad distintas a la privación de la libertad, deberán contar con las instalaciones y mobiliario, servicios y suministros adecuados para las necesidades de las personas usuarias.
+Cuando el estado de inimputabilidad sobrevenga en la ejecución de la pena, el Juez de Ejecución dispondrá de la medida de tratamiento aplicable, ya sea en internamiento o en libertad.
 
-**Artículo 195.** Normas reglamentarias y protocolos Las normas y protocolos correspondientes atenderán a lo dispuesto en instrumentos internacionales para la protección de las personas discapacitadas. Los protocolos previstos e n esta Ley no podrán aplicarse a los establecimientos sin su previa adecuación y complementación para las circunstancias particulares de las personas con algún tipo de discapacidad.
+**Artículo 192.** Establecimientos
 
-**Artículo 196.** Controversias Las controversias que se presenten con motivo del trato y el tratamiento en la ejecución de las medidas de seguridad, que no sean de la competencia de las y los jueces del proceso, serán resueltas por los jueces de ejecución con apego a esta Ley, con la realización de los ajustes razonables al procedimiento.
+Las personas sujetas a una medida de seguridad privativa de la libertad deberán cumplirla únicamente en los establecimientos destinados para ese propósito, distintos de los centros de extinción de penas y de prisión preventiva. Los establecimientos dependerán de las autoridades administrativas en materia de salud.
 
-**Artículo 197.** Determinación de lugar de internamiento Cuando una misma persona esté sujeta a medidas de seguridad y la pena de prisión o prisión preventiva en razón de procesos distintos, se atenderá a lo dispuesto en este Capítulo respecto al lu gar y condiciones de internamiento.
+**Artículo 193.** Organización en establecimientos
 
-Capítulo X Reglas Comunes
+Los establecimientos para personas inimputables deberán estar separados para mujeres y hombres y deberán contar con el personal especializado masculino y femenino para la atención de las personas privadas de la libertad. Estos establecimientos deberán ofrecer los programas pertinentes que apoyen a las y los pacientes privados de la libertad para su atención médica integral.
 
-**Artículo 198.** Reparación del daño Toda persona sentenciada, candidata a disfrutar de alguna medida de libertad condicionada o libertad anticipada; sustitución o suspensión temporal de la pena, contempladas en este Título, deberá asegurar el cumplimiento de la reparación del daño antes de que la misma pueda hacerse efectiva. En los casos en que la persona sentenciada no cuente con los medios inmediatos para finiquitar la indemnización como parte de la reparación del daño, ésta deberá presentar una caución suficiente para cumplir con la obligación o la condonación de pago debe haber sido otorgada por la víctima. En ningún caso, una persona sentenciada potencialmente beneficiaria de la determinació n sobre alguna medida de libertad condicionada o libertad anticipada, podrá permanecer en prisión por escasez de recursos económicos, para lo cual podrán aplicarse los Mecanismos Alternativos o procedimientos de justicia restaurativa que correspondan. Los defensores deberán velar en todo momento para hacer efectivo este derecho.
+**Artículo 194.** Atención externa
 
-**Artículo 199.** Inconstitucionalidad de la norma penal En los casos en que la Suprema Corte de Justicia de la Nación determine que un tipo penal, una porción normativa de éste, o bie n una pena, sean inconstitucionales, con motivo de la emisión de una declaratoria general de inconstitucionalidad, en términos de las disposiciones aplicables, la autoridad jurisdiccional competente, de oficio o a solicitud de la institución de defensoría pública federal o de las entidades federativas, deberá emitir una resolución declarando la extinción de la pena y concediendo la libertad de las personas sentenciadas en los supuestos descritos.
+Las instituciones que proporcionen atención externa a las personas sujetas a medidas de seguridad distintas a la privación de la libertad, deberán contar con las instalaciones y mobiliario, servicios y suministros adecuados para las necesidades de las personas usuarias.
 
-Para decretar la extinción de la pena y conceder la libertad , la autoridad jurisdiccional deberá cerciorarse que las personas privadas de la libertad hubiesen sido sentenciadas con base en los supuestos o en las hipótesis normativas tildadas de inconstitucionalidad.
+**Artículo 195.** Normas reglamentarias y protocolos
+
+Las normas y protocolos correspondientes atenderán a lo dispuesto en instrumentos internacionales para la protección de las personas discapacitadas. Los protocolos previstos en esta Ley no podrán aplicarse a los establecimientos sin su previa adecuación y complementación para las circunstancias particulares de las personas con algún tipo de discapacidad.
+
+**Artículo 196.** Controversias
+
+Las controversias que se presenten con motivo del trato y el tratamiento en la ejecución de las medidas de seguridad, que no sean de la competencia de las y los jueces del proceso, serán resueltas por los jueces de ejecución con apego a esta Ley, con la realización de los ajustes razonables al procedimiento.
+
+**Artículo 197.** Determinación de lugar de internamiento
+
+Cuando una misma persona esté sujeta a medidas de seguridad y la pena de prisión o prisión preventiva en razón de procesos distintos, se atenderá a lo dispuesto en este Capítulo respecto al lugar y condiciones de internamiento.
+
+Capítulo X
+
+Reglas Comunes
+
+**Artículo 198.** Reparación del daño
+
+Toda persona sentenciada, candidata a disfrutar de alguna medida de libertad condicionada o libertad anticipada; sustitución o suspensión temporal de la pena, contempladas en este Título, deberá asegurar el cumplimiento de la reparación del daño antes de que la misma pueda hacerse efectiva. En los casos en que la persona sentenciada no cuente con los medios inmediatos para finiquitar la indemnización como parte de la reparación del daño, ésta deberá presentar una caución suficiente para cumplir con la obligación o la condonación de pago debe haber sido otorgada por la víctima. En ningún caso, una persona sentenciada potencialmente beneficiaria de la determinación sobre alguna medida de libertad condicionada o libertad anticipada, podrá permanecer en prisión por escasez de recursos económicos, para lo cual podrán aplicarse los Mecanismos Alternativos o procedimientos de justicia restaurativa que correspondan. Los defensores deberán velar en todo momento para hacer efectivo este derecho.
+
+**Artículo 199.** Inconstitucionalidad de la norma penal
+
+En los casos en que la Suprema Corte de Justicia de la Nación determine que un tipo penal, una porción normativa de éste, o bien una pena, sean inconstitucionales, con motivo de la emisión de una declaratoria general de inconstitucionalidad, en términos de las disposiciones aplicables, la autoridad jurisdiccional competente, de oficio o a solicitud de la institución de defensoría pública federal o de las entidades federativas, deberá emitir una resolución declarando la extinción de la pena y concediendo la libertad de las personas sentenciadas en los supuestos descritos.
+
+Para decretar la extinción de la pena y conceder la libertad, la autoridad jurisdiccional deberá cerciorarse que las personas privadas de la libertad hubiesen sido sentenciadas con base en los supuestos o en las hipótesis normativas tildadas de inconstitucionalidad.
 
 En el auto que declare extinta la pena y ordene la libertad del sentenciado, se deberá asentar el estudio técnico jurídico de la correspondencia entre la norma declarada inconstitucional y el delito por el que fue sentenciado la persona privada de la libertad, en los términos del párrafo anterior.
 
@@ -2012,17 +2474,29 @@ La inobservancia del requisito anterior será causa de responsabilidad administr
 
 **TÍTULO SEXTO**
 
-Capítulo I Justicia Restaurativa
+Capítulo I
 
-**Artículo 200.** Objeto de la justicia restaurativa en la ejecución de sanciones En la ejecución de sanciones penales podrán llevarse procesos de justicia restaurativa, en los que la víctima u ofendido, el sentenciado y en su caso, la comunidad afectada, en libre ejercicio de su autonomía, participan de forma individual o conjuntamente de fo rma activa en la resolución de cuestiones derivadas del delito, con el objeto de identificar las necesidades y responsabilidades individuales y colectivas, así como a coadyuvar en la reintegración de la víctima u ofendido y del sentenciado a la comunidad y la recomposición del tejido social.
+Justicia Restaurativa
 
-**Artículo 201.** Principios La justicia restaurativa se regirá por los principios de voluntariedad de las partes, flexibilidad, responsabilidad, confidencialidad, neutralidad, honestidad y reintegración.
+**Artículo 200.** Objeto de la justicia restaurativa en la ejecución de sanciones
 
-**Artículo 202.** Procedencia Los procesos de justicia restaurativa serán procedentes para todos los delitos y podrán ser aplicados a partir de la emisión de sentencia condenatoria. En la audiencia de individualización de sanciones en el caso de que se dicte sentencia condena toria, el Tribunal de Enjuiciamiento informará al sentenciado y a la víctima u ofendido, de los beneficios y la posibilidad de llevar a cabo un proceso de justicia restaurativa; en caso de que por acuerdo de las partes se opte por el mismo, el órgano juris diccional canalizará la solicitud al área correspondiente.
+En la ejecución de sanciones penales podrán llevarse procesos de justicia restaurativa, en los que la víctima u ofendido, el sentenciado y en su caso, la comunidad afectada, en libre ejercicio de su autonomía, participan de forma individual o conjuntamente de forma activa en la resolución de cuestiones derivadas del delito, con el objeto de identificar las necesidades y responsabilidades individuales y colectivas, así como a coadyuvar en la reintegración de la víctima u ofendido y del sentenciado a la comunidad y la recomposición del tejido social.
 
-**Artículo 203.** Alcances de la justicia restaurativa Si el sentenciado se somete al proceso de justicia restaurativa, el Juez de Ejecución lo considerará como parte complementaria del plan de actividades.
+**Artículo 201.** Principios
 
-**Artículo 204.** Procesos restaurativos Los procesos restaurativos se llevarán a cabo con la participación del sentenciado en programas individuales o sesiones conjuntas con la víctima u ofendido, en las cuales podrán participar miembros de la comunid ad y autoridades, atendiendo al caso concreto y con el objetivo de analizar con las consecuencias derivadas de delito. Los procesos de justicia restaurativa en los que participe la víctima u ofendido y el sentenciado constarán de dos etapas: preparación, y encuentro, en las cuales se contará con la asistencia de un facilitador.
+La justicia restaurativa se regirá por los principios de voluntariedad de las partes, flexibilidad, responsabilidad, confidencialidad, neutralidad, honestidad y reintegración.
+
+**Artículo 202.** Procedencia
+
+Los procesos de justicia restaurativa serán procedentes para todos los delitos y podrán ser aplicados a partir de la emisión de sentencia condenatoria. En la audiencia de individualización de sanciones en el caso de que se dicte sentencia condenatoria, el Tribunal de Enjuiciamiento informará al sentenciado y a la víctima u ofendido, de los beneficios y la posibilidad de llevar a cabo un proceso de justicia restaurativa; en caso de que por acuerdo de las partes se opte por el mismo, el órgano jurisdiccional canalizará la solicitud al área correspondiente.
+
+**Artículo 203.** Alcances de la justicia restaurativa
+
+Si el sentenciado se somete al proceso de justicia restaurativa, el Juez de Ejecución lo considerará como parte complementaria del plan de actividades.
+
+**Artículo 204.** Procesos restaurativos
+
+Los procesos restaurativos se llevarán a cabo con la participación del sentenciado en programas individuales o sesiones conjuntas con la víctima u ofendido, en las cuales podrán participar miembros de la comunidad y autoridades, atendiendo al caso concreto y con el objetivo de analizar con las consecuencias derivadas de delito. Los procesos de justicia restaurativa en los que participe la víctima u ofendido y el sentenciado constarán de dos etapas: preparación, y encuentro, en las cuales se contará con la asistencia de un facilitador.
 
 Serán requisitos para su realización los siguientes:
 
@@ -2032,41 +2506,47 @@ Serán requisitos para su realización los siguientes:
 
 **c)** Verificar que la participación de la víctima y del sentenciado se desarrolle en condiciones seguras.
 
-La etapa de preparación consiste en reuniones previas del facilitador con el sentenciado y en su caso sus acompañantes; para asegurarse que están preparados para participar en un proceso de justicia restaurativo y aceptan su responsabilidad por el delito; reuniones previas del facilitador con la víctima u ofendido y en su ca so sus acompañantes; para asegurarse que están preparados para participar en un proceso de justicia restaurativo y no existe riesgo de revictimización y en caso de que participen autoridades o miembros de la comunidad, reuniones previas del facilitador con los mismos, para asegurar su correcta participación en el proceso.
+La etapa de preparación consiste en reuniones previas del facilitador con el sentenciado y en su caso sus acompañantes; para asegurarse que están preparados para participar en un proceso de justicia restaurativo y aceptan su responsabilidad por el delito; reuniones previas del facilitador con la víctima u ofendido y en su caso sus acompañantes; para asegurarse que están preparados para participar en un proceso de justicia restaurativo y no existe riesgo de revictimización y en caso de que participen autoridades o miembros de la comunidad, reuniones previas del facilitador con los mismos, para asegurar su correcta participación en el proceso.
 
-La etapa de encuentro consiste en sesiones conjuntas en las que el facilitador hará una presentación general y explicará brevemente el propósito de la sesión. Acto seguido, formulará las preguntas previamente establecidas. Las preguntas se dirigirán en primer término al sentenciado, posteriormente a la víctima u ofendido, en su caso a otros Intervinientes afectados por parte de la víctima u ofendido y de la persona imputada respectivamente y, por último, a los miembros de la comunidad que hubieren concurrido a la sesión. Una vez que los Intervinientes hubieren contestado las preguntas del facilitador, éste procederá a coadyuvar para encontrar formas específicas en que los participantes cons ideren se logra la satisfacción de las necesidades y la reintegración de las partes en la sociedad.
+La etapa de encuentro consiste en sesiones conjuntas en las que el facilitador hará una presentación general y explicará brevemente el propósito de la sesión. Acto seguido, formulará las preguntas previamente establecidas. Las preguntas se dirigirán en primer término al sentenciado, posteriormente a la víctima u ofendido, en su caso a otros Intervinientes afectados por parte de la víctima u ofendido y de la persona imputada respectivamente y, por último, a los miembros de la comunidad que hubieren concurrido a la sesión. Una vez que los Intervinientes hubieren contestado las preguntas del facilitador, éste procederá a coadyuvar para encontrar formas específicas en que los participantes consideren se logra la satisfacción de las necesidades y la reintegración de las partes en la sociedad.
 
-Enseguida, el facilitador concederá la palabra al sentenciado para que manifieste las acciones que estaría dispuesto a realizar para dicho fin, así como lo s compromisos que adoptará con los participantes. El facilitador, sobre la base de las propuestas planteadas por los Intervinientes, podrá concretar un Acuerdo que todos estén dispuestos a aceptar como resultado de la sesión y en la cual se establecerán las conclusiones y acuerdos de la misma.
+Enseguida, el facilitador concederá la palabra al sentenciado para que manifieste las acciones que estaría dispuesto a realizar para dicho fin, así como los compromisos que adoptará con los participantes. El facilitador, sobre la base de las propuestas planteadas por los Intervinientes, podrá concretar un Acuerdo que todos estén dispuestos a aceptar como resultado de la sesión y en la cual se establecerán las conclusiones y acuerdos de la misma.
 
-**Artículo 205.** Facilitadores y colaboración con fiscalías y tribunales Los programas de justicia restaurativa se realizarán por facilitadores certificados de conformidad con la Ley Nacional de Mecanismos Alternativos de Solución de Controversias en Materia Penal para lo cual, podrá solicitarse el auxilio de los facilitadores adscritos a los órganos especializados de mecanismos alternativos de solución de controversias en materia penal.
+**Artículo 205.** Facilitadores y colaboración con fiscalías y tribunales
 
-**Artículo 206.** Mediación penitenciaria En todos los conflictos inter -personales entre personas privadas de la libertad o entre ellas y el personal penitenciario derivado del régimen de convivencia, procederá la Mediación Penitenciaria entendida como el proceso de diálogo, auto­responsabilización, reconciliación y acuerdo que promueve el entendimiento y encuentro entre las personas involucradas en un conflicto generando la pacificación de las relaciones y la reducción de la tensión derivada de los conflictos cotidianos que la convivencia en prisión genera. Para su aplicación, se seguirán las disposiciones contenidas en esta Ley, el Protocolo correspondiente y en la Ley Nacional de Mecanismos Alternativos de Solución de Controversias en Materia Penal.
+Los programas de justicia restaurativa se realizarán por facilitadores certificados de conformidad con la Ley Nacional de Mecanismos Alternativos de Solución de Controversias en Materia Penal para lo cual, podrá solicitarse el auxilio de los facilitadores adscritos a los órganos especializados de mecanismos alternativos de solución de controversias en materia penal.
 
-Capítulo II Servicios Postpenales
+**Artículo 206.** Mediación penitenciaria
 
-**Artículo 207.** Servicios postpenales Las Autoridades Corresponsables, en coordinación con la Unidad encargada de los servicios postpenales dentro de la Autoridad Penitenciaria, establecerán centros de atención y formará Redes de
+En todos los conflictos inter-personales entre personas privadas de la libertad o entre ellas y el personal penitenciario derivado del régimen de convivencia, procederá la Mediación Penitenciaria entendida como el proceso de diálogo, auto­responsabilización, reconciliación y acuerdo que promueve el entendimiento y encuentro entre las personas involucradas en un conflicto generando la pacificación de las relaciones y la reducción de la tensión derivada de los conflictos cotidianos que la convivencia en prisión genera. Para su aplicación, se seguirán las disposiciones contenidas en esta Ley, el Protocolo correspondiente y en la Ley Nacional de Mecanismos Alternativos de Solución de Controversias en Materia Penal.
 
-Apoyo Postpenal a fin de prestar a los liberados, externados y a sus familiares, el apoyo necesario para facilitar la reinserción social, procurar su vida digna y prevenir la reincidencia.
+Capítulo II
 
-A través de los servicios postpenales, se buscará fomentar, la creación y promoción de espacios de orientación, apoyo y desarrollo personal, laboral, cultural, educativo, social y de capacitación, en general, de todas las áreas relacionadas con los ejes establecidos por el artículo 18 Constitucional a fin de facilitar la reinserción social además de pro mover en la sociedad la cultura de aceptación del liberado o externado.
+Servicios Postpenales
+
+**Artículo 207.** Servicios postpenales
+
+Las Autoridades Corresponsables, en coordinación con la Unidad encargada de los servicios postpenales dentro de la Autoridad Penitenciaria, establecerán centros de atención y formará Redes de Apoyo Postpenal a fin de prestar a los liberados, externados y a sus familiares, el apoyo necesario para facilitar la reinserción social, procurar su vida digna y prevenir la reincidencia.
+
+A través de los servicios postpenales, se buscará fomentar, la creación y promoción de espacios de orientación, apoyo y desarrollo personal, laboral, cultural, educativo, social y de capacitación, en general, de todas las áreas relacionadas con los ejes establecidos por el artículo 18 Constitucional a fin de facilitar la reinserción social además de promover en la sociedad la cultura de aceptación del liberado o externado.
 
 Los servicios postpenales se brindarán de forma individualizada conforme a las circunstancias de cada caso y a las posibilidades del sentenciado, externado y su familia.
 
-Para el cump limiento de su objetivo, a nivel local y federal, la Autoridad Penitenciaria y demás autoridades corresponsables firmarán Convenios de colaboración con instituciones del sector público y privado que prestan funciones relacionadas con los servicios postpena les, con el objeto de canalizar a los liberados, externados y a su familia. De igual forma, existirá coordinación entre la Federación y los Estados o entre los Estados para el mejor cumplimiento de estos objetivos.
+Para el cumplimiento de su objetivo, a nivel local y federal, la Autoridad Penitenciaria y demás autoridades corresponsables firmarán Convenios de colaboración con instituciones del sector público y privado que prestan funciones relacionadas con los servicios postpenales, con el objeto de canalizar a los liberados, externados y a su familia. De igual forma, existirá coordinación entre la Federación y los Estados o entre los Estados para el mejor cumplimiento de estos objetivos.
 
 ## Transitorios
 
-**Primero.** La presente Ley e ntrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
+**Primero.** La presente Ley entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
 
-Para los efectos señalados en el párrafo tercero del artículo segundo transitorio del Decreto por el que se reforman y adicionan diversas disposiciones de la Constit ución Política de los Estados Unidos Mexicanos, publicado en el Diario Oficial de la Federación el 18 de junio de 2008, se declara que la presente legislación recoge el sistema procesal penal acusatorio y entrará en vigor de acuerdo a los artículos transitorios siguientes.
+Para los efectos señalados en el párrafo tercero del artículo segundo transitorio del Decreto por el que se reforman y adicionan diversas disposiciones de la Constitución Política de los Estados Unidos Mexicanos, publicado en el Diario Oficial de la Federación el 18 de junio de 2008, se declara que la presente legislación recoge el sistema procesal penal acusatorio y entrará en vigor de acuerdo a los artículos transitorios siguientes.
 
-**Segundo.** Las fracciones III y X y el párrafo séptimo del artículo 10; los artículos 26 y 27, fracción II del artículo 28; fracción VII del artículo 108; los artículos 146, 147, 148, 149, 150 y 151 entrarán en vigor a partir de un año de la publicación de la presente Ley o al día siguiente de la publicación de la Declaratoria que al efecto emitan el Congreso de la Unión o las legislaturas de las entidades federativas en el ámbito de sus competencias, sin que pueda exceder del 30 de noviemb re de 2017.
+**Segundo.** Las fracciones III y X y el párrafo séptimo del artículo 10; los artículos 26 y 27, fracción II del artículo 28; fracción VII del artículo 108; los artículos 146, 147, 148, 149, 150 y 151 entrarán en vigor a partir de un año de la publicación de la presente Ley o al día siguiente de la publicación de la Declaratoria que al efecto emitan el Congreso de la Unión o las legislaturas de las entidades federativas en el ámbito de sus competencias, sin que pueda exceder del 30 de noviembre de 2017.
 
-Los artículos 31, 32, 33, 34, 35, 36, 59, 60, 61, 75, 77, 78, 80, 82, 83, 86, 91, 92, 93, 94, 95, 96, 97, 98, 99, 128, 136, 145, 153, 165, 166, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 192, 193, 194, 195, 200, 201, 202, 203, 204, 205, 206 y 207 entrarán en vigor a más tardar dos años después de la publicación de la presente Ley o al día siguiente de la publicación de la Declaratoria que al efecto emitan el Congreso de la Unión o la s legislaturas de las entidades federativas en el ámbito de sus competencias, sin que pueda exceder del 30 de noviembre de 2018.
+Los artículos 31, 32, 33, 34, 35, 36, 59, 60, 61, 75, 77, 78, 80, 82, 83, 86, 91, 92, 93, 94, 95, 96, 97, 98, 99, 128, 136, 145, 153, 165, 166, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 192, 193, 194, 195, 200, 201, 202, 203, 204, 205, 206 y 207 entrarán en vigor a más tardar dos años después de la publicación de la presente Ley o al día siguiente de la publicación de la Declaratoria que al efecto emitan el Congreso de la Unión o las legislaturas de las entidades federativas en el ámbito de sus competencias, sin que pueda exceder del 30 de noviembre de 2018.
 
-En el orden Federal, el Congreso de la Unión emitirá la Declaratoria, previa solicitud conjunta del Consejo de Coordinación pa ra la Implementación del Sistema de Justicia Penal o la instancia que, en su caso, quede encargada de coordinar la consolidación del Sistema de Justicia Penal, y la Conferencia Nacional del Sistema Penitenciario.
+En el orden Federal, el Congreso de la Unión emitirá la Declaratoria, previa solicitud conjunta del Consejo de Coordinación para la Implementación del Sistema de Justicia Penal o la instancia que, en su caso, quede encargada de coordinar la consolidación del Sistema de Justicia Penal, y la Conferencia Nacional del Sistema Penitenciario.
 
-En el caso de las entidades federativas, e l órgano legislativo correspondiente, emitirá la Declaratoria previa solicitud de la autoridad encargada de la implementación del Sistema de Justicia Penal en cada una de ellas.
+En el caso de las entidades federativas, el órgano legislativo correspondiente, emitirá la Declaratoria previa solicitud de la autoridad encargada de la implementación del Sistema de Justicia Penal en cada una de ellas.
 
 En las entidades federativas donde esté vigente el nuevo Sistema de Justicia Penal, el órgano legislativo correspondiente deberá emitir dentro de los siguientes diez días el anexo a la Declaratoria para el inicio de vigencia de la presente Ley.
 
@@ -2076,52 +2556,50 @@ Los procedimientos que se encuentren en trámite a la entrada en vigor del prese
 
 A partir de la entrada en vigor de la presente Ley, se derogan todas las disposiciones normativas que contravengan la misma.
 
-**Cuarto.** A partir de la entrada en vigor de la presente Ley, se derogan las normas contenidas en el Código Pen al Federal y leyes especiales de la federación relativas a la remisión parcial de la pena, libertad preparatoria y sustitución de la pena durante la ejecución.
+**Cuarto.** A partir de la entrada en vigor de la presente Ley, se derogan las normas contenidas en el Código Penal Federal y leyes especiales de la federación relativas a la remisión parcial de la pena, libertad preparatoria y sustitución de la pena durante la ejecución.
 
-Las entidades federativas deberán adecuar su legislación a efecto de derogar las normas relativ as a la remisión parcial de la pena, libertad preparatoria y sustitución de la pena durante la ejecución, en el ámbito de sus respectivas competencias.
+Las entidades federativas deberán adecuar su legislación a efecto de derogar las normas relativas a la remisión parcial de la pena, libertad preparatoria y sustitución de la pena durante la ejecución, en el ámbito de sus respectivas competencias.
 
 Las entidades federativas deberán legislar en sus códigos penales sobre las responsabilidades de los supervisores de libertad.
 
-**Quinto.** En un plazo que no exceda de ciento ochenta días naturales después de publicado el presente Decreto, la Federación y las entidades federativas deberán publicar las reformas a sus leyes que resulten necesarias para la implem entación de esta Ley, así como lo dispuesto en el artículo 92, fracción V en materia de seguridad social.
+**Quinto.** En un plazo que no exceda de ciento ochenta días naturales después de publicado el presente Decreto, la Federación y las entidades federativas deberán publicar las reformas a sus leyes que resulten necesarias para la implementación de esta Ley, así como lo dispuesto en el artículo 92, fracción V en materia de seguridad social.
 
-A la entrada en vigor de la presente Ley, en aquellos lugares donde se determine su inicio, tanto en el ámbito federal como local, se deberá contar c on las disposiciones administrativas de carácter general correspondientes, pudiendo preverse la homologación de criterios metodológicos, técnicos y procedimentales, para lo cual podrán coordinarse las autoridades involucradas.
+A la entrada en vigor de la presente Ley, en aquellos lugares donde se determine su inicio, tanto en el ámbito federal como local, se deberá contar con las disposiciones administrativas de carácter general correspondientes, pudiendo preverse la homologación de criterios metodológicos, técnicos y procedimentales, para lo cual podrán coordinarse las autoridades involucradas.
 
-**Sexto.** Las erogaciones que s e generen con motivo de la entrada en vigor del presente Decreto para el Poder Judicial de la Federación, las dependencias y entidades de la Administración Pública Federal, se cubrirán con cargo a sus presupuestos para el presente ejercicio fiscal y los subsecuentes.
+**Sexto.** Las erogaciones que se generen con motivo de la entrada en vigor del presente Decreto para el Poder Judicial de la Federación, las dependencias y entidades de la Administración Pública Federal, se cubrirán con cargo a sus presupuestos para el presente ejercicio fiscal y los subsecuentes.
 
 Asimismo, las entidades federativas deberán realizar las previsiones y adecuaciones presupuestales necesarias para dar cumplimiento a las obligaciones establecidas en este Decreto.
 
-**Séptimo.** El Consejo de la Judicatura Federal, el Instituto Fe deral de la Defensoría Pública, la Procuraduría General de la República, la Secretaría de Gobernación, la Secretaría del Trabajo y Previsión Social, la Secretaría de Economía, la Secretaría de Educación Pública, la Secretaría de Cultura, la Secretaría de Desarrollo Social, la Secretaría de Salud, la Comisión Nacional de Cultura Física y Deporte, la Comisión Ejecutiva de Atención a Víctimas y toda dependencia o entidad de la Administración Pública Federal y sus equivalentes en las entidades federativas a las que se confieran responsabilidades directas o indirectas en esta Ley, deberán prever en sus programas la adecuada y correcta implementación, y deberán establecer dentro de los proyectos de presupuesto respectivos, las partidas necesarias para atender la e jecución de esos programas, las obras de infraestructura, la
-
-contratación de personal, la capacitación y todos los demás requerimientos necesarios para cumplir los objetivos de la presente Ley.
+**Séptimo.** El Consejo de la Judicatura Federal, el Instituto Federal de la Defensoría Pública, la Procuraduría General de la República, la Secretaría de Gobernación, la Secretaría del Trabajo y Previsión Social, la Secretaría de Economía, la Secretaría de Educación Pública, la Secretaría de Cultura, la Secretaría de Desarrollo Social, la Secretaría de Salud, la Comisión Nacional de Cultura Física y Deporte, la Comisión Ejecutiva de Atención a Víctimas y toda dependencia o entidad de la Administración Pública Federal y sus equivalentes en las entidades federativas a las que se confieran responsabilidades directas o indirectas en esta Ley, deberán prever en sus programas la adecuada y correcta implementación, y deberán establecer dentro de los proyectos de presupuesto respectivos, las partidas necesarias para atender la ejecución de esos programas, las obras de infraestructura, la contratación de personal, la capacitación y todos los demás requerimientos necesarios para cumplir los objetivos de la presente Ley.
 
 **Octavo.** El Consejo de Coordinación para la Implementación del Sistema de Justicia Penal constituirá un Comité para la Implementación, Evaluación y Seguimiento del Sistema de Ejecución Penal que estará presidido por la Conferencia Nacional del Sistema Penitenciario, el cual rendirá un informe semestral al Consejo de Coordinación. Lo anterior con la finalidad de coordinar, coadyuvar y apoyar a las autoridades federales y a las entidades federativas cuando así lo soliciten.
 
-La Autoridad Penitenciaria contará con un plazo de cuatro años, a partir de la publicación de es te Decreto, para capacitar, adecuar los establecimientos penitenciarios y su capacidad instalada, equipar, desarrollar tecnologías de la información y comunicaciones, así como adecuar su estructura organizacional. Todo ello de conformidad con los planes de actividades registrados ante el Comité al que se refiere el párrafo anterior.
+La Autoridad Penitenciaria contará con un plazo de cuatro años, a partir de la publicación de este Decreto, para capacitar, adecuar los establecimientos penitenciarios y su capacidad instalada, equipar, desarrollar tecnologías de la información y comunicaciones, así como adecuar su estructura organizacional. Todo ello de conformidad con los planes de actividades registrados ante el Comité al que se refiere el párrafo anterior.
 
 El Consejo de Coordinación presentará anualmente ante las Cámaras del Congreso de la Unión, un informe anual del seguimiento a la implementación del Sistema de Ejecución Penal.
 
-**Noveno.** Dentro de los ciento ochenta días naturales siguientes a la entrada en vigor del presente Decreto, la Conferencia Nacional del Sistema Penitenciario deberá emitir un Acuerdo General en el que se establezca un régimen gradual por virtud del cual l as Autoridades Penitenciarias, en el ámbito de su competencias, destinarán espacios especiales de reclusión, dentro de los establecimientos penitenciarios, para los sentenciados por los delitos de delincuencia organizada y secuestro, previstos en la Ley Ge neral para Prevenir y Sancionar los Delitos en Materia de Secuestro, así como aquellas personas privadas de la libertad que requieran medidas especiales de seguridad.
+**Noveno.** Dentro de los ciento ochenta días naturales siguientes a la entrada en vigor del presente Decreto, la Conferencia Nacional del Sistema Penitenciario deberá emitir un Acuerdo General en el que se establezca un régimen gradual por virtud del cual las Autoridades Penitenciarias, en el ámbito de su competencias (sic), destinarán espacios especiales de reclusión, dentro de los establecimientos penitenciarios, para los sentenciados por los delitos de delincuencia organizada y secuestro, previstos en la Ley General para Prevenir y Sancionar los Delitos en Materia de Secuestro, así como aquellas personas privadas de la libertad que requieran medidas especiales de seguridad.
 
 **Décimo.** A partir de la entrada en vigor del presente Decreto, podrán acceder, de manera inmediata y sin tener que satisfacer los requisitos establecidos en las fracciones IV y VII del artículo 141 de la presente Ley, al beneficio de libertad anticipada todas las personas que hayan sido sentenciadas con penas privativas de la libertad por la comisión de los siguientes delitos:
 
 **I.** La comisión del delito de robo cuyo valor de lo robado no exceda de 80 veces la Unidad de Medida y Actualización, y cuando en la comisión del delito no haya mediado ningún tipo de violencia, o
 
-**II.** La comisión del del ito de posesión sin fines de comercio o suministro, de Cannabis Sativa, Indica o Marihuana, contemplado en el artículo 477 de la Ley General de Salud, en cualquiera de sus formas, derivados o preparaciones, y cuando en la comisión del delito no haya mediado ningún tipo de violencia, ni la concurrencia de más delitos.
+**II.** La comisión del delito de posesión sin fines de comercio o suministro, de Cannabis Sativa, Indica o Marihuana, contemplado en el artículo 477 de la Ley General de Salud, en cualquiera de sus formas, derivados o preparaciones, y cuando en la comisión del delito no haya mediado ningún tipo de violencia, ni la concurrencia de más delitos.
 
 Para tal efecto, la autoridad jurisdiccional requerirá a la Autoridad Penitenciaria el informe sobre el cumplimiento de los requisitos a que alude el párrafo anterior.
 
-**Décimo Primero.** Los pro curadores o fiscales generales de la Federación y de las entidades federativas, en su ámbito de competencia respectivo, podrán solicitar ante la autoridad jurisdiccional competente, la aplicación de los beneficios de libertad anticipada referidos en el art ículo transitorio décimo. Asimismo, las autoridades judiciales competentes sustanciarán el procedimiento respectivo de manera oficiosa o a solicitud de la persona a quien aplique dicho beneficio.
+**Décimo Primero.** Los procuradores o fiscales generales de la Federación y de las entidades federativas, en su ámbito de competencia respectivo, podrán solicitar ante la autoridad jurisdiccional competente, la aplicación de los beneficios de libertad anticipada referidos en el artículo transitorio décimo. Asimismo, las autoridades judiciales competentes sustanciarán el procedimiento respectivo de manera oficiosa o a solicitud de la persona a quien aplique dicho beneficio.
 
-**Décimo Segundo.** El Poder Judicial de la Federación y los po deres judiciales de las entidades federativas emitirán acuerdos generales, para determinar la competencia territorial de excepción de los juzgados de ejecución con la finalidad de conocer de los diversos asuntos en razón de seguridad y
-
-medidas especiales, en tanto entra en vigor la Ley; para lo cual podrá suscribir los convenios correspondientes con las instancias operadoras del Sistema de Justicia Penal.
-
-**Artículo Segundo.-** ………
+**Décimo Segundo.** El Poder Judicial de la Federación y los poderes judiciales de las entidades federativas emitirán acuerdos generales, para determinar la competencia territorial de excepción de los juzgados de ejecución con la finalidad de conocer de los diversos asuntos en razón de seguridad y medidas especiales, en tanto entra en vigor la Ley; para lo cual podrá suscribir los convenios correspondientes con las instancias operadoras del Sistema de Justicia Penal.
 
 ## Transitorio
 
-**Único.**- El presente Decreto entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
+**Único.-** El presente Decreto entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
 
-Ciudad de México, a 14 de junio de 2016. - Sen. Roberto Gil Zuarth, Presidente.- Dip. José de Jesús Zambrano Grijalva , Presidente. - Sen. Hilda Esthela Flores Escalera , Secretaria. - Dip. Juan Manuel Celis Aguirre, Secretario.- Rúbricas."
+Ciudad de México, a 14 de junio de 2016.- Sen. Roberto Gil Zuarth, Presidente.- Dip. José de Jesús Zambrano Grijalva, Presidente.- Sen. Hilda Esthela Flores Escalera, Secretaria.- Dip. Juan Manuel Celis Aguirre, Secretario.- Rúbricas."
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del P oder Ejecutivo Federal, en la Ciudad de México, a dieciséis de junio de dos mil dieciséis.- Enrique Peña Nieto.- Rúbrica.- El Secretario de Gobernación, Miguel Ángel Osorio Chong .- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a dieciséis de junio de dos mil dieciséis.- Enrique Peña Nieto.- Rúbrica.- El Secretario de Gobernación, Miguel Ángel Osorio Chong.- Rúbrica.
+
+**D.O.F. 1 DE ABRIL DE 2024.**
+
+**Único.-** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.

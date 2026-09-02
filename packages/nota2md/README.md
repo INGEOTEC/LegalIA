@@ -343,10 +343,10 @@ decree's own "se
 reforma/adiciona/deroga el artículo N... para quedar como sigue" instruction
 on top of it, article by article — filling back in, from the article's own
 previous text, every fracción or inciso a reform elides with "..." instead of
-repeating. It never reads a law's official consolidated ("texto vigente") text;
-that exists separately (`nota2md.texto_vigente`) only as independent ground
-truth to check reconstructions against, in `tests/test_leyes_44.py`, over 43
-real federal laws.
+repeating. It never reads anyone else's consolidated text of the law:
+`tests/test_leyes_44.py` checks it against the SCJN's own consolidated text at
+each law's most recent reform, over 42 real federal laws, and that test says in
+full what the check does and does not establish (issue #188).
 
 The SCJN corpus becoming `legal_provisions`' default source (issue #117) does
 not retire this function (issue #129's audit): the corpus links 2,474 of its
