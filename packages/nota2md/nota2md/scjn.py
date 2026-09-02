@@ -42,6 +42,7 @@ import json
 import re
 import tarfile
 import unicodedata
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
 from difflib import SequenceMatcher
@@ -1566,6 +1567,102 @@ def download_scjn_leyes_corpus(
             for nombre, texto in sorted(cuerpos.items())
         ]
     return {"slug": slug, "snapshots": snapshots}
+
+
+def iter_current_federal_laws(
+    slugs: list[str] | None = None,
+    *,
+    cache_dir=SIN_CACHE_DIR,
+    refrescar: bool = False,
+    timeout: int = 60,
+) -> Iterator[dict]:
+    """The current text of every federal law the `scjn-leyes` release
+    publishes, one ``{"slug", "nombre", "fecha_publicacion", "codNota",
+    "archivo", "markdown"}`` dict per law -- "current" meaning the snapshot
+    with the newest `fecha_publicacion` in that law's own `indice.json`.
+
+    A true generator: one `<slug>.tgz` asset is opened, its winning snapshot
+    read, and the tarball's bytes dropped before the next `slug` is reached,
+    so iterating the whole corpus (currently ~315 laws, 380 MB uncompressed)
+    never holds more than one law in memory at a time.
+    `download_scjn_leyes_corpus` would not do here -- it decodes every
+    snapshot and every `notas/` entry of a law just to keep the one that
+    turns out to be the newest.
+
+    `slugs=None` (the default) walks every law the release currently
+    publishes a tarball for (`scjn_leyes_slugs`), not the keys of
+    `indice-global.json.gz`'s `instrumentos`: a law that has been crawled but
+    not linked yet has a `.tgz` and no entry there (same reasoning as
+    `scjn_leyes_slugs` itself). `nombre` still comes from `instrumentos`,
+    which `construye_indice_global` populates for every crawled law
+    regardless of whether it has an `indice.json`.
+
+    A law never linked (`enlaza_scjn_legislacion.py` has not run for it yet)
+    has no `indice.json` at all: the winner is then the raw snapshot whose
+    file name -- `DD-MM-YYYY.md`, or `DD-MM-YYYY-N.md` for a same-day repeat
+    (`scjn_api.descarga_ordenamiento`'s `-N` suffix) -- carries the newest
+    date, and `codNota` comes back `None`.
+
+    `fecha_publicacion`, both in `indice.json` and in a raw snapshot's own
+    file name, is `DD-MM-YYYY` (`scjn_api._fecha`'s format), not ISO --
+    comparing it lexicographically would rank `"05-01-1999"` ahead of
+    `"22-05-1998"`. The winner is chosen by parsing the date with `_fecha`;
+    `archivo` breaks a tie between two snapshots published the same day, only
+    to make the pick deterministic, not because either ordering is more
+    correct.
+
+    Raises `KeyError` for a `slug` the release does not publish a tarball
+    for, exactly as `download_scjn_leyes_corpus` does (`_bytes_de_asset`).
+    """
+    if slugs is None:
+        slugs = scjn_leyes_slugs(timeout)
+    instrumentos = download_scjn_leyes_index(
+        cache_dir=cache_dir, refrescar=refrescar, timeout=timeout
+    )["instrumentos"]
+
+    for slug in slugs:
+        contenido = _bytes_de_asset(f"{slug}.tgz", cache_dir, refrescar, timeout)
+        with tarfile.open(fileobj=io.BytesIO(contenido), mode="r:gz") as tar:
+            try:
+                miembro_indice = tar.getmember(f"{slug}/indice.json")
+            except KeyError:
+                miembro_indice = None
+
+            if miembro_indice is not None:
+                indice = json.loads(tar.extractfile(miembro_indice).read())
+                ganador = max(
+                    indice, key=lambda e: (_fecha(e["fecha_publicacion"]), e["archivo"])
+                )
+                cod_nota = ganador.get("codNota")
+                fecha_publicacion = ganador["fecha_publicacion"]
+                archivo = ganador["archivo"]
+            else:
+                # Never linked: no indice.json, so nothing but the raw
+                # snapshots' own file names says which is newest. estado.json
+                # and notas/ are shipped alongside them but are not snapshots.
+                candidatos = [
+                    relativo
+                    for m in tar.getmembers()
+                    if m.isfile()
+                    for relativo in (m.name.partition("/")[2],)
+                    if relativo not in ("indice.json", ARCHIVO_ESTADO)
+                    and not relativo.startswith("notas/")
+                ]
+                archivo = max(candidatos, key=lambda nombre: (_fecha(nombre[:10]), nombre))
+                cod_nota = None
+                fecha_publicacion = archivo[:10]
+
+            miembro_md = tar.getmember(f"{slug}/{archivo}")
+            markdown = tar.extractfile(miembro_md).read().decode("utf-8")
+
+        yield {
+            "slug": slug,
+            "nombre": instrumentos.get(slug, {}).get("nombre"),
+            "fecha_publicacion": fecha_publicacion,
+            "codNota": cod_nota,
+            "archivo": archivo,
+            "markdown": markdown,
+        }
 
 
 def _estado_de_asset(slug: str, cache_dir, refrescar: bool, timeout: int) -> dict:

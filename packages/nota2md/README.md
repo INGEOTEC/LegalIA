@@ -251,6 +251,26 @@ carries an underscore (`lif_2026`, `pef_2026`, `ligie_2022`, `reg_senado`,
 the `lrart*`/`lrf*` reglamentarias …) come back hyphenated. Match on
 `nota2md.scjn.slug_instrumento` and keep your own `abrev`.
 
+A fourth reader, `iter_current_federal_laws`, answers a narrower question
+lazily instead of loading a whole law's history to answer it: not "every
+snapshot", just the *current* text of every federal law, one at a time.
+
+```python
+from nota2md import iter_current_federal_laws
+
+# run `nota2md download federal-laws` first to avoid downloading on the fly
+for ley in iter_current_federal_laws():
+    print(ley["slug"], ley["fecha_publicacion"], len(ley["markdown"]))
+```
+
+Each item is `{"slug", "nombre", "fecha_publicacion", "codNota", "archivo",
+"markdown"}` — the law's newest snapshot, picked by `fecha_publicacion`
+without decoding any of its other snapshots or its `notas/`. `slugs=[...]`
+narrows the laws visited (and their order); left out, it walks every law the
+release currently ships a tarball for. It is a generator: iterating one law
+at a time never opens more than one `<slug>.tgz`, so consuming the whole
+corpus this way never holds more than one law in memory.
+
 #### Cache
 
 The release assets the SCJN path reads are cached on disk, exactly as
