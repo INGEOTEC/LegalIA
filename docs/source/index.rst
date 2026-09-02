@@ -20,77 +20,91 @@ Federación* (DOF), Mexico's official gazette: more than 1.2 million legal
 provisions published without interruption since 1917.
 
 **This site is developer documentation**: how each package's code is put
-together, and its full API — public and private — for anyone extending or
-debugging it. It is not a usage guide; for that (installing and using a
-package as-is, worked examples, datasets, findings) see `the LegalIA website
-<https://ingeotec.github.io/LegalIA/>`_, including
-`website/pages/dof2md.ipynb
-<https://github.com/INGEOTEC/LegalIA/blob/master/website/pages/dof2md.ipynb>`_
-for ``dof2md`` specifically.
+together, and its full API — public and private, with a worked example for
+every public symbol — for anyone extending or debugging it. It is not a
+results guide; for that (datasets, findings, the analysis of the gazette)
+see `the LegalIA website <https://ingeotec.github.io/LegalIA/>`_.
 
 Each package under ``packages/<name>/`` has its own ``pyproject.toml``,
 version, and PyPI release, and builds on the ones before it in this read
-order: ``dofjson`` -> ``nota2md`` -> ``dof2md`` -> ``md2akn``. This site
-currently documents only ``dof2md`` — the most stable of the four at the
-moment; ``dofjson``, ``nota2md`` and ``md2akn`` get their own page once each
-is similarly stable (see `issue #119
-<https://github.com/INGEOTEC/LegalIA/issues/119>`_).
+order: ``dofjson`` -> ``nota2md`` -> ``dof2md`` -> ``md2akn``.
 
-dof2md's architecture
-======================
+.. list-table:: The four packages
+   :header-rows: 1
 
-:py:mod:`dof2md` converts a PDF or a set of scanned page images to Markdown
-via OCR (`mineru <https://github.com/opendatalab/MinerU>`_). It has no
-notion of a "note"/legal provision, and no download of its own — getting a
-whole DOF edition's PDF by date and edition is
-:py:func:`dofjson.download_edicion_pdf`'s job.
+   * - Package
+     - Purpose
+     - Version
+     - PyPI
+     - API page
+   * - ``dofjson``
+     - Client for SIDOF's undocumented JSON open-data service, with a
+       ``www.dof.gob.mx`` fallback for the days SIDOF loses.
+     - |dofjson_version|
+     - `dofjson <https://pypi.org/project/dofjson/>`_
+     - :doc:`dofjson_api`
+   * - ``nota2md``
+     - One DOF note (or a whole law's reform history) to Markdown, backed by
+       the SCJN's consolidated texts and its own crawl of the SCJN corpus.
+     - |nota2md_version|
+     - `nota2md <https://pypi.org/project/nota2md/>`_
+     - :doc:`nota2md_api`
+   * - ``dof2md``
+     - OCRs a PDF or a set of scanned page images to Markdown via mineru —
+       ``nota2md``'s fallback for legal provisions predating the HTML era.
+     - |dof2md_version|
+     - `dof2md <https://pypi.org/project/dof2md/>`_
+     - :doc:`dof2md_api`
+   * - ``md2akn``
+     - Segments a law's Markdown into a hierarchy labelled with Akoma
+       Ntoso's vocabulary. No dependency on the other three packages.
+     - |md2akn_version|
+     - `md2akn <https://pypi.org/project/md2akn/>`_
+     - :doc:`md2akn_api`
 
-Both entry points — the ``dof2md`` command line (:py:mod:`dof2md.cli`) and
-:py:class:`~dof2md.BatchConverter` (:py:mod:`dof2md.batch`) used directly
-from Python — go through the same pipeline below.
-:py:class:`~dof2md.mineru_server.MineruServer` keeps a single ``mineru-api``
-process warm across a batch instead of paying its startup cost per document;
-:py:mod:`dof2md.converter` shells out to it, :py:mod:`dof2md.tables`
-rewrites mineru's raw HTML table fallback into Markdown tables, and
-:py:mod:`dof2md.cutter` optionally crops the result down to one note by
-title.
+How the packages relate
+========================
+
+``dofjson`` is the only package that talks to SIDOF/``www.dof.gob.mx``;
+``nota2md`` builds on it for a note's Markdown and reaches into ``dof2md``
+only as the OCR fallback for pre-HTML-era provisions (pre-1999ish); ``nota2md``
+also crawls/reads the SCJN's SCOW API and the ``scjn-leyes`` release for a
+law's consolidated text and reform history. ``md2akn`` reads ``nota2md``'s
+Markdown output from disk and depends on none of the other three.
 
 .. graphviz::
-   :alt: dof2md's conversion pipeline, from entry points to Markdown output.
+   :alt: How dofjson, nota2md, dof2md and md2akn relate, and the external
+         systems each one talks to.
 
-   digraph dof2md_flow {
+   digraph legalia_flow {
        rankdir=LR;
        fontname="sans-serif";
        node [fontname="sans-serif", fontsize=11, shape=box, style="rounded,filled",
              fillcolor="#f4f4f4", color="#888888"];
        edge [fontname="sans-serif", fontsize=9, color="#888888"];
 
-       cli [label="cli.py\n(dof2md command)"];
-       batch [label="batch.py\nBatchConverter"];
-       server [label="mineru_server.py\nMineruServer"];
-       mineru [label="mineru CLI\n(external OCR/layout)", style="rounded,dashed", fillcolor="#ffffff"];
-       converter [label="converter.py\nconvert_to_markdown()\nconvert_images_to_markdown()"];
-       tables [label="tables.py\nhtml_tables_to_markdown()"];
-       cutter [label="cutter.py\ncut_markdown_by_titles()\n(optional, if titulo given)"];
-       output [label="Markdown output", shape=note, style=filled, fillcolor="#ffffff"];
+       sidof [label="SIDOF\n(sidof.segob.gob.mx)", style="rounded,dashed", fillcolor="#ffffff"];
+       dofweb [label="www.dof.gob.mx", style="rounded,dashed", fillcolor="#ffffff"];
+       scjn_api [label="SCJN SCOW API", style="rounded,dashed", fillcolor="#ffffff"];
+       notas_archivo [label="notas-archivo release", style="rounded,dashed", fillcolor="#ffffff"];
+       scjn_leyes [label="scjn-leyes release", style="rounded,dashed", fillcolor="#ffffff"];
+       mineru [label="mineru\n(external OCR/layout)", style="rounded,dashed", fillcolor="#ffffff"];
 
-       cli -> batch;
-       batch -> server [label="__enter__ / __exit__"];
-       server -> converter [label="MINERU_API_URL", style=dashed];
-       batch -> converter [label="__call__"];
-       converter -> mineru [label="subprocess"];
-       converter -> tables [label="rewrite HTML tables"];
-       tables -> batch [label="Markdown"];
-       batch -> cutter [label="titulo given"];
-       cutter -> output;
-       batch -> output [label="titulo omitted"];
+       dofjson [label="dofjson\nDOF/SIDOF client"];
+       nota2md [label="nota2md\nnote -> Markdown,\nSCJN corpus, reform replay"];
+       dof2md [label="dof2md\nPDF/image OCR"];
+       md2akn [label="md2akn\nMarkdown -> Akoma Ntoso\nvocabulary tree"];
+
+       sidof -> dofjson;
+       dofweb -> dofjson [label="recovers days SIDOF loses"];
+       notas_archivo -> dofjson [label="legal_provisions_titles"];
+       dofjson -> nota2md;
+       scjn_api -> nota2md;
+       scjn_leyes -> nota2md;
+       nota2md -> dof2md [label="OCR fallback\n(pre-HTML-era notes)", style=dashed];
+       dof2md -> mineru;
+       nota2md -> md2akn [label="Markdown"];
    }
-
-See :doc:`dof2md_api` for the full module-by-module API, ordered to match
-the diagram above, including title-based cropping and mineru
-output-retention options. Usage examples (CLI, :py:class:`~dof2md.BatchConverter`)
-live on `the LegalIA website's dof2md page
-<https://ingeotec.github.io/LegalIA/>`_, not here.
 
 API
 ===
@@ -98,4 +112,7 @@ API
 .. toctree::
    :maxdepth: 1
 
+   dofjson_api
+   nota2md_api
    dof2md_api
+   md2akn_api

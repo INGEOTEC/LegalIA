@@ -18,9 +18,9 @@ document, rewriting mineru's raw HTML table fallback into Markdown tables,
 and cropping the result down to a single note by locating its title and the
 next note's title in the OCR'd text.
 
-The sections below are ordered the same way as :doc:`index`'s pipeline
-diagram: the two entry points first, then each module in the order a
-conversion actually flows through them. Every class and function is
+The sections below are ordered the way a conversion actually flows through
+the package: the two entry points first, then each module in turn. Every
+class and function is
 documented, including private/internal helpers (leading-underscore names) —
 useful when extending or debugging the package, though they are not part of
 its public API and can change without notice.
@@ -49,13 +49,24 @@ manager it starts a persistent ``mineru-api`` server on ``__enter__``
 list of image paths for a document spanning several scanned pages — to
 Markdown.
 
+Entering :py:class:`~dof2md.BatchConverter` starts a real ``mineru-api``
+server, and calling it shells out to the real ``mineru`` CLI — neither is
+installed in the doctest job (see :doc:`index`'s package table and the
+``.readthedocs.yaml``/``test.yml`` dependency setup), so this and every other
+OCR-dependent example on this page are marked ``# doctest: +SKIP`` and are
+instead exercised for real by ``packages/dof2md/tests/test_batch.py`` — the
+one stated exception to "every public symbol has a verified example",
+covered in full when this page is raised to the rest of the epic's standard
+(issue #199). ``dof2md.cutter`` below, needing neither mineru nor any file on
+disk, is this phase's live demonstration of the ``doctest`` template instead:
+
 >>> from dof2md import BatchConverter
 >>>
 >>> jobs = [
 ...     ("a.pdf", "output", "a.md"),
 ...     (["b-p1.jpg", "b-p2.jpg"], "output", "b.md"),
 ... ]
->>> with BatchConverter() as convert:
+>>> with BatchConverter() as convert:  # doctest: +SKIP
 ...     for path_or_paths, outdir, filename in jobs:
 ...         convert(path_or_paths, outdir, filename)
 
@@ -64,7 +75,7 @@ text between the two titles, as they appear in the gazette's own index —
 useful because a scanned edition page usually holds the tail of one note and
 the head of the next:
 
->>> with BatchConverter() as convert:
+>>> with BatchConverter() as convert:  # doctest: +SKIP
 ...     convert(
 ...         "edicion.pdf", "output", "nota.md",
 ...         titulo="ACUERDO por el que se...",
@@ -138,7 +149,25 @@ When ``BatchConverter`` is called with ``titulo``, the last step before the
 Markdown is written is slicing it down to the text between this note's title
 and the next note's title, as they appear in the gazette's own per-day
 index — the OCR'd text otherwise spans whatever notes shared that scanned
-page.
+page:
+
+>>> from dof2md.cutter import cut_markdown_by_titles
+>>> markdown = (
+...     "resto de la nota anterior.\n\n"
+...     "## Acuerdo de regularizacion de titulos\n\n"
+...     "Cuerpo del acuerdo.\n\n"
+...     "## Norma Oficial Mexicana NOM-042-NUCL\n\n"
+...     "Nota siguiente, excluir.\n"
+... )
+>>> cut = cut_markdown_by_titles(
+...     markdown,
+...     "Acuerdo de regularizacion de titulos",
+...     "Norma Oficial Mexicana NOM-042-NUCL",
+... )
+>>> print(cut)
+## Acuerdo de regularizacion de titulos
+<BLANKLINE>
+Cuerpo del acuerdo.
 
 .. automodule:: dof2md.cutter
    :members:

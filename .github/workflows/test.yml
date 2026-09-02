@@ -31,6 +31,41 @@ jobs:
       - name: Run tests
         run: pytest packages/${{ matrix.package }}
 
+  # Runs the documentation's worked examples for real (network included:
+  # SIDOF, www.dof.gob.mx, the SCJN), separate from the per-package pytest
+  # matrix above so a SIDOF outage fails only the docs gate. Read the Docs'
+  # own build stays HTML-only and never depends on those services (issue
+  # #195, Docs Phase 0).
+  docs-doctest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install system dependencies (dot renders the architecture diagrams)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq graphviz
+      - name: Cache nota2md/dofjson's on-disk release caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/nota2md
+            ~/.cache/dofjson
+          key: docs-doctest-cache-v1
+      - name: Install docs and package dependencies
+        run: |
+          pip install -r docs/requirements.txt
+          pip install -e packages/dofjson
+          pip install -e packages/nota2md
+          # --no-deps: keeps the heavy mineru[pipeline] install out of this
+          # job too — dof2md's OCR-dependent examples are marked
+          # `# doctest: +SKIP` and verified instead by its own pytest suite
+          # (see docs/source/dof2md_api.rst).
+          pip install --no-deps -e packages/dof2md
+          pip install -e packages/md2akn
+      - name: Run the documentation's doctest examples
+        run: python -m sphinx -b doctest docs/source docs/build/doctest
+
   # Informational for now (issue #194): dofjson and nota2md already violate
   # the single-step-ahead rule (both two minor versions ahead of PyPI), so
   # making this a hard gate today would fail every PR until that drift is
