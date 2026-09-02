@@ -30,9 +30,9 @@ for ``dof2md`` specifically.
 
 Each package under ``packages/<name>/`` has its own ``pyproject.toml``,
 version, and PyPI release, and builds on the ones before it in this read
-order: ``dofjson`` -> ``nota2md`` -> ``dof2md`` -> ``leyesmx``. This site
+order: ``dofjson`` -> ``nota2md`` -> ``dof2md`` -> ``md2akn``. This site
 currently documents only ``dof2md`` — the most stable of the four at the
-moment; ``dofjson``, ``nota2md`` and ``leyesmx`` get their own page once each
+moment; ``dofjson``, ``nota2md`` and ``md2akn`` get their own page once each
 is similarly stable (see `issue #119
 <https://github.com/INGEOTEC/LegalIA/issues/119>`_).
 

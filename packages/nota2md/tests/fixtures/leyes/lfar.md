@@ -1,6 +1,12 @@
-## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY FEDERAL DE AUSTERIDAD REPUBLICANA**
 
-**ANDRÉS MANUEL LÓPEZ OBRADOR** , Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 16 DE ABRIL DE 2025.**
+
+Ley publicada en el Diario Oficial de la Federación, el martes 19 de noviembre de 2019.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+ANDRÉS MANUEL LÓPEZ OBRADOR, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -14,15 +20,17 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **LEY FEDERAL DE AUSTERIDAD REPUBLICANA**
 
-**TÍTULO PRIMERO DISPOSICIONES GENERALES**
+**TÍTULO PRIMERO**
+
+**DISPOSICIONES GENERALES**
 
 Capítulo Único
 
-**Artículo 1.** Esta Ley es de orden público e interés social. Tiene por objeto regular y normar las medidas de austeridad que deberá observar el ejercicio del gasto público federal y coadyuvar a que los recursos económicos de que se di spongan se administren con eficacia, eficiencia, economía, transparencia y honradez, conforme lo establece el artículo 134 de la Constitución Política de los Estados Unidos Mexicanos. Sus disposiciones son aplicables a todas las dependencias, entidades, or ganismos y demás entes que integran la Administración Pública Federal.
+**Artículo 1.** Esta Ley es de orden público e interés social. Tiene por objeto regular y normar las medidas de austeridad que deberá observar el ejercicio del gasto público federal y coadyuvar a que los recursos económicos de que se dispongan se administren con eficacia, eficiencia, economía, transparencia y honradez, conforme lo establece el artículo 134 de la Constitución Política de los Estados Unidos Mexicanos. Sus disposiciones son aplicables a todas las dependencias, entidades, organismos y demás entes que integran la Administración Pública Federal.
 
-Los Poderes Legislativo y Judicial, así como los órganos constitucionales autónomos tomarán las acciones necesarias para dar cumplimiento a la presente Ley, de acuerdo con la normativi dad aplicable a cada uno de ellos, cuando se les asignen recursos del Presupuesto de Egresos de la Federación.
+Los Poderes Legislativo y Judicial, así como los órganos constitucionales autónomos tomarán las acciones necesarias para dar cumplimiento a la presente Ley, de acuerdo con la normatividad aplicable a cada uno de ellos, cuando se les asignen recursos del Presupuesto de Egresos de la Federación.
 
-**Artículo 2.** A falta de disposición expresa en esta Ley, se aplicarán en forma supletoria y en lo conducente la Ley Federal de Presupuesto y Resp onsabilidad Hacendaria, la Ley de Adquisiciones, Arrendamientos y Servicios del Sector Público, la Ley de Obras Públicas y Servicios Relacionados con las Mismas, la Ley Orgánica de la Administración Pública Federal, la Ley Federal de Procedimiento Administrativo, y la Ley General de Responsabilidades Administrativas, en ese orden.
+**Artículo 2.** A falta de disposición expresa en esta Ley, se aplicarán en forma supletoria y en lo conducente la Ley Federal de Presupuesto y Responsabilidad Hacendaria, la Ley de Adquisiciones, Arrendamientos y Servicios del Sector Público, la Ley de Obras Públicas y Servicios Relacionados con las Mismas, la Ley Orgánica de la Administración Pública Federal, la Ley Federal de Procedimiento Administrativo, y la Ley General de Responsabilidades Administrativas, en ese orden.
 
 **Artículo 3.** Son objetivos de la presente Ley:
 
@@ -32,23 +40,23 @@ Los Poderes Legislativo y Judicial, así como los órganos constitucionales aut�
 
 **III.** Establecer las competencias de los entes públicos en la materia de la presente Ley;
 
-**IV.** Enumerar las medidas que se pueden to mar para impulsar la austeridad republicana como política de Estado;
+**IV.** Enumerar las medidas que se pueden tomar para impulsar la austeridad republicana como política de Estado;
 
 **V.** Establecer medidas que permitan generar ahorros en el gasto público para orientar recursos a la satisfacción de necesidades generales, y
 
-**VI.** Crear el mecanismo de operación y evaluac ión de la política de austeridad republicana de Estado.
+**VI.** Crear el mecanismo de operación y evaluación de la política de austeridad republicana de Estado.
 
 **Artículo 4.** Para los efectos de la presente Ley se entenderá por:
 
-**I.** Austeridad Republicana: Conducta republicana y política de Estado que los entes públicos así como los Poderes Legislativo y Judic ial, las empresas productivas del Estado y sus empresas subsidiarias, y los órganos constitucionales autónomos están obligados a acatar de conformidad con su orden jurídico, para combatir la desigualdad social, la corrupción, la avaricia y el despilfarro d e los bienes y recursos nacionales, administrando los recursos con eficiencia, eficacia, economía, transparencia y honradez para satisfacer los objetivos a los que están destinados;
+**I.** Austeridad Republicana: Conducta republicana y política de Estado que los entes públicos así como los Poderes Legislativo y Judicial, las empresas productivas del Estado y sus empresas subsidiarias, y los órganos constitucionales autónomos están obligados a acatar de conformidad con su orden jurídico, para combatir la desigualdad social, la corrupción, la avaricia y el despilfarro de los bienes y recursos nacionales, administrando los recursos con eficiencia, eficacia, economía, transparencia y honradez para satisfacer los objetivos a los que están destinados;
 
-**II.** Comité de Evaluación: Órgano Colegiado Interinstitucional encargado e n el ámbito de la Administración Pública Federal de, entre otros, evaluar las medidas de austeridad republicana;
+**II.** Comité de Evaluación: Órgano Colegiado Interinstitucional encargado en el ámbito de la Administración Pública Federal de, entre otros, evaluar las medidas de austeridad republicana;
 
 **III.** Ley: Ley Federal de Austeridad Republicana;
 
 **IV.** Nepotismo: La designación, otorgamiento de nombramiento o contratación que realice un servidor público de personas con las que tenga lazos de parentesco por consanguinidad hasta el cuarto grado, de afinidad hasta el segundo grado, o vínculo de matrimonio o concubinato para que preste sus servicios en la misma institución, dependencia o ente público en que éste labore;
 
-**V.** Remuneración: Toda percepción en efectivo o en especie, incluyendo dietas, aguinaldos, gratificaciones, premios, recompensas, bonos, estímulos, comisiones económicas, compensaciones y cualquier otra, con excepción de los apoy os y los gastos sujetos a comprobación que sean propios del desarrollo del trabajo y los gastos de viaje en actividades oficiales, y
+**V.** Remuneración: Toda percepción en efectivo o en especie, incluyendo dietas, aguinaldos, gratificaciones, premios, recompensas, bonos, estímulos, comisiones económicas, compensaciones y cualquier otra, con excepción de los apoyos y los gastos sujetos a comprobación que sean propios del desarrollo del trabajo y los gastos de viaje en actividades oficiales, y
 
 **VI.** Secretaría: Secretaría de la Función Pública del Poder Ejecutivo Federal.
 
@@ -56,13 +64,15 @@ Los Poderes Legislativo y Judicial, así como los órganos constitucionales aut�
 
 La Secretaría y la Secretaría de Hacienda y Crédito Público estarán facultadas, en el ámbito de sus atribuciones, para interpretar esta Ley.
 
-**TÍTULO SEGUNDO DE LA AUSTERIDAD REPUBLICANA DE ESTADO**
+**TÍTULO SEGUNDO**
+
+**DE LA AUSTERIDAD REPUBLICANA DE ESTADO**
 
 Capítulo Único
 
-**Artículo 6.** Para dar cumplimiento a los fines de esta Ley, los entes públicos sujetarán su gasto corriente y de capital a los principios establecidos en la Consti tución Política de los Estados Unidos Mexicanos, en la Ley Federal de Presupuesto y Responsabilidad Hacendaria, en la Ley de Ingresos de la Federación, en el Presupuesto de Egresos de la Federación, y en la Ley Federal de Transparencia y Acceso a la Información Pública, conforme a los objetivos señalados en la presente Ley y de acuerdo con las demás disposiciones aplicables en la materia.
+**Artículo 6.** Para dar cumplimiento a los fines de esta Ley, los entes públicos sujetarán su gasto corriente y de capital a los principios establecidos en la Constitución Política de los Estados Unidos Mexicanos, en la Ley Federal de Presupuesto y Responsabilidad Hacendaria, en la Ley de Ingresos de la Federación, en el Presupuesto de Egresos de la Federación, y en la Ley Federal de Transparencia y Acceso a la Información Pública, conforme a los objetivos señalados en la presente Ley y de acuerdo con las demás disposiciones aplicables en la materia.
 
-**Artículo 7.** La política de austeridad republicana de Estado deberá partir de un diagnóstico de las medidas a aplicar, s u compatibilidad con la planeación democrática, y el respeto a los programas sectoriales, institucionales, regionales y especiales que se establezcan de conformidad con la Ley de Planeación. Además, se deberán desarrollar indicadores de desempeño para eval uar dicha política.
+**Artículo 7.** La política de austeridad republicana de Estado deberá partir de un diagnóstico de las medidas a aplicar, su compatibilidad con la planeación democrática, y el respeto a los programas sectoriales, institucionales, regionales y especiales que se establezcan de conformidad con la Ley de Planeación. Además, se deberán desarrollar indicadores de desempeño para evaluar dicha política.
 
 Al final de cada año fiscal los entes públicos obligados entregarán al Comité de Evaluación y a la Cámara de Diputados un "Informe de Austeridad Republicana" en el cual se reportarán los ahorros obtenidos por la aplicación de la presente Ley, y serán evaluados en términos de los propios lineamientos y demás normatividad aplicable.
 
@@ -76,7 +86,7 @@ Para aplicar la política de la austeridad republicana de Estado, los entes púb
 
 Los ahorros obtenidos con motivo de la aplicación de la presente Ley se destinarán conforme a lo establecido en la Ley Federal de Presupuesto y Responsabilidad Hacendaria y en el Presupuesto de Egresos de la Federación correspondiente.
 
-**Artículo 8.** En la adquisición de bienes muebles e inmuebles, su arrendamiento o contratación de servicios y obra pública se bus cará la máxima economía, eficiencia y funcionalidad, observando los principios de austeridad, ejerciendo estrictamente los recursos públicos en apego a las disposiciones legales aplicables.
+**Artículo 8.** En la adquisición de bienes muebles e inmuebles, su arrendamiento o contratación de servicios y obra pública se buscará la máxima economía, eficiencia y funcionalidad, observando los principios de austeridad, ejerciendo estrictamente los recursos públicos en apego a las disposiciones legales aplicables.
 
 Las adquisiciones, arrendamientos y servicios se adjudicarán, por regla general y de manera prioritaria, a través de licitaciones públicas, de conformidad con lo establecido en la Ley de Adquisiciones, Arrendamientos y Servicios del Sector Público. Las excepciones a esta regla deberán estar plenamente justificadas ante el órgano encargado del control interno que corresponda.
 
@@ -84,11 +94,13 @@ Las adquisiciones, arrendamientos y servicios se adjudicarán, por regla general
 
 La nulidad de dichos contratos sólo se podrá declarar por la autoridad judicial competente.
 
-Los órganos encargados del control interno o de la fiscalización en cada ente público, iniciará n los procesos correspondientes para sancionar a los responsables y resarcir el daño ocasionado de acuerdo con la legislación aplicable.
+Los órganos encargados del control interno o de la fiscalización en cada ente público, iniciarán los procesos correspondientes para sancionar a los responsables y resarcir el daño ocasionado de acuerdo con la legislación aplicable.
 
-**Artículo 10.** En tanto no se autoricen nuevos programas o se amplíen las metas de los existentes, los gastos por concep to de telefonía, telefonía celular, fotocopiado, combustibles, arrendamientos, viáticos, alimentación, mobiliario, remodelación de oficinas, equipo de telecomunicaciones, bienes informáticos, papelería, pasajes, congresos, convenciones, exposiciones y semi narios, necesarios para cumplir la función de cada dependencia y organismo, no podrán exceder de los montos erogados en el ejercicio presupuestal inmediato anterior, una vez considerados los incrementos en precios y tarifas oficiales o la inflación. Lo ant erior, salvo las autorizaciones presupuestales que otorgue la Secretaría de Hacienda y Crédito Público, previa justificación. Reforma DOF 16-04-2025: Derogó del artículo el entonces párrafo segundo
+**Artículo 10.** En tanto no se autoricen nuevos programas o se amplíen las metas de los existentes, los gastos por concepto de telefonía, telefonía celular, fotocopiado, combustibles, arrendamientos, viáticos, alimentación, mobiliario, remodelación de oficinas, equipo de telecomunicaciones, bienes informáticos, papelería, pasajes, congresos, convenciones, exposiciones y seminarios, necesarios para cumplir la función de cada dependencia y organismo, no podrán exceder de los montos erogados en el ejercicio presupuestal inmediato anterior, una vez considerados los incrementos en precios y tarifas oficiales o la inflación. Lo anterior, salvo las autorizaciones presupuestales que otorgue la Secretaría de Hacienda y Crédito Público, previa justificación.
 
-**Artículo 11.** Las erogaciones por concepto de congresos y convenciones se sujetarán a los lineamientos que , en términos del artículo 16 del presente ordenamiento, emitan la Secretaría y la Secretaría de Hacienda y Crédito Público, atendiendo las disposiciones de austeridad republicana y en el ámbito de sus respectivas atribuciones.
+**(DEROGADO SEGUNDO PÁRRAFO, D.O.F. 16 DE ABRIL DE 2025)**
+
+**Artículo 11.** Las erogaciones por concepto de congresos y convenciones se sujetarán a los lineamientos que, en términos del artículo 16 del presente ordenamiento, emitan la Secretaría y la Secretaría de Hacienda y Crédito Público, atendiendo las disposiciones de austeridad republicana y en el ámbito de sus respectivas atribuciones.
 
 **Artículo 12.** Los entes públicos ajustarán sus estructuras orgánicas y ocupacionales de conformidad con los principios de racionalidad y austeridad republicana. Se eliminarán todo tipo de duplicidades y se atenderán las necesidades de mejora y modernización de la gestión pública.
 
@@ -96,13 +108,15 @@ Para dar cumplimiento a lo anterior, en el ámbito del Poder Ejecutivo Federal, 
 
 **I.** Se asigna secretario particular únicamente a los titulares de dependencia o entidad;
 
-**II.** Sólo se permitirá la asign ación de chofer a subsecretarios de Estado, y superiores, así como a titulares de entidades de control directo;
+**II.** Sólo se permitirá la asignación de chofer a subsecretarios de Estado, y superiores, así como a titulares de entidades de control directo;
 
 **III.** Se prohíben las plazas con nivel de Dirección General Adjunta que no ejerzan facultades contempladas expresamente en ley o reglamento;
 
 **IV.** Los representantes gremiales en los órganos tripartitos, con excepción de aquellos que se desempeñen en los Tribunales Laborales, ocuparán cargos honoríficos, por lo que no recibirán remuneración alguna por el desempeño de su función, y
 
-**V.** La contratación de servicios de consultoría, asesoría y de todo tipo de despachos externos para elaborar estudios, investigaciones, proy ectos de ley, planes de desarrollo, o cualquier tipo de análisis y recomendaciones, se realizará exclusivamente cuando las personas físicas o morales que presten los servicios no desempeñen funciones similares, iguales o equivalentes a las del personal de plaza presupuestaria, no puedan realizarse con la fuerza de trabajo y capacidad profesional de las personas servidoras públicas y sean indispensables para el cumplimiento de los programas autorizados, considerando lo establecido en los artículos 27 de la L ey de Adquisiciones, Arrendamientos y Servicios del Sector Público y 62 de la Ley Federal de Presupuesto y Responsabilidad Hacendaria. Fracción reformada DOF 16-04-2025
+**(REFORMADA, D.O.F. 16 DE ABRIL DE 2025)**
+
+**V.** La contratación de servicios de consultoría, asesoría y de todo tipo de despachos externos para elaborar estudios, investigaciones, proyectos de ley, planes de desarrollo, o cualquier tipo de análisis y recomendaciones, se realizará exclusivamente cuando las personas físicas o morales que presten los servicios no desempeñen funciones similares, iguales o equivalentes a las del personal de plaza presupuestaria, no puedan realizarse con la fuerza de trabajo y capacidad profesional de las personas servidoras públicas y sean indispensables para el cumplimiento de los programas autorizados, considerando lo establecido en los artículos 27 de la Ley de Adquisiciones, Arrendamientos y Servicios del Sector Público y 62 de la Ley Federal de Presupuesto y Responsabilidad Hacendaria.
 
 **Artículo 13.** Queda prohibida toda duplicidad de funciones en las unidades que conforman la Administración Pública Federal de acuerdo con lo establecido en su Ley Orgánica.
 
@@ -110,21 +124,21 @@ No serán consideradas duplicadas las funciones complementarias y transversales 
 
 **Artículo 14.** El gasto neto total asignado anualmente a la difusión de propaganda o publicidad oficial por los entes públicos, se sujetará a las disposiciones que para el efecto emitan la Secretaría y la Secretaría de Hacienda y Crédito Público. Dicho gasto se ajustará a lo estrictamente indispensable para dar cumplimiento a los fines informativos, educativos o de orientación social cuya difusión se determine necesaria.
 
-Las asignaciones dispuestas en el párrafo ante rior, no podrán ser objeto de incrementos durante el ejercicio fiscal correspondiente, salvo el necesario para atender situaciones de carácter emergente, caso fortuito o fuerza mayor.
+Las asignaciones dispuestas en el párrafo anterior, no podrán ser objeto de incrementos durante el ejercicio fiscal correspondiente, salvo el necesario para atender situaciones de carácter emergente, caso fortuito o fuerza mayor.
 
-**Artículo 15.** Quedan prohibidas las delegaciones de los entes públicos e n el extranjero, salvo las correspondientes a las áreas de seguridad nacional e impartición de justicia. La representación del Estado Mexicano en el extranjero, la ejecución de la política exterior, su dirección y administración, corresponderán únicamente a la Secretaría de Relaciones Exteriores.
+**Artículo 15.** Quedan prohibidas las delegaciones de los entes públicos en el extranjero, salvo las correspondientes a las áreas de seguridad nacional e impartición de justicia. La representación del Estado Mexicano en el extranjero, la ejecución de la política exterior, su dirección y administración, corresponderán únicamente a la Secretaría de Relaciones Exteriores.
 
 **Artículo 16.** Son medidas de austeridad republicana, de manera enunciativa y no limitativa, las siguientes:
 
-**I.** Se prohíbe la compra o arrendamiento de vehículos de lujo o cuyo valor comercial supere las cuatro mil trescientas cuarenta y tres Unidades de Medida y Actualización diaria vigente para el transporte y traslado de los servidores públicos. Cuando resulte necesario adquirir o arrendar un tipo de vehículo específico para desarrollar tareas indispensables vinc uladas con el cumplimiento de las obligaciones de los entes públicos, su adquisición o arrendamiento se realizará previa justificación que al efecto realice la autoridad compradora, misma que se someterá a la consideración del órgano encargado del control interno que corresponda, y se deberá optar preferentemente por tecnologías que generen menores daños ambientales;
+**I.** Se prohíbe la compra o arrendamiento de vehículos de lujo o cuyo valor comercial supere las cuatro mil trescientas cuarenta y tres Unidades de Medida y Actualización diaria vigente para el transporte y traslado de los servidores públicos. Cuando resulte necesario adquirir o arrendar un tipo de vehículo específico para desarrollar tareas indispensables vinculadas con el cumplimiento de las obligaciones de los entes públicos, su adquisición o arrendamiento se realizará previa justificación que al efecto realice la autoridad compradora, misma que se someterá a la consideración del órgano encargado del control interno que corresponda, y se deberá optar preferentemente por tecnologías que generen menores daños ambientales;
 
-**II.** Los vehículos oficiales sólo podrán destinarse a actividades que permitan el cumplimiento de las funciones de la Administración Pública F ederal. Queda prohibido cualquier uso privado de dichos vehículos;
+**II.** Los vehículos oficiales sólo podrán destinarse a actividades que permitan el cumplimiento de las funciones de la Administración Pública Federal. Queda prohibido cualquier uso privado de dichos vehículos;
 
 **III.** Las adquisiciones y arrendamientos de equipos y sistemas de cómputo se realizarán previa justificación, con base en planes de modernización y priorizando el uso de software libre, siempre y cuando cumpla con las características requeridas para el ejercicio de las funciones públicas;
 
-**IV.** Se prohíben contrataciones de seguros de ahorro en beneficio de los servidores públicos con recursos del Estado, tal como el Seguro de Separación Indi vidualizado, o las cajas de ahorro especiales; lo anterior, con excepción de aquellos cuya obligación de otorgarlos derive de ley, contratos colectivos de trabajo o Condiciones Generales de Trabajo;
+**IV.** Se prohíben contrataciones de seguros de ahorro en beneficio de los servidores públicos con recursos del Estado, tal como el Seguro de Separación Individualizado, o las cajas de ahorro especiales; lo anterior, con excepción de aquellos cuya obligación de otorgarlos derive de ley, contratos colectivos de trabajo o Condiciones Generales de Trabajo;
 
-**V.** Los vehículos aéreos propiedad del Poder Ejecutivo Fe deral, atendiendo a las particularidades del bien correspondiente, serán destinados a actividades de seguridad, defensa, marina, fuerza aérea, de protección civil, así como al traslado de enfermos. Los que no cumplan con esta función serán enajenados asegu rando las mejores condiciones para el Estado;
+**V.** Los vehículos aéreos propiedad del Poder Ejecutivo Federal, atendiendo a las particularidades del bien correspondiente, serán destinados a actividades de seguridad, defensa, marina, fuerza aérea, de protección civil, así como al traslado de enfermos. Los que no cumplan con esta función serán enajenados asegurando las mejores condiciones para el Estado;
 
 **VI.** No se realizarán gastos de oficina innecesarios. En ningún caso se autorizará la compra de bienes e insumos mientras haya suficiencia de los mismos en las oficinas o almacenes, considerando el tiempo de reposición;
 
@@ -132,7 +146,7 @@ Las asignaciones dispuestas en el párrafo ante rior, no podrán ser objeto de i
 
 **VIII.** Se prohíbe el derroche en energía eléctrica, agua, servicios de telefonía fija y móvil, gasolinas e insumos financiados por el erario.
 
-La Secretaría y la Secretaría de Hacienda y Crédito Público elaborarán y emitirán de manera conjunta los lineamientos necesarios para regular lo previsto en el presente artículo, de acuerdo con sus atribuciones y considerando las disposiciones de la Ley, pudiendo am pliar los supuestos regulados en este artículo, en caso de estimarlo conveniente.
+La Secretaría y la Secretaría de Hacienda y Crédito Público elaborarán y emitirán de manera conjunta los lineamientos necesarios para regular lo previsto en el presente artículo, de acuerdo con sus atribuciones y considerando las disposiciones de la Ley, pudiendo ampliar los supuestos regulados en este artículo, en caso de estimarlo conveniente.
 
 Corresponderá a la Secretaría de Hacienda y Crédito Público en el ámbito del Poder Ejecutivo, emitir las disposiciones que en materia de control presupuestal regirán la implementación de la presente Ley.
 
@@ -150,9 +164,9 @@ Corresponderá a la Secretaría de Hacienda y Crédito Público en el ámbito de
 
 Lo anterior, no será aplicable cuando dichos fideicomisos o mandatos se encuentren previstos en ley, decreto o tratado internacional.
 
-Para los demás casos, los entes públicos de la Administración Pública Federal sólo podrán constituir fideicomisos o mandat os cuando sean autorizados por la Secretaría de Hacienda y Crédito Público, en términos de lo previsto en la Ley Federal del Presupuesto y Responsabilidad Hacendaria.
+Para los demás casos, los entes públicos de la Administración Pública Federal sólo podrán constituir fideicomisos o mandatos cuando sean autorizados por la Secretaría de Hacienda y Crédito Público, en términos de lo previsto en la Ley Federal del Presupuesto y Responsabilidad Hacendaria.
 
-Bajo ninguna circunstancia se podrán hacer aportaciones, transferencias, o pagos de cual quier naturaleza utilizando instrumentos que permitan evadir las reglas de disciplina financiera, transparencia y fiscalización del gasto.
+Bajo ninguna circunstancia se podrán hacer aportaciones, transferencias, o pagos de cualquier naturaleza utilizando instrumentos que permitan evadir las reglas de disciplina financiera, transparencia y fiscalización del gasto.
 
 Los recursos en numerario, así como los activos, derechos, títulos, certificados o cualquier otro documento análogo que los entes públicos de la Administración Pública Federal aporten o incorporen al patrimonio de fondos o fideicomisos serán públicos y no gozarán de la protección del secreto o reserva fiduciarios para efectos de su fiscalización.
 
@@ -160,27 +174,29 @@ Los recursos en numerario, así como los activos, derechos, títulos, certificad
 
 **I.** Ser constituidos por la Secretaría de Hacienda y Crédito Público, como fideicomitente único, sólo para el caso de los constituidos por Dependencias;
 
-**II.** Ofrecer información regular cada trimestre en forma oportuna y veraz, con objeto de dar cumplimiento a las obligaciones de transparencia, y observar el principio de rendición de cuentas, de conform idad con la Ley General de Transparencia y Acceso a la Información Pública, la Ley Federal de Presupuesto y Responsabilidad Hacendaria, la Ley General de Responsabilidades Administrativas, la Ley de Fiscalización y Rendición de Cuentas de la Federación y demás disposiciones aplicables;
+**II.** Ofrecer información regular cada trimestre en forma oportuna y veraz, con objeto de dar cumplimiento a las obligaciones de transparencia, y observar el principio de rendición de cuentas, de conformidad con la Ley General de Transparencia y Acceso a la Información Pública, la Ley Federal de Presupuesto y Responsabilidad Hacendaria, la Ley General de Responsabilidades Administrativas, la Ley de Fiscalización y Rendición de Cuentas de la Federación y demás disposiciones aplicables;
 
 **III.** Publicar trimestralmente sus estados financieros;
 
-**IV.** Reportar la información que le requiera la Secretaría de Hacienda y Crédito Público para su integración en los apartados correspondientes de los informes trimestral es y de la Cuenta de la Hacienda Pública Federal, y
+**IV.** Reportar la información que le requiera la Secretaría de Hacienda y Crédito Público para su integración en los apartados correspondientes de los informes trimestrales y de la Cuenta de la Hacienda Pública Federal, y
 
 **V.** Contar con las autorizaciones y opiniones que corresponda emitir a la Secretaría de Hacienda y Crédito Público en términos de la normatividad aplicable.
 
-**Artículo 19.** La Secretaría de Hacienda y Crédi to Público contará con un sistema de información de fideicomisos, mandatos o contratos análogos que manejen recursos públicos en el cual las dependencias y entidades inscribirán la información de la totalidad de los instrumentos a que se refiere el artícul o anterior. Asimismo, concentrará el reporte de la información respectiva, misma que se hará de conocimiento en los informes trimestrales a que se refiere la Ley Federal de Presupuesto y Responsabilidad Hacendaria.
+**Artículo 19.** La Secretaría de Hacienda y Crédito Público contará con un sistema de información de fideicomisos, mandatos o contratos análogos que manejen recursos públicos en el cual las dependencias y entidades inscribirán la información de la totalidad de los instrumentos a que se refiere el artículo anterior. Asimismo, concentrará el reporte de la información respectiva, misma que se hará de conocimiento en los informes trimestrales a que se refiere la Ley Federal de Presupuesto y Responsabilidad Hacendaria.
 
 La Secretaría y la Auditoría Superior de la Federación desarrollarán, en el ámbito de sus respectivas competencias, las actividades de fiscalización a todo fideicomiso, mandato o contrato análogo que maneje recursos públicos, para verificar el cumplimiento de lo dispuesto en la presente Ley.
 
-Las autoridades competentes en materia de fiscalización incluirán en su planeación de auditorías, visitas e inspecciones a cualquier fideicomiso, mandato o contrato análogo que maneje recursos públicos, y darán seguimiento y evaluación rigurosa del cumplimie nto de los fines para los cuales fueron constituidos.
+Las autoridades competentes en materia de fiscalización incluirán en su planeación de auditorías, visitas e inspecciones a cualquier fideicomiso, mandato o contrato análogo que maneje recursos públicos, y darán seguimiento y evaluación rigurosa del cumplimiento de los fines para los cuales fueron constituidos.
 
-**TÍTULO TERCERO DEL COMPORTAMIENTO AUSTERO Y PROBO DE LOS SERVIDORES PÚBLICOS**
+**TÍTULO TERCERO**
+
+**DEL COMPORTAMIENTO AUSTERO Y PROBO DE LOS SERVIDORES PÚBLICOS**
 
 Capítulo Único
 
 **Artículo 20.** Los servidores públicos se sujetarán a la remuneración adecuada y proporcional que conforme a sus responsabilidades se determine en los presupuestos de egresos, considerando lo establecido en los artículos 75 y 127 de la Constitución Política de los Estados Unidos Mexicanos y demás disposiciones aplicables. Por ende, queda prohibida la obtención de algún privilegio económico adicional a lo establecido en la ley.
 
-**Artículo 21.** Para administrar los recursos humanos con eficiencia, eficacia, economía, transparencia, honradez y mejorar la prestación del servicio público, los servidores públicos del Pode r Ejecutivo Federal desempeñarán sus actividades con apego a lo previsto en la Ley General de Responsabilidades Administrativas y de conformidad con las disposiciones contenidas en los lineamientos que emita la Secretaría. Dichos servidores públicos:
+**Artículo 21.** Para administrar los recursos humanos con eficiencia, eficacia, economía, transparencia, honradez y mejorar la prestación del servicio público, los servidores públicos del Poder Ejecutivo Federal desempeñarán sus actividades con apego a lo previsto en la Ley General de Responsabilidades Administrativas y de conformidad con las disposiciones contenidas en los lineamientos que emita la Secretaría. Dichos servidores públicos:
 
 **I.** Están obligados a cuidar los bienes muebles e inmuebles que utilicen o estén bajo su resguardo y que les sean otorgados para el cumplimiento de sus funciones;
 
@@ -188,9 +204,9 @@ Capítulo Único
 
 **III.** Tienen prohibido asistir al trabajo en estado de ebriedad e ingerir bebidas alcohólicas en el horario y centro de trabajo;
 
-**IV.** Tienen prohib ido recibir con motivo del desempeño de su empleo, cargo o comisión, cualquier tipo de pago, regalo, dádiva, viaje o servicio que beneficie a su persona o sus familiares hasta el cuarto grado por consanguinidad o afinidad, y
+**IV.** Tienen prohibido recibir con motivo del desempeño de su empleo, cargo o comisión, cualquier tipo de pago, regalo, dádiva, viaje o servicio que beneficie a su persona o sus familiares hasta el cuarto grado por consanguinidad o afinidad, y
 
-**V.** Tienen prohibido utilizar l as atribuciones, facultades o influencia que tengan por razón de su empleo, cargo o comisión, para que de manera directa o indirecta designen, nombren o intervengan para que se contrate como personal de confianza, de estructura, de base o por honorarios en el servicio público a personas con las que tenga lazos de parentesco por consanguinidad hasta el cuarto grado, de afinidad hasta el segundo grado, o vínculo de matrimonio o concubinato.
+**V.** Tienen prohibido utilizar las atribuciones, facultades o influencia que tengan por razón de su empleo, cargo o comisión, para que de manera directa o indirecta designen, nombren o intervengan para que se contrate como personal de confianza, de estructura, de base o por honorarios en el servicio público a personas con las que tenga lazos de parentesco por consanguinidad hasta el cuarto grado, de afinidad hasta el segundo grado, o vínculo de matrimonio o concubinato.
 
 **Artículo 22.** Queda prohibido contratar con recursos públicos cualquier tipo de jubilaciones, pensiones y regímenes especiales de retiro, de separación individualizada o colectiva, así como seguros de gastos médicos privados, seguros de vida o de pensiones que se otorguen en contravención a lo dispuesto en decreto o alguna disposición general, Condiciones Generales de Trabajo o contratos colectivos de trabajo.
 
@@ -198,27 +214,31 @@ Por ningún motivo se autorizarán pensiones de retiro al titular del Ejecutivo 
 
 **Artículo 23.** Ningún servidor público podrá utilizar recursos humanos, materiales o financieros institucionales para fines distintos a los relacionados con sus funciones; su contravención será causa de responsabilidad administrativa en los términos que establezca la Ley General de Responsabilidades Administrativas.
 
-Los entes públicos deberán emitir su correspondiente código de conducta en concordancia con l a presente Ley y cada servidor público debe protestar cumplirlo.
+Los entes públicos deberán emitir su correspondiente código de conducta en concordancia con la presente Ley y cada servidor público debe protestar cumplirlo.
 
 **Artículo 24.** Para ocupar cualquier empleo, cargo o comisión en algún ente público, las personas interesadas se verán obligadas a separarse legalmente de los activos e intereses económicos particulares que estén relacionados con la materia o afecten de manera directa el ejercicio de sus responsabilidades públicas, y que signifiquen un conflicto de interés conforme a lo establecido en la Ley General de Responsabilidades Administrativas.
 
-[Los servidores públicos comprendidos en los grupos jerárquicos de mando superior a que se refiere el manual de percepciones previsto en la Ley Federal de Presupuesto y Responsabilidad Hacendaria del Gobierno Federal, que por cualquier motivo se separen de su ca rgo, no podrán ocupar puestos en empresas que hayan supervisado, regulado o respecto de las cuales hayan tenido información privilegiada en el ejercicio de su cargo público, salvo que hubiesen transcurrido al menos diez años. ] Párrafo declarado inválido por sentencia de la SCJN a Acción de Inconstitucionalidad notificada para efectos legales 06-04-2022 y publicada DOF 02-09-2022
+(NOTA: EL 5 DE ABRIL DE 2022, EL PLENO DE LA SUPREMA CORTE DE JUSTICIA DE LA NACIÓN, EN EL RESOLUTIVO TERCERO DE LA SENTENCIA DICTADA AL RESOLVER LA ACCIÓN DE INCONSTITUCIONALIDAD 139/2019, DECLARÓ LA INVALIDEZ DEL PÁRRAFO SEGUNDO DE ESTE ARTÍCULO INDICADO CON MAYÚSCULAS, DE ACUERDO A LAS CONSTANCIAS QUE OBRAN EN LA SECRETARÍA GENERAL DE ACUERDOS DE LA SUPREMA CORTE DE JUSTICIA DE LA NACIÓN. DICHA SENTENCIA PUEDE SER CONSULTADA EN LA DIRECCIÓN ELECTRÓNICA http://www.scjn.gob.mx/).
 
-**Artículo 25.** Queda prohibido a cualquier persona física o moral el uso de su personalidad jurídica para eludir el cumplimiento de obligaciones y perjudicar intereses públicos o privados. Para ello, se aplicarán acciones fiscalizadoras y políticas de transparencia en el sector privado cuando participe de
+LOS SERVIDORES PÚBLICOS COMPRENDIDOS EN LOS GRUPOS JERÁRQUICOS DE MANDO SUPERIOR A QUE SE REFIERE EL MANUAL DE PERCEPCIONES PREVISTO EN LA LEY FEDERAL DE PRESUPUESTO Y RESPONSABILIDAD HACENDARIA DEL GOBIERNO FEDERAL, QUE POR CUALQUIER MOTIVO SE SEPAREN DE SU CARGO, NO PODRÁN OCUPAR PUESTOS EN EMPRESAS QUE HAYAN SUPERVISADO, REGULADO O RESPECTO DE LAS CUALES HAYAN TENIDO INFORMACIÓN PRIVILEGIADA EN EL EJERCICIO DE SU CARGO PÚBLICO, SALVO QUE HUBIESEN TRANSCURRIDO AL MENOS DIEZ AÑOS.
 
-recursos públicos, incluyendo el levantamiento del velo corporativo, a efecto de evitar como causal excluyente de responsabilidad del servidor público o sus familiares hasta el cuarto grado por consanguinidad o afinidad, el empleo de una personalidad jurídico colectiva.
+**Artículo 25.** Queda prohibido a cualquier persona física o moral el uso de su personalidad jurídica para eludir el cumplimiento de obligaciones y perjudicar intereses públicos o privados. Para ello, se aplicarán acciones fiscalizadoras y políticas de transparencia en el sector privado cuando participe de recursos públicos, incluyendo el levantamiento del velo corporativo, a efecto de evitar como causal excluyente de responsabilidad del servidor público o sus familiares hasta el cuarto grado por consanguinidad o afinidad, el empleo de una personalidad jurídico colectiva.
 
 Lo anterior, de conformidad con lo establecido en el marco normativo aplicable.
 
 **Artículo 26.** La Secretaría de Hacienda y Crédito Público y la Secretaría emitirán los lineamientos aplicables en materia de austeridad republicana, sin que éstos limiten o interfieran en el cumplimiento de la prestación de servicios al público y de los objetivos de la Administración Pública Federal.
 
-**TÍTULO CUARTO DE LA EVALUACIÓN DE LA POLÍTICA DE AUSTERIDAD REPUBLICANA Y DEL FINCAMIENTO DE RESPONSABILIDADES**
+**TÍTULO CUARTO**
 
-Capítulo Primero De la Evaluación
+**DE LA EVALUACIÓN DE LA POLÍTICA DE AUSTERIDAD REPUBLICANA Y DEL FINCAMIENTO DE RESPONSABILIDADES**
 
-**Artículo 27.** Se formará un Comité de Evaluació n, el cual será responsable de promover y evaluar las políticas y medidas de austeridad republicana de los entes públicos.
+Capítulo Primero
 
-El Comité de Evaluación deberá entregar informes de evaluación de forma anual, los cuales deberán ser remitidos a la Cámara de Diput ados para su conocimiento y contener al menos los siguientes elementos:
+De la Evaluación
+
+**Artículo 27.** Se formará un Comité de Evaluación, el cual será responsable de promover y evaluar las políticas y medidas de austeridad republicana de los entes públicos.
+
+El Comité de Evaluación deberá entregar informes de evaluación de forma anual, los cuales deberán ser remitidos a la Cámara de Diputados para su conocimiento y contener al menos los siguientes elementos:
 
 **I.** Medidas tomadas por la Administración Pública Federal;
 
@@ -232,7 +252,9 @@ El Comité de Evaluación deberá entregar informes de evaluación de forma anua
 
 Los resultados de dicha evaluación serán presentados ante el Ejecutivo Federal y deberán servir para retroalimentar y mejorar futuras medidas de austeridad republicana.
 
-Capítulo Segundo De las Responsabilidades
+Capítulo Segundo
+
+De las Responsabilidades
 
 **Artículo 28.** El órgano encargado del control interno estará facultado en todo momento para vigilar y fiscalizar la gestión gubernamental de los entes públicos, verificando que las medidas de austeridad republicana se apliquen de conformidad con lo establecido en esta Ley y demás disposiciones aplicables.
 
@@ -240,25 +262,21 @@ Capítulo Segundo De las Responsabilidades
 
 **Artículo 30.** Los recursos presupuestarios federales que sean asignados bajo cualquier rubro a las entidades federativas y a los municipios, serán sujetos de seguimiento y fiscalización por parte de la Auditoría Superior de la Federación.
 
-**Artículo Segundo.-** ………
-
-**Artículo Tercero.-** ……….
-
 ## Transitorios
 
 **Primero.** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
 
-**Segundo.** Los entes públicos en un plazo máximo de cien to ochenta días hábiles siguientes a la entrada en vigor del presente Decreto, ajustarán sus marcos normativos conforme a lo establecido en la Ley Federal de Austeridad Republicana.
+**Segundo.** Los entes públicos en un plazo máximo de ciento ochenta días hábiles siguientes a la entrada en vigor del presente Decreto, ajustarán sus marcos normativos conforme a lo establecido en la Ley Federal de Austeridad Republicana.
 
-**Tercero.** Los entes públicos en un plazo máximo de ciento ochenta días háb iles siguientes a la entrada en vigor del presente Decreto, con el fin de dar cumplimiento a lo previsto por el artículo 9 de la Ley Federal de Austeridad Republicana, realizarán los ajustes necesarios para implementar las compras consolidadas en la adquisición de bienes y servicios, así como la contratación de obra pública y servicios relacionados con la misma de uso generalizado de los entes.
+**Tercero.** Los entes públicos en un plazo máximo de ciento ochenta días hábiles siguientes a la entrada en vigor del presente Decreto, con el fin de dar cumplimiento a lo previsto por el artículo 9 de la Ley Federal de Austeridad Republicana, realizarán los ajustes necesarios para implementar las compras consolidadas en la adquisición de bienes y servicios, así como la contratación de obra pública y servicios relacionados con la misma de uso generalizado de los entes.
 
 **Cuarto.** Para el caso de las oficinas de representación de las dependencias y entidades de la Administración Pública Federal, éstas, en un plazo máximo de ciento ochenta días hábiles siguientes a la entrada en vigor del presente Decreto, darán cumplimiento a lo dispuesto por el artículo 15 de la Ley Federal de Austeridad Republicana.
 
 **Quinto.** Los lineamientos a que se refiere la Ley Federal de Austeridad Republicana se expedirán en un plazo máximo de ciento ochenta días hábiles siguientes a la entrada en vigor del presente Decreto.
 
-Dichos lineamientos, entre otras cosas, establecerán las disposiciones relativas a la c ontratación de personal por honorarios y asesores en las dependencias de la Administración Pública Federal.
+Dichos lineamientos, entre otras cosas, establecerán las disposiciones relativas a la contratación de personal por honorarios y asesores en las dependencias de la Administración Pública Federal.
 
-La eliminación de las plazas de Dirección General Adjunta creadas a partir del ejercicio fiscal 2001, y que no cumplan con lo dispuesto en la fracc ión III del artículo 12 de la Ley Federal de Austeridad Republicana estará sujeta a lo previsto en el artículo transitorio segundo.
+La eliminación de las plazas de Dirección General Adjunta creadas a partir del ejercicio fiscal 2001, y que no cumplan con lo dispuesto en la fracción III del artículo 12 de la Ley Federal de Austeridad Republicana estará sujeta a lo previsto en el artículo transitorio segundo.
 
 **Sexto.** Se prohíbe y se cancela cualquier otro tipo de pensión que se hubiere creado exprofeso para el beneficio de los extitulares del Ejecutivo Federal.
 
@@ -268,14 +286,66 @@ Asimismo, queda prohibida la asignación a extitulares del Ejecutivo Federal, de
 
 La presidencia de dicho Comité estará a cargo de las secretarías de Hacienda y Crédito Público y de la Función Pública, quienes desempeñarán esta función en forma alterna por los periodos que señalen los Lineamientos a que se refiere el párrafo anterior.
 
-**Octavo.** En un plazo de hasta ciento ochenta días hábiles posteriores a la entrada en vigor del presente Decreto, las Secretarías de la Función Pública y de Hacienda y Crédito Público analizarán la
+**Octavo.** En un plazo de hasta ciento ochenta días hábiles posteriores a la entrada en vigor del presente Decreto, las Secretarías de la Función Pública y de Hacienda y Crédito Público analizarán la normatividad, las estructuras, patrimonio, objetivos, eficiencia y eficacia de los fideicomisos públicos, fondos, mandatos públicos o contratos análogos que reciban recursos públicos federales. El análisis será publicado a través de un Informe, el cual será remitido a la Cámara de Diputados. El resultado correspondiente a cada fideicomiso deberá ser tomado en cuenta por el Poder Ejecutivo Federal para la elaboración del Proyecto de Presupuesto de Egresos de la Federación correspondiente.
 
-normatividad, las estructuras, patrimonio, objetivos, eficiencia y eficacia de los fideicomisos públicos, fondos, mandatos públicos o contratos análogos que reciban recursos públicos federales. El análisis será publicado a través de un Informe, el cual será remitido a la Cámara de Diputados. El resultado correspondiente a cada fideicomiso deberá ser tomado en cuenta por el Poder Ejecutivo Federal para la elaboración del Proyecto de Presupuesto de Egresos de la Federación correspondiente.
-
-**Noveno.** La Secretaría podrá convenir con las principales instituciones educativas esp ecializadas en administración pública del país, convenios de colaboración para la capacitación y profesionalización del personal de los entes públicos de la Administración Pública Federal, en materia de construcción de indicadores y mejora continua de proc esos que permitan identificar áreas de oportunidad para lograr un gasto austero, responsable, eficiente y eficaz.
+**Noveno.** La Secretaría podrá convenir con las principales instituciones educativas especializadas en administración pública del país, convenios de colaboración para la capacitación y profesionalización del personal de los entes públicos de la Administración Pública Federal, en materia de construcción de indicadores y mejora continua de procesos que permitan identificar áreas de oportunidad para lograr un gasto austero, responsable, eficiente y eficaz.
 
 **Décimo.** Quedan derogadas todas las disposiciones que se opongan al contenido del presente Decreto.
 
-Ciudad de México, a 8 de octubre de 2019. - Sen. Mónica Fernández Balboa, Presidenta.- Dip. Laura Angélica Rojas Hernández , Presidenta.- Sen. Verónica Delgadillo García , Secretaria.- Dip. Ma. Sara Rocha Medina, Secretaria.- Rúbricas."
+Ciudad de México, a 8 de octubre de 2019.- Sen. Mónica Fernández Balboa, Presidenta.- Dip. Laura Angélica Rojas Hernández, Presidenta.- Sen. Verónica Delgadillo García, Secretaria.- Dip. Ma. Sara Rocha Medina, Secretaria.- Rúbricas."
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a 14 de noviembre de 2019 .- Andrés Manuel López Ob rador.- Rúbrica.- La Secretaria de Gobernación, Dra. Olga María del Carmen Sánchez Cordero Dávila.- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a 14 de noviembre de 2019.- Andrés Manuel López Obrador.- Rúbrica.- La Secretaria de Gobernación, Dra. Olga María del Carmen Sánchez Cordero Dávila.- Rúbrica.
+
+**D.O.F. 16 DE ABRIL DE 2025.**
+
+**Primero.-** El presente Decreto entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
+
+**Segundo.-** Se abroga la Ley de Adquisiciones, Arrendamientos y Servicios del Sector Público, publicada en el Diario Oficial de la Federación el 4 de enero de 2000 y sus modificaciones posteriores.
+
+**Tercero.-** Las disposiciones relativas a la Plataforma Digital de Contrataciones Públicas entrarán en vigor en la fecha de inicio de operación de cada uno de los módulos que la integran conforme a los avisos que dé a conocer la Secretaría Anticorrupción y Buen Gobierno en el Diario Oficial de la Federación.
+
+Los módulos de la Plataforma Digital de Contrataciones Públicas necesarios para realizar los procedimientos de contratación en materia de adquisiciones, arrendamientos y servicios previstos en el artículo 81 de la Ley de Adquisiciones, Arrendamientos y Servicios del Sector Público, deberán estar en completa operación dentro de los dieciocho meses siguientes a la entrada en vigor del presente ordenamiento. La Plataforma Digital de Contrataciones Públicas deberá iniciar operaciones en su totalidad en un plazo no mayor a treinta meses, contados a partir de la fecha de entrada en vigor de la presente Ley.
+
+En tanto entran en vigor las disposiciones a que se refiere el párrafo anterior seguirán aplicando en lo conducente las relativas al Sistema Electrónico de Información Pública Gubernamental denominado CompraNet.
+
+En tanto entra en operación la Plataforma Digital de Contrataciones Públicas, la difusión y el comunicado de los acuerdos marco, la solicitud de cotización de la adjudicación directa con negociación, así como el anuncio del diálogo competitivo, se publicarán en el Sistema Electrónico de Información Pública Gubernamental denominado CompraNet.
+
+**Cuarto.-** El Ejecutivo Federal deberá realizar las reformas necesarias al Reglamento de la Ley de Adquisiciones, Arrendamientos y Servicios del Sector Público en un plazo no mayor de noventa días hábiles, contados a partir de la entrada en vigor del presente Decreto, a fin de adecuarlo al contenido del mismo. Hasta en tanto eso suceda, se continuará aplicando el Reglamento vigente en lo que no se opongan (sic) al presente instrumento.
+
+**Quinto.-** Los procedimientos de contratación que se encuentren en trámite a la fecha de entrada en vigor de la presente Ley, continuarán tramitándose hasta su conclusión conforme a las disposiciones vigentes al momento de su inicio.
+
+**Sexto.-** Los procedimientos de conciliación, de inconformidad y de sanción que se encuentren en trámite o pendientes de resolución a la fecha de entrada en vigor de la presente Ley, deberán sustanciarse y concluirse de conformidad con las disposiciones vigentes al momento de haberse iniciado tales procedimientos.
+
+**Séptimo.-** Las infracciones que hayan sido cometidas con anterioridad a la entrada en vigor de la presente Ley, serán sancionadas de conformidad con la legislación vigente al momento de su comisión.
+
+**Octavo.-** A partir de la fecha de entrada en vigor del presente Decreto, todas las referencias en los demás ordenamientos jurídicos que se hagan a los contratos marco, deberán entenderse hechas a los acuerdos marco.
+
+**Noveno.-** Los lineamientos y disposiciones a que hace referencia la Ley de Adquisiciones, Arrendamientos y Servicios del Sector Público, deberán ser emitidos en un plazo no mayor a doce meses, contados a partir de la entrada en vigor del presente Decreto.
+
+Las políticas, bases y lineamientos a que hace referencia el artículo 4 de la Ley de Adquisiciones, Arrendamientos y Servicios del Sector Público, deberán ser emitidos en un plazo no mayor a ocho meses contados a partir de la entrada en vigor del presente Decreto. En tanto no se emitan dichas políticas, bases y lineamientos, las dependencias y entidades continuarán utilizando las disposiciones vigentes.
+
+**Décimo.-** La instalación del Comité de Contrataciones Estratégicas deberá llevarse a cabo a más tardar en los treinta días hábiles posteriores a la publicación de la presente Ley, asimismo la lista de bienes y servicios a contratar de manera consolidada para el ejercicio fiscal 2025, deberá ser aprobada por dicho órgano colegiado en un plazo no mayor a sesenta días hábiles a partir de su instalación.
+
+**Décimo Primero.-** El Instituto Nacional de la Economía Social deberá implementar el modelo de certificación de las Sociedades Cooperativas y de los demás Organismos del Sector Social de la Economía, a más tardar, a los ciento ochenta días naturales siguientes a la entrada en vigor del presente Decreto.
+
+**Décimo Segundo.-** Las Sociedades Cooperativas que se hayan constituido legalmente previo a la entrada en vigor del presente Decreto, podrán registrarse en el Padrón Nacional de Sociedades Cooperativas, conforme a las disposiciones que establezca el Instituto.
+
+**Décimo Tercero.-** Para efectos del cumplimiento del artículo 17 de la Ley General de Sociedades Cooperativas, se otorgan los siguientes plazos:
+
+**I.** Cuatro meses a partir de la entrada en vigor del presente Decreto, para emitir el Acuerdo a que se refiere su primer párrafo.
+
+**II.** Cuatro meses contados a partir de la entrada en vigor del Acuerdo que establece el inciso anterior, para que la Secretaría de Bienestar y la Secretaría de Economía, suscriban el instrumento a que se refiere su segundo párrafo.
+
+**Décimo Cuarto.-** El sistema electrónico para que las Cooperativas formalicen sus Actas Constitutivas a que se refiere el artículo 13 de la Ley General de Sociedades Cooperativas, deberá ponerse en funcionamiento en un plazo máximo de seis meses contados a partir de la suscripción del instrumento referido en el transitorio anterior.
+
+**Décimo Quinto.-** Para efectos de lo previsto en el artículo 18, fracciones I y II, de la Ley de Adquisiciones, Arrendamientos y Servicios del Sector Público, se mantienen con plenos efectos las disposiciones siguientes:
+
+**I.** El Decreto por el que se establecen diversas medidas en materia de adquisiciones, uso de papel y de la certificación de manejo sustentable de bosques por la Administración Pública Federal, publicado en el Diario Oficial de la Federación el 5 de septiembre de 2007;
+
+**II.** La Circular que contiene los Lineamientos generales relativos a los aspectos de sustentabilidad ambiental para las adquisiciones, arrendamientos y servicios del sector público, publicada en el Diario Oficial de la Federación el 31 de octubre de 2007;
+
+**III.** El Oficio UNAOPSPF/309/AD/0725/2007, de fecha 31 de octubre de 2007, emitido por la entonces Unidad de Normatividad de Adquisiciones, Obras Públicas, Servicios y Patrimonio Federal de la Secretaría de la Función Pública, disponible en el Sistema Electrónico de Información Pública Gubernamental denominado CompraNet, y
+
+**IV.** Los Lineamientos para las adquisiciones de papel para uso de oficina por parte de las dependencias y entidades de la Administración Pública Federal, publicados en el Diario Oficial de la Federación el 2 de octubre de 2009.
+
+**Décimo Sexto.-** Las dependencias y entidades tendrán un plazo de tres meses contado a partir de la entrada en vigor del presente Decreto, para revisar que la información de sus procedimientos de contratación y los datos relevantes de los contratos publicados en CompraNet que se publicaron a partir del año 2020, sea congruente con la que obra en sus expedientes de contratación con la finalidad de que la información que se migre a la Plataforma sea consistente. En caso de requerirse actualizaciones deberán solicitarse a la Dirección General de Innovación en Contrataciones Públicas de la Secretaría Anticorrupción y Buen Gobierno, fundando y motivando dicho requerimiento.

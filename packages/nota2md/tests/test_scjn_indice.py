@@ -336,3 +336,130 @@ class TestDownloadScjnLeyesCorpusConCache(unittest.TestCase):
             scjn.download_scjn_leyes_corpus("lfca", cache_dir=None)
 
         self.assertEqual(list(self.tmp.iterdir()), [])
+
+
+class TestDownloadScjnLeyesCatalog(ConIndiceReal):
+    """The seed read back out of the release (issue #185, Fase 0 of #184):
+    `nombre`/`abrev` off `indice-global.json.gz`, `actualizado` off each law's
+    own `estado.json`. Fabricated in memory, byte for byte in the shapes the
+    published release uses -- the `estado.json` bodies below are the real ones
+    of `lfca` and `lfcpq`."""
+
+    def setUp(self):
+        super().setUp()
+        self.tmp = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+        self.release = self.tmp / "scjn-leyes"
+        self.release.mkdir(parents=True)
+        scjn._MEMO_INDICE_GLOBAL.clear()
+        self.addCleanup(scjn._MEMO_INDICE_GLOBAL.clear)
+
+    def _publica(self, instrumentos: dict, **tarballs):
+        (self.release / scjn.ASSET_INDICE_GLOBAL).write_bytes(
+            _indice_global({}, instrumentos)
+        )
+        for slug, archivos in tarballs.items():
+            (self.release / f"{slug}.tgz").write_bytes(_hacer_tgz(archivos))
+
+    def test_regresa_nombre_abrev_y_actualizado_ordenado_por_abrev(self):
+        self._publica(
+            {
+                "lft": {"nombre": "LEY Federal del Trabajo", "asset": "lft.tgz",
+                        "snapshots": 2},
+                "lfca": {"nombre": "LEY Federal de Cine y el Audiovisual",
+                         "asset": "lfca.tgz", "snapshots": 1},
+            },
+            lfca={"lfca/estado.json": json.dumps({
+                "actualizado": "2026-05-22", "enlazado": "2026-09-01",
+                "id_ordenamiento": "188805", "rastreado": "2026-09-01"})},
+            lft={"lft/estado.json": json.dumps({"actualizado": "2025-06-13"})},
+        )
+
+        catalogo = scjn.download_scjn_leyes_catalog(cache_dir=self.tmp)
+
+        self.assertEqual(catalogo, [
+            {"abrev": "lfca", "nombre": "LEY Federal de Cine y el Audiovisual",
+             "actualizado": "2026-05-22"},
+            {"abrev": "lft", "nombre": "LEY Federal del Trabajo",
+             "actualizado": "2025-06-13"},
+        ])
+
+    def test_actualizado_nulo_queda_ausente_no_en_none(self):
+        # `lfcpq` is one of the three laws whose `estado.json` records
+        # `actualizado: null`. Absent means "freshness unknown, always
+        # review" -- exactly what `motivo_pendiente` reads it as; a None
+        # would be a value the planner has to special-case instead.
+        self._publica(
+            {"lfcpq": {"nombre": "LEY Federal de Cinematografia",
+                       "asset": "lfcpq.tgz", "snapshots": 8}},
+            lfcpq={"lfcpq/estado.json": json.dumps({
+                "actualizado": None, "enlazado": "2026-09-01",
+                "id_ordenamiento": "11057", "rastreado": "2026-09-01"})},
+        )
+
+        catalogo = scjn.download_scjn_leyes_catalog(cache_dir=self.tmp)
+
+        self.assertEqual(catalogo, [{"abrev": "lfcpq",
+                                     "nombre": "LEY Federal de Cinematografia"}])
+
+    def test_un_tarball_sin_estado_json_tampoco_inventa_actualizado(self):
+        self._publica(
+            {"lft": {"nombre": "LEY Federal del Trabajo", "asset": "lft.tgz",
+                     "snapshots": 1}},
+            lft={"lft/01-04-1970.md": "**TEXTO ORIGINAL.**"},
+        )
+
+        catalogo = scjn.download_scjn_leyes_catalog(cache_dir=self.tmp)
+
+        self.assertEqual(catalogo, [{"abrev": "lft",
+                                     "nombre": "LEY Federal del Trabajo"}])
+
+    def test_freshness_false_no_abre_ni_un_tarball(self):
+        self._publica({"lft": {"nombre": "LEY Federal del Trabajo",
+                               "asset": "lft.tgz", "snapshots": 1}})
+
+        catalogo = scjn.download_scjn_leyes_catalog(
+            freshness=False, cache_dir=self.tmp
+        )
+
+        # No `lft.tgz` was ever written: reading one would raise.
+        self.assertEqual(catalogo, [{"abrev": "lft",
+                                     "nombre": "LEY Federal del Trabajo"}])
+
+    def test_el_slug_del_release_es_el_abrev_normalizado(self):
+        # 14 laws carry an underscore in their historical `abrev`
+        # (`lif_2026`, `pef_2026`, the `lrart*` reglamentarias...) and the
+        # release slug hyphenates it. The reader returns the slug; whoever
+        # merges this into an existing `catalogo.json` matches on
+        # `slug_instrumento` and keeps its own `abrev` verbatim (issue #184).
+        self._publica({"lif-2026": {"nombre": "LEY de Ingresos de la Federacion",
+                                    "asset": "lif-2026.tgz", "snapshots": 1}})
+
+        catalogo = scjn.download_scjn_leyes_catalog(
+            freshness=False, cache_dir=self.tmp
+        )
+
+        self.assertEqual(catalogo[0]["abrev"], "lif-2026")
+        self.assertEqual(
+            scjn.slug_instrumento({"abrev": "lif_2026"}), catalogo[0]["abrev"]
+        )
+
+    @patch("nota2md.scjn.requests.get")
+    def test_un_release_ya_en_cache_no_provoca_ni_una_peticion(self, mock_get):
+        self._publica(
+            {"lft": {"nombre": "LEY Federal del Trabajo", "asset": "lft.tgz",
+                     "snapshots": 1}},
+            lft={"lft/estado.json": json.dumps({"actualizado": "2025-06-13"})},
+        )
+
+        scjn.download_scjn_leyes_catalog(cache_dir=self.tmp)
+
+        mock_get.assert_not_called()
+
+    @patch("nota2md.scjn.requests.get")
+    def test_lanza_key_error_mientras_el_release_no_publique_el_asset(self, mock_get):
+        mock_get.return_value = Mock(json=lambda: {"assets": []},
+                                     raise_for_status=Mock())
+
+        with self.assertRaises(KeyError):
+            scjn.download_scjn_leyes_catalog(cache_dir=None)

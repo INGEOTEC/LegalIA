@@ -1,6 +1,12 @@
-## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY GENERAL PARA LA PREVENCIÓN SOCIAL DE LA VIOLENCIA Y LA DELINCUENCIA**
 
-**FELIPE DE JESÚS CALDERÓN HINOJOSA** , Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 4 DE MAYO DE 2021.**
+
+Ley publicada en la Primera Sección del Diario Oficial de la Federación, el martes 24 de enero de 2012.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+FELIPE DE JESÚS CALDERÓN HINOJOSA, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -10,33 +16,35 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **SE EXPIDE LA LEY GENERAL PARA LA PREVENCIÓN SOCIAL DE LA VIOLENCIA Y LA DELINCUENCIA**
 
-**ARTÍCULO ÚNICO.** - Se expide la Ley General para la Prevención Social de la Violencia y la Delincuencia.
+**ARTÍCULO ÚNICO.-** Se expide la Ley General para la Prevención Social de la Violencia y la Delincuencia.
 
 **LEY GENERAL PARA LA PREVENCIÓN SOCIAL DE LA VIOLENCIA Y LA DELINCUENCIA**
 
-**CAPÍTULO PRIMERO DISPOSICIONES GENERALES**
+**CAPÍTULO PRIMERO**
+
+**DISPOSICIONES GENERALES**
 
 **Artículo 1.-** La presente Ley es de orden público e interés social y de observancia general en todo el territorio nacional y tiene por objeto establecer las bases de coordinación entre la Federación, los Estados, el Distrito Federal y los Municipios en materia de prevención social de la violencia y la delincuencia en el marco del Sistema Nacional de Seguridad Pública, previsto en el artículo 21 de la Constitución Política de los Estados Unidos Mexicanos.
 
 **Artículo 2.-** La prevención social de la violencia y la delincuencia es el conjunto de políticas públicas, programas y acciones orientadas a reducir factores de riesgo que favorezcan la generación de violencia y delincuencia, así como a combatir las distintas causas y factores que la generan.
 
-**Artículo 3.** - La planeación, programación, implementación y evaluación de las políticas públicas, programas y acciones se realizará en los diversos ámbitos de competencia, por conducto de las Instituciones de Seguridad Pública y demás autoridades que en razón de sus atribuciones deban contribuir directa o indirectamente al cumplimiento de esta Ley, debiendo observar como mínimo los siguientes principios:
+**Artículo 3.-** La planeación, programación, implementación y evaluación de las políticas públicas, programas y acciones se realizará en los diversos ámbitos de competencia, por conducto de las Instituciones de Seguridad Pública y demás autoridades que en razón de sus atribuciones deban contribuir directa o indirectamente al cumplimiento de esta Ley, debiendo observar como mínimo los siguientes principios:
 
 **I.** Respeto irrestricto a los derechos humanos;
 
 **II.** Integralidad. El Estado, en sus distintos órdenes de gobierno desarrollará políticas públicas integrales eficaces para la prevención de la violencia y la delincuencia, con la participación ciudadana y comunitaria;
 
-**III.** Intersectorialidad y tran sversalidad. Consiste en la articulación, homologación y complementariedad de las políticas públicas, programas y acciones de los distintos órdenes de Gobierno, incluidas las de justicia, seguridad pública, desarrollo social, economía, cultura y derechos h umanos, con atención particular a las comunidades, las familias, las niñas y niños, las mujeres, así como las y los jóvenes en situación de riesgo;
+**III.** Intersectorialidad y transversalidad. Consiste en la articulación, homologación y complementariedad de las políticas públicas, programas y acciones de los distintos órdenes de Gobierno, incluidas las de justicia, seguridad pública, desarrollo social, economía, cultura y derechos humanos, con atención particular a las comunidades, las familias, las niñas y niños, las mujeres, así como las y los jóvenes en situación de riesgo;
 
-**IV.** Trabajo conjunto. Comprende el desarrollo de acciones conjuntas entre las autoridades de los distintos órdenes de gobierno, así como de los diferentes sectores y grupos de la sociedad civil, organizada y no organizada, así como de la comunidad académica de manera solidaria, para que contribuyan a la prevención social de la violencia y la delincuencia y al m ejoramiento de la calidad de vida de la sociedad;
+**IV.** Trabajo conjunto. Comprende el desarrollo de acciones conjuntas entre las autoridades de los distintos órdenes de gobierno, así como de los diferentes sectores y grupos de la sociedad civil, organizada y no organizada, así como de la comunidad académica de manera solidaria, para que contribuyan a la prevención social de la violencia y la delincuencia y al mejoramiento de la calidad de vida de la sociedad;
 
 **V.** Continuidad de las políticas públicas. Con el fin de garantizar los cambios socioculturales en el mediano y largo plazos, a través del fortalecimiento de los mecanismos de participación ciudadana y comunitaria, asignación de presupuesto, el monitoreo y la evaluación;
 
 **VI.** Interdisciplinariedad. Consiste en el diseño de políticas públicas tomando en cuenta conocimientos y herramientas de distintas disciplinas y experiencias nacionales e internacionales;
 
-**VII.** Diversidad. Consiste en considerar las necesidades y circunstancias específicas determinadas por el contexto local territorial, el género, la procedencia étnica, sociocultural, religiosa, así como las necesidades de grupos vulnerables o en riesgo, med iante la atención integral diferenciada y acciones afirmativas;
+**VII.** Diversidad. Consiste en considerar las necesidades y circunstancias específicas determinadas por el contexto local territorial, el género, la procedencia étnica, sociocultural, religiosa, así como las necesidades de grupos vulnerables o en riesgo, mediante la atención integral diferenciada y acciones afirmativas;
 
-**VIII.** Proximidad. Comprende la resolución pacífica de conflictos, con estrategias claras, coherentes y estables, de respeto a los derechos humanos, la promoción de la cultura de la paz y sobr e la base del trabajo social comunitario, así como del contacto permanente con los actores sociales y comunitarios, y
+**VIII.** Proximidad. Comprende la resolución pacífica de conflictos, con estrategias claras, coherentes y estables, de respeto a los derechos humanos, la promoción de la cultura de la paz y sobre la base del trabajo social comunitario, así como del contacto permanente con los actores sociales y comunitarios, y
 
 **IX.** Transparencia y rendición de cuentas. En los términos de las leyes aplicables.
 
@@ -44,13 +52,13 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **I.** Centro Nacional: El Centro Nacional de Prevención del Delito y Participación Ciudadana, Unidad Administrativa del Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública;
 
-**II.** Comisión: La Comisión Permanente de Prevención del Delito y Part icipación Ciudadana del Consejo Nacional de Seguridad Pública;
+**II.** Comisión: La Comisión Permanente de Prevención del Delito y Participación Ciudadana del Consejo Nacional de Seguridad Pública;
 
 **III.** Consejo Nacional: El Consejo Nacional de Seguridad Pública;
 
 **IV.** Ley: La Ley General para la Prevención Social de la Violencia y la Delincuencia;
 
-**V.** Participación ciudadana y comunitaria : La participación de los diferentes sectores y grupos de la sociedad civil, organizada y no organizada, así como de la comunidad académica;
+**V.** Participación ciudadana y comunitaria: La participación de los diferentes sectores y grupos de la sociedad civil, organizada y no organizada, así como de la comunidad académica;
 
 **VI.** Programa Nacional: El Programa Nacional para la Prevención Social de la Violencia y la Delincuencia;
 
@@ -58,7 +66,7 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **VIII.** Reglamento: El Reglamento de la Ley General para la Prevención Social de la Violencia y la Delincuencia;
 
-**IX.** Secretariado Ejecutivo: El Secretariado Ejecutivo del Sistema Nacional de Se guridad Pública;
+**IX.** Secretariado Ejecutivo: El Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública;
 
 **X.** Secretario Ejecutivo: El Titular del Secretariado Ejecutivo, y
 
@@ -66,7 +74,9 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **Artículo 5.-** En lo no previsto por la presente Ley, se aplicarán, conforme a su naturaleza y de forma supletoria, las disposiciones contenidas en la Ley General del Sistema Nacional de Seguridad Pública.
 
-**CAPÍTULO SEGUNDO DE LA PREVENCIÓN SOCIAL DE LA VIOLENCIA Y LA DELINCUENCIA Y LA ATENCIÓN A LAS VÍCTIMAS**
+**CAPÍTULO SEGUNDO**
+
+**DE LA PREVENCIÓN SOCIAL DE LA VIOLENCIA Y LA DELINCUENCIA Y LA ATENCIÓN A LAS VÍCTIMAS**
 
 **Artículo 6.-** La prevención social de la violencia y la delincuencia incluye los siguientes ámbitos:
 
@@ -84,51 +94,71 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **II.** La promoción de actividades que eliminen la marginación y la exclusión;
 
-**III.** El fomento de la solución pacífica de conflictos privilegiando la comunicación a través del diálogo, la tolerancia y el principio de no discriminación; Fracción reformada DOF 04-05-2021
+**(REFORMADA, D.O.F. 4 DE MAYO DE 2021)**
 
-**IV.** Estrategias de educación y sensibilización de la población para pro mover la cultura de legalidad y tolerancia respetando al mismo tiempo las diversas identidades culturales. Incluye tanto programas generales como aquéllos enfocados a grupos sociales y comunidades en altas condiciones de vulnerabilidad; Fracción reformada DOF 04-05-2021
+**III.** El fomento de la solución pacífica de conflictos privilegiando la comunicación a través del diálogo, la tolerancia y el principio de no discriminación;
 
-**V.** Se establecerán programas que modifiquen las condiciones sociales de la comunidad y generen oportunidades de desarrollo especialmente para los grupos en situación de riesgo, vulnerabilidad, marginación, o afectación, y Fracción reformada DOF 04-05-2021
+**(REFORMADA, D.O.F. 4 DE MAYO DE 2021)**
 
-**VI.** Estrategias y acciones de protección a las famili as para evitar su desintegración y cualquier modalidad de violencia que la propicie, a través de la educación y el empoderamiento de todos sus miembros sin ningún tipo de discriminación. Fracción adicionada DOF 04-05-2021
+**IV.** Estrategias de educación y sensibilización de la población para promover la cultura de legalidad y tolerancia respetando al mismo tiempo las diversas identidades culturales. Incluye tanto programas generales como aquéllos enfocados a grupos sociales y comunidades en altas condiciones de vulnerabilidad;
 
-**Artículo 8.** - La prevención en el ámbito comunitario pretende atender los factores q ue generan violencia y delincuencia mediante la participación ciudadana y comunitaria y comprende:
+**(REFORMADA, D.O.F. 4 DE MAYO DE 2021)**
 
-**I.** La participación ciudadana y comunitaria en acciones tendentes a establecer las prioridades de la prevención, mediante diagnósticos participativos, el me joramiento de las condiciones de seguridad de su entorno y el desarrollo de prácticas que fomenten una cultura de prevención, autoprotección, denuncia ciudadana y de utilización de los mecanismos alternativos de solución de controversias;
+**V.** Se establecerán programas que modifiquen las condiciones sociales de la comunidad y generen oportunidades de desarrollo especialmente para los grupos en situación de riesgo, vulnerabilidad, marginación, o afectación, y
+
+**(ADICIONADA, D.O.F. 4 DE MAYO DE 2021)**
+
+**VI.** Estrategias y acciones de protección a las familias para evitar su desintegración y cualquier modalidad de violencia que la propicie, a través de la educación y el empoderamiento de todos sus miembros sin ningún tipo de discriminación.
+
+**Artículo 8.-** La prevención en el ámbito comunitario pretende atender los factores que generan violencia y delincuencia mediante la participación ciudadana y comunitaria y comprende:
+
+**I.** La participación ciudadana y comunitaria en acciones tendentes a establecer las prioridades de la prevención, mediante diagnósticos participativos, el mejoramiento de las condiciones de seguridad de su entorno y el desarrollo de prácticas que fomenten una cultura de prevención, autoprotección, denuncia ciudadana y de utilización de los mecanismos alternativos de solución de controversias;
 
 **II.** El mejoramiento del acceso de la comunidad a los servicios básicos;
 
 **III.** Fomentar el desarrollo comunitario, la convivencia y la cohesión social entre las comunidades frente a problemas locales;
 
-**IV.** La participación ciudadana y comunitaria, a través de mecanismos qu e garanticen su efectiva intervención ciudadana en el diseño e implementación de planes y programas, su evaluación y sostenibilidad, y
+**IV.** La participación ciudadana y comunitaria, a través de mecanismos que garanticen su efectiva intervención ciudadana en el diseño e implementación de planes y programas, su evaluación y sostenibilidad, y
 
 **V.** El fomento de las actividades de las organizaciones de la sociedad civil.
 
-**Artículo 9.-** La prevención en el ámbito si tuacional consiste en modificar el entorno para propiciar la convivencia y la cohesión social, así como disminuir los factores de riesgo que facilitan fenómenos de violencia y de incidencia delictiva, mediante:
+**Artículo 9.-** La prevención en el ámbito situacional consiste en modificar el entorno para propiciar la convivencia y la cohesión social, así como disminuir los factores de riesgo que facilitan fenómenos de violencia y de incidencia delictiva, mediante:
 
-**I.** El mejoramiento y regulación del desarrol lo urbano, rural, ambiental y el diseño industrial, incluidos los sistemas de transporte público y de vigilancia;
+**I.** El mejoramiento y regulación del desarrollo urbano, rural, ambiental y el diseño industrial, incluidos los sistemas de transporte público y de vigilancia;
 
 **II.** El uso de nuevas tecnologías;
 
 **III.** La vigilancia respetando los derechos a la intimidad y a la privacidad;
 
-**IV.** Medidas administrativas encaminada s a disminuir la disponibilidad de medios comisivos o facilitadores de violencia; Fracción reformada DOF 04-05-2021
+**(REFORMADA, D.O.F. 4 DE MAYO DE 2021)**
 
-**V.** La aplicación de estrategias para garantizar la no repetición de casos de victimización, y Fracción reformada DOF 04-05-2021
+**IV.** Medidas administrativas encaminadas a disminuir la disponibilidad de medios comisivos o facilitadores de violencia;
 
-**VI.** La recuperación de espacios públicos, con la participación de la comunidad i ncluyendo todos los grupos que la conforman. Fracción adicionada DOF 04-05-2021
+**(REFORMADA, D.O.F. 4 DE MAYO DE 2021)**
 
-**Artículo 10.-** La prevención en el ámbito psicosocial tiene como obje tivo incidir en las motivaciones individuales hacia la violencia o las condiciones criminógenas con referencia a los individuos, la familia, la escuela y la comunidad, que incluye como mínimo lo siguiente:
+**V.** La aplicación de estrategias para garantizar la no repetición de casos de victimización, y
 
-**I.** Impulsar el diseño y aplicación de programas f ormativos en habilidades para la vida, dirigidos principalmente a la población en situación de riesgo y vulnerabilidad;
+**(ADICIONADA, D.O.F. 4 DE MAYO DE 2021)**
 
-**II.** La inclusión de la prevención de la violencia, la delincuencia y de las adicciones, principalmente de alcohol, tabaco y estupefacientes, en las políticas públicas en materia de educa ción, a través de la difusión de contenidos tendientes a disminuirlas; Fracción reformada DOF 04-05-2021
+**VI.** La recuperación de espacios públicos, con la participación de la comunidad incluyendo todos los grupos que la conforman.
 
-**III.** El fortalecimiento de las capacidades institucionales que asegure la sostenibilidad de los programas preventivos, y Fracción reformada DOF 04-05-2021
+**Artículo 10.-** La prevención en el ámbito psicosocial tiene como objetivo incidir en las motivaciones individuales hacia la violencia o las condiciones criminógenas con referencia a los individuos, la familia, la escuela y la comunidad, que incluye como mínimo lo siguiente:
 
-**IV.** El fortalecimiento de las medidas de detección, prevención y atención del acoso entre niñas, niños, adolescentes y mujeres, en las escuelas y comunidades, que privilegien la retroalimentación de sus experiencias en la comunidad. Fracción adicionada DOF 04-05-2021
+**I.** Impulsar el diseño y aplicación de programas formativos en habilidades para la vida, dirigidos principalmente a la población en situación de riesgo y vulnerabilidad;
 
-**Artículo 11.** - El acceso a la justicia y la atención integral a las víctimas de la violencia o de la delincuencia debe considerar la asistencia, protección, reparación del daño y prevención de la doble victimización, a través de:
+**(REFORMADA, D.O.F. 4 DE MAYO DE 2021)**
+
+**II.** La inclusión de la prevención de la violencia, la delincuencia y de las adicciones, principalmente de alcohol, tabaco y estupefacientes, en las políticas públicas en materia de educación, a través de la difusión de contenidos tendientes a disminuirlas;
+
+**(REFORMADA, D.O.F. 4 DE MAYO DE 2021)**
+
+**III.** El fortalecimiento de las capacidades institucionales que asegure la sostenibilidad de los programas preventivos, y
+
+**(ADICIONADA, D.O.F. 4 DE MAYO DE 2021)**
+
+**IV.** El fortalecimiento de las medidas de detección, prevención y atención del acoso entre niñas, niños, adolescentes y mujeres, en las escuelas y comunidades, que privilegien la retroalimentación de sus experiencias en la comunidad.
+
+**Artículo 11.-** El acceso a la justicia y la atención integral a las víctimas de la violencia o de la delincuencia debe considerar la asistencia, protección, reparación del daño y prevención de la doble victimización, a través de:
 
 **I.** La atención inmediata y efectiva a víctimas de delitos, en términos del impacto emocional y el proceso legal, velando por sus derechos y su seguridad en forma prioritaria;
 
@@ -140,47 +170,55 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **V.** La reparación integral del daño que incluye el reconocimiento público, la reparación del daño moral y material, y las garantías de no repetición.
 
-**CAPÍTULO TERCERO DE LAS INSTANCIAS DE COORDINACIÓN**
+**CAPÍTULO TERCERO**
 
-Sección Primera Del Consejo Nacional de Seguridad Pública
+**DE LAS INSTANCIAS DE COORDINACIÓN**
 
-**Artículo 12.** - El Conse jo Nacional será la máxima instancia para la coordinación y definición de la política de prevención social de la violencia y la delincuencia.
+Sección Primera
+
+Del Consejo Nacional de Seguridad Pública
+
+**Artículo 12.-** El Consejo Nacional será la máxima instancia para la coordinación y definición de la política de prevención social de la violencia y la delincuencia.
 
 El Consejo Nacional contará con el Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública para coordinar e implementar la política de prevención social de la violencia y la delincuencia, y éste se apoyará para ello en el Centro Nacional, en los términos que señala la Ley General del Sistema Nacional de Seguridad Pública y demás normativa aplicable.
 
-Para da r seguimiento al cumplimiento de las disposiciones aplicables, el Secretariado Ejecutivo se coordinará con la Comisión.
+Para dar seguimiento al cumplimiento de las disposiciones aplicables, el Secretariado Ejecutivo se coordinará con la Comisión.
 
 **Artículo 13.-** Las atribuciones del Consejo Nacional en materia de prevención social de la violencia y la delincuencia son:
 
-**I.** Definir estrategias de colaboración interinstitucional para facilitar la cooperación, contactos e intercambio de información y experiencias entre la Federación, las entidades federativas y los municipios; así como con organizaciones de la sociedad civil, centros e ducativos o de investigación, o cualquier otro grupo de expertos o redes especializadas en prevención;
+**I.** Definir estrategias de colaboración interinstitucional para facilitar la cooperación, contactos e intercambio de información y experiencias entre la Federación, las entidades federativas y los municipios; así como con organizaciones de la sociedad civil, centros educativos o de investigación, o cualquier otro grupo de expertos o redes especializadas en prevención;
 
-**II.** Establecer los lineamientos para recabar, analizar y compartir la información existente sobre la prevención social de la violencia y la delincuencia , análisis de las mejores prácticas, su evaluación, así como su evolución entre los tres órdenes de gobierno del Sistema Nacional de Seguridad Pública, con objeto de contribuir a la toma de decisiones;
+**II.** Establecer los lineamientos para recabar, analizar y compartir la información existente sobre la prevención social de la violencia y la delincuencia, análisis de las mejores prácticas, su evaluación, así como su evolución entre los tres órdenes de gobierno del Sistema Nacional de Seguridad Pública, con objeto de contribuir a la toma de decisiones;
 
-**III.** Convocar a las autoridades de los tres órdenes d e gobierno, dentro del Sistema Nacional de Seguridad Pública, responsables o vinculadas, cuya función incida en la prevención social a efecto de coordinar acciones;
+**III.** Convocar a las autoridades de los tres órdenes de gobierno, dentro del Sistema Nacional de Seguridad Pública, responsables o vinculadas, cuya función incida en la prevención social a efecto de coordinar acciones;
 
-**IV.** Informar a la sociedad anualmente sobre sus actividades a través de los órganos compet entes, e indicar los ámbitos de acción prioritarios de su programa de trabajo para el año siguiente;
+**IV.** Informar a la sociedad anualmente sobre sus actividades a través de los órganos competentes, e indicar los ámbitos de acción prioritarios de su programa de trabajo para el año siguiente;
 
 **V.** Promover la generación de indicadores y métricas estandarizados para los integrantes del Sistema Nacional de Seguridad Pública en materia de prevención de la violencia y la delincuencia, los que al menos serán desagregados por edad, sexo, ubicación geográfica y pertenencia étnica, y
 
 **VI.** Las demás que establezcan otras disposiciones legales y las que sean necesarias para el funcionamiento del Sistema Nacional de Seguridad Pública en las materias propias de esta Ley.
 
-Sección Segunda Del Secretariado Ejecutivo
+Sección Segunda
 
-**Artículo 14.** - El Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública en materia de prevención social de la violencia y la delincuencia, tendrá las siguientes atribuciones:
+Del Secretariado Ejecutivo
+
+**Artículo 14.-** El Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública en materia de prevención social de la violencia y la delincuencia, tendrá las siguientes atribuciones:
 
 **I.** Elaborar en coordinación con las demás instancias del Sistema Nacional de Seguridad Pública, las propuestas de contenido del Programa Nacional de Prevención Social de la Violencia y la Delincuencia, y todos aquellos vinculados con esta materia;
 
 **II.** Proponer al Consejo Nacional de Seguridad Pública, políticas públicas, programas y acciones en materia de prevención social de la violencia y la delincuencia;
 
-**III.** Ejecutar y dar seguimiento a los acuerdos y resolucione s del propio Consejo Nacional y de su Presidente sobre la materia;
+**III.** Ejecutar y dar seguimiento a los acuerdos y resoluciones del propio Consejo Nacional y de su Presidente sobre la materia;
 
 **IV.** Difundir la información estadística en materia de incidencia delictiva y de prevención social de la violencia y la delincuencia, y
 
-**V.** Todas aquellas atribuciones conferidas al Secreta riado Ejecutivo en la Ley General del Sistema Nacional de Seguridad Pública y demás disposiciones legales.
+**V.** Todas aquellas atribuciones conferidas al Secretariado Ejecutivo en la Ley General del Sistema Nacional de Seguridad Pública y demás disposiciones legales.
 
-Sección Tercera Del Centro Nacional de Prevención del Delito y Participación Ciudadana
+Sección Tercera
 
-**Artículo 15.-** El Centro Nacional tendrá, además de las que l e confiere la Ley General del Sistema Nacional de Seguridad Pública y demás disposiciones aplicables, las siguientes atribuciones:
+Del Centro Nacional de Prevención del Delito y Participación Ciudadana
+
+**Artículo 15.-** El Centro Nacional tendrá, además de las que le confiere la Ley General del Sistema Nacional de Seguridad Pública y demás disposiciones aplicables, las siguientes atribuciones:
 
 **I.** Participar en la elaboración del Programa Nacional de Prevención Social de la Violencia y la Delincuencia;
 
@@ -188,9 +226,9 @@ Sección Tercera Del Centro Nacional de Prevención del Delito y Participación 
 
 **III.** Recabar información sobre los delitos y sus tendencias, los grupos de mayor victimización y, proyectos enfocados en la prevención y sus resultados;
 
-**IV.** Realizar diagn ósticos participativos en materia de prevención social de la violencia y la delincuencia;
+**IV.** Realizar diagnósticos participativos en materia de prevención social de la violencia y la delincuencia;
 
-**V.** Generar mecanismos de participación ciudadana y comunitaria, de los organismos públicos de derechos humanos y de las instituciones de educación superior para el d iagnóstico y evaluación de las políticas públicas en materia de prevención;
+**V.** Generar mecanismos de participación ciudadana y comunitaria, de los organismos públicos de derechos humanos y de las instituciones de educación superior para el diagnóstico y evaluación de las políticas públicas en materia de prevención;
 
 **VI.** Planear la ejecución de programas de prevención y las formas de evaluación, previa aprobación del Secretario Ejecutivo;
 
@@ -200,11 +238,11 @@ Sección Tercera Del Centro Nacional de Prevención del Delito y Participación 
 
 **IX.** Realizar en coordinación con otras instituciones encuestas nacionales de victimización en hogares, con la periodicidad que se estime conveniente;
 
-**X.** Identificar temas prioritarios o emergentes que pongan en riesgo o q ue afecten directamente la seguridad pública desde la perspectiva ciudadana;
+**X.** Identificar temas prioritarios o emergentes que pongan en riesgo o que afecten directamente la seguridad pública desde la perspectiva ciudadana;
 
 **XI.** Formular recomendaciones sobre la implementación de medidas de prevención de la victimización;
 
-**XII.** Evaluar la eficiencia y eficacia de las políticas públicas, programas y a cciones de prevención social de la violencia y la delincuencia;
+**XII.** Evaluar la eficiencia y eficacia de las políticas públicas, programas y acciones de prevención social de la violencia y la delincuencia;
 
 **XIII.** Efectuar estudios comparativos de las estadísticas oficiales de criminalidad;
 
@@ -232,13 +270,13 @@ Sección Tercera Del Centro Nacional de Prevención del Delito y Participación 
 
 **XIX.** Organizar y difundir los resultados y conclusiones de las conferencias, seminarios, reuniones y demás acciones destinadas a profundizar en aspectos técnicos de experiencias nacionales e internacionales sobre la prevención social de la violencia y la delincuencia;
 
-**XX.** Brindar asesoría a las autoridades federales, de las entidades federativas, las municipa les, así como a la sociedad civil, organizada o no, cuando estas así lo soliciten;
+**XX.** Brindar asesoría a las autoridades federales, de las entidades federativas, las municipales, así como a la sociedad civil, organizada o no, cuando estas así lo soliciten;
 
 **XXI.** Proponer al Secretariado Ejecutivo la celebración de convenios para la formación, capacitación, especialización y actualización de servidores públicos cuyas funciones incidan en la prevención social de la violencia y la delincuencia;
 
 **XXII.** Intercambiar y desarrollar mecanismos de aprendizaje de experiencias internacionales;
 
-**XXIII.** Difundir la recopilación de las mejores prácticas nacionales e internacionales sobre pre vención social de la violencia y la delincuencia, y los criterios para tal determinación;
+**XXIII.** Difundir la recopilación de las mejores prácticas nacionales e internacionales sobre prevención social de la violencia y la delincuencia, y los criterios para tal determinación;
 
 **XXIV.** Analizar las inquietudes, requerimientos y propuestas de los ciudadanos a través de las instancias creadas al efecto, a partir de las directrices y mecanismos establecidos por el Reglamento;
 
@@ -246,25 +284,29 @@ Sección Tercera Del Centro Nacional de Prevención del Delito y Participación 
 
 **XXVI.** Las demás que establezcan otras disposiciones legales.
 
-Sección Cuarta De la Comisión Permanente de Prevención del Delito y Participación Ciudadana
+Sección Cuarta
+
+De la Comisión Permanente de Prevención del Delito y Participación Ciudadana
 
 **Artículo 16.-** La Comisión tendrá, además de las que le confiere la Ley General del Sistema Nacional de Seguridad Pública y demás disposiciones aplicables, las siguientes atribuciones:
 
-**I.** Apoyar al Secretariado Ejecutivo en el se guimiento del cumplimiento de los programas generales, especiales e institucionales de las dependencias cuyas funciones incidan en la prevención social de la violencia y la delincuencia;
+**I.** Apoyar al Secretariado Ejecutivo en el seguimiento del cumplimiento de los programas generales, especiales e institucionales de las dependencias cuyas funciones incidan en la prevención social de la violencia y la delincuencia;
 
-**II.** Proponer como resultado de la evaluación de los programas, mecan ismos para mejorar sus resultados;
+**II.** Proponer como resultado de la evaluación de los programas, mecanismos para mejorar sus resultados;
 
 **III.** Apoyar al Centro Nacional en la promoción de la participación ciudadana y comunitaria en la prevención social de la violencia y la delincuencia, y
 
 **IV.** Proponer al Consejo Nacional los estándares y las metodologías de evaluación para medir el impacto de los programas en las materias propias de esta Ley.
 
-**CAPÍTULO CUARTO DE LA COORDINACIÓN DE PROGRAMAS**
+**CAPÍTULO CUARTO**
 
-**Artículo 17.** - Los programas nacional, sectoriales, especiales e institucionales que incidan en la prevención social de la violencia y la delincuencia, deberán diseñarse considerando la participación interinstitucional con enfoque multidisciplinario, enfatizando la colaboración con universidades y entidades orientadas a la investigación, asimismo se orientarán a contrarr estar, neutralizar o disminuir los factores de riesgo y las consecuencias, daño e impacto social y comunitario de la violencia y la delincuencia.
+**DE LA COORDINACIÓN DE PROGRAMAS**
 
-Los programas tenderán a lograr un efecto multiplicador, fomentando la participación de las autoridades de lo s gobiernos Federal, de los Estados, el Distrito Federal y los Municipios, organismos públicos de derechos humanos y de las organizaciones civiles, académicas y comunitarias en el diagnóstico, diseño, implementación y evaluación de las políticas públicas y de la prevención social de la violencia y la delincuencia.
+**Artículo 17.-** Los programas nacional, sectoriales, especiales e institucionales que incidan en la prevención social de la violencia y la delincuencia, deberán diseñarse considerando la participación interinstitucional con enfoque multidisciplinario, enfatizando la colaboración con universidades y entidades orientadas a la investigación, asimismo se orientarán a contrarrestar, neutralizar o disminuir los factores de riesgo y las consecuencias, daño e impacto social y comunitario de la violencia y la delincuencia.
 
-**Artículo 18.** - Las políticas de prevención social deberán ser evaluadas con la participación de instituciones académicas, profesionales, especialistas en la materia y organizaciones de la sociedad civil.
+Los programas tenderán a lograr un efecto multiplicador, fomentando la participación de las autoridades de los gobiernos Federal, de los Estados, el Distrito Federal y los Municipios, organismos públicos de derechos humanos y de las organizaciones civiles, académicas y comunitarias en el diagnóstico, diseño, implementación y evaluación de las políticas públicas y de la prevención social de la violencia y la delincuencia.
+
+**Artículo 18.-** Las políticas de prevención social deberán ser evaluadas con la participación de instituciones académicas, profesionales, especialistas en la materia y organizaciones de la sociedad civil.
 
 **Artículo 19.-** En el cumplimiento del objeto de esta Ley, las autoridades de los gobiernos Federal, de los Estados, el Distrito Federal y los Municipios, en el ámbito de sus atribuciones, deberán:
 
@@ -282,9 +324,11 @@ Los programas tenderán a lograr un efecto multiplicador, fomentando la particip
 
 **VII.** Realizar estudios periódicos sobre la victimización y la delincuencia, y
 
-**VIII.** Impulsar la participación ciudadana y c omunitaria, en la prevención social de la violencia y la delincuencia.
+**VIII.** Impulsar la participación ciudadana y comunitaria, en la prevención social de la violencia y la delincuencia.
 
-**CAPÍTULO QUINTO DEL PROGRAMA NACIONAL PARA LA PREVENCIÓN SOCIAL DE LA VIOLENCIA Y LA DELINCUENCIA**
+**CAPÍTULO QUINTO**
+
+**DEL PROGRAMA NACIONAL PARA LA PREVENCIÓN SOCIAL DE LA VIOLENCIA Y LA DELINCUENCIA**
 
 **Artículo 20.-** El Programa Nacional deberá contribuir al objetivo general de proveer a las personas protección en las áreas de libertad, seguridad y justicia, con base en objetivos precisos, claros y medibles, a través de:
 
@@ -296,7 +340,7 @@ Los programas tenderán a lograr un efecto multiplicador, fomentando la particip
 
 **IV.** Los ámbitos y grupos prioritarios que deben ser atendidos;
 
-**V.** El fomento de la capacitación de los servidores públicos cuyas atribuciones se encuentren relacionadas con la materia objeto de la presente ley, lo cual incluirá la realización de seminarios, estudios e investigaciones o programas de formación en tre otros, para asegurar que sus intervenciones sean apropiadas, eficientes, eficaces y sostenibles;
+**V.** El fomento de la capacitación de los servidores públicos cuyas atribuciones se encuentren relacionadas con la materia objeto de la presente ley, lo cual incluirá la realización de seminarios, estudios e investigaciones o programas de formación entre otros, para asegurar que sus intervenciones sean apropiadas, eficientes, eficaces y sostenibles;
 
 **VI.** La movilización y construcción de una serie de acciones interinstitucionales que tengan capacidad para abordar las causas y que incluyan a la sociedad civil;
 
@@ -306,9 +350,11 @@ Los programas tenderán a lograr un efecto multiplicador, fomentando la particip
 
 Las autoridades de los gobiernos Federal, los Estados, el Distrito Federal y los Municipios en el ámbito de sus respectivas atribuciones, deberán incluir a la prevención social de la violencia y la delincuencia en sus planes y programas.
 
-**Artículo 21.-** Para la ejecución del Programa Nacional, el Centro Nacional preparará un programa de trabajo anual que contenga o bjetivos específicos, prioridades temáticas y una lista de acciones y de medidas complementarias.
+**Artículo 21.-** Para la ejecución del Programa Nacional, el Centro Nacional preparará un programa de trabajo anual que contenga objetivos específicos, prioridades temáticas y una lista de acciones y de medidas complementarias.
 
-Sección Primera De la Evaluación
+Sección Primera
+
+De la Evaluación
 
 **Artículo 22.-** El Centro Nacional evaluará las acciones realizadas para ejecutar el programa anual y los resultados del año anterior. El resultado de la evaluación se remitirá al Consejo Nacional quien lo hará público en los términos que establezcan las disposiciones aplicables.
 
@@ -316,25 +362,31 @@ Para la evaluación de las acciones referidas en los programas, se convocará a 
 
 Los resultados de las evaluaciones determinarán la continuidad de los programas.
 
-**Artículo 23.** - El Centro Nacional deberá coadyuvar con el Consejo Nacional de Evaluaci ón de la Política Social u otras instancias gubernamentales o de la sociedad para el desarrollo de las evaluaciones respectivas.
+**Artículo 23.-** El Centro Nacional deberá coadyuvar con el Consejo Nacional de Evaluación de la Política Social u otras instancias gubernamentales o de la sociedad para el desarrollo de las evaluaciones respectivas.
 
-Sección Segunda De la Participación Ciudadana y Comunitaria
+Sección Segunda
 
-**Artículo 24.** - La participación ciudadana y comunitaria, organizad a o no organizada, en materia de prevención social de la violencia y la delincuencia, es un derecho de las personas.
+De la Participación Ciudadana y Comunitaria
 
-**Artículo 25.-** La participación ciudadana y comunitaria, organizada o no organizada, se hace efectiva a través de la actuación de las perso nas en las comunidades, en las redes vecinales, las organizaciones para la prevención social de la violencia y la delincuencia, en los consejos de Participación Ciudadana, en el Centro Nacional o a través de cualquier otro mecanismo local o legal, creado e n virtud de sus necesidades.
+**Artículo 24.-** La participación ciudadana y comunitaria, organizada o no organizada, en materia de prevención social de la violencia y la delincuencia, es un derecho de las personas.
+
+**Artículo 25.-** La participación ciudadana y comunitaria, organizada o no organizada, se hace efectiva a través de la actuación de las personas en las comunidades, en las redes vecinales, las organizaciones para la prevención social de la violencia y la delincuencia, en los consejos de Participación Ciudadana, en el Centro Nacional o a través de cualquier otro mecanismo local o legal, creado en virtud de sus necesidades.
 
 **Artículo 26.-** La coordinación entre los diferentes mecanismos y espacios de participación ciudadana, tanto comunitaria como local, será un objetivo fundamental del Centro Nacional, para lo cual desarrollará lineamientos claros de participación y consulta.
 
-**CAPÍTULO SEXTO DEL FINANCIAMIENTO**
+**CAPÍTULO SEXTO**
 
-**Artículo 27.-** Los programas federales, de los estados, el Distrito Federal o municipales, en materia de prevención social de la violencia y de la delincuencia, deberán cubrirse con cargo a s us respectivos presupuestos y sujetarse a las bases que establecen la presente Ley, la Ley General del Sistema Nacional de Seguridad Pública y demás disposiciones legales aplicables.
+**DEL FINANCIAMIENTO**
 
-**Artículo 28.** - La Federación, los Estados, el Distrito Federal y los Muni cipios preverán en sus respectivos presupuestos recursos para el diagnóstico, diseño, ejecución y evaluación de programas y acciones de prevención social de la violencia y la delincuencia derivados de la presente Ley.
+**Artículo 27.-** Los programas federales, de los estados, el Distrito Federal o municipales, en materia de prevención social de la violencia y de la delincuencia, deberán cubrirse con cargo a sus respectivos presupuestos y sujetarse a las bases que establecen la presente Ley, la Ley General del Sistema Nacional de Seguridad Pública y demás disposiciones legales aplicables.
 
-**Artículo 29.-** El Centro Nacional prop ondrá, previa aprobación del Secretario Ejecutivo, el desarrollo de mecanismos de financiamiento para proyectos de la sociedad civil, de los municipios o de las entidades federativas que tengan incidencia directa en temas prioritarios de prevención social de la violencia y la delincuencia, con base en los lineamientos que emita para tales efectos el Consejo Nacional, asegurando la coordinación de acciones para evitar la duplicación en el ejercicio de los recursos.
+**Artículo 28.-** La Federación, los Estados, el Distrito Federal y los Municipios preverán en sus respectivos presupuestos recursos para el diagnóstico, diseño, ejecución y evaluación de programas y acciones de prevención social de la violencia y la delincuencia derivados de la presente Ley.
 
-**CAPÍTULO SÉPTIMO DE LAS SANCIONES**
+**Artículo 29.-** El Centro Nacional propondrá, previa aprobación del Secretario Ejecutivo, el desarrollo de mecanismos de financiamiento para proyectos de la sociedad civil, de los municipios o de las entidades federativas que tengan incidencia directa en temas prioritarios de prevención social de la violencia y la delincuencia, con base en los lineamientos que emita para tales efectos el Consejo Nacional, asegurando la coordinación de acciones para evitar la duplicación en el ejercicio de los recursos.
+
+**CAPÍTULO SÉPTIMO**
+
+**DE LAS SANCIONES**
 
 **Artículo 30.-** El incumplimiento en el ejercicio de las obligaciones que se derivan de la presente Ley será sancionado de conformidad con la legislación en materia de responsabilidades administrativas de los servidores públicos.
 
@@ -344,12 +396,14 @@ Sección Segunda De la Participación Ciudadana y Comunitaria
 
 **ARTÍCULO SEGUNDO.** El Ejecutivo Federal expedirá el Reglamento respectivo en un término de hasta ciento ochenta días naturales a partir de la entrada en vigor de este Decreto
 
-**ARTÍCULO TERCERO.** La Cámara de Diputados del H. Congreso de la Unión, las legislaturas de los Estados y la Asamblea Legislativa del Distrito Federal expedirán las normas legales y tomarán las medidas presupuestales correspondie ntes para garantizar el cumplimiento de la Ley General para la
+**ARTÍCULO TERCERO.** La Cámara de Diputados del H. Congreso de la Unión, las legislaturas de los Estados y la Asamblea Legislativa del Distrito Federal expedirán las normas legales y tomarán las medidas presupuestales correspondientes para garantizar el cumplimiento de la Ley General para la Prevención Social de la Violencia y la Delincuencia, en el ejercicio fiscal siguiente a la entrada en vigor de este decreto.
 
-Prevención Social de la Violencia y la Delincuencia, en el ejercicio fiscal siguiente a la entrada en vigor de este decreto.
+**ARTÍCULO CUARTO.-** Los programas, proyectos y demás acciones que, en cumplimiento a lo dispuesto en esta Ley y en razón de su competencia, corresponden a las dependencias y entidades de la Administración Pública Federal, deberán sujetarse a la disponibilidad presupuestaria que se apruebe para dichos fines en el Presupuesto de Egresos de la Federación y a las disposiciones de la Ley Federal de Presupuesto y Responsabilidad Hacendaria.
 
-**ARTÍCULO CUARTO.** - Los programas, proyectos y demás acciones que, en cumplimiento a lo dispuesto en esta Ley y en razón de su competencia, corresponden a las dependencias y entidades de la Administración Pública Federal, deberán sujetarse a la disponibilidad presupuestaria que se apruebe para dichos fines en el Presupuesto de Egresos de la Federación y a las disposiciones de la Ley Federal de Presupuesto y Responsabilidad Hacendaria.
+México, D.F., a 8 de diciembre de 2011.- Sen. Jose Gonzalez Morfin, Presidente.- Dip. Emilio Chuayffet Chemor, Presidente.- Sen. Ludivina Menchaca Castellanos, Secretaria.- Dip. Guadalupe Pérez Domínguez, Secretaria.- Rúbricas."
 
-México, D.F., a 8 de diciembre de 2011. - Sen. Jose Gonzalez Morfin , Presidente. - Dip. Emilio Chuayffet Chemor , Presidente. - Sen. Ludivina Men chaca Castellanos , Secretaria. - Dip. Guadalupe Pérez Domínguez, Secretaria.- Rúbricas."
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a veinte de enero de dos mil doce.- Felipe de Jesús Calderón Hinojosa.- Rúbrica.- El Secretario de Gobernación, Alejandro Alfonso Poiré Romero.- Rúbrica.
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observanc ia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a veinte de enero de dos mil doce.- Felipe de Jesús Calderón Hinojosa .- Rúbrica.- El Secretario de Gobernación, Alejandro Alfonso Poiré Romero.- Rúbrica.
+**D.O.F. 4 DE MAYO DE 2021.**
+
+**Único.** El presente Decreto entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.

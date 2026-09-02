@@ -29,13 +29,11 @@ website:
       - href: index.ipynb
         text: Home
       - href: pages/dataset.ipynb
-        text: Dataset
-      - href: pages/titles.ipynb
-        text: DOF Titles
+        text: Archive
       - href: pages/leyes.ipynb
         text: Federal Laws
-      - href: pages/tools.ipynb
-        text: Tools
+      - href: pages/titles.ipynb
+        text: DOF Titles
       - href: pages/dof2md.ipynb
         text: dof2md
       - href: pages/references.qmd

@@ -1,6 +1,14 @@
-## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+(NOTA: EL 26 DE OCTUBRE DE 2021, EL PLENO DE LA SUPREMA CORTE DE JUSTICIA DE LA NACIÓN, EN LOS APARTADOS III, TEMA 1.1 Y 1.2 Y IV, ASÍ COMO EN LOS RESOLUTIVOS QUINTO Y SEXTO DE LA SENTENCIA DICTADA AL RESOLVER LA ACCIÓN DE INCONSTITUCIONALIDAD 64/2019, DECLARÓ FUNDADAS “LAS OMISIONES LEGISLATIVAS RELATIVAS EN COMPETENCIA DE EJERCICIO OBLIGATORIO, ATINENTES A LA FINALIDAD DEL USO DE LA FUERZA, ASÍ COMO LA SUJECIÓN DEL USO DE LA FUERZA A LOS PRINCIPIOS DE RACIONALIDAD Y OPORTUNIDAD QUE, COMO PREVISIONES MÍNIMAS, DEBE CONTENER LA LEY NACIONAL SOBRE EL USO DE LA FUERZA, EXPEDIDA MEDIANTE EL DECRETO PUBLICADO EN EL DIARIO OFICIAL DE LA FEDERACIÓN EL VEINTISIETE DE MAYO DE DOS MIL DIECINUEVE”; POR LO QUE, “SE CONDENA AL CONGRESO DE LA UNIÓN PARA QUE, EN EL SIGUIENTE PERÍODO ORDINARIO DE SESIONES QUE INICIA EN FEBRERO DE DOS MIL VEINTIDÓS, LEGISLE PARA ESTABLECER EN LA LEY NACIONAL SOBRE EL USO DE LA FUERZA, LA FINALIDAD DEL USO DE LA FUERZA Y LA SUJECIÓN DEL USO DE LA FUERZA A LOS PRINCIPIOS DE RACIONALIDAD Y OPORTUNIDAD QUE, COMO PREVISIONES MÍNIMAS, DICHA LEY DEBE CONTENER”, LA CUAL SURTIÓ EFECTOS EL 3 DE NOVIEMBRE DE 2021, DE ACUERDO A LAS CONSTANCIAS QUE OBRAN EN LA SECRETARÍA GENERAL DE ACUERDOS DE LA SUPREMA CORTE DE JUSTICIA DE LA NACIÓN. DICHA SENTENCIA PUEDE SER CONSULTADA EN LA DIRECCIÓN ELECTRÓNICA http://www.scjn.gob.mx/).
 
-**ANDRÉS MANUEL LÓPEZ OBRADOR** , Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**LEY NACIONAL SOBRE EL USO DE LA FUERZA**
+
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 24 DE ENERO DE 2024.**
+
+Ley publicada en la Edición Vespertina del Diario Oficial de la Federación, el lunes 27 de mayo de 2019.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+ANDRÉS MANUEL LÓPEZ OBRADOR, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -14,9 +22,11 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **LEY NACIONAL SOBRE EL USO DE LA FUERZA**
 
-Capítulo I Disposiciones Generales
+Capítulo I
 
-**Artículo 1.** Las disposicio nes de la presente Ley son de orden público, de interés social y de observancia general en todo el territorio nacional; tienen como fin regular el uso de la fuerza que ejercen las instituciones de seguridad pública del Estado, así como de la Fuerza Armada permanente cuando actúe en tareas de seguridad pública.
+Disposiciones Generales
+
+**Artículo 1.** Las disposiciones de la presente Ley son de orden público, de interés social y de observancia general en todo el territorio nacional; tienen como fin regular el uso de la fuerza que ejercen las instituciones de seguridad pública del Estado, así como de la Fuerza Armada permanente cuando actúe en tareas de seguridad pública.
 
 Cuando las autoridades a que se refiere el párrafo anterior realicen tareas de protección civil, y se requiera el uso de la fuerza, lo harán en los términos que dispone la presente Ley.
 
@@ -24,13 +34,13 @@ Cuando las autoridades a que se refiere el párrafo anterior realicen tareas de 
 
 **I.** Establecer las normas generales bajo las cuales los integrantes de las instituciones de seguridad pueden ejercer el uso de la fuerza y utilizar el armamento oficial para el desempeño de sus funciones;
 
-**II.** Regular el c atálogo normativo de funciones, derechos, obligaciones y prohibiciones para los integrantes de las instituciones de seguridad que ejercen el uso de la fuerza;
+**II.** Regular el catálogo normativo de funciones, derechos, obligaciones y prohibiciones para los integrantes de las instituciones de seguridad que ejercen el uso de la fuerza;
 
-**III.** Establecer las reglas para el control y administración del equipamiento oficial de los inte grantes de las instituciones de seguridad;
+**III.** Establecer las reglas para el control y administración del equipamiento oficial de los integrantes de las instituciones de seguridad;
 
 **IV.** Normar los esquemas de coordinación operativa para las instituciones de seguridad en el uso de la fuerza y del armamento oficial;
 
-**V.** Brindar certeza jurídica y transparencia a la ciudadanía en relación con e l uso de la fuerza que realicen las instituciones de seguridad en el ejercicio de sus funciones, y
+**V.** Brindar certeza jurídica y transparencia a la ciudadanía en relación con el uso de la fuerza que realicen las instituciones de seguridad en el ejercicio de sus funciones, y
 
 **VI.** El establecimiento del régimen de responsabilidades por la inobservancia de esta Ley.
 
@@ -40,7 +50,7 @@ Cuando las autoridades a que se refiere el párrafo anterior realicen tareas de 
 
 **II.** Armas de fuego: las autorizadas para el uso de los miembros de las instituciones de seguridad, de conformidad con la Ley Federal de Armas de Fuego y Explosivos y su Reglamento;
 
-**III.** Armas menos letales: aquellas a través de las cuales se disminuyen las funciones corporales de un individuo, reduciendo al mínimo el riesgo de causarle lesiones que pongan en peligro s u vida;
+**III.** Armas menos letales: aquellas a través de las cuales se disminuyen las funciones corporales de un individuo, reduciendo al mínimo el riesgo de causarle lesiones que pongan en peligro su vida;
 
 **IV.** Armas letales: las que por su diseño y mecanismo ocasionan o pueden ocasionar lesiones graves y la muerte;
 
@@ -48,9 +58,9 @@ Cuando las autoridades a que se refiere el párrafo anterior realicen tareas de 
 
 **VI.** Detención: la restricción de la libertad de una persona por las instituciones de seguridad, con el fin de ponerla a disposición de la autoridad competente;
 
-**VII.** Instituciones de Seguridad Pública: las instituciones policiales, de procuración de justicia , del sistema penitenciario y dependencias o entidades encargadas de la seguridad pública de orden federal, local o municipal, las cuales también podrán ser referidas en esta Ley como instituciones de seguridad;
+**VII.** Instituciones de Seguridad Pública: las instituciones policiales, de procuración de justicia, del sistema penitenciario y dependencias o entidades encargadas de la seguridad pública de orden federal, local o municipal, las cuales también podrán ser referidas en esta Ley como instituciones de seguridad;
 
-**VIII.** Estructuras corporales: las partes an atómicas del cuerpo, tales como los órganos, las extremidades y sus componentes;
+**VIII.** Estructuras corporales: las partes anatómicas del cuerpo, tales como los órganos, las extremidades y sus componentes;
 
 **IX.** Funciones corporales: las funciones fisiológicas de los sistemas corporales tales como el sistema respiratorio, el sistema cardiovascular, el sistema músculo-esquelético, entre otros;
 
@@ -62,11 +72,13 @@ Cuando las autoridades a que se refiere el párrafo anterior realicen tareas de 
 
 **XIII.** Sujetos Obligados: las instituciones de seguridad pública, las auxiliares, y los agentes de ambas, y
 
-**XIV.** Uso de la Fuerza: la inhibición por medios mecánicos o biomecánicos, de forma momentánea o permanente, de una o más funciones corporales que lleva a cabo una persona autorizada por el Estado sobre otra, siguiendo los procedimientos y protocolos que establecen las normas
+**(REFORMADA, D.O.F. 24 DE ENERO DE 2024)**
 
-jurídicas aplicables; su finalidad es salvaguardar la vida, las libertades, la integridad y el patrimonio de las personas, así como contribuir a la gen eración, preservación o restablecimiento del orden público, seguridad y la paz social. Fracción reformada DOF 24-01-2024
+**XIV.** Uso de la Fuerza: la inhibición por medios mecánicos o biomecánicos, de forma momentánea o permanente, de una o más funciones corporales que lleva a cabo una persona autorizada por el Estado sobre otra, siguiendo los procedimientos y protocolos que establecen las normas jurídicas aplicables; su finalidad es salvaguardar la vida, las libertades, la integridad y el patrimonio de las personas, así como contribuir a la generación, preservación o restablecimiento del orden público, seguridad y la paz social.
 
-Capítulo II Principios del Uso de la Fuerza
+Capítulo II
+
+Principios del Uso de la Fuerza
 
 **Artículo 4.** El uso de la fuerza se regirá por los principios de:
 
@@ -76,13 +88,21 @@ Capítulo II Principios del Uso de la Fuerza
 
 **III.** Prevención: para que los operativos para el cumplimiento de la ley sean planificados y se lleven a cabo, en la medida de lo posible, minimizando el uso de la fuerza y, cuando esto sea inevitable, reduciendo al mínimo los daños que de ello puedan resultar;
 
-**IV.** Proporcionalidad: para que el nivel de fuerza utilizado sea acorde con el nivel de resistencia ofrecido por el agresor y el nivel de ri esgo exhibido, de tal forma que los agentes apliquen medios y métodos bajo un criterio de uso diferenciado y progresivo de la fuerza; Fracción reformada DOF 24-01-2024
+**(REFORMADA, D.O.F. 24 DE ENERO DE 2024)**
 
-**V.** Rendición de cuentas y vigilancia: para que existan controles que permitan la evaluación de las acciones de uso de la fuerza y sea valorada su eficacia en términos del desempeño de las responsabilidades y funciones previstas por esta Ley; Fracción reformada DOF 24-01-2024
+**IV.** Proporcionalidad: para que el nivel de fuerza utilizado sea acorde con el nivel de resistencia ofrecido por el agresor y el nivel de riesgo exhibido, de tal forma que los agentes apliquen medios y métodos bajo un criterio de uso diferenciado y progresivo de la fuerza;
 
-**VI.** Racionalidad: decisión en la que se valora el objetivo que se persigue, las circunstancias de la agresión, las características pers onales y las capacidades tanto del sujeto a controlar como del integrante de las fuerzas de seguridad; lo que implica que, dada la existencia del acto o intención hostil, es necesario la aplicación del uso de la fuerza, y Fracción adicionada DOF 24-01-2024
+**(REFORMADA, D.O.F. 24 DE ENERO DE 2024)**
 
-**VII.** Oportunidad: cuando se requi era hacer uso de la fuerza, se debe evitar todo tipo de actuación innecesaria cuando exista evidente peligro o riesgo de la vida de las personas ajenas a los hechos. Esto significa que debe procurarse en el momento y en el lugar en que se reduzcan al máximo los daños y afectaciones tanto a la vida como a la integridad de las personas involucradas y sus bienes y en general, la afectación de los derechos de las personas. Fracción adicionada DOF 24-01-2024
+**V.** Rendición de cuentas y vigilancia: para que existan controles que permitan la evaluación de las acciones de uso de la fuerza y sea valorada su eficacia en términos del desempeño de las responsabilidades y funciones previstas por esta Ley;
+
+**(ADICIONADA, D.O.F. 24 DE ENERO DE 2024)**
+
+**VI.** Racionalidad: decisión en la que se valora el objetivo que se persigue, las circunstancias de la agresión, las características personales y las capacidades tanto del sujeto a controlar como del integrante de las fuerzas de seguridad; lo que implica que, dada la existencia del acto o intención hostil, es necesario la aplicación del uso de la fuerza, y
+
+**(ADICIONADA, D.O.F. 24 DE ENERO DE 2024)**
+
+**VII.** Oportunidad: cuando se requiera hacer uso de la fuerza, se debe evitar todo tipo de actuación innecesaria cuando exista evidente peligro o riesgo de la vida de las personas ajenas a los hechos. Esto significa que debe procurarse en el momento y en el lugar en que se reduzcan al máximo los daños y afectaciones tanto a la vida como a la integridad de las personas involucradas y sus bienes y en general, la afectación de los derechos de las personas.
 
 **Artículo 5.** El uso de la fuerza se hará en todo momento con pleno respeto a los derechos humanos.
 
@@ -90,17 +110,19 @@ Capítulo II Principios del Uso de la Fuerza
 
 **I.** Persuasión: cese de la resistencia a través del uso de indicaciones verbales o de la simple presencia de la autoridad, para lograr la cooperación de las personas con la autoridad;
 
-**II.** Restricción de de splazamiento: determinar un perímetro con la finalidad de controlar la agresión;
+**II.** Restricción de desplazamiento: determinar un perímetro con la finalidad de controlar la agresión;
 
 **III.** Sujeción: utilizar la fuerza física con moderación para lograr el control o aseguramiento de los individuos;
 
-**IV.** Inmovilización: utilizar la fuerza física con intensida d, pudiendo emplear medios o equipos destinados a restringir la movilidad de las personas para lograr su aseguramiento;
+**IV.** Inmovilización: utilizar la fuerza física con intensidad, pudiendo emplear medios o equipos destinados a restringir la movilidad de las personas para lograr su aseguramiento;
 
-**V.** Incapacitación: utilizar la fuerza física con máxima intensidad, permitiendo el empleo de armas menos letales, así como sustancias q uímicas irritantes que perturben las funciones sensoriales, con la finalidad de neutralizar la resistencia y la violencia, teniendo alta probabilidad de causar lesiones que no pongan en riesgo la vida del agresor;
+**V.** Incapacitación: utilizar la fuerza física con máxima intensidad, permitiendo el empleo de armas menos letales, así como sustancias químicas irritantes que perturben las funciones sensoriales, con la finalidad de neutralizar la resistencia y la violencia, teniendo alta probabilidad de causar lesiones que no pongan en riesgo la vida del agresor;
 
-**VI.** Lesión grave: utilizar la fuerza, permitiendo el uso de a rmas menos letales o de fuego con la finalidad de neutralizar a los agresores y proteger la integridad de la autoridad o de personas ajenas, con alta probabilidad de dañar gravemente al agresor, y Fracción declarada parcialmente inválida por sentencia de la SCJN a Acción de Inconstitucionalidad notificada para efectos legales 29-10-2021 y publicada DOF 08-04-2022 Fracción reformada DOF 24-01-2024
+**(REFORMADA, D.O.F. 24 DE ENERO DE 2024)**
 
-**VII.** Muerte: utilizar la fuerza letal como una acción excepcional, permitiendo el uso de a rmas menos letales o de fuego con la finalidad de repeler y neutralizar la agresión, no teniendo otra opción para proteger la vida de las personas ajenas o la propia, a sabiendas que existe un alto riesgo de causar la muerte del agresor.
+**VI.** Lesión grave: utilizar la fuerza, permitiendo el uso de armas menos letales o de fuego con la finalidad de neutralizar a los agresores y proteger la integridad de la autoridad o de personas ajenas, con alta probabilidad de dañar gravemente al agresor, y
+
+**VII.** Muerte: utilizar la fuerza letal como una acción excepcional, permitiendo el uso de armas menos letales o de fuego con la finalidad de repeler y neutralizar la agresión, no teniendo otra opción para proteger la vida de las personas ajenas o la propia, a sabiendas que existe un alto riesgo de causar la muerte del agresor.
 
 **Artículo 7.** Se consideran amenazas letales inminentes:
 
@@ -116,15 +138,17 @@ Capítulo II Principios del Uso de la Fuerza
 
 **VI.** Las acciones tendientes a perturbar objetos o sistemas que puedan tener efectos letales o incapacitantes en una o más personas.
 
-**Artículo 8.** Los protocolos y procedimientos del uso de la fuerza deberán atender a la perspectiva de género, la protección de niñas, niños y adolescente s, así como la atención de situaciones de riesgo en el interior o en las inmediaciones de guarderías, escuelas, hospitales, templos, centros de reclusión y otros lugares en el que se congreguen personas ajenas a los agresores.
+**Artículo 8.** Los protocolos y procedimientos del uso de la fuerza deberán atender a la perspectiva de género, la protección de niñas, niños y adolescentes, así como la atención de situaciones de riesgo en el interior o en las inmediaciones de guarderías, escuelas, hospitales, templos, centros de reclusión y otros lugares en el que se congreguen personas ajenas a los agresores.
 
-Capítulo III Procedimientos del Uso de la Fuerza
+Capítulo III
+
+Procedimientos del Uso de la Fuerza
 
 **Artículo 9.** Los mecanismos de reacción en el uso de la fuerza son:
 
 **I.** Controles cooperativos: indicaciones verbales, advertencias o señalización;
 
-**II.** Control mediante contacto: su límite superior es la intervención momentánea en fun ciones motrices;
+**II.** Control mediante contacto: su límite superior es la intervención momentánea en funciones motrices;
 
 **III.** Técnicas de sometimiento o control corporal: su límite superior es el impedimento momentáneo de funciones corporales y daños menores en estructuras corporales;
 
@@ -132,13 +156,13 @@ Capítulo III Procedimientos del Uso de la Fuerza
 
 **V.** Fuerza Letal: su límite es el cese total de funciones corporales. Se presume el uso de la fuerza letal cuando se emplee arma de fuego contra una persona.
 
-**Artículo 10.** La clasificación de las conductas que ameritan el uso de la f uerza, ordenadas por su intensidad, es:
+**Artículo 10.** La clasificación de las conductas que ameritan el uso de la fuerza, ordenadas por su intensidad, es:
 
 **I.** Resistencia pasiva: conducta de acción u omisión que realiza una o varias personas, exenta de violencia, para negarse a obedecer órdenes legítimas comunicadas de manera directa por los sujetos obligados, quienes previamente se han identificado como autoridad. Contra la resistencia pasiva podrán oponerse los mecanismos de reacción a los que se refieren las fracciones I y II del artículo anterior;
 
-**II.** Resistencia activa: conducta de acción u omisión que realiza una o varias personas, empleando la violencia, el amago o la amenaza, para negarse a obedecer órdenes legítimas comunicadas de manera directa por los sujetos obligados, quienes previamente se han identificado como autoridad. Contra la resistencia activa podrá n oponerse los mecanismos de reacción a los que se refieren las fracciones I, II, III y IV del artículo anterior, y
+**II.** Resistencia activa: conducta de acción u omisión que realiza una o varias personas, empleando la violencia, el amago o la amenaza, para negarse a obedecer órdenes legítimas comunicadas de manera directa por los sujetos obligados, quienes previamente se han identificado como autoridad. Contra la resistencia activa podrán oponerse los mecanismos de reacción a los que se refieren las fracciones I, II, III y IV del artículo anterior, y
 
-**III.** Resistencia de alta peligrosidad: conducta de acción u omisión que realiza una o varias personas, empleando la violencia, el amago o l a amenaza con armas o sin ellas para causar a otra u otras o a miembros de las instituciones de seguridad, lesiones graves o la muerte, negándose a obedecer órdenes legítimas comunicadas de manera directa por los sujetos obligados, quienes previamente se h an identificado como autoridad. Contra la resistencia de alta peligrosidad podrán oponerse los mecanismos de reacción a los que se refieren las fracciones I, II, III, IV y V del artículo anterior.
+**III.** Resistencia de alta peligrosidad: conducta de acción u omisión que realiza una o varias personas, empleando la violencia, el amago o la amenaza con armas o sin ellas para causar a otra u otras o a miembros de las instituciones de seguridad, lesiones graves o la muerte, negándose a obedecer órdenes legítimas comunicadas de manera directa por los sujetos obligados, quienes previamente se han identificado como autoridad. Contra la resistencia de alta peligrosidad podrán oponerse los mecanismos de reacción a los que se refieren las fracciones I, II, III, IV y V del artículo anterior.
 
 **Artículo 11.** Los niveles del uso de la fuerza, según el orden en que deben agotarse, son:
 
@@ -152,9 +176,9 @@ Capítulo III Procedimientos del Uso de la Fuerza
 
 **II.** Persuasión o disuasión verbal: a través del uso de palabras o gesticulaciones que sean catalogadas como órdenes y que permitan a la persona facilitar a los agentes a cumplir con sus funciones;
 
-**III.** Reducción fís ica de movimientos: mediante acciones cuerpo a cuerpo a efecto de que se controle a la persona que se ha resistido y ha obstaculizado que los agentes cumplan con sus funciones;
+**III.** Reducción física de movimientos: mediante acciones cuerpo a cuerpo a efecto de que se controle a la persona que se ha resistido y ha obstaculizado que los agentes cumplan con sus funciones;
 
-**IV.** Utilización de armas incapacitantes menos letales: a fin de someter la res istencia activa de una persona, y
+**IV.** Utilización de armas incapacitantes menos letales: a fin de someter la resistencia activa de una persona, y
 
 **V.** Utilización de armas de fuego o de fuerza letal: para repeler las resistencias de alta peligrosidad.
 
@@ -164,11 +188,13 @@ Capítulo III Procedimientos del Uso de la Fuerza
 
 **II.** Actual: si la agresión se presenta en el momento del hecho, no con anterioridad o posterioridad, y
 
-**III.** Inminente: si la agresión está próxima a ocurrir y, de no re alizarse una acción, esta se consumaría.
+**III.** Inminente: si la agresión está próxima a ocurrir y, de no realizarse una acción, esta se consumaría.
 
 **Artículo 13.** El uso de la fuerza letal será el último recurso en cualquier operativo. En su caso, los agentes deberán comprobar que la agresión era real, actual o inminente, sin derecho, que ponía o podría poner en peligro la vida o integridad física de personas ajenas o de uno de ellos y que el uso de la fuerza en los niveles referidos en las fracciones I a la IV del artículo 11, eran insuficientes para repeler, contrarrestar o neutralizar los actos de resistencia.
 
-Capítulo IV Instrumentos del Uso de la Fuerza
+Capítulo IV
+
+Instrumentos del Uso de la Fuerza
 
 **Artículo 14.** Las instituciones de seguridad asignarán las armas solamente al agente que apruebe la capacitación establecida para su uso y este, a su vez, solo podrá usar las armas que le hayan sido asignadas.
 
@@ -196,13 +222,15 @@ Las instituciones de seguridad deberán dotar a los agentes con el equipo de pro
 
 En todos los casos, las armas que se autoricen para los cuerpos de policía deberán apegarse a lo establecido en el párrafo tercero del artículo 24 de la Ley Federal de Armas de Fuego y Explosivos.
 
-**Artículo 16.** Las instituciones de seguridad emitirán los protocolos de actuación c on perspectiva de género y para niñas, niños, adolescentes y protección de los derechos humanos, así como los manuales de técnicas para el uso de la fuerza y la descripción de las conductas a realizar por parte de los agentes.
+**Artículo 16.** Las instituciones de seguridad emitirán los protocolos de actuación con perspectiva de género y para niñas, niños, adolescentes y protección de los derechos humanos, así como los manuales de técnicas para el uso de la fuerza y la descripción de las conductas a realizar por parte de los agentes.
 
-El manual correspondiente de terminará el contenido de las prácticas que los agentes deberán cumplir para estar capacitados en el uso de la fuerza, así como la periodicidad del entrenamiento para el uso de las armas permitidas y las técnicas de solución pacífica de conflictos, como la negociación y la mediación, así como de control de multitudes y otros medios lícitos que limiten al máximo el uso de la fuerza en los niveles de uso de armas incapacitantes menos letales y de armas de fuego.
+El manual correspondiente determinará el contenido de las prácticas que los agentes deberán cumplir para estar capacitados en el uso de la fuerza, así como la periodicidad del entrenamiento para el uso de las armas permitidas y las técnicas de solución pacífica de conflictos, como la negociación y la mediación, así como de control de multitudes y otros medios lícitos que limiten al máximo el uso de la fuerza en los niveles de uso de armas incapacitantes menos letales y de armas de fuego.
 
-El entrenamiento para el uso de las armas perm itidas comprenderá técnicas de solución pacífica de conflictos, como la negociación y la mediación, así como de control de multitudes y otros medios lícitos que limiten al máximo el uso de la fuerza en los niveles de uso de armas menos letales y uso de arm a de fuego.
+El entrenamiento para el uso de las armas permitidas comprenderá técnicas de solución pacífica de conflictos, como la negociación y la mediación, así como de control de multitudes y otros medios lícitos que limiten al máximo el uso de la fuerza en los niveles de uso de armas menos letales y uso de arma de fuego.
 
-Capítulo V Agentes
+Capítulo V
+
+Agentes
 
 **Artículo 17.** Las instituciones de seguridad deberán contar con una base de datos que contenga el registro detallado de las huellas y las características que impriman los proyectiles u ojivas, las estrías o rayado helicoidal de las armas de fuego bajo su resguardo; así como de las armas y equipo asignado a cada agente.
 
@@ -212,11 +240,13 @@ Lo anterior, de conformidad con las disposiciones relativas de la Ley General de
 
 **Artículo 19.** Todo agente tiene derecho a la protección de su vida e integridad física, al respeto a su dignidad como ser humano y a su autoridad por parte de sus superiores y de la ciudadanía.
 
-Es obligación de la institución de seguridad a la que pertenezcan, proporcionar a sus agente s la atención médica, psicológica y jurídica que, en su caso, requieran.
+Es obligación de la institución de seguridad a la que pertenezcan, proporcionar a sus agentes la atención médica, psicológica y jurídica que, en su caso, requieran.
 
 **Artículo 20.** Las familias de los agentes contarán con atención médica, psicológica y social en aquellos casos en los que el agente pierda la vida, le sea imputado el uso excesivo de la fuerza o adquiera alguna discapacidad por el ejercicio de sus funciones, dando especial atención a sus familiares.
 
-Capítulo VI Detenciones
+Capítulo VI
+
+Detenciones
 
 **Artículo 21.** En el uso de la fuerza para la detención de una persona se atenderán los principios y procedimientos establecidos en esta Ley, de acuerdo con las siguientes reglas:
 
@@ -228,7 +258,7 @@ Capítulo VI Detenciones
 
 **IV.** Poner a disposición de forma inmediata ante la autoridad competente a la persona detenida.
 
-Los agentes, bajo su más estricta responsabilida d, velarán porque durante la custodia del detenido se resguarde su integridad y se impidan actos de tortura, tratos o penas crueles, inhumanos o degradantes, desaparición forzada o cualquier otro hecho que la ley señale como delito, o que impliquen una vio lación grave a los derechos humanos; así como por el cumplimiento de las disposiciones correspondientes de la Ley Nacional del Registro de Detenciones.
+Los agentes, bajo su más estricta responsabilidad, velarán porque durante la custodia del detenido se resguarde su integridad y se impidan actos de tortura, tratos o penas crueles, inhumanos o degradantes, desaparición forzada o cualquier otro hecho que la ley señale como delito, o que impliquen una violación grave a los derechos humanos; así como por el cumplimiento de las disposiciones correspondientes de la Ley Nacional del Registro de Detenciones.
 
 **Artículo 22.** Cuando para la detención de una persona sea necesario hacer uso de la fuerza, el agente deberá:
 
@@ -244,23 +274,27 @@ En cualquier caso, será aplicable lo dispuesto por el último párrafo del art�
 
 **Artículo 24.** Las instituciones de seguridad deberán abstenerse de ejercer el uso de la fuerza en contra de una persona detenida bajo su custodia, salvo que las circunstancias demanden la necesidad de su uso para el mantenimiento del orden y la seguridad o se ponga en riesgo la integridad de las personas.
 
-**Artículo 25.** Las detenciones podrán ser registradas en medios audiovisual es que serán accesibles por los medios que establezcan las disposiciones en materia de acceso a la información pública y protección de datos personales.
+**Artículo 25.** Las detenciones podrán ser registradas en medios audiovisuales que serán accesibles por los medios que establezcan las disposiciones en materia de acceso a la información pública y protección de datos personales.
 
 **Artículo 26.** De cada detención se llevará a cabo el registro e informe correspondiente, en términos de lo establecido por la ley en la materia.
 
-Capítulo VII Actuación de las Policías en Manifestaciones y Reuniones Públicas
+Capítulo VII
+
+Actuación de las Policías en Manifestaciones y Reuniones Públicas
 
 **Artículo 27.** Por ningún motivo se podrá hacer uso de armas contra quienes participen en manifestaciones o reuniones públicas pacíficas con objeto lícito.
 
 En estos casos, la actuación policial deberá asegurar la protección de los manifestantes y los derechos de terceros, así como garantizar la paz y el orden públicos.
 
-La intervención de las fuerzas de seguridad pública deberá hacerse p or personas con experiencia y capacitación específicas para dichas situaciones y bajo protocolos de actuación emitidos por el Consejo del Sistema Nacional de Seguridad Pública.
+La intervención de las fuerzas de seguridad pública deberá hacerse por personas con experiencia y capacitación específicas para dichas situaciones y bajo protocolos de actuación emitidos por el Consejo del Sistema Nacional de Seguridad Pública.
 
-**Artículo 28.** Cuando las manifestaciones o reuniones públicas se tornen violent as, las policías deberán actuar de acuerdo a los distintos niveles de fuerza establecidos en esta Ley.
+**Artículo 28.** Cuando las manifestaciones o reuniones públicas se tornen violentas, las policías deberán actuar de acuerdo a los distintos niveles de fuerza establecidos en esta Ley.
 
-Capítulo VIII Planeación de Operativos que requieran el Uso de la Fuerza
+Capítulo VIII
 
-**Artículo 29.** Los agentes tienen derecho a responder a una agresión usando fuer za letal cuando esté en peligro inminente su integridad física con riesgo de muerte. Para calificar el hecho se deberán tomar en cuenta las circunstancias de modo, tiempo y lugar del operativo, así como la situación del agresor y su capacidad de resistencia.
+Planeación de Operativos que requieran el Uso de la Fuerza
+
+**Artículo 29.** Los agentes tienen derecho a responder a una agresión usando fuerza letal cuando esté en peligro inminente su integridad física con riesgo de muerte. Para calificar el hecho se deberán tomar en cuenta las circunstancias de modo, tiempo y lugar del operativo, así como la situación del agresor y su capacidad de resistencia.
 
 **Artículo 30.** En el uso de la fuerza y la planeación de operativos siempre se tomará en consideración la salvaguarda de los objetivos y principios que establece esta Ley para garantizar la protección a los derechos humanos de todos los potenciales involucrados. Además, deberán cumplir con lo siguiente:
 
@@ -268,7 +302,7 @@ Capítulo VIII Planeación de Operativos que requieran el Uso de la Fuerza
 
 **II.** El mando deberá realizar reuniones para la coordinación con las diferentes autoridades participantes y los agentes que participarán en el operativo, con el objetivo de plantear las estrategias adecuadas y la toma de decisiones para definir el cumplimiento de los objetivos;
 
-**III.** Contar con planes operativos y logísticos para hacer frente al even to de que se trate, que contemplen la forma para controlar la eventual resistencia, considerando la capacidad de respuesta del objetivo, las características físicas del lugar, las entradas y salidas para poder considerar la retirada en caso de que el uso d e la fuerza resulte inadecuado y la vida de los agentes corra peligro, así como evitar la huida de la o las personas en caso de que se trate de una detención;
+**III.** Contar con planes operativos y logísticos para hacer frente al evento de que se trate, que contemplen la forma para controlar la eventual resistencia, considerando la capacidad de respuesta del objetivo, las características físicas del lugar, las entradas y salidas para poder considerar la retirada en caso de que el uso de la fuerza resulte inadecuado y la vida de los agentes corra peligro, así como evitar la huida de la o las personas en caso de que se trate de una detención;
 
 **IV.** Los planes operativos deberán establecer acciones para repeler, contrarrestar y neutralizar cualquier tipo de resistencia;
 
@@ -278,7 +312,7 @@ Capítulo VIII Planeación de Operativos que requieran el Uso de la Fuerza
 
 **VII.** Antes del operativo, pasar revista de agentes, equipo, armamento, cartuchos y vehículos, misma que deberá constar por escrito;
 
-**VIII.** Asegurar que el mando operativo mantenga una constante comunicación con sus superiores para la toma de decisiones durante l a realización del operativo, incluida la posible negociación con las personas que ejercen la resistencia;
+**VIII.** Asegurar que el mando operativo mantenga una constante comunicación con sus superiores para la toma de decisiones durante la realización del operativo, incluida la posible negociación con las personas que ejercen la resistencia;
 
 **IX.** Evaluar los factores de riesgo para planear la estrategia adecuada;
 
@@ -286,15 +320,17 @@ Capítulo VIII Planeación de Operativos que requieran el Uso de la Fuerza
 
 **XI.** Es legal grabar o filmar el desarrollo del operativo, desde el inicio hasta la conclusión del mismo.
 
-**Artículo 31.** En el caso de los planes, estrategias y programas para actuar frente a asambleas, manifestaciones o reuniones que se tornen violentas o que aten ten contra el orden público, se deberá considerar la presencia de agentes capacitados para llevar a cabo negociaciones y procedimientos de disuasión y persuasión para que los manifestantes abandonen las conductas agresivas, debiendo buscar a los líderes para entablar el diálogo entre éstos y las autoridades.
+**Artículo 31.** En el caso de los planes, estrategias y programas para actuar frente a asambleas, manifestaciones o reuniones que se tornen violentas o que atenten contra el orden público, se deberá considerar la presencia de agentes capacitados para llevar a cabo negociaciones y procedimientos de disuasión y persuasión para que los manifestantes abandonen las conductas agresivas, debiendo buscar a los líderes para entablar el diálogo entre éstos y las autoridades.
 
 El agente que funja como negociador deberá permanecer en comunicación directa y en coordinación con el mando operativo, quien a su vez tendrá contacto directo con el mando superior.
 
-Capítulo IX Informes del Uso de la Fuerza
+Capítulo IX
 
-**Artículo 32.** Siempre que los miembros de las instituciones de seguridad utilicen la fuerza en cumplimiento de sus funciones deberán realizar un reporte pormenorizado a su superior jerárquico inmediato, una copia de este se integrar á al expediente del agente al mando del operativo y en lo conducente de cada uno de los participantes.
+Informes del Uso de la Fuerza
 
-Los superiores jerárquicos serán responsables cuando deban tener o tengan conocimiento de que los agentes bajo su mando hayan empleado ilícitamente la f uerza, los instrumentos o armas de fuego a su cargo y no lo impidan o no lo denuncien ante las autoridades correspondientes.
+**Artículo 32.** Siempre que los miembros de las instituciones de seguridad utilicen la fuerza en cumplimiento de sus funciones deberán realizar un reporte pormenorizado a su superior jerárquico inmediato, una copia de este se integrará al expediente del agente al mando del operativo y en lo conducente de cada uno de los participantes.
+
+Los superiores jerárquicos serán responsables cuando deban tener o tengan conocimiento de que los agentes bajo su mando hayan empleado ilícitamente la fuerza, los instrumentos o armas de fuego a su cargo y no lo impidan o no lo denuncien ante las autoridades correspondientes.
 
 **Artículo 33.** El reporte pormenorizado contendrá:
 
@@ -324,11 +360,11 @@ Estos reportes deberán contener:
 
 **II.** Los resultados de la evaluación corporal que se realice a las personas detenidas;
 
-**III.** El número de personas fallecidas por el uso de la fuerza, desagregado por sexo , y
+**III.** El número de personas fallecidas por el uso de la fuerza, desagregado por sexo, y
 
 **IV.** En su caso, recomendaciones que con motivo de estos eventos hayan emitido los organismos públicos de derechos humanos, y la atención que se haya dado a las mismas.
 
-**Artículo 36.** En aquellos operativos en los que se requiera y autorice desde la planeación el uso de la fuerza letal, se podrán utilizar dispositivos tecnológicos con el fin de registrar audiovis ualmente el desarrollo del operativo con fines de verificación.
+**Artículo 36.** En aquellos operativos en los que se requiera y autorice desde la planeación el uso de la fuerza letal, se podrán utilizar dispositivos tecnológicos con el fin de registrar audiovisualmente el desarrollo del operativo con fines de verificación.
 
 **Artículo 37.** Los vehículos que se utilicen en el ejercicio del uso de la fuerza contarán con mecanismos tecnológicos para vigilar la seguridad de los agentes y de las personas alrededor.
 
@@ -336,7 +372,9 @@ Estos reportes deberán contener:
 
 **Artículo 39.** Los datos personales de los agentes que hayan utilizado fuerza letal deberán ser tratados en términos de la legislación en la materia.
 
-Capítulo X Capacitación y Profesionalización
+Capítulo X
+
+Capacitación y Profesionalización
 
 **Artículo 40.** La capacitación que reciban los agentes considerará los estándares nacionales e internacionales en la materia y deberá incluir, al menos, los aspectos siguientes:
 
@@ -378,7 +416,9 @@ Capítulo X Capacitación y Profesionalización
 
 Dentro de los programas de capacitación se deberán establecer cursos de evaluación sobre el uso de la fuerza.
 
-Capítulo XI Régimen de Responsabilidades
+Capítulo XI
+
+Régimen de Responsabilidades
 
 **Artículo 42.** Los mandos de las instituciones de seguridad, así como de la Fuerza Armada permanente, cuando actúen en tareas de seguridad pública, deberán verificar que el empleo de la fuerza ejercida por sus subordinados, se efectúe conforme a lo establecido en la presente Ley y demás ordenamientos aplicables.
 
@@ -388,12 +428,18 @@ Capítulo XI Régimen de Responsabilidades
 
 ## Transitorios
 
-**Primero.** La presente Ley entrará en vigor al día siguiente de su publicación en el Diario Ofici al de la Federación.
+**Primero.** La presente Ley entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
 
 **Segundo.** Se derogan las disposiciones sobre uso de la fuerza en materia de seguridad pública, que se opongan a lo dispuesto en el presente Decreto.
 
-**Tercero.** Para cumplir con la obligación contenida en el artículo 38, las institucione s de seguridad pública, procurarán, en medida de las disponibilidades presupuestarias, adquirir la tecnología correspondiente.
+**Tercero.** Para cumplir con la obligación contenida en el artículo 38, las instituciones de seguridad pública, procurarán, en medida de las disponibilidades presupuestarias, adquirir la tecnología correspondiente.
 
-Ciudad de México, a 23 de mayo de 2019.- Sen. Martí Batres Guadarrama, Presidente.- Dip. Porfirio Muñoz Ledo , Presidente. - Sen. Nancy de la Sierra Arámburo , Secretaria. - Dip. Julieta Macías Rábago, Secretaria.- Rúbricas."
+Ciudad de México, a 23 de mayo de 2019.- Sen. Martí Batres Guadarrama, Presidente.- Dip. Porfirio Muñoz Ledo, Presidente.- Sen. Nancy de la Sierra Arámburo, Secretaria.- Dip. Julieta Macías Rábago, Secretaria.- Rúbricas."
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y obs ervancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a 27 de mayo de 2019 .- Andrés Manuel López Obrador .- Rúbrica.- La Secretaria de Gobernación, Dra. Olga María del Carmen Sánchez Cordero Dávila.- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, a 27 de mayo de 2019.- Andrés Manuel López Obrador.- Rúbrica.- La Secretaria de Gobernación, Dra. Olga María del Carmen Sánchez Cordero Dávila.- Rúbrica.
+
+**D.O.F. 24 DE ENERO DE 2024.**
+
+**Primero.-** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
+
+**Segundo.-** Las instituciones de seguridad revisarán y, en su caso, actualizarán los protocolos de actuación, los manuales de técnicas para el uso de la fuerza, la descripción de las conductas a realizar por parte de los agentes y los cursos de capacitación para el efecto de incorporar la finalidad del uso de la fuerza y los principios de oportunidad y racionalidad, en sus contenidos, para lo que tendrán un plazo de 60 días hábiles contados a partir del día siguiente a la entrada en vigor del presente Decreto.

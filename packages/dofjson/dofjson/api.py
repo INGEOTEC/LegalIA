@@ -1,7 +1,7 @@
 """Unified entry point for reading and downloading DOF content — and the one
 place that is allowed to know dofjson.sidof (SIDOF) and dofjson.dofweb
 (the DOF's own website) both exist. Every other function, in this package
-(dofjson.archivo, dofjson.cli) or another one (nota2md, leyesmx...), calls
+(dofjson.archivo, dofjson.cli) or another one (nota2md, dof2md...), calls
 just this instead of juggling sidof/dofweb itself, which is the bug this
 module exists to close: a caller that only ever calls ``sidof`` and never
 considers that the day/note could be sitting in ``dofweb`` instead.

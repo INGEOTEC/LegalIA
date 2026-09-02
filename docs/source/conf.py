@@ -18,7 +18,7 @@ copyright = "2026, INGEOTEC"
 author = "INGEOTEC"
 
 # This page currently documents only dof2md (see CLAUDE.md's package read
-# order: dofjson -> nota2md -> dof2md -> leyesmx); dofjson/nota2md/leyesmx
+# order: dofjson -> nota2md -> dof2md -> md2akn); dofjson/nota2md/md2akn
 # get their own *_api.rst, and this version pin moves to per-package, once
 # each has a subissue of #119 documenting it.
 version = dof2md.__version__

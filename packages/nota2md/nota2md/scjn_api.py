@@ -17,8 +17,8 @@ for the `.docx`, so the corpus this feeds keeps meaning what it meant.
 The SCJN is still **not** an official source of legal text — dof.gob.mx /
 SIDOF remains that, and every file written from this keeps its
 `fuente: scjn` header. A public Swagger page is not a stability contract
-either: same posture as `dofjson.dofweb` and `leyesmx.diputados`, so the
-rate limiting and the retries stay.
+either: same posture as `dofjson.dofweb` takes toward the DOF's own
+website, so the rate limiting and the retries stay.
 
 Measured live against the corpus the old crawler wrote (issue #173, whose
 numbers are the comment on #172); three of those findings are load-bearing
@@ -223,25 +223,37 @@ class ScjnApi:
         tipo_publicacion: int = 1,
         tipo_busqueda: int = 1,
         tamanio_pagina: int = 25,
+        ambito: str = "",
+        categoria: str = "",
+        vigencia: str = "",
+        pagina: int = 1,
     ) -> list[Ordenamiento]:
         """Every ordenamiento `BusquedaFrase` returns for `name`.
 
         Issue #173: the optional filters must be sent, as empty strings —
         a body carrying only `q`/`tipoBusqueda`/`tipoPublicacion` gets an
-        HTTP 500, not a validation error."""
+        HTTP 500, not a validation error.
+
+        `ambito`/`categoria`/`vigencia`/`pagina` are those filters made
+        reachable (issue #186), for the one caller that wants a *listing*
+        rather than a lookup: `extract_scjn_titles.py --discover` pages
+        `FEDERAL`+`LEY`/`CODIGO`/`CONSTITUCION`+`VIGENTE` to find laws the
+        catalogue does not have yet. `name` stays mandatory — an empty `q`
+        answers zero results, so there is no "list everything" mode to
+        expose."""
         cuerpo = {
             "q": name,
             "tipoBusqueda": tipo_busqueda,
             "tipoPublicacion": tipo_publicacion,
-            "ambitoF": "",
-            "categoriaF": "",
-            "vigenciaF": "",
+            "ambitoF": ambito,
+            "categoriaF": categoria,
+            "vigenciaF": vigencia,
             "entidadFederativaF": "",
             "materiaF": "",
             "municipioF": "",
             "fechaPublicacionInicio": "",
             "fechaPublicacionFin": "",
-            "numeroPagina": 1,
+            "numeroPagina": pagina,
             "tamanioPagina": tamanio_pagina,
             "consultaArticulos": 0,
         }
@@ -376,8 +388,7 @@ from nota2md.scjn import (  # noqa: E402  (deliberately below the client)
 #
 # The SCJN's text carries no formatting of its own: "TEXTO ORIGINAL.",
 # "Artículo N.-" leads and "TRANSITORIOS" captions are plain text, told apart
-# only by their own wording/casing — the same situation
-# nota2md.texto_vigente's Diputados PDFs are in. This lived in `nota2md.scjn`
+# only by their own wording/casing. This lived in `nota2md.scjn`
 # while the source was the reform row's .docx (one docx paragraph already is
 # one clean block, so only this per-paragraph classification was ever needed
 # on top of it); it moved here with issue #179, when the .docx path went away
@@ -387,10 +398,12 @@ from nota2md.scjn import (  # noqa: E402  (deliberately below the client)
 # from the API diffable against the one the WebForms crawler wrote for the
 # same law and the same date.
 #
-# Kept independent of texto_vigente's own patterns rather than imported, for
-# the same reason that module gives for staying independent of this package's
-# DOF-derived output: the two are meant to be compared, not to share a
-# source.
+# These patterns are the SCJN side of a comparison, so they stay their own
+# copy on purpose. A near-identical set used to live in
+# `nota2md.texto_vigente`, shaping the Cámara de Diputados' consolidated PDF
+# into the same Markdown conventions; that module was deleted with its source
+# (issues #184/#188) and nothing here ever imported it, precisely so the two
+# renderings of the same law could be compared rather than share a bug.
 _ORDINAL = (
     r"(?:[UÚ]nico|Primero|Segundo|Tercero|Cuarto|Quinto|Sexto|S[ée]ptimo|"
     r"Octavo|Noveno|D[ée]cimo(?:\s+(?:Primero|Segundo|Tercero|Cuarto|Quinto|"
@@ -569,8 +582,8 @@ def elige_ordenamiento(
        never the reglamento of itself (`lopgjdf`). The second is new: the
        API classifies the document itself, so a reglamento whose title
        happens not to start with "reglamento" is still caught.
-    3. `ambito == "FEDERAL"` — `download_legal_provisions_provenance_ids`
-       only ever covers federal instruments. New here only in that it costs
+    3. `ambito == "FEDERAL"` — the catalogue only ever covers federal
+       instruments. New here only in that it costs
        nothing: the old crawler had to have opened the results page to read
        it, and it is now a field of the hit.
     4. `vigencia == "VIGENTE"`.

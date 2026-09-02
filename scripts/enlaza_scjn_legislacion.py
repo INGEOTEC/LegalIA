@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """Match every SCJN snapshot `fetch_scjn_legislacion.py` already downloaded
 to the `codNota` of the DOF note that published it — Fase 2 of the crawl plan
-in issue #105, corrected by issue #123 to never consult Diputados' own
-reform history at all.
+in issue #105.
 
-For each instrument in `extract_scjn_titles.py`'s own catalogue for
-`coleccion`, only its `nombre` is used — Diputados' `historial` never
-reaches this script — to find, for every snapshot already sitting under
-``<outdir>/<coleccion>/<abrev-o-nombre>/`` (see
+Federal laws are the only collection left (issue #189): reglamentos, tratados
+and Normas Oficiales Mexicanas went out of scope with the Cámara de Diputados
+data they leaned on, so ``leyes`` is written here as a literal path segment
+rather than parameterized. That is a decision, not a leftover — a second
+collection would have to justify itself again before it got a flag back.
+
+For each instrument in `extract_scjn_titles.py`'s own catalogue, only its
+`nombre` is used to find, for every snapshot already sitting under
+``<outdir>/leyes/<abrev-o-nombre>/`` (see
 `nota2md.scjn.versiones_de_directorio`), which same-day DOF note (the dofjson
 titles stream, `dofjson.legal_provisions_titles`) explicitly names
 the instrument in its own title (issue #126,
@@ -22,7 +26,7 @@ date's `title_candidates`) whose own DOF text best accounts for what
 actually changed between this snapshot and the previous one
 (``content_diff_confirmed_codNota``, ``content_diff_score``) — only for
 candidates with digital DOF text, fetched via `dofjson` and saved under
-``<outdir>/<coleccion>/<abrev-o-nombre>/notas`` — each instrument's own
+``<outdir>/leyes/<abrev-o-nombre>/notas`` — each instrument's own
 subdirectory, alongside its `indice.json`, not a directory shared across
 instruments. Those notes are kept, not scratch: issue #128 ships them inside
 each instrument's own tarball, so the DOF text every link was decided against
@@ -34,14 +38,21 @@ Writes one ``indice.json`` per instrument directory, listing each
 snapshot's own file, `fecha_publicacion`, the `codNota` matched to it
 (``null`` when no match was found), every same-day candidate that named the
 instrument (`title_candidates`), how that pool was resolved
-(`title_link_status` — "linked", "none", "claimed" or "ambiguous", see
-`nota2md.scjn.title_link_status`), and its content-diff confirmation. An
-"ambiguous" date — more than one same-day codNota names the instrument,
-with nothing but content diff able to break the tie — is also printed as a
-warning, since it is exactly the class of case issue #115 asked to be
-reviewable by hand.
+(`title_link_status` — "linked", "content_diff", "none", "claimed" or
+"ambiguous", see `nota2md.scjn.title_link_status` and `resolve_links`), and
+its content-diff confirmation.
 
-Needs each requested collection's own ``catalogo.json`` (`extract_scjn_titles.py`)
+Since issue #187 the content-diff confirmation *is* the link when title
+matching alone could not pick a winner, instead of only annotating a
+`codNota: null`: the candidate still had to name the instrument in its own
+title, still had to clear `UMBRAL_CONFIRMACION_DIFF`, and still cannot take
+a codNota another snapshot already claimed — see `resolve_links` for why
+that does not weaken issue #115's "an absent link is worth more than a wrong
+one". A date left `ambiguous` after that — several same-day candidates and
+no content confirmation among them — is printed as a warning, since it is
+exactly the class of case issue #115 asked to be reviewable by hand.
+
+Needs the collection's own ``catalogo.json`` (`extract_scjn_titles.py`)
 and the notas-archivo cache populated (the DOF titles are streamed from it):
 
     ./scripts/extract_scjn_titles.py --outdir scjn-legislacion
@@ -49,7 +60,7 @@ and the notas-archivo cache populated (the DOF titles are streamed from it):
     ./scripts/enlaza_scjn_legislacion.py --outdir scjn-legislacion
 
 Only instrument directories `fetch_scjn_legislacion.py` already crawled are
-touched; a coleccion+instrumento pair with no directory yet is skipped
+touched; an instrumento with no directory yet is skipped
 silently — nothing to match until that instrument has been crawled.
 
 ``--instrumento SLUG`` (repeatable, issue #148) narrows the run to the named
@@ -71,17 +82,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "no
 from dofjson.titulos import SIN_CACHE_DIR, legal_provisions_titles  # noqa: E402
 from nota2md.builder import fetch_nota, get_document  # noqa: E402
 from nota2md.scjn import (  # noqa: E402
+    ESTADO_ENLACE_CONTENT_DIFF,
     confirm_by_content_diff,
     enlaza_por_titulo,
     escribe_estado,
     lee_cabecera,
+    resolve_links,
     slug_instrumento,
     title_candidates_por_fecha,
-    title_link_status,
     versiones_de_directorio,
 )
 
-COLECCIONES = ("leyes", "reglamentos", "tratados")
+#: The one collection left (issue #189), a literal path segment.
+COLECCION = "leyes"
 
 
 def _resolver_cache_dir(valor: str | None):
@@ -95,15 +108,14 @@ def _resolver_cache_dir(valor: str | None):
     return Path(valor)
 
 
-def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
+def _load_catalog(outdir: Path) -> list[dict]:
     """The `nombre`(+`abrev`) catalogue `extract_scjn_titles.py` already
-    wrote for `coleccion` -- Diputados' `historial` never reaches this
-    script (issue #123)."""
-    archivo = outdir / coleccion / "catalogo.json"
+    wrote for the `leyes` collection."""
+    archivo = outdir / COLECCION / "catalogo.json"
     if not archivo.is_file():
         raise SystemExit(
             f"{archivo} no existe -- corre primero "
-            f"./scripts/extract_scjn_titles.py --outdir {outdir} --coleccion {coleccion}"
+            f"./scripts/extract_scjn_titles.py --outdir {outdir}"
         )
     return json.loads(archivo.read_text(encoding="utf-8"))
 
@@ -111,8 +123,7 @@ def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
 def carga_porf(titulos) -> dict:
     """Every dofjson title record in the `titulos` iterable (issue #166: the
     stream `dofjson.legal_provisions_titles` yields, no longer a file), grouped
-    by `fecha` — the same shape `leyesmx.dof.notas_por_fecha` builds, reused
-    here as `title_candidates_por_fecha`'s own `porf` argument."""
+    by `fecha` — `title_candidates_por_fecha`'s own `porf` argument."""
     porf: dict[str, list] = {}
     for nota in titulos:
         porf.setdefault(nota["fecha"], []).append(nota)
@@ -192,24 +203,23 @@ def _confirmaciones_por_contenido(
 
 
 def enlaza_coleccion(
-    coleccion: str,
     outdir: Path,
     porf: dict,
     cache_notas: dict,
     instrumento: set[str] | None = None,
 ) -> None:
-    """Rebuild every instrument's `indice.json` for `coleccion`, or — when
-    `instrumento` names slugs (issue #148) — only those, so one refreshed law
-    can be re-linked without walking the other ~314."""
-    instrumentos = _load_catalog(outdir, coleccion)
+    """Rebuild every instrument's `indice.json`, or — when `instrumento` names
+    slugs (issue #148) — only those, so one refreshed law can be re-linked
+    without walking the other ~314."""
+    instrumentos = _load_catalog(outdir)
     if instrumento is not None:
         faltantes = instrumento - {slug_instrumento(e) for e in instrumentos}
         if faltantes:
-            raise SystemExit(f"{sorted(faltantes)} no esta(n) en el catalogo de {coleccion}")
+            raise SystemExit(f"{sorted(faltantes)} no esta(n) en el catalogo de {COLECCION}")
         instrumentos = [e for e in instrumentos if slug_instrumento(e) in instrumento]
-    print(f"{coleccion}: {len(instrumentos)} instrumento(s)", file=sys.stderr)
+    print(f"{COLECCION}: {len(instrumentos)} instrumento(s)", file=sys.stderr)
     for i, entrada in enumerate(instrumentos, 1):
-        destino = outdir / coleccion / slug_instrumento(entrada)
+        destino = outdir / COLECCION / slug_instrumento(entrada)
         if not destino.is_dir():
             continue
         versiones = versiones_de_directorio(destino)
@@ -223,17 +233,23 @@ def enlaza_coleccion(
             versiones, candidatos_por_fecha, destino / "notas", cache_notas
         )
 
+        # Issue #187: the link is the title match when there is one and the
+        # content-diff confirmation otherwise, rather than the title match
+        # alone with the confirmation left as an annotation nobody reads.
+        resueltos = resolve_links(enlazadas, confirmaciones, candidatos_por_fecha)
+
         indice = []
         for idx, v in enumerate(enlazadas):
             candidatos_dia = candidatos_por_fecha.get(v.fecha_publicacion, [])
+            cod, estado = resueltos[idx]
             indice.append(
                 {
                     "archivo": v.archivo.name,
                     "fecha_publicacion": v.fecha_publicacion,
-                    "codNota": v.codNota,
+                    "codNota": cod,
                     **_confianza(v.archivo),
                     "title_candidates": candidatos_dia,
-                    "title_link_status": title_link_status(v.codNota, candidatos_dia),
+                    "title_link_status": estado,
                     "content_diff_confirmed_codNota": confirmaciones[idx].confirmed_codNota,
                     "content_diff_score": confirmaciones[idx].score,
                 }
@@ -246,20 +262,22 @@ def enlaza_coleccion(
         # `rastreado`, and `escribe_estado` merges rather than overwrites so
         # neither erases the other's record.
         escribe_estado(destino, enlazado=date.today().isoformat())
-        enlazados = sum(1 for v in enlazadas if v.codNota is not None)
+        enlazados = sum(1 for cod, _ in resueltos if cod is not None)
+        por_diff = sum(1 for _, estado in resueltos if estado == ESTADO_ENLACE_CONTENT_DIFF)
         print(
-            f"[{coleccion} {i}/{len(instrumentos)}] {entrada['nombre']}: "
-            f"{enlazados}/{len(enlazadas)} enlazadas",
+            f"[{COLECCION} {i}/{len(instrumentos)}] {entrada['nombre']}: "
+            f"{enlazados}/{len(enlazadas)} enlazadas"
+            + (f" ({por_diff} por diff de contenido)" if por_diff else ""),
             file=sys.stderr,
         )
-        for v in enlazadas:
+        for v, (cod, _) in zip(enlazadas, resueltos):
             candidatos_dia = candidatos_por_fecha.get(v.fecha_publicacion, [])
-            if v.codNota is None and len(candidatos_dia) > 1:
+            if cod is None and len(candidatos_dia) > 1:
                 print(
                     f"  aviso: {entrada['nombre']!r} {v.fecha_publicacion}: "
                     f"varios codNota mencionan el nombre ese dia ({candidatos_dia}) — "
-                    "ninguno se enlaza por titulo solo, revisar a mano o esperar el "
-                    "diff de contenido (issue #115/#126/#127)",
+                    "ninguno se enlaza por titulo, y el diff de contenido tampoco "
+                    "confirmo uno: revisar a mano (issue #115/#126/#127/#187)",
                     file=sys.stderr,
                 )
 
@@ -270,17 +288,13 @@ def main(argv=None) -> int:
     )
     p.add_argument(
         "--outdir", type=Path, required=True,
-        help="donde fetch_scjn_legislacion.py ya escribio cada coleccion",
+        help="donde fetch_scjn_legislacion.py ya escribio la coleccion leyes",
     )
     p.add_argument(
         "--cache-dir", default=None, metavar="DIR",
         help="directorio con los assets .tgz de notas-archivo de donde se leen "
              "los titulos del DOF (poblalo con `nota2md download gazette-metadata`); "
              "sin valor: dofjson.titulos.CACHE_DIR; 'none': a memoria",
-    )
-    p.add_argument(
-        "--coleccion", choices=COLECCIONES, action="append",
-        help="repetible; por defecto las tres",
     )
     p.add_argument(
         "--instrumento", action="append", metavar="SLUG",
@@ -296,8 +310,7 @@ def main(argv=None) -> int:
     )
     cache_notas: dict = {}
     instrumento = set(args.instrumento) if args.instrumento else None
-    for coleccion in args.coleccion or COLECCIONES:
-        enlaza_coleccion(coleccion, args.outdir, porf, cache_notas, instrumento=instrumento)
+    enlaza_coleccion(args.outdir, porf, cache_notas, instrumento=instrumento)
     return 0
 
 

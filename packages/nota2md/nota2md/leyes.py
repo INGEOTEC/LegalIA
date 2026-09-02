@@ -2,10 +2,11 @@
 themselves: starts from the law's original publication (parsed into one
 entry per article) and replays each reform decree's own "se reforma /
 adiciona / deroga el artículo N ... para quedar como sigue" instruction on
-top of it, article by article. It never reads Diputados' own consolidated
-text (see nota2md.texto_vigente, kept separate because it exists only to
-check this module against, not to feed it) — the two are meant to be
-compared, not share a source.
+top of it, article by article. It never reads anyone else's consolidated
+text of the law: not the SCJN's, which `tests/test_leyes_44.py` checks this
+against, and not the Cámara de Diputados' PDF, which used to play that part
+and is gone with its source (issues #184/#188). Ground truth and
+reconstruction are meant to be compared, not to share a source.
 
 A decree often does more than one law in one go — "Artículo Primero.- Se
 expide la Ley X... Artículo Segundo.- Se reforman los artículos ... de la Ley
@@ -15,9 +16,10 @@ that names the law being built. Left unscoped, article numbers from an
 unrelated law in the same decree would silently overwrite this one's.
 
 Both stop at the point a reform decree's own transitory articles would start:
-Diputados' PDF collects every decree's transitorios into a trailing appendix
-("ARTÍCULOS TRANSITORIOS DE DECRETOS DE REFORMA") that is no longer part of
-the law's substantive text, and a reform decree's own "Transitorios" section
+a consolidated text collects every decree's transitorios into a trailing
+appendix ("ARTÍCULOS TRANSITORIOS DE DECRETOS DE REFORMA") that is no longer
+part of the law's substantive text, and a reform decree's own "Transitorios"
+section
 (governing how *that* decree enters into force) is likewise not folded back
 into the law. The original publication's own Transitorios section is kept —
 it is still in force until a decree explicitly replaces it, which none of the
@@ -524,15 +526,17 @@ def reconstruct_legal_provisions(
     same shape as legal_provisions(), since a law's reconstruction is, in
     the end, one more piece of Markdown built from notes and written to disk.
 
-    `cod_notas` is a law's reform history as `nota2md.utils` returns it:
-    oldest first, index 0 the original publication and the rest its reform
-    decrees in order. Each decree is replayed on top of the previous state —
+    `cod_notas` is a law's reform history, oldest first: index 0 the
+    original publication and the rest its reform decrees in order — the
+    order each law's own `indice.json` in the `scjn-leyes` release has
+    (`download_scjn_leyes_corpus`), which since issue #187 is where that
+    history lives. Each decree is replayed on top of the previous state —
     a restated "Artículo N" merges into that article (see
     `_fusiona_articulo`) or inserts it if it is new, a "se deroga el artículo
     N" with no restated text marks it repealed — never touching the
     preamble or the original Transitorios section.
 
-    `nombre_ley` (as `nota2md.utils` names it, e.g. "LEY de Amnistía")
+    `nombre_ley` (the catalogue's own `nombre`, e.g. "LEY de Amnistía")
     scopes every note to the one instrument among the several a single decree
     may touch — pass it whenever a note is shared with another law's history.
     Left as None, a note is assumed to concern only this law, which holds for

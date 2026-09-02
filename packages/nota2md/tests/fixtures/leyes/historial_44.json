@@ -1,324 +1,317 @@
 {
- "lamn": {
-  "nombre": "LEY de Amnistía",
-  "historial": [
-   5592105,
-   5730586
-  ]
- },
- "lbogm": {
-  "nombre": "LEY de Bioseguridad de Organismos Genéticamente Modificados",
-  "historial": [
-   790545,
-   5604411,
-   5651685
-  ]
- },
- "lcec": {
-  "nombre": "LEY de Cámaras Empresariales y sus Confederaciones",
-  "historial": [
-   756461,
-   5093794,
-   5557721
-  ]
- },
- "lcid": {
-  "nombre": "LEY de Cooperación Internacional para el Desarrollo",
-  "historial": [
-   5184958,
-   5420363,
-   5604411
-  ]
- },
- "ldsca": {
-  "nombre": "LEY de Desarrollo Sustentable de la Caña de Azúcar",
-  "historial": [
-   2089830,
-   5773097
-  ]
- },
- "ldfefm": {
-  "nombre": "LEY de Disciplina Financiera de las Entidades Federativas y los Municipios",
-  "historial": [
-   5434883,
-   5511684,
-   5651468
-  ]
- },
- "len": {
-  "nombre": "LEY de Educación Naval",
-  "historial": [
-   5552546,
-   5683759
-  ]
- },
- "lec": {
-  "nombre": "LEY de Energía para el Campo",
-  "historial": [
-   717009,
-   5283733
-  ]
- },
- "lfea": {
-  "nombre": "LEY de Firma Electrónica Avanzada",
-  "historial": [
-   5228864,
-   5618885,
-   5773097
-  ]
- },
- "lfaar": {
-  "nombre": "LEY de Fondos de Aseguramiento Agropecuario y Rural",
-  "historial": [
-   2036603,
-   5773097
-  ]
- },
- "lansi": {
-  "nombre": "LEY de la Agencia Nacional de Seguridad Industrial y de Protección al Medio Ambiente del Sector Hidrocarburos",
-  "historial": [
-   5355987,
-   5618885,
-   5651685
-  ]
- },
- "lfgr": {
-  "nombre": "LEY de la Fiscalía General de la República",
-  "historial": [
-   5618885,
-   5721949,
-   5773097
-  ]
- },
- "lhheum": {
-  "nombre": "LEY de los Husos Horarios en los Estados Unidos Mexicanos",
-  "historial": [
-   5670045,
-   5672650
-  ]
- },
- "log": {
-  "nombre": "LEY de Organizaciones Ganaderas",
-  "historial": [
-   4943093,
-   5242430
-  ]
- },
- "lsp": {
-  "nombre": "LEY de Sistemas de Pagos",
-  "historial": [
-   715643,
-   5773097
-  ]
- },
- "lvzmm": {
-  "nombre": "LEY de Vertimientos en las Zonas Marinas Mexicanas",
-  "historial": [
-   5329923,
-   5591527,
-   5773097
-  ]
- },
- "lifnct": {
-  "nombre": "LEY del Instituto del Fondo Nacional para el Consumo de los Trabajadores",
-  "historial": [
-   2154416,
-   5329410,
-   5713557
-  ]
- },
- "lspcapf": {
-  "nombre": "LEY del Servicio Profesional de Carrera en la Administración Pública Federal",
-  "historial": [
-   697014,
-   2091464,
-   2105978
-  ]
- },
- "lfar": {
-  "nombre": "LEY Federal de Austeridad Republicana",
-  "historial": [
-   5579141,
-   5755217
-  ]
- },
- "lfcpo": {
-  "nombre": "LEY Federal de Consulta Popular",
-  "historial": [
-   5337123,
-   5618794
-  ]
- },
- "lfdeapd": {
-  "nombre": "LEY Federal de Declaración Especial de Ausencia para Personas Desaparecidas",
-  "historial": [
-   5528936,
-   5618885,
-   5721949
-  ]
- },
- "lfpccs": {
-  "nombre": "LEY Federal de Producción, Certificación y Comercio de Semillas",
-  "historial": [
-   4990746,
-   5522373
-  ]
- },
- "lfpdppp": {
-  "nombre": "LEY Federal de Protección de Datos Personales en Posesión de los Particulares",
-  "historial": [
-   5752569,
-   5773097
-  ]
- },
- "lfppcpcia": {
-  "nombre": "Ley Federal de Protección del Patrimonio Cultural de los Pueblos y Comunidades Indígenas y Afromexicanas",
-  "historial": [
-   5640770,
-   5709864,
-   5773097
-  ]
- },
- "lfra": {
-  "nombre": "LEY Federal de Responsabilidad Ambiental",
-  "historial": [
-   5301688,
-   5618885,
-   5773097
-  ]
- },
- "lfzee": {
-  "nombre": "LEY Federal de Zonas Económicas Especiales",
-  "historial": [
-   5439557,
-   5721949
-  ]
- },
- "lgb": {
-  "nombre": "LEY General de Bibliotecas",
-  "historial": [
-   5619932,
-   5709868
-  ]
- },
- "lgmsv": {
-  "nombre": "LEY General de Movilidad y Seguridad Vial",
-  "historial": [
-   5652187,
-   5688054,
-   5713236
-  ]
- },
- "lgpdppso": {
-  "nombre": "LEY General de Protección de Datos Personales en Posesión de Sujetos Obligados",
-  "historial": [
-   5752569,
-   5773097
-  ]
- },
- "lgsna": {
-  "nombre": "LEY General del Sistema Nacional Anticorrupción",
-  "historial": [
-   5445048,
-   5618885
-  ]
- },
- "lgpsvd": {
-  "nombre": "LEY General para la Prevención Social de la Violencia y la Delincuencia",
-  "historial": [
-   5230810,
-   5617450
-  ]
- },
- "lgpist": {
-  "nombre": "LEY General para Prevenir, Investigar y Sancionar la Tortura y Otros Tratos o Penas Crueles, Inhumanos o Degradantes",
-  "historial": [
-   5488016,
-   5618885,
-   5650425
-  ]
- },
- "lnep": {
-  "nombre": "LEY Nacional de Ejecución Penal",
-  "historial": [
-   5441664,
-   5721949
-  ]
- },
- "lnmascmp": {
-  "nombre": "LEY Nacional de Mecanismos Alternativos de Solución de Controversias en Materia Penal",
-  "historial": [
-   5377563,
-   5618885,
-   5721949
-  ]
- },
- "lnsijpa": {
-  "nombre": "LEY Nacional del Sistema Integral de Justicia Penal para Adolescentes",
-  "historial": [
-   5441663,
-   5606324,
-   5674965
-  ]
- },
- "lnuf": {
-  "nombre": "LEY Nacional sobre el Uso de la Fuerza",
-  "historial": [
-   5561287,
-   5715029
-  ]
- },
- "lopdc": {
-  "nombre": "LEY Orgánica de la Procuraduría de la Defensa del Contribuyente",
-  "historial": [
-   4930008,
-   5108362,
-   5651685
-  ]
- },
- "lopjf": {
-  "nombre": "LEY Orgánica del Poder Judicial de la Federación",
-  "historial": [
-   5745906,
-   5774377
-  ]
- },
- "lotfja": {
-  "nombre": "LEY Orgánica del Tribunal Federal de Justicia Administrativa",
-  "historial": [
-   5445048,
-   5715307,
-   5770217
-  ]
- },
- "liispcen": {
-  "nombre": "LEY para Impulsar el Incremento Sostenido de la Productividad y la Competitividad de la Economía Nacional",
-  "historial": [
-   5391303,
-   5483222,
-   5723620
-  ]
- },
- "lcacsam": {
-  "nombre": "LEY para la Comprobación, Ajuste y Cómputo de Servicios de la Armada de México",
-  "historial": [
-   668922,
-   5094354
-  ]
- },
- "lcacsefam": {
-  "nombre": "LEY para la Comprobación, Ajuste y Cómputo de Servicios en el Ejército y Fuerza Aérea Mexicanos",
-  "historial": [
-   4923625,
-   5094354,
-   5725454
-  ]
- },
- "lrart76_fracvi": {
-  "nombre": "LEY Reglamentaria de la fracción VI del artículo 76 de la Constitución Política de los Estados Unidos Mexicanos",
-  "historial": [
-   4999478,
-   5773097
-  ]
- }
+  "lamn": {
+    "nombre": "LEY de Amnistía",
+    "historial": [
+      5592105,
+      5730586
+    ]
+  },
+  "lansi": {
+    "nombre": "LEY de la Agencia Nacional de Seguridad Industrial y de Protección al Medio Ambiente del Sector Hidrocarburos",
+    "historial": [
+      5355987,
+      5618885,
+      5651685
+    ]
+  },
+  "lbogm": {
+    "nombre": "LEY de Bioseguridad de Organismos Genéticamente Modificados",
+    "historial": [
+      790545,
+      5604411,
+      5651685
+    ]
+  },
+  "lcacsam": {
+    "nombre": "LEY para la Comprobación, Ajuste y Cómputo de Servicios de la Armada de México",
+    "historial": [
+      668922,
+      5094354
+    ]
+  },
+  "lcacsefam": {
+    "nombre": "LEY para la Comprobación, Ajuste y Cómputo de Servicios en el Ejército y Fuerza Aérea Mexicanos",
+    "historial": [
+      4923625,
+      5094354,
+      5725454
+    ]
+  },
+  "lcec": {
+    "nombre": "LEY de Cámaras Empresariales y sus Confederaciones",
+    "historial": [
+      756461,
+      5093794,
+      5557721
+    ]
+  },
+  "lcid": {
+    "nombre": "LEY de Cooperación Internacional para el Desarrollo",
+    "historial": [
+      5184958,
+      5420363,
+      5604411
+    ]
+  },
+  "ldfefm": {
+    "nombre": "LEY de Disciplina Financiera de las Entidades Federativas y los Municipios",
+    "historial": [
+      5434883,
+      5511684,
+      5651468
+    ]
+  },
+  "ldsca": {
+    "nombre": "LEY de Desarrollo Sustentable de la Caña de Azúcar",
+    "historial": [
+      2089830,
+      5773097
+    ]
+  },
+  "lec": {
+    "nombre": "LEY de Energía para el Campo",
+    "historial": [
+      717009,
+      5283733
+    ]
+  },
+  "len": {
+    "nombre": "LEY de Educación Naval",
+    "historial": [
+      5552546,
+      5683759
+    ]
+  },
+  "lfaar": {
+    "nombre": "LEY de Fondos de Aseguramiento Agropecuario y Rural",
+    "historial": [
+      2036603,
+      5773097
+    ]
+  },
+  "lfar": {
+    "nombre": "LEY Federal de Austeridad Republicana",
+    "historial": [
+      5579141,
+      5755217
+    ]
+  },
+  "lfcpo": {
+    "nombre": "LEY Federal de Consulta Popular",
+    "historial": [
+      5337123,
+      5618794
+    ]
+  },
+  "lfdeapd": {
+    "nombre": "LEY Federal de Declaración Especial de Ausencia para Personas Desaparecidas",
+    "historial": [
+      5528936,
+      5618885,
+      5721949
+    ]
+  },
+  "lfea": {
+    "nombre": "LEY de Firma Electrónica Avanzada",
+    "historial": [
+      5228864,
+      5618885,
+      5773097
+    ]
+  },
+  "lfpccs": {
+    "nombre": "LEY Federal de Producción, Certificación y Comercio de Semillas",
+    "historial": [
+      4990746,
+      5522373
+    ]
+  },
+  "lfpdppp": {
+    "nombre": "LEY Federal de Protección de Datos Personales en Posesión de los Particulares",
+    "historial": [
+      5752569,
+      5773097
+    ]
+  },
+  "lfppcpcia": {
+    "nombre": "Ley Federal de Protección del Patrimonio Cultural de los Pueblos y Comunidades Indígenas y Afromexicanas",
+    "historial": [
+      5640770,
+      5709864,
+      5773097
+    ]
+  },
+  "lfra": {
+    "nombre": "LEY Federal de Responsabilidad Ambiental",
+    "historial": [
+      5301688,
+      5618885,
+      5773097
+    ]
+  },
+  "lfzee": {
+    "nombre": "LEY Federal de Zonas Económicas Especiales",
+    "historial": [
+      5439557,
+      5721949
+    ]
+  },
+  "lgb": {
+    "nombre": "LEY General de Bibliotecas",
+    "historial": [
+      5619932,
+      5709868
+    ]
+  },
+  "lgmsv": {
+    "nombre": "LEY General de Movilidad y Seguridad Vial",
+    "historial": [
+      5652187,
+      5688054,
+      5713236
+    ]
+  },
+  "lgpdppso": {
+    "nombre": "LEY General de Protección de Datos Personales en Posesión de Sujetos Obligados",
+    "historial": [
+      5752569,
+      5773097
+    ]
+  },
+  "lgpist": {
+    "nombre": "LEY General para Prevenir, Investigar y Sancionar la Tortura y Otros Tratos o Penas Crueles, Inhumanos o Degradantes",
+    "historial": [
+      5488016,
+      5618885,
+      5650425
+    ]
+  },
+  "lgpsvd": {
+    "nombre": "LEY General para la Prevención Social de la Violencia y la Delincuencia",
+    "historial": [
+      5230810,
+      5617450
+    ]
+  },
+  "lgsna": {
+    "nombre": "LEY General del Sistema Nacional Anticorrupción",
+    "historial": [
+      5445048,
+      5618885
+    ]
+  },
+  "lhheum": {
+    "nombre": "LEY de los Husos Horarios en los Estados Unidos Mexicanos",
+    "historial": [
+      5670045,
+      5670336,
+      5672650
+    ]
+  },
+  "lifnct": {
+    "nombre": "LEY del Instituto del Fondo Nacional para el Consumo de los Trabajadores",
+    "historial": [
+      2154416,
+      5329408,
+      5713557
+    ]
+  },
+  "liispcen": {
+    "nombre": "LEY para Impulsar el Incremento Sostenido de la Productividad y la Competitividad de la Economía Nacional",
+    "historial": [
+      5391303,
+      5483222,
+      5723620
+    ]
+  },
+  "lnep": {
+    "nombre": "LEY Nacional de Ejecución Penal",
+    "historial": [
+      5441664,
+      5721949
+    ]
+  },
+  "lnmascmp": {
+    "nombre": "LEY Nacional de Mecanismos Alternativos de Solución de Controversias en Materia Penal",
+    "historial": [
+      5377563,
+      5618885,
+      5721949
+    ]
+  },
+  "lnsijpa": {
+    "nombre": "LEY Nacional del Sistema Integral de Justicia Penal para Adolescentes",
+    "historial": [
+      5441663,
+      5606324,
+      5674965
+    ]
+  },
+  "lnuf": {
+    "nombre": "LEY Nacional sobre el Uso de la Fuerza",
+    "historial": [
+      5561287,
+      5715029
+    ]
+  },
+  "log": {
+    "nombre": "LEY de Organizaciones Ganaderas",
+    "historial": [
+      4943093,
+      5242430
+    ]
+  },
+  "lopdc": {
+    "nombre": "LEY Orgánica de la Procuraduría de la Defensa del Contribuyente",
+    "historial": [
+      4930008,
+      5108362,
+      5651685
+    ]
+  },
+  "lopjf": {
+    "nombre": "LEY Orgánica del Poder Judicial de la Federación",
+    "historial": [
+      5745906,
+      5774377
+    ]
+  },
+  "lotfja": {
+    "nombre": "LEY Orgánica del Tribunal Federal de Justicia Administrativa",
+    "historial": [
+      5445048,
+      5715307,
+      5770217
+    ]
+  },
+  "lrart76_fracvi": {
+    "nombre": "LEY Reglamentaria de la fracción VI del artículo 76 de la Constitución Política de los Estados Unidos Mexicanos",
+    "historial": [
+      4999478,
+      5773097
+    ]
+  },
+  "lsp": {
+    "nombre": "LEY de Sistemas de Pagos",
+    "historial": [
+      715643,
+      5773097
+    ]
+  },
+  "lspcapf": {
+    "nombre": "LEY del Servicio Profesional de Carrera en la Administración Pública Federal",
+    "historial": [
+      697014,
+      2091464,
+      2105978
+    ]
+  },
+  "lvzmm": {
+    "nombre": "LEY de Vertimientos en las Zonas Marinas Mexicanas",
+    "historial": [
+      5329923,
+      5591527,
+      5773097
+    ]
+  }
 }

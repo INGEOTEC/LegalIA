@@ -6,42 +6,97 @@ a clone without an editable install first, needing only `requests`. (The
 "scjn" extra the SCJN scripts used to need went away with the `.docx` crawl
 path in issue #179.)
 
-## `empaqueta_historial.py`
+## A law's reform history lives in the `scjn-leyes` release
 
-Packs a data directory built by `leyesmx --ley todas|reglamentos|normas|tratados`
-into the four tarballs published as assets of the
+There used to be an `empaqueta_historial.py` here, packing four tarballs of
+Cámara de Diputados-derived data into the
 [`historial-legislativo`](https://github.com/INGEOTEC/LegalIA/releases/tag/historial-legislativo)
-release — `leyes.tgz`, `reglamentos.tgz`, `normas.tgz`, `tratados.tgz` — plus a
-`SHA256SUMS.txt`. That release is the data's only home; it is never committed
-to git, so `--datos` always names a scratch directory built just for the run
-(see `nota2md.utils.download_legal_provisions_provenance_ids` to read the release back).
+release. Issue #187 deleted it along with `download_legal_provisions_provenance_ids`,
+the reader that went with it: the project rests on the SCJN and the DOF alone
+now (#184), and **no new dataset replaces it**. A law's reform history *is*
+the `scjn-leyes` release — each law's own `indice.json`, one entry per reform
+with the `codNota` that published it, plus `indice-global.json.gz` inverting
+that by `codNota`. `empaqueta_scjn_leyes.py` below is what builds it.
+
+`historial-legislativo`'s `reglamentos.tgz`, `normas.tgz` and `tratados.tgz`
+stay downloadable as a frozen record, labelled as such by name and last build
+date in the release notes (`.github/historial-legislativo.md`, which *is* the
+release body). Nothing in this repo can regenerate them, no workflow
+republishes them, and `leyes.tgz` was **deleted from the release** in issue
+#190 with `SHA256SUMS.txt` regenerated over the three that remain, so the
+`sha256sum -c` the notes tell a reader to run still passes.
+
+The monthly workflow that used to rebuild all four
+(`.github/workflows/reformas.yml`) is deleted too, and **nothing replaces
+it**: the surviving collection is SCJN-sourced, and SCJN-sourced data is
+never published by a workflow (issue #115, Hallazgo C — the Court's own
+search can return a completely wrong document, so a human decides what is
+safe to publish). The two things that workflow carried which are still worth
+having are documented below, as commands rather than automation: the
+**seeding step** and the **byte-reproducibility** of the tarballs.
+
+### "Reform N" is redefined
+
+The old dataset's key invariant was *index N is reform N*, with Diputados
+doing the numbering. That numbering is gone with its source, and is
+**replaced, not reproduced**: a reform's number is now its position in the
+law's own `indice.json`, which is the chronological order of the SCJN's own
+reform table.
+
+The two are not interchangeable and the difference is not a rounding error.
+Diputados' reform column also filed errata (`_fe`), peso restatements
+(`_cant`), Court rulings (`_sent`, `_voto`) and entry-into-force
+declarations; the SCJN's table has its own notion of what counts as a reform.
+Where the counts differ, every number after the difference shifts. Anything
+that recorded "reform 139 of the Constitution" against the old dataset has to
+be re-resolved against the new one by *date*, not by number. No measurement
+against the old numbering exists or will: the source that produced it is no
+longer consulted.
+
+## `regenera_fixtures_leyes.py`
+
+Rebuilds `reconstruct_legal_provisions()`'s ground-truth fixtures —
+`packages/nota2md/tests/fixtures/leyes/<abrev>.md` and `historial_44.json`,
+what `tests/test_leyes_44.py` reads — from the `scjn-leyes` release. Nothing
+is crawled: it reads the published corpus back.
 
 ```bash
-./scripts/empaqueta_historial.py --datos packages/leyesmx/data --outdir historial
-./scripts/empaqueta_historial.py --datos packages/leyesmx/data --verificar historial   # which assets changed
+./scripts/regenera_fixtures_leyes.py             # report what it would write
+./scripts/regenera_fixtures_leyes.py --escribe
 ```
 
-The tarballs are **byte-reproducible**: gzip is stamped with mtime 0, members
-are added sorted, and their timestamps and ownership are fixed. Identical data
-therefore produces an identical file, which is what lets the monthly workflow
-tell an unchanged collection from a changed one by comparing bytes rather than
-guessing — and what makes `--verificar` meaningful. It exits non-zero when
-anything differs.
+Until issue #188 those fixtures were the Cámara de Diputados' consolidated
+"texto vigente" PDF, cleaned up by `nota2md.texto_vigente`, deleted with them.
+The replacement is the SCJN's own consolidated text at each law's most recent
+reform, plus that law's `indice.json` as the reform history to replay — the
+two written together, so the history replayed ends at exactly the reform the
+fixture is the text of.
+
+**These ~3 MB of fixtures are the one exception to "data is never committed to
+git"** (`CLAUDE.md`): they are test fixtures, and freezing them is the point —
+a regression test of a replay algorithm should not change its answer because a
+law was reformed. This script is what keeps that freeze reproducible.
+
+A law whose history the corpus cannot fully resolve is excluded and reported
+(`lfgr` today: three `ambiguous` snapshots, none content-diff confirmed).
+Replaying a history with a hole measures the hole, not the algorithm. See the
+test module's own docstring for what the check does and does not establish —
+in particular that the ground truth is no longer independent of the SCJN.
 
 ## SCJN pipeline: `extract_scjn_titles.py` → `fetch_scjn_legislacion.py` → `enlaza_scjn_legislacion.py` → `empaqueta_scjn_leyes.py`
 
 Recovers, from the SCJN's own SCOW JSON API
 ([legislacion.scjn.gob.mx/consulta/buscador](https://legislacion.scjn.gob.mx/consulta/buscador),
-issue #172), the reform-dated Markdown snapshots of a law/reglamento/tratado that
+issue #172), the reform-dated Markdown snapshots of a federal law that
 `nota2md.legal_provisions` would otherwise have to OCR, and links each one to
 the DOF `codNota` that published it — see
 `packages/nota2md/nota2md/scjn.py` for why this is a legitimate source (each
 snapshot is a consolidated-text-as-of-that-reform, not just a summary) and
 why it is never mistaken for an official DOF/SIDOF Markdown (`fuente: scjn`
-header on every file). For `leyes`, the SCJN is the primary reform source —
-Diputados' own reform history (`historial`) is never consulted, only used to
-know which instruments exist and their `nombre` (issue #123's correction to
-the original #105 design).
+header on every file). The SCJN is the primary reform source, and since issue #186 nothing in this
+pipeline touches the Cámara de Diputados at all: which laws exist and their
+`nombre` are read back off the `scjn-leyes` release, and `actualizado` comes
+from the SCJN's own reform table and the DOF's titles (issue #184).
 
 ```bash
 ./scripts/extract_scjn_titles.py --outdir scjn-legislacion                         # step 0: seed titles
@@ -55,13 +110,14 @@ nota2md download gazette-metadata                                               
 ```
 
 **Keeping it up to date afterwards is two commands, not four** (issue #148).
-The first says what changed and touches the SCJN for nothing; the second runs
+The first says what changed and, since #186, costs one reform-table request
+per law to refresh `actualizado` (`--sin-refrescar-catalogo` skips that); the second runs
 the whole chain above for exactly those laws, and exits without effects when
 nothing is pending — the expected case most of the time:
 
 ```bash
-python scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --plan
-python scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --coleccion leyes --actualiza
+python scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --plan
+python scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --actualiza
 ```
 
 Then read `MANIFEST.md` — an incremental run lists the laws it actually
@@ -80,45 +136,71 @@ makes the published one stale.
 
 ### `extract_scjn_titles.py`
 
-Every other script below reads `<outdir>/<coleccion>/catalogo.json` instead
-of calling `download_legal_provisions_provenance_ids` itself — this is the
-only script that does. It writes that file: each instrument's own `nombre`,
-(when the collection has one) `abrev`, and `actualizado` — Diputados'
-`historial` itself never reaches downstream scripts, and the
-`historial-legislativo` release is downloaded once per collection instead of
-once per script. Re-run it to refresh the catalogue (e.g. after Diputados
-adds a new instrument); every downstream script fails fast, naming the exact
-command to run, if it hasn't been run yet.
+Writes `<outdir>/leyes/catalogo.json` — each law's `nombre`, `abrev` and
+`actualizado` — and every other script below reads that file instead of
+going to a source of its own. Re-run it to refresh the catalogue; every
+downstream script fails fast, naming the exact command, if it has not been
+run yet.
 
-Two fields exist to close coverage gaps a crawl alone cannot (issue #124's
-follow-up, "Dos casos disparadores" — a catalogue entry the SCJN's search
-returns nothing at all for):
+Since issue #186 it makes no request to `diputados.gob.mx` and has no
+`--coleccion` flag: `leyes` is the only collection left (#184), so `abrev`
+is always present.
 
-- **`actualizado`** — the ISO date of the instrument's own most recent
-  reform (Diputados' `historial`'s own last `codNota`, resolved via
-  `dofjson`; one extra request per instrument, so a run of this script is
-  noticeably slower/more network-bound than before). `fetch_scjn_legislacion.py`
-  uses it to skip re-searching the SCJN, on a refresh, for an instrument
-  nothing has changed on since the collection's own last full crawl — see
-  that script's own section below.
-- **`nombre_scjn`** — an optional manual override: the exact string to
-  search the SCJN with instead of `nombre`, for the rare instrument the
-  SCJN's own full-text search never finds under Diputados' exact wording.
-  Nothing in this script ever sets it — it is added by hand to
-  `catalogo.json` — but a re-run now reads back whatever `catalogo.json`
-  already exists and carries every entry's own `nombre_scjn` forward
-  instead of overwriting the file from scratch, so a manual override
-  survives a refresh. Applied so far to `lisipl` (`abrev`), whose `nombre`
-  carries a 250+ character trailing parenthetical alternate name the SCJN's
-  search never matches.
+```bash
+./scripts/extract_scjn_titles.py --outdir scripts/scjn
+./scripts/extract_scjn_titles.py --outdir scripts/scjn --dof-only   # offline
+./scripts/extract_scjn_titles.py --outdir scripts/scjn --discover   # report only
+```
+
+- **`nombre` and `abrev`** come from the `scjn-leyes` release itself
+  (`download_scjn_leyes_catalog` over `indice-global.json.gz`) — the seed
+  Diputados used to give has been published all along as a by-product of the
+  corpus, so it is read, not rebuilt. The file is written **sorted by
+  `slug_instrumento`**, the same order the release's index has; Diputados'
+  own index order is gone with its source. An existing `abrev` is carried
+  over **verbatim**, which is why the previous catalogue is matched by slug
+  and not by `abrev`: `lif_2026` in the catalogue is `lif-2026` in the
+  release, for 14 laws. The previous `catalogo.json` is the **floor** — a law
+  missing from the index is kept and reported, never dropped.
+- **`actualizado`** — the ISO date of the law's own most recent reform, and
+  the whole input to `fetch_scjn_legislacion.py`'s planner. It is the
+  **newest** of two independent answers, because each misses what the other
+  sees: the SCJN's own reform table (`reformas_of_ordenamiento`, addressed by
+  the `id_ordenamiento` the law's `estado.json` already records) and the
+  newest DOF provision whose title both names the law and opens with
+  DECRETO/LEY. Measured over the 316-law catalogue: the DOF alone under-dates
+  **91** laws, because an omnibus decree reforms dozens of laws without
+  naming any of them; the SCJN alone silently freezes a law it has not
+  indexed yet, which is the `lfca` case. A law neither can date keeps
+  `actualizado` **absent** — never a placeholder, since absent is what the
+  planner reads as "always re-check". `--dof-only` skips the SCJN half and
+  makes the run offline, at the cost of those 91.
+- **`nombre_scjn`** — an optional manual override: the exact string to search
+  the SCJN with instead of `nombre`, for the rare law the SCJN's own
+  full-text search never finds under its catalogue wording. Nothing here ever
+  sets it — it is added by hand — and a re-run reads back the existing
+  `catalogo.json` and carries every entry's own `nombre_scjn` forward, so the
+  override survives. Applied so far only to `lisipl`, whose `nombre` carries
+  a 250+ character trailing parenthetical alternate name.
+
+`--discover` reports federal laws the SCJN lists and the catalogue does not,
+then stops without writing anything: a new federal law is a handful a year,
+and an `abrev` is a release asset name, so adding one is a human's decision.
+Each candidate must be confirmed by a DOF title that names it and opens with
+DECRETO/LEY — without that the SCJN's own `CODIGO` category alone contributes
+~180 "CÓDIGO DE CONDUCTA DE ..." administrative documents. A suggested
+`abrev` is printed with each candidate (`nota2md.scjn.mint_abrev`: initials
+of the name's meaningful words, `-2`/`-3` on collision); it is written down
+once and never recomputed, since re-minting one renames that law's release
+asset and orphans it.
 
 ### `fetch_scjn_legislacion.py`
 
-Fase 1: covers `leyes`, `reglamentos` and `tratados` only — the SCJN does not
-catalogue NOM technical standards as ordenamientos of their own (issue
-#105's Fase 0). Resumable at two levels — a file already on disk is left
-alone, and, per collection, the index of the last instrumento fully
-attempted is checkpointed to `<outdir>/<coleccion>/.progreso.json` and
+Fase 1: covers `leyes`, the only collection left (issue #189) — which is
+why `leyes` is a literal path segment in these scripts and no longer
+something to pass on the command line. Resumable at two levels — a file
+already on disk is left alone, and the index of the last instrumento fully
+attempted is checkpointed to `<outdir>/leyes/.progreso.json` and
 cleared once that collection finishes, so a run killed partway (crash,
 network drop, Ctrl-C) picks back up right after that index instead of
 re-walking every already-done instrumento's reform table from the top
@@ -138,7 +220,7 @@ line:
   searched instead of `nombre`.
 - **Incremental refresh** — once a collection has been crawled
   start-to-finish, that date is recorded to
-  `<outdir>/<coleccion>/.rastreo_completo.json`. A later refresh skips an
+  `<outdir>/leyes/.rastreo_completo.json`. A later refresh skips an
   instrumento without touching the SCJN only when it already has a snapshot
   on disk *and* its own `actualizado` is no later than that checkpoint — an
   instrumento with no snapshot yet is always retried, so a law the SCJN has
@@ -173,7 +255,7 @@ since a weaker link is never what you actually want:
    changed between this SCJN snapshot and the previous one — resolving the
    `ambiguous` case title mention alone cannot. Needs each candidate's own
    DOF Markdown, fetched via `dofjson` and saved under each instrument's own
-   `notas` subdirectory (`<outdir>/<coleccion>/<slug>/notas`, created
+   `notas` subdirectory (`<outdir>/leyes/<slug>/notas`, created
    automatically) — next to that instrument's own `indice.json`, not in a
    directory shared across instruments. Kept, not scratch: issue #128 ships
    them inside each instrument's own tarball.
@@ -244,7 +326,7 @@ Also writes a `MANIFEST.md` listing every instrument by name
 count, plus each instrument's asset name, compressed size and DOF-note
 count; issue #115's ratio/classification is gone from it — the titles were
 reviewed and fixed by hand) and a `SHA256SUMS.txt` with
-one line per asset — same pattern as `empaqueta_historial.py`.
+one line per asset.
 
 Alongside the tarballs it writes **`indice-global.json.gz`** (issue #117):
 the union of every `indice.json`, inverted by `codNota` and stripped of all
@@ -252,10 +334,53 @@ text, so `nota2md` can answer "which law does this decree reform, and which
 snapshot is it" for a few hundred KB instead of the corpus' 380 MB. Only
 snapshots with a `codNota` we are certain of go in; the manifest reports how
 many entered and how many stayed out by motive (`ambiguous`, `unlinked`,
-`sin_indice`). `--sin-indice-global` skips writing it. **This asset has to be
+`sin_indice`). `--sin-indice-global` skips writing it. Since issue #187 an entry linked by content diff rather than by title carries `title_link_status: "content_diff"` and goes into the index like any other link — that is 834 more snapshots across 188 laws, taking the collection from 2,457 linked to 3,291 of 3,707. **This asset has to be
 re-uploaded every time any law changes** — it is the union of all of them, so
 one updated law makes the published index stale, and a stale index resolves a
 `codNota` to a snapshot file that is no longer in the tarball.
+
+#### Seeding, and why an incremental run needs it
+
+`--instrumento` rewrites only the named law's tarball; every other law is
+measured from the `.tgz` already sitting in `--destino`, and repackaged from
+`--outdir` when there is none there. So two things have to be whole before an
+incremental publish, and both are the seeding step the retired workflow used
+to perform on a fresh runner:
+
+```bash
+# 1. --destino seeded with what the release already serves, so the assets this
+#    run does not touch stay exactly as published and still get measured
+gh release download scjn-leyes --repo INGEOTEC/LegalIA \
+    --dir scripts/scjn/leyes-release --clobber
+
+# 2. --outdir holding the whole corpus, not one law: SHA256SUMS.txt and
+#    indice-global.json.gz are recomputed over everything on disk, so packing
+#    a partial corpus publishes a partial index
+./scripts/empaqueta_scjn_leyes.py --instrumento lft
+```
+
+Skipping step 1 is not silent — the run reports every law it rewrote, and a
+run that rewrote all 315 when one law changed is the symptom.
+
+#### Byte-reproducibility, and how to check it
+
+The tarballs are byte-reproducible on purpose (gzip stamped with mtime 0,
+members added in sorted order, mode/ownership/times fixed), which is what
+makes "re-upload only what changed" a byte comparison instead of a guess.
+Verified in issue #190 by packaging the same two laws twice into different
+destinations: `lft.tgz` (10.2 MB, 55 snapshots) and `cnpcf.tgz` came out
+byte-identical.
+
+```bash
+./scripts/empaqueta_scjn_leyes.py --destino /tmp/verifica-reproducibilidad
+cmp /tmp/verifica-reproducibilidad/lft.tgz scripts/scjn/leyes-release/lft.tgz
+```
+
+`MANIFEST.md`, `SHA256SUMS.txt` and `indice-global.json.gz` are **not** in
+that guarantee: the index carries its own `generado` timestamp and the
+checksum file covers it, so both differ between two runs over identical data.
+The tarballs are the byte-identical ones, and they are the ones an
+"upload only what changed" step compares.
 
 `nota2md.download_scjn_leyes_corpus(slug)` reads one law back and
 `nota2md.download_scjn_leyes_index()` reads the reverse index. Both

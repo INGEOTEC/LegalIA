@@ -1,6 +1,12 @@
-Al ma rgen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. - Presidencia de la República.
+**LEY DE LA AGENCIA NACIONAL DE SEGURIDAD INDUSTRIAL Y DE PROTECCIÓN AL MEDIO AMBIENTE DEL SECTOR HIDROCARBUROS**
 
-**ENRIQUE PEÑA NIETO**, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
+**ÚLTIMA REFORMA PUBLICADA EN EL DIARIO OFICIAL DE LA FEDERACIÓN: 11 DE MAYO DE 2022.**
+
+Ley publicada en la Primera Sección de la Edición Vespertina del Diario Oficial de la Federación, el lunes 11 de agosto de 2014.
+
+## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Presidencia de la República.
+
+ENRIQUE PEÑA NIETO, Presidente de los Estados Unidos Mexicanos, a sus habitantes sabed:
 
 Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
@@ -8,21 +14,23 @@ Que el Honorable Congreso de la Unión, se ha servido dirigirme el siguiente
 
 **"EL CONGRESO GENERAL DE LOS ESTADOS UNIDOS MEXICANOS, DECRETA:**
 
-SE EXPIDE LA LEY DE LOS ÓRGANOS REGULADORES COORDINADOS EN MATERIA ENERGÉTICA; SE REFORMAN, ADICIONAN Y DEROGAN DIVERSAS DISPOSICIONES DE LA LEY ORGÁNICA DE LA ADMINIST RACIÓN PÚBLICA FEDERAL Y, SE EXPIDE LA LEY DE LA AGENCIA NACIONAL DE SEGURIDAD INDUSTRIAL Y DE PROTECCIÓN AL MEDIO AMBIENTE DEL SECTOR HIDROCARBUROS.
-
-**ARTÍCULOS PRIMERO Y SEGUNDO. ……….**
+SE EXPIDE LA LEY DE LOS ÓRGANOS REGULADORES COORDINADOS EN MATERIA ENERGÉTICA; SE REFORMAN, ADICIONAN Y DEROGAN DIVERSAS DISPOSICIONES DE LA LEY ORGÁNICA DE LA ADMINISTRACIÓN PÚBLICA FEDERAL Y, SE EXPIDE LA LEY DE LA AGENCIA NACIONAL DE SEGURIDAD INDUSTRIAL Y DE PROTECCIÓN AL MEDIO AMBIENTE DEL SECTOR HIDROCARBUROS...
 
 **ARTÍCULO TERCERO.** Se expide la Ley de la Agencia Nacional de Seguridad Industrial y de Protección al Medio Ambiente del Sector Hidrocarburos:
 
 **LEY DE LA AGENCIA NACIONAL DE SEGURIDAD INDUSTRIAL Y DE PROTECCIÓN AL MEDIO AMBIENTE DEL SECTOR HIDROCARBUROS**
 
-TÍTULO PRIMERO Disposiciones Generales
+**TÍTULO PRIMERO**
 
-Capítulo Único Naturaleza y Objeto
+Disposiciones Generales
 
-**Artículo 1o.-** La presente Ley es de orden público e interés general y de aplicación en todo el territorio nacional y zonas en las que la Nación ejerce soberanía o jurisdicción y tiene como objeto crear la Agencia Nacional de Seguridad Industrial y de P rotección al Medio Ambiente del Sector Hidrocarburos, como un órgano administrativo desconcentrado de la Secretaría de Medio Ambiente y Recursos Naturales, con autonomía técnica y de gestión.
+Capítulo Único
 
-La Agencia tiene por objeto la protección de las personas, el m edio ambiente y las instalaciones del sector hidrocarburos a través de la regulación y supervisión de:
+Naturaleza y Objeto
+
+**Artículo 1o.-** La presente Ley es de orden público e interés general y de aplicación en todo el territorio nacional y zonas en las que la Nación ejerce soberanía o jurisdicción y tiene como objeto crear la Agencia Nacional de Seguridad Industrial y de Protección al Medio Ambiente del Sector Hidrocarburos, como un órgano administrativo desconcentrado de la Secretaría de Medio Ambiente y Recursos Naturales, con autonomía técnica y de gestión.
+
+La Agencia tiene por objeto la protección de las personas, el medio ambiente y las instalaciones del sector hidrocarburos a través de la regulación y supervisión de:
 
 **I.** La Seguridad Industrial y Seguridad Operativa;
 
@@ -32,37 +40,35 @@ La Agencia tiene por objeto la protección de las personas, el m edio ambiente y
 
 **Artículo 2o.-** La actuación de la Agencia se regirá por los principios de eficacia, eficiencia, honestidad, imparcialidad, objetividad, productividad, profesionalización, transparencia, participación social y rendición de cuentas.
 
-La Agencia planeará y conducirá sus actividades con sujeción a lo dispuesto en esta Ley y los instrumentos que se emitan en el marco del sistema nacional de planeación democrática y las políticas que determine el Titular del Ejecutivo Federa l para el logro de los objetivos y prioridades del desarrollo nacional, integral y sustentable, así como a los programas que establezcan las Secretarías del ramo en materia de Medio Ambiente y Energía.
+La Agencia planeará y conducirá sus actividades con sujeción a lo dispuesto en esta Ley y los instrumentos que se emitan en el marco del sistema nacional de planeación democrática y las políticas que determine el Titular del Ejecutivo Federal para el logro de los objetivos y prioridades del desarrollo nacional, integral y sustentable, así como a los programas que establezcan las Secretarías del ramo en materia de Medio Ambiente y Energía.
 
-En el ejercicio de sus funciones, tomará en considera ción criterios de sustentabilidad y de desarrollo bajo en emisiones, así como atenderá lo dispuesto en la Ley General del Equilibrio Ecológico y la Protección al Ambiente, la Ley General para la Prevención y Gestión Integral de los Residuos, la Ley General de Desarrollo Forestal Sustentable, la Ley General de Vida Silvestre, la Ley de Bioseguridad de Organismos Genéticamente Modificados y demás ordenamientos aplicables.
+En el ejercicio de sus funciones, tomará en consideración criterios de sustentabilidad y de desarrollo bajo en emisiones, así como atenderá lo dispuesto en la Ley General del Equilibrio Ecológico y la Protección al Ambiente, la Ley General para la Prevención y Gestión Integral de los Residuos, la Ley General de Desarrollo Forestal Sustentable, la Ley General de Vida Silvestre, la Ley de Bioseguridad de Organismos Genéticamente Modificados y demás ordenamientos aplicables.
 
-**Artículo 3o. -** Además de las definiciones contempladas en la Ley de Hidrocarburos y en l a Ley General del Equilibrio Ecológico y la Protección al Ambiente, para los efectos de esta Ley se entenderá, en singular o plural, por:
+**Artículo 3o.-** Además de las definiciones contempladas en la Ley de Hidrocarburos y en la Ley General del Equilibrio Ecológico y la Protección al Ambiente, para los efectos de esta Ley se entenderá, en singular o plural, por:
 
 **I.** Agencia: Agencia Nacional de Seguridad Industrial y de Protección al Medio Ambiente del Sector Hidrocarburos;
 
 **II.** Contingencia: Situación de riesgo, derivada de actividades humanas o fenómenos naturales, que puede poner en peligro la integridad de la población, el medio ambiente o las instalaciones industriales;
 
-**III.** Consecuencia: Resultado real o potencial de un ev ento no deseado, medido por sus efectos en las personas, instalaciones y el medio ambiente;
+**III.** Consecuencia: Resultado real o potencial de un evento no deseado, medido por sus efectos en las personas, instalaciones y el medio ambiente;
 
 **IV.** Emergencia: Situación derivada de actividades humanas o fenómenos naturales que al ocurrir, afectan la integridad de la población, el medio ambiente o las instalaciones industriales;
 
 **V.** Evaluación estratégica: Proceso sistemático de análisis que realiza la Agencia para emitir observaciones y recomendaciones en las materias de Seguridad Industrial, Seguridad Operativa y de protección ambiental en las iniciativas de políticas públicas, planes o programas de gobierno relacionadas con las actividades del Sector Hidrocarburos;
 
-**VI.** Externalidades: Los impactos positivos o negativos que genera la provisión de un bien o servicio y que afectan o que pudieran afectar a u na tercera persona o al medio ambiente. Las externalidades ocurren cuando el costo pagado por un bien o servicio es diferente del costo total de los daños y beneficios en términos económicos, sociales, ambientales y a la salud que involucran su producción y consumo;
+**VI.** Externalidades: Los impactos positivos o negativos que genera la provisión de un bien o servicio y que afectan o que pudieran afectar a una tercera persona o al medio ambiente. Las externalidades ocurren cuando el costo pagado por un bien o servicio es diferente del costo total de los daños y beneficios en términos económicos, sociales, ambientales y a la salud que involucran su producción y consumo;
 
-**VII.** Instalación: El conjunto de estructuras, plantas industriales, equipos, circuitos de tuberías de proceso y servicios auxiliares, así como sistemas instrumentados, dispuestos para un proceso productivo o comercial específicos, incluyendo, e ntre otros, pozos para la exploración y extracción de hidrocarburos, plataformas, plantas de almacenamiento, refinación y procesamiento de hidrocarburos en tierra y en mar, plantas de compresión y descompresión de
+**VII.** Instalación: El conjunto de estructuras, plantas industriales, equipos, circuitos de tuberías de proceso y servicios auxiliares, así como sistemas instrumentados, dispuestos para un proceso productivo o comercial específicos, incluyendo, entre otros, pozos para la exploración y extracción de hidrocarburos, plataformas, plantas de almacenamiento, refinación y procesamiento de hidrocarburos en tierra y en mar, plantas de compresión y descompresión de hidrocarburos, sistemas de transporte y distribución en cualquier modalidad, así como estaciones de expendio al público;
 
-hidrocarburos, sistemas de transporte y di stribución en cualquier modalidad, así como estaciones de expendio al público;
-
-**VIII.** Regulados: Las empresas productivas del Estado, las personas físicas y morales de los sectores público, social y privado que realicen actividades reguladas y materia de l a presente Ley;
+**VIII.** Regulados: Las empresas productivas del Estado, las personas físicas y morales de los sectores público, social y privado que realicen actividades reguladas y materia de la presente Ley;
 
 **IX.** Riesgo: Es la probabilidad de ocurrencia de un evento indeseable medido en términos de sus consecuencias en las personas, instalaciones, medio ambiente o la comunidad;
 
-**X.** Riesgo crítico: Riesgo que implica un peligro inminente y requi ere acción inmediata para reducirse a condiciones aceptables sin limitar el costo de su solución;
+**X.** Riesgo crítico: Riesgo que implica un peligro inminente y requiere acción inmediata para reducirse a condiciones aceptables sin limitar el costo de su solución;
 
 **XI.** Sector Hidrocarburos o Sector: Las actividades siguientes:
 
-**a.** El reconocimiento y exploración superficial, y la exploración y extracción de hidrocarburo s;
+**a.** El reconocimiento y exploración superficial, y la exploración y extracción de hidrocarburos;
 
 **b.** El tratamiento, refinación, enajenación, comercialización, transporte y almacenamiento del petróleo;
 
@@ -72,83 +78,85 @@ hidrocarburos, sistemas de transporte y di stribución en cualquier modalidad, a
 
 **e.** El transporte, almacenamiento, distribución y expendio al público de petrolíferos, y
 
-**f.** El transporte por ducto y el almacenamient o, que se encuentre vinculado a ductos de petroquímicos producto del procesamiento del gas natural y de la refinación del petróleo;
+**f.** El transporte por ducto y el almacenamiento, que se encuentre vinculado a ductos de petroquímicos producto del procesamiento del gas natural y de la refinación del petróleo;
 
 **XII.** Secretaría: Secretaría de Medio Ambiente y Recursos Naturales;
 
-**XIII.** Seguridad Industrial: Área multidisciplinaria qu e se encarga de identificar, reducir, evaluar, prevenir, mitigar, controlar y administrar los riesgos en el Sector, mediante un conjunto de normas que incluyen directrices técnicas sobre las instalaciones, y de las actividades relacionadas con aquéllas que tengan riesgos asociados, cuyo principal objetivo es preservar la integridad física de las personas, de las instalaciones, así como la protección al medio ambiente;
+**XIII.** Seguridad Industrial: Área multidisciplinaria que se encarga de identificar, reducir, evaluar, prevenir, mitigar, controlar y administrar los riesgos en el Sector, mediante un conjunto de normas que incluyen directrices técnicas sobre las instalaciones, y de las actividades relacionadas con aquéllas que tengan riesgos asociados, cuyo principal objetivo es preservar la integridad física de las personas, de las instalaciones, así como la protección al medio ambiente;
 
-**XIV.** Seguridad Operativa: Área multidisciplinaria que se encarga de los procesos contenid os en las disposiciones y normas técnicas, administrativas y operativas, respecto de la tecnología aplicada, así como del análisis, evaluación, prevención, mitigación y control de los riesgos asociados de proceso, desde la fase de diseño, construcción, arr anque y puesta en operación, operación rutinaria, paros normales y de emergencia, mantenimiento preventivo y correctivo. También incluye los procedimientos de operación y prácticas seguras, entrenamiento y desempeño, investigación y análisis de incidentes y accidentes, planes de respuesta a emergencias, auditorías, aseguramiento de calidad, pre -arranque, integridad mecánica y administración de cambios, entre otros, en el Sector;
+**XIV.** Seguridad Operativa: Área multidisciplinaria que se encarga de los procesos contenidos en las disposiciones y normas técnicas, administrativas y operativas, respecto de la tecnología aplicada, así como del análisis, evaluación, prevención, mitigación y control de los riesgos asociados de proceso, desde la fase de diseño, construcción, arranque y puesta en operación, operación rutinaria, paros normales y de emergencia, mantenimiento preventivo y correctivo. También incluye los procedimientos de operación y prácticas seguras, entrenamiento y desempeño, investigación y análisis de incidentes y accidentes, planes de respuesta a emergencias, auditorías, aseguramiento de calidad, pre-arranque, integridad mecánica y administración de cambios, entre otros, en el Sector;
 
-**XV.** Sistema de Administración: Conjunto integral de elementos interrelacionado s y documentados cuyo propósito es la prevención, control y mejora del desempeño de una
-
-instalación o conjunto de ellas, en materia de Seguridad Industrial, Seguridad Operativa y de protección al medio ambiente en el Sector, y
+**XV.** Sistema de Administración: Conjunto integral de elementos interrelacionados y documentados cuyo propósito es la prevención, control y mejora del desempeño de una instalación o conjunto de ellas, en materia de Seguridad Industrial, Seguridad Operativa y de protección al medio ambiente en el Sector, y
 
 **XVI.** Supervisión: Acto de autoridad mediante el cual la Agencia verifica, inspecciona y, en su caso, comprueba el cumplimiento de las disposiciones legales, reglamentarias y normativas en las materias objeto de esta Ley.
 
-**Artículo 4o. -** En lo no previsto por la presente Ley, se aplica rán de manera supletoria las disposiciones contenidas en la Ley de Hidrocarburos, la Ley General del Equilibrio Ecológico y la Protección al Ambiente, la Ley General para la Prevención y Gestión Integral de los Residuos, la Ley General de Desarrollo Forest al Sustentable, la Ley de Bioseguridad de Organismos Genéticamente Modificados, y la Ley Federal de Procedimiento Administrativo.
+**Artículo 4o.-** En lo no previsto por la presente Ley, se aplicarán de manera supletoria las disposiciones contenidas en la Ley de Hidrocarburos, la Ley General del Equilibrio Ecológico y la Protección al Ambiente, la Ley General para la Prevención y Gestión Integral de los Residuos, la Ley General de Desarrollo Forestal Sustentable, la Ley de Bioseguridad de Organismos Genéticamente Modificados, y la Ley Federal de Procedimiento Administrativo.
 
-TÍTULO SEGUNDO Atribuciones de la Agencia y Bases de Coordinación
+**TÍTULO SEGUNDO**
 
-Capítulo I Atribuciones de la Agencia
+Atribuciones de la Agencia y Bases de Coordinación
+
+Capítulo I
+
+Atribuciones de la Agencia
 
 **Artículo 5o.-** La Agencia tendrá las siguientes atribuciones:
 
 **I.** Aportar los elementos técnicos sobre Seguridad Industrial, Seguridad Operativa y protección al medio ambiente, a las autoridades competentes, para las políticas energética y ambiental del país, así como para la formulación de los programas sectoriales en esas materias. Para ello, participará con la Secretaría y con la Secretaría de Energía en el desarrollo de la Evaluación Estratégica del Sector;
 
-**II.** Participar con los distintos órdenes de gobierno, dependencia s y entidades competentes, en el diseño y atención de los planes nacionales e internacionales para prevenir y atender situaciones de emergencia en las actividades del Sector;
+**II.** Participar con los distintos órdenes de gobierno, dependencias y entidades competentes, en el diseño y atención de los planes nacionales e internacionales para prevenir y atender situaciones de emergencia en las actividades del Sector;
 
-**III.** Regular, supervisar y sancionar en materia de Seguridad Industrial, Segurid ad Operativa y protección al medio ambiente, en relación con las actividades del Sector, incluyendo las etapas de desmantelamiento y abandono de las instalaciones, así como de control integral de los residuos y las emisiones a la atmósfera;
+**III.** Regular, supervisar y sancionar en materia de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente, en relación con las actividades del Sector, incluyendo las etapas de desmantelamiento y abandono de las instalaciones, así como de control integral de los residuos y las emisiones a la atmósfera;
 
-**IV.** Regular a través de lineamientos, directrices, criterios u otras disposiciones administrativas de carácter general necesarias en las materias de su competencia y, en su caso, normas oficiales mexicanas, previa opinión de la Secretaría, en materia de protección al me dio ambiente y de la Secretaría de Energía, la Comisión Nacional de Hidrocarburos y la Comisión Reguladora de Energía, en materia de Seguridad Industrial y Seguridad Operativa;
+**IV.** Regular a través de lineamientos, directrices, criterios u otras disposiciones administrativas de carácter general necesarias en las materias de su competencia y, en su caso, normas oficiales mexicanas, previa opinión de la Secretaría, en materia de protección al medio ambiente y de la Secretaría de Energía, la Comisión Nacional de Hidrocarburos y la Comisión Reguladora de Energía, en materia de Seguridad Industrial y Seguridad Operativa;
 
-**V.** Definir las medidas técnicas en el ámbito de su competencia, que deben ser incluidas en los protocolos para hacer frente a emergencias o situaciones de Riesgo Crítico o situaciones que puedan ocasionar un daño grave a las personas o a los bienes y al medio ambiente, cuando la magnitud del evento lo requiera y, en su caso, partici par bajo la coordinación de las autoridades competentes para su aplicación;
+**V.** Definir las medidas técnicas en el ámbito de su competencia, que deben ser incluidas en los protocolos para hacer frente a emergencias o situaciones de Riesgo Crítico o situaciones que puedan ocasionar un daño grave a las personas o a los bienes y al medio ambiente, cuando la magnitud del evento lo requiera y, en su caso, participar bajo la coordinación de las autoridades competentes para su aplicación;
 
-**VI.** Emitir las bases y criterios para que los Regulados adopten las mejores prácticas de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente que resulten apli cables a las actividades del Sector.
+**VI.** Emitir las bases y criterios para que los Regulados adopten las mejores prácticas de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente que resulten aplicables a las actividades del Sector.
 
-Lo anterior incluirá el control y seguimiento geofísico en la operación cuando ésta lo requiera, las etapas de desmantelamiento y abandono de las instalaciones, la restauración de los sitios impactados por las activid ades del Sector, así como el control integral de sus residuos y sus emisiones de contaminantes;
+Lo anterior incluirá el control y seguimiento geofísico en la operación cuando ésta lo requiera, las etapas de desmantelamiento y abandono de las instalaciones, la restauración de los sitios impactados por las actividades del Sector, así como el control integral de sus residuos y sus emisiones de contaminantes;
 
 **VII.** Establecer los lineamientos para la conformación y operación de los Sistemas de Administración con que deberán contar los Regulados;
 
-**VIII.** Supervisar y v igilar el cumplimiento por parte de los Regulados de los ordenamientos legales, reglamentarios y demás normativa que resulten aplicables a las materias de su competencia. Para ello, podrá realizar y ordenar certificaciones, auditorías y verificaciones, así como llevar a cabo visitas de inspección y supervisión.
+**VIII.** Supervisar y vigilar el cumplimiento por parte de los Regulados de los ordenamientos legales, reglamentarios y demás normativa que resulten aplicables a las materias de su competencia. Para ello, podrá realizar y ordenar certificaciones, auditorías y verificaciones, así como llevar a cabo visitas de inspección y supervisión.
 
 Asimismo, en el ejercicio de sus atribuciones, podrá instruir la comparecencia de representantes de los Regulados.
 
-Para llevar a cabo la supervisión, la Agencia podrá ordenar visitas de inspecció n.
+Para llevar a cabo la supervisión, la Agencia podrá ordenar visitas de inspección.
 
 En la sustanciación de las visitas, la Agencia aplicará lo dispuesto en la Ley Federal de Procedimiento Administrativo y, en su caso, la Ley Federal sobre Metrología y Normalización;
 
-**IX.** Autorizar a servidores públicos de la Agencia y acreditar a per sonas físicas o morales para que lleven a cabo las actividades de supervisión, inspección y verificación, evaluaciones e investigaciones técnicas, así como de certificación y auditorías referidas en la presente Ley;
+**IX.** Autorizar a servidores públicos de la Agencia y acreditar a personas físicas o morales para que lleven a cabo las actividades de supervisión, inspección y verificación, evaluaciones e investigaciones técnicas, así como de certificación y auditorías referidas en la presente Ley;
 
-**X.** Instaurar, tramitar y resolver, en l os términos de las disposiciones legales y reglamentarias aplicables, los procedimientos administrativos, que correspondan con motivo de sus atribuciones;
+**X.** Instaurar, tramitar y resolver, en los términos de las disposiciones legales y reglamentarias aplicables, los procedimientos administrativos, que correspondan con motivo de sus atribuciones;
 
 **XI.** Imponer medidas de seguridad, de apremio o sanciones que resulten aplicables conforme a la legislación correspondiente;
 
 **XII.** Resolver sobre las solicitudes de revocación, modificación y conmutación de multas, en los términos previstos en las disposiciones jurídicas aplicables;
 
-**XIII.** Establecer los mecanismos a través de los cuales los Regulados deb erán informar sobre los siniestros, accidentes, incidentes, emergencias, fugas y derrames vinculados con las actividades del Sector;
+**XIII.** Establecer los mecanismos a través de los cuales los Regulados deberán informar sobre los siniestros, accidentes, incidentes, emergencias, fugas y derrames vinculados con las actividades del Sector;
 
-**XIV.** Llevar a cabo investigaciones de causa raíz en caso de incidentes y accidentes operativos, industriales y medioambien tales, conforme a los lineamientos que al efecto emita o establecer las bases para que los Regulados lleven a cabo dichas investigaciones, así como la comunicación de riesgos y lecciones aprendidas;
+**XIV.** Llevar a cabo investigaciones de causa raíz en caso de incidentes y accidentes operativos, industriales y medioambientales, conforme a los lineamientos que al efecto emita o establecer las bases para que los Regulados lleven a cabo dichas investigaciones, así como la comunicación de riesgos y lecciones aprendidas;
 
-**XV.** Promover la colaboración entre Regulados con el obje tivo de optimizar el uso de recursos para la atención de contingencias, emergencias, prevención y mitigación de riesgos;
+**XV.** Promover la colaboración entre Regulados con el objetivo de optimizar el uso de recursos para la atención de contingencias, emergencias, prevención y mitigación de riesgos;
 
-**XVI.** Coordinar un programa de certificación en Seguridad Industrial, Seguridad Operativa y protección al medio ambiente, en relación c on el cumplimiento de la normatividad y estándares de desempeño, con base en el principio de autogestión y conforme a los requisitos técnicos que para tal efecto establezca;
+**XVI.** Coordinar un programa de certificación en Seguridad Industrial, Seguridad Operativa y protección al medio ambiente, en relación con el cumplimiento de la normatividad y estándares de desempeño, con base en el principio de autogestión y conforme a los requisitos técnicos que para tal efecto establezca;
 
 **XVII.** Autorizar los Sistemas de Administración de los Regulados;
 
 **XVIII.** Expedir, suspender, revocar o negar las licencias, autorizaciones, permisos y registros en materia ambiental, a que se refiere el artículo 7 de esta Ley, en los términos de las disposiciones normativas aplicables;
 
-**XIX.** Regular y supervisar, en relación con las ma terias de su competencia, las actividades de captura, exploración, extracción, transporte e inyección industrial de bióxido de carbono, que se realizan con el fin de mejorar la producción de hidrocarburos;
+**XIX.** Regular y supervisar, en relación con las materias de su competencia, las actividades de captura, exploración, extracción, transporte e inyección industrial de bióxido de carbono, que se realizan con el fin de mejorar la producción de hidrocarburos;
 
-**XX.** Regular y supervisar la producción, transport e, almacenamiento y distribución industrial de biocombustibles, cuando estas actividades estén directamente vinculadas al proceso de mezclado o preparación de gasolinas y/o diésel, en relación con las materias de su competencia, en coordinación, en su caso , con otras autoridades competentes y atendiendo a las disposiciones normativas aplicables;
+**XX.** Regular y supervisar la producción, transporte, almacenamiento y distribución industrial de biocombustibles, cuando estas actividades estén directamente vinculadas al proceso de mezclado o preparación de gasolinas y/o diésel, en relación con las materias de su competencia, en coordinación, en su caso, con otras autoridades competentes y atendiendo a las disposiciones normativas aplicables;
 
-**XXI.** Requerir a los Regulados la información y la documentación necesaria para el ejercicio de sus atribuciones, así como la exhibición de dictámenes, reportes téc nicos, informes de pruebas, contratos con terceros, estudios, certificados o cualquier otro documento de evaluación de la conformidad;
+**XXI.** Requerir a los Regulados la información y la documentación necesaria para el ejercicio de sus atribuciones, así como la exhibición de dictámenes, reportes técnicos, informes de pruebas, contratos con terceros, estudios, certificados o cualquier otro documento de evaluación de la conformidad;
 
 **XXII.** Realizar estudios de valoración económica de las externalidades ambientales y riesgos asociados a las instalaciones, actividades y operación del Sector, con base en una metodología que tome en cuenta las mejores prácticas internacionales;
 
-**XXIII.** Impulsar un desarrollo regional sustentable y exigir que las actividades relacionadas con el Sector se realicen, entre otra s, con apego a la protección, conservación, compensación y restauración de los ecosistemas, flora y fauna silvestres, bienes y servicios ambientales, en coordinación con las unidades administrativas competentes de la Secretaría;
+**XXIII.** Impulsar un desarrollo regional sustentable y exigir que las actividades relacionadas con el Sector se realicen, entre otras, con apego a la protección, conservación, compensación y restauración de los ecosistemas, flora y fauna silvestres, bienes y servicios ambientales, en coordinación con las unidades administrativas competentes de la Secretaría;
 
-**XXIV.** Proporcionar el apoy o técnico que soliciten las dependencias y entidades de la Administración Pública Federal, en el ámbito de su competencia;
+**XXIV.** Proporcionar el apoyo técnico que soliciten las dependencias y entidades de la Administración Pública Federal, en el ámbito de su competencia;
 
 **XXV.** Coadyuvar, con las dependencias competentes, al seguimiento de mecanismos, acuerdos y convenios internacionales en materia de su competencia;
 
@@ -158,7 +166,7 @@ En la sustanciación de las visitas, la Agencia aplicará lo dispuesto en la Ley
 
 **XXVIII.** Publicar un informe anual sobre sus actividades;
 
-**XXIX.** Contratar servicios de consultorías, asesorías, estudios e investigaciones técn icas, requeridos para sus actividades, y
+**XXIX.** Contratar servicios de consultorías, asesorías, estudios e investigaciones técnicas, requeridos para sus actividades, y
 
 **XXX.** Las demás que le confieran esta Ley y otros ordenamientos aplicables.
 
@@ -168,9 +176,9 @@ En la sustanciación de las visitas, la Agencia aplicará lo dispuesto en la Ley
 
 **a)** La adopción y observancia obligatoria de estándares técnicos nacionales e internacionales;
 
-**b)** La prevención y contención de derrames y fugas de hidrocarburos en las i nstalaciones y actividades del Sector, así como los procesos de remediación de las afectaciones que en su caso resulten, en coordinación con las unidades administrativas de la Secretaría;
+**b)** La prevención y contención de derrames y fugas de hidrocarburos en las instalaciones y actividades del Sector, así como los procesos de remediación de las afectaciones que en su caso resulten, en coordinación con las unidades administrativas de la Secretaría;
 
-**c)** El requerimiento de garantías o cualquier otro instrumento finan ciero necesario para que los Regulados cuenten con coberturas financieras contingentes frente a daños o perjuicios que se pudieran generar. Dicha regulación deberá contar con la opinión favorable de la Secretaría de Energía y de la Secretaría de Hacienda y Crédito Público, y
+**c)** El requerimiento de garantías o cualquier otro instrumento financiero necesario para que los Regulados cuenten con coberturas financieras contingentes frente a daños o perjuicios que se pudieran generar. Dicha regulación deberá contar con la opinión favorable de la Secretaría de Energía y de la Secretaría de Hacienda y Crédito Público, y
 
 **d)** La integridad física y operativa de las instalaciones; el análisis de riesgo y los planes de atención de contingencias y emergencias, así como su cumplimiento.
 
@@ -178,13 +186,13 @@ En la sustanciación de las visitas, la Agencia aplicará lo dispuesto en la Ley
 
 **a)** Las condiciones de protección ambiental de los suelos, flora y fauna silvestres a que se sujetarán las actividades de exploración, extracción, transporte, almacenamiento y distribución de hidrocarburos para evitar o minimizar las alteraciones ambientales que generen esas actividades;
 
-**b)** La caracterización y clasificación de los residuos generados en las actividades del Sector y los criterios generales para la elaboración de los planes de manejo correspondientes, en los que se definan sus etapas, estructura de manejo, jerarqu ía y responsabilidad compartida de las partes involucradas;
+**b)** La caracterización y clasificación de los residuos generados en las actividades del Sector y los criterios generales para la elaboración de los planes de manejo correspondientes, en los que se definan sus etapas, estructura de manejo, jerarquía y responsabilidad compartida de las partes involucradas;
 
 **c)** Las actividades de manejo integral de los residuos peligrosos y de manejo especial generados o provenientes de las actividades del Sector;
 
-**d)** Las condiciones de protección ambiental para el m anejo de materiales peligrosos que se utilicen en las actividades del Sector. Para los efectos de este inciso, se considerarán materiales peligrosos los residuos peligrosos valorizados identificados como subproductos;
+**d)** Las condiciones de protección ambiental para el manejo de materiales peligrosos que se utilicen en las actividades del Sector. Para los efectos de este inciso, se considerarán materiales peligrosos los residuos peligrosos valorizados identificados como subproductos;
 
-**e)** Las condiciones ambientales para p revenir la contaminación por residuos generados por las actividades del Sector, cuya disposición final pueda provocar salinización e incrementos excesivos de carga orgánica en suelos y cuerpos de agua en los sitios en donde se realicen dichas actividades;
+**e)** Las condiciones ambientales para prevenir la contaminación por residuos generados por las actividades del Sector, cuya disposición final pueda provocar salinización e incrementos excesivos de carga orgánica en suelos y cuerpos de agua en los sitios en donde se realicen dichas actividades;
 
 **f)** El desempeño ambiental que deberá prevalecer en el manejo integral de residuos sólidos urbanos y de manejo especial generados por las actividades del Sector;
 
@@ -194,59 +202,65 @@ En la sustanciación de las visitas, la Agencia aplicará lo dispuesto en la Ley
 
 **i)** La información técnica específica de los organismos genéticamente modificados que se utilizarán en la bioremediación de sitios contaminados por hidrocarburos, y
 
-**j)** Las cantidades mínimas necesarias para considerar como adversos o dañosos el deterioro, la pérdida, el cambio, el menoscabo, la afectación, la modificación y la contaminación al ambiente y a los re cursos naturales, que generen las actividades del Sector, para los efectos de la Ley Federal de Responsabilidad Ambiental.
+**j)** Las cantidades mínimas necesarias para considerar como adversos o dañosos el deterioro, la pérdida, el cambio, el menoscabo, la afectación, la modificación y la contaminación al ambiente y a los recursos naturales, que generen las actividades del Sector, para los efectos de la Ley Federal de Responsabilidad Ambiental.
 
-**Artículo 7o. -** Los actos administrativos a que se refiere la fracción XVIII del artículo 5o., serán los siguientes:
+**Artículo 7o.-** Los actos administrativos a que se refiere la fracción XVIII del artículo 5o., serán los siguientes:
 
-**I.** Autorizaciones en materia de impacto y riesgo ambiental del Sector Hidrocarburos; de carbonoductos; instalaciones de tratamiento, confinamiento o eliminación de residuos peligrosos; aprovechamientos forestales en selvas tropicales, y especies de difícil regeneración; así como obras y actividades en humedales, manglares, lagunas, ríos, lagos y esteros conectados con el mar, litorales o las zonas federales de las áreas antes mencionadas, en términos del artículo 28 de la Ley General del Equilibrio Ecológico y la Protecció n al Ambiente y del Reglamento de la materia;
+**I.** Autorizaciones en materia de impacto y riesgo ambiental del Sector Hidrocarburos; de carbonoductos; instalaciones de tratamiento, confinamiento o eliminación de residuos peligrosos; aprovechamientos forestales en selvas tropicales, y especies de difícil regeneración; así como obras y actividades en humedales, manglares, lagunas, ríos, lagos y esteros conectados con el mar, litorales o las zonas federales de las áreas antes mencionadas, en términos del artículo 28 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente y del Reglamento de la materia;
 
 **II.** Autorización para emitir olores, gases o partículas sólidas o líquidas a la atmósfera por las Instalaciones del Sector Hidrocarburos, en términos del artículo 111 Bis de la Ley General del Equilibrio Ecológico y la Protección al Ambiente y del Reglamento de la materia;
 
-**III.** Autorizaciones en materia de residuos peligrosos en el Sector Hidrocarburos, previstas en el artículo 50, fracciones I a IX, de la Ley General para la Prevención y Gestión Integral de l os Residuos y de los reglamentos en la materia;
+**III.** Autorizaciones en materia de residuos peligrosos en el Sector Hidrocarburos, previstas en el artículo 50, fracciones I a IX, de la Ley General para la Prevención y Gestión Integral de los Residuos y de los reglamentos en la materia;
 
 **IV.** Autorización de las propuestas de remediación de sitios contaminados y la liberación de los mismos al término de la ejecución del programa de remediación correspondiente, en términos de la Ley General para la Prevención y Gestión Integral de los Residuos y de su Reglamento;
 
 **V.** Autorizaciones en materia de residuos de manejo especial, en términos de la Ley General para la Prevención y Gestión Integral de los Residuos y de los reglamentos en la materia;
 
-**VI.** Registro de planes de manejo de residuos y programas para la instalación de sistemas destinados a su recolección, acopio, almacenamiento, transporte, tratamiento, valorización y disposición final, conforme a la Ley General para la Prevención y Gestión I ntegral de los Residuos;
+**VI.** Registro de planes de manejo de residuos y programas para la instalación de sistemas destinados a su recolección, acopio, almacenamiento, transporte, tratamiento, valorización y disposición final, conforme a la Ley General para la Prevención y Gestión Integral de los Residuos;
 
 **VII.** Autorizaciones de cambio de uso del suelo en terrenos forestales, en términos del artículo 117 de la Ley General de Desarrollo Forestal Sustentable y de su Reglamento, y
 
-**VIII.** Permisos para la realización de actividades de l iberación al ambiente de organismos genéticamente modificados para bioremediación de sitios contaminados con hidrocarburos, así como establecer y dar seguimiento a las condiciones y medidas a las que se deberán sujetar dichas actividades, conforme a la Ley de Bioseguridad de Organismos Genéticamente Modificados y de su Reglamento.
+**VIII.** Permisos para la realización de actividades de liberación al ambiente de organismos genéticamente modificados para bioremediación de sitios contaminados con hidrocarburos, así como establecer y dar seguimiento a las condiciones y medidas a las que se deberán sujetar dichas actividades, conforme a la Ley de Bioseguridad de Organismos Genéticamente Modificados y de su Reglamento.
 
-Capítulo II Coordinación con otras Autoridades
+Capítulo II
 
-**Artículo 8o. -** La Agencia se coordinará con las dependencias y entidades de la Administración Pública Federal para el ejercicio de sus respectivas atribuciones relacionadas con el Sector.
+Coordinación con otras Autoridades
+
+**Artículo 8o.-** La Agencia se coordinará con las dependencias y entidades de la Administración Pública Federal para el ejercicio de sus respectivas atribuciones relacionadas con el Sector.
 
 Para estos efectos, la Agencia también participará en el Consejo de Coordinación del Sector Energético en términos de las reglas de operación de dicho Consejo.
 
-**Artículo 9o. -** Para la mejor eficienci a y eficacia en el ejercicio de sus atribuciones en materia de protección al medio ambiente en relación con las actividades del Sector, la Agencia establecerá los mecanismos de coordinación que sean necesarios con las unidades administrativas y demás órgan os y entidades sectorizadas en la Secretaría.
+**Artículo 9o.-** Para la mejor eficiencia y eficacia en el ejercicio de sus atribuciones en materia de protección al medio ambiente en relación con las actividades del Sector, la Agencia establecerá los mecanismos de coordinación que sean necesarios con las unidades administrativas y demás órganos y entidades sectorizadas en la Secretaría.
 
-**Artículo 10.** - En materia de seguridad de las personas, la Agencia y la Secretaría del Trabajo y Previsión Social establecerán mecanismos específicos de coordinación para el ejercicio de sus respectivas atribuciones de regulación y supervisión en el Sector.
+**Artículo 10.-** En materia de seguridad de las personas, la Agencia y la Secretaría del Trabajo y Previsión Social establecerán mecanismos específicos de coordinación para el ejercicio de sus respectivas atribuciones de regulación y supervisión en el Sector.
 
-**Artículo 11.-** La Agencia informará a la Secretaría de Energía, a la Secretaría de Hacienda y Crédito Público y a la Comisión Nacional de Hidrocarburos y a la Comisión Reguladora de Energía, sobre cualquier m edida o resolución que implique afectación a la producción de hidrocarburos, de sus derivados, así como al transporte, almacenamiento, distribución de los mismos, de conformidad con lo dispuesto en la Ley de Hidrocarburos.
+**Artículo 11.-** La Agencia informará a la Secretaría de Energía, a la Secretaría de Hacienda y Crédito Público y a la Comisión Nacional de Hidrocarburos y a la Comisión Reguladora de Energía, sobre cualquier medida o resolución que implique afectación a la producción de hidrocarburos, de sus derivados, así como al transporte, almacenamiento, distribución de los mismos, de conformidad con lo dispuesto en la Ley de Hidrocarburos.
 
-La Agencia informará a la Secret aría de Salud sobre cualquier actividad del Sector que represente un riesgo potencial a la salud pública.
+La Agencia informará a la Secretaría de Salud sobre cualquier actividad del Sector que represente un riesgo potencial a la salud pública.
 
-La Agencia está obligada a denunciar ante la Fiscalía General de la República cualquier hecho que pudiera constituir un delito contra el ambiente en las actividades del Sector. Párrafo reformado DOF 20-05-2021
+**(REFORMADO, D.O.F. 20 DE MAYO DE 2021)**
 
-Capítulo III Sistema de Administración de Seguridad Industrial, Seguridad Operativa y Protección al Medio Ambiente
+La Agencia está obligada a denunciar ante la Fiscalía General de la República cualquier hecho que pudiera constituir un delito contra el ambiente en las actividades del Sector.
 
-**Artículo 12.** - La Agencia establecerá las normas de carácter general para que l os Regulados implementen Sistemas de Administración en las actividades que lleven a cabo.
+Capítulo III
 
-Los Sistemas de Administración a los que alude el párrafo anterior deberán prever los estándares, funciones, responsabilidades y encargados de la Seguridad Industria l, Seguridad Operativa y protección al medio ambiente.
+Sistema de Administración de Seguridad Industrial, Seguridad Operativa y Protección al Medio Ambiente
 
-**Artículo 13.** - Los Sistemas de Administración deben considerar todo el ciclo de vida de las instalaciones, incluyendo su abandono y desmantelamiento, de conformidad con lo que prevean las reglas de carácter general correspondientes y considerar como mínimo lo siguiente:
+**Artículo 12.-** La Agencia establecerá las normas de carácter general para que los Regulados implementen Sistemas de Administración en las actividades que lleven a cabo.
+
+Los Sistemas de Administración a los que alude el párrafo anterior deberán prever los estándares, funciones, responsabilidades y encargados de la Seguridad Industrial, Seguridad Operativa y protección al medio ambiente.
+
+**Artículo 13.-** Los Sistemas de Administración deben considerar todo el ciclo de vida de las instalaciones, incluyendo su abandono y desmantelamiento, de conformidad con lo que prevean las reglas de carácter general correspondientes y considerar como mínimo lo siguiente:
 
 **I.** La política de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente;
 
-**II.** La evaluación de la integridad física y operativa de las instalaciones mediante procedim ientos, instrumentos y metodologías reconocidos en el Sector Hidrocarburos;
+**II.** La evaluación de la integridad física y operativa de las instalaciones mediante procedimientos, instrumentos y metodologías reconocidos en el Sector Hidrocarburos;
 
-**III.** La identificación de riesgos, análisis, evaluación, medidas de prevención, monitoreo, mitigación y valuación de incidentes, accidentes, pérdidas esperadas en los distintos es cenarios de riesgos, así como las consecuencias que los riesgos representan a la población, medio ambiente, a las instalaciones y edificaciones comprendidas dentro del perímetro de las instalaciones industriales y en las inmediaciones;
+**III.** La identificación de riesgos, análisis, evaluación, medidas de prevención, monitoreo, mitigación y valuación de incidentes, accidentes, pérdidas esperadas en los distintos escenarios de riesgos, así como las consecuencias que los riesgos representan a la población, medio ambiente, a las instalaciones y edificaciones comprendidas dentro del perímetro de las instalaciones industriales y en las inmediaciones;
 
-**IV.** La identificaci ón e incorporación de las mejores prácticas y estándares a nivel nacional e internacional en materia de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente;
+**IV.** La identificación e incorporación de las mejores prácticas y estándares a nivel nacional e internacional en materia de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente;
 
-**V.** El establecimiento de objetivos, metas e indicadores para evaluar el desem peño en Seguridad Industrial, Seguridad Operativa y protección al medio ambiente, así como de la implementación del Sistema de Administración;
+**V.** El establecimiento de objetivos, metas e indicadores para evaluar el desempeño en Seguridad Industrial, Seguridad Operativa y protección al medio ambiente, así como de la implementación del Sistema de Administración;
 
 **VI.** La asignación de funciones y responsabilidades para implementar, administrar y mejorar el propio Sistema de Administración;
 
@@ -260,7 +274,7 @@ Los Sistemas de Administración a los que alude el párrafo anterior deberán pr
 
 **XI.** Las disposiciones para los contratistas en materia de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente;
 
-**XII.** Los lineamientos y procedimientos para la prevenci ón de accidentes y atención de emergencias;
+**XII.** Los lineamientos y procedimientos para la prevención de accidentes y atención de emergencias;
 
 **XIII.** Los procedimientos para el registro, investigación y análisis de incidentes y accidentes;
 
@@ -272,13 +286,13 @@ Los Sistemas de Administración a los que alude el párrafo anterior deberán pr
 
 **XVII.** La revisión de los resultados de la verificación, y
 
-**XVIII.** El informe periódico del desempeño en materia de Seguridad Industrial, Seguridad Operati va y protección al medio ambiente.
+**XVIII.** El informe periódico del desempeño en materia de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente.
 
-**Artículo 14.** - Los Regulados deberán establecer en los contratos, o en cualquier otro acuerdo de voluntades que celebren, la obligación de sus contratistas de apegarse a un Sistema de Administración que cumpla con los req uisitos establecidos por la Agencia, en materia de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente, cuando la ejecución de los mismos implique riesgos para la población, medio ambiente o las instalaciones.
+**Artículo 14.-** Los Regulados deberán establecer en los contratos, o en cualquier otro acuerdo de voluntades que celebren, la obligación de sus contratistas de apegarse a un Sistema de Administración que cumpla con los requisitos establecidos por la Agencia, en materia de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente, cuando la ejecución de los mismos implique riesgos para la población, medio ambiente o las instalaciones.
 
-**Artículo 15.** - La Agencia elaborará un informe anual de desempeño de los Sistemas de Administración del Sector, con el objeto de actualizar la normatividad en la materia de su competencia, conforme a las mejores prácticas y estándares internacionales.
+**Artículo 15.-** La Agencia elaborará un informe anual de desempeño de los Sistemas de Administración del Sector, con el objeto de actualizar la normatividad en la materia de su competencia, conforme a las mejores prácticas y estándares internacionales.
 
-**Artículo 16.** - Los Regulados deberán contar con un área responsable de la implementación, evaluación y mejora del Sistema de Administración.
+**Artículo 16.-** Los Regulados deberán contar con un área responsable de la implementación, evaluación y mejora del Sistema de Administración.
 
 **Artículo 17.-** El área a que se refiere el artículo anterior será responsable de:
 
@@ -290,29 +304,31 @@ Los Sistemas de Administración a los que alude el párrafo anterior deberán pr
 
 **IV.** Coordinar los trabajos internos para subsanar las irregularidades o incumplimientos de la normatividad externa e interna aplicable;
 
-**V.** Presentar anualmente a la Agencia un informe del cumplimiento de las ob ligaciones a su cargo, en la forma y términos que ella misma establezca mediante reglas de carácter general, y
+**V.** Presentar anualmente a la Agencia un informe del cumplimiento de las obligaciones a su cargo, en la forma y términos que ella misma establezca mediante reglas de carácter general, y
 
 **VI.** Las demás que le establezca la regulación que al efecto emita la Agencia.
 
-Las áreas responsables a que se refiere el artículo anterior ejer cerán sus funciones sin perjuicio de las que correspondan a los auditores externos que, en su caso, contrate el Regulado.
+Las áreas responsables a que se refiere el artículo anterior ejercerán sus funciones sin perjuicio de las que correspondan a los auditores externos que, en su caso, contrate el Regulado.
 
-**Artículo 18.-** Los Regulados podrán acreditar mediante el dictamen de auditores externos certificados por la Agencia el cumplimiento d e las obligaciones derivadas de las licencias, permisos, registros y autorizaciones, así como de las establecidas en el Sistema de Administración a que se refiere esta Ley. Lo anterior, sin perjuicio de las facultades de supervisión e inspección que direct amente puede llevar a cabo la Agencia a los Regulados.
+**Artículo 18.-** Los Regulados podrán acreditar mediante el dictamen de auditores externos certificados por la Agencia el cumplimiento de las obligaciones derivadas de las licencias, permisos, registros y autorizaciones, así como de las establecidas en el Sistema de Administración a que se refiere esta Ley. Lo anterior, sin perjuicio de las facultades de supervisión e inspección que directamente puede llevar a cabo la Agencia a los Regulados.
 
-**Artículo 19.** - La Agencia establecerá, mediante reglas de carácter general, las características y requisitos que deberán cumplir las personas interesadas en obtener la certificación como auditores externos del Sector Hidrocarburos, el procedimiento para llevar a cabo dicha certificación y las causas, requisitos y procedimientos aplicables para la anulación, revocación o cancelación de dichas certificaciones.
+**Artículo 19.-** La Agencia establecerá, mediante reglas de carácter general, las características y requisitos que deberán cumplir las personas interesadas en obtener la certificación como auditores externos del Sector Hidrocarburos, el procedimiento para llevar a cabo dicha certificación y las causas, requisitos y procedimientos aplicables para la anulación, revocación o cancelación de dichas certificaciones.
 
-Además, los citados auditores externos, la p ersona moral de la cual sean socios y los socios o personas que formen parte del equipo de auditoría, no deberán ubicarse en ninguno de los supuestos de falta de independencia que se establezcan en las reglas de carácter general, las que considerarán entre otros aspectos, vínculos financieros o de dependencia económica, y prestación de servicios adicionales al de auditoría.
+Además, los citados auditores externos, la persona moral de la cual sean socios y los socios o personas que formen parte del equipo de auditoría, no deberán ubicarse en ninguno de los supuestos de falta de independencia que se establezcan en las reglas de carácter general, las que considerarán entre otros aspectos, vínculos financieros o de dependencia económica, y prestación de servicios adicionales al de auditoría.
 
 En cualquier caso, el plazo durante el cual los auditores externos podrán prestar los servicios de auditoría externa a un mismo Regulado no podrá exceder de tres años.
 
-**Artículo 20.-** Sin perjuicio de sus facultades para supervisar directamente a los Regulados, la Agencia contará con facultades de supervisión y verificación, así como de revisión de escritorio o gabinete, respecto de los a uditores externos, a fin de verificar el cumplimiento de esta Ley y la observancia de las reglas de carácter general que de ella emanen.
+**Artículo 20.-** Sin perjuicio de sus facultades para supervisar directamente a los Regulados, la Agencia contará con facultades de supervisión y verificación, así como de revisión de escritorio o gabinete, respecto de los auditores externos, a fin de verificar el cumplimiento de esta Ley y la observancia de las reglas de carácter general que de ella emanen.
 
 Para tal efecto, la Agencia podrá emitir o reconocer normas y procedimientos de auditoría que deberán observar los auditores externos al dictaminar o emitir opiniones relativas a las actividades de los Regulados.
 
-**Artículo 21.-** El auditor externo estará obligado a conservar la documentación, información y demás elementos utilizados para elaborar su dictamen, informe u opi nión, por lo menos, durante un plazo de diez años. Para tales efectos, se podrán utilizar medios automatizados o digitalizados.
+**Artículo 21.-** El auditor externo estará obligado a conservar la documentación, información y demás elementos utilizados para elaborar su dictamen, informe u opinión, por lo menos, durante un plazo de diez años. Para tales efectos, se podrán utilizar medios automatizados o digitalizados.
 
-Capítulo IV Medidas de Seguridad
+Capítulo IV
 
-**Artículo 22.-** Cuando alguna obra o instalación represente un Riesgo Crítico en materia de Seg uridad Industrial, Seguridad Operativa o de protección al medio ambiente, la Agencia podrá ordenar cualquiera de las siguientes medidas de seguridad:
+Medidas de Seguridad
+
+**Artículo 22.-** Cuando alguna obra o instalación represente un Riesgo Crítico en materia de Seguridad Industrial, Seguridad Operativa o de protección al medio ambiente, la Agencia podrá ordenar cualquiera de las siguientes medidas de seguridad:
 
 **I.** Suspender trabajos relacionados con la construcción de obras e instalaciones;
 
@@ -324,39 +340,39 @@ Capítulo IV Medidas de Seguridad
 
 **V.** Inutilizar sustancias, materiales, equipos o accesorios.
 
-Al ejercer cualquiera de las medidas de seguridad previstas en el presente artículo, la Agencia deberá, de inmediato, dar aviso a la autoridad que hubiera emitido los permisos o autorizaciones re spectivas, para los efectos conducentes.
+Al ejercer cualquiera de las medidas de seguridad previstas en el presente artículo, la Agencia deberá, de inmediato, dar aviso a la autoridad que hubiera emitido los permisos o autorizaciones respectivas, para los efectos conducentes.
 
 **Artículo 23.-** Los Regulados que sean declarados responsables de los accidentes, daños y perjuicios ocasionados con motivo o en ejercicio de las actividades y trabajos que ejecuten, deberán pagar la remediación, las sanciones e indemnizaciones correspondientes de acuerdo con lo que las leyes determinen. Esta responsabilidad subsistirá aún en el caso de que el operador contrate el trabajo por medio de un intermediario.
 
-**Artículo 24.-** Contra los actos de la Agencia pod rá interponerse opcionalmente el recurso de revisión, conforme a la Ley Federal de Procedimiento Administrativo, o el juicio de nulidad conforme a la Ley Federal del Procedimiento Contencioso Administrativo.
+**Artículo 24.-** Contra los actos de la Agencia podrá interponerse opcionalmente el recurso de revisión, conforme a la Ley Federal de Procedimiento Administrativo, o el juicio de nulidad conforme a la Ley Federal del Procedimiento Contencioso Administrativo.
 
-Capítulo V Infracciones y Sanciones
+Capítulo V
+
+Infracciones y Sanciones
 
 **Artículo 25.-** La Agencia podrá sancionar las conductas que se describen a continuación, de acuerdo a lo siguiente:
 
 **I.** La restricción de acceso a instalaciones relacionadas con actividades del Sector, a los inspectores y verificadores, con multas de entre setenta y cinco mil a doscientas veinticinco mil veces el importe del salario mínimo general diario vigente en el Distrito Federal, en el momento de cometerse la infracción;
 
-**II.** El incumplimiento o entorpecimiento de la obligación de informar o reportar, conforme a las disposiciones jurídicas aplicables, cualquier situación relacionada con esta Ley, sus disposiciones reglamentarias o las reglas de carácter general que emita la Agencia, con multas
+**II.** El incumplimiento o entorpecimiento de la obligación de informar o reportar, conforme a las disposiciones jurídicas aplicables, cualquier situación relacionada con esta Ley, sus disposiciones reglamentarias o las reglas de carácter general que emita la Agencia, con multas de entre siete mil quinientas a ciento cincuenta mil veces el importe del salario mínimo general diario vigente en el Distrito Federal, en el momento de cometerse la infracción.
 
-de entre siete mil quinientas a ciento cincuenta mil veces el importe del salario mínimo general diario vigente en el Distrito Federal, en el momento de cometerse la infracción.
+La sanción a que se refiere el párrafo anterior también será aplicable a los terceros que operen por cuenta y orden de los Asignatarios o Contratistas que incumplan o entorpezcan la obligación de informar o reportar a las autoridades que correspondan conforme a lo establecido en las disposiciones aplicables;
 
-La sanción a que se refiere el párrafo anterior también será aplicable a los terceros que operen por cuenta y orden de los Asignatarios o Contrati stas que incumplan o entorpezcan la obligación de informar o reportar a las autoridades que correspondan conforme a lo establecido en las disposiciones aplicables;
-
-**III.** Proporcionar información falsa, alterada o simular registros relacionados con las mate rias competencia de esta Ley, en contravención de las disposiciones jurídicas aplicables, con multas de entre tres millones setecientas cincuenta mil a siete millones quinientas mil veces el importe del salario mínimo general diario vigente en el Distrito Federal, en el momento de cometerse la infracción, y
+**III.** Proporcionar información falsa, alterada o simular registros relacionados con las materias competencia de esta Ley, en contravención de las disposiciones jurídicas aplicables, con multas de entre tres millones setecientas cincuenta mil a siete millones quinientas mil veces el importe del salario mínimo general diario vigente en el Distrito Federal, en el momento de cometerse la infracción, y
 
 **IV.** Las violaciones a esta Ley, a la Ley de Hidrocarburos y a sus disposiciones reglamentarias, así como a la regulación, lineamientos y disposiciones administrativas, que sean competencia de la Agencia, podrán ser sancionadas con multas de entre setecientas cincuenta mil a siete millones quinientas mil veces el importe del salario mínimo general diario vigente en el Distrito Federal, en el momento de cometerse la infracción.
 
-En el caso de reincidencia, el monto de la multa podrá ser hasta por el doble del monto originalmente impuesto, así como la clausura definitiva de las instalaciones. Se considera reincidente al infractor que incurra más de una vez en conductas que impliquen infracciones a un mismo p recepto, en un periodo de dos años, contados a partir de la fecha en que se levante el acta en que se hizo constar la primera infracción.
+En el caso de reincidencia, el monto de la multa podrá ser hasta por el doble del monto originalmente impuesto, así como la clausura definitiva de las instalaciones. Se considera reincidente al infractor que incurra más de una vez en conductas que impliquen infracciones a un mismo precepto, en un periodo de dos años, contados a partir de la fecha en que se levante el acta en que se hizo constar la primera infracción.
 
 La Agencia podrá suspender o revocar las licencias, autorizaciones, permisos y registros, conforme a los términos previstos en las mismas.
 
-Sin perjuicio de las sanciones económicas aplicables, la Agencia podrá sancionar las violaciones graves o reiteradas a lo establecido en esta Ley y en la Ley de Hidrocarburos, con amonestación, suspensión, remoción o inhabilitación d el personal que preste sus servicios a un Asignatario o Contratista.
+Sin perjuicio de las sanciones económicas aplicables, la Agencia podrá sancionar las violaciones graves o reiteradas a lo establecido en esta Ley y en la Ley de Hidrocarburos, con amonestación, suspensión, remoción o inhabilitación del personal que preste sus servicios a un Asignatario o Contratista.
 
-Para la imposición de sanciones por infracciones en materia de protección al medio ambiente, la Agencia estará a lo dispuesto en la Ley General del Equilibrio Ecológico y la Protección a l Ambiente, la Ley General para la Prevención y Gestión Integral de los Residuos, la Ley General de Vida Silvestre, la Ley General de Desarrollo Forestal Sustentable y la Ley de Bioseguridad de Organismos Genéticamente Modificados.
+Para la imposición de sanciones por infracciones en materia de protección al medio ambiente, la Agencia estará a lo dispuesto en la Ley General del Equilibrio Ecológico y la Protección al Ambiente, la Ley General para la Prevención y Gestión Integral de los Residuos, la Ley General de Vida Silvestre, la Ley General de Desarrollo Forestal Sustentable y la Ley de Bioseguridad de Organismos Genéticamente Modificados.
 
 **Artículo 26.-** Para la imposición de las sanciones por infracciones a esta Ley se tomará en cuenta:
 
-**I.** La gravedad de la infracción, considerando principalmente los siguientes criterios: los daños que se hubieran producido a los bienes o a la salud de las personas, o la afectaci ón del medio ambiente o los recursos naturales;
+**I.** La gravedad de la infracción, considerando principalmente los siguientes criterios: los daños que se hubieran producido a los bienes o a la salud de las personas, o la afectación del medio ambiente o los recursos naturales;
 
 **II.** Las condiciones económicas del infractor;
 
@@ -364,15 +380,21 @@ Para la imposición de sanciones por infracciones en materia de protección al m
 
 **IV.** El carácter intencional o negligente de la acción u omisión constitutiva de la infracción, y
 
-**V.** El beneficio directam ente obtenido por el infractor por los actos relacionados con la imposición de sanciones.
+**V.** El beneficio directamente obtenido por el infractor por los actos relacionados con la imposición de sanciones.
 
-En caso de que el infractor realice las medidas correctivas o de urgente aplicación o subsane las irregularidades en que hubiere incurrido, previamente a que la Agen cia imponga una sanción, dicha autoridad podrá considerar tal situación como atenuante de la infracción cometida.
+En caso de que el infractor realice las medidas correctivas o de urgente aplicación o subsane las irregularidades en que hubiere incurrido, previamente a que la Agencia imponga una sanción, dicha autoridad podrá considerar tal situación como atenuante de la infracción cometida.
 
-TÍTULO TERCERO Integración y Funcionamiento de la Agencia
+**TÍTULO TERCERO**
 
-Capítulo I Disposiciones Generales
+Integración y Funcionamiento de la Agencia
 
-**Artículo 27.-** La Agencia estará a cargo de la persona Titular de la Dirección Ejecutiva, quien será designada y removida libremente por el Ejecutivo Federal. Párrafo reformado DOF 11-05-2022
+Capítulo I
+
+Disposiciones Generales
+
+**(REFORMADO PRIMER PÁRRAFO, D.O.F. 11 DE MAYO DE 2022)**
+
+**Artículo 27.-** La Agencia estará a cargo de la persona Titular de la Dirección Ejecutiva, quien será designada y removida libremente por el Ejecutivo Federal.
 
 La Agencia contará con las unidades administrativas necesarias para el cumplimiento de sus atribuciones, conforme se establezca en su Reglamento Interior.
 
@@ -386,7 +408,7 @@ La Agencia contará con las unidades administrativas necesarias para el cumplimi
 
 **Artículo 29.-** Los servidores públicos de la Agencia que se especifiquen en el Reglamento Interior, podrán tratar asuntos de su competencia con personas que representen los intereses de los Regulados únicamente mediante audiencia.
 
-De cada audiencia se llevará un registro que deberá contener, al menos, el lugar, la fecha, la hora de inicio y la hora de conclusión de la audiencia, los nombres completos de las personas que estuvieron presentes y los temas tratados. Esta información deberá publicarse en la página de internet d e la Agencia.
+De cada audiencia se llevará un registro que deberá contener, al menos, el lugar, la fecha, la hora de inicio y la hora de conclusión de la audiencia, los nombres completos de las personas que estuvieron presentes y los temas tratados. Esta información deberá publicarse en la página de internet de la Agencia.
 
 Las audiencias serán grabadas y almacenadas en medios electrónicos, ópticos o de cualquier otra tecnología, manteniéndose la información reservada, salvo para la Secretaría, el Director Ejecutivo de la Agencia y los órganos de fiscalización de la Federación.
 
@@ -394,23 +416,27 @@ Lo dispuesto en el presente artículo será sin perjuicio de la participación d
 
 El Director Ejecutivo de la Agencia, mediante acuerdo administrativo interno, emitirá los lineamientos que regulen el desarrollo de las audiencias previstas en el presente artículo.
 
-Capítulo II Del Director Ejecutivo
+Capítulo II
+
+Del Director Ejecutivo
 
 **Artículo 30.-** El Director Ejecutivo deberá reunir los siguientes requisitos:
 
 **I.** Ser ciudadano mexicano;
 
-**II.** Poseer título profesional en cu alquiera de las ingenierías, ciencias físico -matemáticas, biológicas, químicas, de las ciencias sociales y administrativas, que se vinculen con las actividades del Sector Hidrocarburos;
+**II.** Poseer título profesional en cualquiera de las ingenierías, ciencias físico-matemáticas, biológicas, químicas, de las ciencias sociales y administrativas, que se vinculen con las actividades del Sector Hidrocarburos;
 
-**III.** Haber desempeñado cargos de alta responsabilidad, cuando menos c inco años, en actividades profesionales en el sector público o privado, sustancialmente relacionadas con las materias objeto de la Agencia;
+**III.** Haber desempeñado cargos de alta responsabilidad, cuando menos cinco años, en actividades profesionales en el sector público o privado, sustancialmente relacionadas con las materias objeto de la Agencia;
 
-**IV.** No haber sido Secretario o Subsecretario de Estado, Procurador o Fiscal General de la República, senador, dipu tado federal o local, Gobernador de algún Estado o Jefe de Gobierno de la Ciudad de México, durante el año previo a su nombramiento; Fracción reformada DOF 20-05-2021
+**(REFORMADA, D.O.F. 20 DE MAYO DE 2021)**
 
-**V.** No haber sido accionista, consejero, directivo, comisario o apoderado de empresas del Sector Hidrocarburos, asociadas o comercialmente relacionadas con Regulados, dentro del año inmediato anterior a su designación o tener parentesco consanguíneo en línea recta hasta el segundo grado con dichos accionistas, consejeros, directivos, comisario s o apoderados, y
+**IV.** No haber sido Secretario o Subsecretario de Estado, Procurador o Fiscal General de la República, senador, diputado federal o local, Gobernador de algún Estado o Jefe de Gobierno de la Ciudad de México, durante el año previo a su nombramiento;
+
+**V.** No haber sido accionista, consejero, directivo, comisario o apoderado de empresas del Sector Hidrocarburos, asociadas o comercialmente relacionadas con Regulados, dentro del año inmediato anterior a su designación o tener parentesco consanguíneo en línea recta hasta el segundo grado con dichos accionistas, consejeros, directivos, comisarios o apoderados, y
 
 **VI.** No haber sido sentenciado por delito doloso que haya ameritado pena privativa de la libertad por más de un año.
 
-El Director Ejecutivo no podrá desempeñar durante el periodo de su encargo ninguna otra comisión o empleo particular o d entro de la administración pública, a excepción de cargos o empleos de carácter docente y los honoríficos.
+El Director Ejecutivo no podrá desempeñar durante el periodo de su encargo ninguna otra comisión o empleo particular o dentro de la administración pública, a excepción de cargos o empleos de carácter docente y los honoríficos.
 
 **Artículo 31.-** Son facultades del Director Ejecutivo:
 
@@ -420,21 +446,21 @@ El Director Ejecutivo no podrá desempeñar durante el periodo de su encargo nin
 
 **III.** Nombrar y remover libremente a los servidores públicos de la Agencia;
 
-**IV.** Expedir las reglas y disposiciones de carácter general en materia de Seguridad Industrial y Seguridad Operativa, así como las normas oficiales mexicanas en materia de protección ambiental, que sean competencia de la Agencia conforme a la presente Ley ;
+**IV.** Expedir las reglas y disposiciones de carácter general en materia de Seguridad Industrial y Seguridad Operativa, así como las normas oficiales mexicanas en materia de protección ambiental, que sean competencia de la Agencia conforme a la presente Ley;
 
 **V.** Formular el anteproyecto de presupuesto anual y presentarlo ante la Secretaría para su entrega a la Secretaría de Hacienda y Crédito Público;
 
 **VI.** Ejercer o autorizar el ejercicio del presupuesto autorizado a la Agencia;
 
-**VII.** Participar en las negoc iaciones de tratados internacionales que lleve a cabo el Ejecutivo Federal en las materias de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente que tengan vinculación con el Sector, y
+**VII.** Participar en las negociaciones de tratados internacionales que lleve a cabo el Ejecutivo Federal en las materias de Seguridad Industrial, Seguridad Operativa y protección al medio ambiente que tengan vinculación con el Sector, y
 
 **VIII.** Las demás que sean necesarias para el cumplimiento de sus atribuciones y de la presente Ley.
 
 El Director Ejecutivo podrá delegar la representación legal de la Agencia y sus facultades en favor de los servidores públicos previstos en el Reglamento Interior respectivo, mediante acuerdo delegatorio que deberá publicarse en el Diario Oficial de la Federación, con excepción de la prevista en la fracción IV del presente artículo.
 
-**Artículo 32.** - La Agencia contará con un Consejo Técnico, el cual apoyará el desarrollo de sus actividades y servirá como ins tancia de coordinación entre las dependencias, órganos y entidades de la Administración Pública Federal con atribuciones relacionadas con las materias de esta Ley.
+**Artículo 32.-** La Agencia contará con un Consejo Técnico, el cual apoyará el desarrollo de sus actividades y servirá como instancia de coordinación entre las dependencias, órganos y entidades de la Administración Pública Federal con atribuciones relacionadas con las materias de esta Ley.
 
-El Consejo Técnico estará integrado por los titulares de las secretarías de Medio Ambiente y Recursos Naturales, quien lo presidirá; de Gobernación; de Marina; de Hacienda y Crédito Público; de Energía; de Comunicaciones y Transportes; del Trabajo y Previsión Social; de Salud; de la Comisión Nacional de Hidrocarburos; de la Comisión Reguladora d e Energía; de la Comisión Nacional del Agua; de la Comisión Nacional de Áreas Naturales Protegidas y a el Instituto Nacional de Ecología y Cambio Climático. Los miembros titulares podrán nombrar un suplente con nivel mínimo de Director General o su equival ente.
+El Consejo Técnico estará integrado por los titulares de las secretarías de Medio Ambiente y Recursos Naturales, quien lo presidirá; de Gobernación; de Marina; de Hacienda y Crédito Público; de Energía; de Comunicaciones y Transportes; del Trabajo y Previsión Social; de Salud; de la Comisión Nacional de Hidrocarburos; de la Comisión Reguladora de Energía; de la Comisión Nacional del Agua; de la Comisión Nacional de Áreas Naturales Protegidas y a (sic) el Instituto Nacional de Ecología y Cambio Climático. Los miembros titulares podrán nombrar un suplente con nivel mínimo de Director General o su equivalente.
 
 El Consejo Técnico podrá invitar a sus sesiones a representantes de las demás dependencias y entidades de la Administración Pública Federal, los cuales podrán intervenir con voz, pero sin voto.
 
@@ -454,21 +480,25 @@ La periodicidad de las sesiones del Consejo Técnico y las formalidades para su 
 
 **V.** Aportar elementos para el diseño y formulación de políticas nacionales, relacionadas con las materias objeto de la presente Ley, y
 
-**VI.** Las demás que se señalen en el Reglamento Interior y l as necesarias para el cumplimiento de su objeto.
+**VI.** Las demás que se señalen en el Reglamento Interior y las necesarias para el cumplimiento de su objeto.
 
-**Artículo 34.-** La persona Titular de la Dirección Ejecutiva se apoyará de un Comité Científico, órgano de consulta, que tendrá como objeto proporcionar elementos t écnicos para la toma de decisiones sobre los temas que por su complejidad requieran el sustento de especialistas en la materia de que se trate.
+**(REFORMADO, D.O.F. 11 DE MAYO DE 2022)**
 
-Dicho Comité estará integrado de manera paritaria por cinco vocalías, nombradas por la persona Titular de la Dir ección Ejecutiva. Su desempeño será honorífico y tendrán las facultades que se establezcan en el Reglamento Interior. Artículo reformado DOF 11-05-2022
+**Artículo 34.-** La persona Titular de la Dirección Ejecutiva se apoyará de un Comité Científico, órgano de consulta, que tendrá como objeto proporcionar elementos técnicos para la toma de decisiones sobre los temas que por su complejidad requieran el sustento de especialistas en la materia de que se trate.
+
+Dicho Comité estará integrado de manera paritaria por cinco vocalías, nombradas por la persona Titular de la Dirección Ejecutiva. Su desempeño será honorífico y tendrán las facultades que se establezcan en el Reglamento Interior.
 
 **Artículo 35.-** Los servidores públicos de la Agencia podrán contar con un seguro de responsabilidad civil y asistencia legal, el cual no formará parte de las prestaciones que por norma les corresponden.
 
-Para tal fin, la Agencia creará anu almente las provisiones presupuestarias correspondientes en su presupuesto de gasto de operación.
+Para tal fin, la Agencia creará anualmente las provisiones presupuestarias correspondientes en su presupuesto de gasto de operación.
 
-TÍTULO CUARTO Ingresos y Presupuesto
+**TÍTULO CUARTO**
+
+Ingresos y Presupuesto
 
 Capítulo Único
 
-**Artículo 36.-** La Agencia podrá disponer de los ingresos derivados de los derechos y aprovechamientos qu e se establezcan por los servicios que correspondan conforme a sus atribuciones para financiar su presupuesto total.
+**Artículo 36.-** La Agencia podrá disponer de los ingresos derivados de los derechos y aprovechamientos que se establezcan por los servicios que correspondan conforme a sus atribuciones para financiar su presupuesto total.
 
 **Artículo 37.-** El fideicomiso público al cual se deberán aportar los remanentes de ingresos propios excedentes que obtenga la Agencia, se sujetará a lo siguiente:
 
@@ -476,11 +506,11 @@ Capítulo Único
 
 **II.** La Agencia instruirá al fiduciario la aplicación de los recursos de este fideicomiso a la cobertura de gastos necesarios para cumplir con sus funciones en posteriores ejercicios fiscales, respetando los principios a los que hace referencia el artículo 134 de la Constitución Política de los Estados Unidos Mexicanos y estando sujetos a la evaluación y al control de la Auditoría Superior de la Federación y de la Secretaría de la Función Pública;
 
-**III.** No podrán acumular recursos sup eriores al equivalente de tres veces el presupuesto anual de la Agencia, tomando como referencia el presupuesto aprobado para el último ejercicio fiscal. En caso de que existan recursos adicionales, éstos serán transferidos a la Tesorería de la Federación;
+**III.** No podrán acumular recursos superiores al equivalente de tres veces el presupuesto anual de la Agencia, tomando como referencia el presupuesto aprobado para el último ejercicio fiscal. En caso de que existan recursos adicionales, éstos serán transferidos a la Tesorería de la Federación;
 
 **IV.** Deberá registrarse y renovar anualmente su registro ante la Secretaría de Hacienda y Crédito Público para efectos del seguimiento de los recursos públicos, en términos de la Ley Federal de Presupuesto y Responsabilidad Hacendaria y su Reglamento;
 
-**V.** La Agencia deberá incluir en los informes trimestrales y en la Cuenta Pública un reporte del cumplimiento de la misión y fines del fideicomiso, así como de los recursos ejercidos para tal efecto; así como poner esta información a disposición del público e n general, a través de su respectiva página de Internet, y
+**V.** La Agencia deberá incluir en los informes trimestrales y en la Cuenta Pública un reporte del cumplimiento de la misión y fines del fideicomiso, así como de los recursos ejercidos para tal efecto; así como poner esta información a disposición del público en general, a través de su respectiva página de Internet, y
 
 **VI.** Estará sujeto a las obligaciones en materia de transparencia conforme a la ley de la materia.
 
@@ -496,17 +526,17 @@ Para efecto de designar por primera vez al Director Ejecutivo de la Agencia, no 
 
 **Tercero.** El Ejecutivo Federal expedirá el Reglamento Interior de la Agencia dentro de los siguientes ciento ochenta días naturales contados a partir del nombramiento del Director Ejecutivo.
 
-**Cuarto.** La Secretaría, la Secretaría de Energía, la Comisión Nacional de Hi drocarburos y la Comisión Reguladora de Energía continuarán despachando los asuntos que les competen, con base en las disposiciones legales aplicables, hasta la entrada en vigor del Reglamento Interior de la Agencia.
+**Cuarto.** La Secretaría, la Secretaría de Energía, la Comisión Nacional de Hidrocarburos y la Comisión Reguladora de Energía continuarán despachando los asuntos que les competen, con base en las disposiciones legales aplicables, hasta la entrada en vigor del Reglamento Interior de la Agencia.
 
-En los asuntos que se encuentren en tr ámite a la entrada en vigor del Reglamento Interior de la Agencia, la autoridad que los tenga a su cargo decretará una suspensión del procedimiento y los remitirá a la Agencia en un plazo que no exceda de quince días hábiles.
+En los asuntos que se encuentren en trámite a la entrada en vigor del Reglamento Interior de la Agencia, la autoridad que los tenga a su cargo decretará una suspensión del procedimiento y los remitirá a la Agencia en un plazo que no exceda de quince días hábiles.
 
-La Agencia reanudará los proc edimientos correspondientes en un plazo máximo de diez días hábiles posteriores a su recepción.
+La Agencia reanudará los procedimientos correspondientes en un plazo máximo de diez días hábiles posteriores a su recepción.
 
-Los recursos de revisión en contra de los actos emitidos por las unidades administrativas de la Secretaría antes de la entrada en vigor de la Agencia, continua rán su trámite y serán resueltos por dicha dependencia del Ejecutivo Federal.
+Los recursos de revisión en contra de los actos emitidos por las unidades administrativas de la Secretaría antes de la entrada en vigor de la Agencia, continuarán su trámite y serán resueltos por dicha dependencia del Ejecutivo Federal.
 
-**Quinto.** En tanto no entren en vigor las disposiciones administrativas de carácter general y normas oficiales mexicanas que expida la Agencia, continuarán vigentes y serán obliga torias para todos los Regulados, los lineamientos, disposiciones técnicas y administrativas, acuerdos, criterios, así como normas oficiales mexicanas, emitidas por la Secretaría, la Secretaría de Energía, la Comisión Nacional de Hidrocarburos y la Comisión Reguladora de Energía, que regulen las actividades objeto de la presente Ley, y que hayan sido publicadas en el Diario Oficial de la Federación o en los portales de internet de dichas dependencias u órganos reguladores.
+**Quinto.** En tanto no entren en vigor las disposiciones administrativas de carácter general y normas oficiales mexicanas que expida la Agencia, continuarán vigentes y serán obligatorias para todos los Regulados, los lineamientos, disposiciones técnicas y administrativas, acuerdos, criterios, así como normas oficiales mexicanas, emitidas por la Secretaría, la Secretaría de Energía, la Comisión Nacional de Hidrocarburos y la Comisión Reguladora de Energía, que regulen las actividades objeto de la presente Ley, y que hayan sido publicadas en el Diario Oficial de la Federación o en los portales de internet de dichas dependencias u órganos reguladores.
 
-**Sexto.** La Secretaría, la Secretarí a de Energía, la Comisión Nacional de Hidrocarburos, la Comisión Reguladora de Energía y Petróleos Mexicanos deberán instaurar un procedimiento de coordinación con la Agencia, a fin de transmitir toda la información, procedimientos, expedientes, estadístic a y cualquier otra documentación que tengan en su poder, correspondiente a las atribuciones, competencias y facultades de la Agencia.
+**Sexto.** La Secretaría, la Secretaría de Energía, la Comisión Nacional de Hidrocarburos, la Comisión Reguladora de Energía y Petróleos Mexicanos deberán instaurar un procedimiento de coordinación con la Agencia, a fin de transmitir toda la información, procedimientos, expedientes, estadística y cualquier otra documentación que tengan en su poder, correspondiente a las atribuciones, competencias y facultades de la Agencia.
 
 **Séptimo.** La Cámara de Diputados realizará las previsiones presupuestales necesarias para el efecto de que la Agencia cuente con el presupuesto necesario para iniciar sus funciones.
 
@@ -516,14 +546,88 @@ Los oficiales mayores o equivalentes serán responsables del proceso de transfer
 
 **Octavo.** Se derogan todas aquellas disposiciones que contravengan a la presente Ley.
 
-**Noveno.** Las autorizaciones que se hubieren expedido por las autoridades competentes, a la fecha de entrada en vigo r de esta Ley, continuarán vigentes en los términos y condiciones en que fueron expedidas.
+**Noveno.** Las autorizaciones que se hubieren expedido por las autoridades competentes, a la fecha de entrada en vigor de esta Ley, continuarán vigentes en los términos y condiciones en que fueron expedidas.
 
 ## Transitorios
 
-**PRIMERO.** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
+**PRIMERO.** El presente Decreto entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación.
 
-**SEGUNDO.** La Cámara de Dipu tados realizará las previsiones presupuestales necesarias para que las dependencias y entidades puedan cumplir las atribuciones conferidas en este Decreto.
+**SEGUNDO.** La Cámara de Diputados realizará las previsiones presupuestales necesarias para que las dependencias y entidades puedan cumplir las atribuciones conferidas en este Decreto.
 
-México, D.F., a 31 de julio de 2014.- Sen. Raúl Cervantes Andrade, Presidente.- Dip. José González Morfín, Presidente. - Sen. María Elena Barrera Tapia , Secretaria. - Dip. Xavier Azuara Zúñiga , Secretario.- Rúbricas."
+México, D.F., a 31 de julio de 2014.- Sen. Raúl Cervantes Andrade, Presidente.- Dip. José González Morfín, Presidente.- Sen. María Elena Barrera Tapia, Secretaria.- Dip. Xavier Azuara Zúñiga, Secretario.- Rúbricas."
 
-En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su d ebida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a once de agosto de dos mil catorce .- Enrique Peña Nieto .- Rúbrica.- El Secretario de Gobernación, Miguel Án gel Osorio Chong.- Rúbrica.
+En cumplimiento de lo dispuesto por la fracción I del Artículo 89 de la Constitución Política de los Estados Unidos Mexicanos, y para su debida publicación y observancia, expido el presente Decreto en la Residencia del Poder Ejecutivo Federal, en la Ciudad de México, Distrito Federal, a once de agosto de dos mil catorce.- Enrique Peña Nieto.- Rúbrica.- El Secretario de Gobernación, Miguel Ángel Osorio Chong.- Rúbrica.
+
+**D.O.F. 20 DE MAYO DE 2021.**
+
+**Primero.** El presente Decreto entrará en vigor al día siguiente de su publicación en el Diario Oficial de la Federación y se expide en cumplimento al artículo Décimo Tercero transitorio del Decreto por el que se expidió la Ley Orgánica de la Fiscalía General de la República.
+
+**Segundo.** Se abroga la Ley Orgánica de la Fiscalía General de la República.
+
+Todas las referencias normativas a la Procuraduría General de la República o del Procurador General de la República, se entenderán referidas a la Fiscalía General de la República o a su persona titular, respectivamente, en los términos de sus funciones constitucionales vigentes.
+
+**Tercero.** Las designaciones, nombramientos y procesos en curso para designación, realizados de conformidad con las disposiciones constitucionales y legales, relativos a la persona titular de la Fiscalía General de la República, las Fiscalías Especializadas, el Órgano Interno de Control y las demás personas titulares de las unidades administrativas, órganos desconcentrados y órganos que se encuentren en el ámbito de la Fiscalía General de la República, así como de las personas integrantes del Consejo Ciudadano de la Fiscalía General de la República, continuarán vigentes por el periodo para el cual fueron designados o hasta la conclusión en el ejercicio de la función o, en su caso, hasta la terminación del proceso pendiente.
+
+**Cuarto.** La persona titular de la Fiscalía General de la República contará con un término de noventa días naturales siguientes a la entrada en vigor del presente Decreto, para expedir el Estatuto orgánico de la Fiscalía General de la República y de ciento ochenta días naturales, contados a partir de la expedición de éste, para expedir el Estatuto del Servicio Profesional de Carrera.
+
+En tanto se expiden los Estatutos y normatividad, continuarán aplicándose las normas y actos jurídicos que se han venido aplicando, en lo que no se opongan al presente Decreto.
+
+Los instrumentos jurídicos, convenios, acuerdos interinstitucionales, contratos o actos equivalentes, celebrados o emitidos por la Procuraduría General de la República o la Fiscalía General de la República se entenderán como vigentes y obligarán en sus términos a la Institución, en lo que no se opongan al presente Decreto, sin perjuicio del derecho de las partes a ratificarlos, modificarlos o rescindirlos posteriormente o, en su caso, de ser derogados o abrogados.
+
+**Quinto.** A partir de la entrada en vigor de este Decreto quedará desincorporado de la Administración Pública Federal el organismo descentralizado denominado Instituto Nacional de Ciencias Penales que pasará a ser un órgano con personalidad jurídica y patrimonio propio, que gozará de autonomía técnica y de gestión, dentro del ámbito de la Fiscalía General de la República.
+
+Las personas servidoras públicas que en ese momento se encuentren prestando sus servicios para el Instituto Nacional de Ciencias Penales tendrán derecho a participar en el proceso de evaluación para transitar al servicio profesional de carrera.
+
+Para acceder al servicio profesional de carrera, el personal que deseé continuar prestando sus servicios al Instituto Nacional de Ciencias Penales deberá sujetarse al proceso de evaluación según disponga el Estatuto del Servicio Profesional de Carrera, dándose por terminada aquella relación con aquellos servidores públicos que no se sometan o no acrediten el proceso de evaluación.
+
+El Instituto Nacional de Ciencias Penales deberá terminar sus relaciones laborales con sus personas trabajadoras una vez que se instale el servicio profesional de carrera, conforme al programa de liquidación del personal que autorice la Junta de Gobierno, hasta que esto no suceda, las relaciones laborales subsistirán.
+
+A la entrada en vigor de este Decreto, las personas integrantes de la Junta de Gobierno del Instituto Nacional de Ciencias Penales pertenecientes a la Administración Pública Federal dejarán el cargo, y sus lugares serán ocupados por las personas que determine la persona titular de la Fiscalía General de la República.
+
+Dentro de los sesenta días naturales siguientes a la entrada en vigor de este Decreto, la Junta de Gobierno emitirá un nuevo Estatuto orgánico y establecerá un servicio profesional de carrera, así como un programa de liquidación del personal que, por cualquier causa, no transite al servicio profesional de carrera que se instale.
+
+Los recursos materiales, financieros y presupuestales, incluyendo los bienes muebles, con los que cuente el Instituto a la entrada en vigor del presente Decreto, pasarán al Instituto Nacional de Ciencias Penales de la Fiscalía General de la República conforme al Décimo Primero Transitorio del presente Decreto.
+
+**Sexto.** El conocimiento y resolución de los asuntos que se encuentren en trámite a la entrada en vigor del presente Decreto o que se inicien con posterioridad a éste, corresponderá a las unidades competentes, en términos de la normatividad aplicable o a aquellas que de conformidad con las atribuciones que les otorga el presente Decreto, asuman su conocimiento, hasta en tanto se expiden los Estatutos y demás normatividad derivada del presente Decreto.
+
+**Séptimo.** El personal que a la fecha de entrada en vigor del presente Decreto tenga nombramiento o Formato Único de Personal expedido por la entonces Procuraduría General de la República, conservará los derechos que haya adquirido en virtud de su calidad de persona servidora pública, con independencia de la denominación que corresponda a sus actividades o naturaleza de la plaza que ocupe. Para acceder al servicio profesional de carrera el personal que deseé continuar prestando sus servicios con la Fiscalía General de la República deberá sujetarse al proceso de evaluación según disponga el Estatuto del servicio profesional de carrera. Se dará por terminada aquella relación con aquellas personas servidoras públicas que no se sometan o no acrediten el proceso de evaluación.
+
+El personal contratado por la Fiscalía General de la República se sujetará a la vigencia de su nombramiento, de conformidad con los Lineamientos L/001/19 y L/003/19, por los que se regula la contratación del personal de transición, así como al personal adscrito a la entonces Procuraduría General de la República que continúa en la Fiscalía General de la República, así como para el personal de transición.
+
+**Octavo.** Las personas servidoras públicas que cuenten con nombramiento o Formato Único de Personal expedido por la entonces Procuraduría General de la República a la fecha de entrada en vigor de este Decreto y que, por cualquier causa, no transiten al servicio profesional de carrera deberán adherirse a los programas de liquidación que para tales efectos se expidan.
+
+**Noveno.** La persona titular de la Oficialía Mayor contará con el plazo de noventa días naturales para constituir el Fideicomiso denominado “Fondo para el Mejoramiento de la Procuración de Justicia” o modificar el objeto de cualquier instrumento jurídico ya existente de naturaleza igual, similar o análoga.
+
+**Décimo.** La persona titular de la Oficialía Mayor emitirá los lineamientos para la transferencia de recursos humanos, materiales, financieros o presupuestales, incluyendo los muebles, con los que cuente la Fiscalía General de la República en el momento de la entrada en vigor de este Decreto, así como para la liquidación de pasivos y demás obligaciones que se encuentren pendientes respecto de la extinción de la Procuraduría General de la República.
+
+Queda sin efectos el Plan Estratégico de Transición establecido en el artículo Noveno transitorio de la Ley Orgánica de la Fiscalía General de la República que se abroga a través del presente Decreto.
+
+**Décimo Primero.** Los bienes inmuebles que sean propiedad de la Fiscalía General de la República, o de los órganos que se encuentren dentro su ámbito o de la Federación que, a la fecha de entrada en vigor del presente Decreto se encuentren dados en asignación o destino a la Fiscalía General de la República, pasarán a formar parte de su patrimonio.
+
+Los bienes muebles y demás recursos materiales, financieros o presupuestales, que hayan sido asignados o destinados, a la Fiscalía General de la República pasarán a formar parte de su patrimonio a la entrada en vigor del presente Decreto.
+
+**Décimo Segundo.** La persona titular de la Fiscalía General de la República contará con un plazo de un año a partir de la publicación del presente Decreto para emitir el Plan Estratégico de Procuración de Justicia de la Fiscalía General de la República, con el que se conducirá la labor sustantiva de la Institución conforme a la obligación a que refiere el artículo 88 del presente Decreto. Mismo que deberá ser presentado por la persona titular de la Fiscalía General de la República en términos del párrafo tercero del artículo 88 del presente Decreto.
+
+El Plan Estratégico de Procuración de Justicia se presentará ante el Senado de la República, durante el segundo periodo ordinario de sesiones, en su caso, seis meses después de la entrada en vigor del presente Decreto.
+
+Para la emisión del Plan Estratégico de Procuración de Justicia, la Fiscalía General de la República contará con la opinión del Consejo Ciudadano. La falta de instalación de dicho Consejo Ciudadano no impedirá la presentación del Plan Estratégico de Procuración de Justicia.
+
+**Décimo Tercero.** Las unidades administrativas de la Fiscalía General de la República que a la fecha de entrada en vigor del presente Decreto se encargan de los procedimientos relativos a las responsabilidades administrativas de las personas servidoras públicas de la Fiscalía General de la República, tendrán el plazo de noventa días naturales para remitirlos al Órgano Interno de Control, para que se encargue de su conocimiento y resolución, atendiendo a la competencia que se prevé en el presente Decreto.
+
+**Décimo Cuarto.** Por lo que hace a la fiscalización del Instituto Nacional de Ciencias Penales, corresponderá al Órgano Interno de Control de la Fiscalía General de la República, a la entrada en vigor del presente Decreto, sin perjuicio de las atribuciones que correspondan a la Auditoría Superior de la Federación.
+
+Los expedientes iniciados y pendientes de trámite a la entrada en vigor del presente Decreto, serán resueltos por la Secretaría de la Función Pública.
+
+Por cuanto hace a la estructura orgánica, así como a los recursos materiales, financieros o presupuestales del Órgano Interno de Control en el Instituto Nacional de Ciencias Penales, pasarán al Órgano Interno de Control de la Fiscalía General de la República.
+
+**Décimo Quinto.** Los bienes que hayan sido asegurados por la Procuraduría General de la República o Fiscalía General de la República, con anterioridad a la entrada en vigor de este Decreto, que sean susceptibles de administración o se determine su destino legal, se pondrán a disposición del Instituto para Devolver al Pueblo lo Robado, conforme a la legislación aplicable.
+
+**Décimo Sexto.** Quedan derogadas todas las disposiciones que se opongan a este Decreto.
+
+**D.O.F. 11 DE MAYO DE 2022.**
+
+**Primero.** El presente Decreto entrará en vigor el día siguiente al de su publicación en el Diario Oficial de la Federación.
+
+**Segundo.** De acuerdo con el artículo transitorio Tercero del Decreto por el que se reforman los artículos 2, 4, 35, 41, 52, 53, 56, 94, y 115; de la Constitución Política de los Estados Unidos Mexicanos, en materia de Paridad entre Géneros, se deberá observar el principio de paridad de manera progresiva, a partir de las nuevas designaciones y nombramientos que correspondan, de conformidad con la ley.
+
+**Tercero.** Todas las obligaciones que se generen con la entrada en vigor del presente Decreto se cubrirán con cargo al presupuesto aprobado a los ejecutores de gasto responsables para el ejercicio fiscal en curso y subsecuentes, por lo que no se autorizarán recursos adicionales para tales efectos y, en caso de que se realice alguna modificación a su estructura orgánica, está también deberá ser cubierta con su presupuesto autorizado y conforme a las disposiciones jurídicas aplicables.

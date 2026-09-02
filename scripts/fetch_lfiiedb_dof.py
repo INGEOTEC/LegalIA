@@ -16,8 +16,8 @@ no checkpoint and no general script (`fetch_scjn_legislacion.py`,
 **Caso: una ley nueva, sin historia de reformas, que la SCJN no indexa.**
 
 La **LEY para el Fomento de la Inversión en Infraestructura Estratégica para
-el Desarrollo con Bienestar** (`lfiiedb`) está en el catálogo de la Cámara de
-Diputados, con `actualizado` 2026-04-09, pero `buscar()` (`nota2md/scjn.py`)
+el Desarrollo con Bienestar** (`lfiiedb`) está en el catálogo, con
+`actualizado` 2026-04-09, pero `buscar()` (`nota2md/scjn.py`)
 regresa **0 candidatos** para su nombre exacto: la SCJN todavía no la indiza
 —mismo patrón que `lfca`—, y no es un problema de texto de búsqueda ni de
 paginación del grid de resultados (eso ya se cerró para `lisr` en #143). No
@@ -37,7 +37,7 @@ indexada, así que no hay historia que recuperar de ningún lado.
   y se reforman y adicionan diversas disposiciones de la Ley Federal de
   Presupuesto y Responsabilidad Hacendaria."
 - `fecha`: 09-04-2026 — coincide exactamente con el `actualizado` del
-  catálogo de Diputados; no hay nada que reconciliar.
+  catálogo; no hay nada que reconciliar.
 - Trae `cadenaContenido`, así que alcanza la ruta HTML de `nota2md`
   (`legal_provisions(..., source="html")`): no hace falta OCR ni `dof2md`.
 
@@ -122,7 +122,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "no
 
 from nota2md.builder import fetch_nota, legal_provisions  # noqa: E402
 
-#: Diputados' own name for this instrument, and the directory
+#: The catalogue's own name for this instrument, and the directory
 #: `slug_instrumento` would pick for it.
 NOMBRE_CATALOGO = (
     "LEY para el Fomento de la Inversión en Infraestructura Estratégica "
