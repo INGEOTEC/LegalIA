@@ -3,20 +3,20 @@ their `akn_type` is drawn from.
 
 The vocabulary is Akoma Ntoso's (OASIS LegalDocML, the standard issue #91
 reviewed and settled on), but **this package never emits Akoma Ntoso XML** —
-that conversion already exists, in `nota2md/akoma_ntoso.py`. What is borrowed
-is the naming: the element names in `AknType`, the `eId` convention, and the
-`refersTo` escape hatch for the two Mexican structures the standard has no
-element for.
+no converter to it exists anywhere in this project (an earlier one that lived
+in `nota2md` was removed in issue #168). What is borrowed is the naming: the
+element names in `AknType`, the `eId` convention, and the `refersTo` escape
+hatch for the two Mexican structures the standard has no element for.
 
-That distinction is what makes the tree here *more* faithful to the source
-than the XML converter can be. Akoma Ntoso's `hierarchy` content model is a
+That distinction is what makes the tree here more faithful to the source than
+an XML conversion could be. Akoma Ntoso's `hierarchy` content model is a
 strict either/or — an element has a flat `content` **or** hierarchical
 children, never both — and a Mexican article routinely has both: an
 introductory paragraph, then its fracciones, then one or more closing
-paragraphs. `nota2md/akoma_ntoso.py` has to choose one and flatten; this tree
-does not, and keeps the article as it actually reads. See #160 for the
-`is_chapeau`/`is_tail` flags that let a later XML conversion make that choice
-knowingly.
+paragraphs. Since this package emits no XML it does not have to choose, and
+keeps the article as it actually reads. See #160 for the `is_chapeau`/
+`is_tail` flags that would let a future XML conversion make that choice
+knowingly instead of by position.
 """
 
 from __future__ import annotations
@@ -38,9 +38,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 #: Two Mexican structures have no element here at all, because the standard
 #: has none for them: "transitorios" and "apartado". Both are expressed as an
 #: existing element plus `refers_to` (`section` + `#transitorios`, `level` +
-#: `#apartado`) — the same convention `nota2md/akoma_ntoso.py` already adopted
-#: for transitorios, so the two packages say the same thing even though they
-#: share no code. See #159 and #160.
+#: `#apartado`) instead. See #159 and #160.
 AKN_TYPES = (
     "act",          # the whole document (the root)
     "preamble",     # "Al margen un sello...", the enacting formula
@@ -88,11 +86,9 @@ class EIdAllocator:
     Uniqueness is not a formality: a Mexican article can legally restate the
     same fracción label under two separate "I. a X." lists — one for a body's
     composition, a later one for its members' eligibility — and Akoma Ntoso
-    requires eId to be unique across the whole document. The disambiguation
-    is the same one `nota2md/akoma_ntoso.py`'s `_eid_unico` documents: append
-    `_2`, `_3`, ... to the second and later claimants. The convention is
-    reused; the code deliberately is not imported, since that would couple
-    this package to `nota2md`.
+    requires eId to be unique across the whole document. The disambiguation is
+    open-addressing over a suffix: append `_2`, `_3`, ... to the second and
+    later claimants.
     """
 
     def __init__(self):
@@ -167,10 +163,9 @@ class AknNode:
     #: exactly this shape — an element has a flat `content` **or**
     #: hierarchical children, never both — and a Mexican article routinely
     #: has both. Since this package emits no XML it does not have to choose,
-    #: and keeps the article as it reads; the flags are what let a later XML
-    #: conversion make that choice knowingly rather than by position. See
-    #: #160, and `nota2md/akoma_ntoso.py`, which does have to choose and
-    #: therefore flattens. An article of nothing but paragraphs still has
+    #: and keeps the article as it reads; the flags are what would let a
+    #: future XML conversion make that choice knowingly rather than by
+    #: position (see #160). An article of nothing but paragraphs still has
     #: them as `content` children (issue #181) — it simply has no chapeau and
     #: no tail, because there is nothing to interleave and nothing to choose.
     is_chapeau: bool = False

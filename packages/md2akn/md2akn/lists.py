@@ -1,5 +1,7 @@
 """The inside of an article: fracciones, incisos and subincisos (issue #160).
 
+.. code-block:: text
+
     | Mexican structure          | Akoma Ntoso |
     |----------------------------|-------------|
     | a plain paragraph          | `content`   |
@@ -8,8 +10,8 @@
     | subinciso (`**1.**`)       | `subpoint`  |
     | apartado  (`**A.**`)       | `level` + `refers_to="#apartado"` |
 
-the same fracción→`paragraph` / inciso→`point` mapping `nota2md/akoma_ntoso.py`
-uses, kept identical on purpose.
+the same fracción→`paragraph` / inciso→`point` mapping used throughout this
+package's vocabulary (see `md2akn.model`).
 
 ## Why this is not a bigger regex
 
@@ -38,7 +40,7 @@ error:
 - **A second list in the same article** — a body's composition, then its
   members' eligibility — restarts at `I.`. That is a new list, not a
   numbering error, and the eId allocator disambiguates the repeated labels
-  exactly as `nota2md/akoma_ntoso.py`'s `_eid_unico` documents.
+  (see `EIdAllocator` in `md2akn.model`).
 
 ## Blocks with no marker
 

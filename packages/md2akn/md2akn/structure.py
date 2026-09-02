@@ -13,10 +13,7 @@ becomes:
     └── conclusions         the closing signatures, where a law has them
 
 Two of those are `refers_to` rather than elements of their own, because the
-standard has neither: "transitorios" and "apartado". That is the same
-convention `nota2md/akoma_ntoso.py` already adopted, deliberately — the two
-packages say the same thing about the same gap without sharing a line of
-code.
+standard has neither: "transitorios" and "apartado".
 
 `preamble` is a **sibling** of `body`, not a child: Akoma Ntoso's `body`
 admits only hierarchical elements, and the enacting formula is not one.
@@ -71,8 +68,7 @@ from md2akn.patterns import (
     TRANSITORIOS,
 )
 
-#: eId prefixes, by `akn_type`. Akoma Ntoso's own abbreviations, and the same
-#: three (`art_`, `para_`, `point_`) `nota2md/akoma_ntoso.py` already writes.
+#: eId prefixes, by `akn_type` — Akoma Ntoso's own abbreviations.
 PREFIJO_EID = {
     "book": "book",
     "title": "tit",

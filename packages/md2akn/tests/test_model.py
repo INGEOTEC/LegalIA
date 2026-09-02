@@ -30,7 +30,7 @@ class TestEIdComponent(unittest.TestCase):
 class TestEIdAllocator(unittest.TestCase):
     """A DOF article can restate the same fracción label under two separate
     "I. a X." lists; the second claimant gets a suffix rather than a
-    duplicate eId, the same convention `nota2md/akoma_ntoso.py` documents."""
+    duplicate eId (see `EIdAllocator`'s own docstring)."""
 
     def test_un_eid_libre_se_entrega_tal_cual(self):
         self.assertEqual(EIdAllocator().allocate("art_27"), "art_27")

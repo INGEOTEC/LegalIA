@@ -6,26 +6,31 @@ inside their fracción — labelled with Akoma Ntoso's vocabulary.
 Markdown file and get back the root node, which `walk()` iterates in document
 order and `find(eId)` addresses by identifier ("article 27, fracción VII").
 
-**No XML is produced here.** `nota2md.akoma_ntoso` already converts to Akoma
-Ntoso XML; what this package takes from the standard (an OASIS Standard since
-2018, reviewed in issue #91) is its *vocabulary* — the element names in
-`AKN_TYPES`, the eId naming convention, and `refers_to` for the two Mexican
-structures the standard has no element for. Not emitting XML is what lets the
-tree stay faithful to a Mexican article, which normally has both a flat
-introduction and hierarchical children — a combination the standard's content
-model forbids and the XML converter therefore has to flatten.
+**No Akoma Ntoso XML is produced anywhere in this project** — an earlier
+converter that lived in `nota2md` was removed (issue #168). What this package
+takes from the standard (an OASIS Standard since 2018, reviewed in issue #91)
+is its *vocabulary* — the element names in `AKN_TYPES`, the eId naming
+convention, and `refers_to` for the two Mexican structures the standard has no
+element for. Not emitting XML is also what lets the tree stay faithful to a
+Mexican article, which normally has both a flat introduction and hierarchical
+children — a combination the standard's `hierarchy` content model forbids,
+requiring a strict either/or that an XML conversion would have to flatten.
 
 The spaCy layer is there for callers who want it: the segmenter is a pipeline
-component, so it composes with anything else a caller wants to run over the
-same `Doc`.
+component (registered as soon as `md2akn` is imported), so it composes with
+anything else a caller wants to run over the same `Doc`.
 
-    import spacy
-    nlp = spacy.blank("es")
-    nlp.add_pipe("akn_segmenter")
-    doc = nlp(markdown_text)
-    doc._.akn_tree           # the root AknNode
-    doc._.akn_meta           # the frontmatter
-    doc.spans["akn"]         # every node's Span, in document order
+>>> import spacy
+>>> import md2akn
+>>> nlp = spacy.blank("es")
+>>> _ = nlp.add_pipe("akn_segmenter")
+>>> doc = nlp("**ARTICULO 1o.-** Son obligaciones de los patrones.\\n")
+>>> doc._.akn_tree                 # the root AknNode
+AknNode(akn_type='act', eId='act', children=1)
+>>> doc._.akn_meta                 # the frontmatter (empty: this note has none)
+{}
+>>> len(doc.spans["akn"])          # every node's Span, in document order
+4
 
 Everything public is reachable off the package itself — nobody imports
 `md2akn.segmenter` from outside.
