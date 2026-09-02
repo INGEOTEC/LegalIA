@@ -30,3 +30,21 @@ jobs:
         run: pip install -e "packages/${{ matrix.package }}[test]"
       - name: Run tests
         run: pytest packages/${{ matrix.package }}
+
+  # Informational for now (issue #194): dofjson and nota2md already violate
+  # the single-step-ahead rule (both two minor versions ahead of PyPI), so
+  # making this a hard gate today would fail every PR until that drift is
+  # reconciled by a release, not by this check. `continue-on-error: true`
+  # keeps the job's own red/green visible without failing the workflow.
+  check-package-versions:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install checker dependencies
+        run: pip install packaging
+      - name: Check package versions against PyPI
+        run: python scripts/check_package_versions.py

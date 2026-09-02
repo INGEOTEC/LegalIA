@@ -6,6 +6,27 @@ a clone without an editable install first, needing only `requests`. (The
 "scjn" extra the SCJN scripts used to need went away with the `.docx` crawl
 path in issue #179.)
 
+## `check_package_versions.py`
+
+Checks every publishable package's local version (`pyproject.toml`'s dynamic
+`<pkg>.__version__` attribute, read straight from source without importing
+the package) against the latest PyPI has published, and fails if the local
+version is not a valid single-step jump ahead — the next patch, or the next
+minor with patch reset to 0 (issue #194). A package PyPI has never published
+(`md2akn` as of this writing) always passes: there is nothing to jump ahead
+of yet.
+
+```bash
+python scripts/check_package_versions.py
+python scripts/check_package_versions.py --package dofjson --package nota2md
+```
+
+Wired into `test.yml` as its own `check-package-versions` job, but with
+`continue-on-error: true`: `dofjson` and `nota2md` are already two minor
+versions ahead of PyPI, so making this a hard gate today would fail every PR
+until that drift is reconciled by an actual release — a release decision,
+not this script's.
+
 ## A law's reform history lives in the `scjn-leyes` release
 
 There used to be an `empaqueta_historial.py` here, packing four tarballs of

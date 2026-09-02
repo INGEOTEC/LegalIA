@@ -6,6 +6,7 @@ on:
       - "dof2md-v*"
       - "dofjson-v*"
       - "nota2md-v*"
+      - "md2akn-v*"
   workflow_dispatch:
     inputs:
       package:
@@ -16,6 +17,7 @@ on:
           - dof2md
           - dofjson
           - nota2md
+          - md2akn
 
 concurrency:
   group: publish-${{ github.event_name == 'workflow_dispatch' && inputs.package || github.ref_name }}
