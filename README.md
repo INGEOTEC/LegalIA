@@ -8,10 +8,11 @@ target is the *Diario Oficial de la Federación* (DOF), Mexico's official
 gazette: more than 1.2 million legal provisions published without interruption
 since 1917.
 
-Developer documentation (installation and the public API of each package)
-is on [Read the Docs](https://legalia.readthedocs.io/); this README and the
-[project website](https://ingeotec.github.io/LegalIA/) stay focused on a
-quick start and research-facing results, respectively.
+**Read the Docs is the developer reference** — the full API of every
+package, public and private, with a worked example for every public symbol.
+This README stays focused on a quick start; for datasets, findings and the
+analysis of the gazette, see the project's
+[website](https://ingeotec.github.io/LegalIA/) instead.
 
 ## Packages
 
@@ -20,12 +21,13 @@ quick start and research-facing results, respectively.
 | [dofjson](packages/dofjson) ([PyPI](https://pypi.org/project/dofjson/)) | Client for SIDOF's JSON open-data service: which legal provisions were published on a given day, and the full detail — including HTML content, when it exists — of any one of them. Also streams a compact `codNota` + `titulo` + `fecha` record of every legal provision ever published (`legal_provisions_titles`), off the same on-disk cache. |
 | [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF legal provision (`legal_provisions`), reconstructs a law's current text from nothing but its legal provisions (`reconstruct_legal_provisions`), and reads the SCJN corpus of consolidated law texts back from the `scjn-leyes` release (`download_scjn_leyes_corpus`/`_index`/`_catalog`). |
 | [dof2md](packages/dof2md) ([PyPI](https://pypi.org/project/dof2md/)) | Downloads a complete edition of the DOF as PDF and converts it — OCR included — to Markdown; the heavy artillery `nota2md` borrows for legal provisions that predate the HTML era. |
+| [md2akn](packages/md2akn) ([PyPI](https://pypi.org/project/md2akn/)) | Segments a Mexican federal law's Markdown — the output of `nota2md` — into a navigable hierarchy labelled with Akoma Ntoso's vocabulary. Depends on none of the other three packages. |
 
 Each package lives under `packages/<name>/` with its own `pyproject.toml`,
 dependencies, version, and tests — installed and released independently to
-PyPI. For a guided walkthrough of the three working together, see
-[From the gazette to Markdown](https://ingeotec.github.io/LegalIA/tools.html)
-on the project's [website](https://ingeotec.github.io/LegalIA/).
+PyPI. For the full API — every public and private symbol, with a worked
+example for every public one — see
+[Read the Docs](https://legalia.readthedocs.io/).
 
 ## Quick start
 

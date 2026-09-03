@@ -1,5 +1,7 @@
 # nota2md
 
+[![Documentation Status](https://readthedocs.org/projects/legalia/badge/?version=latest)](https://legalia.readthedocs.io/en/latest/nota2md_api.html)
+
 > **`download_legal_provisions_provenance_ids` is gone** (issue #187). It read
 > the `historial-legislativo` release, which was built by scraping the Cámara
 > de Diputados' LeyesBiblio; the project now rests on the SCJN and the DOF
