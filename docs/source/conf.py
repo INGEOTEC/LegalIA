@@ -7,9 +7,12 @@
 #
 # Packages are installed editable by Read the Docs (see .readthedocs.yaml)
 # rather than reached via sys.path manipulation here, so conf.py only needs
-# to import the already-installed package to read its __version__.
+# to import the already-installed packages to read their __version__.
 
 import dof2md
+import dofjson
+import md2akn
+import nota2md
 
 # -- Project information -------------------------------------------------
 
@@ -17,12 +20,17 @@ project = "LegalIA"
 copyright = "2026, INGEOTEC"
 author = "INGEOTEC"
 
-# This page currently documents only dof2md (see CLAUDE.md's package read
-# order: dofjson -> nota2md -> dof2md -> md2akn); dofjson/nota2md/md2akn
-# get their own *_api.rst, and this version pin moves to per-package, once
-# each has a subissue of #119 documenting it.
-version = dof2md.__version__
-release = version
+# Each package under packages/<name>/ is versioned and released
+# independently (see CLAUDE.md's read order: dofjson -> nota2md -> dof2md
+# -> md2akn), so there is no single project version to set here. Instead
+# each package gets its own substitution, used on index.rst's version table
+# and in each *_api.rst page's own header.
+rst_epilog = f"""
+.. |dofjson_version| replace:: {dofjson.__version__}
+.. |nota2md_version| replace:: {nota2md.__version__}
+.. |dof2md_version| replace:: {dof2md.__version__}
+.. |md2akn_version| replace:: {md2akn.__version__}
+"""
 
 # -- General configuration ------------------------------------------------
 
@@ -32,6 +40,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx.ext.graphviz",
+    "sphinx.ext.doctest",
 ]
 
 # Render the architecture-flow diagram (index.rst) as inline SVG rather than
@@ -42,6 +51,10 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "requests": ("https://requests.readthedocs.io/en/latest/", None),
 }
+# spaCy's own docs site (spacy.io) is not built with Sphinx and publishes no
+# objects.inv, so md2akn's spaCy pipeline component (:doc:`md2akn_api`) has
+# nothing to cross-reference against — checked directly (no
+# https://spacy.io/objects.inv) rather than assumed.
 
 templates_path = ["_templates"]
 source_suffix = ".rst"

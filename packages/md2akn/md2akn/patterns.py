@@ -27,7 +27,7 @@ import re
 #: is a horizontal rule, not a frontmatter fence.
 FRONTMATTER_FENCE = re.compile(r"^---[ \t]*\r?\n")
 
-#: One `key: value` line of the frontmatter. The value is everything after
+#: One ``key: value`` line of the frontmatter. The value is everything after
 #: the first colon, so a value that itself contains ": " (a title with a
 #: subtitle, say) survives intact.
 FRONTMATTER_ENTRY = re.compile(r"^([A-Za-z_][\w.-]*)[ \t]*:[ \t]*(.*)$")
@@ -141,8 +141,8 @@ ARTICULO_ORDINAL = re.compile(
 
 #: The container words, mapped to the Akoma Ntoso element each becomes.
 #: `APARTADO` has no element in the standard at all and is expressed as
-#: `level` plus `refers_to="#apartado"` — the same escape hatch
-#: `nota2md/akoma_ntoso.py` uses for transitorios.
+#: `level` plus `refers_to="#apartado"` — the same escape hatch this package
+#: uses for transitorios (`REFERS_TO_TRANSITORIOS` in `md2akn.model`).
 CONTENEDORES = {
     "LIBRO": "book",
     "TITULO": "title",
@@ -247,7 +247,7 @@ ANOTACION_EN_LINEA = re.compile(r"\((?P<cuerpo>[A-ZÁÉÍÓÚÑ][^)\n]*)\)", re.
 # --------------------------------------------------------------------- #160
 
 #: A fracción/inciso/subinciso marker at the head of a block. Measured shapes
-#: and their counts over the 315 laws:
+#: and their counts over the 315 laws::
 #:
 #:     55398  **I.**      (bold Roman, the fracción)      9268  I.-
 #:      8198  **a)**      (bold inciso)                    929  a)

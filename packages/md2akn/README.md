@@ -1,5 +1,7 @@
 # md2akn
 
+[![Documentation Status](https://readthedocs.org/projects/legalia/badge/?version=latest)](https://legalia.readthedocs.io/en/latest/md2akn_api.html)
+
 Segment a Mexican federal law's Markdown into a **navigable hierarchy** —
 articles inside their chapter, fracciones inside their article, incisos inside
 their fracción — labelled with [Akoma

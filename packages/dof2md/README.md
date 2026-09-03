@@ -1,5 +1,7 @@
 # dof2md
 
+[![Documentation Status](https://readthedocs.org/projects/legalia/badge/?version=latest)](https://legalia.readthedocs.io/en/latest/dof2md_api.html)
+
 Converts a PDF or a set of scanned page images from Mexico's official
 gazette (DOF, *Diario Oficial de la Federación*) — or any other document —
 into Markdown, optionally cropped down to a single note. It's a wrapper

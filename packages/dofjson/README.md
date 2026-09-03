@@ -1,5 +1,7 @@
 # dofjson
 
+[![Documentation Status](https://readthedocs.org/projects/legalia/badge/?version=latest)](https://legalia.readthedocs.io/en/latest/dofjson_api.html)
+
 Prototype client for the JSON open data service exposed by
 [sidof.segob.gob.mx](https://sidof.segob.gob.mx/datos_abiertos), the
 Secretaría de Gobernación's system for Mexico's official gazette (DOF,

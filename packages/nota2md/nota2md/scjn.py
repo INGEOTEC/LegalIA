@@ -858,9 +858,10 @@ def mint_abrev(nombre: str, taken=()) -> str:
     The result is already slug-safe (`slug_instrumento` is the identity on
     it), unlike the 14 historical `abrev` that carry an underscore.
 
-    >>> mint_abrev("LEY Federal de Cine y el Audiovisual")
+    >>> import nota2md.scjn as scjn
+    >>> scjn.mint_abrev("LEY Federal de Cine y el Audiovisual")
     'lfca'
-    >>> mint_abrev("LEY Federal de Cine y el Audiovisual", taken={"lfca"})
+    >>> scjn.mint_abrev("LEY Federal de Cine y el Audiovisual", taken={"lfca"})
     'lfca-2'
     """
     palabras = re.findall(r"[a-z0-9]+", _normaliza(nombre))

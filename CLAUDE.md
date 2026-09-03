@@ -166,6 +166,52 @@ Phases, each its own sub-issue, in order:
 | Fase 4 | #189 | Delete `leyesmx`, the Diputados code, the collection abstraction |
 | Fase 5 | #190 | Delete the workflow; freeze the release; update the docs |
 
+## Documentation: two sites, one division of labour (issue #119, done)
+
+The project has two documentation sites, and what goes on which one is a
+rule, not a per-page judgment call — stated identically in `README.md`,
+`docs/source/index.rst` and `website/_quarto.yml`'s navbar, so a reader
+lands on the same story regardless of which one they open first:
+
+- **Read the Docs** (`docs/source/`, Sphinx, built from this repo's default
+  branch at legalia.readthedocs.io) is the **developer reference**: every
+  package's full API, public and private, with a worked example for every
+  public symbol. Usage examples live here — they do not live on the website.
+- **`website/`** (Quarto, `ingeotec.github.io/LegalIA`) is **results**:
+  datasets, findings, the analysis of the gazette itself. A page there uses
+  the packages to build something (a figure, a corpus, a number worth
+  reporting) rather than teaching how to call them; if a page starts
+  explaining a function's arguments one by one, that content belongs on the
+  function's Read the Docs page instead, with a link down to it.
+
+Rules for a package's Read the Docs page (`docs/source/<pkg>_api.rst`),
+settled by issues #195-200 while building the site the four packages share:
+
+- **Every public symbol gets a verified example.** Concretely: every name in
+  a package's `__all__`, every public method of an exported class, every CLI
+  subcommand. "Verified" means a live doctest, run by the separate
+  `docs-doctest` job in `.github/workflows/test.yml` (network access
+  allowed; the Read the Docs build itself stays HTML-only and must not
+  depend on the network). Where that is genuinely not possible — `dof2md`'s
+  OCR paths need `mineru`, deliberately kept out of the doctest job for its
+  weight — the exception is written down on the page itself, with the
+  package's own pytest suite named as what verifies that behaviour instead;
+  it is not silently skipped.
+- **Private/internal helpers** (leading-underscore names) get a full
+  docstring and appear via `:private-members:`, but need no worked example —
+  they are documented for whoever is extending or debugging the package, not
+  exemplified for a caller.
+- **Tests are never documented**: no `automodule` over a package's `tests/`,
+  no doctest collection under `packages/*/tests/`.
+- Any example that touches a large GitHub Release corpus (`scjn-leyes`,
+  `notas-archivo`) picks one small law/asset rather than walking the whole
+  release, and the doctest job caches `nota2md.cache.CACHE_DIR`/
+  `dofjson.titulos.CACHE_DIR` between runs — the releases are hundreds of MB.
+
+A future package added to this monorepo inherits this rule: it gets a
+`docs/source/<pkg>_api.rst` page built to the same standard, not a "usage"
+section bolted onto `website/`.
+
 ## Commands
 
 Four test files make real network calls and are excluded from routine runs
