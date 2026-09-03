@@ -21,11 +21,9 @@ python scripts/check_package_versions.py
 python scripts/check_package_versions.py --package dofjson --package nota2md
 ```
 
-Wired into `test.yml` as its own `check-package-versions` job, but with
-`continue-on-error: true`: `dofjson` and `nota2md` are already two minor
-versions ahead of PyPI, so making this a hard gate today would fail every PR
-until that drift is reconciled by an actual release — a release decision,
-not this script's.
+Wired into `test.yml` as its own `check-package-versions` job, and it is a
+blocking gate: the job fails the workflow whenever a package's `__version__`
+is not a valid single-step jump ahead of PyPI.
 
 ## A law's reform history lives in the `scjn-leyes` release
 
