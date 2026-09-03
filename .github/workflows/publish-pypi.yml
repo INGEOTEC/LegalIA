@@ -44,13 +44,20 @@ jobs:
             echo "tag_version=${tag##*-v}" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Install version-check dependencies
+        if: github.event_name != 'workflow_dispatch'
+        run: pip install packaging
+
       # Tags are the release trigger, so a stale tag (forgot to bump
-      # pyproject.toml) must fail loudly instead of re-publishing the
-      # previous version under a new tag name.
+      # __version__) must fail loudly instead of re-publishing the
+      # previous version under a new tag name. `version` is declared
+      # `dynamic` in every pyproject.toml, so it has to be read the same
+      # way check_package_versions.py reads it, not straight out of
+      # `[project]`.
       - name: Verify tag matches pyproject.toml version
         if: github.event_name != 'workflow_dispatch'
         run: |
-          pkg_version=$(python -c "import tomllib; print(tomllib.load(open('packages/${{ steps.pkg.outputs.name }}/pyproject.toml', 'rb'))['project']['version'])")
+          pkg_version=$(python -c "import sys; sys.path.insert(0, 'scripts'); from check_package_versions import local_version; from pathlib import Path; print(local_version(Path('packages/${{ steps.pkg.outputs.name }}')))")
           if [ "${{ steps.pkg.outputs.tag_version }}" != "$pkg_version" ]; then
             echo "Tag version ${{ steps.pkg.outputs.tag_version }} does not match pyproject.toml version $pkg_version" >&2
             exit 1

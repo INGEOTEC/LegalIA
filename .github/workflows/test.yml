@@ -66,14 +66,11 @@ jobs:
       - name: Run the documentation's doctest examples
         run: python -m sphinx -b doctest docs/source docs/build/doctest
 
-  # Informational for now (issue #194): dofjson and nota2md already violate
-  # the single-step-ahead rule (both two minor versions ahead of PyPI), so
-  # making this a hard gate today would fail every PR until that drift is
-  # reconciled by a release, not by this check. `continue-on-error: true`
-  # keeps the job's own red/green visible without failing the workflow.
+  # Hard gate on the single-step-ahead rule (issue #194): a package's
+  # __version__ may not jump more than one release past what is published
+  # on PyPI.
   check-package-versions:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
