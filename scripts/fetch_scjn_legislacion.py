@@ -11,7 +11,7 @@ with the Cámara de Diputados data they leaned on, and a second one would have
 to justify itself again before it got a flag back.
 
 The crawl goes through the SCJN's own SCOW JSON API
-(`/SCOW-API`, `nota2md.scjn_api`). Until issue #179 it went instead through
+(`/SCOW-API`, `scjn.api`). Until issue #179 it went instead through
 the legacy WebForms Buscador (`/Buscador/`), and the mechanisms below are
 worded the way that path taught them. What replaced what, and why:
 
@@ -28,7 +28,7 @@ worded the way that path taught them. What replaced what, and why:
   answers `idOrdenamiento` 188805 for the same name, so that case is closed;
   the retry stays, since a brand-new law can still be indexed late.
 - **`elige_candidato`'s guards** (issue #115) live on as
-  `scjn_api.elige_ordenamiento`, thresholds and hard exclusions unchanged,
+  `scjn.api.elige_ordenamiento`, thresholds and hard exclusions unchanged,
   plus signals the old results page never showed (the API's own
   `categoriaOrdenamiento`).
 
@@ -39,7 +39,7 @@ carry means exactly what it meant before the migration.
 
 Resumable at two levels. Within one instrumento, a file already on disk is
 left alone and its reform's download skipped (see
-nota2md.scjn_api.descarga_ordenamiento), so a later re-run picking up new
+scjn.api.descarga_ordenamiento), so a later re-run picking up new
 reforms only fetches what is missing. Across a whole collection, the index
 of the last instrumento fully attempted is checkpointed to
 ``<outdir>/leyes/.progreso.json`` and cleared once the collection
@@ -54,7 +54,7 @@ A third, narrower case: issue #115's manual audit confirmed 5 instrumentos
 crawl saved, the wrong document entirely — candidate selection gained guards
 against this, but the wrong snapshots already on disk are still there,
 untouched, since the per-file skip above has no notion of a snapshot being
-*wrong*. ``--reintenta SLUG`` (repeatable, `nota2md.scjn.slug_instrumento`)
+*wrong*. ``--reintenta SLUG`` (repeatable, `scjn.catalog.slug_instrumento`)
 re-bajas exactly the named instrumentos: their existing snapshots (and
 stale `indice.json`) are deleted first so they are genuinely re-fetched
 against the fixed candidate selection, while every instrumento not named is
@@ -76,7 +76,7 @@ pass on this script's own command line:
 
 - **Mecanismo 1** (manual override): when a catalogue entry carries a
   `nombre_scjn` field, it is searched instead of `nombre`
-  (`nota2md.scjn.search_name`) — `nombre` itself is still what gets printed
+  (`scjn.catalog.search_name`) — `nombre` itself is still what gets printed
   and what `enlaza_scjn_legislacion.py` (issue #126) compares against DOF
   titles. Applied so far only to `lisipl`; `lfca`'s own gap is indexing
   lag, not a title mismatch, so no override was correct for it — and the
@@ -85,7 +85,7 @@ pass on this script's own command line:
   start-to-finish at least once under this mechanism, that date is
   recorded to ``<outdir>/leyes/.rastreo_completo.json``. A later
   refresh run skips an instrumento without touching the SCJN at all
-  (`nota2md.scjn.instrument_up_to_date`) only when it already has a
+  (`scjn.catalog.instrument_up_to_date`) only when it already has a
   snapshot on disk *and* its own `actualizado` (its most recent reform's
   date, `extract_scjn_titles.py`) is no later than that checkpoint — an
   instrumento with no snapshot on disk yet is always retried regardless of
@@ -133,7 +133,7 @@ Issue #148 turns the refresh above from all-or-nothing into law-by-law, with
 two additions and no change to what a plain full sweep does:
 
 - ``--plan`` answers, **without a single request to the SCJN**, which laws
-  are pending: `nota2md.scjn.motivo_pendiente` compares each catalogue
+  are pending: `scjn.state.motivo_pendiente` compares each catalogue
   entry's `actualizado` against the one that instrumento was actually
   crawled with, recorded in its own ``estado.json`` (see below), falling
   back to the collection-wide ``.rastreo_completo.json`` only when there is
@@ -198,10 +198,14 @@ from datetime import date, datetime
 from pathlib import Path
 
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
+_RAIZ = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_RAIZ / "packages" / "nota2md"))
+sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
 from dofjson.titulos import SIN_CACHE_DIR, legal_provisions_titles  # noqa: E402
-from nota2md.scjn import (  # noqa: E402
+from scjn import api as scjn_api  # noqa: E402
+from scjn.catalog import search_name, slug_instrumento  # noqa: E402
+from scjn.state import (  # noqa: E402
     ARCHIVO_ESTADO,
     PENDIENTE_CAMBIO,
     PENDIENTE_NUNCA_RASTREADO,
@@ -209,10 +213,7 @@ from nota2md.scjn import (  # noqa: E402
     escribe_estado,
     lee_estado,
     motivo_pendiente,
-    search_name,
-    slug_instrumento,
 )
-from nota2md import scjn_api  # noqa: E402
 
 #: The one collection left (issue #189), a literal path segment. It is also
 #: the one with a per-instrument release to repackage into
@@ -243,7 +244,7 @@ def _lee_progreso(outdir: Path) -> int:
     that already finished and had its checkpoint cleared).
     A malformed/unreadable checkpoint is treated the same as none, rather
     than raising: worst case a finished instrumento gets re-attempted, which
-    `scjn_api.descarga_ordenamiento`'s own file-level skip already makes cheap."""
+    `scjn.api.descarga_ordenamiento`'s own file-level skip already makes cheap."""
     try:
         return json.loads(_archivo_progreso(outdir).read_text(encoding="utf-8"))["indice"]
     except (OSError, json.JSONDecodeError, KeyError):
@@ -280,7 +281,7 @@ def _guarda_fecha_rastreo_completo(outdir: Path, fecha: str) -> None:
 
 
 def _imprime_avance(mensaje: str) -> None:
-    """`scjn_api.descarga_ordenamiento`'s own `on_progreso` callback (issue #140,
+    """`scjn.api.descarga_ordenamiento`'s own `on_progreso` callback (issue #140,
     Causa 2): indented under its instrumento's own `[leyes i/N]` line so
     it reads as a sub-step, not another instrumento."""
     print(f"    {mensaje}", file=sys.stderr)
@@ -420,7 +421,7 @@ def planea_coleccion(
     their slugs, in `catalogo.json`'s own order — issue #148's planner.
     Makes no request to the SCJN whatsoever: the whole decision comes from
     `catalogo.json` plus each instrumento's own `estado.json`
-    (`nota2md.scjn.motivo_pendiente`).
+    (`scjn.state.motivo_pendiente`).
 
     Instrumentos with no `actualizado` in the catalogue are always printed,
     counted apart, and only included in the returned work list when
@@ -531,7 +532,7 @@ def rastrea_coleccion(
         if faltantes:
             raise SystemExit(
                 f"{sorted(faltantes)} no esta(n) en el catalogo de {COLECCION} -- "
-                "revisa el slug (nota2md.scjn.slug_instrumento) o refresca catalogo.json "
+                "revisa el slug (scjn.catalog.slug_instrumento) o refresca catalogo.json "
                 "con ./scripts/extract_scjn_titles.py"
             )
     if seleccion is not None:
@@ -716,7 +717,7 @@ def main(argv=None) -> int:
         action="append",
         metavar="SLUG",
         help=(
-            "repetible; slug_instrumento (nota2md.scjn.slug_instrumento, p.ej. ccf, "
+            "repetible; slug_instrumento (scjn.catalog.slug_instrumento, p.ej. ccf, "
             "lisr) a re-descargar desde cero: se borran sus snapshots existentes y su "
             "indice.json y se re-bajan; todo instrumento cuyo slug no este en la lista "
             "se salta sin tocar la SCJN. No mezclar con --reiniciar."

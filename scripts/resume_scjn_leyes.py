@@ -29,9 +29,12 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
+_RAIZ = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_RAIZ / "packages" / "nota2md"))
+sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
-from nota2md.scjn import lee_cabecera, slug_instrumento, versiones_de_directorio  # noqa: E402
+from scjn.catalog import slug_instrumento  # noqa: E402
+from scjn.header import lee_cabecera, versiones_de_directorio  # noqa: E402
 
 COLECCION = "leyes"
 

@@ -2,7 +2,7 @@
 against the corpus the WebForms crawler already wrote to disk.
 
 Throwaway by design — it writes no production code path and imports from
-`nota2md.scjn` only the helpers whose behaviour it wants to keep measuring
+`scjn` only the helpers whose behaviour it wants to keep measuring
 against (`ratio_similitud`, `lee_cabecera`). It answers, with numbers, the
 six questions issue #173 lists; the findings themselves go as a comment on
 issue #172, which is the deliverable.
@@ -23,10 +23,13 @@ from pathlib import Path
 
 import requests
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "packages" / "nota2md"))
+_RAIZ = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_RAIZ / "packages" / "nota2md"))
+sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
 from nota2md.leyes import normaliza_para_comparar  # noqa: E402
-from nota2md.scjn import lee_cabecera, ratio_similitud  # noqa: E402
+from scjn.header import lee_cabecera  # noqa: E402
+from scjn.text import ratio_similitud  # noqa: E402
 
 BASE = "https://legislacion.scjn.gob.mx/SCOW-API"
 HEADERS = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}

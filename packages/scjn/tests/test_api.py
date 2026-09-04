@@ -1,4 +1,4 @@
-"""Unit tests for `nota2md.scjn_api` against recorded JSON shapes — no
+"""Unit tests for `scjn.api` against recorded JSON shapes — no
 network. What they pin down is the handful of behaviours issue #173
 measured live and issue #174 asks for: the `<em>` highlighting the search
 puts in every title, paging until `tamanio` is exhausted, an in-body
@@ -10,7 +10,7 @@ import json
 import unittest
 from pathlib import Path
 
-from nota2md.scjn_api import ScjnApi, ScjnApiError, ScjnApiWafError
+from scjn.api import ScjnApi, ScjnApiError, ScjnApiWafError
 
 FIXTURES = Path(__file__).parent / "fixtures" / "scjn_api"
 
@@ -78,7 +78,7 @@ class TestReformas(unittest.TestCase):
     def test_pagina_mientras_la_pagina_venga_completa(self):
         # Una pagina completa significa que puede haber otra; una corta es la
         # ultima (ver TAMANIO_PAGINA_REFORMAS y el bug de paginacion de #178).
-        from nota2md.scjn_api import TAMANIO_PAGINA_REFORMAS
+        from scjn.api import TAMANIO_PAGINA_REFORMAS
 
         fila = fixture("reformas.json")["resultados"][0]
         total = TAMANIO_PAGINA_REFORMAS + 3
@@ -146,7 +146,7 @@ class TestEscritor(unittest.TestCase):
     piezas de ese formato que no dependen de la red."""
 
     def setUp(self):
-        from nota2md.scjn_api import Articulo, Ordenamiento, Reforma
+        from scjn.api import Articulo, Ordenamiento, Reforma
 
         self.ordenamiento = Ordenamiento(
             idOrdenamiento="410",
@@ -165,7 +165,7 @@ class TestEscritor(unittest.TestCase):
         self.Articulo = Articulo
 
     def test_cabecera_conserva_orden_y_agrega_al_final(self):
-        from nota2md.scjn_api import cabecera
+        from scjn.api import cabecera
 
         lineas = cabecera(self.ordenamiento, self.reforma, "LEY FEDERAL DEL TRABAJO").split("\n")
         self.assertEqual(
@@ -191,8 +191,8 @@ class TestEscritor(unittest.TestCase):
         # `scjn.lee_cabecera` solo reconoce `^[a-z_]+:`, de ahí el snake_case.
         from tempfile import TemporaryDirectory
 
-        from nota2md.scjn import lee_cabecera
-        from nota2md.scjn_api import snapshot
+        from scjn.header import lee_cabecera
+        from scjn.api import snapshot
 
         with TemporaryDirectory() as tmp:
             archivo = Path(tmp) / "14-05-2026.md"
@@ -210,13 +210,13 @@ class TestEscritor(unittest.TestCase):
         self.assertEqual(campos["seccion_publicacion"], "124/2026")
 
     def test_nombre_buscado_solo_cuando_el_titulo_difiere(self):
-        from nota2md.scjn_api import cabecera
+        from scjn.api import cabecera
 
         igual = cabecera(self.ordenamiento, self.reforma, "LEY FEDERAL DEL TRABAJO")
         self.assertNotIn("nombre_buscado", igual)
 
     def test_mismo_markdown_que_el_camino_docx(self):
-        from nota2md.scjn_api import articulos_a_markdown
+        from scjn.api import articulos_a_markdown
 
         arts = [
             self.Articulo(1, 1, "ENCABEZADO", "LEY FEDERAL DEL TRABAJO\r\n\r\nTEXTO ORIGINAL."),
@@ -235,7 +235,7 @@ class TestEscritor(unittest.TestCase):
     def test_quita_el_html_inline_del_encabezado(self):
         # El ENCABEZADO de algunas leyes abre con el markup propio de la SCJN;
         # sin quitarlo, la primera línea de cada snapshot difiere del .docx.
-        from nota2md.scjn_api import articulos_a_markdown
+        from scjn.api import articulos_a_markdown
 
         arts = [
             self.Articulo(
@@ -250,7 +250,7 @@ class TestEscritor(unittest.TestCase):
     def test_quita_las_notas_editoriales_igual_que_el_docx(self):
         # Issue #173, pregunta 3: la API trae los marcadores `N. DE E.` con la
         # misma grafía que el .docx, así que `quita_notas_editoriales` se reusa.
-        from nota2md.scjn_api import articulos_a_markdown
+        from scjn.api import articulos_a_markdown
 
         arts = [
             self.Articulo(1, 1, "ARTÍCULO 1", "[N. DE E. EN RELACION CON LA ENTRADA EN VIGOR.]")
@@ -264,7 +264,7 @@ class TestFormateaParrafo(unittest.TestCase):
     contra su único llamador."""
 
     def test_clasifica_titular_margen_articulo_y_transitorios(self):
-        from nota2md.scjn_api import Articulo, articulos_a_markdown
+        from scjn.api import Articulo, articulos_a_markdown
 
         arts = [
             Articulo(1, 1, "ENCABEZADO", "TEXTO ORIGINAL."),
@@ -283,7 +283,7 @@ class TestFormateaParrafo(unittest.TestCase):
         self.assertIn("**PRIMERO.-** Entra en vigor de inmediato.", markdown)
 
     def test_omite_los_parrafos_vacios_usados_como_separadores(self):
-        from nota2md.scjn_api import Articulo, articulos_a_markdown
+        from scjn.api import Articulo, articulos_a_markdown
 
         arts = [Articulo(1, 1, "ARTÍCULO 1", "Primer párrafo.\n\n\nSegundo párrafo.")]
 
@@ -292,7 +292,7 @@ class TestFormateaParrafo(unittest.TestCase):
         )
 
     def test_omite_por_completo_un_parrafo_que_es_solo_nota_editorial(self):
-        from nota2md.scjn_api import Articulo, articulos_a_markdown
+        from scjn.api import Articulo, articulos_a_markdown
 
         arts = [
             Articulo(1, 1, "ARTÍCULO 1", "Artículo 1o.- Se decreta la disposición de prueba."),
@@ -314,7 +314,7 @@ class TestSeleccion(unittest.TestCase):
     cada uno (las corridas en vivo están documentadas en #176)."""
 
     def candidato(self, titulo, **kw):
-        from nota2md.scjn_api import Ordenamiento
+        from scjn.api import Ordenamiento
 
         campos = {
             "idOrdenamiento": kw.pop("id", "1"),
@@ -327,7 +327,7 @@ class TestSeleccion(unittest.TestCase):
         return Ordenamiento(**campos, **kw)
 
     def elige(self, candidatos, nombre):
-        from nota2md.scjn_api import elige_ordenamiento
+        from scjn.api import elige_ordenamiento
 
         return elige_ordenamiento(candidatos, nombre)
 
@@ -458,7 +458,7 @@ class TestCrawl(unittest.TestCase):
     reanudación."""
 
     def cliente(self, *, reformas, articulos=None, falla=()):
-        from nota2md.scjn_api import Articulo, Ordenamiento, Reforma, ScjnApiError
+        from scjn.api import Articulo, Ordenamiento, Reforma, ScjnApiError
 
         prueba = self
 
@@ -488,7 +488,7 @@ class TestCrawl(unittest.TestCase):
     def test_dos_reformas_del_mismo_dia_no_se_pisan(self):
         from tempfile import TemporaryDirectory
 
-        from nota2md.scjn_api import descarga_ordenamiento
+        from scjn.api import descarga_ordenamiento
 
         cliente = self.cliente(reformas=[(3, "01-05-2026"), (2, "01-05-2026"), (1, "01-04-1970")])
         with TemporaryDirectory() as tmp:
@@ -501,7 +501,7 @@ class TestCrawl(unittest.TestCase):
     def test_un_archivo_ya_en_disco_no_se_vuelve_a_bajar(self):
         from tempfile import TemporaryDirectory
 
-        from nota2md.scjn_api import descarga_ordenamiento
+        from scjn.api import descarga_ordenamiento
 
         cliente = self.cliente(reformas=[(2, "02-01-2025"), (1, "01-04-1970")])
         with TemporaryDirectory() as tmp:
@@ -513,7 +513,7 @@ class TestCrawl(unittest.TestCase):
     def test_una_reforma_que_falla_no_aborta_el_instrumento(self):
         from tempfile import TemporaryDirectory
 
-        from nota2md.scjn_api import descarga_ordenamiento
+        from scjn.api import descarga_ordenamiento
 
         cliente = self.cliente(
             reformas=[(9, "02-01-2025"), (8, "21-05-1982"), (7, "31-12-1981")], falla={8}
@@ -528,7 +528,7 @@ class TestCrawl(unittest.TestCase):
     def test_un_id_ordenamiento_conocido_se_salta_la_busqueda(self):
         from tempfile import TemporaryDirectory
 
-        from nota2md.scjn_api import descarga_ordenamiento
+        from scjn.api import descarga_ordenamiento
 
         cliente = self.cliente(reformas=[(1, "01-04-1970")])
         with TemporaryDirectory() as tmp:
@@ -541,7 +541,7 @@ class TestCrawl(unittest.TestCase):
     def test_sin_candidato_devuelve_vacio_sin_levantar(self):
         from tempfile import TemporaryDirectory
 
-        from nota2md.scjn_api import descarga_ordenamiento
+        from scjn.api import descarga_ordenamiento
 
         cliente = self.cliente(reformas=[])
         with TemporaryDirectory() as tmp:
@@ -562,7 +562,7 @@ class TestPaginacion(unittest.TestCase):
     segunda página, esa página fallaba, y la reforma entera se descartaba."""
 
     def respuestas_articulos(self, paginas, tamanio):
-        from nota2md.scjn_api import ScjnApi
+        from scjn.api import ScjnApi
 
         respuestas = [
             RespuestaFalsa(
@@ -583,7 +583,7 @@ class TestPaginacion(unittest.TestCase):
         return ScjnApi(espera=0, reintentos=0, session=sesion), sesion
 
     def test_una_pagina_corta_es_la_ultima_aunque_tamanio_sobrecuente(self):
-        from nota2md.scjn_api import TAMANIO_PAGINA_ARTICULOS
+        from scjn.api import TAMANIO_PAGINA_ARTICULOS
 
         n = TAMANIO_PAGINA_ARTICULOS
         # Página 1 completa, página 2 corta; `tamanio` declara 4 de más.
@@ -599,7 +599,7 @@ class TestPaginacion(unittest.TestCase):
         # `lss` reforma 42: declara exactamente 500 y sirve exactamente 500,
         # y su pagina 2 tambien contesta HTTP 500. Con solo la regla de la
         # pagina corta, este caso volvia a pedir una pagina inexistente.
-        from nota2md.scjn_api import TAMANIO_PAGINA_ARTICULOS
+        from scjn.api import TAMANIO_PAGINA_ARTICULOS
 
         n = TAMANIO_PAGINA_ARTICULOS
         cliente, sesion = self.respuestas_articulos([range(1, n + 1)], tamanio=n)
@@ -616,7 +616,7 @@ class TestPaginacion(unittest.TestCase):
         # texto consolidado; preguntarle igual contesta 500.
         from tempfile import TemporaryDirectory
 
-        from nota2md.scjn_api import Ordenamiento, Reforma, ScjnApiError, descarga_ordenamiento
+        from scjn.api import Ordenamiento, Reforma, ScjnApiError, descarga_ordenamiento
 
         class ClienteFalso:
             def __init__(self):

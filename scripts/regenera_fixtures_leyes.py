@@ -50,12 +50,11 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "packages" / "nota2md"))
+sys.path.insert(0, str(RAIZ / "packages" / "scjn"))
 
-from nota2md.scjn import (  # noqa: E402
-    download_scjn_leyes_corpus,
-    quita_notas_editoriales,
-    slug_instrumento,
-)
+from nota2md.scjn import download_scjn_leyes_corpus  # noqa: E402
+from scjn.catalog import slug_instrumento  # noqa: E402
+from scjn.text import quita_notas_editoriales  # noqa: E402
 
 FIXTURES = RAIZ / "packages" / "nota2md" / "tests" / "fixtures" / "leyes"
 ARCHIVO_HISTORIAL = "historial_44.json"
@@ -68,7 +67,7 @@ def _iso(fecha: str) -> str:
 
 def cuerpo_de_snapshot(markdown: str) -> str:
     """The snapshot's own text, past the `---`-delimited provenance header
-    `scjn_api.cabecera` writes at its top."""
+    `scjn.api.cabecera` writes at its top."""
     _, delimitador, resto = markdown.partition("\n---\n\n")
     return resto if delimitador else markdown.partition("\n\n")[2]
 

@@ -47,11 +47,11 @@ because tratados had none).
 
 `actualizado`
     The ISO date of the law's own most recent reform, and the whole input to
-    `nota2md.scjn.motivo_pendiente`'s "has this changed since we crawled it?".
+    `scjn.state.motivo_pendiente`'s "has this changed since we crawled it?".
     It is the **newest of two independent answers**, not a preference order:
 
     1. the newest `fecha_publicacion` in the SCJN's own reform table
-       (`scjn_api.reformas_of_ordenamiento`), addressed by the
+       (`scjn.api.reformas_of_ordenamiento`), addressed by the
        `id_ordenamiento` the law's own `estado.json` already records, so a
        law already crawled costs one request and no search;
     2. the newest DOF legal provision whose title both names the law and
@@ -91,7 +91,7 @@ because tratados had none).
     own `nombre` the SCJN's full-text search never matches (`lisipl`, whose
     name carries a 250+ character trailing parenthetical alternate title).
     This script never sets it and always carries it forward
-    (`nota2md.scjn.merge_catalog_overrides`).
+    (`scjn.catalog.merge_catalog_overrides`).
 
 `--discover`
     Reports federal laws the SCJN lists and this catalogue does not, and
@@ -102,7 +102,7 @@ because tratados had none).
     without that, the SCJN's own `CODIGO` category alone contributes ~180
     "CÓDIGO DE CONDUCTA DE ..." administrative documents that are not laws.
     A suggested `abrev` is printed with each candidate
-    (`nota2md.scjn.mint_abrev`), to be written down once and never
+    (`scjn.catalog.mint_abrev`), to be written down once and never
     recomputed.
 """
 
@@ -112,25 +112,27 @@ import sys
 from pathlib import Path
 
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
+_RAIZ = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_RAIZ / "packages" / "nota2md"))
+sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
 from dofjson.titulos import legal_provisions_titles  # noqa: E402
 from nota2md import download_scjn_leyes_catalog  # noqa: E402
-from nota2md.scjn import (  # noqa: E402
-    apply_actualizado,
-    lee_estado,
-    merge_catalog_overrides,
-    merge_catalog_with_previous,
-    mint_abrev,
-    newest_dof_publication_dates,
-    slug_instrumento,
-    slugify,
-)
-from nota2md.scjn_api import (  # noqa: E402
+from nota2md.scjn import newest_dof_publication_dates  # noqa: E402
+from scjn.api import (  # noqa: E402
     ScjnApi,
     elige_ordenamiento,
     grupo_de_categoria,
 )
+from scjn.catalog import (  # noqa: E402
+    apply_actualizado,
+    merge_catalog_overrides,
+    merge_catalog_with_previous,
+    mint_abrev,
+    slug_instrumento,
+    slugify,
+)
+from scjn.state import lee_estado  # noqa: E402
 
 #: The one collection left (#184). Kept as a name rather than inlined because
 #: it is also the directory the whole pipeline lays its output out under.

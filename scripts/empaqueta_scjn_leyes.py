@@ -100,15 +100,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
+_RAIZ = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_RAIZ / "packages" / "nota2md"))
+sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
-from nota2md.scjn import (  # noqa: E402
-    ASSET_INDICE_GLOBAL,
-    construye_indice_global,
-    lee_estado,
-    slug_instrumento,
-    versiones_de_directorio,
-)
+from nota2md.scjn import ASSET_INDICE_GLOBAL, construye_indice_global  # noqa: E402
+from scjn.catalog import slug_instrumento  # noqa: E402
+from scjn.header import versiones_de_directorio  # noqa: E402
+from scjn.state import lee_estado  # noqa: E402
 
 COLECCION = "leyes"
 

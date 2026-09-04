@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scjn"
+description = "Client for the SCJN's SCOW JSON API and reader for the scjn-leyes release: a Mexican federal law's reform-dated snapshots."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+# 3.10 for the PEP 604 unions (`X | None`) the package evaluates at import:
+# they sit in function signatures, so they run when the module is defined.
+requires-python = ">=3.10"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+# Dependency direction is one way (issue #206/#207): this package imports
+# neither nota2md nor dofjson, so it needs nothing from either of them —
+# nota2md depends on scjn, never the reverse.
+dependencies = [
+    "requests>=2.31",
+]
+dynamic = ['version']
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/INGEOTEC/LegalIA/tree/main/packages/scjn"
+
+[tool.setuptools.packages.find]
+include = ["scjn", "scjn.*"]
+
+[tool.setuptools.dynamic]
+version = {attr = 'scjn.__version__'}

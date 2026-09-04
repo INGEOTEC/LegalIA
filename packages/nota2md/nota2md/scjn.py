@@ -1,14 +1,17 @@
-"""Everything about the SCJN's reform-dated snapshots that is not the
-transport: catalogue slugs, crawl state, the provenance header's reader,
-the link from a snapshot to the DOF `codNota` that published it, and the
-`scjn-leyes` release's own readers.
+"""The link from an SCJN snapshot to the DOF `codNota` that published it, and
+the `scjn-leyes` release's own readers -- the two SCJN-adjacent concerns that
+stay here rather than in the `scjn` package: a `codNota` is a DOF concept,
+and the release readers need this package's own on-disk cache
+(`nota2md.cache`). Catalogue slugs, crawl state and the provenance header's
+reader now live in `scjn.catalog`/`scjn.state`/`scjn.header`, re-exported
+here for this phase only (issue #207); the crawl itself lives in `scjn.api`,
+against the SCJN's JSON API (`/SCOW-API`, issue #172).
 
-The crawl itself lives in `nota2md.scjn_api`, against the SCJN's JSON API
-(`/SCOW-API`, issue #172). Until issue #179 this module also carried the
-crawler for the legacy WebForms Buscador (`/Buscador/`): a search POST
-round-tripping `__VIEWSTATE`/`__EVENTVALIDATION`, a detail page whose `q`
-token was scoped to the session that requested it, a reform grid paged
-through `__EVENTTARGET`, and one `.docx` download per row parsed by
+Until issue #179 this module also carried the crawler for the legacy
+WebForms Buscador (`/Buscador/`): a search POST round-tripping
+`__VIEWSTATE`/`__EVENTVALIDATION`, a detail page whose `q` token was scoped
+to the session that requested it, a reform grid paged through
+`__EVENTTARGET`, and one `.docx` download per row parsed by
 `docx_a_markdown`. All of it is gone. What replaced it, and why:
 
 - The old Buscador simply did not index everything. Searching it for the
@@ -20,7 +23,7 @@ through `__EVENTTARGET`, and one `.docx` download per row parsed by
   reform table arrives in one request instead of 31 postbacks.
 - The per-reform article text arrives already segmented, so the heuristic
   paragraph classifier that read the `.docx` is now only the formatter
-  `scjn_api` applies to it (`scjn_api._formatea_parrafo`).
+  `scjn.api` applies to it (`scjn.api._formatea_parrafo`).
 
 The API is still **not** an official contract — a Swagger page is not a
 stability promise, the same posture `dofjson.dofweb` takes toward the DOF's
@@ -41,10 +44,8 @@ import io
 import json
 import re
 import tarfile
-import unicodedata
 from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import datetime
 from difflib import SequenceMatcher
 from pathlib import Path
 
@@ -57,618 +58,47 @@ from nota2md.cache import (
     resuelve_cache_dir,
 )
 from nota2md.leyes import normaliza_para_comparar
+from scjn.catalog import (  # noqa: F401  (re-exported for this phase only, issue #207)
+    apply_actualizado,
+    catalog_key,
+    instrument_up_to_date,
+    iso_date_from_note,
+    merge_catalog_overrides,
+    merge_catalog_with_previous,
+    mint_abrev,
+    search_name,
+    slug_instrumento,
+    slugify,
+)
+from scjn.header import (  # noqa: F401  (re-exported for this phase only, issue #207)
+    VersionInstrumento,
+    _fecha,
+    lee_cabecera,
+    versiones_de_directorio,
+)
+from scjn.state import (  # noqa: F401  (re-exported for this phase only, issue #207)
+    ARCHIVO_ESTADO,
+    PENDIENTE_CAMBIO,
+    PENDIENTE_NUNCA_RASTREADO,
+    PENDIENTE_SIN_ACTUALIZADO,
+    escribe_estado,
+    lee_estado,
+    motivo_pendiente,
+)
+from scjn.text import (  # noqa: F401  (re-exported for this phase only, issue #207)
+    UMBRAL_CONFIANZA_SIMILITUD,
+    UMBRAL_MINIMO_SIMILITUD,
+    _normaliza,
+    es_acuerdo_interno,
+    grupo_instrumento,
+    quita_notas_editoriales,
+    ratio_similitud,
+)
 
 #: User-Agent for the `scjn-leyes` release's own GitHub requests -- the only
 #: network this module still does on its own (the SCJN crawl lives in
-#: `nota2md.scjn_api`, which carries its own headers).
+#: `scjn.api`, which carries its own headers).
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LegalIA-nota2md/1.0)"}
-
-
-def _normaliza(texto: str) -> str:
-    texto = unicodedata.normalize("NFKD", texto)
-    texto = "".join(c for c in texto if not unicodedata.combining(c))
-    return re.sub(r"\s+", " ", texto).strip().lower()
-
-
-# --- Fase 3 (issue #115): guard against a wrong-document match ---------
-#
-# Candidate selection narrowing by Ámbito/Vigencia (issue #105's Fase 0 finding
-# 5) resolves *most* of "searching by name alone can return something
-# unrelated", but not all of it — issue #115's manual audit of the already-
-# crawled corpus found 5 leyes/reglamentos where the SCJN's search returned,
-# and the crawler saved, a document with nothing to do with the catalogue
-# entry it was searching for. No single similarity threshold catches all 5
-# (a title that merely contains the searched name as a substring — e.g. a
-# reglamento of the searched-for ley — scores as high as a genuine match), so
-# this is three separate guards, each aimed at one shape of the problem:
-
-_ACUERDO_INTERNO = re.compile(
-    r"PLENO DE LA (SUPREMA CORTE|SCJN)|ACUERDO GENERAL N[ÚU]MERO\s+\d+/\d{4}", re.I
-)
-_GRUPO_LEY = re.compile(r"^(ley|c[oó]digo)\b", re.I)
-_GRUPO_REGLAMENTO = re.compile(r"^reglamento\b", re.I)
-_NOMBRE_ANTERIOR = re.compile(r"\s*-\s*ANTES\b.*$", re.I)
-
-# Below UMBRAL_MINIMO the best candidate left is rejected outright (`ccf`'s
-# 0.436: a title that shares only stray words with what was searched).
-# Between the two, a candidate is kept but flagged `sospechoso` (`lfd`'s
-# 0.676: "LEY Federal de Derechos" vs "LEY FEDERAL DE LOS DERECHOS DEL
-# CONTRIBUYENTE" — a real but *different* law, not resolvable by text alone
-# without risking false rejections on legitimate near-duplicate titles).
-UMBRAL_MINIMO_SIMILITUD = 0.55
-UMBRAL_CONFIANZA_SIMILITUD = 0.75
-
-
-def ratio_similitud(titulo: str, nombre: str) -> float:
-    """How closely a candidate's own `titulo` matches the catalogue's
-    `nombre` for it, accent/case/whitespace-insensitive — the same
-    `SequenceMatcher` ratio `scjn_api.elige_ordenamiento` picks its winner
-    by, and that `scjn_api.cabecera` recomputes to decide whether
-    `nombre_buscado` is worth
-    writing (issue #132). Exposed too so `scripts/empaqueta_scjn_leyes.py`
-    can classify an already-crawled snapshot's confidence offline, against
-    whatever `ordenamiento` a past crawl already saved to its own header,
-    without needing to re-crawl anything.
-
-    A renamed ordenamiento's SCJN title also carries its own former name, as
-    a trailing ``-ANTES <título anterior>-`` (confirmed live re-crawling
-    `ccf`: "CODIGO CIVIL FEDERAL -ANTES CODIGO CIVIL PARA EL DISTRITO
-    FEDERAL...-" scores 0.270 against the catalogue's "Código Civil
-    Federal" with the suffix counted in, below even the worst of the 5
-    confirmed wrong-document cases — `UMBRAL_MINIMO_SIMILITUD` would reject
-    the *correct* document). Stripped before comparing, so a rename never
-    counts against the title that is actually current."""
-    titulo = _NOMBRE_ANTERIOR.sub("", titulo)
-    return SequenceMatcher(None, _normaliza(titulo), _normaliza(nombre)).ratio()
-
-
-def es_acuerdo_interno(titulo: str) -> bool:
-    """Whether `titulo` is one of the SCJN's own internal administrative
-    agreements (a Pleno "ACUERDO GENERAL") rather than an ordenamiento of
-    the catalogue's own three collections — `lisr`/`lsint`'s failure mode:
-    the search returned no actual law as a candidate, only an unrelated
-    SCJN acuerdo that happened to mention the searched name in its own long
-    title, and nothing in Ámbito/Vigencia/similarity tells those apart from
-    a genuine (if oddly worded) match."""
-    return bool(_ACUERDO_INTERNO.search(titulo))
-
-
-def grupo_instrumento(texto: str) -> str | None:
-    """"ley" or "reglamento" when `texto` unambiguously starts with one of
-    those (a LEY/CÓDIGO is never the REGLAMENTO of itself, or vice versa),
-    None when it starts with neither (a tratado's name, mostly) — used to
-    reject `lopgjdf`'s failure mode: a reglamento's title can score high on
-    pure text similarity against the ley it regulates, since it literally
-    contains that ley's own name."""
-    if _GRUPO_LEY.match(texto):
-        return "ley"
-    if _GRUPO_REGLAMENTO.match(texto):
-        return "reglamento"
-    return None
-
-
-# --- Editorial commentary removal ("N. DE E." / "NOTA N") --------------
-#
-# The SCJN's own Markdown mixes two things a reform-annotated paragraph can
-# carry: a reform annotation with a real DOF counterpart ("(REFORMADO,
-# D.O.F. <date>)" — kept, see reconstruct_legal_provisions and issue #52),
-# and the SCJN's own editorial aside, which it marks "N. DE E." (Nota de
-# Editor) or, for a sibling convention citing external DOF fee-update
-# agreements, "NOTA N" — neither ever published by the DOF itself. Issue
-# #114's sweep of the 3,548 snapshots already crawled for `leyes` found this
-# in 91% of them (~85k marker occurrences) and catalogued how it is placed:
-#
-#   - Three ways the marker itself is spelled, all SCJN's own typos of
-#     "N. DE E.": missing a period, doubling one, or splitting one across a
-#     space ("N DE E", "N. DE. E", "N. DE . E"). The sibling "NOTA N" is
-#     only ever this marker when spelled in full caps — a lowercase/mixed
-#     "Nota N" is `ligie`'s tariff schedule citing its own explanatory notes
-#     ("Nota 2 del Capítulo 22"), real legal text no DOF/SCJN divide applies
-#     to, never an SCJN insertion.
-#   - Three ways the note is placed relative to real text: (a) an entire
-#     `[...]`/`(...)` paragraph of its own; (b) embedded inside a reform
-#     annotation's own parenthesis, which resumes with ", D.O.F. <date>)"
-#     right after it; (c) trailing bare after a reform annotation has
-#     already closed, running to the end of that paragraph (SCJN's own
-#     "N. DE E." is not always bracketed at all).
-#   - One no-marker case (Fase 0 finding 3): an unmarked, all-caps bracket
-#     ("[REPUBLICADAS]", "[ANTES ARTÍCULO 57]"). The one thing that rules out
-#     treating "any bracket" as editorial is that real legal text also uses
-#     them — tariff formulas and chemical nomenclature — but every instance
-#     of those in the corpus is either letter-free or mixed-case, never a
-#     bare run of upper-case words, so requiring both traits (all-caps *and*
-#     at least one 3+ letter word) tells the two apart without a formula-
-#     specific pattern to maintain.
-
-_MARCADOR_N_DE_E = re.compile(r"N\.?\s*DE\.?\s*\.?\s*E\.?\b", re.I)
-# Case-sensitive on purpose — see the section docstring's `ligie` case.
-_MARCADOR_NOTA = re.compile(r"NOTA\s+\d+\b")
-_CORCHETE = re.compile(r"\[([^\[\]]*)\]")
-_PALABRA_LARGA = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]{3,}")
-_ANOTACION_REANUDA = re.compile(r",\s*D\.O\.F\.", re.I)
-
-
-def _empieza_con_marcador(texto: str) -> bool:
-    despojado = texto.lstrip()
-    return bool(_MARCADOR_N_DE_E.match(despojado) or _MARCADOR_NOTA.match(despojado))
-
-
-def _es_nota_editorial(contenido: str) -> bool:
-    """Whether one `[...]` bracket's content is SCJN editorial commentary —
-    its own marker, or (no marker) an all-caps run with an actual word in
-    it, never a tariff/chemical bracket (see the section docstring)."""
-    if _empieza_con_marcador(contenido):
-        return True
-    if not _PALABRA_LARGA.search(contenido):
-        return False
-    letras = [c for c in contenido if c.isalpha()]
-    return all(c.isupper() for c in letras)
-
-
-def _marcadores_sueltos(texto: str):
-    """Every bare (not inside a `[...]`) occurrence of the marker in
-    `texto`, oldest-first — a `[...]` bracket's own content is handled by
-    `_es_nota_editorial` instead, so it is excluded here."""
-    corchetes = [(m.start(), m.end()) for m in _CORCHETE.finditer(texto)]
-
-    def en_corchete(pos: int) -> bool:
-        return any(inicio <= pos < fin for inicio, fin in corchetes)
-
-    candidatos = [
-        m
-        for patron in (_MARCADOR_N_DE_E, _MARCADOR_NOTA)
-        for m in patron.finditer(texto)
-        if not en_corchete(m.start())
-    ]
-    return sorted(candidatos, key=lambda m: m.start())
-
-
-def _quita_marcador_suelto(texto: str) -> str:
-    """`texto` with its first bare marker (see `_marcadores_sueltos`)
-    removed, if any.
-
-    A bare marker always runs to the end of its own paragraph — SCJN never
-    gives it a closing delimiter of its own to bound it, *unless* it sits
-    inside a reform annotation's still-open parenthesis (a positive paren
-    balance right before it) whose own opening was real annotation text
-    ("(REFORMADO N. DE E. ..., D.O.F. ...)"): there, the annotation resumes
-    right after the note with its own ", D.O.F. <date>)" field, which is
-    kept. When that open parenthesis instead belongs to the note itself
-    (nothing but whitespace between it and the marker, e.g. "(N. DE E.,
-    ..." or "(NOTA 1: ..."), the note still runs to the paragraph's end —
-    only a real annotation verb before the marker bounds it early.
-    """
-    candidatos = _marcadores_sueltos(texto)
-    if not candidatos:
-        return texto
-    m = candidatos[0]
-    antes = texto[: m.start()]
-    balance = antes.count("(") - antes.count(")")
-    if balance > 0:
-        apertura = antes.rfind("(")
-        if antes[apertura + 1 :].strip():
-            resto = texto[m.start() :]
-            reanuda = _ANOTACION_REANUDA.search(resto)
-            if reanuda is not None:
-                inicio = m.start()
-                if antes.rstrip().endswith(("(", "[")):
-                    inicio = len(antes.rstrip()) - 1
-                return texto[:inicio].rstrip() + resto[reanuda.start() :]
-        else:
-            return antes[:apertura].rstrip()
-    return antes.rstrip()
-
-
-def _quita_notas_editoriales(nucleo: str) -> str:
-    if len(nucleo) >= 2 and nucleo[0] in "([" and nucleo[-1] in ")]":
-        if _empieza_con_marcador(nucleo[1:-1].lstrip()):
-            return ""
-
-    piezas = []
-    cursor = 0
-    cambios = False
-    for m in _CORCHETE.finditer(nucleo):
-        if not _es_nota_editorial(m.group(1)):
-            continue
-        cambios = True
-        antes = nucleo[cursor : m.start()].rstrip(" ")
-        if antes.endswith(":") and nucleo[m.end() : m.end() + 1] == ".":
-            antes = antes[:-1]  # the note's own closing "." now dangles after ":"
-        piezas.append(antes)
-        cursor = m.end()
-    piezas.append(nucleo[cursor:])
-    resultado = "".join(piezas) if cambios else nucleo
-
-    sin_suelto = _quita_marcador_suelto(resultado)
-    if sin_suelto != resultado:
-        cambios = True
-        resultado = sin_suelto
-
-    return resultado.strip() if cambios else nucleo
-
-
-def quita_notas_editoriales(parrafo: str) -> str:
-    """`parrafo` with every SCJN editorial insertion removed (see the
-    section docstring above) — a paragraph that turns out to be *only* one
-    such insertion comes back empty, rather than as a blank paragraph.
-
-    Takes the already-bolded output of `scjn_api._formatea_parrafo` just as
-    readily as a raw source paragraph — a whole-paragraph editorial insertion
-    in an already-written snapshot is wrapped in its own "**...**"
-    (`scjn_api._es_titular` bolds every all-caps paragraph, editorial or not),
-    stripped and restored around the result so a second pass over already-clean output is a no-op,
-    byte for byte. That property is what let issue #114's Paso 5 repair, in
-    place, the snapshots an earlier crawl had written before this existed;
-    that one-time script (`scripts/repara_notas_editoriales_scjn.py`) was
-    retired in issue #129 once it ran to a no-op over the whole corpus, but
-    the idempotence it relied on is still worth keeping.
-    """
-    negrita = parrafo.startswith("**") and parrafo.endswith("**") and len(parrafo) > 4
-    nucleo = parrafo[2:-2] if negrita else parrafo
-    resultado = _quita_notas_editoriales(nucleo)
-    if resultado == nucleo:
-        return parrafo
-    if not resultado:
-        return ""
-    return f"**{resultado}**" if negrita else resultado
-
-
-def slugify(texto: str) -> str:
-    """`texto` as a filesystem-safe, ASCII, lowercase slug — the release's
-    own asset-name shape."""
-    return re.sub(r"[^a-z0-9]+", "-", _normaliza(texto)).strip("-")
-
-
-def slug_instrumento(entrada: dict) -> str:
-    """The directory and release-asset name for one catalogue entry (as
-    `catalogo.json` holds it, see `scripts/extract_scjn_titles.py`): its own
-    `abrev`, slugified.
-
-    Slugifying is not a no-op: the 14 laws whose abbreviation carries an
-    underscore come out hyphenated (`lif_2026` -> `lif-2026`), which is why
-    this and `catalog_key` are two functions and not one — the slug is the
-    release's asset name, the `abrev` is what the catalogue keeps verbatim.
-
-    Raises `KeyError` for an entry with no `abrev`. Until issue #189 this fell
-    back to the entry's `nombre`, then to a literal `"instrumento"`, because
-    the tratados catalogue had no `abrev` at all; with `leyes` the only
-    collection left, a missing `abrev` is a broken catalogue entry and a
-    silent shared directory name would be the worst possible way to find
-    that out."""
-    return slugify(entrada["abrev"])
-
-
-# --- issue #124 (follow-up): closing the catalogue's own coverage gaps ----
-#
-# Two catalogue entries the coverage sweep above never finds anything for,
-# each for a different reason. `lisipl`: the catalogue's own `nombre` for it
-# carries a 250+ character trailing parenthetical alternate name that the
-# SCJN's full-text search never matches, even though the SCJN's own title
-# for it scores 0.774 on `ratio_similitud` against that `nombre` — above
-# UMBRAL_CONFIANZA_SIMILITUD — once it is actually found by a different
-# search string. `lfca`: a brand-new law (DOF 2026-05-24) the SCJN has not
-# indexed at all yet — confirmed live, searching its own name (or even just
-# "Cine y el Audiovisual") returns nothing; not a title mismatch.
-#
-# search_name/merge_catalog_overrides are Mecanismo 1: an optional
-# `nombre_scjn` override a human can add to one catalogue entry (applied to
-# `lisipl`, not `lfca` — its gap is indexing lag, not a different title),
-# which `extract_scjn_titles.py` now preserves across its own refreshes
-# instead of overwriting the whole file blindly, and which
-# `fetch_scjn_legislacion.py` searches with in place of `nombre`.
-#
-# instrument_up_to_date/iso_date_from_note are Mecanismo 2: an `actualizado`
-# field (the ISO date of an instrument's own most recent reform — since
-# issue #186 the newest of the SCJN's reform table and the DOF's own titles,
-# `newest_dof_publication_dates`) that lets a refresh run skip
-# re-searching the SCJN for an instrument nothing has changed on since the
-# collection's own last full crawl. This is the safety net for a case like
-# `lfca`: nothing needs to be typed by hand — a brand-new law's `actualizado`
-# is newer than any previous full crawl, so it keeps getting retried on
-# every refresh, automatically, until the SCJN catches up.
-
-
-def search_name(entry: dict) -> str:
-    """The string to actually search the SCJN with for one catalogue entry:
-    its manual `nombre_scjn` override when present, the catalogue's own
-    `nombre` otherwise. `nombre` itself is never touched by this — it stays what
-    `enlaza_por_titulo`/`title_candidates_por_fecha` compare against DOF
-    titles (issue #126), and what a caller shows in its own progress
-    output; only the string handed to `buscar` changes."""
-    return entry.get("nombre_scjn") or entry["nombre"]
-
-
-def catalog_key(entry: dict) -> str:
-    """The key two catalogue entries from separate runs are considered the
-    same instrument by: its `abrev`, **verbatim** — not slugified, unlike
-    `slug_instrumento`. Keeping the two apart is what lets a catalogue that
-    already spells a law `lif_2026` keep spelling it that way while the
-    release's asset for it is `lif-2026.tgz` (issue #186).
-
-    Raises `KeyError` for an entry with no `abrev`, same as
-    `slug_instrumento` and for the same reason (issue #189)."""
-    return entry["abrev"]
-
-
-def merge_catalog_overrides(catalog: list[dict], previous_catalog: list[dict] | None) -> list[dict]:
-    """`catalog` (a freshly extracted catalogue) with
-    each entry's own `nombre_scjn` carried over from whichever entry of
-    `previous_catalog` it corresponds to (`catalog_key`), when that
-    previous entry had one.
-
-    `extract_scjn_titles.py` used to overwrite `catalogo.json` from scratch
-    on every run — there was nowhere to keep a manual override, and even a
-    hand-edited one would vanish on the next refresh. This is what makes it
-    survive instead: a fresh run only ever adds or updates what the
-    extraction itself gives (`nombre`, `abrev`, `actualizado`), and only ever
-    keeps — never invents — `nombre_scjn`.
-
-    `previous_catalog` being empty or None (first run, no `catalogo.json`
-    yet) returns `catalog` unchanged."""
-    if not previous_catalog:
-        return catalog
-    previous_by_key = {catalog_key(entry): entry for entry in previous_catalog}
-    merged = []
-    for entry in catalog:
-        previous = previous_by_key.get(catalog_key(entry))
-        if previous and previous.get("nombre_scjn"):
-            entry = {**entry, "nombre_scjn": previous["nombre_scjn"]}
-        merged.append(entry)
-    return merged
-
-
-def merge_catalog_with_previous(
-    seed: list[dict], previous: list[dict] | None
-) -> tuple[list[dict], list[dict]]:
-    """`seed` overlaid on `previous`, sorted by `slug_instrumento`, plus the
-    entries of `previous` the seed does not account for.
-
-    The previous catalogue is the floor: those entries stay in the result and
-    are returned separately so the caller can report them. An entry present
-    in both keeps its previous `abrev` verbatim and takes the seed's
-    `nombre`; every other previous field (`nombre_scjn`, and any hand-written
-    one) is preserved."""
-    por_slug = {slug_instrumento(entrada): dict(entrada) for entrada in (previous or [])}
-    faltantes = dict(por_slug)
-
-    for entrada in seed:
-        slug = slug_instrumento(entrada)
-        faltantes.pop(slug, None)
-        anterior = por_slug.get(slug)
-        if anterior is None:
-            por_slug[slug] = {"nombre": entrada["nombre"], "abrev": entrada["abrev"]}
-        else:
-            # `nombre` is refreshed, `abrev` never is.
-            anterior["nombre"] = entrada["nombre"]
-
-    catalogo = [por_slug[slug] for slug in sorted(por_slug)]
-    return catalogo, [faltantes[slug] for slug in sorted(faltantes)]
-
-
-def apply_actualizado(catalogo: list[dict], *fuentes: dict[str, str]) -> list[dict]:
-    """Each entry with `actualizado` set to the newest date any of `fuentes`
-    (slug -> ISO date) gives for it, and **removed** when none does — an entry
-    that used to carry a date and no longer can must not keep a stale one.
-
-    The newest wins rather than the first source that answers: the SCJN's
-    reform table and the DOF's own titles each miss reforms the other sees
-    (see `extract_scjn_titles.py`, which measured both), and over-reporting a
-    law as pending only costs a re-crawl, while under-reporting it loses the
-    reform silently."""
-    resultado = []
-    for entrada in catalogo:
-        slug = slug_instrumento(entrada)
-        candidatos = [f[slug] for f in fuentes if slug in f]
-        entrada = dict(entrada)
-        if candidatos:
-            # Assigned, not rebuilt, so an entry that already had the field
-            # keeps it where it was in the file.
-            entrada["actualizado"] = max(candidatos)
-        else:
-            entrada.pop("actualizado", None)
-        resultado.append(entrada)
-    return resultado
-
-
-def iso_date_from_note(note: dict) -> str | None:
-    """`note`'s own `fecha` (dofjson's `DD-MM-YYYY`, the shape
-    `nota2md.builder.fetch_nota` returns it in) as ISO `YYYY-MM-DD`, or None
-    when `note` carries no `fecha` at all."""
-    fecha = note.get("fecha")
-    if not fecha:
-        return None
-    return datetime.strptime(fecha, "%d-%m-%Y").date().isoformat()
-
-
-def instrument_up_to_date(directory: Path, updated: str | None, corpus_date: str | None) -> bool:
-    """Whether the instrument crawled into `directory` can be skipped on a
-    refresh run without touching the SCJN at all: it already has at least
-    one snapshot on disk, and its own `updated` (`catalogo.json`'s
-    `actualizado`, an ISO date) is no later than `corpus_date` (the ISO
-    date this collection was last crawled start-to-finish) — plain string
-    comparison, since both are ISO `YYYY-MM-DD`.
-
-    An instrument with no snapshot on disk yet is never skipped, regardless
-    of `updated`/`corpus_date`: "nothing downloaded" is never mistaken for
-    "already up to date" — the safety net for an instrument the SCJN has
-    not indexed at all yet (see the section docstring above, `lfca`): every
-    refresh keeps retrying it until the SCJN catches up, with nothing to
-    configure by hand."""
-    if corpus_date is None or not updated:
-        return False
-    if not any(directory.glob("*.md")):
-        return False
-    return updated <= corpus_date
-
-
-# --- issue #148: per-instrument freshness, so one law can be refreshed alone -
-#
-# Mecanismo 2 above compares against a date that belongs to the *collection*
-# (`.rastreo_completo.json`, one date for all ~315 laws, written only when a
-# full sweep finishes). That is enough to skip work on a full sweep, but it
-# cannot answer "this one law is up to date as of X" — which is exactly what
-# updating a single law needs, both to decide whether it is pending and to
-# know which release asset has to be re-uploaded.
-#
-# So each instrument's own directory carries an `estado.json` recording the
-# `actualizado` it was actually crawled against (the catalogue's value at
-# crawl time, not today's), plus when it was crawled and linked. It is a
-# regular file, not a hidden checkpoint, on purpose: it ships inside the
-# instrument's own `.tgz` (issue #128), so the published release carries its
-# own freshness metadata and nothing has to trust local scratch to know what
-# was published.
-
-ARCHIVO_ESTADO = "estado.json"
-
-#: Why one instrument is (or is not) pending a refresh — `motivo_pendiente`'s
-#: own vocabulary, kept as constants since callers branch on it.
-PENDIENTE_NUNCA_RASTREADO = "nunca_rastreado"
-PENDIENTE_SIN_ACTUALIZADO = "sin_actualizado"
-PENDIENTE_CAMBIO = "cambio"
-
-
-def lee_estado(directory: Path) -> dict:
-    """`directory`'s own `estado.json`, or `{}` when there is none — the
-    first run after this mechanism was added, an instrument crawled before
-    it existed, or a malformed file. Unreadable is treated the same as
-    absent rather than raising: the cost of getting it wrong is one extra
-    crawl of one law, and refusing to run would be worse."""
-    try:
-        campos = json.loads((directory / ARCHIVO_ESTADO).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return {}
-    return campos if isinstance(campos, dict) else {}
-
-
-def escribe_estado(directory: Path, **campos) -> dict:
-    """Merge `campos` into `directory`'s own `estado.json` and return the
-    result. A merge, not an overwrite, because the fields have different
-    owners: `fetch_scjn_legislacion.py` writes `actualizado`/`rastreado`,
-    `enlaza_scjn_legislacion.py` writes `enlazado`, and neither should erase
-    the other's record of what it did."""
-    estado = {**lee_estado(directory), **campos}
-    directory.mkdir(parents=True, exist_ok=True)
-    (directory / ARCHIVO_ESTADO).write_text(
-        json.dumps(estado, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    return estado
-
-
-def motivo_pendiente(entry: dict, directory: Path, corpus_date: str | None) -> str | None:
-    """Why `entry` needs to be crawled again, or None when it does not —
-    the whole decision issue #148's planner and refresh runs share, made
-    offline from `catalogo.json` plus what is on disk. Never touches the
-    SCJN.
-
-    - `PENDIENTE_NUNCA_RASTREADO`: no snapshot on disk at all. Always
-      pending, whatever the dates say — the `lfca` safety net of issue #124,
-      unchanged.
-    - `PENDIENTE_SIN_ACTUALIZADO`: the catalogue gives no `actualizado` for
-      it (3 laws today: neither the SCJN's reform table nor the DOF's
-      titles date them), so whether it changed is simply unknowable. Reported as pending, but as its own
-      distinct reason: a planner lists these apart and lets a human decide,
-      while a full sweep keeps re-crawling them, which is what it always did.
-    - `PENDIENTE_CAMBIO`: the catalogue now reports a reform newer than the
-      one this instrument was last crawled against. The comparison is against
-      the instrument's own `estado.json` when it has one, and only otherwise
-      against the collection-wide `corpus_date` (`instrument_up_to_date`) —
-      per-law state takes precedence, so a single law refreshed on its own
-      counts as up to date even though no full sweep ran after it."""
-    if not any(directory.glob("*.md")):
-        return PENDIENTE_NUNCA_RASTREADO
-    actualizado = entry.get("actualizado")
-    if not actualizado:
-        return PENDIENTE_SIN_ACTUALIZADO
-    rastreado_contra = lee_estado(directory).get("actualizado")
-    if rastreado_contra:
-        return PENDIENTE_CAMBIO if actualizado > rastreado_contra else None
-    return None if instrument_up_to_date(directory, actualizado, corpus_date) else PENDIENTE_CAMBIO
-
-
-# --- issue #123/#126: match each snapshot to the codNota that published it,
-# by title mention alone --------------------------------------------------
-#
-# The crawl only knows the SCJN's own view of an instrument: a
-# publication date per snapshot, nothing that ties back to a DOF `codNota`.
-# Issue #105's original design paired that date against the Cámara de
-# Diputados' own curated `historial` (its list of codNota per instrument,
-# read through a release this project no longer publishes — issues #184 and
-# #187 deleted both) — but issue #123's corrected goal is for the
-# SCJN, plus the DOF's own title dataset, to be the *only* source once an
-# instrument's `nombre` has picked which one to crawl: `historial` is never
-# consulted here, not even as a tie-breaker or a fallback. What the catalogue
-# contributes is `nombre` itself, used for two things: searching
-# the SCJN (`buscar`) and, here, testing which same-day DOF note's own title
-# actually names the instrument. Two SCJN-dated snapshots can share a
-# `fecha_publicacion` (issue #105's Fase 0 found up to 4 on the CPEUM alone),
-# so this also has to resolve same-day exclusivity: once an earlier snapshot
-# of that date has claimed a candidate, a later one sharing the date never
-# claims it again.
-
-
-def _fecha(cadena: str) -> datetime:
-    return datetime.strptime(cadena, "%d-%m-%Y")
-
-
-_CABECERA_CAMPO = re.compile(r"^([a-z_]+):\s*(.*)$")
-
-
-def lee_cabecera(archivo: Path) -> dict:
-    """The provenance header `scjn_api.cabecera` writes at the top of
-    `archivo`, back
-    as a dict (`fuente`, `nombre_buscado`, `ordenamiento`,
-    `fecha_publicacion`, and whichever of `fecha_expedicion`/`categoria` that
-    snapshot's row had) — reading back a file a previous crawl run already
-    wrote, without re-fetching it. `nombre_buscado` is absent on a file a
-    crawl wrote before issue #124 added it, same as `ratio_similitud`/
-    `sospechoso` for issue #115 — and, since issue #132, also absent on a
-    file whose `ordenamiento` was already identical to what was searched
-    for, which is not a missing field but `scjn_api.cabecera` declining to write a
-    redundant one."""
-    texto = archivo.read_text(encoding="utf-8")
-    lineas = texto.split("\n")
-    campos = {}
-    for linea in lineas[1:]:
-        if linea.strip() == "---":
-            break
-        m = _CABECERA_CAMPO.match(linea)
-        if m:
-            campos[m.group(1)] = m.group(2)
-    return campos
-
-
-@dataclass
-class VersionInstrumento:
-    """One SCJN snapshot already on disk: its own publication date and the
-    file `scjn_api.descarga_ordenamiento` wrote it to."""
-
-    fecha_publicacion: str
-    archivo: Path
-
-
-def _orden_repeticion(version: "VersionInstrumento") -> int:
-    """The `-N` suffix `scjn_api.descarga_ordenamiento` appends to the 2nd+
-    file of a
-    repeated `fecha_publicacion` (see its own docstring), as a sort key: 1
-    for a plain `<fecha>.md` (no suffix), N for `<fecha>-N.md`. `fecha` is
-    known already (the header, not the filename, is the source of truth),
-    so only the part of the stem after it is a repetition suffix — the
-    date's own dashes never get mistaken for one."""
-    resto = version.archivo.stem[len(version.fecha_publicacion) :]
-    return int(resto[1:]) if resto else 1
-
-
-def versiones_de_directorio(outdir: Path) -> list[VersionInstrumento]:
-    """Every snapshot `scjn_api.descarga_ordenamiento` has already written to
-    `outdir`, oldest first — read back from each file's own header rather
-    than re-crawling, so a later Fase 2 pass can run over a crawl's output
-    independently of the crawl itself."""
-    versiones = [
-        VersionInstrumento(lee_cabecera(archivo)["fecha_publicacion"], archivo)
-        for archivo in outdir.glob("*.md")
-    ]
-    return sorted(versiones, key=lambda v: (_fecha(v.fecha_publicacion), _orden_repeticion(v)))
 
 
 _TITLE_MEANINGFUL_WORD = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]{4,}")
@@ -834,50 +264,6 @@ def newest_dof_publication_dates(instrumentos: dict[str, str], titulos) -> dict[
     return mas_reciente
 
 
-#: Words an `abrev` is never built out of: they are in almost every federal
-#: law's name and carry no distinguishing information.
-_ABREV_VACIAS = {
-    "de", "del", "la", "las", "el", "los", "y", "e", "en", "para", "por",
-    "sobre", "que", "al", "a", "un", "una", "su", "sus", "con",
-}
-
-
-def mint_abrev(nombre: str, taken=()) -> str:
-    """A new law's `abrev`, minted deterministically from its `nombre`: the
-    first letter of every word that is not a stop word (`_ABREV_VACIAS`),
-    accent-folded and lowercased, with `-2`, `-3`, … appended until it is not
-    in `taken`.
-
-    Nothing else in the project assigns one. An `abrev` is the `scjn-leyes`
-    slug and asset name, so this rule exists to be applied **once**, when a
-    law first enters the catalogue, and the value is then carried verbatim
-    forever: re-minting one would rename that law's release asset and orphan
-    it. `extract_scjn_titles.py` never applies it on its own — it reports the
-    candidate and a human writes the entry (issue #186).
-
-    The result is already slug-safe (`slug_instrumento` is the identity on
-    it), unlike the 14 historical `abrev` that carry an underscore.
-
-    >>> import nota2md.scjn as scjn
-    >>> scjn.mint_abrev("LEY Federal de Cine y el Audiovisual")
-    'lfca'
-    >>> scjn.mint_abrev("LEY Federal de Cine y el Audiovisual", taken={"lfca"})
-    'lfca-2'
-    """
-    palabras = re.findall(r"[a-z0-9]+", _normaliza(nombre))
-    base = "".join(p[0] for p in palabras if p not in _ABREV_VACIAS)
-    if not base:
-        # A name that is nothing but stop words is not a real law name, but
-        # returning "" would collide with itself on the very next call.
-        base = "ley"
-    candidato = base
-    sufijo = 1
-    while candidato in taken:
-        sufijo += 1
-        candidato = f"{base}-{sufijo}"
-    return candidato
-
-
 @dataclass
 class VersionEnlazada:
     """One SCJN snapshot together with the `codNota` of the DOF note that
@@ -973,7 +359,7 @@ _PALABRA_DIFF = re.compile(r"\d+(?:[.,]\d+)?|\w{4,}")
 
 
 def _cuerpo_de_snapshot(archivo: Path) -> str:
-    """`archivo`'s own body, with the provenance header `scjn_api.cabecera`
+    """`archivo`'s own body, with the provenance header `scjn.api.cabecera`
     wrote at
     its top stripped off — header and body are separated by the first blank
     line, so a diff between two snapshots never mistakes a header field
@@ -1120,7 +506,7 @@ def confirm_by_content_diff(
 #
 # **"Reform N" is redefined, once and loudly.** It is now the position of the
 # entry in the law's own `indice.json` — that is, the chronological order of
-# the SCJN's own reform table (`scjn_api.reformas_of_ordenamiento`, newest
+# the SCJN's own reform table (`scjn.api.reformas_of_ordenamiento`, newest
 # first, reversed to oldest-first by `versiones_de_directorio`). It is *not*
 # Diputados' numbering and is not measured against it: Diputados filed errata,
 # peso restatements, SCJN rulings and entry-into-force declarations in the
@@ -1641,11 +1027,11 @@ def iter_current_federal_laws(
     A law never linked (`enlaza_scjn_legislacion.py` has not run for it yet)
     has no `indice.json` at all: the winner is then the raw snapshot whose
     file name -- `DD-MM-YYYY.md`, or `DD-MM-YYYY-N.md` for a same-day repeat
-    (`scjn_api.descarga_ordenamiento`'s `-N` suffix) -- carries the newest
+    (`scjn.api.descarga_ordenamiento`'s `-N` suffix) -- carries the newest
     date, and `codNota` comes back `None`.
 
     `fecha_publicacion`, both in `indice.json` and in a raw snapshot's own
-    file name, is `DD-MM-YYYY` (`scjn_api._fecha`'s format), not ISO --
+    file name, is `DD-MM-YYYY` (`scjn.api._fecha`'s format), not ISO --
     comparing it lexicographically would rank `"05-01-1999"` ahead of
     `"22-05-1998"`. The winner is chosen by parsing the date with `_fecha`;
     `archivo` breaks a tie between two snapshots published the same day, only

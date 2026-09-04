@@ -12,7 +12,7 @@ collection would have to justify itself again before it got a flag back.
 For each instrument in `extract_scjn_titles.py`'s own catalogue, only its
 `nombre` is used to find, for every snapshot already sitting under
 ``<outdir>/leyes/<abrev-o-nombre>/`` (see
-`nota2md.scjn.versiones_de_directorio`), which same-day DOF note (the dofjson
+`scjn.header.versiones_de_directorio`), which same-day DOF note (the dofjson
 titles stream, `dofjson.legal_provisions_titles`) explicitly names
 the instrument in its own title (issue #126,
 `nota2md.scjn.title_candidates_por_fecha`) — or, when no same-day title names
@@ -77,7 +77,9 @@ from datetime import date
 from pathlib import Path
 
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
+_RAIZ = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_RAIZ / "packages" / "nota2md"))
+sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
 from dofjson.titulos import SIN_CACHE_DIR, legal_provisions_titles  # noqa: E402
 from nota2md.builder import fetch_nota, get_document  # noqa: E402
@@ -85,13 +87,12 @@ from nota2md.scjn import (  # noqa: E402
     ESTADO_ENLACE_CONTENT_DIFF,
     confirm_by_content_diff,
     enlaza_por_titulo,
-    escribe_estado,
-    lee_cabecera,
     resolve_links,
-    slug_instrumento,
     title_candidates_por_fecha,
-    versiones_de_directorio,
 )
+from scjn.catalog import slug_instrumento  # noqa: E402
+from scjn.header import lee_cabecera, versiones_de_directorio  # noqa: E402
+from scjn.state import escribe_estado  # noqa: E402
 
 #: The one collection left (issue #189), a literal path segment.
 COLECCION = "leyes"
@@ -131,7 +132,7 @@ def carga_porf(titulos) -> dict:
 
 
 def _confianza(archivo: Path) -> dict:
-    """The `ratio_similitud`/`sospechoso` fields `nota2md.scjn_api.cabecera`
+    """The `ratio_similitud`/`sospechoso` fields `scjn.api.cabecera`
     writes into a snapshot's own header (issue #115), read back into
     `indice.json` so a packaging step can quarantine `sospechoso` entries
     without re-reading every snapshot file itself. Both come back `None`

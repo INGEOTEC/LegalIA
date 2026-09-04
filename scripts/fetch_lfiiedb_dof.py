@@ -47,7 +47,7 @@ publicación, ``DD-MM-YYYY.md``, es decir
 reformas. La fecha se toma del campo `fecha` de la nota, no se escribe a
 mano, para que el script sea reproducible.
 
-**Cabecera.** Se sigue el esquema de `nota2md.scjn_api.cabecera` (frontmatter
+**Cabecera.** Se sigue el esquema de `scjn.api.cabecera` (frontmatter
 delimitado por `---`, leíble por `lee_cabecera`), pero dejando explícito que
 el origen es el DOF y no la SCJN:
 
@@ -139,7 +139,7 @@ MOTIVO = (
 
 def cabecera(nota: dict) -> str:
     """The provenance header for a snapshot whose origin is the DOF and not
-    the SCJN — same shape `nota2md.scjn_api.cabecera` writes (so `lee_cabecera`
+    the SCJN — same shape `scjn.api.cabecera` writes (so `lee_cabecera`
     and `versiones_de_directorio` read it back unchanged), declaring
     `fuente: dof` and carrying the `codNota` it is known by from the origin.
     No `ratio_similitud`/`sospechoso`: there was no search to report one for."""
