@@ -1,11 +1,16 @@
-"""Match every SCJN snapshot of a law to the DOF `codNota` that published it.
+"""Match every SCJN snapshot of a law to the DOF `codNota` that published it,
+and resolve a `codNota` back to the snapshot it produced.
 
 `codNota` linking is the one SCJN-adjacent concern that legitimately needs
 both sides -- SCJN snapshots on one hand, DOF titles on the other -- so it
 stays here rather than in the `scjn` package (issue #206 section 5, #208).
 It is the seam between the two: nothing on the SCJN side imports this
 module, and this is the only place in the project that knows how a
-snapshot becomes a `codNota`.
+snapshot becomes a `codNota`. `localiza_codNota`/`snapshot_de_codNota` are
+the seam's other direction -- resolving a `codNota` back to the snapshot it
+produced, for `nota2md.builder.legal_provisions` -- and stay here for the
+same reason, calling `scjn.release`'s disk-first readers instead of the
+network (issue #209).
 
 In: one law's snapshots (`scjn.header.versiones_de_directorio`) plus the
 DOF's own titles (`dofjson.legal_provisions_titles`). Out: a `codNota` per
@@ -41,6 +46,7 @@ from pathlib import Path
 
 from nota2md.text import normaliza_para_comparar
 from scjn.header import VersionInstrumento
+from scjn.release import download_scjn_leyes_index, markdown_de_snapshot
 from scjn.text import _normaliza
 
 _TITLE_MEANINGFUL_WORD = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]{4,}")
@@ -528,3 +534,95 @@ def resolve_links(
         candidatos = candidatos_por_fecha.get(enlazada.fecha_publicacion, [])
         resuelto.append((None, title_link_status(None, candidatos)))
     return resuelto
+
+
+# --- issue #209: resolving a codNota to the snapshot it produced ---------
+#
+# The other half of this module's seam: once a corpus has been linked (the
+# functions above) and published, resolving a `codNota` back to the snapshot
+# it produced is what `nota2md.builder.legal_provisions` calls on every "auto"
+# build. It stays here, not in `scjn.release`, because a `codNota` is a DOF
+# concept -- these two just call `scjn.release`'s disk-first readers.
+
+
+def localiza_codNota(
+    cod_nota: int, *, instrumento: str | None = None, cache_dir=None
+) -> tuple[str, str] | None:
+    """Which snapshot of which law the reform `cod_nota` enacted produced, as
+    ``(slug, archivo)`` — or None when the release's reverse index has no
+    entry for it.
+
+    The reverse-index half of `snapshot_de_codNota`, split out because it
+    answers *where* the text is without reading the law's tarball at all: a
+    caller that already has that snapshot materialized (see
+    `nota2md.builder.legal_provisions` with no `outdir`) needs the name and
+    nothing else.
+
+    `cache_dir` is forwarded to `scjn.release.download_scjn_leyes_index` as-is
+    (`scjn.cache.CACHE_DIR` when not given) — raises `scjn.release.AssetNotCached`
+    while the index is not cached there yet, exactly as that reader does.
+
+    Raises `ValueError` for an ambiguous `cod_nota` exactly as
+    `snapshot_de_codNota` does — see its docstring.
+    """
+    indice = download_scjn_leyes_index(cache_dir=cache_dir)
+    candidatos = indice["codNota"].get(int(cod_nota), [])
+
+    if instrumento is not None:
+        candidatos = [c for c in candidatos if c["slug"] == instrumento]
+        if not candidatos:
+            raise ValueError(
+                f"el codNota {cod_nota} no reforma el instrumento {instrumento!r} "
+                "segun el indice del release 'scjn-leyes'"
+            )
+    if not candidatos:
+        return None
+    if len(candidatos) > 1:
+        nombres = ", ".join(
+            f"{c['slug']} ({indice['instrumentos'].get(c['slug'], {}).get('nombre', '?')})"
+            for c in candidatos
+        )
+        raise ValueError(
+            f"el codNota {cod_nota} reforma mas de un instrumento: {nombres}. "
+            "Pasa instrumento=<slug> para elegir uno"
+        )
+
+    candidato = candidatos[0]
+    return candidato["slug"], candidato["archivo"]
+
+
+def snapshot_de_codNota(
+    cod_nota: int, *, instrumento: str | None = None, cache_dir=None
+) -> tuple[str, str, str] | None:
+    """The consolidated law text the SCJN holds for the reform `cod_nota`
+    enacted, as ``(slug, archivo, markdown)`` — or None when the release's
+    reverse index has no entry for it.
+
+    `archivo` is the snapshot's own file name inside the tarball
+    (``DD-MM-YYYY.md``, with issue #113's `-N` suffix when a law was reformed
+    more than once on the same date); `markdown` is that file's text, its
+    `fuente: scjn` provenance header included.
+
+    None here is not an error, just "not covered": only snapshots with a
+    `codNota` we are actually certain of are in the index at all (issue #117,
+    D2), and the caller is expected to fall back to the DOF — which is what
+    `nota2md.builder.legal_provisions` does.
+
+    A `cod_nota` whose decree reformed several laws at once has several
+    entries. Pass `instrumento` (a slug) to say which one is wanted;
+    without it, that raises `ValueError` listing the candidates rather than
+    silently returning one of them (D4).
+
+    `cache_dir` is forwarded to `scjn.release`'s readers as-is
+    (`scjn.cache.CACHE_DIR` when not given); raises
+    `scjn.release.AssetNotCached` while the index or the law's own tarball is
+    not cached there yet — `legal_provisions` treats that as "no coverage"
+    rather than letting it propagate (issue #209; before this phase, a reader
+    would attempt a download instead of raising).
+    """
+    ubicacion = localiza_codNota(cod_nota, instrumento=instrumento, cache_dir=cache_dir)
+    if ubicacion is None:
+        return None
+    slug, archivo = ubicacion
+    markdown = markdown_de_snapshot(slug, archivo, cache_dir=cache_dir)
+    return slug, archivo, markdown

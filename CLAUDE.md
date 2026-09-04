@@ -214,14 +214,15 @@ section bolted onto `website/`.
 
 ## Commands
 
-Four test files make real network calls and are excluded from routine runs
+Three test files make real network calls and are excluded from routine runs
 (CI's `test.yml` does include them by default — check before assuming a
-failure there is unrelated):
+failure there is unrelated). Since issue #209 moved the `scjn-leyes` release
+readers into the `scjn` package, two of the three now live there:
 
 ```bash
-pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
-    --ignore=packages/nota2md/tests/test_scjn_release_red.py \
-    --ignore=packages/nota2md/tests/test_scjn_api_red.py
+pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py
+pytest packages/scjn -q --ignore=packages/scjn/tests/test_api_red.py \
+    --ignore=packages/scjn/tests/test_release_red.py
 ```
 
 The website's notebooks are committed without their outputs, via an

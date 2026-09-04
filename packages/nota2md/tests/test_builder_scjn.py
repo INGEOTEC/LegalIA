@@ -178,7 +178,11 @@ class TestDespachador(unittest.TestCase):
         _, kwargs = mock_scjn.call_args
         self.assertEqual(kwargs["instrumento"], "lfca")
         self.assertEqual(kwargs["cache_dir"], self.outdir / "cache")
-        self.assertTrue(kwargs["refrescar"])
+        # `refrescar` is NOT forwarded here since issue #209: scjn.release's
+        # readers dropped it (they never download on demand any more), so it
+        # only still means something for the no-outdir md-cache check in
+        # `_scjn_a_cache` -- see TestSinOutdir's own `refrescar` test.
+        self.assertNotIn("refrescar", kwargs)
 
     def test_los_parametros_del_ocr_se_ignoran_en_la_ruta_scjn_sin_fallar(self):
         # Un lote mixto los pasa siempre; no deben provocar un error aqui.

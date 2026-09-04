@@ -104,7 +104,7 @@ _RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_RAIZ / "packages" / "nota2md"))
 sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
-from nota2md.scjn import ASSET_INDICE_GLOBAL, construye_indice_global  # noqa: E402
+from scjn.release import ASSET_INDICE_GLOBAL, construye_indice_global  # noqa: E402
 from scjn.catalog import slug_instrumento  # noqa: E402
 from scjn.header import versiones_de_directorio  # noqa: E402
 from scjn.state import lee_estado  # noqa: E402

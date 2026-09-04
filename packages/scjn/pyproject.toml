@@ -20,6 +20,8 @@ classifiers = [
 # nota2md depends on scjn, never the reverse.
 dependencies = [
     "requests>=2.31",
+    # scjn.cache's own on-disk cache for the scjn-leyes release (issue #209).
+    "platformdirs>=4.0",
 ]
 dynamic = ['version']
 
@@ -28,6 +30,9 @@ test = ["pytest>=7.0"]
 
 [project.urls]
 Homepage = "https://github.com/INGEOTEC/LegalIA/tree/main/packages/scjn"
+
+[project.scripts]
+scjn = "scjn.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["scjn", "scjn.*"]

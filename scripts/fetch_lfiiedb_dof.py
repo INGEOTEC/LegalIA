@@ -118,7 +118,13 @@ import sys
 from pathlib import Path
 
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
+_RAIZ = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_RAIZ / "packages" / "nota2md"))
+# Needed explicitly (not just transitively): without it, a bare `scjn` import
+# resolves to the gitignored `scripts/scjn/` scratch directory instead of the
+# real package, since running this script puts `scripts/` on sys.path first
+# and an unpackaged directory still counts as a namespace package.
+sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
 from nota2md.builder import fetch_nota, legal_provisions  # noqa: E402
 

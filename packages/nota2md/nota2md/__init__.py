@@ -26,7 +26,7 @@ the Cámara de Diputados data it read (#184). A law's reform history is now
 the `scjn-leyes` release itself: `download_scjn_leyes_corpus` for one law's
 own reforms, oldest first, and `download_scjn_leyes_index` for the reverse
 `codNota` -> law lookup. There is no shim and the name is not kept — see
-`nota2md.scjn`'s issue #187 section for what "reform N" means now.
+`scjn.release`'s issue #187 section for what "reform N" means now.
 """
 
 from dofjson.titulos import legal_provisions_titles
@@ -36,7 +36,7 @@ from nota2md.builder import (
     legal_provisions,
 )
 from nota2md.leyes import reconstruct_legal_provisions
-from nota2md.scjn import (
+from scjn import (
     download_scjn_leyes_catalog,
     download_scjn_leyes_corpus,
     download_scjn_leyes_index,

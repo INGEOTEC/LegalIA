@@ -52,7 +52,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "packages" / "nota2md"))
 sys.path.insert(0, str(RAIZ / "packages" / "scjn"))
 
-from nota2md.scjn import download_scjn_leyes_corpus  # noqa: E402
+from scjn.release import download_scjn_leyes_corpus  # noqa: E402
 from scjn.catalog import slug_instrumento  # noqa: E402
 from scjn.text import quita_notas_editoriales  # noqa: E402
 
@@ -112,7 +112,6 @@ def main(argv=None) -> int:
         help="write the fixtures; without it nothing is touched and only the "
              "report is printed",
     )
-    parser.add_argument("--timeout", type=int, default=180)
     args = parser.parse_args(argv)
 
     previo = json.loads((FIXTURES / ARCHIVO_HISTORIAL).read_text(encoding="utf-8"))
@@ -120,9 +119,9 @@ def main(argv=None) -> int:
     historial: dict[str, dict] = {}
     excluidas: dict[str, list[str]] = {}
     for abrev in sorted(previo):
-        corpus = download_scjn_leyes_corpus(
-            slug_instrumento({"abrev": abrev}), timeout=args.timeout
-        )
+        # Disk-first since issue #209: run `scjn download` first (or
+        # `nota2md download federal-laws`) to populate scjn.cache.CACHE_DIR.
+        corpus = download_scjn_leyes_corpus(slug_instrumento({"abrev": abrev}))
         snapshots = sorted(
             corpus["snapshots"],
             key=lambda s: (_iso(s.get("fecha_publicacion") or s["archivo"][:10]), s["archivo"]),

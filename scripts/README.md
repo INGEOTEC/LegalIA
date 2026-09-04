@@ -208,7 +208,7 @@ and an `abrev` is a release asset name, so adding one is a human's decision.
 Each candidate must be confirmed by a DOF title that names it and opens with
 DECRETO/LEY — without that the SCJN's own `CODIGO` category alone contributes
 ~180 "CÓDIGO DE CONDUCTA DE ..." administrative documents. A suggested
-`abrev` is printed with each candidate (`nota2md.scjn.mint_abrev`: initials
+`abrev` is printed with each candidate (`scjn.catalog.mint_abrev`: initials
 of the name's meaningful words, `-2`/`-3` on collision); it is written down
 once and never recomputed, since re-minting one renames that law's release
 asset and orphans it.

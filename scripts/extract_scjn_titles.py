@@ -56,7 +56,7 @@ because tratados had none).
        law already crawled costs one request and no search;
     2. the newest DOF legal provision whose title both names the law and
        opens with "DECRETO"/"LEY"
-       (`nota2md.scjn.newest_dof_publication_dates`), off the
+       (`nota2md.linking.newest_dof_publication_dates`), off the
        `notas-archivo` cache the pipeline already populates — no network.
 
     Taking the newest is not hedging; each source has a failure mode the
@@ -118,7 +118,7 @@ sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
 from dofjson.titulos import legal_provisions_titles  # noqa: E402
 from nota2md import download_scjn_leyes_catalog  # noqa: E402
-from nota2md.scjn import newest_dof_publication_dates  # noqa: E402
+from nota2md.linking import newest_dof_publication_dates  # noqa: E402
 from scjn.api import (  # noqa: E402
     ScjnApi,
     elige_ordenamiento,
@@ -152,14 +152,17 @@ def _iso(fecha: str | None) -> str | None:
     return f"{fecha[6:10]}-{fecha[3:5]}-{fecha[0:2]}"
 
 
-def seed_catalog(*, cache_dir=None, timeout: int = 60) -> list[dict]:
+def seed_catalog(*, cache_dir=None) -> list[dict]:
     """The catalogue's `nombre`/`abrev` as the `scjn-leyes` release publishes
     them. `freshness=False`: the release's `estado.json` records the
     `actualizado` a past crawl ran against, which is this script's own old
-    output and would make the field a function of the crawl it schedules."""
-    return download_scjn_leyes_catalog(
-        freshness=False, cache_dir=cache_dir, timeout=timeout
-    )
+    output and would make the field a function of the crawl it schedules.
+
+    `cache_dir` follows `scjn.release`'s own convention since issue #209:
+    `None` (the default) reads `scjn.cache.CACHE_DIR`, so `scjn download`
+    must have already populated the index there — `freshness=False` needs
+    only `indice-global.json.gz`, not a tarball per law."""
+    return download_scjn_leyes_catalog(freshness=False, cache_dir=cache_dir)
 
 
 def scjn_dates(

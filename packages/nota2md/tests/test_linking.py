@@ -1,9 +1,14 @@
+import gzip
+import json
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import nota2md.linking as linking
 import scjn.header as header
+import scjn.release as release
 
 
 class TestTitleCandidatesPorFecha(unittest.TestCase):
@@ -519,3 +524,144 @@ class TestResolveLinks(unittest.TestCase):
         )
 
         self.assertEqual([cod for cod, _ in resuelto], [1, 2, 3])
+
+
+def _hacer_tgz(archivos: dict) -> bytes:
+    import io
+
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+        for nombre, contenido in archivos.items():
+            data = contenido if isinstance(contenido, bytes) else contenido.encode("utf-8")
+            info = tarfile.TarInfo(name=nombre)
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    return buf.getvalue()
+
+
+def _indice_global(cod_notas: dict, instrumentos: dict | None = None) -> bytes:
+    payload = {
+        "generado": "2026-08-28T14:35:31+00:00",
+        "coleccion": "leyes",
+        "instrumentos": instrumentos or {},
+        "codNota": cod_notas,
+    }
+    return gzip.compress(json.dumps(payload).encode("utf-8"))
+
+
+#: The real reader, captured at import time -- before `conftest.py`'s
+#: autouse fixture swaps `nota2md.linking.download_scjn_leyes_index` for its
+#: covers-nothing stub, which is exactly what these tests do not want.
+_INDICE_REAL = linking.download_scjn_leyes_index
+
+
+class TestLocalizaYSnapshotDeCodNota(unittest.TestCase):
+    """`localiza_codNota`/`snapshot_de_codNota` (issue #209): resolving a
+    codNota back to the snapshot it produced, DOF-keyed glue that stays in
+    `nota2md.linking` and calls `scjn.release`'s disk-first readers.
+    Fabricated against a `tmp_path`-style `scjn-leyes/` directory -- no
+    network in sight, since the readers underneath are disk-only."""
+
+    def setUp(self):
+        parche = patch.object(linking, "download_scjn_leyes_index", _INDICE_REAL)
+        parche.start()
+        self.addCleanup(parche.stop)
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+        self.release_dir = self.tmp / "scjn-leyes"
+        self.release_dir.mkdir(parents=True)
+        release._MEMO_INDICE_GLOBAL.clear()
+        self.addCleanup(release._MEMO_INDICE_GLOBAL.clear)
+
+    def _publica(self, cod_notas: dict, instrumentos: dict | None = None, **tarballs):
+        (self.release_dir / release.ASSET_INDICE_GLOBAL).write_bytes(
+            _indice_global(cod_notas, instrumentos)
+        )
+        for slug, archivos in tarballs.items():
+            (self.release_dir / f"{slug}.tgz").write_bytes(_hacer_tgz(archivos))
+
+    def test_regresa_el_markdown_del_snapshot_de_esa_reforma(self):
+        self._publica(
+            {"4967917": [{"slug": "lfca", "archivo": "05-01-1999.md"}]},
+            lfca={"lfca/05-01-1999.md": "fuente: scjn\n\n**TEXTO ORIGINAL.**"},
+        )
+
+        slug, archivo, markdown = linking.snapshot_de_codNota(4967917, cache_dir=self.tmp)
+
+        self.assertEqual((slug, archivo), ("lfca", "05-01-1999.md"))
+        self.assertIn("fuente: scjn", markdown)
+
+    def test_localiza_codnota_regresa_solo_la_ubicacion(self):
+        self._publica({"4967917": [{"slug": "lfca", "archivo": "05-01-1999.md"}]})
+
+        self.assertEqual(
+            linking.localiza_codNota(4967917, cache_dir=self.tmp), ("lfca", "05-01-1999.md")
+        )
+
+    def test_regresa_none_cuando_el_codnota_no_esta_en_el_indice(self):
+        self._publica({})
+
+        self.assertIsNone(linking.snapshot_de_codNota(999, cache_dir=self.tmp))
+
+    def test_lanza_value_error_cuando_el_decreto_reforma_varias_leyes(self):
+        self._publica(
+            {"500": [{"slug": "lft", "archivo": "a.md"},
+                     {"slug": "lss", "archivo": "b.md"}]},
+            {"lft": {"nombre": "Ley Federal del Trabajo"},
+             "lss": {"nombre": "Ley del Seguro Social"}},
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            linking.snapshot_de_codNota(500, cache_dir=self.tmp)
+
+        self.assertIn("lft", str(ctx.exception))
+        self.assertIn("Ley del Seguro Social", str(ctx.exception))
+
+    def test_instrumento_desempata_entre_varias_leyes(self):
+        self._publica(
+            {"500": [{"slug": "lft", "archivo": "a.md"},
+                     {"slug": "lss", "archivo": "b.md"}]},
+            lss={"lss/b.md": "TEXTO DE LA LSS"},
+        )
+
+        slug, _, markdown = linking.snapshot_de_codNota(
+            500, instrumento="lss", cache_dir=self.tmp
+        )
+
+        self.assertEqual(slug, "lss")
+        self.assertEqual(markdown, "TEXTO DE LA LSS")
+
+    def test_instrumento_que_no_reforma_ese_codnota_es_un_error_no_un_none(self):
+        self._publica({"500": [{"slug": "lft", "archivo": "a.md"}]})
+
+        with self.assertRaises(ValueError):
+            linking.snapshot_de_codNota(500, instrumento="lss", cache_dir=self.tmp)
+
+    def test_acepta_un_codnota_en_texto_igual_que_en_entero(self):
+        self._publica(
+            {"7": [{"slug": "lft", "archivo": "a.md"}]},
+            lft={"lft/a.md": "TEXTO"},
+        )
+
+        self.assertIsNotNone(linking.snapshot_de_codNota("7", cache_dir=self.tmp))
+
+    def test_indice_no_cacheado_lanza_assetnotcached(self):
+        with self.assertRaises(release.AssetNotCached):
+            linking.localiza_codNota(4967917, cache_dir=self.tmp)
+
+    def test_tarball_no_cacheado_lanza_assetnotcached(self):
+        self._publica({"4967917": [{"slug": "lfca", "archivo": "05-01-1999.md"}]})
+
+        with self.assertRaises(release.AssetNotCached):
+            linking.snapshot_de_codNota(4967917, cache_dir=self.tmp)
+
+    @patch("requests.get", side_effect=ConnectionError("network unreachable"))
+    def test_no_toca_la_red(self, mock_get):
+        self._publica(
+            {"4967917": [{"slug": "lfca", "archivo": "05-01-1999.md"}]},
+            lfca={"lfca/05-01-1999.md": "**TEXTO.**"},
+        )
+
+        linking.snapshot_de_codNota(4967917, cache_dir=self.tmp)
+
+        mock_get.assert_not_called()
