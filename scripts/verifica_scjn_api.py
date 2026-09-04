@@ -24,9 +24,10 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "packages" / "nota2md"))
+_RAIZ = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
-from nota2md.scjn_api import (  # noqa: E402
+from scjn.api import (  # noqa: E402
     ScjnApi,
     ScjnApiError,
     snapshot,

@@ -38,10 +38,10 @@ article) or, for an unlabelled paragraph, by position.
 """
 
 import re
-import unicodedata
 from pathlib import Path
 
 from nota2md.builder import fetch_nota, legal_provisions
+from nota2md.text import normaliza_para_comparar  # noqa: F401  (re-exported, see below)
 
 # --- reconstruct_legal_provisions: replay the reforms on top of the original text ---------
 
@@ -627,23 +627,3 @@ def _reconstruct_legal_provisions(
     if transitorios:
         partes.append(transitorios)
     return "\n\n".join(p for p in partes if p)
-
-
-# --- comparing the two ------------------------------------------------------
-
-# Markdown syntax (headings, emphasis, code spans, table pipes) to strip
-# before comparing two texts, so formatting differences don't count as content
-# differences — a table cell's leading "|" is left alone, only a separator
-# "|" with another one somewhere later on the same line counts as syntax.
-_MARKDOWN_SYNTAX = re.compile(r"[#*_`]|\|(?=[^|]*\|)")
-
-
-def normaliza_para_comparar(texto: str) -> str:
-    """Fold away formatting differences (Markdown syntax, accents, case,
-    whitespace) that don't reflect a real difference in the law's content, so
-    similarity is measured on words, not on typesetting."""
-    texto = unicodedata.normalize("NFKD", texto)
-    texto = "".join(c for c in texto if not unicodedata.combining(c))
-    texto = _MARKDOWN_SYNTAX.sub("", texto)
-    texto = texto.lower()
-    return re.sub(r"\s+", " ", texto).strip()

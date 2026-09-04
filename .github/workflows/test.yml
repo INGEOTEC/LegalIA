@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [dof2md, dofjson, md2akn, nota2md]
+        package: [dof2md, dofjson, md2akn, nota2md, scjn]
         python-version: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
@@ -21,11 +21,12 @@ jobs:
       - name: Install system dependencies (mineru's opencv needs libGL)
         if: matrix.package == 'dof2md' || matrix.package == 'nota2md'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libgl1 libglib2.0-0
-      - name: Install sibling packages (dofjson, dof2md) for nota2md
+      - name: Install sibling packages (dofjson, dof2md, scjn) for nota2md
         if: matrix.package == 'nota2md'
         run: |
           pip install -e packages/dofjson
           pip install -e packages/dof2md
+          pip install -e packages/scjn
       - name: Install package and test dependencies
         run: pip install -e "packages/${{ matrix.package }}[test]"
       - name: Run tests
@@ -45,17 +46,19 @@ jobs:
           python-version: "3.12"
       - name: Install system dependencies (dot renders the architecture diagrams)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq graphviz
-      - name: Cache nota2md/dofjson's on-disk release caches
+      - name: Cache scjn/nota2md/dofjson's on-disk release caches
         uses: actions/cache@v4
         with:
           path: |
+            ~/.cache/scjn
             ~/.cache/nota2md
             ~/.cache/dofjson
-          key: docs-doctest-cache-v1
+          key: docs-doctest-cache-v2
       - name: Install docs and package dependencies
         run: |
           pip install -r docs/requirements.txt
           pip install -e packages/dofjson
+          pip install -e packages/scjn
           pip install -e packages/nota2md
           # --no-deps: keeps the heavy mineru[pipeline] install out of this
           # job too — dof2md's OCR-dependent examples are marked
@@ -63,6 +66,8 @@ jobs:
           # (see docs/source/dof2md_api.rst).
           pip install --no-deps -e packages/dof2md
           pip install -e packages/md2akn
+      - name: Download the scjn-leyes assets the docs exercise (disk-first reads since #209)
+        run: scjn download --slug lfca
       - name: Run the documentation's doctest examples
         run: python -m sphinx -b doctest docs/source docs/build/doctest
 

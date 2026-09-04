@@ -60,6 +60,8 @@ from dofjson.notas import notas_de_la_edicion
 from nota2md import cache
 from nota2md.cache import SIN_CACHE_DIR
 from nota2md.html_converter import html_to_markdown
+from nota2md.linking import localiza_codNota, snapshot_de_codNota
+from scjn.release import AssetNotCached, markdown_de_snapshot
 
 
 def titulo_siguiente(nota: dict, notas_del_dia) -> str | None:
@@ -130,54 +132,64 @@ def get_document(cod_nota: int | None = None, fecha: dt.date | None = None,
     return documento
 
 
-def _snapshot_scjn(cod_nota, instrumento, cache_dir, refrescar):
+def _cache_dir_scjn(cache_dir):
+    """`legal_provisions`'s own `cache_dir` (`nota2md.cache.SIN_CACHE_DIR`,
+    an explicit path, or `None`), translated into what `scjn.release`'s
+    readers understand: an explicit path is forwarded unchanged (so
+    `legal_provisions(cache_dir=mypath)` keeps reading/writing under the same
+    tree it always has), while `SIN_CACHE_DIR` and `None` both become `None`
+    — "use `scjn.cache.CACHE_DIR`", never `nota2md`'s own default or its
+    now-removed "no cache" mode (issue #209; `scjn.release` has no equivalent
+    of `cache_dir=None` meaning "skip the cache")."""
+    if cache_dir is SIN_CACHE_DIR or cache_dir is None:
+        return None
+    return cache_dir
+
+
+def _snapshot_scjn(cod_nota, instrumento, cache_dir):
     """The SCJN's consolidated law text for `cod_nota`, or None when there is
-    none to be had — including when the release itself cannot be reached.
+    none to be had — including when it is simply not cached yet.
 
     The SCJN path is an improvement over reconstructing the law from the DOF,
-    not a hard dependency of building a note: an asset not published yet
-    (`KeyError`) or a network failure while reading the index must not turn a
-    `legal_provisions` call that would otherwise have succeeded into a
-    traceback. Both fall back to the DOF path, but with `warnings.warn` so the
-    fallback is never silent. A `ValueError` — the ambiguous codNota of issue
-    #117's D4 — does propagate: that one is answerable, by passing
-    `instrumento`, and guessing on the caller's behalf is exactly what it is
-    there to prevent."""
-    from nota2md.scjn import snapshot_de_codNota
-
+    not a hard dependency of building a note: an asset not cached
+    (`scjn.release.AssetNotCached`) must not turn a `legal_provisions` call
+    that would otherwise have succeeded into a traceback. It falls back to
+    the DOF path, but with `warnings.warn` so the fallback is never silent. A
+    `ValueError` — the ambiguous codNota of issue #117's D4 — does propagate:
+    that one is answerable, by passing `instrumento`, and guessing on the
+    caller's behalf is exactly what it is there to prevent."""
     return _con_fallback_dof(
         cod_nota,
         lambda: snapshot_de_codNota(
-            cod_nota, instrumento=instrumento, cache_dir=cache_dir, refrescar=refrescar
+            cod_nota, instrumento=instrumento, cache_dir=_cache_dir_scjn(cache_dir)
         ),
     )
 
 
-def _localiza_scjn(cod_nota, instrumento, cache_dir, refrescar):
+def _localiza_scjn(cod_nota, instrumento, cache_dir):
     """Where the SCJN keeps `cod_nota`'s consolidated text, as
     ``(slug, archivo)``, or None — `_snapshot_scjn` without reading the
     tarball, for the `outdir=None` path that only needs the file name to know
     whether it already has that snapshot on disk. Same fallback rules."""
-    from nota2md.scjn import localiza_codNota
-
     return _con_fallback_dof(
         cod_nota,
         lambda: localiza_codNota(
-            cod_nota, instrumento=instrumento, cache_dir=cache_dir, refrescar=refrescar
+            cod_nota, instrumento=instrumento, cache_dir=_cache_dir_scjn(cache_dir)
         ),
     )
 
 
 def _con_fallback_dof(cod_nota, consulta):
-    """Run `consulta` against the `scjn-leyes` release, turning "not published
-    yet" and "release unreachable" into None (fall back to the DOF) with a
-    warning — see `_snapshot_scjn`."""
+    """Run `consulta` against the `scjn-leyes` release, turning "not cached
+    yet" (`AssetNotCached`, or a stale `KeyError` from before issue #209) and
+    "release unreachable" into None (fall back to the DOF) with a warning —
+    see `_snapshot_scjn`."""
     try:
         return consulta()
-    except KeyError as exc:
+    except (KeyError, AssetNotCached) as exc:
         warnings.warn(
-            f"el release 'scjn-leyes' no responde por el codNota {cod_nota} "
-            f"({exc}); se usa el DOF como fuente",
+            f"el corpus de la SCJN no tiene en cache lo necesario para el "
+            f"codNota {cod_nota} ({exc}); se usa el DOF como fuente",
             stacklevel=3,
         )
     except requests.RequestException as exc:
@@ -247,9 +259,18 @@ def legal_provisions(
 
     `instrumento` (a law's slug) picks which law is meant when one decree
     reformed several at once; without it that case raises `ValueError` listing
-    the candidates. `cache_dir`/`refrescar` control the on-disk cache of the
-    release assets the SCJN path reads — see `nota2md.cache`; `cache_dir=None`
-    skips the cache entirely. All three are ignored by the DOF paths.
+    the candidates. `cache_dir` names where the SCJN path reads/writes: an
+    explicit path is used for both the `scjn-leyes` assets and this
+    function's own `md/` output, exactly as before; left at its default or
+    passed `None`, the release assets come from `scjn.cache.CACHE_DIR` (a
+    separate directory from `nota2md`'s own — issue #209) while `md/` still
+    lands under `nota2md.cache.CACHE_DIR`. Since #209, the SCJN path never
+    downloads on demand — `scjn download`/`nota2md download federal-laws`
+    populate `scjn.cache.CACHE_DIR` ahead of time, and a `codNota` that is not
+    cached there falls back to the DOF (see below) rather than fetching it.
+    `refrescar=True` only re-extracts an already-cached snapshot into this
+    function's own `md/` output; it no longer re-downloads anything. All of
+    `cache_dir`/`refrescar`/`instrumento` are ignored by the DOF paths.
 
     "image" and "pdf" both OCR with dof2md and then slice the result to the one
     note; "auto" never selects "pdf" — it is opt-in. Pass `nota` to reuse an
@@ -293,7 +314,7 @@ def legal_provisions(
 
     if source == "auto":
         destino = (
-            _scjn_a_directorio(cod_nota, instrumento, cache_dir, refrescar, outdir)
+            _scjn_a_directorio(cod_nota, instrumento, cache_dir, outdir)
             if outdir is not None
             else _scjn_a_cache(cod_nota, instrumento, cache_dir, refrescar)
         )
@@ -365,10 +386,10 @@ def legal_provisions(
     return _cut_and_write(md_path, outdir, titulo, titulo_sig, min_confidence, keep_pages, cod_nota)
 
 
-def _scjn_a_directorio(cod_nota, instrumento, cache_dir, refrescar, outdir):
+def _scjn_a_directorio(cod_nota, instrumento, cache_dir, outdir):
     """The SCJN's text for `cod_nota` written into `outdir`, or None when the
     corpus does not cover it."""
-    snapshot = _snapshot_scjn(cod_nota, instrumento, cache_dir, refrescar)
+    snapshot = _snapshot_scjn(cod_nota, instrumento, cache_dir)
     if snapshot is None:
         return None
     slug, archivo, markdown = snapshot
@@ -384,20 +405,19 @@ def _scjn_a_cache(cod_nota, instrumento, cache_dir, refrescar):
 
     Named exactly as the `outdir` one names it, and a hit by file name: a
     snapshot already materialized is returned without opening the tarball,
-    the same rule the rest of the cache follows. `refrescar` re-extracts over
-    it, so it still means "ignore what is on disk"."""
-    ubicacion = _localiza_scjn(cod_nota, instrumento, cache_dir, refrescar)
+    the same rule the rest of the cache follows. `refrescar` re-extracts it
+    from the (already on-disk) tarball even when a materialized copy already
+    exists — since issue #209, it no longer means "re-download the release
+    asset": no reader does that any more, only `download_scjn_leyes_assets`
+    does."""
+    ubicacion = _localiza_scjn(cod_nota, instrumento, cache_dir)
     if ubicacion is None:
         return None
-    from nota2md.scjn import markdown_de_snapshot
-
     slug, archivo = ubicacion
     destino = cache.directorio_de_salida(cache_dir, *cache.SUBDIR_MD_SCJN) / f"{slug}-{archivo}"
     if destino.exists() and not refrescar:
         return destino
-    markdown = markdown_de_snapshot(
-        slug, archivo, cache_dir=cache_dir, refrescar=refrescar
-    )
+    markdown = markdown_de_snapshot(slug, archivo, cache_dir=_cache_dir_scjn(cache_dir))
     return cache.escribe_texto(destino, markdown)
 
 

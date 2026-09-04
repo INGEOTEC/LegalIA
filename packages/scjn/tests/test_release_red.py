@@ -1,11 +1,11 @@
-"""End-to-end check of the SCJN path against the real `scjn-leyes` release.
+"""End-to-end check of `scjn.release` against the real `scjn-leyes` release.
 
 An integration test, not a unit test: it downloads `indice-global.json.gz` and
 one law's own tarball over the network, so it is excluded from the routine
-run the same way `test_leyes_44.py` is:
+run the same way `packages/nota2md/tests/test_leyes_44.py` is:
 
-    pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \\
-        --ignore=packages/nota2md/tests/test_scjn_release_red.py
+    pytest packages/scjn -q --ignore=packages/scjn/tests/test_release_red.py \\
+        --ignore=packages/scjn/tests/test_api_red.py
 
 What it is here to catch is the one thing no fabricated tarball can: that the
 asset actually published matches what the readers expect — a corpus
@@ -23,30 +23,34 @@ in the corpus.
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
 
-from nota2md import scjn
-from nota2md.builder import legal_provisions
+from scjn.release import (
+    AssetNotCached,
+    download_scjn_leyes_assets,
+    download_scjn_leyes_index,
+    markdown_de_snapshot,
+)
 
 SLUG = "lfca"
-
-#: The real reader, captured at import time — before `conftest.py`'s autouse
-#: fixture swaps the module attribute for its covers-nothing stub, which is
-#: exactly what this module does not want.
-_INDICE_REAL = scjn.download_scjn_leyes_index
 
 
 class TestReleaseReal(unittest.TestCase):
     """One download of the index, shared by every test here — the point is to
-    exercise the published assets, not to re-download them four times."""
+    exercise the published assets, not to re-download them for each one.
+
+    Readers are disk-only since issue #209, so getting the index here needs
+    an explicit `download_scjn_leyes_assets` call first — this is the one
+    place in this module allowed to talk to the network before a reader can
+    say anything at all."""
 
     @classmethod
     def setUpClass(cls):
         cls._dir = TemporaryDirectory()
         cls.cache_dir = Path(cls._dir.name)
         try:
-            cls.indice = _INDICE_REAL(cache_dir=cls.cache_dir)
-        except KeyError as exc:
+            download_scjn_leyes_assets([], cache_dir=cls.cache_dir)
+            cls.indice = download_scjn_leyes_index(cache_dir=cls.cache_dir)
+        except (AssetNotCached, KeyError) as exc:
             # Publishing this corpus is a manual step, on purpose (see
             # scripts/empaqueta_scjn_leyes.py), so "the asset is not up yet"
             # is a legitimate state of the world -- not a failing test.
@@ -57,14 +61,6 @@ class TestReleaseReal(unittest.TestCase):
     def tearDownClass(cls):
         cls._dir.cleanup()
 
-    def setUp(self):
-        # conftest's autouse fixture stubs the reader out so no other test
-        # reaches the network; here that is precisely the point, so put the
-        # real one back for the duration of each test.
-        parche = patch.object(scjn, "download_scjn_leyes_index", _INDICE_REAL)
-        parche.start()
-        self.addCleanup(parche.stop)
-
     def test_el_indice_publicado_declara_la_coleccion_de_leyes(self):
         self.assertEqual(self.indice["coleccion"], "leyes")
         self.assertIn(SLUG, self.indice["instrumentos"])
@@ -73,42 +69,25 @@ class TestReleaseReal(unittest.TestCase):
         self.assertTrue(all(isinstance(cod, int) for cod in self.indice["codNota"]))
 
     def test_el_indice_se_cacheo_en_disco(self):
-        self.assertTrue(
-            (self.cache_dir / "scjn-leyes" / scjn.ASSET_INDICE_GLOBAL).is_file()
-        )
+        self.assertTrue((self.cache_dir / "scjn-leyes" / "indice-global.json.gz").is_file())
 
-    def _un_codnota_de_lfca(self) -> int:
+    def _un_codnota_de_lfca(self) -> tuple[int, str]:
         for cod, entradas in self.indice["codNota"].items():
             if len(entradas) == 1 and entradas[0]["slug"] == SLUG:
-                return cod
+                return cod, entradas[0]["archivo"]
         self.skipTest(f"el indice publicado no enlaza ningun codNota solo a {SLUG}")
 
     def test_resuelve_un_codnota_de_lfca_a_su_snapshot_publicado(self):
-        cod = self._un_codnota_de_lfca()
+        _, archivo = self._un_codnota_de_lfca()
+        # markdown_de_snapshot needs the law's own tarball cached too --
+        # setUpClass only downloaded the (much smaller) index.
+        download_scjn_leyes_assets([SLUG], cache_dir=self.cache_dir)
 
-        slug, archivo, markdown = scjn.snapshot_de_codNota(cod, cache_dir=self.cache_dir)
+        markdown = markdown_de_snapshot(SLUG, archivo, cache_dir=self.cache_dir)
 
-        self.assertEqual(slug, SLUG)
         self.assertTrue(archivo.endswith(".md"))
         # Lo que hace auditable el resultado: la cabecera de procedencia.
         self.assertIn("fuente: scjn", markdown)
-
-    def test_legal_provisions_escribe_la_ley_completa_de_la_scjn(self):
-        cod = self._un_codnota_de_lfca()
-
-        with TemporaryDirectory() as outdir:
-            destino = legal_provisions(cod, outdir, cache_dir=self.cache_dir)
-
-            self.assertTrue(destino.name.startswith(f"{SLUG}-"))
-            self.assertIn("fuente: scjn", destino.read_text(encoding="utf-8"))
-
-    def test_source_dof_del_mismo_codnota_va_al_dof(self):
-        cod = self._un_codnota_de_lfca()
-
-        with TemporaryDirectory() as outdir:
-            destino = legal_provisions(cod, outdir, source="dof", cache_dir=self.cache_dir)
-
-            self.assertEqual(destino.name, f"nota-{cod}.md")
 
 
 if __name__ == "__main__":

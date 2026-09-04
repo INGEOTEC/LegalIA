@@ -46,7 +46,7 @@ class TestDespachador(unittest.TestCase):
     def _con_cobertura(self, **kwargs):
         """Patch the SCJN resolver as if the release covered 4967917."""
         return patch(
-            "nota2md.scjn.snapshot_de_codNota",
+            "nota2md.builder.snapshot_de_codNota",
             return_value=("lfca", "05-01-1999.md", SNAPSHOT_SCJN),
             **kwargs,
         )
@@ -78,7 +78,7 @@ class TestDespachador(unittest.TestCase):
         # Issue #113: dos reformas el mismo dia se distinguen por `-N`, asi
         # que `<slug>-<fecha>.md` sigue siendo unico.
         with patch(
-            "nota2md.scjn.snapshot_de_codNota",
+            "nota2md.builder.snapshot_de_codNota",
             return_value=("cpeum", "01-04-2025-2.md", SNAPSHOT_SCJN),
         ):
             destino = legal_provisions(4967917, self.outdir)
@@ -86,7 +86,7 @@ class TestDespachador(unittest.TestCase):
         self.assertEqual(destino.name, "cpeum-01-04-2025-2.md")
 
     def test_auto_sin_cobertura_cae_al_dof(self):
-        with patch("nota2md.scjn.snapshot_de_codNota", return_value=None), \
+        with patch("nota2md.builder.snapshot_de_codNota", return_value=None), \
                 patch("nota2md.builder.fetch_nota", return_value=NOTA_HTML):
             destino = legal_provisions(4967917, self.outdir)
 
@@ -134,7 +134,7 @@ class TestDespachador(unittest.TestCase):
     # --- el release que no puede contestar ------------------------------
 
     def test_un_asset_no_publicado_cae_al_dof_con_advertencia(self):
-        with patch("nota2md.scjn.snapshot_de_codNota", side_effect=KeyError("sin asset")), \
+        with patch("nota2md.builder.snapshot_de_codNota", side_effect=KeyError("sin asset")), \
                 patch("nota2md.builder.fetch_nota", return_value=NOTA_HTML), \
                 warnings.catch_warnings(record=True) as avisos:
             warnings.simplefilter("always")
@@ -146,7 +146,7 @@ class TestDespachador(unittest.TestCase):
 
     def test_un_fallo_de_red_del_release_cae_al_dof_con_advertencia(self):
         with patch(
-            "nota2md.scjn.snapshot_de_codNota",
+            "nota2md.builder.snapshot_de_codNota",
             side_effect=requests.ConnectionError("sin red"),
         ), patch("nota2md.builder.fetch_nota", return_value=NOTA_HTML), \
                 warnings.catch_warnings(record=True) as avisos:
@@ -161,7 +161,7 @@ class TestDespachador(unittest.TestCase):
         # contestable: se responde pasando instrumento=. Regresar el decreto
         # del DOF en silencio seria dar otra cosa sin decirlo.
         with patch(
-            "nota2md.scjn.snapshot_de_codNota",
+            "nota2md.builder.snapshot_de_codNota",
             side_effect=ValueError("reforma mas de un instrumento"),
         ), self.assertRaises(ValueError):
             legal_provisions(4967917, self.outdir)
@@ -178,7 +178,11 @@ class TestDespachador(unittest.TestCase):
         _, kwargs = mock_scjn.call_args
         self.assertEqual(kwargs["instrumento"], "lfca")
         self.assertEqual(kwargs["cache_dir"], self.outdir / "cache")
-        self.assertTrue(kwargs["refrescar"])
+        # `refrescar` is NOT forwarded here since issue #209: scjn.release's
+        # readers dropped it (they never download on demand any more), so it
+        # only still means something for the no-outdir md-cache check in
+        # `_scjn_a_cache` -- see TestSinOutdir's own `refrescar` test.
+        self.assertNotIn("refrescar", kwargs)
 
     def test_los_parametros_del_ocr_se_ignoran_en_la_ruta_scjn_sin_fallar(self):
         # Un lote mixto los pasa siempre; no deben provocar un error aqui.
@@ -204,14 +208,14 @@ class TestSinOutdir(unittest.TestCase):
         """Patch the reverse index as if the release covered 4967917 with
         `lfca/05-01-1999.md`."""
         return patch(
-            "nota2md.scjn.localiza_codNota",
+            "nota2md.builder.localiza_codNota",
             return_value=("lfca", "05-01-1999.md"),
             **kwargs,
         )
 
     def _extraccion(self, **kwargs):
         return patch(
-            "nota2md.scjn.markdown_de_snapshot",
+            "nota2md.builder.markdown_de_snapshot",
             return_value=SNAPSHOT_SCJN,
             **kwargs,
         )
@@ -268,7 +272,7 @@ class TestSinOutdir(unittest.TestCase):
     def test_con_outdir_explicito_nada_cambia(self):
         outdir = self.cache_dir / "salida"
         with patch(
-            "nota2md.scjn.snapshot_de_codNota",
+            "nota2md.builder.snapshot_de_codNota",
             return_value=("lfca", "05-01-1999.md", SNAPSHOT_SCJN),
         ), self._localizado() as mock_loc:
             destino = legal_provisions(4967917, outdir, cache_dir=self.cache_dir)
@@ -277,7 +281,7 @@ class TestSinOutdir(unittest.TestCase):
         self.assertEqual(destino, outdir / "lfca-05-01-1999.md")
 
     def test_sin_cobertura_scjn_la_nota_del_dof_va_al_subdirectorio_dof(self):
-        with patch("nota2md.scjn.localiza_codNota", return_value=None), \
+        with patch("nota2md.builder.localiza_codNota", return_value=None), \
                 patch("nota2md.builder.fetch_nota", return_value=NOTA_HTML):
             destino = legal_provisions(4967917, cache_dir=self.cache_dir)
 

@@ -47,7 +47,7 @@ publicación, ``DD-MM-YYYY.md``, es decir
 reformas. La fecha se toma del campo `fecha` de la nota, no se escribe a
 mano, para que el script sea reproducible.
 
-**Cabecera.** Se sigue el esquema de `nota2md.scjn_api.cabecera` (frontmatter
+**Cabecera.** Se sigue el esquema de `scjn.api.cabecera` (frontmatter
 delimitado por `---`, leíble por `lee_cabecera`), pero dejando explícito que
 el origen es el DOF y no la SCJN:
 
@@ -118,7 +118,13 @@ import sys
 from pathlib import Path
 
 # Run straight from a clone, without `pip install -e packages/nota2md` first.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages" / "nota2md"))
+_RAIZ = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_RAIZ / "packages" / "nota2md"))
+# Needed explicitly (not just transitively): without it, a bare `scjn` import
+# resolves to the gitignored `scripts/scjn/` scratch directory instead of the
+# real package, since running this script puts `scripts/` on sys.path first
+# and an unpackaged directory still counts as a namespace package.
+sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
 from nota2md.builder import fetch_nota, legal_provisions  # noqa: E402
 
@@ -139,7 +145,7 @@ MOTIVO = (
 
 def cabecera(nota: dict) -> str:
     """The provenance header for a snapshot whose origin is the DOF and not
-    the SCJN — same shape `nota2md.scjn_api.cabecera` writes (so `lee_cabecera`
+    the SCJN — same shape `scjn.api.cabecera` writes (so `lee_cabecera`
     and `versiones_de_directorio` read it back unchanged), declaring
     `fuente: dof` and carrying the `codNota` it is known by from the origin.
     No `ratio_similitud`/`sospechoso`: there was no search to report one for."""

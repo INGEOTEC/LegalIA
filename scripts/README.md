@@ -102,14 +102,14 @@ Replaying a history with a hole measures the hole, not the algorithm. See the
 test module's own docstring for what the check does and does not establish —
 in particular that the ground truth is no longer independent of the SCJN.
 
-## SCJN pipeline: `extract_scjn_titles.py` → `fetch_scjn_legislacion.py` → `enlaza_scjn_legislacion.py` → `empaqueta_scjn_leyes.py`
+## SCJN pipeline: `fetch_scjn_legislacion.py` → `enlaza_scjn_legislacion.py` → `empaqueta_scjn_leyes.py`
 
 Recovers, from the SCJN's own SCOW JSON API
 ([legislacion.scjn.gob.mx/consulta/buscador](https://legislacion.scjn.gob.mx/consulta/buscador),
 issue #172), the reform-dated Markdown snapshots of a federal law that
 `nota2md.legal_provisions` would otherwise have to OCR, and links each one to
 the DOF `codNota` that published it — see
-`packages/nota2md/nota2md/scjn.py` for why this is a legitimate source (each
+`packages/scjn/README.md` for why this is a legitimate source (each
 snapshot is a consolidated-text-as-of-that-reform, not just a summary) and
 why it is never mistaken for an official DOF/SIDOF Markdown (`fuente: scjn`
 header on every file). The SCJN is the primary reform source, and since issue #186 nothing in this
@@ -117,9 +117,17 @@ pipeline touches the Cámara de Diputados at all: which laws exist and their
 `nombre` are read back off the `scjn-leyes` release, and `actualizado` comes
 from the SCJN's own reform table and the DOF's titles (issue #184).
 
-```bash
-./scripts/extract_scjn_titles.py --outdir scjn-legislacion                         # step 0: seed titles
+Since issue #210 there is no single `catalogo.json` seeding the whole
+pipeline any more: each law's own `estado.json`, inside its own
+`<outdir>/leyes/<slug>/` directory, is the one per-law record
+(`abrev`/`nombre`/`nombre_scjn`/`id_ordenamiento`/`url`/`actualizado_scjn`/
+`actualizado_dof`/`actualizado`/`rastreado`/`enlazado`). A brand-new law is
+seeded by hand-writing that directory's `estado.json` with at least
+`abrev`/`nombre` before its first crawl — `scripts/discover_federal_laws.py`
+finds the candidate and prints both to copy in; the existing corpus needs
+nothing extra to keep going.
 
+```bash
 ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion                      # Fase 1: crawl
 
 nota2md download gazette-metadata                                                  # DOF titles cache
@@ -128,10 +136,14 @@ nota2md download gazette-metadata                                               
 ./scripts/empaqueta_scjn_leyes.py --outdir scjn-legislacion --destino leyes-release  # leyes only: package
 ```
 
-**Keeping it up to date afterwards is two commands, not four** (issue #148).
-The first says what changed and, since #186, costs one reform-table request
-per law to refresh `actualizado` (`--sin-refrescar-catalogo` skips that); the second runs
-the whole chain above for exactly those laws, and exits without effects when
+**Keeping it up to date afterwards is two commands, not three** (issue
+#148). The first refreshes every known law's own `actualizado_scjn`/
+`actualizado_dof` (one reform-table request per law;
+`--sin-refrescar-catalogo` skips that) and, by default, diffs each law's
+own reform table row by row against its snapshots (issue #211 — another
+request per law with an `id_ordenamiento`, `--solo-fecha` skips this and
+falls back to a date comparison) to say what changed; the second runs the
+whole chain above for exactly those laws, and exits without effects when
 nothing is pending — the expected case most of the time:
 
 ```bash
@@ -153,87 +165,57 @@ The four assets travel together even when a single law changed:
 `indice-global.json.gz` is the union of every `indice.json`, so any change
 makes the published one stale.
 
-### `extract_scjn_titles.py`
+### `discover_federal_laws.py`
 
-Writes `<outdir>/leyes/catalogo.json` — each law's `nombre`, `abrev` and
-`actualizado` — and every other script below reads that file instead of
-going to a source of its own. Re-run it to refresh the catalogue; every
-downstream script fails fast, naming the exact command, if it has not been
-run yet.
-
-Since issue #186 it makes no request to `diputados.gob.mx` and has no
-`--coleccion` flag: `leyes` is the only collection left (#184), so `abrev`
-is always present.
+Reports federal laws the SCJN lists that the corpus does not have yet, then
+stops without writing anything (issue #210 — the one part of the retired
+`extract_scjn_titles.py --discover` with no replacement): a new federal law
+is a handful a year, and an `abrev` is a release asset name, so adding one is
+a human's decision.
 
 ```bash
-./scripts/extract_scjn_titles.py --outdir scripts/scjn
-./scripts/extract_scjn_titles.py --outdir scripts/scjn --dof-only   # offline
-./scripts/extract_scjn_titles.py --outdir scripts/scjn --discover   # report only
+./scripts/discover_federal_laws.py
 ```
 
-- **`nombre` and `abrev`** come from the `scjn-leyes` release itself
-  (`download_scjn_leyes_catalog` over `indice-global.json.gz`) — the seed
-  Diputados used to give has been published all along as a by-product of the
-  corpus, so it is read, not rebuilt. The file is written **sorted by
-  `slug_instrumento`**, the same order the release's index has; Diputados'
-  own index order is gone with its source. An existing `abrev` is carried
-  over **verbatim**, which is why the previous catalogue is matched by slug
-  and not by `abrev`: `lif_2026` in the catalogue is `lif-2026` in the
-  release, for 14 laws. The previous `catalogo.json` is the **floor** — a law
-  missing from the index is kept and reported, never dropped.
-- **`actualizado`** — the ISO date of the law's own most recent reform, and
-  the whole input to `fetch_scjn_legislacion.py`'s planner. It is the
-  **newest** of two independent answers, because each misses what the other
-  sees: the SCJN's own reform table (`reformas_of_ordenamiento`, addressed by
-  the `id_ordenamiento` the law's `estado.json` already records) and the
-  newest DOF provision whose title both names the law and opens with
-  DECRETO/LEY. Measured over the 316-law catalogue: the DOF alone under-dates
-  **91** laws, because an omnibus decree reforms dozens of laws without
-  naming any of them; the SCJN alone silently freezes a law it has not
-  indexed yet, which is the `lfca` case. A law neither can date keeps
-  `actualizado` **absent** — never a placeholder, since absent is what the
-  planner reads as "always re-check". `--dof-only` skips the SCJN half and
-  makes the run offline, at the cost of those 91.
-- **`nombre_scjn`** — an optional manual override: the exact string to search
-  the SCJN with instead of `nombre`, for the rare law the SCJN's own
-  full-text search never finds under its catalogue wording. Nothing here ever
-  sets it — it is added by hand — and a re-run reads back the existing
-  `catalogo.json` and carries every entry's own `nombre_scjn` forward, so the
-  override survives. Applied so far only to `lisipl`, whose `nombre` carries
-  a 250+ character trailing parenthetical alternate name.
-
-`--discover` reports federal laws the SCJN lists and the catalogue does not,
-then stops without writing anything: a new federal law is a handful a year,
-and an `abrev` is a release asset name, so adding one is a human's decision.
 Each candidate must be confirmed by a DOF title that names it and opens with
 DECRETO/LEY — without that the SCJN's own `CODIGO` category alone contributes
 ~180 "CÓDIGO DE CONDUCTA DE ..." administrative documents. A suggested
-`abrev` is printed with each candidate (`nota2md.scjn.mint_abrev`: initials
+`abrev` is printed with each candidate (`scjn.catalog.mint_abrev`: initials
 of the name's meaningful words, `-2`/`-3` on collision); it is written down
-once and never recomputed, since re-minting one renames that law's release
-asset and orphans it.
+once, by hand, into the new law's own `<outdir>/leyes/<slug>/estado.json`
+(`abrev`/`nombre`) before its first crawl, and never recomputed, since
+re-minting one renames that law's release asset and orphans it.
 
 ### `fetch_scjn_legislacion.py`
 
 Fase 1: covers `leyes`, the only collection left (issue #189) — which is
 why `leyes` is a literal path segment in these scripts and no longer
-something to pass on the command line. Resumable at two levels — a file
-already on disk is left alone, and the index of the last instrumento fully
-attempted is checkpointed to `<outdir>/leyes/.progreso.json` and
-cleared once that collection finishes, so a run killed partway (crash,
-network drop, Ctrl-C) picks back up right after that index instead of
-re-walking every already-done instrumento's reform table from the top
-(`--reiniciar` discards the checkpoint and sweeps the collection from the
-beginning again) — and rate-limited (`--espera`, default 1s) against this
-unofficial site's own session-scoped URLs. `--reintenta SLUG` (repeatable)
-re-downloads only the named instrumentos from scratch, for fixing a handful
-of wrong-document matches (issue #115) without re-walking a whole
-collection.
+something to pass on the command line. Every subdirectory of
+`<outdir>/leyes/` is a law (issue #210 retired the separate `catalogo.json`
+that used to enumerate them); `nombre`/`abrev`/`nombre_scjn` come from that
+law's own `estado.json`, falling back to `indice-global.json.gz` for
+`nombre` when a directory predates issue #210 or was just seeded by hand.
+`actualizado` is computed live, as the newer of `actualizado_scjn`/
+`actualizado_dof` (issue #211's `_load_catalog`) — deliberately not read
+verbatim off `estado.json`'s own `actualizado` key, which means something
+else: `rastrea_coleccion` writes *that* one at crawl time, to record what a
+law's snapshots were actually crawled against, and the date-only fallback
+below compares the two. Resumable at two levels — a file already on disk is
+left alone, and the **slug** of the last instrumento fully attempted is
+checkpointed to `<outdir>/leyes/.progreso.json` and cleared once that
+collection finishes, so a run killed partway (crash, network drop, Ctrl-C)
+picks back up right after that law instead of re-walking every already-done
+instrumento's reform table from the top (`--reiniciar` discards the
+checkpoint and sweeps the collection from the beginning again) — and
+rate-limited (`--espera`, default 1s) against this unofficial site's own
+session-scoped URLs. `--reintenta SLUG` (repeatable) re-downloads only the
+named instrumentos from scratch, for fixing a handful of wrong-document
+matches (issue #115) without re-walking a whole collection.
 
 Two more mechanisms (issue #124's follow-up) close the case a previous crawl
-found nothing at all for — driven entirely by `catalogo.json` fields
-`extract_scjn_titles.py` writes, nothing to pass on this script's own command
-line:
+found nothing at all for — driven entirely by fields `refresca_catalogo()`
+(below) writes into each law's own `estado.json`, nothing to pass on this
+script's own command line:
 
 - **Manual override** — when a catalogue entry carries `nombre_scjn`, it is
   searched instead of `nombre`.
@@ -247,15 +229,64 @@ line:
   with nothing to configure by hand once the SCJN catches up.
   `--reiniciar` bypasses this skip too.
 
+`refresca_catalogo()` (`--plan`/`--actualiza`, unless
+`--sin-refrescar-catalogo`) is what folds `extract_scjn_titles.py`'s old
+refresh into this script (issue #210): it reads every law's own
+`estado.json`, asks the SCJN's reform table (`--dof-only` skips this half
+and makes the refresh offline, at the cost of the omnibus-decree laws only
+the SCJN half dates) and the DOF titles cache for a fresh
+`actualizado_scjn`/`actualizado_dof`, and writes only those two fields back
+— never the bare `actualizado`, which stays `rastrea_coleccion`'s own (see
+above); a law this run's sources did not answer for keeps whichever value
+its own `estado.json` already carried, since neither source's date can move
+backwards in practice.
+
+### Completeness by row comparison (issue #211)
+
+A date comparison alone cannot see a gap in the *middle* of a reform table:
+`lfd` had 92 snapshots against 98 reforms, and the newest reform was always
+on disk, so nothing about "the newest date on file" ever looked stale
+(issue #178). `--plan`/`--actualiza` default to a **row comparison**
+instead: for every law with an `id_ordenamiento` already on file, one
+request fetches its whole reform table
+(`scjn.api.ScjnApi.reformas_of_ordenamiento`, addressed by that stable id —
+never a search, so it can never resolve to the wrong document, issue #115's
+Hallazgo C) and `scjn.state.reformas_faltantes` diffs it against the
+snapshots on disk, matching each reform by its own position among
+same-date rows rather than by date alone (two reforms sharing a date, like
+39 dates on the CPEUM, must not cancel each other out).
+
+A full plan is therefore ~316 requests — the largest burst this project
+makes outside a full crawl — rate-limited by `--espera` exactly like a
+crawl, and resumable the same way
+(`<outdir>/leyes/.progreso_plan.json`). `--solo-fecha` is the explicit,
+offline fallback: the older date comparison above, for a quick local
+refresh rather than a run whose plan anyone acts on. A law with no
+`id_ordenamiento` yet (never crawled, or crawled before issue #172) is not
+skipped even in row-comparison mode — it falls back to the date comparison
+for that one law alone, and `--plan` reports it separately as having done
+so.
+
+`actualizado_dof`/`actualizado_scjn` are not replaced by any of this: row
+comparison catches a *gap* in an indexed table, and the DOF half is still
+the only thing that notices a reform the SCJN has not indexed at all yet
+(issue #124's `lfca`) — a row comparison against a table that does not have
+the reform cannot see it either.
+
+    # el plan real, contra la SCJN (issue #211, ~316 requests, resumable):
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --plan
+    # el respaldo offline, mas barato y menos preciso:
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --plan --solo-fecha
+
 Issue #140 fixed two rough edges found running the above for real. The
-incremental refresh does nothing, silently, if `catalogo.json` was never
-extracted with `actualizado` on it (extracted before that field existed, or
-hand-edited) — a run now warns on stderr, once per collection, when it sees
-zero `actualizado` entries, naming the exact `extract_scjn_titles.py`
-command to fix it. And a large instrumento's own crawl — confirmed live
-against the CPEUM, 301 rows across 31 grid pages — used to print nothing at
-all while it ran, indistinguishable from a hung process; it now narrates
-one line per grid page and per row as it goes.
+incremental refresh does nothing, silently, if the corpus was never
+refreshed under `refresca_catalogo()` (no law crawled yet, or hand-seeded) —
+a run now warns on stderr, once per collection, when it sees zero
+`actualizado` entries, naming the exact `--plan` command to fix it. And a
+large instrumento's own crawl — confirmed live against the CPEUM, 301 rows
+across 31 grid pages — used to print nothing at all while it ran,
+indistinguishable from a hung process; it now narrates one line per grid
+page and per row as it goes.
 
 ### `enlaza_scjn_legislacion.py`
 
@@ -289,7 +320,7 @@ from `ordenamiento` after normalizing (accents/case/whitespace), so a
 snapshot whose title is worth a second look is visible directly in the file
 — `grep -l nombre_buscado: scjn-legislacion/**/*.md` finds the same
 instruments that script used to print, without recomputing anything or
-needing `catalogo.json` at hand. `ratio_similitud`/`sospechoso` (issue #115)
+needing the catalogue at hand. `ratio_similitud`/`sospechoso` (issue #115)
 are unaffected and still always present, giving the magnitude of how far
 off a flagged title is.
 

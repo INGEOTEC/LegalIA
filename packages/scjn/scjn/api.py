@@ -1,8 +1,8 @@
 """Client for the SCJN's SCOW JSON API, the backend of
 https://legislacion.scjn.gob.mx/consulta/buscador.
 
-This is the transport that replaced `nota2md.scjn`'s WebForms crawler
-(issue #172, retired in #179). Where that one round-tripped `__VIEWSTATE`,
+This is the transport that replaced this project's own legacy WebForms
+crawler (issue #172, retired in #179). Where that one round-tripped `__VIEWSTATE`,
 held a session-scoped `q` token, scraped a paged HTML grid and downloaded
 one `.docx` per reform, this asks three unauthenticated JSON endpoints:
 
@@ -17,8 +17,8 @@ for the `.docx`, so the corpus this feeds keeps meaning what it meant.
 The SCJN is still **not** an official source of legal text — dof.gob.mx /
 SIDOF remains that, and every file written from this keeps its
 `fuente: scjn` header. A public Swagger page is not a stability contract
-either: same posture as `dofjson.dofweb` takes toward the DOF's own
-website, so the rate limiting and the retries stay.
+either — no more than any other unofficial site this project reads — so the
+rate limiting and the retries stay.
 
 Measured live against the corpus the old crawler wrote (issue #173, whose
 numbers are the comment on #172); three of those findings are load-bearing
@@ -236,7 +236,7 @@ class ScjnApi:
 
         `ambito`/`categoria`/`vigencia`/`pagina` are those filters made
         reachable (issue #186), for the one caller that wants a *listing*
-        rather than a lookup: `extract_scjn_titles.py --discover` pages
+        rather than a lookup: `scripts/discover_federal_laws.py` pages
         `FEDERAL`+`LEY`/`CODIGO`/`CONSTITUCION`+`VIGENTE` to find laws the
         catalogue does not have yet. `name` stays mandatory — an empty `q`
         answers zero results, so there is no "list everything" mode to
@@ -378,7 +378,7 @@ class ScjnApi:
 # article whose `referencia` is unexpected has to come out as the same
 # paragraph it does today, not as a differently-shaped file.
 
-from nota2md.scjn import (  # noqa: E402  (deliberately below the client)
+from scjn.text import (  # noqa: E402  (deliberately below the client)
     quita_notas_editoriales,
     ratio_similitud,
 )
@@ -388,7 +388,7 @@ from nota2md.scjn import (  # noqa: E402  (deliberately below the client)
 #
 # The SCJN's text carries no formatting of its own: "TEXTO ORIGINAL.",
 # "Artículo N.-" leads and "TRANSITORIOS" captions are plain text, told apart
-# only by their own wording/casing. This lived in `nota2md.scjn`
+# only by their own wording/casing. This lived alongside the crawl itself
 # while the source was the reform row's .docx (one docx paragraph already is
 # one clean block, so only this per-paragraph classification was ever needed
 # on top of it); it moved here with issue #179, when the .docx path went away
@@ -399,10 +399,10 @@ from nota2md.scjn import (  # noqa: E402  (deliberately below the client)
 # same law and the same date.
 #
 # These patterns are the SCJN side of a comparison, so they stay their own
-# copy on purpose. A near-identical set used to live in
-# `nota2md.texto_vigente`, shaping the Cámara de Diputados' consolidated PDF
-# into the same Markdown conventions; that module was deleted with its source
-# (issues #184/#188) and nothing here ever imported it, precisely so the two
+# copy on purpose. A near-identical set used to live in a retired module
+# that shaped the Cámara de Diputados' consolidated PDF into the same
+# Markdown conventions; that module was deleted with its source (issues
+# #184/#188) and nothing here ever imported it, precisely so the two
 # renderings of the same law could be compared rather than share a bug.
 _ORDINAL = (
     r"(?:[UÚ]nico|Primero|Segundo|Tercero|Cuarto|Quinto|Sexto|S[ée]ptimo|"
@@ -535,7 +535,7 @@ def snapshot(
 # results page did not have are added, each measured against those 5 cases
 # plus `lfca` and `lisipl` (the numbers are the comment on issue #176).
 
-from nota2md.scjn import (  # noqa: E402
+from scjn.text import (  # noqa: E402
     UMBRAL_CONFIANZA_SIMILITUD,
     UMBRAL_MINIMO_SIMILITUD,
     es_acuerdo_interno,

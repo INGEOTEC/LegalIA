@@ -125,7 +125,7 @@ class TestCliDownload(unittest.TestCase):
     def tearDown(self):
         self.tmpdir.cleanup()
 
-    @patch("nota2md.scjn.download_scjn_leyes_assets")
+    @patch("scjn.release.download_scjn_leyes_assets")
     def test_federal_laws_baja_indice_y_tarballs(self, mock_assets):
         ruta = self.destino / "scjn-leyes" / "indice-global.json.gz"
         mock_assets.return_value = [(ruta, True)]
@@ -137,7 +137,7 @@ class TestCliDownload(unittest.TestCase):
         self.assertEqual(kwargs["cache_dir"], self.destino)
         self.assertFalse(kwargs["refrescar"])
 
-    @patch("nota2md.scjn.download_scjn_leyes_assets")
+    @patch("scjn.release.download_scjn_leyes_assets")
     def test_federal_laws_acota_con_slug_repetible(self, mock_assets):
         mock_assets.return_value = [(self.destino / "lft.tgz", False)]
 
@@ -148,13 +148,16 @@ class TestCliDownload(unittest.TestCase):
         self.assertEqual(args[0], ["lft", "lfca"])
         self.assertTrue(kwargs["refrescar"])
 
-    @patch("nota2md.scjn.download_scjn_leyes_assets")
-    def test_federal_laws_sin_cache_dir_usa_el_default_de_nota2md(self, mock_assets):
+    @patch("scjn.release.download_scjn_leyes_assets")
+    def test_federal_laws_sin_cache_dir_usa_el_default_de_scjn(self, mock_assets):
+        # Issue #209: sin --cache-dir explicito esto ya no usa el cache de
+        # nota2md -- delega en scjn.cache.CACHE_DIR (None es como
+        # scjn.release lo pide).
         mock_assets.return_value = [(self.destino / "x.tgz", True)]
 
         main(["download", "federal-laws"])
 
-        self.assertIs(mock_assets.call_args.kwargs["cache_dir"], cache.SIN_CACHE_DIR)
+        self.assertIsNone(mock_assets.call_args.kwargs["cache_dir"])
 
     def test_federal_laws_rechaza_cache_dir_none(self):
         # "no cache" and "write the release to disk" cannot both hold.
@@ -182,7 +185,7 @@ class TestCliDownload(unittest.TestCase):
         self.assertEqual(mock_dof.call_args.args[0], Path(DOFJSON_CACHE_DIR))
 
     @patch("dofjson.titulos.download_dof_assets")
-    @patch("nota2md.scjn.download_scjn_leyes_assets")
+    @patch("scjn.release.download_scjn_leyes_assets")
     def test_all_baja_los_dos_releases(self, mock_assets, mock_dof):
         mock_assets.return_value = [(self.destino / "scjn-leyes" / "a.tgz", True)]
         mock_dof.return_value = [self.destino / "notas-1917.tgz"]
@@ -193,10 +196,10 @@ class TestCliDownload(unittest.TestCase):
         mock_dof.assert_called_once()
         # Each release keeps its own cache: `all` is a shorthand for two
         # invocations, not a merge of the two directories.
-        self.assertIs(mock_assets.call_args.kwargs["cache_dir"], cache.SIN_CACHE_DIR)
+        self.assertIsNone(mock_assets.call_args.kwargs["cache_dir"])
         self.assertFalse(mock_dof.call_args.kwargs["refrescar"])
 
-    @patch("nota2md.scjn.download_scjn_leyes_assets")
+    @patch("scjn.release.download_scjn_leyes_assets")
     def test_reporta_por_asset_si_se_descargo_o_ya_estaba(self, mock_assets):
         directorio = self.destino / "scjn-leyes"
         mock_assets.return_value = [

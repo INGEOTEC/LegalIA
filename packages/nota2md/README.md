@@ -2,6 +2,33 @@
 
 [![Documentation Status](https://readthedocs.org/projects/legalia/badge/?version=latest)](https://legalia.readthedocs.io/en/latest/nota2md_api.html)
 
+> **v0.5.0 (still unreleased) also carries the SCJN package split** (issues
+> #206-#212) alongside the default-source change below — a minor bump, not a
+> patch, on purpose: `nota2md.scjn`/`nota2md.scjn_api` are deleted outright, a
+> reader's contract changed (no more download-on-read), and a cache directory
+> moved. It ships as the same v0.5.0 rather than a further v0.6.0 because
+> nothing between 0.4.1 and 0.5.0 has reached PyPI yet — `scripts/
+> check_package_versions.py`'s single-step-ahead gate (issue #194) blocks a
+> second minor bump before the first one publishes. The four names below
+> keep importing from `nota2md` unchanged either way.
+>
+> **The `scjn-leyes` release's own readers moved to the `scjn` package**
+> (`scjn.release`, issue #209) — `nota2md.scjn` and `nota2md.scjn_api` no
+> longer exist. `download_scjn_leyes_corpus`/`download_scjn_leyes_index`/
+> `download_scjn_leyes_catalog`/`iter_current_federal_laws` keep working
+> unchanged from `nota2md` (re-exported), but the release's own on-disk cache
+> moved to `scjn.cache.CACHE_DIR` — a **separate directory** from `nota2md`'s
+> own (`$SCJN_CACHE_DIR`, not `$NOTA2MD_CACHE_DIR`); an existing
+> `~/.cache/nota2md/scjn-leyes/` is migrated there automatically, once, the
+> first time `nota2md download federal-laws`/`all` runs. Every reader is now
+> **disk-only**: none of them download on demand any more (that is
+> `download_scjn_leyes_assets`'s job alone, via `scjn download` or `nota2md
+> download federal-laws`), and a `codNota`/law not yet cached raises
+> `scjn.release.AssetNotCached` — `legal_provisions` still falls back to the
+> DOF for it, exactly as it did for the old `KeyError`. See [the SCJN
+> path](#the-scjn-path--a-laws-consolidated-text-at-each-reform) and [the
+> `scjn` package](../scjn) for the readers' own docs.
+>
 > **`download_legal_provisions_provenance_ids` is gone** (issue #187). It read
 > the `historial-legislativo` release, which was built by scraping the Cámara
 > de Diputados' LeyesBiblio; the project now rests on the SCJN and the DOF
@@ -251,7 +278,7 @@ Beware one thing if you are joining this against a catalogue of your own: the
 release slug is the *normalized* `abrev`, so the 14 laws whose abbreviation
 carries an underscore (`lif_2026`, `pef_2026`, `ligie_2022`, `reg_senado`,
 the `lrart*`/`lrf*` reglamentarias …) come back hyphenated. Match on
-`nota2md.scjn.slug_instrumento` and keep your own `abrev`.
+`scjn.catalog.slug_instrumento` and keep your own `abrev`.
 
 A fourth reader, `iter_current_federal_laws`, answers a narrower question
 lazily instead of loading a whole law's history to answer it: not "every
@@ -275,22 +302,27 @@ corpus this way never holds more than one law in memory.
 
 #### Cache
 
-The release assets the SCJN path reads are cached on disk, exactly as
-[`dofjson`](../dofjson) caches `notas-archivo`:
+Since issue #209, the release assets the SCJN path reads live in the `scjn`
+package's **own** cache directory, not `nota2md`'s:
 
 ```
-<CACHE_DIR>/scjn-leyes/indice-global.json.gz
-<CACHE_DIR>/scjn-leyes/<slug>.tgz
+<SCJN_CACHE_DIR>/scjn-leyes/indice-global.json.gz
+<SCJN_CACHE_DIR>/scjn-leyes/<slug>.tgz
 ```
 
-`CACHE_DIR` defaults to the OS per-user cache directory (`~/.cache/nota2md` on
-Linux), overridable with `$NOTA2MD_CACHE_DIR` or by reassigning
-`nota2md.cache.CACHE_DIR`. Per call, `cache_dir=<path>` names a directory,
-`cache_dir=None` skips the cache entirely (download into memory), and
-`refrescar=True` re-downloads — an asset already on disk is a hit **by file
-name, never revalidated**, since this corpus is only ever republished by hand.
-It is `nota2md`'s own directory, not `dofjson`'s: two releases, two
-lifecycles, so clearing one does not clear the other.
+`SCJN_CACHE_DIR` defaults to the OS per-user cache directory (`~/.cache/scjn`
+on Linux), overridable with `$SCJN_CACHE_DIR` or by reassigning
+`scjn.cache.CACHE_DIR` — see [the `scjn` package](../scjn) for the readers
+themselves. Every reader is disk-only: none of them download on demand, so a
+`cache_dir` passed to `legal_provisions`/`download_scjn_leyes_corpus`/etc.
+either names a directory explicitly (used as-is, both for this release and
+for `nota2md`'s own output) or is left out, in which case `scjn.cache.CACHE_DIR`
+is what gets read — `cache_dir=None` no longer means "skip the cache,
+download into memory" for this path (it still does for the DOF path's own
+cache, see `nota2md.cache`). `refrescar=True` is now the *downloader*'s flag
+(`download_scjn_leyes_assets`, or `scjn download`/`nota2md download
+federal-laws`) — an asset already on disk is a hit **by file name, never
+revalidated**, since this corpus is only ever republished by hand.
 
 ### Usage
 
@@ -494,7 +526,7 @@ invocations, not a shared destination.
 memory") is rejected here: this verb exists to write the release to disk, and
 "no cache" has nowhere to write.
 
-From Python, the same two downloads are `nota2md.scjn.download_scjn_leyes_assets`
+From Python, the same two downloads are `scjn.release.download_scjn_leyes_assets`
 and `dofjson.download_dof_assets`.
 
 ## Installation

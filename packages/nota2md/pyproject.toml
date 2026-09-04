@@ -28,12 +28,17 @@ dependencies = [
     # on purpose, so nota2md imports platformdirs itself.
     "platformdirs>=4.0",
     "requests>=2.31",
+    # The SCJN side of this project (transport, catalogue, crawl state,
+    # provenance header) moved to its own package (issue #206/#207);
+    # nota2md depends on it, never the reverse.
+    "scjn>=0.1.0",
 ]
 dynamic = ['version']
 
 [project.optional-dependencies]
-# The "scjn" extra (python-docx) went away with the .docx crawl path in
-# issue #179 -- the SCJN's JSON API serves the same text as plain text.
+# A python-docx "scjn" extra went away with the .docx crawl path in issue
+# #179 -- the SCJN's JSON API serves the same text as plain text. Not to be
+# confused with the `scjn` package now in `dependencies` above.
 ocr = ["dof2md>=0.2.0"]
 test = ["pytest>=7.0"]
 

@@ -26,6 +26,34 @@ build on each other in this sequence.
   provision ever published (`legal_provisions_titles`), off the on-disk cache
   of the `notas-archivo` GitHub release — it writes no dataset of its own
   (issue #166).
+- **`scjn`** — client for the SCJN's **SCOW JSON API** (`scjn.api`, the
+  backend of `legislacion.scjn.gob.mx/consulta/buscador`; replaced a legacy
+  WebForms crawler in issue #172, retired in #179) and the disk-first reader
+  for the `scjn-leyes` GitHub release it feeds (`scjn.release`): a federal
+  law's reform-dated snapshots, one tarball per law. Extracted out of
+  `nota2md`'s own modules (issue #206, done — see its own section below);
+  depends on nothing else in this monorepo, and nothing here imports back
+  from `nota2md`/`dofjson` (`packages/scjn/tests/test_boundary.py`'s own grep
+  enforces it).
+  Eight entry points, re-exported off the package: `download_scjn_leyes_index`/
+  `download_scjn_leyes_corpus`/`markdown_de_snapshot` (the release's readers,
+  by reverse index / whole law / one snapshot), `download_scjn_leyes_catalog`
+  (the federal-law catalogue — `abrev`+`nombre` off the index and
+  `actualizado` off each law's own `estado.json`, the seed that used to be
+  scraped from the Cámara de Diputados, read back rather than rebuilt; issue
+  #185), `iter_current_federal_laws` (a lazy iterator over the *current* text
+  of every federal law — one snapshot per law, the newest by
+  `fecha_publicacion`, without decoding the rest of that law's history; issue
+  #191), `local_slugs`/`download_scjn_leyes_assets`/`AssetNotCached` (the
+  disk-first cache: every reader raises `AssetNotCached` rather than
+  downloading — only `download_scjn_leyes_assets`, or the `scjn download`
+  CLI, talks to the network; issue #209). Its own cache directory
+  (`scjn.cache.CACHE_DIR`, `$SCJN_CACHE_DIR`) is separate from `nota2md`'s,
+  with a one-time migration out of the pre-#209 `nota2md` cache
+  (`scjn.cache.migrate_legacy_assets`, called from `nota2md download`). The
+  API is public but has no stability contract, and the SCJN is still not an
+  official source of legal text: `fuente: scjn` means what it always did, the
+  DOF/SIDOF remains the official source.
 - **`nota2md`** — nine entry points, all re-exported off the package:
   `legal_provisions` (one note → Markdown, `legal_provisions(codNota)` with no
   other argument writing into `nota2md.cache.CACHE_DIR` and returning the
@@ -43,23 +71,17 @@ build on each other in this sequence.
   the one note→Markdown step, issue #170),
   `legal_provisions_titles` (re-exported from `dofjson.titulos`),
   `download_scjn_leyes_corpus`/`download_scjn_leyes_index`/
-  `download_scjn_leyes_catalog` (the `scjn-leyes` release's readers — the last
-  one is the federal-law catalogue, `abrev`+`nombre` off the index and
-  `actualizado` off each law's `estado.json` — the seed that used to be
-  scraped, read back rather than rebuilt; issue #185),
-  `iter_current_federal_laws` (a lazy iterator over the *current* text of
-  every federal law in the release — one snapshot per law, the newest by
-  `fecha_publicacion`, without decoding the rest of that law's history;
-  issue #191). Its release assets are cached on disk under
-  `nota2md.cache.CACHE_DIR` — `nota2md`'s own directory, deliberately not
-  `dofjson`'s. The SCJN corpus behind `scjn-leyes` is crawled through the
-  SCJN's **SCOW JSON API** (`nota2md.scjn_api`, issue #172); the legacy
-  WebForms Buscador crawler was removed in #179, so `nota2md.scjn` now holds
-  only what is not transport — catalogue slugs, crawl state, the provenance
-  header's reader, the snapshot→`codNota` link, and the release's readers.
-  The API is public but has no stability contract, and the SCJN is still not
-  an official source of legal text: `fuente: scjn` means what it always did,
-  the DOF/SIDOF remains the official source.
+  `download_scjn_leyes_catalog`/`iter_current_federal_laws` (the `scjn`
+  package's own readers, re-exported here unchanged for a caller — see
+  `scjn` above). Depends on `scjn` for all of the above; `nota2md.linking` is
+  the one SCJN-adjacent concern that stays here instead — matching a
+  snapshot `scjn` reads back to the DOF `codNota` that produced it, and the
+  reverse (a `codNota` to the snapshot it produced, for `legal_provisions`'
+  own SCJN path) — because a `codNota` is a DOF concept, so this seam needs
+  both sides and cannot live one-way inside `scjn` (issue #206 section 5,
+  #208). `legal_provisions`' own derived output (a snapshot's extracted text,
+  a DOF note's Markdown) is cached on disk under `nota2md.cache.CACHE_DIR` —
+  `nota2md`'s own directory, deliberately not `dofjson`'s or `scjn`'s.
 - **`dof2md`** — OCRs a PDF or a set of scanned images to Markdown via
   `mineru`. Has no notion of "note"/"legal provision", and no download of
   its own — it only ever converts a PDF/images already on disk; getting a
@@ -100,8 +122,10 @@ not reproduced or measured against.
 ## Sources: SCJN + DOF only (issue #184, done)
 
 **This section now describes the tree, not a direction.** All six phases
-landed (#185–#190): the catalogue is built from the SCJN and the DOF
-(`scripts/extract_scjn_titles.py`), `download_legal_provisions_provenance_ids`
+landed (#185–#190): the catalogue was built from the SCJN and the DOF
+(`scripts/extract_scjn_titles.py`, itself retired by issue #210 once its
+job moved into each law's own `estado.json`),
+`download_legal_provisions_provenance_ids`
 and `nota2md.utils` are deleted, the `leyesmx` package and the
 four-collection abstraction are gone, and `.github/workflows/reformas.yml`
 with them. The decisions below are kept because they are the reasons, and
@@ -110,14 +134,15 @@ before re-introducing anything they rule out.
 
 The decision: every dependency on the Cámara de Diputados (LeyesBiblio) is
 removed, and federal-law functionality rests on the **SCJN** (the SCOW JSON
-API, `nota2md.scjn_api`) plus the **DOF/SIDOF** (`dofjson`) alone. LeyesBiblio
+API, `scjn.api` since issue #206/#207 moved it out of `nota2md`) plus the
+**DOF/SIDOF** (`dofjson`) alone. LeyesBiblio
 was three HTML page layouts whose markup changes without notice, and it was
 scraped for one thing: the initial seed of federal legislation — which laws
 exist, their name, their abbreviation.
 
 - **The seed is read, not rebuilt.** It is already published: the `scjn-leyes`
   release's `indice-global.json.gz` carries every law's slug and `nombre`, the
-  slug *is* the `abrev` (`nota2md.scjn.slug_instrumento`), and each
+  slug *is* the `abrev` (`scjn.catalog.slug_instrumento`), and each
   `<slug>.tgz` ships an `estado.json` recording the `actualizado` it was
   crawled against. So `download_scjn_leyes_index` answers the question the
   scraper used to. Existing `abrev` values are preserved **verbatim** — an
@@ -132,7 +157,8 @@ exist, their name, their abbreviation.
   With one collection left, the four-collection abstraction collapses:
   `nota2md.utils`' `COLECCIONES`/`_ASSETS`/`_INDICES`/`_une_con_historial`, the
   `--coleccion` flags of the SCJN scripts, `empaqueta_historial.py`'s asset
-  map, and the collection branches in `nota2md.scjn`/`scjn_api`. The public
+  map, and the collection branches in what is now `scjn.catalog`/`scjn.api`.
+  The public
   `download_legal_provisions_provenance_ids` was **deleted outright** in #187 —
   no shim, no deprecation, no name kept for compatibility (changelog note in
   `packages/nota2md/README.md` regardless of whether a version bump follows). A law's reform history then lives in the
@@ -166,6 +192,82 @@ Phases, each its own sub-issue, in order:
 | Fase 4 | #189 | Delete `leyesmx`, the Diputados code, the collection abstraction |
 | Fase 5 | #190 | Delete the workflow; freeze the release; update the docs |
 
+## The `scjn` package: extracted from `nota2md` (issue #206, done)
+
+**This section now describes the tree, not a direction.** All six phases
+landed (#207–#212): the SCJN's transport, catalogue algebra, crawl state,
+provenance header and the `scjn-leyes` release's own readers all live in a
+new top-level package, `scjn` — read before `nota2md` in the read order
+above. The decisions below are kept as the reasons a later change should
+weigh against, not a task list still open.
+
+- **One-way dependency, enforced.** `scjn` imports neither `nota2md` nor
+  `dofjson` — a `codNota` is a DOF concept, so anything that needs both
+  sides (matching a snapshot to the DOF note that produced it) stays a layer
+  up, in `nota2md.linking` (issue #208). `nota2md` depends on `scjn`, never
+  the reverse; `packages/scjn/tests/test_boundary.py` greps for
+  `nota2md`/`dofjson` inside `scjn`'s own source so the direction cannot
+  regress silently.
+- **A pure move first, behaviour changes after.** Fase 1 (#207) relocated
+  `scjn.api` (the SCOW transport, formerly `nota2md.scjn_api`),
+  `scjn.catalog`, `scjn.state` and `scjn.header` (formerly parts of
+  `nota2md.scjn`) with no rename of existing Spanish identifiers and no
+  behaviour change — `nota2md.scjn` kept re-exporting every moved name until
+  Fase 3 deleted it. Fase 2 (#208) then moved `codNota` linking into its own
+  leaf module, `nota2md.linking`, breaking an import cycle
+  (`nota2md.builder` no longer needs a deferred import to reach it).
+- **The release readers became disk-first, with their own cache.** Fase 3
+  (#209) moved `scjn.release` here too: every reader
+  (`download_scjn_leyes_index`, `download_scjn_leyes_corpus`,
+  `download_scjn_leyes_catalog`, `iter_current_federal_laws`,
+  `markdown_de_snapshot`, `local_slugs`) now only ever reads
+  `scjn.cache.CACHE_DIR` (`$SCJN_CACHE_DIR`) — a directory separate from
+  `nota2md`'s, migrated once, automatically, out of the pre-#209 `nota2md`
+  cache (`scjn.cache.migrate_legacy_assets`, called from `nota2md download
+  federal-laws`/`all`, since `scjn` itself must never know `nota2md`'s cache
+  layout). A missing asset raises `AssetNotCached` instead of attempting a
+  download; only `download_scjn_leyes_assets` (and the `scjn download` CLI
+  built on it) talks to the network. `nota2md download federal-laws`/`all`
+  genuinely delegate to that downloader rather than reimplementing it.
+- **One record per law.** Fase 4 (#210) retired the separate `catalogo.json`
+  seeding the whole pipeline: each law's own `estado.json`
+  (`abrev`/`nombre`/`nombre_scjn`/`id_ordenamiento`/`actualizado_scjn`/
+  `actualizado_dof`/`actualizado`/`rastreado`/`enlazado`) is now the one
+  per-law record, migrated by a one-time, human-run backfill rather than
+  guessed at. `scripts/discover_federal_laws.py` replaced
+  `extract_scjn_titles.py --discover`: it reports a candidate new law and
+  stops, never writing state — a new federal law is a handful a year, and an
+  `abrev` is a release asset name, so adding one stays a human's decision.
+- **Completeness by row comparison, not just by date.** Fase 5 (#211) added
+  `scjn.state.reformas_faltantes`, diffing a law's whole reform table
+  against its on-disk snapshots — the only way to see a gap in the middle of
+  an otherwise current-looking law (`lfd` had 92 snapshots against 98
+  reforms, issue #178). The older date-only comparison
+  (`scjn.state.motivo_pendiente` with no `reformas` given) stays as an
+  explicit, cheaper, offline fallback — `fetch_scjn_legislacion.py
+  --solo-fecha` — not a default for a plan anyone acts on.
+  `actualizado_dof`/`actualizado_scjn` are not replaced by either mode: row
+  comparison catches a gap in an indexed table, the DOF half still catches a
+  reform the SCJN has not indexed at all yet (issue #124's `lfca`).
+- **Docs and packaging catch up last.** Fase 6 (#212) gave `scjn` its own
+  Read the Docs page (`docs/source/scjn_api.rst`, built to the same standard
+  as every other package's) and its first PyPI release
+  (`.github/workflows/publish-pypi.yml` already had `scjn-v*`/`scjn` since
+  Fase 1) — `nota2md`'s own next release has to go out at the same time or
+  after `scjn`'s, never before, or `pip install nota2md` breaks for everyone
+  outside this repo.
+
+Phases, each its own sub-issue, in order:
+
+| Phase | Issue | What it does |
+|---|---|---|
+| Fase 1 | #207 | Create the `scjn` package: transport, catalogue, state, header |
+| Fase 2 | #208 | Extract `codNota` linking into `nota2md.linking`; break the import cycle |
+| Fase 3 | #209 | Move the release readers to `scjn.release`, disk-first, own cache |
+| Fase 4 | #210 | One record per law: `estado.json` absorbs `catalogo.json` |
+| Fase 5 | #211 | Completeness by row comparison against the SCJN reform table |
+| Fase 6 | #212 | Docs, packaging, first PyPI release, this section |
+
 ## Documentation: two sites, one division of labour (issue #119, done)
 
 The project has two documentation sites, and what goes on which one is a
@@ -185,7 +287,8 @@ lands on the same story regardless of which one they open first:
   function's Read the Docs page instead, with a link down to it.
 
 Rules for a package's Read the Docs page (`docs/source/<pkg>_api.rst`),
-settled by issues #195-200 while building the site the four packages share:
+settled by issues #195-200 while building the site the original four
+packages shared, and inherited unchanged by `scjn` when it joined (#212):
 
 - **Every public symbol gets a verified example.** Concretely: every name in
   a package's `__all__`, every public method of an exported class, every CLI
@@ -214,14 +317,15 @@ section bolted onto `website/`.
 
 ## Commands
 
-Four test files make real network calls and are excluded from routine runs
+Three test files make real network calls and are excluded from routine runs
 (CI's `test.yml` does include them by default — check before assuming a
-failure there is unrelated):
+failure there is unrelated). Since issue #209 moved the `scjn-leyes` release
+readers into the `scjn` package, two of the three now live there:
 
 ```bash
-pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \
-    --ignore=packages/nota2md/tests/test_scjn_release_red.py \
-    --ignore=packages/nota2md/tests/test_scjn_api_red.py
+pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py
+pytest packages/scjn -q --ignore=packages/scjn/tests/test_api_red.py \
+    --ignore=packages/scjn/tests/test_release_red.py
 ```
 
 The website's notebooks are committed without their outputs, via an
@@ -282,8 +386,8 @@ filter is a pass-through — it just stops shrinking what it commits.
   language the instructions for the task were given in — instructions can be
   in Spanish or English, but what gets written into the repo must be English.
 - The codebase currently has a mix of English and Spanish identifiers and
-  comments (see `nota2md.scjn`'s `versiones_de_directorio`/`lee_cabecera`,
-  `nota2md.scjn_api`'s `descarga_ordenamiento`, and the Spanish CLI
+  comments (see `scjn.header`'s `versiones_de_directorio`/`lee_cabecera`,
+  `scjn.api`'s `descarga_ordenamiento`, and the Spanish CLI
   help/script output throughout `scripts/`). Leave existing Spanish code
   as-is when touching unrelated lines — do not do drive-by mass renames. But new code,
   and any code you're already rewriting for other reasons, should be

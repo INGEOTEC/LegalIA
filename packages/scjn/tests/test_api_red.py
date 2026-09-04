@@ -1,12 +1,11 @@
-"""Live check of `nota2md.scjn_api` against the real SCOW API.
+"""Live check of `scjn.api` against the real SCOW API.
 
 An integration test, not a unit test: it talks to
-`legislacion.scjn.gob.mx`, so it is excluded from the routine run the same
-way `test_scjn_release_red.py` and `test_leyes_44.py` are:
+`legislacion.scjn.gob.mx`, so it is excluded from this package's own
+routine run the same way `nota2md`'s `test_scjn_release_red.py` and
+`test_leyes_44.py` are excluded from theirs:
 
-    pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py \\
-        --ignore=packages/nota2md/tests/test_scjn_release_red.py \\
-        --ignore=packages/nota2md/tests/test_scjn_api_red.py
+    pytest packages/scjn -q --ignore=packages/scjn/tests/test_api_red.py
 
 `lfca` is the case that motivated the whole migration (issue #172): the
 WebForms `scjn.buscar` returns 0 candidates for it, while the new index has
@@ -15,7 +14,7 @@ it as `idOrdenamiento` 188805 with 87 articles in its only reform.
 
 import unittest
 
-from nota2md.scjn_api import ScjnApi
+from scjn.api import ScjnApi
 
 
 class TestApiEnVivo(unittest.TestCase):

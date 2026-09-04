@@ -52,15 +52,22 @@ def _agrega_argumentos_build(parser):
     )
     parser.add_argument(
         "--cache-dir", default=None,
-        help="Directory the scjn-leyes release assets are cached in (see "
-        "nota2md.cache). Not given: uses nota2md.cache.CACHE_DIR (the "
-        "OS-appropriate default, overridable with $NOTA2MD_CACHE_DIR). "
-        "'none': always download, skipping the cache entirely.",
+        help="Directory this note's own Markdown is cached under (see "
+        "nota2md.cache); also where the SCJN path's scjn-leyes tarball is read "
+        "from, when this is given explicitly. Not given: nota2md's own output "
+        "still uses nota2md.cache.CACHE_DIR, while the SCJN path reads "
+        "scjn.cache.CACHE_DIR instead (a separate directory, issue #209) -- "
+        "run `scjn download` (or `nota2md download federal-laws`) to "
+        "populate it ahead of time. 'none': skip nota2md's own cache "
+        "(download the DOF path fresh every time); no longer means "
+        "'skip the SCJN's cache too' -- the SCJN path is disk-first and never "
+        "downloads on demand any more.",
     )
     parser.add_argument(
         "--refrescar", action="store_true",
-        help="Re-download the release assets the SCJN path needs even if they are "
-        "already cached (they are matched by name and never revalidated)",
+        help="Re-extract the SCJN path's already-cached snapshot into this note's "
+        "own Markdown cache even if one is already there; no longer re-downloads "
+        "anything (issue #209 made every scjn.release reader disk-only)",
     )
     parser.add_argument(
         "--notas", metavar="PATH",
@@ -146,9 +153,9 @@ def _parser_completo():
         help="The scjn-leyes release: the SCJN's consolidated text of every "
         "federal law at each of its reforms",
         description="Download the scjn-leyes release — the reverse index plus one "
-        "tarball per law (~380 MB for all of them) — into nota2md's own cache "
-        "directory, under scjn-leyes/. This is what the SCJN path of "
-        "`nota2md <codNota>` reads.",
+        "tarball per law (~380 MB for all of them) — delegating to the scjn "
+        "package's own downloader (`scjn download`), into scjn's own cache "
+        "directory. This is what the SCJN path of `nota2md <codNota>` reads.",
     )
     leyes.add_argument(
         "--slug", action="append", default=None, metavar="SLUG", dest="slugs",
@@ -157,8 +164,10 @@ def _parser_completo():
     )
     leyes.add_argument(
         "--cache-dir", default=None,
-        help="Directory to write into. Not given: nota2md.cache.CACHE_DIR (the "
-        "OS-appropriate per-user cache, overridable with $NOTA2MD_CACHE_DIR).",
+        help="Directory to write into. Not given: scjn.cache.CACHE_DIR (the "
+        "OS-appropriate per-user cache, overridable with $SCJN_CACHE_DIR) -- "
+        "not nota2md's own cache directory, since the scjn-leyes release "
+        "moved to the scjn package's cache (issue #209).",
     )
     leyes.add_argument(
         "--refrescar", action="store_true",
@@ -191,9 +200,10 @@ def _parser_completo():
     todo = releases.add_parser(
         "all",
         help="Both releases, each into its own cache directory",
-        description="Download both releases: scjn-leyes into nota2md's cache and "
-        "notas-archivo into dofjson's. Each keeps its own directory — this "
-        "shorthand saves two invocations, it does not merge the two caches.",
+        description="Download both releases: scjn-leyes into the scjn package's "
+        "own cache and notas-archivo into dofjson's. Each keeps its own "
+        "directory — this shorthand saves two invocations, it does not merge "
+        "the two caches.",
     )
     todo.add_argument(
         "--slug", action="append", default=None, metavar="SLUG", dest="slugs",
@@ -237,11 +247,44 @@ def _resolver_cache_dir(valor: str | None):
 
 
 def _descarga_federal_laws(slugs, cache_dir, refrescar, log=print):
-    """`download federal-laws`: the scjn-leyes assets into nota2md's cache."""
-    from nota2md.scjn import download_scjn_leyes_assets
+    """`download federal-laws`: delegates to `scjn.release`'s own downloader
+    (issue #209) — this verb puts the scjn-leyes release on disk under
+    `scjn`'s own cache directory by default, not `nota2md`'s, since the two
+    packages keep separate caches now. `cache_dir` here is `nota2md`'s own
+    `--cache-dir` convention: `cache.SIN_CACHE_DIR` (not given) translates to
+    `None` ("use `scjn.cache.CACHE_DIR`"), while an explicit path is
+    forwarded unchanged.
+
+    When `cache_dir` is left at its default (no `--cache-dir` given), first
+    moves over whatever this release's assets a pre-#209 install already
+    cached under `nota2md`'s own default directory (the only place they used
+    to live) into `scjn`'s own default directory — `scjn` cannot do this
+    itself, since it must never know `nota2md`'s cache layout (see
+    `scjn.cache.migrate_legacy_assets`); this is the one place in `nota2md`
+    that hands that knowledge off, so an upgrade does not silently start
+    downloading ~380 MB it already has. An explicit `--cache-dir` names a
+    directory for `scjn.release`'s downloader to use directly, with no
+    migration — that is a directory the caller is actively choosing now, not
+    the legacy default.
+    """
+    from scjn.cache import CACHE_DIR as SCJN_CACHE_DIR
+    from scjn.cache import migrate_legacy_assets
+    from scjn.release import download_scjn_leyes_assets
+
+    if cache_dir is cache.SIN_CACHE_DIR:
+        legacy_dir = Path(cache.CACHE_DIR) / "scjn-leyes"
+        movidos = migrate_legacy_assets(SCJN_CACHE_DIR, legacy_dir)
+        if movidos:
+            log(
+                f"scjn-leyes: migrated {movidos} asset(s) from the pre-#209 "
+                f"nota2md cache ({legacy_dir}) into {SCJN_CACHE_DIR / 'scjn-leyes'}"
+            )
+        cache_dir_scjn = None
+    else:
+        cache_dir_scjn = cache_dir
 
     resultados = download_scjn_leyes_assets(
-        slugs, cache_dir=cache_dir, refrescar=refrescar, log=log,
+        slugs, cache_dir=cache_dir_scjn, refrescar=refrescar, log=log,
     )
     nuevos = sum(1 for _, descargado in resultados if descargado)
     destino = resultados[0][0].parent
