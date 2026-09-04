@@ -1570,6 +1570,29 @@ def download_scjn_leyes_corpus(
     return {"slug": slug, "snapshots": snapshots}
 
 
+def _slugs_in_cache(cache_dir) -> list[str]:
+    """Every law with a `<slug>.tgz` already on disk under `cache_dir`, by
+    slug -- the cache-first answer to "which laws does this machine have",
+    with no HTTP request at all (issue #205).
+
+    `Path.glob("*.tgz")` matches a whole file name, so it already excludes an
+    interrupted download (`cache.SUFIJO_PARCIAL`'s `<slug>.tgz.parcial`,
+    which does not end in `.tgz`) as well as `ASSET_INDICE_GLOBAL` and
+    `SHA256SUMS.txt`, neither of which is a `.tgz` either -- nothing here
+    needs to filter those out by hand.
+
+    Returns an empty list for `cache_dir=None` ("no cache") or a cache
+    directory that does not exist yet.
+    """
+    directorio = resuelve_cache_dir(cache_dir)
+    if directorio is None:
+        return []
+    carpeta_release = directorio / _SCJN_LEYES_RELEASE
+    if not carpeta_release.is_dir():
+        return []
+    return sorted(ruta.name.removesuffix(".tgz") for ruta in carpeta_release.glob("*.tgz"))
+
+
 def iter_current_federal_laws(
     slugs: list[str] | None = None,
     *,
@@ -1590,13 +1613,30 @@ def iter_current_federal_laws(
     snapshot and every `notas/` entry of a law just to keep the one that
     turns out to be the newest.
 
-    `slugs=None` (the default) walks every law the release currently
-    publishes a tarball for (`scjn_leyes_slugs`), not the keys of
-    `indice-global.json.gz`'s `instrumentos`: a law that has been crawled but
-    not linked yet has a `.tgz` and no entry there (same reasoning as
-    `scjn_leyes_slugs` itself). `nombre` still comes from `instrumentos`,
-    which `construye_indice_global` populates for every crawled law
-    regardless of whether it has an `indice.json`.
+    `slugs=None` (the default) prefers the cache: when the resolved
+    `cache_dir` already holds at least one `<slug>.tgz` and `refrescar` is
+    False, those file names *are* "every law this machine has" -- no HTTP
+    request at all, which is the whole fix for issue #205. Only a cold or
+    absent cache, or `refrescar=True`, falls back to asking the release what
+    it currently publishes a tarball for (`scjn_leyes_slugs`), rather than
+    the keys of `indice-global.json.gz`'s `instrumentos`: a law that has been
+    crawled but not linked yet has a `.tgz` and no entry there (same
+    reasoning as `scjn_leyes_slugs` itself).
+
+    This is a real behaviour change for a partially populated cache:
+    `slugs=None` now means "every law *this machine has*", not "every law
+    the release publishes", so it can silently yield fewer laws than before.
+    Call `download_scjn_leyes_assets()` (or pass `refrescar=True`) to
+    reconcile the cache with the release and get the rest.
+
+    `nombre` still comes from `instrumentos`, which `construye_indice_global`
+    populates for every crawled law regardless of whether it has an
+    `indice.json` -- but reading it costs the very HTTP request the
+    cache-first path above exists to avoid, when the cache holds tarballs but
+    not `ASSET_INDICE_GLOBAL` itself. Rather than fetch it anyway or raise,
+    that case degrades to `nombre=None`; the same
+    `download_scjn_leyes_assets()`/`refrescar=True` call that backfills
+    missing slugs also populates the index and gets real names back.
 
     A law never linked (`enlaza_scjn_legislacion.py` has not run for it yet)
     has no `indice.json` at all: the winner is then the raw snapshot whose
@@ -1616,10 +1656,21 @@ def iter_current_federal_laws(
     for, exactly as `download_scjn_leyes_corpus` does (`_bytes_de_asset`).
     """
     if slugs is None:
-        slugs = scjn_leyes_slugs(timeout)
-    instrumentos = download_scjn_leyes_index(
-        cache_dir=cache_dir, refrescar=refrescar, timeout=timeout
-    )["instrumentos"]
+        slugs = [] if refrescar else _slugs_in_cache(cache_dir)
+        if not slugs:
+            slugs = scjn_leyes_slugs(timeout)
+
+    directorio = resuelve_cache_dir(cache_dir)
+    indice_en_disco = (
+        directorio is not None
+        and (directorio / _SCJN_LEYES_RELEASE / ASSET_INDICE_GLOBAL).exists()
+    )
+    if refrescar or directorio is None or indice_en_disco:
+        instrumentos = download_scjn_leyes_index(
+            cache_dir=cache_dir, refrescar=refrescar, timeout=timeout
+        )["instrumentos"]
+    else:
+        instrumentos = {}
 
     for slug in slugs:
         contenido = _bytes_de_asset(f"{slug}.tgz", cache_dir, refrescar, timeout)

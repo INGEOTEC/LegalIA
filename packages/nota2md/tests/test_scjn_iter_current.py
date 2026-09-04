@@ -209,8 +209,11 @@ class TestIterCurrentFederalLawsSinIndice(ConIndiceReal):
 
 
 class TestIterCurrentFederalLawsSlugsPorDefecto(unittest.TestCase):
-    """`slugs=None` walks `scjn_leyes_slugs()` (the release's asset listing),
-    not `indice-global.json.gz`'s `instrumentos` -- a law crawled but not
+    """`slugs=None` prefers the cache (issue #205): a warm cache directory's
+    own `<slug>.tgz` file names decide which laws to walk, with no HTTP
+    request at all. Only a cold/absent cache, or `refrescar=True`, falls back
+    to `scjn_leyes_slugs()` (the release's asset listing) -- not
+    `indice-global.json.gz`'s `instrumentos`, since a law crawled but not
     linked yet has a `.tgz` and no entry there."""
 
     def setUp(self):
@@ -253,4 +256,188 @@ class TestIterCurrentFederalLawsSlugsPorDefecto(unittest.TestCase):
         resultado = list(scjn.iter_current_federal_laws(cache_dir=self.tmp))
 
         self.assertEqual([ley["slug"] for ley in resultado], ["lft"])
-        mock_get.assert_called()  # el listado de assets, no el codNota
+        # Both the slug list and the index are already on disk: a warm
+        # cache costs no HTTP request at all (issue #205).
+        mock_get.assert_not_called()
+
+    @staticmethod
+    def _mock_release(mock_get, lft_tgz: bytes):
+        """A `requests.get` stand-in serving a full round trip: the releases
+        API listing (both `lft.tgz` and the index), then whichever asset's
+        URL gets requested -- `descarga`'s `response.content` has to be real
+        bytes, not an auto-generated `Mock` attribute, or writing it to disk
+        blows up with a `TypeError` that has nothing to do with what the
+        test checks."""
+        import gzip
+
+        indice_bytes = gzip.compress(json.dumps({
+            "generado": "x", "coleccion": "leyes",
+            "instrumentos": {"lft": {"nombre": "LFT"}}, "codNota": {},
+        }).encode("utf-8"))
+
+        def _responde(url, **_kwargs):
+            if url == scjn._SCJN_LEYES_RELEASES_API:
+                return Mock(
+                    json=lambda: {"assets": [
+                        {"name": "lft.tgz", "browser_download_url": "https://x/lft.tgz"},
+                        {"name": scjn.ASSET_INDICE_GLOBAL,
+                         "browser_download_url": "https://x/indice-global.json.gz"},
+                    ]},
+                    raise_for_status=Mock(),
+                )
+            if url == "https://x/indice-global.json.gz":
+                return Mock(content=indice_bytes, raise_for_status=Mock())
+            return Mock(content=lft_tgz, raise_for_status=Mock())
+
+        mock_get.side_effect = _responde
+
+    @patch("nota2md.scjn.requests.get")
+    def test_sin_slugs_con_cache_vacia_pregunta_al_release(self, mock_get):
+        """A cold/absent cache still has to ask the release what it
+        publishes -- the cache-first path only applies once there is
+        something in the cache to prefer."""
+        parche = patch.object(scjn, "download_scjn_leyes_index", _INDICE_REAL)
+        parche.start()
+        self.addCleanup(parche.stop)
+        self._mock_release(mock_get, _hacer_tgz({
+            "lft/indice.json": json.dumps(
+                [{"archivo": "a.md", "fecha_publicacion": "01-01-2000", "codNota": 1}]
+            ),
+            "lft/a.md": "LFT",
+        }))
+
+        resultado = list(scjn.iter_current_federal_laws(cache_dir=self.tmp))
+
+        self.assertEqual([ley["slug"] for ley in resultado], ["lft"])
+        mock_get.assert_called()
+
+    @patch("nota2md.scjn.requests.get")
+    def test_refrescar_ignora_la_cache_tibia_y_pregunta_al_release(self, mock_get):
+        """`refrescar=True` means "reconcile with the release", so it must
+        not shortcut through the cache-first slug listing even when the
+        cache already holds a (possibly stale) `lft.tgz`."""
+        parche = patch.object(scjn, "download_scjn_leyes_index", _INDICE_REAL)
+        parche.start()
+        self.addCleanup(parche.stop)
+        (self.release / "lft.tgz").write_bytes(_hacer_tgz({
+            "lft/indice.json": json.dumps(
+                [{"archivo": "vieja.md", "fecha_publicacion": "01-01-2000", "codNota": 1}]
+            ),
+            "lft/vieja.md": "VIEJA",
+        }))
+        self._mock_release(mock_get, _hacer_tgz({
+            "lft/indice.json": json.dumps(
+                [{"archivo": "nueva.md", "fecha_publicacion": "01-01-2020", "codNota": 2}]
+            ),
+            "lft/nueva.md": "NUEVA",
+        }))
+
+        [ley] = list(scjn.iter_current_federal_laws(cache_dir=self.tmp, refrescar=True))
+
+        self.assertEqual(ley["markdown"], "NUEVA")
+        mock_get.assert_called()
+
+
+class TestSlugsInCache(unittest.TestCase):
+    """`_slugs_in_cache` (issue #205): the cache-first answer to "which laws
+    does this machine have", with no HTTP request."""
+
+    def setUp(self):
+        self.tmp = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+        self.release = self.tmp / "scjn-leyes"
+        self.release.mkdir(parents=True)
+
+    def test_lista_los_slugs_de_los_tgz_ordenados(self):
+        (self.release / "lft.tgz").write_bytes(b"x")
+        (self.release / "cpeum.tgz").write_bytes(b"x")
+
+        self.assertEqual(scjn._slugs_in_cache(self.tmp), ["cpeum", "lft"])
+
+    def test_ignora_una_descarga_interrumpida(self):
+        (self.release / "lft.tgz").write_bytes(b"x")
+        (self.release / "lfca.tgz.parcial").write_bytes(b"x")
+
+        self.assertEqual(scjn._slugs_in_cache(self.tmp), ["lft"])
+
+    def test_ignora_el_indice_global_y_el_sha256sums(self):
+        (self.release / "lft.tgz").write_bytes(b"x")
+        (self.release / scjn.ASSET_INDICE_GLOBAL).write_bytes(b"x")
+        (self.release / "SHA256SUMS.txt").write_bytes(b"x")
+
+        self.assertEqual(scjn._slugs_in_cache(self.tmp), ["lft"])
+
+    def test_cache_dir_none_no_tiene_cache_que_ofrecer(self):
+        self.assertEqual(scjn._slugs_in_cache(None), [])
+
+    def test_directorio_de_release_inexistente(self):
+        vacio = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(vacio))
+
+        self.assertEqual(scjn._slugs_in_cache(vacio), [])
+
+
+class IterCurrentFederalLawsOfflineTest(unittest.TestCase):
+    """The regression test for issue #205: a fully warm cache must serve
+    `iter_current_federal_laws()` with the network genuinely unreachable,
+    not merely un-consulted."""
+
+    def setUp(self):
+        self.tmp = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+        self.release = self.tmp / "scjn-leyes"
+        self.release.mkdir(parents=True)
+        scjn._MEMO_INDICE_GLOBAL.clear()
+        self.addCleanup(scjn._MEMO_INDICE_GLOBAL.clear)
+
+    @patch("nota2md.scjn.requests.get", side_effect=ConnectionError("network unreachable"))
+    def test_cache_completa_no_necesita_red(self, mock_get):
+        import gzip
+
+        payload = {
+            "generado": "x", "coleccion": "leyes",
+            "instrumentos": {"lft": {"nombre": "LFT"}, "lfca": {"nombre": "LFCA"}},
+            "codNota": {},
+        }
+        (self.release / scjn.ASSET_INDICE_GLOBAL).write_bytes(
+            gzip.compress(json.dumps(payload).encode("utf-8"))
+        )
+        (self.release / "lft.tgz").write_bytes(_hacer_tgz({
+            "lft/indice.json": json.dumps(
+                [{"archivo": "a.md", "fecha_publicacion": "01-01-2000", "codNota": 1}]
+            ),
+            "lft/a.md": "LFT",
+        }))
+        (self.release / "lfca.tgz").write_bytes(_hacer_tgz({
+            "lfca/indice.json": json.dumps(
+                [{"archivo": "b.md", "fecha_publicacion": "01-01-2000", "codNota": 2}]
+            ),
+            "lfca/b.md": "LFCA",
+        }))
+        parche = patch.object(scjn, "download_scjn_leyes_index", _INDICE_REAL)
+        parche.start()
+        self.addCleanup(parche.stop)
+
+        resultado = list(scjn.iter_current_federal_laws(cache_dir=self.tmp))
+
+        self.assertEqual(
+            sorted(ley["slug"] for ley in resultado), ["lfca", "lft"]
+        )
+        mock_get.assert_not_called()
+
+    @patch("nota2md.scjn.requests.get", side_effect=ConnectionError("network unreachable"))
+    def test_tgz_sin_indice_global_degrada_nombre_a_none(self, mock_get):
+        """The index is a separate asset from the tarballs: a cache that
+        never got it must not try an HTTP request just to fill `nombre` in
+        (see DECISION 2 in the run's notes) -- it degrades to `None`."""
+        (self.release / "lft.tgz").write_bytes(_hacer_tgz({
+            "lft/indice.json": json.dumps(
+                [{"archivo": "a.md", "fecha_publicacion": "01-01-2000", "codNota": 1}]
+            ),
+            "lft/a.md": "LFT",
+        }))
+
+        [ley] = list(scjn.iter_current_federal_laws(cache_dir=self.tmp))
+
+        self.assertIsNone(ley["nombre"])
+        mock_get.assert_not_called()
