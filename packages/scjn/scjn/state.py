@@ -65,8 +65,9 @@ def escribe_estado(directory: Path, **campos) -> dict:
 def motivo_pendiente(entry: dict, directory: Path, corpus_date: str | None) -> str | None:
     """Why `entry` needs to be crawled again, or None when it does not —
     the whole decision issue #148's planner and refresh runs share, made
-    offline from `catalogo.json` plus what is on disk. Never touches the
-    SCJN.
+    offline from `entry` (a law's own catalogue entry, issue #210: read off
+    its `estado.json`, no longer off a separate `catalogo.json`) plus what
+    is on disk. Never touches the SCJN.
 
     - `PENDIENTE_NUNCA_RASTREADO`: no snapshot on disk at all. Always
       pending, whatever the dates say — the `lfca` safety net of issue #124,

@@ -439,11 +439,13 @@ def download_scjn_leyes_catalog(*, freshness: bool = True, cache_dir=None, log=N
 
     This is the seed the Cámara de Diputados used to be scraped for — which
     laws exist, their name, their abbreviation — read back out of the release
-    rather than rebuilt (issue #184). `nombre` and `abrev` come from
-    `indice-global.json.gz`'s `instrumentos`, whose slug *is* the `abrev`
-    (`scjn.catalog.slug_instrumento`); `actualizado` comes from each law's own
-    `estado.json`, which records the date its last reform carried when it was
-    crawled (issue #148).
+    rather than rebuilt (issue #184). `nombre` comes from
+    `indice-global.json.gz`'s `instrumentos`, keyed by slug
+    (`scjn.catalog.slug_instrumento`); `abrev` and `actualizado` come from each
+    law's own `estado.json` when `freshness=True` -- `abrev` verbatim (issue
+    #210: `estado.json` is now the one place that value lives, once the
+    one-time backfill has run), `actualizado` the date its last reform
+    carried when it was crawled (issue #148).
 
     `actualizado` is **absent** — not None, not a placeholder — for a law whose
     `estado.json` has none, or whose tarball is not cached at all under
@@ -454,13 +456,12 @@ def download_scjn_leyes_catalog(*, freshness: bool = True, cache_dir=None, log=N
     with a catalogue entry that has no `actualizado`. Pass `log` (e.g.
     `print`) to be told which laws were skipped for this reason.
 
-    One caveat this reader cannot paper over, and which matters to whoever
-    rebuilds `catalogo.json`: the slug is `slug_instrumento`'s *normalized*
-    `abrev`, so the 14 laws whose historical `abrev` contains an underscore
-    (`lif_2026`, `pef_2026`, `ligie_2022`, the `lrart*`/`lrf*` reglamentarias,
-    `reg_diputados`, `reg_senado`) come back hyphenated. Existing `abrev`
-    values are preserved verbatim, so a caller holding a previous catalogue
-    must match on `slug_instrumento` and keep its own `abrev`.
+    A tarball packaged before issue #210 added `abrev` to `estado.json` -- or
+    `freshness=False`, which skips tarballs entirely -- falls back to the
+    slug itself, which is `slug_instrumento`'s *normalized* form: the 14 laws
+    whose historical `abrev` contains an underscore (`lif_2026`, `pef_2026`,
+    `ligie_2022`, the `lrart*`/`lrf*` reglamentarias, `reg_diputados`,
+    `reg_senado`) come back hyphenated until their tarball is backfilled.
 
     `freshness=False` skips the tarballs entirely and returns `abrev`/`nombre`
     only, off the index alone — a few hundred KB, and the only mode that
@@ -474,14 +475,16 @@ def download_scjn_leyes_catalog(*, freshness: bool = True, cache_dir=None, log=N
         entrada = {"abrev": slug, "nombre": indice["instrumentos"][slug]["nombre"]}
         if freshness:
             try:
-                actualizado = _estado_de_asset(slug, directorio).get("actualizado")
+                estado = _estado_de_asset(slug, directorio)
             except AssetNotCached:
                 if log is not None:
                     log(f"{slug}: tarball not cached, skipping freshness check")
                 catalogo.append(entrada)
                 continue
-            if actualizado:
-                entrada["actualizado"] = actualizado
+            if estado.get("abrev"):
+                entrada["abrev"] = estado["abrev"]
+            if estado.get("actualizado"):
+                entrada["actualizado"] = estado["actualizado"]
         catalogo.append(entrada)
     return catalogo
 

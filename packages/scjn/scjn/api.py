@@ -236,7 +236,7 @@ class ScjnApi:
 
         `ambito`/`categoria`/`vigencia`/`pagina` are those filters made
         reachable (issue #186), for the one caller that wants a *listing*
-        rather than a lookup: `extract_scjn_titles.py --discover` pages
+        rather than a lookup: `scripts/discover_federal_laws.py` pages
         `FEDERAL`+`LEY`/`CODIGO`/`CONSTITUCION`+`VIGENTE` to find laws the
         catalogue does not have yet. `name` stays mandatory — an empty `q`
         answers zero results, so there is no "list everything" mode to

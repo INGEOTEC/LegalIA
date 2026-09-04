@@ -100,8 +100,10 @@ not reproduced or measured against.
 ## Sources: SCJN + DOF only (issue #184, done)
 
 **This section now describes the tree, not a direction.** All six phases
-landed (#185–#190): the catalogue is built from the SCJN and the DOF
-(`scripts/extract_scjn_titles.py`), `download_legal_provisions_provenance_ids`
+landed (#185–#190): the catalogue was built from the SCJN and the DOF
+(`scripts/extract_scjn_titles.py`, itself retired by issue #210 once its
+job moved into each law's own `estado.json`),
+`download_legal_provisions_provenance_ids`
 and `nota2md.utils` are deleted, the `leyesmx` package and the
 four-collection abstraction are gone, and `.github/workflows/reformas.yml`
 with them. The decisions below are kept because they are the reasons, and

@@ -555,6 +555,57 @@ class TestDownloadScjnLeyesCatalog(ConCacheFixture):
         with self.assertRaises(release.AssetNotCached):
             release.download_scjn_leyes_catalog(cache_dir=self.tmp)
 
+    def test_estado_backfilled_reporta_el_abrev_verbatim(self):
+        # Issue #210: `abrev` now lives in the law's own `estado.json`, and
+        # the 14 historical laws whose `abrev` carries an underscore (here
+        # `lif_2026`) must come back exactly that way once their tarball has
+        # been backfilled -- not the release's normalized `lif-2026` slug.
+        self._publica_indice({}, {"lif-2026": {"nombre": "LEY de Ingresos de la Federacion",
+                                               "asset": "lif-2026.tgz", "snapshots": 1}})
+        self._publica_tgz("lif-2026", **{"lif-2026/estado.json": json.dumps({
+            "abrev": "lif_2026", "nombre": "LEY de Ingresos de la Federacion",
+            "actualizado": "2026-07-01"})})
+
+        catalogo = release.download_scjn_leyes_catalog(cache_dir=self.tmp)
+
+        self.assertEqual(catalogo, [{"abrev": "lif_2026",
+                                     "nombre": "LEY de Ingresos de la Federacion",
+                                     "actualizado": "2026-07-01"}])
+
+    def test_estado_viejo_y_estado_con_backfill_dan_la_misma_entrada(self):
+        # Definition of done (issue #210): a corpus with an old-format
+        # estado.json (only `actualizado`, no `abrev`/`nombre`/... yet) and
+        # one whose tarball was already backfilled agree on the catalogue
+        # entry for a law whose `abrev` needs no normalization.
+        instrumentos = {"lft": {"nombre": "LEY Federal del Trabajo",
+                                "asset": "lft.tgz", "snapshots": 1}}
+        estado_viejo = {"actualizado": "2025-06-13", "rastreado": "2026-08-27"}
+        estado_backfilled = {
+            "abrev": "lft", "nombre": "LEY Federal del Trabajo", "nombre_scjn": None,
+            "id_ordenamiento": "123", "url": "https://legislacion.scjn.gob.mx/consulta/ordenamiento/123",
+            "actualizado_scjn": "2025-06-13", "actualizado_dof": "2025-06-13",
+            "actualizado": "2025-06-13", "rastreado": "2026-08-27", "enlazado": "2026-08-27",
+        }
+
+        entradas = []
+        for i, estado in enumerate((estado_viejo, estado_backfilled)):
+            with self.subTest(estado=estado):
+                directorio = Path(self.tmp) / f"variante-{i}" / "scjn-leyes"
+                directorio.mkdir(parents=True)
+                (directorio / release.ASSET_INDICE_GLOBAL).write_bytes(
+                    _indice_global({}, instrumentos)
+                )
+                (directorio / "lft.tgz").write_bytes(
+                    _hacer_tgz({"lft/estado.json": json.dumps(estado)})
+                )
+                entradas.append(
+                    release.download_scjn_leyes_catalog(cache_dir=directorio.parent)
+                )
+
+        self.assertEqual(entradas[0], entradas[1])
+        self.assertEqual(entradas[0], [{"abrev": "lft", "nombre": "LEY Federal del Trabajo",
+                                        "actualizado": "2025-06-13"}])
+
 
 class TestDescargaAssetsScjnLeyes(unittest.TestCase):
     """`download_scjn_leyes_assets` (issue #155): the release materialized on

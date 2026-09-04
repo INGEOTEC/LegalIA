@@ -80,12 +80,32 @@ An instrument crawled but not yet linked is still packaged (its raw
 snapshots, no `indice.json`) rather than held back; the manifest calls that
 out explicitly instead of hiding it.
 
-Needs `leyes`' own ``catalogo.json`` (`extract_scjn_titles.py`), already
-written under ``<outdir>/leyes/`` — `leyes` is a literal path segment here
-(issue #189: it is the only collection left), and the catalogue is what
-lists every instrument, including one never crawled at all (Fase 1
-pendiente, issue #124), which the manifest lists rather than silently
-omits.
+Needs at least one law already seeded under ``<outdir>/leyes/`` -- `leyes`
+is a literal path segment here (issue #189: it is the only collection
+left). Since issue #210 there is no separate `catalogo.json`: every
+subdirectory of ``<outdir>/leyes/`` is a law, including one seeded but never
+crawled at all (Fase 1 pendiente, issue #124, a bare `estado.json` with no
+snapshot yet), which the manifest lists rather than silently omitting.
+
+## One-time backfill of the retired `catalogo.json` (issue #210)
+
+``--backfill-estado CATALOGO`` writes `abrev` (verbatim), `nombre` and
+`nombre_scjn` from a `catalogo.json` this machine still has -- the seed the
+corpus used to carry externally -- into each matching law's own
+`estado.json`, and derives `url` from an already-recorded `id_ordenamiento`.
+It runs once, its output is reviewed, and the corpus is republished by hand
+(#115, Hallazgo C: no Action ever does this on its own):
+
+    ./scripts/empaqueta_scjn_leyes.py --outdir scripts/scjn \\
+        --backfill-estado scripts/scjn/leyes/catalogo.json
+
+It only ever *adds* fields (`scjn.state.escribe_estado`'s merge, never an
+overwrite) to a directory that already exists under ``<outdir>/leyes/`` --
+`actualizado`/`actualizado_scjn`/`actualizado_dof`/`rastreado`/`enlazado`/
+`id_ordenamiento`, whatever a law's `estado.json` already has, are left
+exactly as they are. It never crawls, links or packages anything, and exits
+without writing a tarball -- run it, review the diff under `<outdir>/leyes/`,
+then run the normal packaging above.
 """
 
 import argparse
@@ -104,24 +124,91 @@ _RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_RAIZ / "packages" / "nota2md"))
 sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
-from scjn.release import ASSET_INDICE_GLOBAL, construye_indice_global  # noqa: E402
+from scjn.release import (  # noqa: E402
+    ASSET_INDICE_GLOBAL,
+    AssetNotCached,
+    construye_indice_global,
+    download_scjn_leyes_index,
+)
 from scjn.catalog import slug_instrumento  # noqa: E402
 from scjn.header import versiones_de_directorio  # noqa: E402
-from scjn.state import lee_estado  # noqa: E402
+from scjn.state import escribe_estado, lee_estado  # noqa: E402
 
 COLECCION = "leyes"
 
 
 def _load_catalog(outdir: Path) -> list[dict]:
-    """The `nombre`(+`abrev`) catalogue `extract_scjn_titles.py` already
-    wrote for the `leyes` collection."""
-    archivo = outdir / COLECCION / "catalogo.json"
-    if not archivo.is_file():
+    """Every law this workspace already tracks -- one entry per subdirectory
+    of ``<outdir>/leyes/``, in place of the retired `catalogo.json` (issue
+    #210). See `fetch_scjn_legislacion._load_catalog`, whose docstring this
+    mirrors: `abrev`/`nombre` come from each law's own `estado.json`, falling
+    back to `indice-global.json.gz` for `nombre` when that predates issue
+    #210."""
+    base = outdir / COLECCION
+    if not base.is_dir():
         raise SystemExit(
-            f"{archivo} no existe -- corre primero "
-            f"./scripts/extract_scjn_titles.py --outdir {outdir}"
+            f"{base} no existe -- corre primero "
+            f"./scripts/fetch_scjn_legislacion.py --outdir {outdir} --instrumento <slug>"
         )
-    return json.loads(archivo.read_text(encoding="utf-8"))
+    try:
+        instrumentos = download_scjn_leyes_index()["instrumentos"]
+    except AssetNotCached:
+        instrumentos = {}
+
+    catalogo = []
+    for directorio in sorted(p for p in base.iterdir() if p.is_dir()):
+        slug = directorio.name
+        estado = lee_estado(directorio)
+        nombre = estado.get("nombre") or instrumentos.get(slug, {}).get("nombre")
+        if nombre is None:
+            raise SystemExit(f"{directorio}: sin 'nombre' (ni en su estado.json ni en el indice)")
+        entrada = {"abrev": estado.get("abrev") or slug, "nombre": nombre}
+        if estado.get("nombre_scjn"):
+            entrada["nombre_scjn"] = estado["nombre_scjn"]
+        catalogo.append(entrada)
+    return catalogo
+
+
+_URL_ORDENAMIENTO = "https://legislacion.scjn.gob.mx/consulta/ordenamiento/{}"
+
+
+def backfill_estado(outdir: Path, catalogo_anterior: list[dict], *, log=print) -> list[str]:
+    """One-time migration (issue #210): write `abrev`/`nombre`/`nombre_scjn`
+    from `catalogo_anterior` (a `catalogo.json` this machine still has) into
+    each matching law's own `estado.json` under ``<outdir>/leyes/``, plus a
+    `url` derived from `id_ordenamiento` when that is already on file and
+    `url` is not. Returns the slugs actually written.
+
+    Matched by `slug_instrumento` (issue #186's own reason: `lif_2026`'s
+    directory is `lif-2026`, not the historical `abrev` itself), and only
+    ever adds fields (`scjn.state.escribe_estado`'s merge) -- an already
+    backfilled or freshly crawled `estado.json` keeps whatever it has for
+    `actualizado`/`actualizado_scjn`/`actualizado_dof`/`rastreado`/
+    `enlazado`/`id_ordenamiento` untouched.
+
+    A directory under ``<outdir>/leyes/`` with no matching entry in
+    `catalogo_anterior` is reported and skipped, not guessed at: it means
+    the two are out of sync, and this migration should not be the one
+    deciding a new `abrev` for it."""
+    por_slug = {slug_instrumento(entrada): entrada for entrada in catalogo_anterior}
+    base = outdir / COLECCION
+    escritos = []
+    for directorio in sorted(p for p in base.iterdir() if p.is_dir()):
+        slug = directorio.name
+        anterior = por_slug.get(slug)
+        if anterior is None:
+            log(f"  aviso: {slug} no esta en el catalogo anterior -- se deja intacto")
+            continue
+        campos = {"abrev": anterior["abrev"], "nombre": anterior["nombre"]}
+        if anterior.get("nombre_scjn"):
+            campos["nombre_scjn"] = anterior["nombre_scjn"]
+        id_ordenamiento = lee_estado(directorio).get("id_ordenamiento")
+        if id_ordenamiento and not lee_estado(directorio).get("url"):
+            campos["url"] = _URL_ORDENAMIENTO.format(id_ordenamiento)
+        escribe_estado(directorio, **campos)
+        escritos.append(slug)
+    log(f"{COLECCION}: {len(escritos)} estado.json actualizado(s) con el catalogo anterior")
+    return escritos
 
 
 @dataclass
@@ -455,7 +542,21 @@ def main(argv=None) -> int:
             "cualquier cambio en una ley deja obsoleto el publicado"
         ),
     )
+    p.add_argument(
+        "--backfill-estado", type=Path, metavar="CATALOGO", default=None,
+        help=(
+            "migracion de una sola vez (issue #210): lee CATALOGO (un catalogo.json que "
+            "este equipo aun conserve) y escribe 'abrev'/'nombre'/'nombre_scjn' -- mas "
+            "'url' cuando ya hay id_ordenamiento -- en el estado.json de cada ley que "
+            "coincida. No empaqueta nada; sale despues de escribir"
+        ),
+    )
     args = p.parse_args(argv)
+
+    if args.backfill_estado is not None:
+        catalogo_anterior = json.loads(args.backfill_estado.read_text(encoding="utf-8"))
+        backfill_estado(args.outdir, catalogo_anterior, log=lambda m: print(m, file=sys.stderr))
+        return 0
 
     args.destino.mkdir(parents=True, exist_ok=True)
     generado = datetime.now(timezone.utc).isoformat(timespec="seconds")

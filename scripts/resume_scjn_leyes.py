@@ -65,7 +65,10 @@ def _fuentes_por_instrumento(directorio: Path) -> Counter:
 def resume(outdir: Path) -> dict:
     """Every number the page shows, in one JSON-serializable dict."""
     base = outdir / COLECCION
-    catalogo = json.loads((base / "catalogo.json").read_text(encoding="utf-8"))
+    # Issue #210: `catalogo.json` is gone, so the same corpus-directory
+    # enumeration `empaqueta_scjn_leyes.py` already needed is reused here
+    # instead of a second read of a file that no longer exists.
+    catalogo = _empaqueta._load_catalog(outdir)
     resumenes, nunca_rastreados = _empaqueta.resume_coleccion(outdir)
 
     por_anio = Counter()
@@ -128,12 +131,6 @@ def resume(outdir: Path) -> dict:
             }
         )
 
-    # `resume_coleccion`'s own confidence classification (issue #115), keyed by
-    # slug so the page can join it onto the rows above.
-    confianza = {
-        r.slug: {"motivo": r.motivo, "ratio": r.ratio} for r in resumenes
-    }
-
     return {
         "collection": COLECCION,
         "catalogue_entries": len(catalogo),
@@ -149,7 +146,6 @@ def resume(outdir: Path) -> dict:
         "unidentified_per_year": {
             str(a): n for a, n in sorted(sin_identificar_por_anio.items())
         },
-        "confidence": confianza,
         "instruments": sorted(instrumentos, key=lambda r: -r["snapshots"]),
     }
 

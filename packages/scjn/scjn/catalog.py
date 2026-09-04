@@ -1,6 +1,13 @@
 """The federal-law catalogue's own algebra: slugs, the `nombre_scjn`
-override, merging a freshly extracted catalogue with a previous one, and
-minting a brand-new law's `abrev`.
+override, and minting a brand-new law's `abrev`.
+
+Until issue #210 this module also merged a freshly extracted `catalogo.json`
+against the previous one on disk (`merge_catalog_with_previous`,
+`merge_catalog_overrides`, `apply_actualizado`, `catalog_key`). That file is
+gone: a law's own `estado.json` is now the single per-law record, and
+`scjn.state.escribe_estado`'s merge-not-overwrite already carries
+`nombre_scjn`/`abrev` forward with nothing to reconcile against a second
+copy.
 """
 
 import re
@@ -17,14 +24,14 @@ def slugify(texto: str) -> str:
 
 
 def slug_instrumento(entrada: dict) -> str:
-    """The directory and release-asset name for one catalogue entry (as
-    `catalogo.json` holds it, see `scripts/extract_scjn_titles.py`): its own
-    `abrev`, slugified.
+    """The directory and release-asset name for one catalogue entry (as a
+    law's own `estado.json` holds it since issue #210): its own `abrev`,
+    slugified.
 
     Slugifying is not a no-op: the 14 laws whose abbreviation carries an
-    underscore come out hyphenated (`lif_2026` -> `lif-2026`), which is why
-    this and `catalog_key` are two functions and not one — the slug is the
-    release's asset name, the `abrev` is what the catalogue keeps verbatim.
+    underscore come out hyphenated (`lif_2026` -> `lif-2026`) — the slug is
+    the release's asset name, while `abrev` itself is what `estado.json`
+    keeps verbatim.
 
     Raises `KeyError` for an entry with no `abrev`. Until issue #189 this fell
     back to the entry's `nombre`, then to a literal `"instrumento"`, because
@@ -47,12 +54,11 @@ def slug_instrumento(entrada: dict) -> str:
 # indexed at all yet — confirmed live, searching its own name (or even just
 # "Cine y el Audiovisual") returns nothing; not a title mismatch.
 #
-# search_name/merge_catalog_overrides are Mecanismo 1: an optional
-# `nombre_scjn` override a human can add to one catalogue entry (applied to
-# `lisipl`, not `lfca` — its gap is indexing lag, not a different title),
-# which `extract_scjn_titles.py` now preserves across its own refreshes
-# instead of overwriting the whole file blindly, and which
-# `fetch_scjn_legislacion.py` searches with in place of `nombre`.
+# search_name is Mecanismo 1: an optional `nombre_scjn` override a human can
+# add to one law's own `estado.json` (applied to `lisipl`, not `lfca` — its
+# gap is indexing lag, not a different title), which `escribe_estado`'s
+# merge-not-overwrite already carries forward across every later write, and
+# which `fetch_scjn_legislacion.py` searches with in place of `nombre`.
 #
 # instrument_up_to_date/iso_date_from_note are Mecanismo 2: an `actualizado`
 # field (the ISO date of an instrument's own most recent reform — since
@@ -75,98 +81,6 @@ def search_name(entry: dict) -> str:
     return entry.get("nombre_scjn") or entry["nombre"]
 
 
-def catalog_key(entry: dict) -> str:
-    """The key two catalogue entries from separate runs are considered the
-    same instrument by: its `abrev`, **verbatim** — not slugified, unlike
-    `slug_instrumento`. Keeping the two apart is what lets a catalogue that
-    already spells a law `lif_2026` keep spelling it that way while the
-    release's asset for it is `lif-2026.tgz` (issue #186).
-
-    Raises `KeyError` for an entry with no `abrev`, same as
-    `slug_instrumento` and for the same reason (issue #189)."""
-    return entry["abrev"]
-
-
-def merge_catalog_overrides(catalog: list[dict], previous_catalog: list[dict] | None) -> list[dict]:
-    """`catalog` (a freshly extracted catalogue) with
-    each entry's own `nombre_scjn` carried over from whichever entry of
-    `previous_catalog` it corresponds to (`catalog_key`), when that
-    previous entry had one.
-
-    `extract_scjn_titles.py` used to overwrite `catalogo.json` from scratch
-    on every run — there was nowhere to keep a manual override, and even a
-    hand-edited one would vanish on the next refresh. This is what makes it
-    survive instead: a fresh run only ever adds or updates what the
-    extraction itself gives (`nombre`, `abrev`, `actualizado`), and only ever
-    keeps — never invents — `nombre_scjn`.
-
-    `previous_catalog` being empty or None (first run, no `catalogo.json`
-    yet) returns `catalog` unchanged."""
-    if not previous_catalog:
-        return catalog
-    previous_by_key = {catalog_key(entry): entry for entry in previous_catalog}
-    merged = []
-    for entry in catalog:
-        previous = previous_by_key.get(catalog_key(entry))
-        if previous and previous.get("nombre_scjn"):
-            entry = {**entry, "nombre_scjn": previous["nombre_scjn"]}
-        merged.append(entry)
-    return merged
-
-
-def merge_catalog_with_previous(
-    seed: list[dict], previous: list[dict] | None
-) -> tuple[list[dict], list[dict]]:
-    """`seed` overlaid on `previous`, sorted by `slug_instrumento`, plus the
-    entries of `previous` the seed does not account for.
-
-    The previous catalogue is the floor: those entries stay in the result and
-    are returned separately so the caller can report them. An entry present
-    in both keeps its previous `abrev` verbatim and takes the seed's
-    `nombre`; every other previous field (`nombre_scjn`, and any hand-written
-    one) is preserved."""
-    por_slug = {slug_instrumento(entrada): dict(entrada) for entrada in (previous or [])}
-    faltantes = dict(por_slug)
-
-    for entrada in seed:
-        slug = slug_instrumento(entrada)
-        faltantes.pop(slug, None)
-        anterior = por_slug.get(slug)
-        if anterior is None:
-            por_slug[slug] = {"nombre": entrada["nombre"], "abrev": entrada["abrev"]}
-        else:
-            # `nombre` is refreshed, `abrev` never is.
-            anterior["nombre"] = entrada["nombre"]
-
-    catalogo = [por_slug[slug] for slug in sorted(por_slug)]
-    return catalogo, [faltantes[slug] for slug in sorted(faltantes)]
-
-
-def apply_actualizado(catalogo: list[dict], *fuentes: dict[str, str]) -> list[dict]:
-    """Each entry with `actualizado` set to the newest date any of `fuentes`
-    (slug -> ISO date) gives for it, and **removed** when none does — an entry
-    that used to carry a date and no longer can must not keep a stale one.
-
-    The newest wins rather than the first source that answers: the SCJN's
-    reform table and the DOF's own titles each miss reforms the other sees
-    (see `extract_scjn_titles.py`, which measured both), and over-reporting a
-    law as pending only costs a re-crawl, while under-reporting it loses the
-    reform silently."""
-    resultado = []
-    for entrada in catalogo:
-        slug = slug_instrumento(entrada)
-        candidatos = [f[slug] for f in fuentes if slug in f]
-        entrada = dict(entrada)
-        if candidatos:
-            # Assigned, not rebuilt, so an entry that already had the field
-            # keeps it where it was in the file.
-            entrada["actualizado"] = max(candidatos)
-        else:
-            entrada.pop("actualizado", None)
-        resultado.append(entrada)
-    return resultado
-
-
 def iso_date_from_note(note: dict) -> str | None:
     """`note`'s own `fecha` (`DD-MM-YYYY`, the shape a DOF note record's
     own `fecha` field takes) as ISO `YYYY-MM-DD`, or None when `note` carries
@@ -180,8 +94,8 @@ def iso_date_from_note(note: dict) -> str | None:
 def instrument_up_to_date(directory: Path, updated: str | None, corpus_date: str | None) -> bool:
     """Whether the instrument crawled into `directory` can be skipped on a
     refresh run without touching the SCJN at all: it already has at least
-    one snapshot on disk, and its own `updated` (`catalogo.json`'s
-    `actualizado`, an ISO date) is no later than `corpus_date` (the ISO
+    one snapshot on disk, and its own `updated` (the law's `actualizado`,
+    an ISO date) is no later than `corpus_date` (the ISO
     date this collection was last crawled start-to-finish) — plain string
     comparison, since both are ISO `YYYY-MM-DD`.
 

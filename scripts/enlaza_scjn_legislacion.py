@@ -9,8 +9,9 @@ data they leaned on, so ``leyes`` is written here as a literal path segment
 rather than parameterized. That is a decision, not a leftover — a second
 collection would have to justify itself again before it got a flag back.
 
-For each instrument in `extract_scjn_titles.py`'s own catalogue, only its
-`nombre` is used to find, for every snapshot already sitting under
+For each instrument this workspace already tracks (issue #210: one directory
+per law under ``<outdir>/leyes/``, its own `estado.json`), only its `nombre`
+is used to find, for every snapshot already sitting under
 ``<outdir>/leyes/<abrev-o-nombre>/`` (see
 `scjn.header.versiones_de_directorio`), which same-day DOF note (the dofjson
 titles stream, `dofjson.legal_provisions_titles`) explicitly names
@@ -52,10 +53,11 @@ one". A date left `ambiguous` after that — several same-day candidates and
 no content confirmation among them — is printed as a warning, since it is
 exactly the class of case issue #115 asked to be reviewable by hand.
 
-Needs the collection's own ``catalogo.json`` (`extract_scjn_titles.py`)
-and the notas-archivo cache populated (the DOF titles are streamed from it):
+Needs at least one law already crawled under ``<outdir>/leyes/``
+(`fetch_scjn_legislacion.py`) and the notas-archivo cache populated (the DOF
+titles are streamed from it):
 
-    ./scripts/extract_scjn_titles.py --outdir scjn-legislacion
+    ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion --instrumento lft
     nota2md download gazette-metadata
     ./scripts/enlaza_scjn_legislacion.py --outdir scjn-legislacion
 
@@ -92,7 +94,8 @@ from nota2md.linking import (  # noqa: E402
 )
 from scjn.catalog import slug_instrumento  # noqa: E402
 from scjn.header import lee_cabecera, versiones_de_directorio  # noqa: E402
-from scjn.state import escribe_estado  # noqa: E402
+from scjn.release import AssetNotCached, download_scjn_leyes_index  # noqa: E402
+from scjn.state import escribe_estado, lee_estado  # noqa: E402
 
 #: The one collection left (issue #189), a literal path segment.
 COLECCION = "leyes"
@@ -110,15 +113,35 @@ def _resolver_cache_dir(valor: str | None):
 
 
 def _load_catalog(outdir: Path) -> list[dict]:
-    """The `nombre`(+`abrev`) catalogue `extract_scjn_titles.py` already
-    wrote for the `leyes` collection."""
-    archivo = outdir / COLECCION / "catalogo.json"
-    if not archivo.is_file():
+    """Every law this workspace already tracks -- one entry per subdirectory
+    of ``<outdir>/leyes/``, in place of the retired `catalogo.json` (issue
+    #210). See `fetch_scjn_legislacion._load_catalog`, whose docstring this
+    mirrors: `abrev`/`nombre` come from each law's own `estado.json`, falling
+    back to `indice-global.json.gz` for `nombre` when that predates issue
+    #210."""
+    base = outdir / COLECCION
+    if not base.is_dir():
         raise SystemExit(
-            f"{archivo} no existe -- corre primero "
-            f"./scripts/extract_scjn_titles.py --outdir {outdir}"
+            f"{base} no existe -- corre primero "
+            f"./scripts/fetch_scjn_legislacion.py --outdir {outdir} --instrumento <slug>"
         )
-    return json.loads(archivo.read_text(encoding="utf-8"))
+    try:
+        instrumentos = download_scjn_leyes_index()["instrumentos"]
+    except AssetNotCached:
+        instrumentos = {}
+
+    catalogo = []
+    for directorio in sorted(p for p in base.iterdir() if p.is_dir()):
+        slug = directorio.name
+        estado = lee_estado(directorio)
+        nombre = estado.get("nombre") or instrumentos.get(slug, {}).get("nombre")
+        if nombre is None:
+            raise SystemExit(f"{directorio}: sin 'nombre' (ni en su estado.json ni en el indice)")
+        entrada = {"abrev": estado.get("abrev") or slug, "nombre": nombre}
+        if estado.get("nombre_scjn"):
+            entrada["nombre_scjn"] = estado["nombre_scjn"]
+        catalogo.append(entrada)
+    return catalogo
 
 
 def carga_porf(titulos) -> dict:
