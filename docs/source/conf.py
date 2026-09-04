@@ -13,6 +13,7 @@ import dof2md
 import dofjson
 import md2akn
 import nota2md
+import scjn
 
 # -- Project information -------------------------------------------------
 
@@ -21,12 +22,13 @@ copyright = "2026, INGEOTEC"
 author = "INGEOTEC"
 
 # Each package under packages/<name>/ is versioned and released
-# independently (see CLAUDE.md's read order: dofjson -> nota2md -> dof2md
-# -> md2akn), so there is no single project version to set here. Instead
-# each package gets its own substitution, used on index.rst's version table
-# and in each *_api.rst page's own header.
+# independently (see CLAUDE.md's read order: dofjson -> scjn -> nota2md ->
+# dof2md -> md2akn), so there is no single project version to set here.
+# Instead each package gets its own substitution, used on index.rst's
+# version table and in each *_api.rst page's own header.
 rst_epilog = f"""
 .. |dofjson_version| replace:: {dofjson.__version__}
+.. |scjn_version| replace:: {scjn.__version__}
 .. |nota2md_version| replace:: {nota2md.__version__}
 .. |dof2md_version| replace:: {dof2md.__version__}
 .. |md2akn_version| replace:: {md2akn.__version__}

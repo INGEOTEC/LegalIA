@@ -2,6 +2,16 @@
 
 [![Documentation Status](https://readthedocs.org/projects/legalia/badge/?version=latest)](https://legalia.readthedocs.io/en/latest/nota2md_api.html)
 
+> **v0.5.0 (still unreleased) also carries the SCJN package split** (issues
+> #206-#212) alongside the default-source change below — a minor bump, not a
+> patch, on purpose: `nota2md.scjn`/`nota2md.scjn_api` are deleted outright, a
+> reader's contract changed (no more download-on-read), and a cache directory
+> moved. It ships as the same v0.5.0 rather than a further v0.6.0 because
+> nothing between 0.4.1 and 0.5.0 has reached PyPI yet — `scripts/
+> check_package_versions.py`'s single-step-ahead gate (issue #194) blocks a
+> second minor bump before the first one publishes. The four names below
+> keep importing from `nota2md` unchanged either way.
+>
 > **The `scjn-leyes` release's own readers moved to the `scjn` package**
 > (`scjn.release`, issue #209) — `nota2md.scjn` and `nota2md.scjn_api` no
 > longer exist. `download_scjn_leyes_corpus`/`download_scjn_leyes_index`/

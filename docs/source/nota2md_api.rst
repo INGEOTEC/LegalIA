@@ -11,37 +11,34 @@ Version |nota2md_version| — see :doc:`index` for the full package table.
 
 :py:mod:`nota2md` is the largest package in the monorepo — roughly 130
 top-level functions and classes across :py:mod:`nota2md.builder`,
-:py:mod:`nota2md.leyes`, :py:mod:`nota2md.scjn`, :py:mod:`nota2md.scjn_api`,
-:py:mod:`nota2md.cache`, :py:mod:`nota2md.html_converter` and
-:py:mod:`nota2md.cli` — and the one whose behaviour needs the most prose:
-:py:func:`~nota2md.legal_provisions` answers from the SCJN's consolidated
-text of the whole law by default and only falls back to the DOF's own
-source; its release assets are cached in **nota2md's own directory**,
-deliberately not :py:mod:`dofjson`'s (two releases, two lifecycles); and a
-law's reform history *is* the ``scjn-leyes`` release itself, not a dataset
-of its own.
+:py:mod:`nota2md.leyes`, :py:mod:`nota2md.linking`, :py:mod:`nota2md.cache`,
+:py:mod:`nota2md.html_converter` and :py:mod:`nota2md.cli` — and the one
+whose behaviour needs the most prose: :py:func:`~nota2md.legal_provisions`
+answers from the SCJN's consolidated text of the whole law by default and
+only falls back to the DOF's own source; its release assets are cached in
+**nota2md's own directory**, deliberately not :py:mod:`dofjson`'s (two
+releases, two lifecycles); and a law's reform history *is* the
+``scjn-leyes`` release itself, not a dataset of its own.
 
-Two things worth stating explicitly before the API, because nothing in the
-signatures below conveys them:
-
-- **What** ``fuente: scjn`` **means.** The SCJN is not an official source of
-  legal text — ``dof.gob.mx``/SIDOF remains that. Every file this package
-  writes from the SCJN corpus keeps that header intact, so whoever reads the
-  result can tell where it came from.
-- **What "reform N" means now.** It is the SCJN reform table's chronological
-  order — each law's own ``indice.json`` in the ``scjn-leyes`` release, one
-  entry per reform, oldest first. It is not an attempt to reproduce the
-  Cámara de Diputados' historical numbering, which is gone with the Diputados
-  data it counted (issue #184); the two count different things and are never
-  compared.
+The SCOW JSON API client and the ``scjn-leyes`` release's own readers moved
+to their own package, :doc:`scjn <scjn_api>`, in issues #206/#207/#209 —
+:py:mod:`nota2md.scjn`/:py:mod:`nota2md.scjn_api` no longer exist. What
+``fuente: scjn`` means and what "reform N" now counts, plus the transport
+and the readers themselves, are explained there; this page only keeps the
+four reader names below because they are still re-exported off
+:py:mod:`nota2md` (unchanged for a caller) and covers the one thing that is
+genuinely this package's own: matching an SCJN snapshot to the DOF
+``codNota`` that produced it (:py:mod:`nota2md.linking`), the seam between
+the two sides that has to sit here rather than in :py:mod:`scjn`, since a
+``codNota`` is a DOF concept.
 
 The sections below are ordered the way a note's Markdown actually gets
 built: :py:mod:`nota2md.builder` (the entry points, :py:func:`~nota2md.legal_provisions`
-and :py:func:`~nota2md.get_document`), :py:mod:`nota2md.scjn`/
-:py:mod:`nota2md.scjn_api` (the SCOW JSON API crawl and the ``scjn-leyes``
-release's own readers), :py:mod:`nota2md.leyes`
+and :py:func:`~nota2md.get_document`), the four ``scjn`` readers re-exported
+here, :py:mod:`nota2md.linking` (the ``codNota`` linking seam),
+:py:mod:`nota2md.leyes`
 (:py:func:`~nota2md.reconstruct_legal_provisions`, built on the DOF alone),
-:py:mod:`nota2md.cache` (the on-disk cache both release readers share),
+:py:mod:`nota2md.cache` (the on-disk cache this package's own output uses),
 :py:mod:`nota2md.html_converter` (the one note-to-Markdown conversion step),
 :py:mod:`nota2md.cli`. Every class and function is documented, including
 private/internal helpers (leading-underscore names) — useful when extending
@@ -51,11 +48,11 @@ network test files excluded from the routine ``pytest`` run.
 
 Every example below that touches the ``scjn-leyes`` corpus picks one law by
 slug — ``lfca`` (LEY Federal de Cine y el Audiovisual), the same small law
-(one snapshot as of this writing) ``tests/test_scjn_release_red.py`` already
-uses, chosen there because it is small and because it is one of the two laws
-the SCJN does not index at all (its snapshots were built by hand from the
-DOF). The whole release is ~380 MB; a corpus example that walked all of it
-would make the doctest job unaffordable.
+(one snapshot as of this writing) ``packages/scjn/tests/test_release_red.py``
+already uses, chosen there because it is small and because it is one of the
+two laws the SCJN does not index at all (its snapshot was built by hand from
+the DOF). The whole release is ~380 MB; a corpus example that walked all of
+it would make the doctest job unaffordable.
 
 ``nota2md.builder`` — the entry points
 ------------------------------------------
@@ -124,19 +121,16 @@ live one package down:
    :private-members:
    :undoc-members:
 
-``nota2md.scjn`` / ``nota2md.scjn_api`` — the SCJN corpus
--------------------------------------------------------------
+``scjn``'s readers, re-exported here
+---------------------------------------
 
-:py:mod:`nota2md.scjn_api` is the transport: an unauthenticated client for
-the SCJN's SCOW JSON API (three endpoints — matching ordenamientos, a
-law's whole reform table, one reform's consolidated article text), the
-backend behind `legislacion.scjn.gob.mx/consulta/buscador
-<https://legislacion.scjn.gob.mx/consulta/buscador>`_. It replaced a legacy
-WebForms crawler in issue #172/#179 and carries no public name of its own
-off :py:mod:`nota2md` — everything reachable from the top level goes
-through :py:mod:`nota2md.scjn` instead, which holds everything about the
-corpus that is not transport: catalogue slugs, crawl state, the provenance
-header's reader, and the ``scjn-leyes`` release's own readers below.
+Four of :py:mod:`scjn`'s own entry points are still re-exported off
+:py:mod:`nota2md` unchanged — the readers :py:func:`~nota2md.legal_provisions`
+itself calls into for the SCJN path above. See :doc:`scjn_api` for the full
+explanation (what ``fuente: scjn`` means, what "reform N" counts, the
+transport underneath, and every other reader :py:mod:`scjn.release`
+publishes); this is only enough to confirm they still work the same from
+here.
 
 :py:func:`~nota2md.download_scjn_leyes_index` reads the release's reverse
 index — every ``codNota`` the corpus can resolve, mapped to the law(s) it
@@ -190,12 +184,25 @@ True
 >>> {"abrev": "lfca", "nombre": "LEY Federal de Cine y el Audiovisual"} in catalogo
 True
 
-.. automodule:: nota2md.scjn
-   :members:
-   :private-members:
-   :undoc-members:
+``nota2md.linking`` — the ``codNota`` linking seam
+------------------------------------------------------
 
-.. automodule:: nota2md.scjn_api
+The one SCJN-adjacent concern that legitimately needs both sides — SCJN
+snapshots on one hand, DOF titles on the other — so it stays here rather
+than moving into :py:mod:`scjn` (issue #206 section 5, #208): nothing on the
+SCJN side imports this module, and this is the only place in the project
+that knows how a snapshot becomes a ``codNota``. Matches every snapshot of a
+law (:py:func:`scjn.header.versiones_de_directorio`) against the DOF's own
+titles (:py:func:`~nota2md.legal_provisions_titles`) to produce a
+``codNota`` per snapshot; :py:func:`~nota2md.builder.legal_provisions`'s SCJN
+path resolves the other direction through the same module — a ``codNota``
+back to the snapshot it produced — calling :py:mod:`scjn.release`'s
+disk-first readers rather than the network (issue #209). Not part of
+:py:mod:`nota2md`'s ``__all__`` (a caller reaches it through
+``scripts/enlaza_scjn_legislacion.py`` or :py:func:`~nota2md.legal_provisions`
+itself, not directly), so it is documented here without a standalone example.
+
+.. automodule:: nota2md.linking
    :members:
    :private-members:
    :undoc-members:
@@ -234,21 +241,24 @@ not re-fetch what this one already has.
    :private-members:
    :undoc-members:
 
-``nota2md.cache`` — the on-disk cache both release readers share
------------------------------------------------------------------------
+``nota2md.cache`` — what this package itself derives
+------------------------------------------------------------
 
 Deliberately the same idea :py:mod:`dofjson.titulos` already uses for the
 ``notas-archivo`` release — a ``platformdirs``-backed ``CACHE_DIR``, a
-``SIN_CACHE_DIR`` sentinel — but its own directory, not ``dofjson``'s: the
-``scjn-leyes`` and ``notas-archivo`` releases have two different lifecycles,
-and sharing a directory would make clearing one clear the other. This is
-where :py:func:`~nota2md.legal_provisions`' no-``outdir`` form writes, and
-what ``nota2md download federal-laws`` (below) populates:
+``SIN_CACHE_DIR`` sentinel — but its own directory, not ``dofjson``'s or
+:py:mod:`scjn`'s: since issue #209 the ``scjn-leyes`` release's own assets
+(the ``.tgz`` files) live in :py:data:`scjn.cache.CACHE_DIR` instead, a
+separate lifecycle this module knows nothing about. What is left here is
+only what :py:mod:`nota2md` itself derives — the one snapshot
+:py:func:`~nota2md.legal_provisions`' no-``outdir`` form extracted out of a
+``scjn`` tarball and cached as plain text, deletable and re-derivable at any
+time:
 
 >>> import nota2md.cache as cache
 >>> cache.CACHE_DIR
 PosixPath('.../nota2md')
->>> (cache.CACHE_DIR / "scjn-leyes" / "lfca.tgz").exists()
+>>> (cache.CACHE_DIR / "scjn-leyes" / "md" / "lfca-22-05-2026.md").exists()
 True
 
 .. automodule:: nota2md.cache
@@ -286,6 +296,9 @@ CLI had before ``download`` existed, and takes no verb at all:
    Saved to: /home/user/.cache/nota2md/scjn-leyes/md/lfca-22-05-2026.md
 
 ``download federal-laws`` puts the ``scjn-leyes`` release on disk —
+**into the ``scjn`` package's own cache directory, not nota2md's** (issue
+#209; the two packages keep separate caches, migrating an existing
+pre-#209 ``~/.cache/nota2md/scjn-leyes/`` there automatically, once) —
 ``--slug`` (repeatable) limits it to one or more laws instead of all ~315:
 
 .. code-block:: console
@@ -293,7 +306,7 @@ CLI had before ``download`` existed, and takes no verb at all:
    $ nota2md download federal-laws --slug lfca
    [1/2] indice-global.json.gz: downloaded
    [2/2] lfca.tgz: downloaded
-   scjn-leyes: 2 assets in /home/user/.cache/nota2md/scjn-leyes (2 downloaded, 0 already cached)
+   scjn-leyes: 2 assets in /home/user/.cache/scjn/scjn-leyes (2 downloaded, 0 already cached)
 
 ``download gazette-metadata`` puts the ``notas-archivo`` release on disk —
 **into dofjson's own cache directory, not nota2md's** (the two releases
@@ -315,7 +328,7 @@ for the two invocations above, not a merge of the two caches:
    $ nota2md download all --slug lfca
    [1/2] indice-global.json.gz: already cached
    [2/2] lfca.tgz: already cached
-   scjn-leyes: 2 assets in /home/user/.cache/nota2md/scjn-leyes (0 downloaded, 2 already cached)
+   scjn-leyes: 2 assets in /home/user/.cache/scjn/scjn-leyes (0 downloaded, 2 already cached)
    [1/117] notas-1917.tgz: already cached
    [...]
    [117/117] notas-2026-08.tgz: already cached

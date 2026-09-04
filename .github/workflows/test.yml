@@ -46,13 +46,14 @@ jobs:
           python-version: "3.12"
       - name: Install system dependencies (dot renders the architecture diagrams)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq graphviz
-      - name: Cache nota2md/dofjson's on-disk release caches
+      - name: Cache scjn/nota2md/dofjson's on-disk release caches
         uses: actions/cache@v4
         with:
           path: |
+            ~/.cache/scjn
             ~/.cache/nota2md
             ~/.cache/dofjson
-          key: docs-doctest-cache-v1
+          key: docs-doctest-cache-v2
       - name: Install docs and package dependencies
         run: |
           pip install -r docs/requirements.txt

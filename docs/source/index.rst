@@ -27,9 +27,9 @@ see `the LegalIA website <https://ingeotec.github.io/LegalIA/>`_.
 
 Each package under ``packages/<name>/`` has its own ``pyproject.toml``,
 version, and PyPI release, and builds on the ones before it in this read
-order: ``dofjson`` -> ``nota2md`` -> ``dof2md`` -> ``md2akn``.
+order: ``dofjson`` -> ``scjn`` -> ``nota2md`` -> ``dof2md`` -> ``md2akn``.
 
-.. list-table:: The four packages
+.. list-table:: The five packages
    :header-rows: 1
 
    * - Package
@@ -43,9 +43,16 @@ order: ``dofjson`` -> ``nota2md`` -> ``dof2md`` -> ``md2akn``.
      - |dofjson_version|
      - `dofjson <https://pypi.org/project/dofjson/>`_
      - :doc:`dofjson_api`
+   * - ``scjn``
+     - Client for the SCJN's SCOW JSON API and the disk-first reader for the
+       ``scjn-leyes`` release: a federal law's reform-dated snapshots.
+     - |scjn_version|
+     - `scjn <https://pypi.org/project/scjn/>`_
+     - :doc:`scjn_api`
    * - ``nota2md``
      - One DOF note (or a whole law's reform history) to Markdown, backed by
-       the SCJN's consolidated texts and its own crawl of the SCJN corpus.
+       ``scjn``'s consolidated texts and the ``codNota`` linking seam
+       between the two.
      - |nota2md_version|
      - `nota2md <https://pypi.org/project/nota2md/>`_
      - :doc:`nota2md_api`
@@ -57,7 +64,7 @@ order: ``dofjson`` -> ``nota2md`` -> ``dof2md`` -> ``md2akn``.
      - :doc:`dof2md_api`
    * - ``md2akn``
      - Segments a law's Markdown into a hierarchy labelled with Akoma
-       Ntoso's vocabulary. No dependency on the other three packages.
+       Ntoso's vocabulary. No dependency on the other four packages.
      - |md2akn_version|
      - `md2akn <https://pypi.org/project/md2akn/>`_
      - :doc:`md2akn_api`
@@ -66,15 +73,19 @@ How the packages relate
 ========================
 
 ``dofjson`` is the only package that talks to SIDOF/``www.dof.gob.mx``;
-``nota2md`` builds on it for a note's Markdown and reaches into ``dof2md``
-only as the OCR fallback for pre-HTML-era provisions (pre-1999ish); ``nota2md``
-also crawls/reads the SCJN's SCOW API and the ``scjn-leyes`` release for a
-law's consolidated text and reform history. ``md2akn`` reads ``nota2md``'s
-Markdown output from disk and depends on none of the other three.
+``scjn`` is the only one that talks to the SCJN's SCOW API and reads the
+``scjn-leyes`` release, disk-first, into its own cache; ``nota2md`` depends
+on both — building a note's Markdown off ``dofjson``, and matching a
+snapshot ``scjn`` reads back to the DOF ``codNota`` that produced it
+(:py:mod:`nota2md.linking`, the one SCJN-adjacent concern that needs both
+sides, so it stays a layer up from ``scjn`` rather than inside it) — and
+reaches into ``dof2md`` only as the OCR fallback for pre-HTML-era provisions
+(pre-1999ish). ``md2akn`` reads ``nota2md``'s Markdown output from disk and
+depends on none of the other four.
 
 .. graphviz::
-   :alt: How dofjson, nota2md, dof2md and md2akn relate, and the external
-         systems each one talks to.
+   :alt: How dofjson, scjn, nota2md, dof2md and md2akn relate, and the
+         external systems each one talks to.
 
    digraph legalia_flow {
        rankdir=LR;
@@ -85,22 +96,24 @@ Markdown output from disk and depends on none of the other three.
 
        sidof [label="SIDOF\n(sidof.segob.gob.mx)", style="rounded,dashed", fillcolor="#ffffff"];
        dofweb [label="www.dof.gob.mx", style="rounded,dashed", fillcolor="#ffffff"];
-       scjn_api [label="SCJN SCOW API", style="rounded,dashed", fillcolor="#ffffff"];
+       scjn_api_ext [label="SCJN SCOW API", style="rounded,dashed", fillcolor="#ffffff"];
        notas_archivo [label="notas-archivo release", style="rounded,dashed", fillcolor="#ffffff"];
        scjn_leyes [label="scjn-leyes release", style="rounded,dashed", fillcolor="#ffffff"];
        mineru [label="mineru\n(external OCR/layout)", style="rounded,dashed", fillcolor="#ffffff"];
 
        dofjson [label="dofjson\nDOF/SIDOF client"];
-       nota2md [label="nota2md\nnote -> Markdown,\nSCJN corpus, reform replay"];
+       scjn [label="scjn\nSCOW API client,\nscjn-leyes reader"];
+       nota2md [label="nota2md\nnote -> Markdown,\ncodNota linking, reform replay"];
        dof2md [label="dof2md\nPDF/image OCR"];
        md2akn [label="md2akn\nMarkdown -> Akoma Ntoso\nvocabulary tree"];
 
        sidof -> dofjson;
        dofweb -> dofjson [label="recovers days SIDOF loses"];
        notas_archivo -> dofjson [label="legal_provisions_titles"];
+       scjn_api_ext -> scjn;
+       scjn_leyes -> scjn;
        dofjson -> nota2md;
-       scjn_api -> nota2md;
-       scjn_leyes -> nota2md;
+       scjn -> nota2md;
        nota2md -> dof2md [label="OCR fallback\n(pre-HTML-era notes)", style=dashed];
        dof2md -> mineru;
        nota2md -> md2akn [label="Markdown"];
@@ -113,6 +126,7 @@ API
    :maxdepth: 1
 
    dofjson_api
+   scjn_api
    nota2md_api
    dof2md_api
    md2akn_api

@@ -10,10 +10,11 @@ build:
     - graphviz
   jobs:
     post_install:
-      # Installed in read order (CLAUDE.md: dofjson -> nota2md -> dof2md ->
-      # md2akn), each pulling in its own real dependencies so autodoc can
-      # import it — except dof2md.
+      # Installed in read order (CLAUDE.md: dofjson -> scjn -> nota2md ->
+      # dof2md -> md2akn), each pulling in its own real dependencies so
+      # autodoc can import it — except dof2md.
       - pip install -e packages/dofjson
+      - pip install -e packages/scjn
       - pip install -e packages/nota2md
       # --no-deps: dof2md never imports mineru in-process (see
       # docs/source/conf.py) — it only shells out to the mineru-api CLI —
