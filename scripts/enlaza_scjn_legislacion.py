@@ -15,13 +15,13 @@ For each instrument in `extract_scjn_titles.py`'s own catalogue, only its
 `scjn.header.versiones_de_directorio`), which same-day DOF note (the dofjson
 titles stream, `dofjson.legal_provisions_titles`) explicitly names
 the instrument in its own title (issue #126,
-`nota2md.scjn.title_candidates_por_fecha`) — or, when no same-day title names
+`nota2md.linking.title_candidates_por_fecha`) — or, when no same-day title names
 it at all, whichever same-day note opens with "DECRETO"/"LEY"
-(`nota2md.scjn._title_opens_with_decreto_or_ley`), since a reform's own title
+(`nota2md.linking._title_opens_with_decreto_or_ley`), since a reform's own title
 does not always spell out every law it amends. See
-`nota2md.scjn.enlaza_por_titulo` for how same-day ties and misses are
+`nota2md.linking.enlaza_por_titulo` for how same-day ties and misses are
 resolved. Every entry also gets a content-diff confirmation (issue #127,
-`nota2md.scjn.confirm_by_content_diff`): the candidate codNota (among that
+`nota2md.linking.confirm_by_content_diff`): the candidate codNota (among that
 date's `title_candidates`) whose own DOF text best accounts for what
 actually changed between this snapshot and the previous one
 (``content_diff_confirmed_codNota``, ``content_diff_score``) — only for
@@ -39,7 +39,7 @@ snapshot's own file, `fecha_publicacion`, the `codNota` matched to it
 (``null`` when no match was found), every same-day candidate that named the
 instrument (`title_candidates`), how that pool was resolved
 (`title_link_status` — "linked", "content_diff", "none", "claimed" or
-"ambiguous", see `nota2md.scjn.title_link_status` and `resolve_links`), and
+"ambiguous", see `nota2md.linking.title_link_status` and `resolve_links`), and
 its content-diff confirmation.
 
 Since issue #187 the content-diff confirmation *is* the link when title
@@ -83,7 +83,7 @@ sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
 from dofjson.titulos import SIN_CACHE_DIR, legal_provisions_titles  # noqa: E402
 from nota2md.builder import fetch_nota, get_document  # noqa: E402
-from nota2md.scjn import (  # noqa: E402
+from nota2md.linking import (  # noqa: E402
     ESTADO_ENLACE_CONTENT_DIFF,
     confirm_by_content_diff,
     enlaza_por_titulo,
@@ -189,9 +189,9 @@ def _texto_html(cod_nota: int, cache_dir: Path, cache: dict) -> str | None:
 def _confirmaciones_por_contenido(
     versiones, candidatos_por_fecha: dict, directorio_notas: Path, cache_notas: dict
 ):
-    """One `nota2md.scjn.ContentDiffConfirmation` per `versiones` entry
+    """One `nota2md.linking.ContentDiffConfirmation` per `versiones` entry
     (issue #127), against `candidatos_por_fecha`
-    (`nota2md.scjn.title_candidates_por_fecha`'s own output — the same pool
+    (`nota2md.linking.title_candidates_por_fecha`'s own output — the same pool
     `enlaza_por_titulo` used), fetched lazily and cached via `_texto_html`."""
     todos_los_candidatos = sorted({c for cs in candidatos_por_fecha.values() for c in cs})
     markdown_por_codNota = {}

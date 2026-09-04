@@ -60,6 +60,7 @@ from dofjson.notas import notas_de_la_edicion
 from nota2md import cache
 from nota2md.cache import SIN_CACHE_DIR
 from nota2md.html_converter import html_to_markdown
+from nota2md.scjn import localiza_codNota, markdown_de_snapshot, snapshot_de_codNota
 
 
 def titulo_siguiente(nota: dict, notas_del_dia) -> str | None:
@@ -143,8 +144,6 @@ def _snapshot_scjn(cod_nota, instrumento, cache_dir, refrescar):
     #117's D4 — does propagate: that one is answerable, by passing
     `instrumento`, and guessing on the caller's behalf is exactly what it is
     there to prevent."""
-    from nota2md.scjn import snapshot_de_codNota
-
     return _con_fallback_dof(
         cod_nota,
         lambda: snapshot_de_codNota(
@@ -158,8 +157,6 @@ def _localiza_scjn(cod_nota, instrumento, cache_dir, refrescar):
     ``(slug, archivo)``, or None — `_snapshot_scjn` without reading the
     tarball, for the `outdir=None` path that only needs the file name to know
     whether it already has that snapshot on disk. Same fallback rules."""
-    from nota2md.scjn import localiza_codNota
-
     return _con_fallback_dof(
         cod_nota,
         lambda: localiza_codNota(
@@ -389,8 +386,6 @@ def _scjn_a_cache(cod_nota, instrumento, cache_dir, refrescar):
     ubicacion = _localiza_scjn(cod_nota, instrumento, cache_dir, refrescar)
     if ubicacion is None:
         return None
-    from nota2md.scjn import markdown_de_snapshot
-
     slug, archivo = ubicacion
     destino = cache.directorio_de_salida(cache_dir, *cache.SUBDIR_MD_SCJN) / f"{slug}-{archivo}"
     if destino.exists() and not refrescar:
