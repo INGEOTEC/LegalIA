@@ -138,9 +138,12 @@ nota2md download gazette-metadata                                               
 
 **Keeping it up to date afterwards is two commands, not three** (issue
 #148). The first refreshes every known law's own `actualizado_scjn`/
-`actualizado_dof`/`actualizado` (one reform-table request per law;
-`--sin-refrescar-catalogo` skips that) and says what changed; the second runs
-the whole chain above for exactly those laws, and exits without effects when
+`actualizado_dof` (one reform-table request per law;
+`--sin-refrescar-catalogo` skips that) and, by default, diffs each law's
+own reform table row by row against its snapshots (issue #211 — another
+request per law with an `id_ordenamiento`, `--solo-fecha` skips this and
+falls back to a date comparison) to say what changed; the second runs the
+whole chain above for exactly those laws, and exits without effects when
 nothing is pending — the expected case most of the time:
 
 ```bash
@@ -189,10 +192,15 @@ Fase 1: covers `leyes`, the only collection left (issue #189) — which is
 why `leyes` is a literal path segment in these scripts and no longer
 something to pass on the command line. Every subdirectory of
 `<outdir>/leyes/` is a law (issue #210 retired the separate `catalogo.json`
-that used to enumerate them); `nombre`/`abrev`/`nombre_scjn`/`actualizado`
-come from that law's own `estado.json`, falling back to
-`indice-global.json.gz` for `nombre` when a directory predates issue #210 or
-was just seeded by hand. Resumable at two levels — a file already on disk is
+that used to enumerate them); `nombre`/`abrev`/`nombre_scjn` come from that
+law's own `estado.json`, falling back to `indice-global.json.gz` for
+`nombre` when a directory predates issue #210 or was just seeded by hand.
+`actualizado` is computed live, as the newer of `actualizado_scjn`/
+`actualizado_dof` (issue #211's `_load_catalog`) — deliberately not read
+verbatim off `estado.json`'s own `actualizado` key, which means something
+else: `rastrea_coleccion` writes *that* one at crawl time, to record what a
+law's snapshots were actually crawled against, and the date-only fallback
+below compares the two. Resumable at two levels — a file already on disk is
 left alone, and the **slug** of the last instrumento fully attempted is
 checkpointed to `<outdir>/leyes/.progreso.json` and cleared once that
 collection finishes, so a run killed partway (crash, network drop, Ctrl-C)
@@ -227,9 +235,48 @@ refresh into this script (issue #210): it reads every law's own
 `estado.json`, asks the SCJN's reform table (`--dof-only` skips this half
 and makes the refresh offline, at the cost of the omnibus-decree laws only
 the SCJN half dates) and the DOF titles cache for a fresh
-`actualizado_scjn`/`actualizado_dof`, and writes the newest of the two — or
-whichever the law already had, for a source that did not answer this run —
-back as `actualizado`.
+`actualizado_scjn`/`actualizado_dof`, and writes only those two fields back
+— never the bare `actualizado`, which stays `rastrea_coleccion`'s own (see
+above); a law this run's sources did not answer for keeps whichever value
+its own `estado.json` already carried, since neither source's date can move
+backwards in practice.
+
+### Completeness by row comparison (issue #211)
+
+A date comparison alone cannot see a gap in the *middle* of a reform table:
+`lfd` had 92 snapshots against 98 reforms, and the newest reform was always
+on disk, so nothing about "the newest date on file" ever looked stale
+(issue #178). `--plan`/`--actualiza` default to a **row comparison**
+instead: for every law with an `id_ordenamiento` already on file, one
+request fetches its whole reform table
+(`scjn.api.ScjnApi.reformas_of_ordenamiento`, addressed by that stable id —
+never a search, so it can never resolve to the wrong document, issue #115's
+Hallazgo C) and `scjn.state.reformas_faltantes` diffs it against the
+snapshots on disk, matching each reform by its own position among
+same-date rows rather than by date alone (two reforms sharing a date, like
+39 dates on the CPEUM, must not cancel each other out).
+
+A full plan is therefore ~316 requests — the largest burst this project
+makes outside a full crawl — rate-limited by `--espera` exactly like a
+crawl, and resumable the same way
+(`<outdir>/leyes/.progreso_plan.json`). `--solo-fecha` is the explicit,
+offline fallback: the older date comparison above, for a quick local
+refresh rather than a run whose plan anyone acts on. A law with no
+`id_ordenamiento` yet (never crawled, or crawled before issue #172) is not
+skipped even in row-comparison mode — it falls back to the date comparison
+for that one law alone, and `--plan` reports it separately as having done
+so.
+
+`actualizado_dof`/`actualizado_scjn` are not replaced by any of this: row
+comparison catches a *gap* in an indexed table, and the DOF half is still
+the only thing that notices a reform the SCJN has not indexed at all yet
+(issue #124's `lfca`) — a row comparison against a table that does not have
+the reform cannot see it either.
+
+    # el plan real, contra la SCJN (issue #211, ~316 requests, resumable):
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --plan
+    # el respaldo offline, mas barato y menos preciso:
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --plan --solo-fecha
 
 Issue #140 fixed two rough edges found running the above for real. The
 incremental refresh does nothing, silently, if the corpus was never
