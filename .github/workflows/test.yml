@@ -66,6 +66,8 @@ jobs:
           # (see docs/source/dof2md_api.rst).
           pip install --no-deps -e packages/dof2md
           pip install -e packages/md2akn
+      - name: Download the scjn-leyes assets the docs exercise (disk-first reads since #209)
+        run: scjn download --slug lfca
       - name: Run the documentation's doctest examples
         run: python -m sphinx -b doctest docs/source docs/build/doctest
 
