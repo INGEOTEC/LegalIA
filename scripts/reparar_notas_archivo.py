@@ -16,11 +16,10 @@ Run with --dry-run first: it reports what it would change and writes nothing.
 Only `requests` is needed; dofjson is picked up from packages/ in this
 checkout, so there is nothing to install first.
 
-Nothing here uploads, and no token is used. To publish the rebuilt assets:
+Nothing here uploads, and no token is used. To publish the rebuilt assets,
+the only way now that the workflow which used to run both steps is gone:
 
     gh release upload notas-archivo reparados/*.tgz --clobber
-
-or run the `reparar notas-archivo` workflow, which does both steps.
 """
 
 import argparse

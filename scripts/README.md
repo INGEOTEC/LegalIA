@@ -288,6 +288,23 @@ across 31 grid pages — used to print nothing at all while it ran,
 indistinguishable from a hung process; it now narrates one line per grid
 page and per row as it goes.
 
+### Retirado: `verifica_scjn_api.py`
+
+Issue #178's audit script: for every instrument with an `id_ordenamiento` on
+file, it asked `/api/SCOW/Reforma` for that law's reform table and checked
+that each row either had a snapshot on disk or was marked
+`tieneArticulos=false` — the check born from `lfd` turning out to hold 92
+snapshots against 98 reforms, its own detail page's count. `--baja` could
+also fetch whatever was missing, closing the shortfall in place.
+
+Issue #204 retired it: that same check now lives inside the crawler above —
+row comparison (`--plan`/`--actualiza`, issue #211) raises `DESCUADRE` per
+instrument and prints a collection-wide summary, and `verifica_scjn_api.py`'s
+`--baja` backfill is covered by `--reintenta SLUG`/`--instrumento SLUG`.
+Verified before deleting: both tools agreed over `lfd`, `ccf` and `lisr` —
+the same sample `spike_scjn_api.py` used — neither reporting a shortfall for
+any of the three.
+
 ### `enlaza_scjn_legislacion.py`
 
 Fase 2: pairs each already-downloaded snapshot with the `codNota` of the DOF
@@ -324,30 +341,26 @@ needing the catalogue at hand. `ratio_similitud`/`sospechoso` (issue #115)
 are unaffected and still always present, giving the magnitude of how far
 off a flagged title is.
 
-### Caso aislado: `fetch_lfiiedb_dof.py`
+### Retirado: `fetch_lfiiedb_dof.py`
 
-A catalogue entry the SCJN does not index at all (issue #124's coverage
-gaps), closed by its own single-law script rather than by a general
-mechanism. It is **isolated**: it touches no catalogue, no checkpoint and no
-general script — it only writes inside `<outdir>/leyes/<abrev>/` — and it
-runs **after** `enlaza_scjn_legislacion.py`, since it owns the last word on
-its own `indice.json` (the normal sweep would otherwise overwrite it). The
-script's own module docstring carries the full, web-page-ready procedure;
-read it there.
+Issue #145's one-law exception, for a catalogue entry the SCJN did not index
+at all when it was enacted (issue #124's coverage gaps): it fetched the
+law's single DOF text (`codNota` 5784517, 09-04-2026) and wrote it into the
+corpus with `fuente: dof`, its own `indice.json` known by construction
+instead of inferred from a search. It was isolated on purpose — no
+catalogue, no checkpoint, no general script touched — and ran after
+`enlaza_scjn_legislacion.py` so it kept the last word on its own
+`indice.json`.
 
-```bash
-./scripts/fetch_lfiiedb_dof.py --outdir scripts/scjn
-```
-
-- **`fetch_lfiiedb_dof.py`** (issue #145) — a brand-new law with no reform
-  history at all. One `codNota` (5784517, DOF 09-04-2026), one file, an
-  `indice.json` whose link is known by construction instead of inferred.
-
-It writes `fuente: dof` in the header of every file taken from the DOF —
-`grep -rl 'fuente: dof' scripts/scjn/` is how these exceptions are found.
-The script disappears when the SCJN finally indexes its law: delete the
-directory, run `fetch_scjn_legislacion.py --reintenta lfiiedb` plus
-`enlaza_scjn_legislacion.py`, and retire the script.
+Issue #204 retired it: the SCJN now indexes the law
+(`idOrdenamiento` 188046, confirmed live via `ScjnApi.search_ordenamiento`),
+and the published `scjn-leyes` release's own `lfiiedb.tgz` already carries
+the SCJN-sourced snapshot (`fuente: scjn`, `title_link_status: "linked"`,
+same `codNota` 5784517) — the retirement procedure this script's own
+docstring specified, `fetch_scjn_legislacion.py --reintenta lfiiedb`
+followed by `enlaza_scjn_legislacion.py`, had already run and was already
+published by the time of this audit. Nothing was left to do but delete the
+script.
 
 **Retirado: `construye_lfca.py`** (issue #144, retired in #179). It was the
 reference case for *a new law that abrogates another and is not indexed
@@ -455,6 +468,46 @@ archivo(s)`: it has nothing left to repair anywhere, and every snapshot a new
 crawl writes is already stripped at the source. `quita_notas_editoriales`
 stays idempotent over already-clean, already-bolded output, so re-running the
 repair was never the thing keeping the corpus correct.
+
+### Retirado: `spike_scjn_api.py`
+
+Fase 0 of issue #172 (issue #173): a throwaway spike probing the SCJN's new
+SCOW JSON API against the corpus the old WebForms crawler had already
+written to disk, answering with numbers the six questions issue #173
+listed. It wrote no production code path; the findings were the
+deliverable, posted as a comment on issue #172.
+
+Issue #204 retired it: #179 later deleted the WebForms crawler along with
+the on-disk corpus the spike measured the API against, so there is nothing
+left in that shape to compare it to. It was also the only caller of
+`nota2md.leyes.normaliza_para_comparar` from outside the package's own
+tests — deleting it orphans nothing, since that helper keeps its other
+legitimate callers inside `nota2md` (`nota2md/linking.py`, `nota2md/text.py`).
+
+## `md2akn_sweep.py`
+
+Runs `md2akn.parse_markdown` + `validate` over the whole SCJN corpus (issue
+#162) and reports where the segmenter still falls short, sorted
+worst-metric-first — it is not a test and has no pass/fail, it is the
+instrument that says which laws are the work to do next. A pattern it turns
+up becomes a curated fixture under `packages/md2akn/tests/fixtures/`, and
+*that* fixture is what actually runs in CI; the sweep itself needs the whole
+SCJN corpus, data this repository deliberately does not version.
+
+Per law directory, only the most recent `DD-MM-YYYY.md` with no `-2`/`-3`
+suffix is read — a fact about how the SCJN corpus is laid out on disk, which
+is why this script lives here and not inside the `md2akn` package.
+
+```bash
+python scripts/md2akn_sweep.py                    # the default corpus (scripts/scjn/leyes)
+python scripts/md2akn_sweep.py --corpus DIR --out DIR --limit N
+```
+
+The report goes to `scripts/md2akn-sweep/` (git-ignored, like every other
+data directory here): `por-ley.csv`, `resumen.json`, `peores.txt`. See
+`packages/md2akn/README.md`'s "Against the SCJN corpus" section for the
+current numbers and the coverage/invariant threshold issue #162 held the
+segmenter to.
 
 ## `reparar_notas_archivo.py`
 
