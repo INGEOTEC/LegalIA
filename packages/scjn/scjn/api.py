@@ -121,6 +121,11 @@ class Ordenamiento:
     ambito: str | None = None
     categoriaOrdenamiento: str | None = None
     materia: str | None = None
+    #: The SCJN's own one-paragraph abstract of the instrument (issue #215).
+    #: A field of the *instrument*, like `materia` and `vigencia` and unlike
+    #: anything on a `Reforma` row -- which is what makes the three of them
+    #: one record per law rather than one per snapshot.
+    resumen: str | None = None
     fechaPublicado: str | None = None
     # Filled in by candidate selection, the same way the retired `scjn.Candidato` did.
     ratio: float | None = None
@@ -267,6 +272,7 @@ class ScjnApi:
                 ambito=r.get("ambito"),
                 categoriaOrdenamiento=r.get("categoriaOrdenamiento"),
                 materia=r.get("materia"),
+                resumen=(r.get("resumen") or "").strip() or None,
                 fechaPublicado=_fecha(r.get("fechaPublicado")),
             )
             for r in (datos.get("resultados") or [])
@@ -624,6 +630,67 @@ def elige_ordenamiento(
     elegido.ratio = ratio
     elegido.sospechoso = ratio < UMBRAL_CONFIANZA_SIMILITUD
     return elegido
+
+
+# --- Per-instrument metadata (issue #215) --------------------------------
+#
+# `materia`, `vigencia` and `resumen` are fields of the *instrument*: they
+# ride on every `BusquedaFrase` hit and appear nowhere on a `Reforma` row, so
+# one value describes a whole law rather than one of its snapshots (issue
+# #203's first open question, answered by measurement).
+#
+# Reading them therefore costs no new endpoint -- only a search. Which is
+# exactly where issue #115's Hallazgo C lives: the SCJN's search can return a
+# completely wrong document for an instrument. So this lookup never ranks and
+# never picks a best candidate; it keeps only the hit whose `idOrdenamiento`
+# is the one the corpus already recorded for that law, and answers None
+# otherwise. A law we cannot address by id is a law this function refuses to
+# describe.
+
+#: How many result pages `instrument_metadata` will read before giving up.
+#: Searching with the SCJN's own title for a law puts it on the first page
+#: essentially always; the extra pages are for a title shared by many
+#: instruments (the 40 095 state-level ones the same index carries), not for
+#: a lookup that is going badly.
+PAGINAS_METADATOS = 3
+
+
+def instrument_metadata(
+    api: ScjnApi,
+    nombre: str,
+    id_ordenamiento: str | int,
+    *,
+    paginas: int = PAGINAS_METADATOS,
+    tamanio_pagina: int = 50,
+) -> Ordenamiento | None:
+    """The search hit for the law already addressed by `id_ordenamiento` —
+    the whole `Ordenamiento`, so `materia`, `vigencia` and `resumen` come
+    with it — or None when `nombre` does not turn it up.
+
+    `nombre` is only a way to reach the index: the answer is chosen by
+    `idOrdenamiento`, never by similarity or rank, so a wrong document
+    cannot be returned as if it were the right one (issue #115, Hallazgo C).
+    Callers pass the SCJN's own title for the law — the `ordenamiento` field
+    of any snapshot's provenance header — which is the string most likely to
+    surface it.
+
+    Returns None rather than raising for "not found": a law the SCJN has not
+    indexed under that title is a fact to report, not a crawl to abort
+    (`lfca`, issue #124). Transport failures still raise `ScjnApiError`.
+    """
+    objetivo = str(id_ordenamiento)
+    for pagina in range(1, paginas + 1):
+        resultados = api.search_ordenamiento(
+            nombre, tamanio_pagina=tamanio_pagina, pagina=pagina
+        )
+        for candidato in resultados:
+            if str(candidato.idOrdenamiento) == objetivo:
+                return candidato
+        if len(resultados) < tamanio_pagina:
+            # A short page is the last one -- same stop condition every other
+            # paged endpoint here uses, and asking past the end answers 500.
+            break
+    return None
 
 
 # --- Whole-instrument crawl (issue #177) ---------------------------------

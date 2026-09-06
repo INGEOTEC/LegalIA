@@ -24,6 +24,16 @@ package's cache, migrated once automatically from wherever it used to live).
 — stays one layer up: a `codNota` is a DOF concept, and this package's
 dependency direction is one way (see `tests/test_boundary.py`).
 
+Since issue #215 every law also carries the SCJN's own `materia` (subject
+classification), `vigencia` (whether it is still in force — seven values, not
+a boolean) and `resumen` (a one-paragraph abstract). They are per law, not
+per reform, so they live in each law's own `estado.json` and in the release
+index, and `download_scjn_leyes_catalog`/`iter_current_federal_laws` return
+them with no extra request — which makes `scjn-leyes` a *classified* corpus.
+`scripts/fetch_federal_law_metadata.py` is what fills them in, one SCJN
+search per law, matched by `idOrdenamiento` so a wrong document can never be
+described as the right one (issue #115, Hallazgo C).
+
     scjn download [--slug SLUG] [--cache-dir DIR] [--refrescar]
 
 puts the release on disk; every reader in `scjn.release` then reads off it

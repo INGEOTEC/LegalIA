@@ -77,7 +77,7 @@ Oficial de la Federación) and the federal laws it publishes:
 | [`legal_provisions_titles`](#legal_provisions_titles--every-legal-provision-ever-published-as-titles) | nothing (reads the whole `notas-archivo` cache) | every legal provision ever published, as a stream of `codNota`+`titulo`+`fecha`+`codOrgaUno` records |
 | [`download_scjn_leyes_corpus`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | a law's `slug` | every snapshot of that law in the `scjn-leyes` release, with its `codNota` links, in memory |
 | [`download_scjn_leyes_index`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (reads one small release asset) | the reverse index `codNota → (law, snapshot)`, in memory |
-| [`download_scjn_leyes_catalog`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (the index, plus one tarball per law for `actualizado`) | every federal law the release publishes, as `abrev`+`nombre`+`actualizado` |
+| [`download_scjn_leyes_catalog`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (the index, plus one tarball per law for `actualizado`) | every federal law the release publishes, as `abrev`+`nombre`+`actualizado`+`materia`+`vigencia`+`resumen` |
 
 They compose: `download_scjn_leyes_corpus` gets you the `codNota` list
 `reconstruct_legal_provisions` needs, and `reconstruct_legal_provisions` gets you a
@@ -265,7 +265,8 @@ catalogo = download_scjn_leyes_catalog(freshness=False)
 ```
 
 `download_scjn_leyes_catalog` is the federal-law **catalogue**: one
-`{"abrev", "nombre", "actualizado"}` dict per law, sorted by `abrev`.
+`{"abrev", "nombre", "actualizado", "materia", "vigencia", "resumen"}` dict
+per law, sorted by `abrev`.
 `abrev`/`nombre` come from the release's index; `actualizado` — the date of
 the law's most recent reform as of the crawl — comes from each law's own
 `estado.json`, and is **absent** rather than null for the three laws that
@@ -273,6 +274,13 @@ have none (absent means "freshness unknown, always review"). Reading
 `actualizado` means opening one tarball per law, so `freshness=False`
 answers off the index alone; run `nota2md download federal-laws` first (see
 below) and the default costs no request either.
+
+`materia`/`vigencia`/`resumen` (issue #215) are the SCJN's own subject
+classification, in-force status (`VIGENTE`, `ABROGADO (A)`, … — seven
+values, not a boolean) and one-paragraph abstract of the law. One value per
+law, not per reform, read off the index like `nombre`, so they survive
+`freshness=False` too; each is absent rather than null for a law the SCJN
+has no value for.
 
 Beware one thing if you are joining this against a catalogue of your own: the
 release slug is the *normalized* `abrev`, so the 14 laws whose abbreviation
@@ -292,8 +300,10 @@ for ley in iter_current_federal_laws():
     print(ley["slug"], ley["fecha_publicacion"], len(ley["markdown"]))
 ```
 
-Each item is `{"slug", "nombre", "fecha_publicacion", "codNota", "archivo",
-"markdown"}` — the law's newest snapshot, picked by `fecha_publicacion`
+Each item is `{"slug", "nombre", "materia", "vigencia", "resumen",
+"fecha_publicacion", "codNota", "archivo", "markdown"}` — the law's newest
+snapshot plus that law's own classification (issue #215: stratify by
+`materia`, keep only `VIGENTE`, without a second pass), picked by `fecha_publicacion`
 without decoding any of its other snapshots or its `notas/`. `slugs=[...]`
 narrows the laws visited (and their order); left out, it walks every law the
 release currently ships a tarball for. It is a generator: iterating one law

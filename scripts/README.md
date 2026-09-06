@@ -186,6 +186,63 @@ once, by hand, into the new law's own `<outdir>/leyes/<slug>/estado.json`
 (`abrev`/`nombre`) before its first crawl, and never recomputed, since
 re-minting one renames that law's release asset and orphans it.
 
+### `fetch_federal_law_metadata.py`
+
+Records each federal law's `materia`, `vigencia` and `resumen` — the SCJN's
+own subject classification, whether the law is still in force (seven values,
+not a boolean) and its one-paragraph abstract (issue #215, off #203's items
+1/2/5). The three are per **law**, not per reform: they ride on every
+`BusquedaFrase` hit and appear nowhere on a `Reforma` row.
+
+```bash
+scjn download                                   # once, if the cache is cold
+./scripts/fetch_federal_law_metadata.py --dry-run
+./scripts/fetch_federal_law_metadata.py
+```
+
+It crawls nothing. Every law is addressed by the `id_ordenamiento` its own
+newest snapshot header already records — read out of the cached `scjn-leyes`
+release, which the script downloads first when it is not there — and only the
+search hit carrying that same `idOrdenamiento` is kept. A law whose id is not
+among the results is reported and left alone, never guessed at (issue #115,
+Hallazgo C: this search can return a completely wrong document for an
+instrument).
+
+It writes two things: each law's own `<outdir>/leyes/<slug>/estado.json`,
+merged (`materia`/`vigencia`/`resumen`/`clasificado`, the last being the date
+the metadata was captured), and `<destino>/indice-global.json.gz` — the
+**published** index, patched with those fields and re-stamped, ready to
+upload on its own:
+
+```bash
+gh release upload scjn-leyes scripts/scjn/leyes-release/indice-global.json.gz \
+    --repo INGEOTEC/LegalIA --clobber
+```
+
+Patched rather than rebuilt from local scratch on purpose: the published
+index has to keep describing exactly the published tarballs, which a
+workspace a few crawls behind would silently change. `SHA256SUMS.txt` covers
+only the `.tgz` assets, so it does not go stale from this, and the per-law
+tarballs pick up the new `estado.json` keys on each law's next ordinary
+repack — three fields are not worth a 380 MB re-upload, and
+`empaqueta_scjn_leyes.py` falls back to the published index for a law whose
+local `estado.json` has none, so a later full repack cannot drop them.
+
+Nothing is written into a snapshot's provenance header: `vigencia` describes
+the law *today*, while a snapshot describes it at one reform in the past, and
+the on-disk snapshot format does not change. `materia` was already in the
+header (written per crawl) and stays exactly as it is.
+
+| Flag | |
+|---|---|
+| `--slug SLUG` | Only this law (repeatable); the patched index still keeps every other law's already-published fields |
+| `--outdir DIR` | Workspace holding `<outdir>/leyes/<slug>/` (default `scripts/scjn`) |
+| `--destino DIR` | Where the patched `indice-global.json.gz` is written (default `scripts/scjn/leyes-release`) |
+| `--cache-dir DIR` | `scjn-leyes` release cache to read the corpus from |
+| `--sin-descarga` | Do not download missing release assets first |
+| `--espera SEGUNDOS` | Seconds between SCJN requests |
+| `--dry-run` | Ask the SCJN and report; write nothing |
+
 ### `fetch_scjn_legislacion.py`
 
 Fase 1: covers `leyes`, the only collection left (issue #189) — which is

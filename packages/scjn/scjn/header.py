@@ -15,6 +15,25 @@ def _fecha(cadena: str) -> datetime:
 _CABECERA_CAMPO = re.compile(r"^([a-z_]+):\s*(.*)$")
 
 
+def parse_header(texto: str) -> dict:
+    """The provenance header at the top of `texto` — one snapshot's whole
+    text, however it was obtained — as a dict.
+
+    Split out of `lee_cabecera` (issue #215) for the caller that has the
+    snapshot's bytes but no file to point at: reading one straight out of a
+    `<slug>.tgz` in the release cache, where writing it to a temporary file
+    just to parse five lines would be the only alternative. `lee_cabecera` is
+    this function plus the read."""
+    campos = {}
+    for linea in texto.split("\n")[1:]:
+        if linea.strip() == "---":
+            break
+        m = _CABECERA_CAMPO.match(linea)
+        if m:
+            campos[m.group(1)] = m.group(2)
+    return campos
+
+
 def lee_cabecera(archivo: Path) -> dict:
     """The provenance header `scjn_api.cabecera` writes at the top of
     `archivo`, back
@@ -27,16 +46,7 @@ def lee_cabecera(archivo: Path) -> dict:
     file whose `ordenamiento` was already identical to what was searched
     for, which is not a missing field but `scjn_api.cabecera` declining to write a
     redundant one."""
-    texto = archivo.read_text(encoding="utf-8")
-    lineas = texto.split("\n")
-    campos = {}
-    for linea in lineas[1:]:
-        if linea.strip() == "---":
-            break
-        m = _CABECERA_CAMPO.match(linea)
-        if m:
-            campos[m.group(1)] = m.group(2)
-    return campos
+    return parse_header(archivo.read_text(encoding="utf-8"))
 
 
 @dataclass

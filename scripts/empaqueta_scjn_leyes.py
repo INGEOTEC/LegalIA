@@ -126,6 +126,7 @@ sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
 from scjn.release import (  # noqa: E402
     ASSET_INDICE_GLOBAL,
+    CAMPOS_METADATOS,
     AssetNotCached,
     construye_indice_global,
     download_scjn_leyes_index,
@@ -373,7 +374,20 @@ def escribe_indice_global(
     re-uploaded whenever the corpus changes, or a reader will resolve codigos
     against a corpus that no longer matches — the same manual step issue #148
     has to respect when it starts updating law by law.
+
+    Each law's `materia`/`vigencia`/`resumen` (issue #215) travel in from its
+    own `estado.json`, falling back to whatever the *published* index already
+    says for it — the same fallback `_load_catalog` uses for `nombre`, and for
+    the same reason: `scripts/fetch_federal_law_metadata.py` writes the fields
+    into a corpus and patches the published asset directly, so a workspace
+    whose `estado.json` predates that run must not silently republish an index
+    with the fields dropped.
     """
+    try:
+        publicados = download_scjn_leyes_index()["instrumentos"]
+    except AssetNotCached:
+        publicados = {}
+
     indice, conteos = construye_indice_global(
         [
             {
@@ -382,6 +396,11 @@ def escribe_indice_global(
                 "asset": r.asset or f"{r.slug}.tgz",
                 "snapshots": r.total_snapshots,
                 "indice": r.indice,
+                **{
+                    campo: (r.estado or {}).get(campo)
+                    or publicados.get(r.slug, {}).get(campo)
+                    for campo in CAMPOS_METADATOS
+                },
             }
             for r in resumenes
         ],

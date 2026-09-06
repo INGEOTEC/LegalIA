@@ -14,7 +14,7 @@ it as `idOrdenamiento` 188805 with 87 articles in its only reform.
 
 import unittest
 
-from scjn.api import ScjnApi
+from scjn.api import ScjnApi, instrument_metadata
 
 
 class TestApiEnVivo(unittest.TestCase):
@@ -36,6 +36,29 @@ class TestApiEnVivo(unittest.TestCase):
         self.assertEqual(len(articulos), 87)
         self.assertEqual(articulos[0].referencia, "ENCABEZADO")
         self.assertTrue(all(a.contenido for a in articulos))
+
+
+    def test_metadatos_por_ley_se_leen_por_id_no_por_ranking(self):
+        # Issue #215: `materia`/`vigencia`/`resumen` are fields of the
+        # instrument, read off the search but chosen by `idOrdenamiento`.
+        # `lft` is the law with all three; `lfca` is the one the SCJN has no
+        # `resumen` for, and both are pinned here because this behaviour is
+        # the documented exception to the docs page's "every public symbol
+        # has a verified example" rule.
+        lft = instrument_metadata(self.api, "LEY FEDERAL DEL TRABAJO", 410)
+        self.assertEqual(lft.idOrdenamiento, "410")
+        self.assertEqual(lft.vigencia, "VIGENTE")
+        self.assertTrue(lft.materia)
+        self.assertIn("relaciones de trabajo", lft.resumen)
+
+        lfca = instrument_metadata(self.api, "LEY FEDERAL DE CINE Y EL AUDIOVISUAL", 188805)
+        self.assertEqual(lfca.materia, "ADMINISTRATIVO")
+        self.assertIsNone(lfca.resumen)
+
+    def test_un_id_que_la_busqueda_no_regresa_no_inventa_un_candidato(self):
+        self.assertIsNone(
+            instrument_metadata(self.api, "LEY FEDERAL DEL TRABAJO", 999999999)
+        )
 
 
 if __name__ == "__main__":

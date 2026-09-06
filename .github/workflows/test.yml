@@ -53,7 +53,11 @@ jobs:
             ~/.cache/scjn
             ~/.cache/nota2md
             ~/.cache/dofjson
-          key: docs-doctest-cache-v2
+          # Bumped for issue #215: the cached ~/.cache/scjn still holds the
+          # pre-#215 indice-global.json.gz, and `scjn download` matches an
+          # asset by name and never revalidates it -- so without a new key
+          # this job would keep reading an index with no materia/vigencia.
+          key: docs-doctest-cache-v3
       - name: Install docs and package dependencies
         run: |
           pip install -r docs/requirements.txt
