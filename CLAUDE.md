@@ -50,7 +50,18 @@ build on each other in this sequence.
   CLI, talks to the network; issue #209). Its own cache directory
   (`scjn.cache.CACHE_DIR`, `$SCJN_CACHE_DIR`) is separate from `nota2md`'s,
   with a one-time migration out of the pre-#209 `nota2md` cache
-  (`scjn.cache.migrate_legacy_assets`, called from `nota2md download`). The
+  (`scjn.cache.migrate_legacy_assets`, called from `nota2md download`).
+  Since issue #215 every law also carries the SCJN's own `materia`,
+  `vigencia` and `resumen` — per law, never per reform, so they live in that
+  law's `estado.json` and in the release index, and **not** in a snapshot's
+  provenance header (`vigencia` is about the law today, a snapshot about one
+  reform in the past); `download_scjn_leyes_catalog` and
+  `iter_current_federal_laws` return them with no extra request, which is
+  what makes `scjn-leyes` a classified corpus.
+  `scripts/fetch_federal_law_metadata.py` fills them in from the cached
+  release — one SCJN search per law, resolved by `idOrdenamiento` and never
+  by rank (issue #115, Hallazgo C) — and patches the published
+  `indice-global.json.gz` rather than rebuilding it from local scratch. The
   API is public but has no stability contract, and the SCJN is still not an
   official source of legal text: `fuente: scjn` means what it always did, the
   DOF/SIDOF remains the official source.

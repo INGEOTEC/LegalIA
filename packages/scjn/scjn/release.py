@@ -49,6 +49,16 @@ _SCJN_LEYES_RELEASES_API = (
 #: instead of the ~380 MB the whole corpus weighs.
 ASSET_INDICE_GLOBAL = "indice-global.json.gz"
 
+#: The per-law metadata the SCJN's own search carries and this release
+#: publishes (issue #215, off #203's items 1/2/5): its subject
+#: classification, whether it is still in force, and the SCJN's own
+#: one-paragraph abstract of it. One value per law, not per reform — the
+#: `Reforma` rows carry none of the three — which is why they live in each
+#: law's `estado.json` and in `instrumentos` here, and not in a snapshot's
+#: provenance header: `vigencia` describes the law *today*, while a snapshot
+#: describes it at one reform in the past.
+CAMPOS_METADATOS = ("materia", "vigencia", "resumen")
+
 
 class AssetNotCached(Exception):
     """A release asset a reader needs is not on disk yet.
@@ -80,7 +90,8 @@ def construye_indice_global(instrumentos: list[dict], generado: str) -> tuple[di
     crawled but never linked). The result is::
 
         {"generado", "coleccion",
-         "instrumentos": {slug: {"nombre", "asset", "snapshots"}},
+         "instrumentos": {slug: {"nombre", "asset", "snapshots",
+                                 "materia"?, "vigencia"?, "resumen"?}},
          "codNota": {"4967917": [{"slug", "archivo", "title_link_status",
                                   "content_diff_confirmed_codNota",
                                   "content_diff_score"}]}}
@@ -94,6 +105,14 @@ def construye_indice_global(instrumentos: list[dict], generado: str) -> tuple[di
       silently keep whichever law happened to be packaged last. Leaving it a
       list is what lets a caller resolving a `codNota` back to its snapshot
       raise on the ambiguity instead of guessing (issue #117, D4).
+
+    `materia`/`vigencia`/`resumen` (`CAMPOS_METADATOS`, issue #215) are copied
+    from the instrument entry when it carries them — the SCJN's own
+    classification, in-force status and abstract, one value per law rather
+    than per snapshot. A law with no value for one of them simply has no such
+    key: absent, never `null`, so a reader can tell "we have not asked" from
+    "the SCJN says nothing", and so the asset does not grow by 315 nulls
+    while the fields are being backfilled.
 
     Only snapshots with a `codNota` actually linked make it in (D2): the index
     is the list of what we *know*, so an `ambiguous` or `unlinked` snapshot is
@@ -117,6 +136,10 @@ def construye_indice_global(instrumentos: list[dict], generado: str) -> tuple[di
             "asset": instrumento.get("asset") or f"{slug}.tgz",
             "snapshots": len(indice) or instrumento.get("snapshots", 0),
         }
+        for campo in CAMPOS_METADATOS:
+            valor = instrumento.get(campo)
+            if valor:
+                entradas_instrumentos[slug][campo] = valor
         if not indice:
             conteos["sin_indice"] += 1
             continue
@@ -315,9 +338,10 @@ def iter_current_federal_laws(
     slugs: list[str] | None = None, *, cache_dir=None
 ) -> Iterator[dict]:
     """The current text of every federal law the `scjn-leyes` release
-    publishes, one ``{"slug", "nombre", "fecha_publicacion", "codNota",
-    "archivo", "markdown"}`` dict per law -- "current" meaning the snapshot
-    with the newest `fecha_publicacion` in that law's own `indice.json`.
+    publishes, one ``{"slug", "nombre", "materia", "vigencia", "resumen",
+    "fecha_publicacion", "codNota", "archivo", "markdown"}`` dict per law --
+    "current" meaning the snapshot with the newest `fecha_publicacion` in
+    that law's own `indice.json`.
 
     A true generator: one `<slug>.tgz` asset is opened, its winning snapshot
     read, and the tarball's bytes dropped before the next `slug` is reached,
@@ -334,6 +358,16 @@ def iter_current_federal_laws(
     is `scjn_leyes_slugs`'s job, and the downloader's) — it simply yields
     nothing. Run `download_scjn_leyes_assets()` (or the `scjn download` CLI)
     first to populate the cache.
+
+    `materia`/`vigencia`/`resumen` (issue #215) come from the same
+    `instrumentos` entry `nombre` does, and degrade to None the same way when
+    the index is not cached. They are what makes this iterator usable as a
+    *classified* corpus — stratify by `materia`, keep only `VIGENTE` — without
+    a second pass over the release or a request to the SCJN. `vigencia` is the
+    law's status as of the last metadata run (`clasificado` in its own
+    `estado.json`), not as of the snapshot being yielded: a 1970 snapshot of a
+    law abrogated in 2014 comes back with `vigencia` `ABROGADO (A)`, which is
+    a statement about the law, not about that text.
 
     `nombre` still comes from `indice-global.json.gz`'s `instrumentos`, which
     `construye_indice_global` populates for every crawled law regardless of
@@ -407,9 +441,11 @@ def iter_current_federal_laws(
             miembro_md = tar.getmember(f"{slug}/{archivo}")
             markdown = tar.extractfile(miembro_md).read().decode("utf-8")
 
+        entrada_indice = instrumentos.get(slug, {})
         yield {
             "slug": slug,
-            "nombre": instrumentos.get(slug, {}).get("nombre"),
+            "nombre": entrada_indice.get("nombre"),
+            **{campo: entrada_indice.get(campo) for campo in CAMPOS_METADATOS},
             "fecha_publicacion": fecha_publicacion,
             "codNota": cod_nota,
             "archivo": archivo,
@@ -434,8 +470,8 @@ def _estado_de_asset(slug: str, cache_dir) -> dict:
 
 def download_scjn_leyes_catalog(*, freshness: bool = True, cache_dir=None, log=None) -> list[dict]:
     """The federal-law catalogue as the `scjn-leyes` release already publishes
-    it: one ``{"abrev", "nombre", "actualizado"}`` dict per law, sorted by
-    `abrev`.
+    it: one ``{"abrev", "nombre", "actualizado", "materia", "vigencia",
+    "resumen"}`` dict per law, sorted by `abrev`.
 
     This is the seed the Cámara de Diputados used to be scraped for — which
     laws exist, their name, their abbreviation — read back out of the release
@@ -446,6 +482,15 @@ def download_scjn_leyes_catalog(*, freshness: bool = True, cache_dir=None, log=N
     #210: `estado.json` is now the one place that value lives, once the
     one-time backfill has run), `actualizado` the date its last reform
     carried when it was crawled (issue #148).
+
+    `materia`/`vigencia`/`resumen` (issue #215) are the SCJN's own subject
+    classification, in-force status and one-paragraph abstract of the law —
+    one value per law, not per reform. They are read off the index, so they
+    come back in `freshness=False` mode too, with no tarball opened at all;
+    when a tarball *is* read, that law's own `estado.json` wins over the
+    index for them, since it is the record the next repack will publish. Each
+    is **absent** rather than None for a law the SCJN has no value for, or
+    that `scripts/fetch_federal_law_metadata.py` has not resolved yet.
 
     `actualizado` is **absent** — not None, not a placeholder — for a law whose
     `estado.json` has none, or whose tarball is not cached at all under
@@ -472,7 +517,11 @@ def download_scjn_leyes_catalog(*, freshness: bool = True, cache_dir=None, log=N
     indice = download_scjn_leyes_index(cache_dir=directorio)
     catalogo = []
     for slug in sorted(indice["instrumentos"]):
-        entrada = {"abrev": slug, "nombre": indice["instrumentos"][slug]["nombre"]}
+        entrada_indice = indice["instrumentos"][slug]
+        entrada = {"abrev": slug, "nombre": entrada_indice["nombre"]}
+        entrada.update(
+            {c: entrada_indice[c] for c in CAMPOS_METADATOS if entrada_indice.get(c)}
+        )
         if freshness:
             try:
                 estado = _estado_de_asset(slug, directorio)
@@ -485,6 +534,9 @@ def download_scjn_leyes_catalog(*, freshness: bool = True, cache_dir=None, log=N
                 entrada["abrev"] = estado["abrev"]
             if estado.get("actualizado"):
                 entrada["actualizado"] = estado["actualizado"]
+            entrada.update(
+                {campo: estado[campo] for campo in CAMPOS_METADATOS if estado.get(campo)}
+            )
         catalogo.append(entrada)
     return catalogo
 

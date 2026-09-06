@@ -746,3 +746,87 @@ class TestOffline(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMetadatosPorLey(ConCacheFixture):
+    """Issue #215: `materia`/`vigencia`/`resumen` — one value per law, off
+    the SCJN's own search — travel in `instrumentos` and come back out of
+    both readers."""
+
+    def test_construye_indice_global_los_copia_a_instrumentos(self):
+        indice, _ = release.construye_indice_global(
+            [{
+                "slug": "lft", "nombre": "LEY Federal del Trabajo", "indice": [],
+                "materia": "SEGURIDAD SOCIAL, LABORAL", "vigencia": "VIGENTE",
+                "resumen": "Ley que rige las relaciones de trabajo.",
+            }],
+            generado="2026-09-06T00:00:00+00:00",
+        )
+
+        self.assertEqual(indice["instrumentos"]["lft"], {
+            "nombre": "LEY Federal del Trabajo", "asset": "lft.tgz", "snapshots": 0,
+            "materia": "SEGURIDAD SOCIAL, LABORAL", "vigencia": "VIGENTE",
+            "resumen": "Ley que rige las relaciones de trabajo.",
+        })
+
+    def test_un_campo_sin_valor_queda_ausente_no_en_none(self):
+        # La SCJN no tiene resumen para `lfca`; el asset no crece 315 nulls
+        # mientras se rellenan los campos.
+        indice, _ = release.construye_indice_global(
+            [{"slug": "lfca", "nombre": "LEY Federal de Cine y el Audiovisual",
+              "indice": [], "materia": "ADMINISTRATIVO", "vigencia": "VIGENTE",
+              "resumen": None}],
+            generado="x",
+        )
+
+        self.assertNotIn("resumen", indice["instrumentos"]["lfca"])
+        self.assertEqual(indice["instrumentos"]["lfca"]["materia"], "ADMINISTRATIVO")
+
+    def test_el_catalogo_los_regresa_sin_abrir_un_solo_tarball(self):
+        self._publica_indice({}, {"lft": {
+            "nombre": "LEY Federal del Trabajo", "asset": "lft.tgz", "snapshots": 2,
+            "materia": "SEGURIDAD SOCIAL, LABORAL", "vigencia": "VIGENTE",
+            "resumen": "Ley que rige las relaciones de trabajo.",
+        }})
+
+        catalogo = release.download_scjn_leyes_catalog(freshness=False, cache_dir=self.tmp)
+
+        self.assertEqual(catalogo, [{
+            "abrev": "lft", "nombre": "LEY Federal del Trabajo",
+            "materia": "SEGURIDAD SOCIAL, LABORAL", "vigencia": "VIGENTE",
+            "resumen": "Ley que rige las relaciones de trabajo.",
+        }])
+
+    def test_el_estado_json_de_la_ley_le_gana_al_indice(self):
+        # El `estado.json` es el registro que el siguiente reempaquetado
+        # publica; el indice puede venir de una corrida anterior.
+        self._publica_indice({}, {"lft": {"nombre": "LEY Federal del Trabajo",
+                                          "asset": "lft.tgz", "snapshots": 1,
+                                          "vigencia": "VIGENTE"}})
+        self._publica_tgz("lft", **{"lft/estado.json": json.dumps({
+            "actualizado": "2026-05-14", "vigencia": "ABROGADO (A)",
+            "materia": "LABORAL", "clasificado": "2026-09-06"})})
+
+        [entrada] = release.download_scjn_leyes_catalog(cache_dir=self.tmp)
+
+        self.assertEqual(entrada["vigencia"], "ABROGADO (A)")
+        self.assertEqual(entrada["materia"], "LABORAL")
+        self.assertNotIn("clasificado", entrada)
+
+    def test_iter_current_federal_laws_los_entrega_con_el_texto(self):
+        self._publica_indice({}, {"lft": {
+            "nombre": "LEY Federal del Trabajo", "asset": "lft.tgz", "snapshots": 1,
+            "materia": "SEGURIDAD SOCIAL, LABORAL", "vigencia": "VIGENTE",
+        }})
+        self._publica_tgz("lft", **{
+            "lft/indice.json": json.dumps(
+                [{"archivo": "a.md", "fecha_publicacion": "01-05-2019", "codNota": 1}]
+            ),
+            "lft/a.md": "LFT",
+        })
+
+        [ley] = list(release.iter_current_federal_laws(cache_dir=self.tmp))
+
+        self.assertEqual(ley["materia"], "SEGURIDAD SOCIAL, LABORAL")
+        self.assertEqual(ley["vigencia"], "VIGENTE")
+        self.assertIsNone(ley["resumen"])

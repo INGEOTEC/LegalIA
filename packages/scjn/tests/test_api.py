@@ -10,7 +10,7 @@ import json
 import unittest
 from pathlib import Path
 
-from scjn.api import ScjnApi, ScjnApiError, ScjnApiWafError
+from scjn.api import ScjnApi, ScjnApiError, ScjnApiWafError, instrument_metadata
 
 FIXTURES = Path(__file__).parent / "fixtures" / "scjn_api"
 
@@ -655,3 +655,92 @@ class TestPaginacion(unittest.TestCase):
             len(resultado.escritos) + len(resultado.reformas_sin_articulos),
             resultado.total_reformas,
         )
+
+
+class TestInstrumentMetadata(unittest.TestCase):
+    """Issue #215: `materia`/`vigencia`/`resumen` are fields of the
+    instrument, and the only way to read them is a search — which is exactly
+    where issue #115's Hallazgo C lives. So the lookup is by
+    `idOrdenamiento`, never by rank."""
+
+    @staticmethod
+    def _hit(id_ordenamiento, **campos):
+        base = {
+            "idOrdenamiento": id_ordenamiento,
+            "ordenamiento": "LEY FEDERAL DEL TRABAJO",
+            "iweight": 36,
+            "vigencia": "VIGENTE",
+            "ambito": "FEDERAL",
+            "categoriaOrdenamiento": "LEY",
+            "materia": "SEGURIDAD SOCIAL, LABORAL",
+            "resumen": "Ley que rige las relaciones de trabajo.",
+            "fechaPublicado": "14/05/2026 00:00:00",
+        }
+        base.update(campos)
+        return base
+
+    @staticmethod
+    def _respuesta(hits):
+        return RespuestaFalsa({"tamanio": len(hits), "codigo": 200, "resultados": hits})
+
+    def test_la_busqueda_lee_el_resumen(self):
+        cliente, _ = api([self._respuesta([self._hit("410")])])
+
+        (hit,) = cliente.search_ordenamiento("LEY FEDERAL DEL TRABAJO")
+
+        self.assertEqual(hit.resumen, "Ley que rige las relaciones de trabajo.")
+        self.assertEqual(hit.materia, "SEGURIDAD SOCIAL, LABORAL")
+        self.assertEqual(hit.vigencia, "VIGENTE")
+
+    def test_un_resumen_nulo_o_vacio_queda_en_none(self):
+        # `busqueda_lfca.json` is the real thing: the SCJN has no abstract
+        # for that law and answers `"resumen": null`.
+        cliente, _ = api([RespuestaFalsa(fixture("busqueda_lfca.json"))])
+
+        (hit,) = cliente.search_ordenamiento("LEY FEDERAL DE CINE Y EL AUDIOVISUAL")
+
+        self.assertIsNone(hit.resumen)
+
+    def test_elige_por_id_no_por_ranking(self):
+        # The first hit outranks it and is a different document -- the
+        # failure mode issue #115 found. Only the id decides.
+        cliente, _ = api([self._respuesta([
+            self._hit("999", ordenamiento="REGLAMENTO DE LA LEY FEDERAL DEL TRABAJO",
+                      iweight=99, materia="ADMINISTRATIVO"),
+            self._hit("410"),
+        ])])
+
+        hit = instrument_metadata(cliente, "LEY FEDERAL DEL TRABAJO", 410)
+
+        self.assertEqual(hit.idOrdenamiento, "410")
+        self.assertEqual(hit.materia, "SEGURIDAD SOCIAL, LABORAL")
+
+    def test_sin_ese_id_regresa_none_en_vez_del_mejor_candidato(self):
+        cliente, _ = api([self._respuesta([self._hit("999")])])
+
+        self.assertIsNone(instrument_metadata(cliente, "LEY FEDERAL DEL TRABAJO", 410))
+
+    def test_una_pagina_corta_es_la_ultima_y_no_pide_otra(self):
+        cliente, sesion = api([self._respuesta([self._hit("999")])])
+
+        instrument_metadata(cliente, "LEY FEDERAL DEL TRABAJO", 410, tamanio_pagina=50)
+
+        self.assertEqual(len(sesion.llamadas), 1)
+
+    def test_pagina_mientras_la_pagina_venga_llena(self):
+        llena = self._respuesta([self._hit(str(i)) for i in range(3)])
+        cliente, sesion = api([llena, self._respuesta([self._hit("410")])])
+
+        hit = instrument_metadata(cliente, "LEY FEDERAL DEL TRABAJO", 410, tamanio_pagina=3)
+
+        self.assertEqual(hit.idOrdenamiento, "410")
+        self.assertEqual([llamada[2]["json"]["numeroPagina"] for llamada in sesion.llamadas], [1, 2])
+
+    def test_no_pasa_de_paginas_aunque_siga_habiendo(self):
+        llenas = [self._respuesta([self._hit(str(i)) for i in range(3)]) for _ in range(5)]
+        cliente, sesion = api(llenas)
+
+        self.assertIsNone(
+            instrument_metadata(cliente, "LEY", 410, paginas=2, tamanio_pagina=3)
+        )
+        self.assertEqual(len(sesion.llamadas), 2)

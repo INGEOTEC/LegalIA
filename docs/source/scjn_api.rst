@@ -116,6 +116,24 @@ caller would narrow it with ``--slug``:
 >>> laws[0]["codNota"]
 5788357
 
+Each law also carries the SCJN's own ``materia`` (its subject
+classification), ``vigencia`` (whether it is still in force — seven values,
+not a boolean) and ``resumen`` (a one-paragraph abstract), read off the same
+index ``nombre`` comes from. They are properties of the *law*, not of the
+snapshot being yielded, which is what makes this iterator usable as a
+classified corpus — stratify by ``materia``, keep only ``VIGENTE`` — without
+a second pass or a request to the SCJN (issue #215):
+
+>>> sorted(laws[0])
+['archivo', 'codNota', 'fecha_publicacion', 'markdown', 'materia', 'nombre', 'resumen', 'slug', 'vigencia']
+>>> laws[0]["materia"]
+'ADMINISTRATIVO'
+
+``lfca`` is also the illustration of "absent, never a placeholder": the SCJN
+publishes no abstract for it, so ``resumen`` is ``None`` here and the key is
+missing outright from the catalogue entry below, rather than carrying a null
+that would read as "the SCJN says nothing" when it means "nobody asked".
+
 :py:func:`~scjn.local_slugs` is the disk-first answer to "which laws does
 this machine have" — no HTTP request, and what ``slugs=None`` above resolves
 through:
@@ -132,8 +150,20 @@ and answers off the index alone:
 >>> catalogo = scjn.download_scjn_leyes_catalog(freshness=False)
 >>> len(catalogo) > 100
 True
->>> {"abrev": "lfca", "nombre": "LEY Federal de Cine y el Audiovisual"} in catalogo
-True
+>>> entrada = next(e for e in catalogo if e["abrev"] == "lfca")
+>>> entrada["nombre"]
+'LEY Federal de Cine y el Audiovisual'
+>>> entrada["materia"], entrada["vigencia"]
+('ADMINISTRATIVO', 'VIGENTE')
+>>> "resumen" in entrada
+False
+
+The three metadata fields come from the index too, so they survive
+``freshness=False``; with ``freshness=True`` a law's own ``estado.json``
+wins over the index for them, since that is the record its next repack
+publishes. ``scripts/fetch_federal_law_metadata.py`` is what writes them
+(one SCJN search per law, matched by ``idOrdenamiento`` so a wrong document
+can never be described as the right one).
 
 A ``codNota``/law/asset not yet cached raises :py:exc:`~scjn.AssetNotCached`,
 naming the exact ``scjn download`` command that populates it:
@@ -160,7 +190,8 @@ replaced this project's legacy WebForms crawler (issue #172, retired in
 SCJN's own uptime, and crawling is not a caller-facing API the way the
 readers above are — a caller never instantiates :py:class:`~scjn.api.ScjnApi`
 directly, only the ``scjn download`` CLI (or
-``scripts/fetch_scjn_legislacion.py``) does. This behaviour is instead
+``scripts/fetch_scjn_legislacion.py`` /
+``scripts/fetch_federal_law_metadata.py``) does. This behaviour is instead
 verified for real, against the live service, by
 ``packages/scjn/tests/test_api_red.py`` — not silently skipped, exactly the
 mechanism :doc:`dof2md_api`'s OCR paths already use for ``mineru``.
@@ -204,6 +235,19 @@ only way to see a gap in the middle of an otherwise current-looking law
 The provenance header :py:func:`scjn.api.cabecera` writes at the top of
 every snapshot, read back without re-fetching it — what lets a later pass
 work over a crawl's output independently of the crawl itself.
+:py:func:`~scjn.header.parse_header` is that parser over text rather than
+over a file, for a caller holding a snapshot read straight out of a
+``<slug>.tgz``:
+
+>>> from scjn.header import parse_header
+>>> cabecera = parse_header(scjn.markdown_de_snapshot("lfca", "22-05-2026.md"))
+>>> cabecera["ordenamiento"]
+'LEY FEDERAL DE CINE Y EL AUDIOVISUAL'
+>>> cabecera["id_ordenamiento"]
+'188805'
+
+:py:func:`~scjn.header.lee_cabecera` is the same thing plus the read, for a
+snapshot already on disk.
 
 .. automodule:: scjn.header
    :members:

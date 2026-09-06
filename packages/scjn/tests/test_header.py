@@ -73,3 +73,28 @@ class TestVersionesDeDirectorio(unittest.TestCase):
             self.assertEqual(
                 [v.archivo.name for v in versiones], ["14-06-2024.md", "14-06-2024-2.md"]
             )
+
+
+class TestParseHeader(unittest.TestCase):
+    """Issue #215: the same parser, over text that never was a file — a
+    snapshot read straight out of a `<slug>.tgz` in the release cache."""
+
+    def test_lee_los_campos_sin_tocar_el_disco(self):
+        texto = (
+            "---\nfuente: scjn\nordenamiento: LEY FEDERAL DEL TRABAJO\n"
+            "materia: SEGURIDAD SOCIAL, LABORAL\nid_ordenamiento: 410\n---\n\ntexto\n"
+        )
+
+        campos = header.parse_header(texto)
+
+        self.assertEqual(campos["ordenamiento"], "LEY FEDERAL DEL TRABAJO")
+        self.assertEqual(campos["id_ordenamiento"], "410")
+        self.assertEqual(campos["materia"], "SEGURIDAD SOCIAL, LABORAL")
+
+    def test_se_detiene_en_el_cierre_del_encabezado(self):
+        texto = "---\nfuente: scjn\n---\n\nordenamiento: no soy encabezado\n"
+
+        self.assertEqual(header.parse_header(texto), {"fuente": "scjn"})
+
+    def test_un_texto_sin_encabezado_da_un_dict_vacio(self):
+        self.assertEqual(header.parse_header("**TEXTO ORIGINAL.**\n"), {})

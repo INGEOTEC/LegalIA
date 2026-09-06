@@ -172,6 +172,14 @@ narrow it with ``--slug``:
 >>> laws[0]["codNota"]
 5788357
 
+Each law carries its own ``materia``/``vigencia``/``resumen`` too — the
+SCJN's subject classification, in-force status and one-paragraph abstract,
+one value per law rather than per snapshot (issue #215); see
+:doc:`scjn_api`, where the readers themselves live:
+
+>>> laws[0]["materia"], laws[0]["vigencia"]
+('ADMINISTRATIVO', 'VIGENTE')
+
 :py:func:`~nota2md.download_scjn_leyes_catalog` reads the federal-law
 catalogue the release already publishes — the seed the Cámara de Diputados
 used to be scraped for (issue #184). ``freshness=False`` skips every law's
@@ -181,8 +189,12 @@ own tarball (the default reads all ~315 of them, ~380 MB, for the
 >>> catalogo = nota2md.download_scjn_leyes_catalog(freshness=False)
 >>> len(catalogo) > 100
 True
->>> {"abrev": "lfca", "nombre": "LEY Federal de Cine y el Audiovisual"} in catalogo
-True
+>>> next(e for e in catalogo if e["abrev"] == "lfca")
+{'abrev': 'lfca', 'nombre': 'LEY Federal de Cine y el Audiovisual', 'materia': 'ADMINISTRATIVO', 'vigencia': 'VIGENTE'}
+
+``resumen`` is missing from that entry rather than null: the SCJN publishes
+no abstract for ``lfca``, and absent is how this catalogue says "no value"
+(issue #215).
 
 ``nota2md.linking`` — the ``codNota`` linking seam
 ------------------------------------------------------
