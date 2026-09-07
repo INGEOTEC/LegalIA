@@ -44,9 +44,19 @@ from md2akn.model import (
     Annotation,
 )
 from md2akn.pipeline import parse_legal_provisions, parse_markdown
+from md2akn.units import (
+    DEFAULT_SPLIT_CAP,
+    Coverage,
+    LeafRef,
+    TextUnit,
+    coverage,
+    leaf_map,
+    normalize,
+    text_units,
+)
 from md2akn.validate import Report, Violation, validate
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "parse_legal_provisions",
@@ -59,4 +69,12 @@ __all__ = [
     "validate",
     "Report",
     "Violation",
+    "text_units",
+    "normalize",
+    "leaf_map",
+    "coverage",
+    "TextUnit",
+    "LeafRef",
+    "Coverage",
+    "DEFAULT_SPLIT_CAP",
 ]

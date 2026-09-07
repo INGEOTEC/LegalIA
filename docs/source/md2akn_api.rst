@@ -344,3 +344,102 @@ False
    :members:
    :private-members:
    :undoc-members:
+
+``md2akn.units`` — every text of a law, ready to embed (issue #218)
+------------------------------------------------------------------------
+
+:py:func:`~md2akn.text_units` turns a parsed tree into the flat list of
+texts a vector-per-law build actually embeds — one per article (or one per
+*piece*, past a length cap), one per container epigraph, loose content
+grouped up to the same cap, and one each for the preamble and the closing
+signatures. It extends :py:func:`~md2akn.validate`'s article-only view
+rather than replacing it: the container epigraphs, the transitorios, the
+enacting formula and the closing rubric are real legal text too, and
+:py:func:`~md2akn.coverage` turns "the whole law is represented" into
+numbers a caller can check. Two things are deliberately never embedded —
+the frontmatter on ``tree.meta`` and a reform :py:class:`~md2akn.Annotation`
+— and both are accounted for separately rather than silently dropped.
+
+Our fixture's ``Artículo 1o.`` carries a reform annotation right before it;
+it never reaches any unit's text, but the coverage figures below still
+account for its characters:
+
+>>> units = md2akn.text_units(FIXTURE)
+>>> [(u.unit_type, u.eId) for u in units]
+[('heading', 'tit_PRIMERO'), ('heading', 'tit_PRIMERO__cap_I'), ('article', 'tit_PRIMERO__cap_I__art_1o'), ('article', 'tit_PRIMERO__cap_I__art_2o'), ('heading', 'sec_transitorios'), ('article', 'sec_transitorios__art_PRIMERO')]
+>>> art1 = next(u for u in units if u.eId == "tit_PRIMERO__cap_I__art_1o")
+>>> "REFORMADO" in art1.text
+False
+>>> art1.text
+'**ARTICULO 1o.-** Son obligaciones de los patrones: I.- Cumplir las disposiciones de las normas de trabajo; II.- Pagar a los trabajadores los salarios e indemnizaciones, conforme a lo siguiente: a) El salario se pagará en el lugar de trabajo; b) El pago se hará en moneda de curso legal;'
+
+A container epigraph is its own ``heading`` unit, and it — like a ``loose``
+unit — always carries its ancestor ``path`` (rule 7): the containers it sits
+inside, outermost first, prefixed with the law's own name when the
+frontmatter has one (this fixture's does not):
+
+>>> cap = next(u for u in units if u.eId == "tit_PRIMERO__cap_I")
+>>> cap.path
+('TÍTULO PRIMERO Disposiciones Generales',)
+>>> cap.text
+'TÍTULO PRIMERO Disposiciones Generales **CAPITULO I** Del Objeto'
+
+:py:func:`~md2akn.coverage` is the invariant as data: every non-whitespace
+character is frontmatter, an annotation, or embedded in some unit — never
+none of the three:
+
+>>> tree = md2akn.parse_markdown(FIXTURE)
+>>> cov = md2akn.coverage(tree, units)
+>>> cov.uncovered_chars
+0
+>>> cov.annotation_chars  # the REFORMADO note above art1, and nothing else
+50
+
+:py:func:`~md2akn.leaf_map` answers the reverse question, recovered from
+``units`` by character-range containment rather than carried alongside them
+— every leaf eId this tree has, and which unit's text carries it:
+
+>>> refs = md2akn.leaf_map(tree, units)
+>>> [(r.eId, r.unit_eId) for r in refs if r.unit_eId == "tit_PRIMERO__cap_I__art_1o"]
+[('tit_PRIMERO__cap_I__art_1o__p_1', 'tit_PRIMERO__cap_I__art_1o'), ('tit_PRIMERO__cap_I__art_1o__para_I', 'tit_PRIMERO__cap_I__art_1o'), ('tit_PRIMERO__cap_I__art_1o__para_II__point_a', 'tit_PRIMERO__cap_I__art_1o'), ('tit_PRIMERO__cap_I__art_1o__para_II__point_b', 'tit_PRIMERO__cap_I__art_1o')]
+
+Every leaf under ``art1`` — its chapeau, both fracciones, both incisos —
+belongs to the *same* unit, ``piece=0``: the article was short enough that
+rule 2 keeps it whole. Past :py:data:`~md2akn.DEFAULT_SPLIT_CAP` characters
+(normalized), rule 3 instead splits it at its own direct children, chapeau
+first, each later piece re-prefixed with the chapeau so the coverage
+invariant still holds piece by piece:
+
+>>> long_article = (
+...     "**ARTICULO 9o.-** Son obligaciones de los patrones:\n\n"
+...     "I.- Cumplir las disposiciones de las normas de trabajo;\n\n"
+...     "II.- Pagar a los trabajadores los salarios e indemnizaciones;\n"
+... )
+>>> pieces = md2akn.text_units(long_article, cap=10)
+>>> [(u.piece, u.piece_eId) for u in pieces]
+[(1, 'art_9o__p_1'), (2, 'art_9o__para_I'), (3, 'art_9o__para_II')]
+>>> pieces[1].text
+'**ARTICULO 9o.-** Son obligaciones de los patrones: I.- Cumplir las disposiciones de las normas de trabajo;'
+
+:py:func:`~md2akn.normalize` is the one function used for both the hash and
+the embedded text (so a query normalized the same way lands on the same
+text a unit did) — whitespace folding only, nothing a model would object to:
+
+>>> md2akn.normalize("  Son   obligaciones\n\nde los patrones.  ")
+'Son obligaciones de los patrones.'
+
+Which of the two templates an article's own text follows —
+``"bare"`` (the default, no prefix) or ``"contextual"`` (the law's name and
+the article's own number) — is a manifest field, never a code edit
+(:py:func:`~md2akn.text_units`'s own ``template`` argument), because #217's
+own open question — whether an article needs that context to be findable —
+is decided per published vector set, not in this package:
+
+>>> contextual = md2akn.text_units(long_article, cap=10_000, template="contextual")
+>>> contextual[0].text
+'Artículo 9o. **ARTICULO 9o.-** Son obligaciones de los patrones: I.- Cumplir las disposiciones de las normas de trabajo; II.- Pagar a los trabajadores los salarios e indemnizaciones;'
+
+.. automodule:: md2akn.units
+   :members:
+   :private-members:
+   :undoc-members:

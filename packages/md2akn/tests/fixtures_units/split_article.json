@@ -1,0 +1,77 @@
+{
+  "coverage": {
+    "total_chars": 632,
+    "frontmatter_chars": 0,
+    "annotation_chars": 37,
+    "covered_chars": 595,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "article_piece",
+      "eId": "art_4o",
+      "piece": 1,
+      "piece_eId": "art_4o__p_1",
+      "akn_type": "article",
+      "num": "4o",
+      "path": [],
+      "text": "**ARTICULO 4o.-** Son obligaciones de los patrones, entre otras, las siguientes:",
+      "text_sha1": "dacbc0cdcd9e7200e8225f742cd7b63b712d6e20"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_4o",
+      "piece": 2,
+      "piece_eId": "art_4o__para_I",
+      "akn_type": "article",
+      "num": "4o",
+      "path": [],
+      "text": "**ARTICULO 4o.-** Son obligaciones de los patrones, entre otras, las siguientes: I.- Cumplir las disposiciones de las normas de trabajo aplicables a sus establecimientos;",
+      "text_sha1": "fbd5f4e22f30d4432675c979e5d143c5ccfe28ff"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_4o",
+      "piece": 3,
+      "piece_eId": "art_4o__para_II",
+      "akn_type": "article",
+      "num": "4o",
+      "path": [],
+      "text": "**ARTICULO 4o.-** Son obligaciones de los patrones, entre otras, las siguientes: II.- Pagar a los trabajadores los salarios e indemnizaciones, de conformidad con las normas vigentes;",
+      "text_sha1": "7720869f9531b18eaebb3458571c91793fc02415"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_4o",
+      "piece": 4,
+      "piece_eId": "art_4o__para_III",
+      "akn_type": "article",
+      "num": "4o",
+      "path": [],
+      "text": "**ARTICULO 4o.-** Son obligaciones de los patrones, entre otras, las siguientes: III.- Proporcionar oportunamente a los trabajadores los útiles, instrumentos y materiales necesarios;",
+      "text_sha1": "5bdd74478833b2e13b10e28251b62d2792e84cbf"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_4o",
+      "piece": 5,
+      "piece_eId": "art_4o__p_2",
+      "akn_type": "article",
+      "num": "4o",
+      "path": [],
+      "text": "**ARTICULO 4o.-** Son obligaciones de los patrones, entre otras, las siguientes: Las obligaciones anteriores son irrenunciables para el patrón y se entienden incorporadas a todo contrato.",
+      "text_sha1": "423ad93f565e5c37a0273d447d0c237db7501ce8"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_5o",
+      "piece": 1,
+      "piece_eId": "art_5o__p_1",
+      "akn_type": "article",
+      "num": "5o",
+      "path": [],
+      "text": "**ARTICULO 5o.-** Un artículo de un solo párrafo, sin lista alguna, que por sí mismo basta para forzar más de una pieza cuando el tope de corte es pequeño y el texto normalizado excede ese tope con holgura suficiente.",
+      "text_sha1": "31afe6a68b663a1cf55a9f022aa14e230856019a"
+    }
+  ]
+}
