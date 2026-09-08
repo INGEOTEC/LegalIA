@@ -1,0 +1,131 @@
+{
+  "coverage": {
+    "total_chars": 632,
+    "frontmatter_chars": 43,
+    "annotation_chars": 0,
+    "covered_chars": 589,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos. VENUSTIANO CARRANZA, hago saber: ha tenido a bien expedir la siguiente:",
+      "text_sha1": "7b607fccd0a8171a22d891f9c4f8972228792982"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "tit_PRIMERO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "title",
+      "num": "PRIMERO",
+      "path": [
+        "LEY DE PRUEBA"
+      ],
+      "text": "LEY DE PRUEBA **TITULO PRIMERO.** **DISPOSICIONES GENERALES.**",
+      "text_sha1": "9dd0466800c13bf9dda349c422dd5f08eadfca2a"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "tit_PRIMERO__cap_I",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "chapter",
+      "num": "I",
+      "path": [
+        "LEY DE PRUEBA",
+        "TÍTULO PRIMERO DISPOSICIONES GENERALES"
+      ],
+      "text": "LEY DE PRUEBA > TÍTULO PRIMERO DISPOSICIONES GENERALES **CAPITULO I.** **DEL OBJETO DE LA LEY.**",
+      "text_sha1": "78e2d6c4c07966c6de0a9ac61af91d38be14d925"
+    },
+    {
+      "unit_type": "article",
+      "eId": "tit_PRIMERO__cap_I__art_1o",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "1o",
+      "path": [
+        "LEY DE PRUEBA",
+        "TÍTULO PRIMERO DISPOSICIONES GENERALES",
+        "CAPÍTULO I DEL OBJETO DE LA LEY"
+      ],
+      "text": "**Articulo 1o.** La presente Ley es de orden publico.",
+      "text_sha1": "afa076f00a3af7f003495151ddd3f8dc7476665e"
+    },
+    {
+      "unit_type": "article",
+      "eId": "tit_PRIMERO__cap_I__art_2o",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "2o",
+      "path": [
+        "LEY DE PRUEBA",
+        "TÍTULO PRIMERO DISPOSICIONES GENERALES",
+        "CAPÍTULO I DEL OBJETO DE LA LEY"
+      ],
+      "text": "**Articulo 2o.** Para los efectos de esta Ley se entiende por lo siguiente. Esta fila queda suelta bajo el capitulo, sin marcador de lista.",
+      "text_sha1": "a4b1712228857f38b05f5ebf973de9e71e1cc970"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "sec_transitorios",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "section",
+      "num": "transitorios",
+      "path": [
+        "LEY DE PRUEBA"
+      ],
+      "text": "LEY DE PRUEBA ## Transitorios",
+      "text_sha1": "d510bb40af61c8f0fb44ec7774ec360466fb5ea3"
+    },
+    {
+      "unit_type": "article",
+      "eId": "sec_transitorios__art_Primero",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "Primero",
+      "path": [
+        "LEY DE PRUEBA",
+        "TRANSITORIOS"
+      ],
+      "text": "**Primero.** El presente Decreto entrara en vigor al dia siguiente de su publicacion.",
+      "text_sha1": "576d8fc8bf7737a65f964ce257e2580ad99ba342"
+    },
+    {
+      "unit_type": "article",
+      "eId": "sec_transitorios__art_Segundo",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "Segundo",
+      "path": [
+        "LEY DE PRUEBA",
+        "TRANSITORIOS"
+      ],
+      "text": "**Segundo.** Se derogan las disposiciones que se opongan al presente Decreto.",
+      "text_sha1": "eda787ddc1f40ae7ab2211572afc3b9d72b73ee9"
+    },
+    {
+      "unit_type": "conclusions",
+      "eId": "conclusions",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "conclusions",
+      "num": null,
+      "path": [],
+      "text": "Ciudad de Mexico, a 15 de abril de 2026.- Dip. Fulano, Presidente.- Rubricas.",
+      "text_sha1": "fc44a80526e3a1e12340b235b67941cb2b939af9"
+    }
+  ]
+}

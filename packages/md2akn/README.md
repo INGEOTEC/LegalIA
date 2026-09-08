@@ -301,8 +301,52 @@ pip install md2akn
 pip install -e "packages/md2akn[test]"    # for development in this monorepo
 ```
 
+## `text_units` — every text of a law, ready to embed
+
+`text_units(source)` turns a parsed tree into the flat list of texts a
+vector-per-law build actually embeds (issue #218, the plan for #217's
+research): one per article — or one per *piece*, past
+`DEFAULT_SPLIT_CAP` characters — one per container epigraph, loose content
+grouped up to the same cap, and one each for the preamble and the closing
+signatures. `coverage(tree, units)` is the invariant this is built around,
+as data: every non-whitespace character is frontmatter, a reform annotation
+(never embedded — both are metadata, not text), or covered by some unit,
+never none of the three.
+
+```python
+from md2akn import parse_legal_provisions, text_units, coverage, leaf_map
+
+ley = parse_legal_provisions("lft/01-10-2024.md")
+units = text_units(ley)                 # source also accepts the raw Markdown str
+cov = coverage(ley, units)
+cov.uncovered_chars                     # 0 on a well-formed law
+
+leaf_map(ley, units)                    # every leaf eId -> the unit that carries it
+```
+
+`normalize(text)` is the one function used for both the hash (`text_sha1`,
+for dedup) and the embedded text itself, so a query normalized the same way
+lands on the same text a corpus unit did — whitespace folding only, nothing
+a model would object to. Whether an article's own text carries the law's
+name and its own number (`template="contextual"`) or neither
+(`template="bare"`, the default) is a manifest field a caller picks per
+published vector set, never a code edit — `heading`/`loose` units carry
+their ancestor path either way.
+
 ## Development
 
 ```bash
-pytest packages/md2akn
+pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_sweep.py
 ```
+
+The excluded test sweeps `coverage()`'s invariant over the whole cached
+`scjn-leyes` release (~4.5 minutes, and a ~300 MB local cache not every
+machine has) rather than over a handful of fixtures — see its own module
+docstring.
+
+## Changelog
+
+- **0.2.0** — `md2akn.units`: `text_units`, `normalize`, `leaf_map`,
+  `coverage`, and the `TextUnit`/`LeafRef`/`Coverage` dataclasses (issue
+  #218, Fase 1 of the plan for #217's "a vector for every text of every
+  federal law"). No change to the tree `parse_legal_provisions` builds.

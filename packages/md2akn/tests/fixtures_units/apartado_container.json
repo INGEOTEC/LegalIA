@@ -1,0 +1,119 @@
+{
+  "coverage": {
+    "total_chars": 380,
+    "frontmatter_chars": 43,
+    "annotation_chars": 0,
+    "covered_chars": 337,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "heading",
+      "eId": "tit_PRIMERO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "title",
+      "num": "PRIMERO",
+      "path": [
+        "LEY DE PRUEBA"
+      ],
+      "text": "LEY DE PRUEBA **TITULO PRIMERO** Disposiciones generales",
+      "text_sha1": "cf884f9e8140fb4b2ec2623426c2804800a77a73"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "tit_PRIMERO__cap_I",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "chapter",
+      "num": "I",
+      "path": [
+        "LEY DE PRUEBA",
+        "TÍTULO PRIMERO Disposiciones generales"
+      ],
+      "text": "LEY DE PRUEBA > TÍTULO PRIMERO Disposiciones generales **CAPITULO I** De los recursos",
+      "text_sha1": "e6a77ff36cd445d06a207a51c00ff724b566ee06"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "tit_PRIMERO__cap_I__sec_II",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "section",
+      "num": "II",
+      "path": [
+        "LEY DE PRUEBA",
+        "TÍTULO PRIMERO Disposiciones generales",
+        "CAPÍTULO I De los recursos"
+      ],
+      "text": "LEY DE PRUEBA > TÍTULO PRIMERO Disposiciones generales > CAPÍTULO I De los recursos **SECCION II** Apelacion",
+      "text_sha1": "f0421d8113cd59a46b1838c6130bf6255d9011bd"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "tit_PRIMERO__cap_I__sec_II__lvl_I",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "level",
+      "num": "I",
+      "path": [
+        "LEY DE PRUEBA",
+        "TÍTULO PRIMERO Disposiciones generales",
+        "CAPÍTULO I De los recursos",
+        "SECCIÓN II Apelacion"
+      ],
+      "text": "LEY DE PRUEBA > TÍTULO PRIMERO Disposiciones generales > CAPÍTULO I De los recursos > SECCIÓN II Apelacion **APARTADO I** Reglas generales de la apelacion",
+      "text_sha1": "31afb788ddd8e231cfa9553e93306e455a8fd44e"
+    },
+    {
+      "unit_type": "article",
+      "eId": "tit_PRIMERO__cap_I__sec_II__lvl_I__art_428",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "428",
+      "path": [
+        "LEY DE PRUEBA",
+        "TÍTULO PRIMERO Disposiciones generales",
+        "CAPÍTULO I De los recursos",
+        "SECCIÓN II Apelacion",
+        "APARTADO I Reglas generales de la apelacion"
+      ],
+      "text": "**Articulo 428.** Resoluciones del Juez de control apelables. Seran apelables las que se indican a continuacion.",
+      "text_sha1": "93574bf38ceb4652c8548a8186da1f874a6ec591"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "tit_PRIMERO__cap_I__sec_II__lvl_II",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "level",
+      "num": "II",
+      "path": [
+        "LEY DE PRUEBA",
+        "TÍTULO PRIMERO Disposiciones generales",
+        "CAPÍTULO I De los recursos",
+        "SECCIÓN II Apelacion"
+      ],
+      "text": "LEY DE PRUEBA > TÍTULO PRIMERO Disposiciones generales > CAPÍTULO I De los recursos > SECCIÓN II Apelacion **APARTADO II** Tramite de apelacion",
+      "text_sha1": "1459196d3ef4e1fb644125d0909bebcdd1a627f0"
+    },
+    {
+      "unit_type": "article",
+      "eId": "tit_PRIMERO__cap_I__sec_II__lvl_II__art_432",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "432",
+      "path": [
+        "LEY DE PRUEBA",
+        "TÍTULO PRIMERO Disposiciones generales",
+        "CAPÍTULO I De los recursos",
+        "SECCIÓN II Apelacion",
+        "APARTADO II Tramite de apelacion"
+      ],
+      "text": "**Articulo 432.** Tramite de la apelacion. El recurso se sustanciara conforme a lo siguiente.",
+      "text_sha1": "f5211416ac00c08c0140dbac3c40fdafe905e86f"
+    }
+  ]
+}

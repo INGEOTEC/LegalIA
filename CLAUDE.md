@@ -339,6 +339,15 @@ pytest packages/scjn -q --ignore=packages/scjn/tests/test_api_red.py \
     --ignore=packages/scjn/tests/test_release_red.py
 ```
 
+A fourth test file is excluded for a different reason — not network, but
+wall-clock time plus a ~300 MB local cache not every machine has: issue
+#218's `md2akn.units.coverage()` invariant, swept over the whole cached
+`scjn-leyes` release (~4.5 minutes) rather than over a handful of fixtures.
+
+```bash
+pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_sweep.py
+```
+
 The website's notebooks are committed without their outputs, via an
 `nbstripout` clean filter (`.gitattributes` maps `*.ipynb` to it). The filter
 itself lives in `.git/config`, which is not versioned. The devcontainer
