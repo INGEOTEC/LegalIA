@@ -830,3 +830,218 @@ class TestMetadatosPorLey(ConCacheFixture):
         self.assertEqual(ley["materia"], "SEGURIDAD SOCIAL, LABORAL")
         self.assertEqual(ley["vigencia"], "VIGENTE")
         self.assertIsNone(ley["resumen"])
+
+
+# --- scjn-reglamentos (issue #220) ----------------------------------------
+
+
+class TestAssetNotCachedReglamentos(unittest.TestCase):
+    """The `coleccion` message (issue #220): `leyes`' own message stays
+    exactly what it was (issue #209's contract, see `TestDownloadScjnLeyesIndex`
+    above); `reglamentos` gets its own, naming the right command."""
+
+    def test_mensaje_default_es_el_de_leyes_sin_cambios(self):
+        exc = release.AssetNotCached("lfca.tgz", Path("/x"))
+        self.assertEqual(str(exc), "'lfca.tgz' is not cached under /x -- run `scjn download --slug lfca`")
+
+    def test_mensaje_de_reglamentos_nombra_su_propio_comando(self):
+        exc = release.AssetNotCached("104906.tgz", Path("/x"), coleccion="reglamentos")
+        self.assertEqual(
+            str(exc),
+            "'104906.tgz' is not cached under /x -- run "
+            "`scjn download --coleccion reglamentos --id 104906`",
+        )
+
+    def test_mensaje_de_reglamentos_para_el_indice(self):
+        exc = release.AssetNotCached(
+            release.ASSET_INDICE_GLOBAL, Path("/x"), coleccion="reglamentos"
+        )
+        self.assertIn("scjn download --coleccion reglamentos", str(exc))
+        self.assertNotIn("--id", str(exc))
+
+
+class TestConstruyeIndiceGlobalReglamentos(unittest.TestCase):
+    def test_no_lleva_seccion_codnota(self):
+        indice = release.construye_indice_global_reglamentos(
+            [{"id_ordenamiento": "104906", "nombre": "REGLAMENTO...", "snapshots": 2}],
+            generado="x",
+        )
+        self.assertEqual(indice["coleccion"], "reglamentos")
+        self.assertNotIn("codNota", indice)
+
+    def test_las_claves_son_id_ordenamiento_no_un_slug(self):
+        indice = release.construye_indice_global_reglamentos(
+            [{"id_ordenamiento": "104906", "nombre": "REGLAMENTO A", "snapshots": 1},
+             {"id_ordenamiento": "96580", "nombre": "REGLAMENTO B", "snapshots": 3}],
+            generado="x",
+        )
+        self.assertEqual(set(indice["instrumentos"]), {"104906", "96580"})
+        self.assertEqual(indice["instrumentos"]["96580"]["snapshots"], 3)
+
+    def test_categoria_ordenamiento_y_metadatos_ausentes_si_no_hay_valor(self):
+        indice = release.construye_indice_global_reglamentos(
+            [{"id_ordenamiento": "1", "nombre": "R", "snapshots": 0}], generado="x",
+        )
+        entrada = indice["instrumentos"]["1"]
+        self.assertNotIn(release.CAMPO_CATEGORIA_ORDENAMIENTO, entrada)
+        self.assertNotIn("materia", entrada)
+
+    def test_categoria_ordenamiento_y_metadatos_presentes_cuando_hay_valor(self):
+        indice = release.construye_indice_global_reglamentos(
+            [{"id_ordenamiento": "1", "nombre": "R", "snapshots": 2,
+              "categoria_ordenamiento": "ACUERDO (S)", "vigencia": "VIGENTE",
+              "materia": "ADMINISTRATIVO"}],
+            generado="x",
+        )
+        entrada = indice["instrumentos"]["1"]
+        self.assertEqual(entrada[release.CAMPO_CATEGORIA_ORDENAMIENTO], "ACUERDO (S)")
+        self.assertEqual(entrada["vigencia"], "VIGENTE")
+        self.assertEqual(entrada["materia"], "ADMINISTRATIVO")
+
+
+class ConCacheFixtureReglamentos(unittest.TestCase):
+    """The `scjn-reglamentos` sibling of `ConCacheFixture`."""
+
+    def setUp(self):
+        self.tmp = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+        self.release_dir = self.tmp / "scjn-reglamentos"
+        self.release_dir.mkdir(parents=True)
+
+    def _publica_indice(self, instrumentos: dict):
+        payload = {"generado": "x", "coleccion": "reglamentos", "instrumentos": instrumentos}
+        (self.release_dir / release.ASSET_INDICE_GLOBAL).write_bytes(
+            gzip.compress(json.dumps(payload).encode("utf-8"))
+        )
+
+    def _publica_tgz(self, id_ordenamiento: str, **archivos):
+        (self.release_dir / f"{id_ordenamiento}.tgz").write_bytes(_hacer_tgz(archivos))
+
+
+class TestDownloadScjnReglamentosIndex(ConCacheFixtureReglamentos):
+    def test_lee_el_indice_publicado(self):
+        self._publica_indice({"104906": {"nombre": "REGLAMENTO...", "snapshots": 2}})
+
+        indice = release.download_scjn_reglamentos_index(cache_dir=self.tmp)
+
+        self.assertEqual(indice["coleccion"], "reglamentos")
+        self.assertEqual(indice["instrumentos"]["104906"]["snapshots"], 2)
+
+    def test_se_memoiza_por_directorio_de_cache(self):
+        self._publica_indice({})
+
+        primero = release.download_scjn_reglamentos_index(cache_dir=self.tmp)
+        segundo = release.download_scjn_reglamentos_index(cache_dir=self.tmp)
+
+        self.assertIs(primero, segundo)
+
+    def test_asset_no_cacheado_lanza_assetnotcached_de_reglamentos(self):
+        with self.assertRaises(release.AssetNotCached) as ctx:
+            release.download_scjn_reglamentos_index(cache_dir=self.tmp)
+
+        self.assertIn("scjn download --coleccion reglamentos", str(ctx.exception))
+
+
+class TestDownloadScjnReglamentosCorpus(ConCacheFixtureReglamentos):
+    def test_lanza_assetnotcached_cuando_el_tarball_no_esta_en_cache(self):
+        with self.assertRaises(release.AssetNotCached) as ctx:
+            release.download_scjn_reglamentos_corpus("104906", cache_dir=self.tmp)
+
+        self.assertIn("104906.tgz", str(ctx.exception))
+        self.assertIn("--id 104906", str(ctx.exception))
+
+    def test_nunca_hay_indice_json_ni_notas_dof(self):
+        # Scope de #220: sin enlace a DOF, nunca hay indice.json/notas/ que
+        # leer -- a diferencia de download_scjn_leyes_corpus, aqui no hay
+        # rama "enlazado" en absoluto.
+        self._publica_tgz(
+            "104906",
+            **{
+                "104906/21-01-2015.md": "**REGLAMENTO.**",
+                "104906/25-01-2017.md": "**REFORMA.**",
+                "104906/estado.json": json.dumps({"rastreado": "2026-09-09"}),
+            },
+        )
+
+        resultado = release.download_scjn_reglamentos_corpus("104906", cache_dir=self.tmp)
+
+        self.assertEqual(resultado["id_ordenamiento"], "104906")
+        archivos = [s["archivo"] for s in resultado["snapshots"]]
+        self.assertEqual(archivos, ["21-01-2015.md", "25-01-2017.md"])
+        self.assertEqual(resultado["snapshots"][0]["markdown"], "**REGLAMENTO.**")
+
+    def test_acepta_un_id_ordenamiento_entero(self):
+        self._publica_tgz("1", **{"1/01-01-2000.md": "x"})
+
+        resultado = release.download_scjn_reglamentos_corpus(1, cache_dir=self.tmp)
+
+        self.assertEqual(resultado["id_ordenamiento"], "1")
+
+
+class TestLocalReglamentosIds(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+        self.release_dir = self.tmp / "scjn-reglamentos"
+        self.release_dir.mkdir(parents=True)
+
+    def test_lista_ordenados_numericamente_no_como_texto(self):
+        # "100" < "99" como texto, pero no numericamente.
+        (self.release_dir / "100.tgz").write_bytes(b"x")
+        (self.release_dir / "99.tgz").write_bytes(b"x")
+
+        self.assertEqual(release.local_reglamentos_ids(self.tmp), ["99", "100"])
+
+    def test_directorio_ausente_regresa_lista_vacia(self):
+        self.assertEqual(release.local_reglamentos_ids(self.tmp / "no-existe"), [])
+
+
+class TestDescargaAssetsScjnReglamentos(unittest.TestCase):
+    """`download_scjn_reglamentos_assets` -- the `scjn-reglamentos` sibling
+    of `TestDescargaAssetsScjnLeyes`."""
+
+    URLS = {
+        "indice-global.json.gz": "https://x/indice-global.json.gz",
+        "104906.tgz": "https://x/104906.tgz",
+        "96580.tgz": "https://x/96580.tgz",
+    }
+
+    def setUp(self):
+        self.tmp = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+
+    @patch("scjn.cache.descarga", return_value=b"bytes")
+    @patch("scjn.release._assets_scjn_reglamentos")
+    def test_sin_ids_baja_el_indice_y_todos_los_tgz(self, mock_assets, mock_descarga):
+        mock_assets.return_value = dict(self.URLS)
+
+        resultados = release.download_scjn_reglamentos_assets(cache_dir=self.tmp)
+
+        self.assertEqual(
+            [ruta.name for ruta, _ in resultados],
+            ["indice-global.json.gz", "96580.tgz", "104906.tgz"],
+        )
+        self.assertTrue(all(descargado for _, descargado in resultados))
+
+    @patch("scjn.cache.descarga", return_value=b"bytes")
+    @patch("scjn.release._assets_scjn_reglamentos")
+    def test_ids_acota_pero_el_indice_siempre_viene(self, mock_assets, mock_descarga):
+        mock_assets.return_value = dict(self.URLS)
+
+        resultados = release.download_scjn_reglamentos_assets(["96580"], cache_dir=self.tmp)
+
+        self.assertEqual(
+            [ruta.name for ruta, _ in resultados], ["indice-global.json.gz", "96580.tgz"],
+        )
+
+    @patch("scjn.cache.descarga", return_value=b"bytes")
+    @patch("scjn.release._assets_scjn_reglamentos")
+    def test_la_segunda_corrida_no_baja_nada(self, mock_assets, mock_descarga):
+        mock_assets.return_value = dict(self.URLS)
+        release.download_scjn_reglamentos_assets(cache_dir=self.tmp)
+        mock_descarga.reset_mock()
+
+        resultados = release.download_scjn_reglamentos_assets(cache_dir=self.tmp)
+
+        self.assertFalse(any(descargado for _, descargado in resultados))
+        mock_descarga.assert_not_called()

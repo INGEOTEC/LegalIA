@@ -1,8 +1,9 @@
 """Client for the SCJN's SCOW JSON API (`scjn.api`), the federal-law
 catalogue's own algebra (`scjn.catalog`), per-instrument crawl state
 (`scjn.state`), the provenance header a crawl writes to every snapshot
-(`scjn.header`), and the `scjn-leyes` release's own disk-first readers
-(`scjn.release`), re-exported here as the package's eight entry points.
+(`scjn.header`), and the disk-first readers (`scjn.release`) for the two
+GitHub releases this package feeds -- `scjn-leyes` and, since issue #220,
+`scjn-reglamentos` -- re-exported here as the package's own entry points.
 
 The SCJN is not an official source of legal text — the Diario Oficial de la
 Federación remains that; this package's own crawl is a convenience corpus
@@ -12,7 +13,9 @@ This is Fase 3 of a larger split (issue #206/#209). `codNota` linking —
 matching a snapshot to the DOF `codNota` that produced it — stays one layer
 up, in the downstream package that depends on this one: a `codNota` is a DOF
 concept, so that seam sits there, calling the readers below (this package
-never imports back — see `tests/test_boundary.py`).
+never imports back — see `tests/test_boundary.py`). `scjn-reglamentos` has
+no such linking at all yet (issue #220's own Scope) — a future issue adds it
+for reglamentos and laws alike.
 """
 
 from scjn.release import (
@@ -21,7 +24,11 @@ from scjn.release import (
     download_scjn_leyes_catalog,
     download_scjn_leyes_corpus,
     download_scjn_leyes_index,
+    download_scjn_reglamentos_assets,
+    download_scjn_reglamentos_corpus,
+    download_scjn_reglamentos_index,
     iter_current_federal_laws,
+    local_reglamentos_ids,
     local_slugs,
     markdown_de_snapshot,
 )
@@ -36,5 +43,9 @@ __all__ = [
     "markdown_de_snapshot",
     "download_scjn_leyes_assets",
     "local_slugs",
+    "download_scjn_reglamentos_index",
+    "download_scjn_reglamentos_corpus",
+    "download_scjn_reglamentos_assets",
+    "local_reglamentos_ids",
     "AssetNotCached",
 ]

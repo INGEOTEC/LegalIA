@@ -102,3 +102,28 @@ class TestMintAbrev(unittest.TestCase):
                        "PRESUPUESTO de Egresos de la Federación"):
             abrev = catalog.mint_abrev(nombre)
             self.assertEqual(catalog.slug_instrumento({"abrev": abrev}), abrev)
+
+
+class TestReglamentoKey(unittest.TestCase):
+    """`reglamento_key` (issue #220): the `scjn-reglamentos` corpus has no
+    `abrev` at all, so `id_ordenamiento` is the only key -- not a slug of a
+    title, unlike `slug_instrumento`."""
+
+    def test_regresa_el_id_ordenamiento_como_cadena(self):
+        self.assertEqual(
+            catalog.reglamento_key({"id_ordenamiento": "104906", "nombre": "REGLAMENTO..."}),
+            "104906",
+        )
+
+    def test_funciona_con_un_id_ordenamiento_entero(self):
+        # `Ordenamiento.idOrdenamiento` is typed `str`, but a hand-seeded
+        # estado.json could carry an int -- this must not raise either way.
+        self.assertEqual(catalog.reglamento_key({"id_ordenamiento": 104906}), "104906")
+
+    def test_dos_entradas_con_el_mismo_titulo_no_colisionan(self):
+        # The SCJN reissues a reglamento as a brand-new idOrdenamiento rather
+        # than as a reform of the previous one -- exactly the case a
+        # title-derived key cannot survive (issue #220).
+        primero = {"id_ordenamiento": "188948", "nombre": "REGLAMENTO INTERIOR DE LA ASF"}
+        segundo = {"id_ordenamiento": "187839", "nombre": "REGLAMENTO INTERIOR DE LA ASF"}
+        self.assertNotEqual(catalog.reglamento_key(primero), catalog.reglamento_key(segundo))

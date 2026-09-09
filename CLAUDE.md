@@ -279,6 +279,67 @@ Phases, each its own sub-issue, in order:
 | Fase 5 | #211 | Completeness by row comparison against the SCJN reform table |
 | Fase 6 | #212 | Docs, packaging, first PyPI release, this section |
 
+## The `scjn-reglamentos` corpus (issue #220, done)
+
+**Every federal *reglamento* the SCJN has** — 1087 instruments, keyed by
+`idOrdenamiento` — published as a sibling GitHub release alongside
+`scjn-leyes`. It reuses the crawl/packaging machinery `scjn-leyes` already
+has, narrowed to what this collection actually needs, rather than
+parameterising the `leyes` path itself.
+
+- **Inclusion rule**: `categoriaOrdenamiento == "REGLAMENTO"`, or any row of
+  the instrument's own reform table has `categoriaReforma == "REGLAMENTO"`.
+  The second half is load-bearing — it rescues 6 instruments the SCJN itself
+  classifies `ACUERDO (S)`/`ESTATUTO`/`RESULTADOS` (all six titled
+  "REGLAMENTO ..." regardless) while correctly rejecting the ~181 other
+  non-REGLAMENTO federal hits for the phrase "reglamento" (mostly acuerdos
+  generales of the CJF/INE that merely *reglamentan* something).
+- **No `abrev`, ever.** The SCJN reissues a reglamento as a brand-new
+  `idOrdenamiento` rather than as a reform of the previous one (137 of 1080
+  titles repeat, covering 355 distinct instruments), so any title-derived
+  key collides — `id_ordenamiento` is the only key the SCJN guarantees
+  stable, and it is what the corpus uses everywhere: directory name, asset
+  name, `indice-global.json.gz` key. `scjn.catalog.reglamento_key` is that
+  key, not a slug of a title.
+- **No `actualizado`, no DOF linking, no `--actualiza` chain.** This corpus
+  is out of scope for DOF linking entirely (a future issue adds it, for
+  reglamentos and laws alike) — so its `estado.json` has no
+  `actualizado`/`actualizado_scjn`/`actualizado_dof`, no `nombre_scjn`
+  override, and there is nothing for `fetch_scjn_legislacion.py`'s
+  `--actualiza`/`--solo-fecha`/`--dof-only`/`--reintenta`/
+  `--sin-refrescar-catalogo` to feed — passing any of them with
+  `--coleccion reglamentos` is a `SystemExit`, not a silent no-op. The only
+  way to know an instrument needs (re)crawling is a row comparison against
+  the SCJN's own reform table (`scjn.state.reformas_faltantes`), which needs
+  no date at all.
+- **A sibling release, not a parameter.** `scjn.cache._SCJN_REGLAMENTOS_RELEASE`
+  is a second release tag under the same `CACHE_DIR`; `scjn.release` gained
+  new, separate reader functions (`download_scjn_reglamentos_index`,
+  `download_scjn_reglamentos_corpus`, `local_reglamentos_ids`,
+  `download_scjn_reglamentos_assets`) rather than a `coleccion` parameter on
+  the existing `download_scjn_leyes_*` ones, which stay untouched. Its own
+  `indice-global.json.gz` has no `codNota` section and no per-instrument
+  `indice.json` exists at all — a tarball ships only
+  `<id_ordenamiento>/<fecha>.md` and `<id_ordenamiento>/estado.json`.
+  `scjn.cli`'s `scjn download --coleccion {leyes,reglamentos}` is a
+  two-valued parameter, never a registry — a third collection would mean a
+  third literal branch, not a new dict entry.
+- **Discovery is a listing, seeding is separate from a full sweep's
+  freshness.** `scripts/discover_federal_reglamentos.py` pages the SCJN by
+  category and applies the reform-category rescue rule; unlike
+  `discover_federal_laws.py` it does **not** confirm candidates against the
+  DOF (there is no DOF link for this collection) and includes a one-time,
+  opt-in, exhaustive coverage audit (`--auditoria-cobertura`, ~7900 reform
+  tables, ~65 minutes) for an instrument whose title never says
+  "reglamento" at all. It reports and stops, same as `discover_federal_laws.py`;
+  `scripts/seed_federal_reglamentos.py` turns a reviewed list into
+  `estado.json` files, idempotently, never touching an instrument already
+  crawled. `fetch_scjn_legislacion.py --coleccion reglamentos` (plain crawl,
+  or `--plan` for the row-comparison plan) and
+  `scripts/empaqueta_scjn_reglamentos.py` (packaging) round out the
+  pipeline — no automated publish, same as `scjn-leyes` (issue #115,
+  Hallazgo C).
+
 ## Documentation: two sites, one division of labour (issue #119, done)
 
 The project has two documentation sites, and what goes on which one is a

@@ -39,6 +39,11 @@ _VARIABLE_ENTORNO = "SCJN_CACHE_DIR"
 #: The subdirectory every `scjn-leyes` asset lives under.
 _SCJN_LEYES_RELEASE = "scjn-leyes"
 
+#: The subdirectory every `scjn-reglamentos` asset lives under -- a sibling
+#: of `_SCJN_LEYES_RELEASE` under the same `CACHE_DIR`/`$SCJN_CACHE_DIR`,
+#: not a separate cache (issue #220).
+_SCJN_REGLAMENTOS_RELEASE = "scjn-reglamentos"
+
 #: Asset names `migrate_legacy_assets` moves verbatim -- everything except a
 #: `.tgz`, matched by suffix below. A downstream package's own derived output
 #: living next to these assets (e.g. Markdown extracted out of a snapshot) is

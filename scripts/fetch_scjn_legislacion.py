@@ -224,7 +224,7 @@ from dofjson.titulos import SIN_CACHE_DIR, legal_provisions_titles  # noqa: E402
 from nota2md.linking import newest_dof_publication_dates  # noqa: E402
 from scjn import api as scjn_api  # noqa: E402
 from scjn.api import elige_ordenamiento  # noqa: E402
-from scjn.catalog import search_name, slug_instrumento  # noqa: E402
+from scjn.catalog import reglamento_key, search_name, slug_instrumento  # noqa: E402
 from scjn.release import AssetNotCached, download_scjn_leyes_index  # noqa: E402
 from scjn.state import (  # noqa: E402
     ARCHIVO_ESTADO,
@@ -237,10 +237,19 @@ from scjn.state import (  # noqa: E402
     motivo_pendiente,
 )
 
-#: The one collection left (issue #189), a literal path segment. It is also
-#: the one with a per-instrument release to repackage into
-#: (`empaqueta_scjn_leyes.py`, issue #128).
+#: The one collection with the DOF-linked release/`--actualiza` chain
+#: described in the module docstring above (issue #189), a literal path
+#: segment. Since issue #220, `reglamentos` is a second, narrower one: only
+#: `rastrea_reglamentos`/`planea_reglamentos` exist for it (the equivalents
+#: of `rastrea_coleccion`/`planea_coleccion`'s row comparison) -- everything
+#: else below (`--actualiza`, `refresca_catalogo`, `scjn_dates`/`dof_dates`,
+#: the `nombre_scjn` override, `--solo-fecha`) stays `leyes`-only, since it
+#: exists only to feed the DOF link this collection does not have (see
+#: CLAUDE.md's own section on `scjn-reglamentos`). `--coleccion` is
+#: therefore a two-valued parameter, never a registry: a third collection
+#: would mean a third literal branch, not a new entry in a dict.
 COLECCION = "leyes"
+COLECCIONES = ("leyes", "reglamentos")
 
 
 def _load_catalog(outdir: Path) -> list[dict]:
@@ -1018,11 +1027,275 @@ def rastrea_coleccion(
     return fallidos
 
 
+# --- `reglamentos` (issue #220): the narrow path -------------------------
+#
+# Only the two pieces this collection actually needs exist here: a plain
+# crawl (`rastrea_reglamentos`, the equivalent of `rastrea_coleccion`) and a
+# row-comparison plan (`planea_reglamentos`, the equivalent of
+# `planea_coleccion`'s default mode). Neither is `COLECCION`'s function
+# parameterized -- both are new, separate functions, because most of what
+# `rastrea_coleccion`/`planea_coleccion` do exists only to feed the DOF link
+# (`--actualiza`, `refresca_catalogo`, `scjn_dates`/`dof_dates`, the
+# `nombre_scjn` override, `--solo-fecha`), which this collection does not
+# have (issue #220's own Scope) -- threading a `coleccion` argument through
+# all of that would touch code this issue explicitly leaves alone.
+#
+# Consequences that follow from having no `abrev` and no `actualizado`
+# (issue #220's own decisions, see CLAUDE.md):
+#
+# - Addressed by `id_ordenamiento` alone, always -- `scjn.api.descarga_ordenamiento`
+#   is never given a bare `nombre` to search with, so there is no candidate
+#   to choose and no wrong document to save (unlike `leyes`' `elige_ordenamiento`).
+# - No Mecanismo 2 date-based skip: with no `actualizado` to compare against,
+#   the only way to know an instrumento needs (re)crawling is the row
+#   comparison `planea_reglamentos` already does; a plain `rastrea_reglamentos`
+#   sweep with no `--instrumento` simply re-touches the SCJN for every one
+#   (the per-file skip inside `descarga_ordenamiento` still keeps an
+#   already-written snapshot from being re-downloaded).
+# - No `--reintenta`: issue #115's wrong-document case cannot happen here
+#   (no candidate is ever chosen), so there is nothing for it to fix.
+
+
+def _load_catalog_reglamentos(outdir: Path) -> list[dict]:
+    """Every reglamento already seeded under ``<outdir>/reglamentos/`` --
+    one entry per subdirectory, each read straight off its own `estado.json`
+    (`seed_federal_reglamentos.py`'s own output). Unlike `_load_catalog`,
+    there is no fallback to a published index for `nombre`: this corpus has
+    no `abrev` to resolve one by, and every directory is keyed by
+    `id_ordenamiento` (`scjn.catalog.reglamento_key`) already.
+
+    Raises `SystemExit` for a directory with no `estado.json`, or one
+    missing `id_ordenamiento`/`nombre` -- `seed_federal_reglamentos.py` is
+    what writes both, from a reviewed `discover_federal_reglamentos.py`
+    list."""
+    base = outdir / "reglamentos"
+    if not base.is_dir():
+        raise SystemExit(
+            f"{base} no existe -- corre discover_federal_reglamentos.py y "
+            "seed_federal_reglamentos.py antes de rastrear esta coleccion"
+        )
+    catalogo = []
+    for directorio in sorted(p for p in base.iterdir() if p.is_dir()):
+        estado = lee_estado(directorio)
+        if not (estado.get("id_ordenamiento") and estado.get("nombre")):
+            raise SystemExit(
+                f"{directorio}: sin 'id_ordenamiento'/'nombre' en su estado.json -- "
+                "seedealo con scripts/seed_federal_reglamentos.py antes de rastrearlo"
+            )
+        catalogo.append({"id_ordenamiento": reglamento_key(estado), "nombre": estado["nombre"]})
+    return catalogo
+
+
+def _archivo_progreso_reglamentos(outdir: Path) -> Path:
+    return outdir / "reglamentos" / ".progreso.json"
+
+
+def _lee_progreso_reglamentos(outdir: Path) -> str | None:
+    try:
+        campos = json.loads(_archivo_progreso_reglamentos(outdir).read_text(encoding="utf-8"))
+        return campos["id_ordenamiento"]
+    except (OSError, json.JSONDecodeError, KeyError):
+        return None
+
+
+def _guarda_progreso_reglamentos(outdir: Path, id_ordenamiento: str) -> None:
+    archivo = _archivo_progreso_reglamentos(outdir)
+    archivo.parent.mkdir(parents=True, exist_ok=True)
+    archivo.write_text(json.dumps({"id_ordenamiento": id_ordenamiento}), encoding="utf-8")
+
+
+def rastrea_reglamentos(
+    outdir: Path,
+    espera: float,
+    *,
+    reiniciar: bool = False,
+    instrumento: set[str] | None = None,
+) -> list[str]:
+    """Crawl `reglamentos` and return the `id_ordenamiento` keys whose crawl
+    did not succeed -- the narrow `reglamentos` equivalent of
+    `rastrea_coleccion` (issue #220; see the section comment above for what
+    it deliberately leaves out).
+
+    `instrumento` (repeatable ``--instrumento``, by `id_ordenamiento`)
+    narrows the sweep and leaves ``.progreso.json`` untouched, same as
+    `rastrea_coleccion`'s own; without it, a full sweep is resumable by
+    `id_ordenamiento` the same way."""
+    instrumentos = _load_catalog_reglamentos(outdir)
+    print(f"reglamentos: {len(instrumentos)} instrumento(s)", file=sys.stderr)
+
+    if instrumento is not None:
+        faltantes = instrumento - {e["id_ordenamiento"] for e in instrumentos}
+        if faltantes:
+            raise SystemExit(
+                f"{sorted(faltantes)} no esta(n) en {outdir / 'reglamentos'} -- "
+                "seedealo primero con scripts/seed_federal_reglamentos.py"
+            )
+        print(
+            f"  --instrumento: solo se rastrearan {sorted(instrumento)}; el resto se "
+            "asume ya bajado y no se toca la SCJN",
+            file=sys.stderr,
+        )
+        inicio = None
+    else:
+        inicio = None if reiniciar else _lee_progreso_reglamentos(outdir)
+        if inicio is not None:
+            print(
+                f"  reanudando despues del instrumento {inicio!r} "
+                "(progreso guardado de una corrida anterior)",
+                file=sys.stderr,
+            )
+
+    cliente_api = scjn_api.ScjnApi(espera=espera)
+    fallidos = []
+    saltar_hasta = inicio is not None
+    for i, entrada in enumerate(instrumentos, 1):
+        id_ordenamiento = entrada["id_ordenamiento"]
+        if saltar_hasta:
+            if id_ordenamiento == inicio:
+                saltar_hasta = False
+            continue
+        if instrumento is not None and id_ordenamiento not in instrumento:
+            continue
+        nombre = entrada["nombre"]
+        destino = outdir / "reglamentos" / id_ordenamiento
+        print(f"[reglamentos {i}/{len(instrumentos)}] {nombre}", file=sys.stderr)
+        try:
+            resultado = scjn_api.descarga_ordenamiento(
+                cliente_api, nombre, destino,
+                on_progreso=_imprime_avance, id_ordenamiento=id_ordenamiento,
+            )
+            for sin in resultado.reformas_sin_articulos:
+                print(f"  sin texto consolidado (tieneArticulos=false): {sin}", file=sys.stderr)
+            for fallida in resultado.reformas_fallidas:
+                print(f"  aviso: reforma no servida por la SCJN: {fallida}", file=sys.stderr)
+        except Exception as exc:
+            print(f"  aviso: {nombre!r} fallo: {exc}", file=sys.stderr)
+            fallidos.append(id_ordenamiento)
+        else:
+            if not resultado.escritos and not resultado.reformas_sin_articulos:
+                print(f"  aviso: sin resultados en la SCJN para {nombre!r}", file=sys.stderr)
+                fallidos.append(id_ordenamiento)
+            if destino.is_dir():
+                # No 'actualizado' to record (this collection has none) --
+                # only that it was crawled, and when.
+                escribe_estado(destino, rastreado=date.today().isoformat())
+        if instrumento is None:
+            _guarda_progreso_reglamentos(outdir, id_ordenamiento)
+    if instrumento is None:
+        _archivo_progreso_reglamentos(outdir).unlink(missing_ok=True)
+    return fallidos
+
+
+def _archivo_progreso_plan_reglamentos(outdir: Path) -> Path:
+    return outdir / "reglamentos" / ".progreso_plan.json"
+
+
+def _lee_progreso_plan_reglamentos(outdir: Path) -> str | None:
+    try:
+        campos = json.loads(_archivo_progreso_plan_reglamentos(outdir).read_text(encoding="utf-8"))
+        return campos["id_ordenamiento"]
+    except (OSError, json.JSONDecodeError, KeyError):
+        return None
+
+
+def _guarda_progreso_plan_reglamentos(outdir: Path, id_ordenamiento: str) -> None:
+    archivo = _archivo_progreso_plan_reglamentos(outdir)
+    archivo.parent.mkdir(parents=True, exist_ok=True)
+    archivo.write_text(json.dumps({"id_ordenamiento": id_ordenamiento}), encoding="utf-8")
+
+
+def planea_reglamentos(
+    outdir: Path, *, espera: float = 1.0, api: scjn_api.ScjnApi | None = None
+) -> list[str]:
+    """Print which reglamentos need a crawl and return their
+    `id_ordenamiento` keys, sorted -- the narrow `reglamentos` equivalent of
+    `planea_coleccion` (issue #220).
+
+    Row comparison is the *only* mode: this collection has no `actualizado`
+    to fall back to a date comparison with (see CLAUDE.md's own section on
+    it), and every entry already has its `id_ordenamiento` on file --
+    `seed_federal_reglamentos.py` writes it as part of the seed itself, so
+    unlike `leyes` there is no "no id yet" case to report separately. One
+    request per reglamento (`scjn.api.ScjnApi.reformas_of_ordenamiento`),
+    rate-limited by `espera` and resumable
+    (``<outdir>/reglamentos/.progreso_plan.json``), exactly like
+    `planea_coleccion`'s own row comparison."""
+    instrumentos = _load_catalog_reglamentos(outdir)
+    cliente = api or scjn_api.ScjnApi(espera=espera)
+    reanudar_tras = _lee_progreso_plan_reglamentos(outdir)
+    saltando = reanudar_tras is not None
+    if saltando:
+        print(
+            f"  reanudando el plan despues de {reanudar_tras!r} "
+            "(checkpoint de una corrida anterior)",
+            file=sys.stderr,
+        )
+
+    nunca: list[tuple[str, str]] = []
+    faltan_reformas: list[tuple[str, str]] = []
+    for entrada in instrumentos:
+        id_ordenamiento = entrada["id_ordenamiento"]
+        if saltando:
+            if id_ordenamiento == reanudar_tras:
+                saltando = False
+            continue
+        destino = outdir / "reglamentos" / id_ordenamiento
+        try:
+            reformas = cliente.reformas_of_ordenamiento(id_ordenamiento)
+        except Exception as exc:
+            print(
+                f"  aviso: {id_ordenamiento}: la SCJN no dio su tabla de reformas ({exc})",
+                file=sys.stderr,
+            )
+            _guarda_progreso_plan_reglamentos(outdir, id_ordenamiento)
+            continue
+        motivo = motivo_pendiente(entrada, destino, None, reformas=reformas)
+        if motivo == PENDIENTE_NUNCA_RASTREADO:
+            nunca.append((id_ordenamiento, entrada["nombre"]))
+        elif motivo == PENDIENTE_FALTAN_REFORMAS:
+            faltan_reformas.append((id_ordenamiento, entrada["nombre"]))
+        _guarda_progreso_plan_reglamentos(outdir, id_ordenamiento)
+    _archivo_progreso_plan_reglamentos(outdir).unlink(missing_ok=True)
+
+    print(f"reglamentos: {len(instrumentos)} instrumento(s) en el corpus", file=sys.stderr)
+    for titulo, entradas in (
+        (f"les faltan reformas por comparacion de fila ({len(faltan_reformas)})", faltan_reformas),
+        (f"nunca rastreados ({len(nunca)})", nunca),
+    ):
+        print(f"  {titulo}:", file=sys.stderr)
+        for id_ordenamiento, nombre in entradas:
+            print(f"    {id_ordenamiento}  {nombre}", file=sys.stderr)
+        if not entradas:
+            print("    (ninguno)", file=sys.stderr)
+
+    pendientes = [id_ordenamiento for id_ordenamiento, _ in faltan_reformas + nunca]
+    print(f"  {len(pendientes)} instrumento(s) por actualizar", file=sys.stderr)
+    if pendientes:
+        print(
+            "  python scripts/fetch_scjn_legislacion.py --outdir "
+            f"{outdir} --coleccion reglamentos --instrumento <id_ordenamiento>",
+            file=sys.stderr,
+        )
+    return pendientes
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     p.add_argument("--outdir", type=Path, required=True)
+    p.add_argument(
+        "--coleccion",
+        choices=COLECCIONES,
+        default="leyes",
+        help=(
+            "que coleccion rastrear (default: leyes). 'reglamentos' (issue #220) solo "
+            "admite --plan/--instrumento/--reiniciar/un rastreo liso -- --actualiza, "
+            "--solo-fecha, --dof-only, --reintenta, --sin-refrescar-catalogo y "
+            "--incluye-sin-actualizado son leyes-only, porque existen para alimentar "
+            "el enlace a DOF que 'reglamentos' no tiene"
+        ),
+    )
     p.add_argument(
         "--espera",
         type=float,
@@ -1054,7 +1327,8 @@ def main(argv=None) -> int:
         action="append",
         metavar="SLUG",
         help=(
-            "repetible; slug_instrumento a rastrear, sin tocar la SCJN para ningun otro "
+            "repetible; slug_instrumento (--coleccion leyes) o id_ordenamiento "
+            "(--coleccion reglamentos) a rastrear, sin tocar la SCJN para ningun otro "
             "(issue #148). A diferencia de --reintenta, no borra nada: los snapshots ya "
             "en disco se conservan y solo se bajan las reformas nuevas."
         ),
@@ -1154,10 +1428,40 @@ def main(argv=None) -> int:
         )
     if args.plan and args.actualiza:
         raise SystemExit("--plan solo dice que hay que hacer; --actualiza lo hace. Elige uno.")
+
+    if args.coleccion == "reglamentos":
+        # These exist only to feed --actualiza's DOF link (issue #220's own
+        # Scope: no DOF linking for this collection), so mixing any of them
+        # with --coleccion reglamentos is a caller's mistake, not a request
+        # to honour partially.
+        prohibidas = {
+            "--actualiza": args.actualiza,
+            "--solo-fecha": args.solo_fecha,
+            "--dof-only": args.dof_only,
+            "--reintenta": args.reintenta,
+            "--sin-refrescar-catalogo": args.sin_refrescar_catalogo,
+            "--incluye-sin-actualizado": args.incluye_sin_actualizado,
+        }
+        usadas = [bandera for bandera, valor in prohibidas.items() if valor]
+        if usadas:
+            raise SystemExit(
+                f"--coleccion reglamentos no admite {', '.join(usadas)}: existen solo para "
+                "alimentar el enlace a DOF, que esta coleccion no tiene (issue #220)"
+            )
+
     reintenta = set(args.reintenta) if args.reintenta else None
     instrumento = set(args.instrumento) if args.instrumento else None
     fallidos = 0
-    if args.plan:
+    if args.coleccion == "reglamentos":
+        if args.plan:
+            planea_reglamentos(args.outdir, espera=args.espera)
+        else:
+            fallidos = len(
+                rastrea_reglamentos(
+                    args.outdir, args.espera, reiniciar=args.reiniciar, instrumento=instrumento,
+                )
+            )
+    elif args.plan:
         if not args.sin_refrescar_catalogo:
             refresca_catalogo(
                 args.outdir, cache_dir=_resolver_cache_dir(args.cache_dir), dof_only=args.dof_only
