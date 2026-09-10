@@ -24,10 +24,17 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from scjn.cache import _SCJN_REGLAMENTOS_RELEASE
 from scjn.release import (
+    LIMITE_ASSETS_POR_RELEASE,
     AssetNotCached,
+    _assets_de_partes,
+    _assets_de_release,
+    _tag_de_parte,
     download_scjn_leyes_assets,
     download_scjn_leyes_index,
+    download_scjn_reglamentos_assets,
+    download_scjn_reglamentos_index,
     markdown_de_snapshot,
 )
 
@@ -88,6 +95,66 @@ class TestReleaseReal(unittest.TestCase):
         self.assertTrue(archivo.endswith(".md"))
         # Lo que hace auditable el resultado: la cabecera de procedencia.
         self.assertIn("fuente: scjn", markdown)
+
+
+class TestPartesScjnReglamentos(unittest.TestCase):
+    """The invariant issue #223 exists for: `scjn-reglamentos` outgrew a
+    single GitHub release on 2026-09-10 (1082 tarballs across
+    `scjn-reglamentos`/`scjn-reglamentos-2`), and `_assets_de_partes` is what
+    makes the corpus fully readable again. This only asks GitHub's releases
+    API for asset listings (a few requests, no tarball download), so it is
+    cheap even against the full 1082-instrument corpus."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._dir = TemporaryDirectory()
+        cls.cache_dir = Path(cls._dir.name)
+        try:
+            cls.merged = _assets_de_partes(_SCJN_REGLAMENTOS_RELEASE)
+        except (AssetNotCached, KeyError) as exc:
+            cls._dir.cleanup()
+            raise unittest.SkipTest(f"el release aun no publica el indice: {exc}")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._dir.cleanup()
+
+    def test_todo_asset_que_el_indice_declara_resuelve_en_el_mapa_fusionado(self):
+        # El indice mismo es solo un asset mas -- basta con el, no con el
+        # corpus completo de tarballs, para exigir la invariante.
+        download_scjn_reglamentos_assets([], cache_dir=self.cache_dir)
+        indice = download_scjn_reglamentos_index(cache_dir=self.cache_dir)
+
+        faltantes = [
+            entrada["asset"] for entrada in indice["instrumentos"].values()
+            if entrada.get("asset") and entrada["asset"] not in self.merged
+        ]
+
+        self.assertEqual(faltantes, [])
+
+    def test_las_partes_son_disjuntas(self):
+        vistos: set[str] = set()
+        n = 1
+        while True:
+            assets = _assets_de_release(_tag_de_parte(_SCJN_REGLAMENTOS_RELEASE, n), timeout=30)
+            if assets is None:
+                break
+            nombres = set(assets)
+            self.assertEqual(
+                vistos & nombres, set(),
+                f"la parte {n} repite un nombre ya visto en una parte anterior",
+            )
+            vistos |= nombres
+            n += 1
+
+    def test_ninguna_parte_excede_el_limite_de_assets(self):
+        n = 1
+        while True:
+            assets = _assets_de_release(_tag_de_parte(_SCJN_REGLAMENTOS_RELEASE, n), timeout=30)
+            if assets is None:
+                break
+            self.assertLessEqual(len(assets), LIMITE_ASSETS_POR_RELEASE)
+            n += 1
 
 
 if __name__ == "__main__":

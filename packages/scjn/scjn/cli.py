@@ -14,8 +14,12 @@ way `scjn-reglamentos` added a second one, never a `COLECCIONES` dict."""
 
 import argparse
 
-from scjn.cache import CACHE_DIR
-from scjn.release import download_scjn_leyes_assets, download_scjn_reglamentos_assets
+from scjn.cache import CACHE_DIR, _SCJN_LEYES_RELEASE, _SCJN_REGLAMENTOS_RELEASE
+from scjn.release import (
+    _ULTIMO_NUMERO_DE_PARTES,
+    download_scjn_leyes_assets,
+    download_scjn_reglamentos_assets,
+)
 
 
 def _parser():
@@ -78,9 +82,12 @@ def _main_download(args, log=print):
         )
     nuevos = sum(1 for _, descargado in resultados if descargado)
     destino = resultados[0][0].parent
+    base = _SCJN_REGLAMENTOS_RELEASE if args.coleccion == "reglamentos" else _SCJN_LEYES_RELEASE
+    partes = _ULTIMO_NUMERO_DE_PARTES.get(base)
+    sufijo_partes = f" ({partes} partes)" if partes and partes > 1 else ""
     log(
         f"scjn-{args.coleccion}: {len(resultados)} assets in {destino} "
-        f"({nuevos} downloaded, {len(resultados) - nuevos} already cached)"
+        f"({nuevos} downloaded, {len(resultados) - nuevos} already cached){sufijo_partes}"
     )
 
 

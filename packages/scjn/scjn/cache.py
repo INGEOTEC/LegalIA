@@ -36,12 +36,19 @@ SUFIJO_PARCIAL = ".parcial"
 #: Environment override, read once here rather than on every call.
 _VARIABLE_ENTORNO = "SCJN_CACHE_DIR"
 
-#: The subdirectory every `scjn-leyes` asset lives under.
+#: The subdirectory every `scjn-leyes` asset lives under -- the collection's
+#: cache subdirectory, named after **part 1**'s tag (issue #223: a
+#: collection over GitHub's 1000-asset cap is published as a numbered series
+#: of release tags, `scjn-leyes`, `scjn-leyes-2`, ..., but every part shares
+#: this one subdirectory, since an asset name is unique across the whole
+#: series).
 _SCJN_LEYES_RELEASE = "scjn-leyes"
 
 #: The subdirectory every `scjn-reglamentos` asset lives under -- a sibling
 #: of `_SCJN_LEYES_RELEASE` under the same `CACHE_DIR`/`$SCJN_CACHE_DIR`,
-#: not a separate cache (issue #220).
+#: not a separate cache (issue #220). Named after part 1's tag, same as
+#: `_SCJN_LEYES_RELEASE` above -- this collection's own series is
+#: `scjn-reglamentos`/`scjn-reglamentos-2` today (issue #223).
 _SCJN_REGLAMENTOS_RELEASE = "scjn-reglamentos"
 
 #: Asset names `migrate_legacy_assets` moves verbatim -- everything except a

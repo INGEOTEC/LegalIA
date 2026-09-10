@@ -12,6 +12,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import requests
+
 from scjn import release
 
 
@@ -1045,3 +1047,177 @@ class TestDescargaAssetsScjnReglamentos(unittest.TestCase):
 
         self.assertFalse(any(descargado for _, descargado in resultados))
         mock_descarga.assert_not_called()
+
+
+class TestTagDeParte(unittest.TestCase):
+    """`_tag_de_parte` (issue #223): the one place the part-naming rule
+    lives -- `base` itself for part 1, `f"{base}-{n}"` after."""
+
+    def test_la_parte_1_es_el_tag_base(self):
+        self.assertEqual(release._tag_de_parte("scjn-reglamentos", 1), "scjn-reglamentos")
+
+    def test_partes_siguientes_llevan_un_sufijo_numerico(self):
+        self.assertEqual(release._tag_de_parte("scjn-reglamentos", 2), "scjn-reglamentos-2")
+        self.assertEqual(release._tag_de_parte("scjn-reglamentos", 3), "scjn-reglamentos-3")
+
+
+class _FakeResponse:
+    """A minimal stand-in for `requests.Response`, just enough for
+    `_assets_de_release`: a status code, a JSON body, and `raise_for_status`
+    raising for anything 400+ that is not the 404 `_assets_de_release`
+    itself already special-cases."""
+
+    def __init__(self, status_code: int, payload: dict | None = None):
+        self.status_code = status_code
+        self._payload = payload
+
+    def json(self):
+        return self._payload
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.HTTPError(f"{self.status_code}")
+
+
+def _pagina_assets(nombres_urls: dict) -> dict:
+    """The GitHub releases API's own shape for one release's `assets`."""
+    return {
+        "assets": [
+            {"name": nombre, "browser_download_url": url}
+            for nombre, url in nombres_urls.items()
+        ]
+    }
+
+
+class TestAssetsDePartes(unittest.TestCase):
+    """`_assets_de_partes` (issue #223): resolving a collection's whole
+    numbered series of release tags by probing until a 404 ends it --
+    `requests.get` mocked at the HTTP boundary, one response per part."""
+
+    @patch("requests.get")
+    def test_una_sola_parte_cuesta_un_probe_de_mas(self, mock_get):
+        mock_get.side_effect = [
+            _FakeResponse(200, _pagina_assets({"a.tgz": "https://x/a.tgz"})),
+            _FakeResponse(404),
+        ]
+
+        resultado = release._assets_de_partes("base")
+
+        self.assertEqual(resultado, {"a.tgz": "https://x/a.tgz"})
+        self.assertEqual(mock_get.call_count, 2)
+
+    @patch("requests.get")
+    def test_dos_partes_se_fusionan_y_un_id_de_la_parte_2_se_resuelve(self, mock_get):
+        mock_get.side_effect = [
+            _FakeResponse(200, _pagina_assets({"a.tgz": "https://x/a.tgz"})),
+            _FakeResponse(200, _pagina_assets({"b.tgz": "https://x/b.tgz"})),
+            _FakeResponse(404),
+        ]
+
+        resultado = release._assets_de_partes("base")
+
+        self.assertEqual(resultado, {"a.tgz": "https://x/a.tgz", "b.tgz": "https://x/b.tgz"})
+
+    @patch("requests.get")
+    def test_404_en_la_parte_1_lanza_en_vez_de_corpus_vacio(self, mock_get):
+        mock_get.return_value = _FakeResponse(404)
+
+        with self.assertRaises(KeyError):
+            release._assets_de_partes("base")
+
+    @patch("requests.get")
+    def test_403_en_una_parte_posterior_se_propaga_no_trunca_la_serie(self, mock_get):
+        mock_get.side_effect = [
+            _FakeResponse(200, _pagina_assets({"a.tgz": "https://x/a.tgz"})),
+            _FakeResponse(403),
+        ]
+
+        with self.assertRaises(requests.HTTPError):
+            release._assets_de_partes("base")
+
+    @patch("requests.get")
+    def test_nombre_duplicado_entre_partes_gana_la_mas_baja(self, mock_get):
+        mock_get.side_effect = [
+            _FakeResponse(200, _pagina_assets({"a.tgz": "https://parte1/a.tgz"})),
+            _FakeResponse(200, _pagina_assets({"a.tgz": "https://parte2/a.tgz"})),
+            _FakeResponse(404),
+        ]
+
+        resultado = release._assets_de_partes("base")
+
+        self.assertEqual(resultado["a.tgz"], "https://parte1/a.tgz")
+
+    @patch("requests.get")
+    def test_max_partes_alcanzado_lanza_en_vez_de_ciclar(self, mock_get):
+        mock_get.return_value = _FakeResponse(200, _pagina_assets({}))
+
+        with self.assertRaises(RuntimeError):
+            release._assets_de_partes("base")
+
+        self.assertEqual(mock_get.call_count, release._MAX_PARTES)
+
+
+class TestDescargaAssetsScjnReglamentosDosPartesReal(unittest.TestCase):
+    """`download_scjn_reglamentos_assets` end-to-end across two real parts
+    (issue #223) -- unlike `TestDescargaAssetsScjnReglamentos`, `requests.get`
+    is mocked at the HTTP boundary rather than `_assets_scjn_reglamentos`
+    itself, so this exercises `_assets_de_partes` for real."""
+
+    def setUp(self):
+        self.tmp = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+
+    @patch("scjn.cache.descarga", return_value=b"bytes")
+    @patch("requests.get")
+    def test_un_id_publicado_solo_en_la_parte_2_se_descarga(self, mock_get, mock_descarga):
+        mock_get.side_effect = [
+            _FakeResponse(200, _pagina_assets({
+                "indice-global.json.gz": "https://x/indice-global.json.gz",
+                "104906.tgz": "https://x/104906.tgz",
+            })),
+            _FakeResponse(200, _pagina_assets({"96580.tgz": "https://parte2/96580.tgz"})),
+            _FakeResponse(404),
+        ]
+
+        resultados = release.download_scjn_reglamentos_assets(cache_dir=self.tmp)
+
+        nombres = sorted(ruta.name for ruta, _ in resultados)
+        self.assertEqual(nombres, ["104906.tgz", "96580.tgz", "indice-global.json.gz"])
+        self.assertTrue((self.tmp / "scjn-reglamentos" / "96580.tgz").is_file())
+
+
+class TestDescargaAssetsScjnReglamentosAvisaFaltantes(unittest.TestCase):
+    """`download_scjn_reglamentos_assets(ids=None)` logs (never raises) an
+    instrument the cached index names but no part of the release publishes
+    (issue #223) -- a partially published corpus still downloads everything
+    it can, but says what is missing."""
+
+    def setUp(self):
+        self.tmp = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+        self.release_dir = self.tmp / "scjn-reglamentos"
+        self.release_dir.mkdir(parents=True)
+        payload = {
+            "generado": "x", "coleccion": "reglamentos",
+            "instrumentos": {
+                "104906": {"nombre": "A", "asset": "104906.tgz", "snapshots": 1},
+                "96580": {"nombre": "B", "asset": "96580.tgz", "snapshots": 1},
+            },
+        }
+        (self.release_dir / release.ASSET_INDICE_GLOBAL).write_bytes(
+            gzip.compress(json.dumps(payload).encode("utf-8"))
+        )
+
+    @patch("scjn.cache.descarga", return_value=b"bytes")
+    @patch("scjn.release._assets_scjn_reglamentos")
+    def test_avisa_del_asset_que_ninguna_parte_publica(self, mock_assets, mock_descarga):
+        mock_assets.return_value = {
+            "indice-global.json.gz": "https://x/indice-global.json.gz",
+            "104906.tgz": "https://x/104906.tgz",
+        }
+        mensajes = []
+
+        release.download_scjn_reglamentos_assets(cache_dir=self.tmp, log=mensajes.append)
+
+        self.assertTrue(any("96580.tgz" in m for m in mensajes))
+        self.assertFalse(any("104906.tgz" in m and "warning" in m for m in mensajes))

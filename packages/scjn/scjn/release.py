@@ -39,9 +39,17 @@ from scjn.state import ARCHIVO_ESTADO
 #: its own headers).
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LegalIA-scjn/1.0)"}
 
-_SCJN_LEYES_RELEASES_API = (
-    f"https://api.github.com/repos/INGEOTEC/LegalIA/releases/tags/{_SCJN_LEYES_RELEASE}"
-)
+#: GitHub's own cap on a release's asset count -- its 422 error text is
+#: "file_count limited to 1000 assets per release", hit publishing
+#: `scjn-reglamentos` on 2026-09-10 (1082 tarballs + 3 more assets, issue
+#: #223). A collection over this cap is published as a numbered series of
+#: release tags instead of re-bundling anything -- see `_tag_de_parte`.
+LIMITE_ASSETS_POR_RELEASE = 1000
+
+#: How many parts `_assets_de_partes` will walk before giving up -- a
+#: publishing bug that never 404s (a typo'd tag reused forever, say) must
+#: raise, not loop forever.
+_MAX_PARTES = 50
 
 #: The reverse index published alongside the per-law tarballs: the union of
 #: every `indice.json`, inverted by codNota and stripped of all text, so
@@ -182,30 +190,108 @@ def construye_indice_global(instrumentos: list[dict], generado: str) -> tuple[di
     return indice_global, conteos
 
 
-def _assets_scjn_leyes(timeout: int = 30) -> dict[str, str]:
-    """Every asset of the `scjn-leyes` release, name -> download URL. Network
-    -- used by the downloader only, never by a reader."""
-    response = requests.get(_SCJN_LEYES_RELEASES_API, headers=_HEADERS, timeout=timeout)
+def _tag_de_parte(base: str, n: int) -> str:
+    """The release tag of part `n` of the collection whose part 1 is `base`
+    -- `base` itself for `n == 1`, `f"{base}-{n}"` after. The one place this
+    naming rule lives (issue #223): a collection over `LIMITE_ASSETS_POR_RELEASE`
+    is published as this numbered series rather than re-bundled, so every
+    part after the first keeps the bare tag's own asset names and URLs.
+    """
+    return base if n == 1 else f"{base}-{n}"
+
+
+def _assets_de_release(tag: str, timeout: int) -> dict[str, str] | None:
+    """One release tag's own asset map, name -> download URL -- or `None`
+    when GitHub has no release under that tag (a 404, meaning the series
+    ends here). Any other error status raises (`raise_for_status`), so a
+    rate limit (403) or an outage (5xx) is never mistaken for "no more
+    parts" (issue #223)."""
+    url = f"https://api.github.com/repos/INGEOTEC/LegalIA/releases/tags/{tag}"
+    response = requests.get(url, headers=_HEADERS, timeout=timeout)
+    if response.status_code == 404:
+        return None
     response.raise_for_status()
     return {
         asset["name"]: asset["browser_download_url"] for asset in response.json()["assets"]
     }
 
 
-def _url_de_asset(nombre: str, timeout: int) -> str:
-    """The download URL of `nombre` in the `scjn-leyes` release.
+#: `_assets_de_partes`'s own memo of how many parts its last walk found, by
+#: `base` tag -- a private implementation detail (nothing published records
+#: a part count, decision 3), read by `scjn.cli` only to word a download
+#: session's summary line. Never updated by a caller that mocks
+#: `_assets_scjn_leyes`/`_assets_scjn_reglamentos` outright, which is fine:
+#: nothing depends on it being current, only on it existing.
+_ULTIMO_NUMERO_DE_PARTES: dict[str, int] = {}
 
-    Raises `KeyError` while the release does not publish that asset yet —
+
+def _assets_de_partes(base: str, timeout: int = 30) -> dict[str, str]:
+    """Every asset across `base`'s whole series of release parts, merged
+    name -> download URL (issue #223, decision 1) -- probing
+    `_tag_de_parte(base, 1)`, `(base, 2)`, ... until one comes back `None`
+    (decision 3: GitHub is the single source of truth for where an asset
+    lives, so nothing here or on disk records a part count).
+
+    Part 1 missing is a real error (`_assets_de_release` raises via
+    `raise_for_status`, since GitHub answers a truly nonexistent tag with a
+    404 same as an out-of-range part -- so a missing part 1 is instead
+    surfaced as `KeyError`, never read as "empty corpus"). A name published
+    in more than one part keeps the **lowest** part's URL -- a duplicate can
+    only be a publishing bug, and the live coverage test in
+    `test_release_red.py` is what catches it. Bounded by `_MAX_PARTES` so a
+    publishing bug that never 404s cannot loop forever.
+    """
+    fusion: dict[str, str] = {}
+    n = 1
+    while True:
+        if n > _MAX_PARTES:
+            raise RuntimeError(
+                f"'{base}' tiene mas de {_MAX_PARTES} partes -- algo esta mal "
+                "publicado (ver issue #223)"
+            )
+        tag = _tag_de_parte(base, n)
+        assets = _assets_de_release(tag, timeout)
+        if assets is None:
+            if n == 1:
+                raise KeyError(f"el release '{base}' no existe")
+            break
+        for nombre, url in assets.items():
+            fusion.setdefault(nombre, url)
+        n += 1
+    _ULTIMO_NUMERO_DE_PARTES[base] = n - 1
+    return fusion
+
+
+def _mensaje_ningun_asset(base: str, nombre: str) -> str:
+    """`KeyError` text for an asset no part of `base`'s series publishes --
+    named parts consulted, so the message says exactly where it looked
+    (issue #223)."""
+    n_partes = _ULTIMO_NUMERO_DE_PARTES.get(base, 1)
+    partes = ", ".join(f"'{_tag_de_parte(base, n)}'" for n in range(1, n_partes + 1))
+    return (
+        f"ninguna parte del release '{base}' publica el asset '{nombre}' "
+        f"(partes consultadas: {partes})"
+    )
+
+
+def _assets_scjn_leyes(timeout: int = 30) -> dict[str, str]:
+    """Every asset of the `scjn-leyes` release, name -> download URL --
+    merged across every part of its series (`_assets_de_partes`, issue
+    #223; one part today, decision 7). Network -- used by the downloader
+    only, never by a reader."""
+    return _assets_de_partes(_SCJN_LEYES_RELEASE, timeout)
+
+
+def _url_de_asset(nombre: str, timeout: int) -> str:
+    """The download URL of `nombre` in the `scjn-leyes` release's series.
+
+    Raises `KeyError` while no part of the series publishes that asset yet —
     expected before a human has read `scripts/empaqueta_scjn_leyes.py`'s own
     manifest and published it by hand (this corpus has no automated publish
     path, on purpose — see that script). Used by the downloader only."""
     urls = _assets_scjn_leyes(timeout)
     if nombre not in urls:
-        raise KeyError(
-            f"el release '{_SCJN_LEYES_RELEASE}' no publica el asset '{nombre}' "
-            "todavia — ver issue #128: este corpus solo se publica a mano, tras "
-            "revision humana"
-        )
+        raise KeyError(_mensaje_ningun_asset(_SCJN_LEYES_RELEASE, nombre))
     return urls[nombre]
 
 
@@ -624,9 +710,7 @@ def download_scjn_leyes_assets(
             if urls is None:
                 urls = _assets_scjn_leyes(timeout)
             if nombre not in urls:
-                raise KeyError(
-                    f"el release '{_SCJN_LEYES_RELEASE}' no publica el asset '{nombre}'"
-                )
+                raise KeyError(_mensaje_ningun_asset(_SCJN_LEYES_RELEASE, nombre))
             ruta = cache.asset_en_cache(
                 _SCJN_LEYES_RELEASE, nombre, urls[nombre],
                 cache_dir=directorio, refrescar=refrescar, timeout=timeout,
@@ -655,10 +739,6 @@ def download_scjn_leyes_assets(
 # `indice-global.json.gz` here carries no `codNota` section, and a tarball
 # ships no `indice.json`/`notas/` -- only `<id_ordenamiento>/<fecha>.md` and
 # `<id_ordenamiento>/estado.json`.
-
-_SCJN_REGLAMENTOS_RELEASES_API = (
-    f"https://api.github.com/repos/INGEOTEC/LegalIA/releases/tags/{_SCJN_REGLAMENTOS_RELEASE}"
-)
 
 #: Field the `scjn-reglamentos` index carries that `scjn-leyes` never needs:
 #: the SCJN's own classification of the ordenamiento at seeding time
@@ -723,13 +803,11 @@ def construye_indice_global_reglamentos(instrumentos: list[dict], generado: str)
 
 def _assets_scjn_reglamentos(timeout: int = 30) -> dict[str, str]:
     """Every asset of the `scjn-reglamentos` release, name -> download URL —
-    the sibling of `_assets_scjn_leyes`. Network — used by the downloader
-    only, never by a reader."""
-    response = requests.get(_SCJN_REGLAMENTOS_RELEASES_API, headers=_HEADERS, timeout=timeout)
-    response.raise_for_status()
-    return {
-        asset["name"]: asset["browser_download_url"] for asset in response.json()["assets"]
-    }
+    merged across every part of its series (`_assets_de_partes`, issue
+    #223: this collection outgrew a single release, 1082 tarballs across
+    `scjn-reglamentos`/`scjn-reglamentos-2`). Network — used by the
+    downloader only, never by a reader."""
+    return _assets_de_partes(_SCJN_REGLAMENTOS_RELEASE, timeout)
 
 
 def download_scjn_reglamentos_index(*, cache_dir=None) -> dict:
@@ -824,9 +902,17 @@ def download_scjn_reglamentos_assets(
     one tarball per reglamento, into ``<cache_dir>/scjn-reglamentos/`` — the
     sibling of `download_scjn_leyes_assets`; everything documented there
     (idempotence by name, `refrescar`, the partial-download suffix) applies
-    here unchanged. `ids` picks which reglamentos to fetch, by
-    `id_ordenamiento`; None (the default) means every one the release
-    publishes.
+    here unchanged, including resolving the whole series of release parts
+    (`_assets_scjn_reglamentos`, issue #223) rather than one release alone.
+    `ids` picks which reglamentos to fetch, by `id_ordenamiento`; None (the
+    default) means every one the release publishes.
+
+    With `ids=None`, once every asset is on disk, the on-disk index (if it
+    is already cached) is cross-checked against the parts actually walked:
+    any instrument whose own `asset` field the index names but no part
+    publishes is reported to `log` (never raised) -- a partially published
+    corpus still downloads everything it can, but says what is missing
+    rather than silently coming back short (issue #223's whole point).
     """
     directorio = cache.resuelve_cache_dir(cache_dir)
 
@@ -852,9 +938,7 @@ def download_scjn_reglamentos_assets(
             if urls is None:
                 urls = _assets_scjn_reglamentos(timeout)
             if nombre not in urls:
-                raise KeyError(
-                    f"el release '{_SCJN_REGLAMENTOS_RELEASE}' no publica el asset '{nombre}'"
-                )
+                raise KeyError(_mensaje_ningun_asset(_SCJN_REGLAMENTOS_RELEASE, nombre))
             ruta = cache.asset_en_cache(
                 _SCJN_REGLAMENTOS_RELEASE, nombre, urls[nombre],
                 cache_dir=directorio, refrescar=refrescar, timeout=timeout,
@@ -863,4 +947,18 @@ def download_scjn_reglamentos_assets(
             estado = "already cached" if ya_estaba else "downloaded"
             log(f"[{i}/{len(nombres)}] {nombre}: {estado}")
         resultados.append((ruta, not ya_estaba))
+
+    if ids is None and urls is not None and log is not None:
+        try:
+            indice = download_scjn_reglamentos_index(cache_dir=directorio)
+        except AssetNotCached:
+            indice = None
+        if indice is not None:
+            for entrada in indice["instrumentos"].values():
+                asset = entrada.get("asset")
+                if asset and asset not in urls:
+                    log(
+                        f"warning: el indice declara '{asset}' pero ninguna parte "
+                        "del release lo publica"
+                    )
     return resultados

@@ -339,6 +339,24 @@ parameterising the `leyes` path itself.
   `scripts/empaqueta_scjn_reglamentos.py` (packaging) round out the
   pipeline — no automated publish, same as `scjn-leyes` (issue #115,
   Hallazgo C).
+- **Published as a numbered series of release tags, since issue #223.**
+  Publishing the corpus on 2026-09-10 hit two GitHub limits neither this
+  issue nor `scjn-leyes` had come close to: a release holds at most 1000
+  assets (1082 tarballs + 3 more assets is 1085), and a release body at most
+  125 000 characters (`MANIFEST.md`'s 1082-row table is 179 749 bytes). So
+  the collection is `scjn-reglamentos`/`scjn-reglamentos-2` today — part 1
+  keeps the bare tag, a continuation adds `-<n>` — and `scjn.release`
+  resolves the whole series by asking GitHub directly, probing
+  `_tag_de_parte(base, 1)`, `(base, 2)`, ... until one 404s
+  (`_assets_de_partes`); nothing published or cached records a part count,
+  so a repartition can never desync from what GitHub actually serves. The
+  partition itself **is** recorded, at packaging time only
+  (`empaqueta_scjn_reglamentos.py`'s own `partes.json`, local scratch, never
+  a release asset): today's split is arbitrary (whichever upload batches
+  happened to fail), so recomputing it from a sorted/hashed rule would
+  disagree with reality for hundreds of already-published assets. The same
+  multi-part resolution covers `scjn-leyes` too (one part today), so the
+  1000-asset wall stops being reglamentos-specific folklore.
 
 ## Documentation: two sites, one division of labour (issue #119, done)
 

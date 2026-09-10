@@ -223,25 +223,51 @@ title, unlike :py:func:`~scjn.catalog.slug_instrumento`:
 >>> reglamento_key({"id_ordenamiento": "104906", "nombre": "..."})
 '104906'
 
-**The readers this release needs a real, published corpus for —
-** :py:func:`~scjn.download_scjn_reglamentos_index`,
-:py:func:`~scjn.download_scjn_reglamentos_corpus`,
-:py:func:`~scjn.local_reglamentos_ids` and
-:py:func:`~scjn.download_scjn_reglamentos_assets` — are the second
-documented exception to "every public symbol has a verified example" on
-this page (the first is :py:mod:`scjn.api` below). Issue #220 built the
-code that discovers, seeds, crawls and packages this corpus, but publishing
-it is a manual, human-reviewed step (issue #115, Hallazgo C) that had not
-happened yet when this page was written — there is no ``scjn-reglamentos``
-release for a live doctest to read. Their behaviour is instead verified by
-fabricated tarballs and indices in
-``packages/scjn/tests/test_release.py`` (``TestDownloadScjnReglamentosIndex``,
-``TestDownloadScjnReglamentosCorpus``, ``TestLocalReglamentosIds``,
-``TestDescargaAssetsScjnReglamentos``), the same fixture-based style every
-other reader in this module is tested with — not silently skipped. Once a
-human publishes the release, this exception should be revisited the same
-way :py:mod:`scjn.api`'s own live-network exception below never was for the
-readers above.
+The corpus was published by hand on 2026-09-10 — 1087 instruments, 1082 with
+snapshots, 72.2 MB of tarballs — and it outgrew a single GitHub release doing
+it (issue #223): a release holds at most 1000 assets, and 1082 tarballs plus
+``MANIFEST.md``/``SHA256SUMS.txt``/``indice-global.json.gz`` is 1085, so the
+collection lives across two release tags today, ``scjn-reglamentos`` (997
+tarballs, part 1) and ``scjn-reglamentos-2`` (the other 85). Every reader
+below resolves the whole series transparently — a caller never names a part.
+
+:py:func:`~scjn.download_scjn_reglamentos_assets` is the one function below
+that talks to the network — every reader after it assumes it (or the ``scjn
+download --coleccion reglamentos`` CLI built on it) already ran:
+
+>>> resultados = release.download_scjn_reglamentos_assets(["104906"])
+>>> sorted(ruta.name for ruta, _ in resultados)
+['104906.tgz', 'indice-global.json.gz']
+
+:py:func:`~scjn.download_scjn_reglamentos_index` reads the release's own
+reverse listing — no ``codNota`` section (this corpus has no DOF linking at
+all yet), keyed by ``id_ordenamiento``:
+
+>>> indice = release.download_scjn_reglamentos_index()
+>>> indice["coleccion"]
+'reglamentos'
+>>> indice["instrumentos"]["104906"]["nombre"]
+'REGLAMENTO DE LA OFICIALIA ELECTORAL DEL INSTITUTO NACIONAL ELECTORAL'
+>>> indice["instrumentos"]["104906"]["categoria_ordenamiento"]
+'ACUERDO (S)'
+
+:py:func:`~scjn.download_scjn_reglamentos_corpus` reads one instrument back
+— oldest snapshot first, each with its own provenance header (no
+``indice.json``/``notas/`` here, unlike a law's own tarball: this corpus has
+nothing to link a snapshot's `codNota` against):
+
+>>> corpus = release.download_scjn_reglamentos_corpus("104906")
+>>> [s["archivo"] for s in corpus["snapshots"]]
+['21-01-2015.md', '25-01-2017.md']
+>>> lineas = corpus["snapshots"][0]["markdown"].splitlines()
+>>> lineas[0], lineas[1]
+('---', 'fuente: scjn')
+
+:py:func:`~scjn.local_reglamentos_ids` is the disk-first "what does this
+machine already have", no network at all:
+
+>>> "104906" in release.local_reglamentos_ids()
+True
 
 .. automodule:: scjn.release
    :members:
@@ -375,11 +401,17 @@ collection is keyed by ``id_ordenamiento`` rather than by a slug:
    $ scjn download --coleccion reglamentos --id 104906
    [1/2] indice-global.json.gz: downloaded
    [2/2] 104906.tgz: downloaded
-   scjn-reglamentos: 2 assets in /home/user/.cache/scjn/scjn-reglamentos (2 downloaded, 0 already cached)
+   scjn-reglamentos: 2 assets in /home/user/.cache/scjn/scjn-reglamentos (2 downloaded, 0 already cached) (2 partes)
 
 A two-valued parameter, not a registry: adding a third collection here
 would mean a third literal branch in :py:mod:`scjn.cli`, the same way
 ``reglamentos`` added a second one, never a ``COLECCIONES`` dict.
+
+``(2 partes)`` (issue #223) appears whenever a download session actually
+asked GitHub for this collection's series of release tags and found more
+than one — this collection is ``scjn-reglamentos``/``scjn-reglamentos-2``
+today. A run that finds everything already cached never asks, so it never
+prints a part count at all, same as the ``scjn-leyes`` example above.
 
 .. automodule:: scjn.cli
    :members:

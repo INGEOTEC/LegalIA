@@ -513,6 +513,58 @@ script never calls `gh`, and no workflow should ever call it and then
 publish on its own. Read `MANIFEST.md` in full before running the `gh
 release create`/`upload` command the script prints.
 
+### `empaqueta_scjn_reglamentos.py`
+
+`reglamentos` only (issue #220): the sibling of `empaqueta_scjn_leyes.py`
+above, without `indice.json`/`notas/` or a `codNota` section — this
+collection has no DOF linking at all (issue #220's own Scope), so every
+`<id_ordenamiento>.tgz` ships only that instrument's snapshots and its own
+`estado.json`. Keyed by `id_ordenamiento` (`scjn.catalog.reglamento_key`),
+never a title-derived slug: the SCJN reissues a reglamento as a brand-new
+`idOrdenamiento` rather than as a reform of the previous one, so a slug
+would collide (137 of 1080 titles repeat).
+
+#### Numbered release parts (issue #223)
+
+This collection outgrew a single GitHub release on 2026-09-10: 1082
+tarballs plus `MANIFEST.md`/`SHA256SUMS.txt`/`indice-global.json.gz` is 1085
+assets, past GitHub's 1000-asset-per-release cap, and `MANIFEST.md`'s own
+1082-row table (179 749 bytes) is past a release body's 125 000-character
+cap. So this script now *plans* a publish across a numbered series of
+release tags (`scjn-reglamentos`, `scjn-reglamentos-2`, ...) instead of
+printing one fixed `gh` recipe:
+
+- **`partes.json`** (local to `--destino`, never a published asset) records
+  which asset is in which part — an asset already recorded never moves, so a
+  repartition can never disagree with what a previous run already
+  published. If it does not exist yet and the corpus needs more than one
+  part, the script warns loudly and generates a fresh, deterministic
+  partition instead of guessing; seed it from the live releases first if it
+  has to agree with an existing publish exactly:
+
+  ```bash
+  gh release view scjn-reglamentos --repo INGEOTEC/LegalIA \
+      --json assets --jq '.assets[].name'
+  gh release view scjn-reglamentos-2 --repo INGEOTEC/LegalIA \
+      --json assets --jq '.assets[].name'
+  # then hand-build scripts/scjn/reglamentos-release/partes.json from both listings
+  ```
+
+- **`RELEASE_NOTES.md`**/**`RELEASE_NOTES-<n>.md`**: short, generated release
+  bodies (the manifest's header plus a pointer to the `MANIFEST.md` asset),
+  each asserted under the 125 000-character cap — the full manifest ships as
+  an asset instead of a release body.
+- **`parte-<n>.txt`**: part *n*'s own asset names, one per line, for
+  `xargs -a`.
+- **`PUBLICAR.md`**: the exact, generated `gh release create`/`upload`/`edit`
+  command sequence for the corpus as it actually is. **Read this, not this
+  docstring**, for the commands to run — it is regenerated every run, the
+  docstring is not.
+
+**Publishing is manual, always** (issue #115, Hallazgo C): read
+`MANIFEST.md` in full, then run `PUBLICAR.md`'s commands verbatim. Nothing
+here calls `gh` itself.
+
 ### Retirado: `repara_notas_editoriales_scjn.py`
 
 Issue #129 retired the one-time `repara_notas_editoriales_scjn.py` that used
