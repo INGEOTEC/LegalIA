@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""Turn a reviewed `discover_federal_reglamentos.py` list into
-``<outdir>/reglamentos/<idOrdenamiento>/estado.json`` -- Fase 2 of issue
-#220, the reglamentos sibling of hand-writing a law's `abrev`/`nombre`
-before its first crawl.
+"""Turn a reviewed `discover_federal_reglamentos.py`/`discover_federal_lineamientos.py`
+list into ``<outdir>/<coleccion>/<idOrdenamiento>/estado.json`` -- Fase 2 of
+issue #220 (`reglamentos`) and #222 (`lineamientos`), the id-keyed sibling of
+hand-writing a law's `abrev`/`nombre` before its first crawl. Shared by both
+collections (issue #222's Fase 0) since the seed itself has always been
+`coleccion`-agnostic -- only the discovery list it reads from differs.
 
     ./scripts/discover_federal_reglamentos.py --json candidatos.json
     less candidatos.json   # review it -- this is the human decision point
     ./scripts/seed_federal_reglamentos.py --outdir scripts/scjn candidatos.json
+    # or, for the other id-keyed collection:
+    ./scripts/seed_federal_reglamentos.py --outdir scripts/scjn --coleccion lineamientos candidatos.json
 
 Unlike a law, no candidate selection is involved at all (issue #220's own
 "No candidate selection is involved" section): `id_ordenamiento` already
@@ -14,13 +18,13 @@ came out of the search hit, paired with its title, so there is no wrong
 candidate here to choose -- the human review already happened over the
 discovery list, not over each individual seed.
 
-Each entry becomes ``<outdir>/reglamentos/<id_ordenamiento>/estado.json``
+Each entry becomes ``<outdir>/<coleccion>/<id_ordenamiento>/estado.json``
 with ``id_ordenamiento``, ``nombre``, ``categoria_ordenamiento``,
 ``vigencia``, ``materia``, ``resumen`` (issue #220, Fase 2) --
 ``clasificado`` (the date this seed was written) is set only the first
 time, same reasoning `escribe_estado`'s merge already gives every other
-field here. This corpus has no `abrev` and no `actualizado` at all (see the
-module CLAUDE.md section this issue adds): freshness is judged by row
+field here. Neither id-keyed collection has an `abrev` or an `actualizado`
+at all (see CLAUDE.md's own sections on them): freshness is judged by row
 comparison against the SCJN's own reform table
 (`scjn.state.reformas_faltantes`), which needs nothing dated.
 
@@ -43,10 +47,9 @@ from pathlib import Path
 _RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
-from scjn.catalog import reglamento_key  # noqa: E402
+from scjn.cache import COLECCIONES_POR_ID  # noqa: E402
+from scjn.catalog import instrumento_key  # noqa: E402
 from scjn.state import escribe_estado, lee_estado  # noqa: E402
-
-COLECCION = "reglamentos"
 
 #: The fields a discovery candidate carries that are worth seeding --
 #: `id_ordenamiento`/`nombre` unconditionally, the rest only when present
@@ -56,16 +59,20 @@ CAMPOS_SEMILLA = ("id_ordenamiento", "nombre", "categoria_ordenamiento", "vigenc
                   "materia", "resumen")
 
 
-def seed(outdir: Path, candidatos: list[dict], *, log=print) -> list[str]:
+def seed(outdir: Path, candidatos: list[dict], *, coleccion: str = "reglamentos", log=print) -> list[str]:
     """Write `estado.json` for every one of `candidatos` that has no
     snapshot on disk yet, and return the `id_ordenamiento` keys actually
     written. A candidate whose directory already has a snapshot is skipped
-    outright, printed apart -- never touched, crawled or not."""
+    outright, printed apart -- never touched, crawled or not.
+
+    `coleccion` is any name in `scjn.cache.COLECCIONES_POR_ID`
+    (`"reglamentos"`, `"lineamientos"`) -- both id-keyed collections share
+    this exact seeding logic (issue #222's Fase 0)."""
     escritos = []
     saltados = []
     for candidato in candidatos:
-        clave = reglamento_key(candidato)
-        directorio = outdir / COLECCION / clave
+        clave = instrumento_key(candidato)
+        directorio = outdir / coleccion / clave
         if directorio.is_dir() and any(directorio.glob("*.md")):
             saltados.append(clave)
             continue
@@ -74,9 +81,9 @@ def seed(outdir: Path, candidatos: list[dict], *, log=print) -> list[str]:
             campos["clasificado"] = date.today().isoformat()
         escribe_estado(directorio, **campos)
         escritos.append(clave)
-    log(f"{COLECCION}: {len(escritos)} estado.json escrito(s)/actualizado(s)")
+    log(f"{coleccion}: {len(escritos)} estado.json escrito(s)/actualizado(s)")
     if saltados:
-        log(f"{COLECCION}: {len(saltados)} ya rastreado(s) -- no se tocaron: {sorted(saltados)}")
+        log(f"{coleccion}: {len(saltados)} ya rastreado(s) -- no se tocaron: {sorted(saltados)}")
     return escritos
 
 
@@ -86,16 +93,20 @@ def main(argv=None) -> int:
     )
     parser.add_argument(
         "lista", type=Path,
-        help="el JSON que discover_federal_reglamentos.py --json escribio, ya revisado a mano",
+        help="el JSON que discover_federal_<coleccion>.py --json escribio, ya revisado a mano",
     )
     parser.add_argument(
         "--outdir", type=Path, required=True,
-        help="donde escribir <outdir>/reglamentos/<id_ordenamiento>/estado.json",
+        help="donde escribir <outdir>/<coleccion>/<id_ordenamiento>/estado.json",
+    )
+    parser.add_argument(
+        "--coleccion", choices=tuple(COLECCIONES_POR_ID), default="reglamentos",
+        help="que coleccion id-keyed sembrar (default: %(default)s)",
     )
     args = parser.parse_args(argv)
 
     candidatos = json.loads(args.lista.read_text(encoding="utf-8"))
-    seed(args.outdir, candidatos, log=lambda m: print(m, file=sys.stderr))
+    seed(args.outdir, candidatos, coleccion=args.coleccion, log=lambda m: print(m, file=sys.stderr))
     return 0
 
 

@@ -72,6 +72,8 @@ jobs:
           pip install -e packages/md2akn
       - name: Download the scjn-leyes assets the docs exercise (disk-first reads since #209)
         run: scjn download --slug lfca
+      - name: Download the scjn-reglamentos asset the docs exercise (issue #223)
+        run: scjn download --coleccion reglamentos --id 104906
       - name: Run the documentation's doctest examples
         run: python -m sphinx -b doctest docs/source docs/build/doctest
 

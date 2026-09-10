@@ -21,6 +21,7 @@ on any of them means "use `CACHE_DIR`", not "skip caching" — see
 """
 
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
 import platformdirs
@@ -36,13 +37,78 @@ SUFIJO_PARCIAL = ".parcial"
 #: Environment override, read once here rather than on every call.
 _VARIABLE_ENTORNO = "SCJN_CACHE_DIR"
 
-#: The subdirectory every `scjn-leyes` asset lives under.
+#: The subdirectory every `scjn-leyes` asset lives under -- the collection's
+#: cache subdirectory, named after **part 1**'s tag (issue #223: a
+#: collection over GitHub's 1000-asset cap is published as a numbered series
+#: of release tags, `scjn-leyes`, `scjn-leyes-2`, ..., but every part shares
+#: this one subdirectory, since an asset name is unique across the whole
+#: series).
 _SCJN_LEYES_RELEASE = "scjn-leyes"
 
 #: The subdirectory every `scjn-reglamentos` asset lives under -- a sibling
 #: of `_SCJN_LEYES_RELEASE` under the same `CACHE_DIR`/`$SCJN_CACHE_DIR`,
-#: not a separate cache (issue #220).
+#: not a separate cache (issue #220). Named after part 1's tag, same as
+#: `_SCJN_LEYES_RELEASE` above -- this collection's own series is
+#: `scjn-reglamentos`/`scjn-reglamentos-2` today (issue #223).
 _SCJN_REGLAMENTOS_RELEASE = "scjn-reglamentos"
+
+#: The subdirectory every `scjn-lineamientos` asset lives under -- the third
+#: id-keyed collection (issue #222), sibling of `_SCJN_REGLAMENTOS_RELEASE`.
+_SCJN_LINEAMIENTOS_RELEASE = "scjn-lineamientos"
+
+
+@dataclass(frozen=True)
+class Coleccion:
+    """An id-keyed collection published as its own series of release tags
+    (issue #222's Fase 0, superseding #220's decision 4 of "a sibling
+    release, not a parameter" -- two hand-duplicated collections were a
+    defensible cost, three were not).
+
+    `nombre` is the collection's own name (`"reglamentos"`, `"lineamientos"`)
+    -- what a caller passes to `scjn download --coleccion` and what a
+    published index's own `coleccion` field carries. `tag_base` is part 1 of
+    its release-tag series (issue #223: `_tag_de_parte`/`_assets_de_partes`
+    derive every later part from it, `-2`, `-3`, ...). `subdirectorio` is
+    where its assets live under `CACHE_DIR`/`$SCJN_CACHE_DIR`, shared by
+    every part of the series -- kept as its own field, separate from
+    `tag_base`, even though the two happen to be equal for both collections
+    today: a release tag is GitHub's name for the corpus, a cache
+    subdirectory is this package's own, and nothing requires them to always
+    coincide.
+
+    Deliberately **not** the four-collection registry issue #189 deleted:
+    this carries only what every id-keyed collection's shared path actually
+    needs (a name and where its assets live), never a per-collection
+    behaviour flag. `leyes` has its own `abrev`/`actualizado`/`indice.json`/
+    `notas/`/codNota-reverse-index path and is not, and will not be,
+    described by this class -- growing it to cover `leyes` too is the sign
+    this abstraction went too far.
+    """
+
+    nombre: str
+    tag_base: str
+    subdirectorio: str
+
+
+#: The two id-keyed collections' own descriptors (issue #222) -- `leyes`
+#: stays on its own separate path, not covered by `Coleccion` at all.
+REGLAMENTOS = Coleccion(
+    nombre="reglamentos", tag_base=_SCJN_REGLAMENTOS_RELEASE, subdirectorio=_SCJN_REGLAMENTOS_RELEASE
+)
+LINEAMIENTOS = Coleccion(
+    nombre="lineamientos", tag_base=_SCJN_LINEAMIENTOS_RELEASE, subdirectorio=_SCJN_LINEAMIENTOS_RELEASE
+)
+
+#: Every id-keyed collection, by its own `nombre` -- read by `scjn.cli`/
+#: `scripts/fetch_scjn_legislacion.py`/`scripts/empaqueta_scjn_coleccion.py`
+#: to dispatch `--coleccion` to the right `Coleccion` without a third
+#: literal branch per new collection. Not a growing per-collection registry
+#: in the #189 sense: every value here is described identically by
+#: `Coleccion`, with no behaviour keyed off which one it is.
+COLECCIONES_POR_ID: dict[str, Coleccion] = {
+    REGLAMENTOS.nombre: REGLAMENTOS,
+    LINEAMIENTOS.nombre: LINEAMIENTOS,
+}
 
 #: Asset names `migrate_legacy_assets` moves verbatim -- everything except a
 #: `.tgz`, matched by suffix below. A downstream package's own derived output

@@ -13,11 +13,13 @@ Version |scjn_version| — see :doc:`index` for the full package table.
 Nación's SCOW JSON API (:py:mod:`scjn.api`, the backend of
 `legislacion.scjn.gob.mx/consulta/buscador
 <https://legislacion.scjn.gob.mx/consulta/buscador>`_) and the disk-first
-reader for the two GitHub releases it feeds (:py:mod:`scjn.release`) — a
+reader for the three GitHub releases it feeds (:py:mod:`scjn.release`) — a
 Mexican federal law's reform-dated snapshots, one tarball per law
-(``scjn-leyes``), and, since issue #220, every federal *reglamento* the SCJN
-has, one tarball per instrument (``scjn-reglamentos``). It was extracted out
-of :py:mod:`nota2md`'s own modules (issue #206): Fase 1 (#207) moved the
+(``scjn-leyes``); since issue #220, every federal *reglamento* the SCJN has,
+one tarball per instrument (``scjn-reglamentos``); and, since issue #222,
+every federal *lineamiento* the SCJN has, on the same id-keyed shape
+(``scjn-lineamientos``). It was extracted out of :py:mod:`nota2md`'s own
+modules (issue #206): Fase 1 (#207) moved the
 transport, the catalogue's own algebra (:py:mod:`scjn.catalog`),
 per-instrument crawl state (:py:mod:`scjn.state`) and the provenance header's
 reader (:py:mod:`scjn.header`); Fase 3 (#209) moved the release's readers
@@ -46,7 +48,9 @@ signatures below conveys them:
 The sections below are ordered the way a caller actually reaches this
 corpus: :py:mod:`scjn.release` (the entry points, disk-only), :py:mod:`scjn.api`
 (the transport underneath the corpus — the one documented exception to "every
-public symbol has a verified example" on this page), :py:mod:`scjn.catalog`
+public symbol has a verified example" on this page), :py:mod:`scjn.discovery`
+(the shared discovery machinery behind the two id-keyed collections'
+discovery scripts, issue #222's Fase 0), :py:mod:`scjn.catalog`
 (the federal-law catalogue's own algebra), :py:mod:`scjn.state` (per-instrument
 crawl state and completeness), :py:mod:`scjn.header` (reading a crawl's own
 output back off disk), :py:mod:`scjn.cache` (the on-disk cache
@@ -216,32 +220,124 @@ the *instrument* ``ACUERDO (S)``, but a row of its own reform table is
 classified ``REGLAMENTO`` — issue #220's own inclusion rule, load-bearing
 for 6 of the corpus' 1087 instruments.
 
-:py:func:`~scjn.catalog.reglamento_key` is the key itself — not a slug of a
-title, unlike :py:func:`~scjn.catalog.slug_instrumento`:
+:py:func:`~scjn.catalog.instrumento_key` is the key itself — not a slug of a
+title, unlike :py:func:`~scjn.catalog.slug_instrumento` — shared by every
+id-keyed collection since issue #222's Fase 0 (``reglamento_key`` is kept as
+a working alias of the exact same function, for a caller that has not moved
+to the new name yet):
 
->>> from scjn.catalog import reglamento_key
->>> reglamento_key({"id_ordenamiento": "104906", "nombre": "..."})
+>>> from scjn.catalog import instrumento_key, reglamento_key
+>>> instrumento_key({"id_ordenamiento": "104906", "nombre": "..."})
 '104906'
+>>> reglamento_key is instrumento_key
+True
 
-**The readers this release needs a real, published corpus for —
-** :py:func:`~scjn.download_scjn_reglamentos_index`,
-:py:func:`~scjn.download_scjn_reglamentos_corpus`,
-:py:func:`~scjn.local_reglamentos_ids` and
-:py:func:`~scjn.download_scjn_reglamentos_assets` — are the second
-documented exception to "every public symbol has a verified example" on
-this page (the first is :py:mod:`scjn.api` below). Issue #220 built the
-code that discovers, seeds, crawls and packages this corpus, but publishing
-it is a manual, human-reviewed step (issue #115, Hallazgo C) that had not
-happened yet when this page was written — there is no ``scjn-reglamentos``
-release for a live doctest to read. Their behaviour is instead verified by
-fabricated tarballs and indices in
-``packages/scjn/tests/test_release.py`` (``TestDownloadScjnReglamentosIndex``,
-``TestDownloadScjnReglamentosCorpus``, ``TestLocalReglamentosIds``,
-``TestDescargaAssetsScjnReglamentos``), the same fixture-based style every
-other reader in this module is tested with — not silently skipped. Once a
-human publishes the release, this exception should be revisited the same
-way :py:mod:`scjn.api`'s own live-network exception below never was for the
-readers above.
+The corpus was published by hand on 2026-09-10 — 1087 instruments, 1082 with
+snapshots, 72.2 MB of tarballs — and it outgrew a single GitHub release doing
+it (issue #223): a release holds at most 1000 assets, and 1082 tarballs plus
+``MANIFEST.md``/``SHA256SUMS.txt``/``indice-global.json.gz`` is 1085, so the
+collection lives across two release tags today, ``scjn-reglamentos`` (997
+tarballs, part 1) and ``scjn-reglamentos-2`` (the other 85). Every reader
+below resolves the whole series transparently — a caller never names a part.
+
+:py:func:`~scjn.download_scjn_reglamentos_assets` is the one function below
+that talks to the network — every reader after it assumes it (or the ``scjn
+download --coleccion reglamentos`` CLI built on it) already ran:
+
+>>> resultados = release.download_scjn_reglamentos_assets(["104906"])
+>>> sorted(ruta.name for ruta, _ in resultados)
+['104906.tgz', 'indice-global.json.gz']
+
+:py:func:`~scjn.download_scjn_reglamentos_index` reads the release's own
+reverse listing — no ``codNota`` section (this corpus has no DOF linking at
+all yet), keyed by ``id_ordenamiento``:
+
+>>> indice = release.download_scjn_reglamentos_index()
+>>> indice["coleccion"]
+'reglamentos'
+>>> indice["instrumentos"]["104906"]["nombre"]
+'REGLAMENTO DE LA OFICIALIA ELECTORAL DEL INSTITUTO NACIONAL ELECTORAL'
+>>> indice["instrumentos"]["104906"]["categoria_ordenamiento"]
+'ACUERDO (S)'
+
+:py:func:`~scjn.download_scjn_reglamentos_corpus` reads one instrument back
+— oldest snapshot first, each with its own provenance header (no
+``indice.json``/``notas/`` here, unlike a law's own tarball: this corpus has
+nothing to link a snapshot's `codNota` against):
+
+>>> corpus = release.download_scjn_reglamentos_corpus("104906")
+>>> [s["archivo"] for s in corpus["snapshots"]]
+['21-01-2015.md', '25-01-2017.md']
+>>> lineas = corpus["snapshots"][0]["markdown"].splitlines()
+>>> lineas[0], lineas[1]
+('---', 'fuente: scjn')
+
+:py:func:`~scjn.local_reglamentos_ids` is the disk-first "what does this
+machine already have", no network at all:
+
+>>> "104906" in release.local_reglamentos_ids()
+True
+
+``scjn-lineamientos`` — the third collection (issue #222)
+------------------------------------------------------------
+
+Every federal *lineamiento* the SCJN has — 163 instruments, 126 with text —
+published as a sibling release alongside ``scjn-leyes``/``scjn-reglamentos``,
+on the id-keyed collection path issue #222's Fase 0 refactored so a third
+collection costs a descriptor entry and four wrapper functions rather than
+another ~226-line copy of :py:mod:`scjn.release`. Same shape as
+``scjn-reglamentos`` above: no ``abrev`` (3 of 159 titles repeat), no
+``actualizado``, no DOF linking, no ``indice.json``/``notas/``.
+
+:py:func:`~scjn.release.construye_indice_global_lineamientos` is the payload
+builder for this release's own index — the exact sibling of
+:py:func:`~scjn.release.construye_indice_global_reglamentos` above, sharing
+the same private generic core (:py:func:`~scjn.release._indice_global_por_id`)
+and the same decision 6 rule: an instrument with ``snapshots: 0`` gets no
+``asset`` key at all, since there is nothing to download for it:
+
+>>> indice = release.construye_indice_global_lineamientos(
+...     [{"id_ordenamiento": "96090", "nombre": "MANUAL DE LINEAMIENTOS DE LA "
+...       "COORDINACION DE RECURSOS HUMANOS Y ENLACE ADMINISTRATIVO",
+...       "snapshots": 0, "categoria_ordenamiento": "MANUAL", "vigencia": "VIGENTE"}],
+...     generado="2026-09-10T00:00:00+00:00",
+... )
+>>> indice["coleccion"]
+'lineamientos'
+>>> indice["instrumentos"]["96090"]["snapshots"]
+0
+>>> "asset" in indice["instrumentos"]["96090"]
+False
+
+:py:func:`~scjn.download_scjn_lineamientos_index`,
+:py:func:`~scjn.download_scjn_lineamientos_corpus`,
+:py:func:`~scjn.download_scjn_lineamientos_assets`,
+:py:func:`~scjn.local_lineamientos_ids` and :py:exc:`~scjn.SinTextoEnSCJN`
+are the exact wrappers :py:func:`~scjn.download_scjn_reglamentos_index` and
+its siblings are (decision 7: every published name stays per-collection,
+symmetric across both) — sharing the same generic core
+(:py:func:`~scjn.release._index_de_release`,
+:py:func:`~scjn.release._corpus_de_release`,
+:py:func:`~scjn.release._local_ids_de_release`,
+:py:func:`~scjn.release._download_assets_de_release`) and the exact same
+raise-order contract :py:exc:`~scjn.AssetNotCached`/:py:exc:`~scjn.SinTextoEnSCJN`
+document on those functions (decision 10): a cold cache raises
+:py:exc:`~scjn.AssetNotCached` for the index first, and only once the index
+says an id has no asset does :py:func:`~scjn.download_scjn_lineamientos_corpus`
+raise :py:exc:`~scjn.SinTextoEnSCJN` instead of reaching for a tarball that
+does not exist.
+
+**Not yet live**, unlike ``scjn-reglamentos`` above — issue #222 generated
+this collection's publish plan (``PUBLICAR.md``) but a human has not run it
+yet (issue #115, Hallazgo C: publishing is never automated), so there is no
+``scjn-lineamientos`` release on GitHub for a doctest here to download from.
+A live example the same shape as ``scjn-reglamentos``' own (an actual
+``download_scjn_lineamientos_assets``/``_index``/``_corpus``/
+``local_lineamientos_ids`` walk against a real ``id_ordenamiento``) belongs
+here as a follow-up, once the release is published — until then this
+behaviour is verified by ``packages/scjn/tests/test_release.py``'s
+``TestScjnLineamientos`` class against a synthetic on-disk release, the same
+posture :py:mod:`scjn.api` takes toward the live SCJN below.
 
 .. automodule:: scjn.release
    :members:
@@ -266,6 +362,111 @@ verified for real, against the live service, by
 mechanism :doc:`dof2md_api`'s OCR paths already use for ``mineru``.
 
 .. automodule:: scjn.api
+   :members:
+   :private-members:
+   :undoc-members:
+
+``scjn.discovery`` — shared id-keyed collection discovery (issue #222)
+---------------------------------------------------------------------------
+
+The three passes behind ``discover_federal_reglamentos.py`` (issue #220) and
+``discover_federal_lineamientos.py`` (issue #222), extracted into library
+code parameterised by a target SCJN category and a phrase list, so neither
+script duplicates them. Every function here takes an object exposing only
+``search_ordenamiento``/``reformas_of_ordenamiento`` (an
+:py:class:`~scjn.api.ScjnApi`, or the small stub below) — nothing makes a
+network request directly, which is what makes this module unit-testable
+without the SCJN:
+
+>>> from scjn.api import Ordenamiento, Reforma
+>>> from scjn.discovery import (
+...     candidates_outside_category, coverage_audit, discover,
+...     discover_by_category, pagina_categoria, rescue_by_reform_category,
+... )
+>>> class StubApi:
+...     """Answers one page of hand-picked hits per (frase, categoria), and
+...     a fixed reform table per id -- enough to exercise every pass below
+...     without a single HTTP request."""
+...     def __init__(self):
+...         self.hits = {
+...             ("lineamientos", "LINEAMIENTOS"): [
+...                 Ordenamiento(idOrdenamiento="1", ordenamiento="LINEAMIENTOS DE EJEMPLO",
+...                              categoriaOrdenamiento="LINEAMIENTOS"),
+...             ],
+...             ("lineamientos", ""): [
+...                 Ordenamiento(idOrdenamiento="1", ordenamiento="LINEAMIENTOS DE EJEMPLO",
+...                              categoriaOrdenamiento="LINEAMIENTOS"),
+...                 Ordenamiento(idOrdenamiento="2", ordenamiento="MANUAL DE LINEAMIENTOS",
+...                              categoriaOrdenamiento="MANUAL"),
+...             ],
+...             ("manual", "MANUAL"): [
+...                 Ordenamiento(idOrdenamiento="2", ordenamiento="MANUAL DE LINEAMIENTOS",
+...                              categoriaOrdenamiento="MANUAL"),
+...             ],
+...         }
+...         self.reformas = {
+...             "1": [Reforma(reformaId=1, fecha_publicacion="01-01-2020", categoria="LINEAMIENTOS")],
+...             "2": [Reforma(reformaId=2, fecha_publicacion="01-01-2019", categoria="LINEAMIENTOS",
+...                            tieneArticulos=False)],
+...         }
+...     def search_ordenamiento(self, frase, *, tamanio_pagina, categoria, ambito, pagina):
+...         return self.hits.get((frase, categoria), []) if pagina == 1 else []
+...     def reformas_of_ordenamiento(self, id_ordenamiento):
+...         return self.reformas.get(str(id_ordenamiento), [])
+>>> api = StubApi()
+
+:py:func:`~scjn.discovery.pagina_categoria` pages one ``(frase, categoria)``
+to the end:
+
+>>> [hit.idOrdenamiento for hit in pagina_categoria(api, "lineamientos", "LINEAMIENTOS")]
+['1']
+
+:py:func:`~scjn.discovery.discover_by_category` unions a phrase list over
+one target category:
+
+>>> por_categoria = discover_by_category(api, "LINEAMIENTOS", ("lineamientos",))
+>>> list(por_categoria)
+['1']
+
+:py:func:`~scjn.discovery.candidates_outside_category` finds every other
+federal hit of one rescue phrase, minus what is already classified:
+
+>>> otros = candidates_outside_category(api, "lineamientos", por_categoria)
+>>> list(otros)
+['2']
+
+:py:func:`~scjn.discovery.rescue_by_reform_category` applies the
+reform-table rule to those candidates — id ``"2"``'s own reform row is
+classified ``LINEAMIENTOS`` even though the SCJN classifies the *instrument*
+itself ``MANUAL``:
+
+>>> rescatados = rescue_by_reform_category(api, otros, "LINEAMIENTOS")
+>>> list(rescatados)
+['2']
+
+:py:func:`~scjn.discovery.coverage_audit` is the opt-in, one-time,
+exhaustive sweep (issue #222's decision 8) — it finds the same id ``"2"``
+by a different route (the ``MANUAL`` category, not the ``"lineamientos"``
+phrase), and would cache every reform table it fetches under a real
+``cache_dir``; ``cache_dir=None`` here writes nothing to disk:
+
+>>> extra = coverage_audit(api, {"1"}, "LINEAMIENTOS", (("manual", "MANUAL"),), cache_dir=None)
+>>> list(extra)
+['2']
+
+:py:func:`~scjn.discovery.discover` is the whole pipeline a discovery script
+wraps — union, rescue, and (opt-in) the coverage audit, returning a
+reviewable list sorted by name:
+
+>>> candidatos = discover(
+...     StubApi(), categoria="LINEAMIENTOS", frases_union=("lineamientos",),
+...     frase_rescate="lineamientos", auditoria_cobertura=True,
+...     frases_auditoria=(("manual", "MANUAL"),), log=lambda *_a, **_k: None,
+... )
+>>> [(c["id_ordenamiento"], c["nombre"], c["reformas_con_texto"]) for c in candidatos]
+[('1', 'LINEAMIENTOS DE EJEMPLO', 1), ('2', 'MANUAL DE LINEAMIENTOS', 0)]
+
+.. automodule:: scjn.discovery
    :members:
    :private-members:
    :undoc-members:
@@ -347,6 +548,19 @@ moving release assets over with ``os.replace`` rather than downloading
 >>> cache.migrate_legacy_assets(cache.CACHE_DIR, cache.CACHE_DIR / "does-not-exist")
 0
 
+:py:class:`~scjn.cache.Coleccion` (issue #222's Fase 0) describes an
+id-keyed collection's own release-tag series and cache subdirectory;
+:py:data:`~scjn.cache.COLECCIONES_POR_ID` maps a collection's name to its
+descriptor, for :py:mod:`scjn.cli` and the scripts to dispatch ``--coleccion``
+through instead of a per-collection literal branch:
+
+>>> sorted(cache.COLECCIONES_POR_ID)
+['lineamientos', 'reglamentos']
+>>> cache.COLECCIONES_POR_ID["lineamientos"].tag_base
+'scjn-lineamientos'
+>>> cache.REGLAMENTOS.subdirectorio
+'scjn-reglamentos'
+
 .. automodule:: scjn.cache
    :members:
    :private-members:
@@ -366,20 +580,30 @@ delegate to this same downloader rather than reimplementing it:
    [2/2] lfca.tgz: already cached
    scjn-leyes: 2 assets in /home/user/.cache/scjn/scjn-leyes (0 downloaded, 2 already cached)
 
-``--coleccion {leyes,reglamentos}`` (default ``leyes``, issue #220) picks
-which release; ``--id`` replaces ``--slug`` for ``reglamentos``, since that
-collection is keyed by ``id_ordenamiento`` rather than by a slug:
+``--coleccion {leyes,reglamentos,lineamientos}`` (default ``leyes``; issue
+#220 added ``reglamentos``, issue #222 added ``lineamientos``) picks which
+release; ``--id`` replaces ``--slug`` for either id-keyed collection, since
+both are keyed by ``id_ordenamiento`` rather than by a slug:
 
 .. code-block:: console
 
    $ scjn download --coleccion reglamentos --id 104906
    [1/2] indice-global.json.gz: downloaded
    [2/2] 104906.tgz: downloaded
-   scjn-reglamentos: 2 assets in /home/user/.cache/scjn/scjn-reglamentos (2 downloaded, 0 already cached)
+   scjn-reglamentos: 2 assets in /home/user/.cache/scjn/scjn-reglamentos (2 downloaded, 0 already cached) (2 partes)
 
-A two-valued parameter, not a registry: adding a third collection here
-would mean a third literal branch in :py:mod:`scjn.cli`, the same way
-``reglamentos`` added a second one, never a ``COLECCIONES`` dict.
+Since issue #222's Fase 0, this is dispatched through
+:py:data:`~scjn.cache.COLECCIONES_POR_ID` rather than a hand-written
+per-flag branch for each id-keyed collection: adding a further one costs a
+new dict entry, not a new literal branch. ``leyes`` itself stays its own
+separate branch — it takes ``--slug``, not ``--id``, and has no
+:py:class:`~scjn.cache.Coleccion` descriptor at all.
+
+``(2 partes)`` (issue #223) appears whenever a download session actually
+asked GitHub for this collection's series of release tags and found more
+than one — this collection is ``scjn-reglamentos``/``scjn-reglamentos-2``
+today. A run that finds everything already cached never asks, so it never
+prints a part count at all, same as the ``scjn-leyes`` example above.
 
 .. automodule:: scjn.cli
    :members:
