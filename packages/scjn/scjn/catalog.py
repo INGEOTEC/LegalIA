@@ -154,3 +154,23 @@ def mint_abrev(nombre: str, taken=()) -> str:
     return candidato
 
 
+def reglamento_key(entrada: dict) -> str:
+    """The directory and release-asset name for one `scjn-reglamentos`
+    catalogue entry: its own `id_ordenamiento`, as a string.
+
+    Unlike `slug_instrumento`, this is not a slug of a title. The
+    `scjn-reglamentos` corpus has no `abrev` at all (issue #220): the SCJN
+    models a *reissued* reglamento as a brand-new `idOrdenamiento` rather
+    than as a reform of the previous one, so 137 of its 1080 titles repeat
+    across distinct instruments -- a title-derived key collides on exactly
+    those (`mint_abrev`-style keys: 152 colliding bases over 411 titles), and
+    `idOrdenamiento` is the only key the SCJN guarantees stable. It is
+    already filesystem-safe (a digit string) with no need for `slugify`.
+
+    >>> import scjn.catalog as catalog
+    >>> catalog.reglamento_key({"id_ordenamiento": "104906", "nombre": "..."})
+    '104906'
+    """
+    return str(entrada["id_ordenamiento"])
+
+

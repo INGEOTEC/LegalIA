@@ -13,10 +13,12 @@ Version |scjn_version| — see :doc:`index` for the full package table.
 Nación's SCOW JSON API (:py:mod:`scjn.api`, the backend of
 `legislacion.scjn.gob.mx/consulta/buscador
 <https://legislacion.scjn.gob.mx/consulta/buscador>`_) and the disk-first
-reader for the ``scjn-leyes`` GitHub release it feeds (:py:mod:`scjn.release`)
-— a Mexican federal law's reform-dated snapshots, one tarball per law. It was
-extracted out of :py:mod:`nota2md`'s own modules (issue #206): Fase 1 (#207)
-moved the transport, the catalogue's own algebra (:py:mod:`scjn.catalog`),
+reader for the two GitHub releases it feeds (:py:mod:`scjn.release`) — a
+Mexican federal law's reform-dated snapshots, one tarball per law
+(``scjn-leyes``), and, since issue #220, every federal *reglamento* the SCJN
+has, one tarball per instrument (``scjn-reglamentos``). It was extracted out
+of :py:mod:`nota2md`'s own modules (issue #206): Fase 1 (#207) moved the
+transport, the catalogue's own algebra (:py:mod:`scjn.catalog`),
 per-instrument crawl state (:py:mod:`scjn.state`) and the provenance header's
 reader (:py:mod:`scjn.header`); Fase 3 (#209) moved the release's readers
 here too, disk-first and with their own cache directory
@@ -174,6 +176,73 @@ naming the exact ``scjn download`` command that populates it:
 ...     print(exc)
 'no-such-law.tgz' is not cached under .../scjn -- run `scjn download --slug no-such-law`
 
+``scjn-reglamentos`` — the second collection (issue #220)
+------------------------------------------------------------
+
+Every federal *reglamento* the SCJN has, published as a sibling release
+alongside ``scjn-leyes`` — same disk-first contract (every reader here is
+offline too, and :py:exc:`~scjn.AssetNotCached` names the right ``scjn
+download --coleccion reglamentos`` command), but a narrower corpus: no
+``abrev`` (the SCJN reissues a reglamento as a brand-new ``idOrdenamiento``
+rather than as a reform of the previous one, so a title-derived key would
+collide — 137 of 1080 titles repeat), and **no DOF linking at all yet** — a
+future issue adds it, for reglamentos and laws alike, so there is no
+``indice.json`` per instrument and no ``codNota`` section in this release's
+own index.
+
+>>> import scjn.release as release
+
+:py:func:`~scjn.release.construye_indice_global_reglamentos` is the payload
+builder for this release's own index — no ``codNota`` key, keyed by
+``id_ordenamiento`` (:py:func:`scjn.catalog.reglamento_key`) rather than by a
+slug:
+
+>>> indice = release.construye_indice_global_reglamentos(
+...     [{"id_ordenamiento": "104906", "nombre": "REGLAMENTO DE LA OFICIALIA "
+...       "ELECTORAL DEL INSTITUTO NACIONAL ELECTORAL", "snapshots": 2,
+...       "categoria_ordenamiento": "ACUERDO (S)", "vigencia": "VIGENTE"}],
+...     generado="2026-09-09T00:00:00+00:00",
+... )
+>>> sorted(indice.keys())
+['coleccion', 'generado', 'instrumentos']
+>>> indice["coleccion"]
+'reglamentos'
+>>> indice["instrumentos"]["104906"]["categoria_ordenamiento"]
+'ACUERDO (S)'
+
+``categoria_ordenamiento`` (:py:data:`~scjn.release.CAMPO_CATEGORIA_ORDENAMIENTO`)
+is what makes ``104906`` worth carrying at all: the SCJN itself classifies
+the *instrument* ``ACUERDO (S)``, but a row of its own reform table is
+classified ``REGLAMENTO`` — issue #220's own inclusion rule, load-bearing
+for 6 of the corpus' 1087 instruments.
+
+:py:func:`~scjn.catalog.reglamento_key` is the key itself — not a slug of a
+title, unlike :py:func:`~scjn.catalog.slug_instrumento`:
+
+>>> from scjn.catalog import reglamento_key
+>>> reglamento_key({"id_ordenamiento": "104906", "nombre": "..."})
+'104906'
+
+**The readers this release needs a real, published corpus for —
+** :py:func:`~scjn.download_scjn_reglamentos_index`,
+:py:func:`~scjn.download_scjn_reglamentos_corpus`,
+:py:func:`~scjn.local_reglamentos_ids` and
+:py:func:`~scjn.download_scjn_reglamentos_assets` — are the second
+documented exception to "every public symbol has a verified example" on
+this page (the first is :py:mod:`scjn.api` below). Issue #220 built the
+code that discovers, seeds, crawls and packages this corpus, but publishing
+it is a manual, human-reviewed step (issue #115, Hallazgo C) that had not
+happened yet when this page was written — there is no ``scjn-reglamentos``
+release for a live doctest to read. Their behaviour is instead verified by
+fabricated tarballs and indices in
+``packages/scjn/tests/test_release.py`` (``TestDownloadScjnReglamentosIndex``,
+``TestDownloadScjnReglamentosCorpus``, ``TestLocalReglamentosIds``,
+``TestDescargaAssetsScjnReglamentos``), the same fixture-based style every
+other reader in this module is tested with — not silently skipped. Once a
+human publishes the release, this exception should be revisited the same
+way :py:mod:`scjn.api`'s own live-network exception below never was for the
+readers above.
+
 .. automodule:: scjn.release
    :members:
    :private-members:
@@ -286,8 +355,8 @@ moving release assets over with ``os.replace`` rather than downloading
 ``scjn.cli`` — command-line entry point
 ------------------------------------------
 
-One verb: putting the ``scjn-leyes`` release on disk. A downstream package's
-own ``download`` subcommands (``nota2md download federal-laws``/``all``)
+One verb: putting a release on disk. A downstream package's own
+``download`` subcommands (``nota2md download federal-laws``/``all``)
 delegate to this same downloader rather than reimplementing it:
 
 .. code-block:: console
@@ -296,6 +365,21 @@ delegate to this same downloader rather than reimplementing it:
    [1/2] indice-global.json.gz: already cached
    [2/2] lfca.tgz: already cached
    scjn-leyes: 2 assets in /home/user/.cache/scjn/scjn-leyes (0 downloaded, 2 already cached)
+
+``--coleccion {leyes,reglamentos}`` (default ``leyes``, issue #220) picks
+which release; ``--id`` replaces ``--slug`` for ``reglamentos``, since that
+collection is keyed by ``id_ordenamiento`` rather than by a slug:
+
+.. code-block:: console
+
+   $ scjn download --coleccion reglamentos --id 104906
+   [1/2] indice-global.json.gz: downloaded
+   [2/2] 104906.tgz: downloaded
+   scjn-reglamentos: 2 assets in /home/user/.cache/scjn/scjn-reglamentos (2 downloaded, 0 already cached)
+
+A two-valued parameter, not a registry: adding a third collection here
+would mean a third literal branch in :py:mod:`scjn.cli`, the same way
+``reglamentos`` added a second one, never a ``COLECCIONES`` dict.
 
 .. automodule:: scjn.cli
    :members:
