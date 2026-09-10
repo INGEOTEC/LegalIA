@@ -154,23 +154,35 @@ def mint_abrev(nombre: str, taken=()) -> str:
     return candidato
 
 
-def reglamento_key(entrada: dict) -> str:
-    """The directory and release-asset name for one `scjn-reglamentos`
-    catalogue entry: its own `id_ordenamiento`, as a string.
+def instrumento_key(entrada: dict) -> str:
+    """The directory and release-asset name for one id-keyed collection's
+    catalogue entry (`scjn-reglamentos`, `scjn-lineamientos`, issue #222's
+    Fase 0): its own `id_ordenamiento`, as a string.
 
-    Unlike `slug_instrumento`, this is not a slug of a title. The
-    `scjn-reglamentos` corpus has no `abrev` at all (issue #220): the SCJN
-    models a *reissued* reglamento as a brand-new `idOrdenamiento` rather
-    than as a reform of the previous one, so 137 of its 1080 titles repeat
-    across distinct instruments -- a title-derived key collides on exactly
-    those (`mint_abrev`-style keys: 152 colliding bases over 411 titles), and
-    `idOrdenamiento` is the only key the SCJN guarantees stable. It is
-    already filesystem-safe (a digit string) with no need for `slugify`.
+    Unlike `slug_instrumento`, this is not a slug of a title. Neither
+    corpus has an `abrev` at all (issue #220): the SCJN models a *reissued*
+    instrument as a brand-new `idOrdenamiento` rather than as a reform of
+    the previous one, so a title-derived key collides on the instruments
+    that get reissued (137 of `scjn-reglamentos`' 1080 titles, 3 of
+    `scjn-lineamientos`' 159) -- `idOrdenamiento` is the only key the SCJN
+    guarantees stable. It is already filesystem-safe (a digit string) with
+    no need for `slugify`.
 
     >>> import scjn.catalog as catalog
-    >>> catalog.reglamento_key({"id_ordenamiento": "104906", "nombre": "..."})
+    >>> catalog.instrumento_key({"id_ordenamiento": "104906", "nombre": "..."})
     '104906'
     """
     return str(entrada["id_ordenamiento"])
+
+
+#: Pre-#222 name, kept as a working alias (issue #222's Fase 0): not
+#: re-exported in `scjn.__all__`, so no PyPI-facing name breaks. Every
+#: caller in this repo (`seed_federal_reglamentos.py`,
+#: `empaqueta_scjn_coleccion.py`, `fetch_scjn_legislacion.py`) moved to
+#: `instrumento_key` along with Fase 0's own generalisation -- this alias is
+#: kept only because it is public in `scjn.catalog` and doctested on this
+#: package's Read the Docs page, so it cannot be removed without breaking a
+#: caller outside this repo.
+reglamento_key = instrumento_key
 
 

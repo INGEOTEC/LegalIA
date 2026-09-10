@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Package the SCJN-based `reglamentos` corpus (issue #220, Fase 4) into one
-byte-reproducible tarball *per instrument*, plus a human-readable manifest
-and a checksum file -- the `reglamentos` sibling of
-`empaqueta_scjn_leyes.py`, without `indice.json`/`notas/` or a `codNota`
-section: this corpus has no DOF linking at all (issue #220's own Scope),
-so every ``<id_ordenamiento>.tgz`` ships only
+"""Package an id-keyed SCJN corpus (`reglamentos`, issue #220; `lineamientos`,
+issue #222) into one byte-reproducible tarball *per instrument with text*,
+plus a human-readable manifest and a checksum file. Shared by both
+collections (issue #222's Fase 0, generalized out of the `reglamentos`-only
+`empaqueta_scjn_reglamentos.py`), without `indice.json`/`notas/` or a
+`codNota` section: neither collection has DOF linking at all (issue #220's
+own Scope, unchanged by #222), so every ``<id_ordenamiento>.tgz`` ships only
 ``<id_ordenamiento>/<fecha>.md`` and ``<id_ordenamiento>/estado.json``.
 
 ## Manual publish only — never automated
@@ -14,25 +15,23 @@ produces is ever published automatically, now or in the future. The
 packaging step (this script) and the publish step (a person running `gh`
 by hand) are deliberately kept apart.
 
-This corpus outgrew a single GitHub release on 2026-09-10 (issue #223): a
-release holds at most 1000 assets, and a release body at most 125 000
-characters, and this collection's 1082 tarballs plus `MANIFEST.md`,
-`SHA256SUMS.txt` and `indice-global.json.gz` hit both. So this script no
-longer prints a fixed publish recipe -- it *plans* one, against the
-partition it actually wrote (`partes.json`, decision 4: an asset already
-published never moves to a different part, since today's split across
-`scjn-reglamentos`/`scjn-reglamentos-2` is arbitrary and re-deriving it would
-disagree with reality for ~900 assets):
+`scjn-reglamentos` outgrew a single GitHub release on 2026-09-10 (issue
+#223): a release holds at most 1000 assets, and a release body at most
+125 000 characters. So this script does not print a fixed publish recipe --
+it *plans* one, against the partition it actually wrote
+(``<destino>/partes.json``, issue #223's decision 4: an asset already
+published never moves to a different part, since a split across parts is
+arbitrary and re-deriving it would disagree with reality for already
+published assets):
 
-    # Defaults: --outdir scripts/scjn, --destino scripts/scjn/reglamentos-release
-    ./scripts/empaqueta_scjn_reglamentos.py
+    # Defaults: --outdir scripts/scjn, --destino scripts/scjn/<coleccion>-release
+    ./scripts/empaqueta_scjn_coleccion.py --coleccion reglamentos
     less scripts/scjn/reglamentos-release/MANIFEST.md   # read it. all of it.
     less scripts/scjn/reglamentos-release/PUBLICAR.md   # then this, verbatim.
 
 `PUBLICAR.md` is generated fresh every run, from `partes.json` and the
-manifest -- it is the one place the exact `gh release create`/`upload`/`edit`
-sequence lives now, replacing the two hard-coded commands this docstring used
-to carry (they stopped being correct once the corpus needed a second part).
+manifest -- the one place the exact `gh release create`/`upload`/`edit`
+sequence lives.
 
 ## What goes in each tarball
 
@@ -40,22 +39,37 @@ to carry (they stopped being correct once the corpus needed a second part).
     <id_ordenamiento>/estado.json     when it was crawled, and its own
                                        categoria_ordenamiento/vigencia/materia/resumen
 
-No `abrev` (this corpus has none, issue #220's own decision 3: the SCJN
-reissues a reglamento as a brand-new `idOrdenamiento` rather than as a
+No `abrev` (neither collection has one, issue #220's own decision 3: the
+SCJN reissues an instrument as a brand-new `idOrdenamiento` rather than as a
 reform of the previous one, so a title-derived key would collide), no
 `indice.json`, no `notas/` -- nothing here depends on a DOF link that does
-not exist for this collection yet.
+not exist for either collection yet.
 
-## Updating one reglamento
+## An instrument with no consolidated text ships no tarball (decision 6)
+
+Every row of some instruments' reform table has `tieneArticulos=False`: the
+SCJN classifies and crawls them, but serves no text at all (5 of
+`reglamentos`' 1087, 37 of `lineamientos`' 163). Their own `estado.json`
+still carries `"rastreado"` -- the crawl ran, it is not pending -- so this
+script tells that apart from "never crawled" (seeded but not yet swept by
+`fetch_scjn_legislacion.py`) purely from `rastreado`, never from the absence
+of a `.md` file alone. A text-less-but-crawled instrument is listed in
+`indice-global.json.gz` with `snapshots: 0` and no `asset` key (nothing to
+download), and in `MANIFEST.md` under its own heading, separate from "Nunca
+rastreados" -- issue #222's decision 6, applied to both id-keyed
+collections identically, since a per-collection difference here is exactly
+the kind of behaviour flag the shared path must not grow.
+
+## Updating one instrument
 
 ``--instrumento ID`` (repeatable, by `id_ordenamiento`) rewrites only the
 named instruments' tarballs and leaves every other `.tgz` already in
 `--destino` exactly as it is -- the same incremental contract
 `empaqueta_scjn_leyes.py --instrumento` has.
 
-Needs at least one reglamento already seeded under
-``<outdir>/reglamentos/`` (`discover_federal_reglamentos.py` +
-`seed_federal_reglamentos.py`).
+Needs at least one instrument already seeded under ``<outdir>/<coleccion>/``
+(`discover_federal_reglamentos.py`/`discover_federal_lineamientos.py` +
+`seed_federal_reglamentos.py --coleccion <coleccion>`).
 """
 
 import argparse
@@ -73,8 +87,8 @@ from pathlib import Path
 _RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
-from scjn.cache import _SCJN_REGLAMENTOS_RELEASE  # noqa: E402
-from scjn.catalog import reglamento_key  # noqa: E402
+from scjn.cache import COLECCIONES_POR_ID  # noqa: E402
+from scjn.catalog import instrumento_key  # noqa: E402
 from scjn.header import versiones_de_directorio  # noqa: E402
 from scjn.release import (  # noqa: E402
     ASSET_INDICE_GLOBAL,
@@ -82,11 +96,18 @@ from scjn.release import (  # noqa: E402
     CAMPOS_METADATOS,
     LIMITE_ASSETS_POR_RELEASE,
     _tag_de_parte,
+    construye_indice_global_lineamientos,
     construye_indice_global_reglamentos,
 )
 from scjn.state import lee_estado  # noqa: E402
 
-COLECCION = "reglamentos"
+#: Each id-keyed collection's own index builder -- keyed by
+#: `Coleccion.nombre`, same shape as `scjn.cli`'s own `_DESCARGAS_POR_ID`. A
+#: fourth id-keyed collection adds one entry here, never a new branch.
+_INDICES_POR_ID = {
+    "reglamentos": construye_indice_global_reglamentos,
+    "lineamientos": construye_indice_global_lineamientos,
+}
 
 #: GitHub's release-body cap (issue #223) -- `MANIFEST.md` grows with the
 #: corpus and blew past it at 1082 instruments (179 749 bytes), so the
@@ -95,26 +116,27 @@ LIMITE_CUERPO_NOTAS = 125_000
 
 #: Part 1 alone also carries `MANIFEST.md`, `SHA256SUMS.txt` and
 #: `ASSET_INDICE_GLOBAL` (decision 5), so its own tarball budget is
-#: `LIMITE_ASSETS_POR_RELEASE` minus these three -- 997 today, exactly what
-#: is published.
+#: `LIMITE_ASSETS_POR_RELEASE` minus these three -- 997 today for
+#: `reglamentos`, plenty of headroom for `lineamientos`' ~126.
 _RESERVADOS_PARTE_1 = 3
 
 #: `partes.json`'s own file name, local to `--destino` -- never a published
 #: asset (decision 4: recomputing it from a sorted/hashed rule would
-#: disagree with the arbitrary split already live for ~900 assets).
+#: disagree with the arbitrary split already live for already published
+#: assets).
 ARCHIVO_PARTES = "partes.json"
 
 
-def _load_catalog(outdir: Path) -> list[dict]:
-    """Every reglamento already seeded under ``<outdir>/reglamentos/`` --
+def _load_catalog(outdir: Path, coleccion: str) -> list[dict]:
+    """Every instrument already seeded under ``<outdir>/<coleccion>/`` --
     each one's own `estado.json`, whole. Unlike `empaqueta_scjn_leyes.py`,
     there is no published index to fall back to for `nombre`: this release
     does not exist until this very script's first run packages it."""
-    base = outdir / COLECCION
+    base = outdir / coleccion
     if not base.is_dir():
         raise SystemExit(
-            f"{base} no existe -- corre primero discover_federal_reglamentos.py y "
-            "seed_federal_reglamentos.py"
+            f"{base} no existe -- corre primero discover_federal_{coleccion}.py y "
+            f"seed_federal_reglamentos.py --coleccion {coleccion}"
         )
     catalogo = []
     for directorio in sorted(p for p in base.iterdir() if p.is_dir()):
@@ -127,9 +149,14 @@ def _load_catalog(outdir: Path) -> list[dict]:
 
 @dataclass
 class ResumenInstrumento:
-    """One reglamento's own row in the manifest -- the `reglamentos`
-    sibling of `empaqueta_scjn_leyes.ResumenInstrumento`, without a linking
-    percentage: this corpus has none to report (issue #220's own Scope)."""
+    """One instrument's own row in the manifest -- the shared sibling of
+    `empaqueta_scjn_leyes.ResumenInstrumento`, without a linking percentage:
+    neither id-keyed collection has one to report (issue #220's own Scope).
+
+    `total_snapshots == 0` (and `asset is None`) is decision 6's text-less
+    case: the instrument was crawled (its own `estado.json` has
+    `rastreado`), but the SCJN serves no consolidated text for it, so there
+    is nothing to tar."""
 
     id_ordenamiento: str
     nombre: str
@@ -140,23 +167,43 @@ class ResumenInstrumento:
     #: `vigencia`, `materia`, `resumen`, `rastreado`, whatever it has.
     estado: dict | None = None
     #: Whether this run rewrote the instrument's own tarball. False for the
-    #: ones a `--instrumento` run left untouched and only re-listed.
+    #: ones a `--instrumento` run left untouched and only re-listed, and for
+    #: a text-less instrument, which never had one to rewrite.
     reempaquetado: bool = True
 
 
-def resume_coleccion(outdir: Path) -> tuple[list[ResumenInstrumento], list[str]]:
-    """Every `reglamentos` instrument in the catalogue, summarized for the
-    manifest, plus the names of the ones never crawled at all -- the
-    `reglamentos` sibling of `empaqueta_scjn_leyes.resume_coleccion`."""
-    instrumentos = _load_catalog(outdir)
+def resume_coleccion(
+    outdir: Path, coleccion: str
+) -> tuple[list[ResumenInstrumento], list[str]]:
+    """Every `coleccion` instrument in the catalogue, summarized for the
+    manifest, plus the names of the ones truly never crawled at all -- the
+    shared sibling of `empaqueta_scjn_leyes.resume_coleccion`.
+
+    An instrument with no snapshot on disk is *not* automatically "never
+    crawled" (issue #222's decision 6): its own `estado.json` says so via
+    `rastreado`, set unconditionally by `fetch_scjn_legislacion.py`'s
+    `rastrea_por_id` the moment its crawl actually ran, text or not. One
+    with `rastreado` set is returned in the main list with
+    `total_snapshots=0` and `asset=None` -- indexed and manifested, just
+    with nothing to download -- while one with no `rastreado` at all (seeded
+    but not yet swept) is returned separately, exactly as before."""
+    instrumentos = _load_catalog(outdir, coleccion)
     resumenes = []
     nunca_rastreados = []
     for estado in instrumentos:
-        clave = reglamento_key(estado)
-        destino = outdir / COLECCION / clave
+        clave = instrumento_key(estado)
+        destino = outdir / coleccion / clave
         versiones = versiones_de_directorio(destino) if destino.is_dir() else []
         if not versiones:
-            nunca_rastreados.append(estado["nombre"])
+            if not estado.get("rastreado"):
+                nunca_rastreados.append(estado["nombre"])
+                continue
+            resumenes.append(
+                ResumenInstrumento(
+                    id_ordenamiento=clave, nombre=estado["nombre"],
+                    total_snapshots=0, asset=None, estado=estado, reempaquetado=False,
+                )
+            )
             continue
         resumenes.append(
             ResumenInstrumento(
@@ -186,7 +233,9 @@ def asigna_partes(
     asset is placed, in the first part with room, opening a new part only
     once every existing one is full. Part 1's own budget is
     `LIMITE_ASSETS_POR_RELEASE - _RESERVADOS_PARTE_1` (decision 5); every
-    other part's is the full cap.
+    other part's is the full cap. An instrument with no asset (decision 6's
+    text-less case) is never assigned to a part -- there is nothing to
+    upload.
 
     `partes` is not mutated -- the return value is the partition to write
     back with `guarda_partes`.
@@ -251,8 +300,8 @@ def _advierte_si_falta_partes_json(destino: Path, partes_originales: list[dict],
 def _archivos_instrumento(directorio: Path) -> list[Path]:
     """Every file worth shipping for one instrument: its snapshot `.md`
     files and its own `estado.json` -- no `indice.json`/`notas/` here at
-    all (this corpus has no DOF linking, issue #220's own Scope). A hidden
-    bookkeeping file (a `.progreso.json`-style checkpoint) is never
+    all (neither collection has DOF linking, issue #220's own Scope). A
+    hidden bookkeeping file (a `.progreso.json`-style checkpoint) is never
     shipped."""
     return sorted(
         p for p in directorio.glob("**/*")
@@ -262,21 +311,25 @@ def _archivos_instrumento(directorio: Path) -> list[Path]:
 
 def empaqueta(
     outdir: Path,
+    coleccion: str,
     destino: Path,
     resumenes: list[ResumenInstrumento],
     solo: set[str] | None = None,
 ) -> None:
-    """Write one ``<id_ordenamiento>.tgz`` per instrument, byte-reproducibly
-    -- the `reglamentos` sibling of `empaqueta_scjn_leyes.empaqueta`; see
-    its own docstring for the reproducibility recipe (gzip stamped with
-    mtime 0, members in sorted order, fixed ownership/mode), unchanged
-    here. `solo` restricts the rewriting to the named `id_ordenamiento`
-    keys, same incremental contract."""
-    if not resumenes:
-        raise SystemExit(f"{outdir / COLECCION} no tiene nada que empaquetar")
+    """Write one ``<id_ordenamiento>.tgz`` per instrument *with text*,
+    byte-reproducibly -- see `empaqueta_scjn_leyes.py`'s own docstring for
+    the reproducibility recipe (gzip stamped with mtime 0, members in sorted
+    order, fixed ownership/mode), unchanged here. `solo` restricts the
+    rewriting to the named `id_ordenamiento` keys, same incremental
+    contract. A text-less instrument (`total_snapshots == 0`, decision 6) is
+    skipped outright -- there is nothing to tar, and its `asset` stays
+    `None`."""
+    con_texto = [r for r in resumenes if r.total_snapshots > 0]
+    if not con_texto:
+        raise SystemExit(f"{outdir / coleccion} no tiene nada que empaquetar")
 
-    for resumen in resumenes:
-        directorio = outdir / COLECCION / resumen.id_ordenamiento
+    for resumen in con_texto:
+        directorio = outdir / coleccion / resumen.id_ordenamiento
         salida = destino / f"{resumen.id_ordenamiento}.tgz"
         if solo is not None and resumen.id_ordenamiento not in solo and salida.is_file():
             resumen.asset = salida.name
@@ -301,14 +354,21 @@ def empaqueta(
 
 
 def escribe_indice_global(
-    destino: Path, resumenes: list[ResumenInstrumento], generado: str
+    destino: Path, coleccion: str, resumenes: list[ResumenInstrumento], generado: str
 ) -> None:
-    """Write `indice-global.json.gz` -- the `reglamentos` sibling of
+    """Write `indice-global.json.gz` -- the shared sibling of
     `empaqueta_scjn_leyes.escribe_indice_global`, with no `codNota` section
     and no published-index fallback (this release does not exist until
     this run publishes it, unlike `scjn-leyes` which a metadata backfill
-    can patch after the fact)."""
-    indice = construye_indice_global_reglamentos(
+    can patch after the fact).
+
+    `resumenes` includes decision 6's text-less-but-crawled instruments
+    (`total_snapshots == 0`): `construye_indice_global_reglamentos`/
+    `_lineamientos` only ever add an `asset` key when `snapshots` is
+    truthy, so these are indexed correctly with no asset regardless of what
+    is passed here."""
+    construye_indice = _INDICES_POR_ID[coleccion]
+    indice = construye_indice(
         [
             {
                 "id_ordenamiento": r.id_ordenamiento,
@@ -343,12 +403,12 @@ def _tamano(bytes_: int) -> str:
 
 # --- Numbered release parts (issue #223) -----------------------------------
 #
-# `scjn-reglamentos` outgrew a single GitHub release on 2026-09-10: a release
-# holds at most `LIMITE_ASSETS_POR_RELEASE` assets, and a release body at
-# most `LIMITE_CUERPO_NOTAS` characters. The functions below plan a publish
+# A collection may outgrow a single GitHub release: a release holds at most
+# `LIMITE_ASSETS_POR_RELEASE` assets, and a release body at most
+# `LIMITE_CUERPO_NOTAS` characters. The functions below plan a publish
 # across the resulting numbered series of tags (`asigna_partes`/
-# `guarda_partes` above record *which* asset is in which part) instead of the
-# two fixed `gh` commands this script used to print in its own docstring.
+# `guarda_partes` above record *which* asset is in which part) instead of a
+# fixed `gh` command sequence.
 
 
 def _seccion_partes_manifiesto(partes: list[dict]) -> list[str]:
@@ -372,17 +432,17 @@ def _seccion_partes_manifiesto(partes: list[dict]) -> list[str]:
     return lineas
 
 
-def _release_notes(parte_n: int, partes: list[dict], resumenes: list[ResumenInstrumento],
-                    nunca_rastreados: list[str], base_tag: str) -> str:
+def _release_notes(coleccion: str, parte_n: int, partes: list[dict],
+                    resumenes: list[ResumenInstrumento], nunca_rastreados: list[str],
+                    base_tag: str) -> str:
     """The generated body of one part's own release notes (decision 6) --
     short by construction, since the full manifest ships as an asset
-    instead: `MANIFEST.md`'s 1082-row table is what hit
-    `LIMITE_CUERPO_NOTAS` in the first place."""
+    instead."""
     total_partes = len(partes)
     total_catalogo = len(resumenes) + len(nunca_rastreados)
     if parte_n == 1:
-        titulo = "SCJN — reglamentos" if total_partes == 1 else \
-            f"SCJN — reglamentos (parte 1 de {total_partes})"
+        titulo = f"SCJN — {coleccion}" if total_partes == 1 else \
+            f"SCJN — {coleccion} (parte 1 de {total_partes})"
         lineas = [
             f"# {titulo}", "",
             f"{total_catalogo} instrumento(s) en el catálogo; {len(resumenes)} ya "
@@ -400,10 +460,10 @@ def _release_notes(parte_n: int, partes: list[dict], resumenes: list[ResumenInst
             lineas += [f"- `{partes[n - 1]['tag']}`" for n in range(2, total_partes + 1)]
             lineas.append("")
     else:
-        titulo = f"SCJN — reglamentos (parte {parte_n} de {total_partes})"
+        titulo = f"SCJN — {coleccion} (parte {parte_n} de {total_partes})"
         lineas = [
             f"# {titulo}", "",
-            f"Parte {parte_n} de {total_partes} de la colección `reglamentos` -- "
+            f"Parte {parte_n} de {total_partes} de la colección `{coleccion}` -- "
             f"continuación de `{base_tag}`, que publica el manifiesto completo "
             f"(`MANIFEST.md`) y el índice (`{ASSET_INDICE_GLOBAL}`).",
             "",
@@ -415,22 +475,24 @@ def _release_notes(parte_n: int, partes: list[dict], resumenes: list[ResumenInst
     return texto
 
 
-def escribe_partes(destino: Path, partes: list[dict], resumenes: list[ResumenInstrumento],
-                    nunca_rastreados: list[str], base_tag: str) -> None:
+def escribe_partes(destino: Path, coleccion: str, partes: list[dict],
+                    resumenes: list[ResumenInstrumento], nunca_rastreados: list[str],
+                    base_tag: str) -> None:
     """Write every part's own `RELEASE_NOTES*.md` (decision 6) and
     `parte-<n>.txt` (the asset names of that part, one per line, for
     ``xargs -a`` -- issue #223)."""
     for i, parte in enumerate(partes, 1):
         nombre_notas = "RELEASE_NOTES.md" if i == 1 else f"RELEASE_NOTES-{i}.md"
         (destino / nombre_notas).write_text(
-            _release_notes(i, partes, resumenes, nunca_rastreados, base_tag), encoding="utf-8"
+            _release_notes(coleccion, i, partes, resumenes, nunca_rastreados, base_tag),
+            encoding="utf-8",
         )
         (destino / f"parte-{i}.txt").write_text(
             "".join(f"{nombre}\n" for nombre in parte["assets"]), encoding="utf-8"
         )
 
 
-def genera_publicar(partes: list[dict], repo: str = "INGEOTEC/LegalIA",
+def genera_publicar(coleccion: str, partes: list[dict], repo: str = "INGEOTEC/LegalIA",
                      solo: set[str] | None = None) -> str:
     """`PUBLICAR.md` -- the exact, copy-pasteable `gh` command sequence for
     the corpus as it actually is (issue #223, decision 8): one
@@ -487,8 +549,8 @@ def genera_publicar(partes: list[dict], repo: str = "INGEOTEC/LegalIA",
     for i, parte in enumerate(partes, 1):
         tag = parte["tag"]
         notas = "RELEASE_NOTES.md" if i == 1 else f"RELEASE_NOTES-{i}.md"
-        titulo = "SCJN — reglamentos" if len(partes) == 1 else \
-            f"SCJN — reglamentos (parte {i} de {len(partes)})"
+        titulo = f"SCJN — {coleccion}" if len(partes) == 1 else \
+            f"SCJN — {coleccion} (parte {i} de {len(partes)})"
         if i == 1:
             lineas.append(
                 f'gh release create {tag} MANIFEST.md SHA256SUMS.txt {ASSET_INDICE_GLOBAL} '
@@ -506,22 +568,24 @@ def genera_publicar(partes: list[dict], repo: str = "INGEOTEC/LegalIA",
     return "\n".join(lineas) + "\n"
 
 
-def _formatea_manifiesto(resumenes: list[ResumenInstrumento], nunca_rastreados: list[str],
+def _formatea_manifiesto(coleccion: str, resumenes: list[ResumenInstrumento],
+                          nunca_rastreados: list[str],
                           partes: list[dict] | None = None) -> str:
-    ordenados = sorted(resumenes, key=lambda r: r.nombre)
+    con_texto = sorted((r for r in resumenes if r.total_snapshots > 0), key=lambda r: r.nombre)
+    sin_texto = sorted((r for r in resumenes if r.total_snapshots == 0), key=lambda r: r.nombre)
     total_catalogo = len(resumenes) + len(nunca_rastreados)
 
     lineas = [
-        "# SCJN — reglamentos: manifiesto de empaquetado",
+        f"# SCJN — {coleccion}: manifiesto de empaquetado",
         "",
         f"Generado: {datetime.now(timezone.utc).isoformat(timespec='seconds')}",
         "",
-        f"{total_catalogo} instrumento(s) en el catálogo (`reglamentos`); "
+        f"{total_catalogo} instrumento(s) en el catálogo (`{coleccion}`); "
         f"{len(resumenes)} ya rastreado(s) por la SCJN.",
         "",
         "Sin enlace a DOF (issue #220, Scope): no hay `indice.json` por instrumento "
         "ni sección `codNota` en el índice global -- el enlace se implementa en un "
-        "issue futuro, para reglamentos y leyes por igual.",
+        f"issue futuro, para {coleccion} y leyes por igual.",
         "",
     ]
     lineas.extend(_seccion_partes_manifiesto(partes or []))
@@ -532,12 +596,31 @@ def _formatea_manifiesto(resumenes: list[ResumenInstrumento], nunca_rastreados: 
         lineas.extend(f"- {nombre}" for nombre in sorted(nunca_rastreados))
         lineas.append("")
 
-    reempaquetados = [r for r in ordenados if r.reempaquetado]
-    if len(reempaquetados) != len(ordenados):
+    if sin_texto:
+        lineas.append(
+            f"## Sin texto consolidado en la SCJN ({len(sin_texto)})"
+        )
+        lineas.append("")
+        lineas.append(
+            "Rastreados por la SCJN, pero cada fila de su tabla de reformas trae "
+            "`tieneArticulos=false` -- la SCJN los clasifica y los conoce, pero no sirve "
+            "texto consolidado alguno. Indexados con `snapshots: 0` y sin `asset` "
+            "(issue #222's decision 6): no hay nada que descargar."
+        )
+        lineas.append("")
+        lineas.extend(
+            f"- {r.nombre} (`{r.id_ordenamiento}`), rastreado "
+            f"{(r.estado or {}).get('rastreado', '—')}"
+            for r in sin_texto
+        )
+        lineas.append("")
+
+    reempaquetados = [r for r in con_texto if r.reempaquetado]
+    if con_texto and len(reempaquetados) != len(con_texto):
         lineas.append(f"## Actualizados en esta corrida ({len(reempaquetados)})")
         lineas.append("")
         lineas.append(
-            f"Los otros {len(ordenados) - len(reempaquetados)} instrumento(s) conservan el "
+            f"Los otros {len(con_texto) - len(reempaquetados)} instrumento(s) conservan el "
             "`.tgz` que ya estaba en el destino; sólo se recalcularon el manifiesto, "
             f"`SHA256SUMS.txt` y `{ASSET_INDICE_GLOBAL}`. **Sube sólo estos assets** "
             f"(más `{ASSET_INDICE_GLOBAL}`, `SHA256SUMS.txt` y `MANIFEST.md`):"
@@ -557,7 +640,7 @@ def _formatea_manifiesto(resumenes: list[ResumenInstrumento], nunca_rastreados: 
         "asset | tamaño | rastreado |"
     )
     lineas.append("|---|---|---|---|---|---|---|---|")
-    for r in ordenados:
+    for r in con_texto:
         estado = r.estado or {}
         lineas.append(
             f"| {r.nombre} | `{r.id_ordenamiento}` | {r.total_snapshots} "
@@ -579,73 +662,80 @@ def main(argv=None) -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     p.add_argument(
-        "--outdir", type=Path, default=Path("scripts/scjn"),
-        help="donde fetch_scjn_legislacion.py --coleccion reglamentos ya escribio 'reglamentos'",
+        "--coleccion", choices=tuple(COLECCIONES_POR_ID), required=True,
+        help="que coleccion id-keyed empaquetar",
     )
-    p.add_argument("--destino", type=Path, default=Path("scripts/scjn/reglamentos-release"))
+    p.add_argument(
+        "--outdir", type=Path, default=Path("scripts/scjn"),
+        help="donde fetch_scjn_legislacion.py --coleccion <coleccion> ya escribio esa coleccion",
+    )
+    p.add_argument("--destino", type=Path, default=None,
+                    help="default: <outdir>/<coleccion>-release")
     p.add_argument(
         "--instrumento", action="append", metavar="ID", dest="instrumentos",
         help="repetible; reescribe solo el .tgz de estos id_ordenamiento",
     )
     args = p.parse_args(argv)
 
-    args.destino.mkdir(parents=True, exist_ok=True)
+    destino = args.destino or (args.outdir / f"{args.coleccion}-release")
+    destino.mkdir(parents=True, exist_ok=True)
     generado = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    base_tag = COLECCIONES_POR_ID[args.coleccion].tag_base
 
-    resumenes, nunca_rastreados = resume_coleccion(args.outdir)
+    resumenes, nunca_rastreados = resume_coleccion(args.outdir, args.coleccion)
     solo = set(args.instrumentos) if args.instrumentos else None
     if solo is not None:
         faltantes = solo - {r.id_ordenamiento for r in resumenes}
         if faltantes:
             raise SystemExit(
-                f"{sorted(faltantes)} no tiene(n) snapshots en {args.outdir / COLECCION}"
+                f"{sorted(faltantes)} no tiene(n) snapshots en {args.outdir / args.coleccion}"
             )
-    empaqueta(args.outdir, args.destino, resumenes, solo=solo)
-    escribe_indice_global(args.destino, resumenes, generado)
+    empaqueta(args.outdir, args.coleccion, destino, resumenes, solo=solo)
+    escribe_indice_global(destino, args.coleccion, resumenes, generado)
 
-    partes_originales = carga_partes(args.destino)
-    _advierte_si_falta_partes_json(
-        args.destino, partes_originales, len(resumenes), _SCJN_REGLAMENTOS_RELEASE
-    )
-    partes = asigna_partes(partes_originales, resumenes, _SCJN_REGLAMENTOS_RELEASE)
-    guarda_partes(args.destino, partes)
+    partes_originales = carga_partes(destino)
+    _advierte_si_falta_partes_json(destino, partes_originales, len(resumenes), base_tag)
+    partes = asigna_partes(partes_originales, resumenes, base_tag)
+    guarda_partes(destino, partes)
 
-    manifiesto = args.destino / "MANIFEST.md"
+    manifiesto = destino / "MANIFEST.md"
     manifiesto.write_text(
-        _formatea_manifiesto(resumenes, nunca_rastreados, partes), encoding="utf-8"
-    )
-
-    sumas = args.destino / "SHA256SUMS.txt"
-    sumas.write_text(
-        "".join(
-            f"{sha256(args.destino / r.asset)}  {r.asset}\n"
-            for r in sorted(resumenes, key=lambda r: r.id_ordenamiento)
-        )
-        + f"{sha256(args.destino / ASSET_INDICE_GLOBAL)}  {ASSET_INDICE_GLOBAL}\n",
+        _formatea_manifiesto(args.coleccion, resumenes, nunca_rastreados, partes),
         encoding="utf-8",
     )
 
-    escribe_partes(args.destino, partes, resumenes, nunca_rastreados, _SCJN_REGLAMENTOS_RELEASE)
-    (args.destino / "PUBLICAR.md").write_text(
-        genera_publicar(partes, solo=solo), encoding="utf-8"
+    con_asset = sorted((r for r in resumenes if r.asset), key=lambda r: r.id_ordenamiento)
+    sumas = destino / "SHA256SUMS.txt"
+    sumas.write_text(
+        "".join(f"{sha256(destino / r.asset)}  {r.asset}\n" for r in con_asset)
+        + f"{sha256(destino / ASSET_INDICE_GLOBAL)}  {ASSET_INDICE_GLOBAL}\n",
+        encoding="utf-8",
     )
 
+    escribe_partes(destino, args.coleccion, partes, resumenes, nunca_rastreados, base_tag)
+    (destino / "PUBLICAR.md").write_text(
+        genera_publicar(args.coleccion, partes, solo=solo), encoding="utf-8"
+    )
+
+    con_texto = [r for r in resumenes if r.total_snapshots > 0]
+    sin_texto = [r for r in resumenes if r.total_snapshots == 0]
     total = sum(r.bytes_comprimidos for r in resumenes)
-    reescritos = sum(1 for r in resumenes if r.reempaquetado)
+    reescritos = sum(1 for r in con_texto if r.reempaquetado)
     if solo is not None:
         print(
             f"{reescritos} asset(s) .tgz reescrito(s): "
-            f"{sorted(r.id_ordenamiento for r in resumenes if r.reempaquetado)}",
+            f"{sorted(r.id_ordenamiento for r in con_texto if r.reempaquetado)}",
             file=sys.stderr,
         )
     print(
-        f"{len(resumenes)} asset(s) .tgz, {_tamano(total)} en total; "
-        f"{len(nunca_rastreados)} instrumento(s) sin rastrear (sin asset); "
+        f"{len(con_texto)} asset(s) .tgz, {_tamano(total)} en total; "
+        f"{len(sin_texto)} instrumento(s) rastreado(s) sin texto consolidado (sin asset); "
+        f"{len(nunca_rastreados)} instrumento(s) sin rastrear; "
         f"{len(partes)} parte(s) de release",
         file=sys.stderr,
     )
     print(
-        f"-> {args.destino}/  (<id_ordenamiento>.tgz, {ASSET_INDICE_GLOBAL}, MANIFEST.md, "
+        f"-> {destino}/  (<id_ordenamiento>.tgz, {ASSET_INDICE_GLOBAL}, MANIFEST.md, "
         "SHA256SUMS.txt, partes.json, RELEASE_NOTES*.md, parte-*.txt, PUBLICAR.md)",
         file=sys.stderr,
     )

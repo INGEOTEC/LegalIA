@@ -34,8 +34,12 @@ build on each other in this sequence.
   `nota2md`'s own modules (issue #206, done — see its own section below);
   depends on nothing else in this monorepo, and nothing here imports back
   from `nota2md`/`dofjson` (`packages/scjn/tests/test_boundary.py`'s own grep
-  enforces it).
-  Eight entry points, re-exported off the package: `download_scjn_leyes_index`/
+  enforces it). Two sibling id-keyed releases, `scjn-reglamentos` (issue
+  #220) and `scjn-lineamientos` (issue #222), share `scjn.release`'s own
+  generic core since #222's Fase 0 — see their own sections below for
+  `download_scjn_reglamentos_*`/`download_scjn_lineamientos_*` and
+  `SinTextoEnSCJN`.
+  Eight entry points for `scjn-leyes` itself, re-exported off the package: `download_scjn_leyes_index`/
   `download_scjn_leyes_corpus`/`markdown_de_snapshot` (the release's readers,
   by reverse index / whole law / one snapshot), `download_scjn_leyes_catalog`
   (the federal-law catalogue — `abrev`+`nombre` off the index and
@@ -299,8 +303,9 @@ parameterising the `leyes` path itself.
   titles repeat, covering 355 distinct instruments), so any title-derived
   key collides — `id_ordenamiento` is the only key the SCJN guarantees
   stable, and it is what the corpus uses everywhere: directory name, asset
-  name, `indice-global.json.gz` key. `scjn.catalog.reglamento_key` is that
-  key, not a slug of a title.
+  name, `indice-global.json.gz` key. `scjn.catalog.instrumento_key` (issue
+  #222's Fase 0; `reglamento_key` is kept as a working alias, see that
+  issue's own section below) is that key, not a slug of a title.
 - **No `actualizado`, no DOF linking, no `--actualiza` chain.** This corpus
   is out of scope for DOF linking entirely (a future issue adds it, for
   reglamentos and laws alike) — so its `estado.json` has no
@@ -312,18 +317,30 @@ parameterising the `leyes` path itself.
   way to know an instrument needs (re)crawling is a row comparison against
   the SCJN's own reform table (`scjn.state.reformas_faltantes`), which needs
   no date at all.
-- **A sibling release, not a parameter.** `scjn.cache._SCJN_REGLAMENTOS_RELEASE`
-  is a second release tag under the same `CACHE_DIR`; `scjn.release` gained
+- **A sibling release, not a parameter — superseded by issue #222's Fase 0.**
+  Originally (this issue): `scjn.cache._SCJN_REGLAMENTOS_RELEASE` was a
+  second release tag under the same `CACHE_DIR`, and `scjn.release` gained
   new, separate reader functions (`download_scjn_reglamentos_index`,
   `download_scjn_reglamentos_corpus`, `local_reglamentos_ids`,
   `download_scjn_reglamentos_assets`) rather than a `coleccion` parameter on
-  the existing `download_scjn_leyes_*` ones, which stay untouched. Its own
-  `indice-global.json.gz` has no `codNota` section and no per-instrument
-  `indice.json` exists at all — a tarball ships only
-  `<id_ordenamiento>/<fecha>.md` and `<id_ordenamiento>/estado.json`.
-  `scjn.cli`'s `scjn download --coleccion {leyes,reglamentos}` is a
-  two-valued parameter, never a registry — a third collection would mean a
-  third literal branch, not a new dict entry.
+  the existing `download_scjn_leyes_*` ones — "a third collection would mean
+  a third literal branch, not a new dict entry" (this section's own words,
+  before #222). That held for exactly one more collection: when
+  `scjn-lineamientos` (issue #222) made it a *third* id-keyed collection, a
+  third hand-duplicated ~226-line copy of index/corpus/local-ids/assets was
+  where duplication stopped paying, so #222's Fase 0 refactored the shared
+  shape (keyed by `id_ordenamiento`, no `abrev`, no `actualizado`, no DOF
+  link, no `indice.json`) into one private generic core plus a `Coleccion`
+  descriptor (`scjn.cache.Coleccion`/`REGLAMENTOS`/`LINEAMIENTOS`) and
+  ~4-line public wrappers per collection — see the `scjn-lineamientos`
+  section below for the shape this left behind. The four
+  `download_scjn_reglamentos_*`/`local_reglamentos_ids` names themselves did
+  not change, are still separate functions from their `leyes` counterparts,
+  and still ship no `codNota` section or per-instrument `indice.json` — only
+  what generated their bodies moved. `scjn.cli`'s `scjn download --coleccion`
+  is now dispatched through `scjn.cache.COLECCIONES_POR_ID` instead of a
+  hand-written per-flag two-way branch, so a further id-keyed collection
+  costs one dict entry, not a new literal branch.
 - **Discovery is a listing, seeding is separate from a full sweep's
   freshness.** `scripts/discover_federal_reglamentos.py` pages the SCJN by
   category and applies the reform-category rescue rule; unlike
@@ -336,9 +353,16 @@ parameterising the `leyes` path itself.
   `estado.json` files, idempotently, never touching an instrument already
   crawled. `fetch_scjn_legislacion.py --coleccion reglamentos` (plain crawl,
   or `--plan` for the row-comparison plan) and
-  `scripts/empaqueta_scjn_reglamentos.py` (packaging) round out the
-  pipeline — no automated publish, same as `scjn-leyes` (issue #115,
-  Hallazgo C).
+  `scripts/empaqueta_scjn_coleccion.py --coleccion reglamentos` (packaging)
+  round out the pipeline — no automated publish, same as `scjn-leyes` (issue
+  #115, Hallazgo C). Since issue #222's Fase 0, the phrase-union paging, the
+  reform-category rescue rule and the coverage audit itself live in
+  `scjn.discovery` (shared with `scjn-lineamientos`), the seeding function
+  is shared too (`scripts/seed_federal_reglamentos.py --coleccion
+  {reglamentos,lineamientos}`), and packaging is the shared
+  `empaqueta_scjn_coleccion.py` — this script's own name and its
+  `--auditoria-cobertura` phrase list are the only `reglamentos`-specific
+  parts left.
 - **Published as a numbered series of release tags, since issue #223.**
   Publishing the corpus on 2026-09-10 hit two GitHub limits neither this
   issue nor `scjn-leyes` had come close to: a release holds at most 1000
@@ -351,12 +375,154 @@ parameterising the `leyes` path itself.
   (`_assets_de_partes`); nothing published or cached records a part count,
   so a repartition can never desync from what GitHub actually serves. The
   partition itself **is** recorded, at packaging time only
-  (`empaqueta_scjn_reglamentos.py`'s own `partes.json`, local scratch, never
+  (`empaqueta_scjn_coleccion.py`'s own `partes.json`, local scratch, never
   a release asset): today's split is arbitrary (whichever upload batches
   happened to fail), so recomputing it from a sorted/hashed rule would
   disagree with reality for hundreds of already-published assets. The same
   multi-part resolution covers `scjn-leyes` too (one part today), so the
   1000-asset wall stops being reglamentos-specific folklore.
+- **An instrument with no consolidated text ships no tarball (issue #222's
+  decision 6, applied retroactively).** 5 of the 1087 instruments have a
+  reform table where every row carries `tieneArticulos=false` — the SCJN
+  classifies and crawled them (their own `estado.json` has `rastreado`), but
+  serves no text at all. Before #222 these were indistinguishable from
+  "never crawled" and silently dropped from `indice-global.json.gz` (1082
+  entries, not 1087). Packaging (`empaqueta_scjn_coleccion.py`) now tells
+  the two apart purely from `rastreado`, indexes the 5 with `snapshots: 0`
+  and no `asset`, and lists them in `MANIFEST.md` under their own heading —
+  the published index grows from 1082 to 1087 entries, the only deliberate
+  change #222's Fase 0 makes to this already-published corpus's content.
+
+## The id-keyed collection path, refactored (issue #222's Fase 0, done)
+
+`scjn-reglamentos` (issue #220) was implemented by deliberate duplication —
+"a sibling release, not a parameter" — because two collections were a
+defensible cost. `scjn-lineamientos` (below) made it a *third*, and a third
+~226-line copy of `scjn.release`'s index/corpus/local-ids/assets is where
+that duplication stops paying. Fase 0 refactored the shared shape instead,
+**behaviour-preserving against `scjn-reglamentos` as already published**
+(1087 instruments, 1082 tarballs, live since 2026-09-10) except for one
+deliberate change, decision 6 above (index 1082 → 1087).
+
+- **`scjn.cache.Coleccion`** (`dataclass(frozen=True)`, fields `nombre`,
+  `tag_base`, `subdirectorio`) describes an id-keyed collection's own
+  release-tag series and cache subdirectory; `REGLAMENTOS`/`LINEAMIENTOS`
+  are its two instances, and `COLECCIONES_POR_ID` maps a collection's name
+  to its descriptor for `scjn.cli`/`fetch_scjn_legislacion.py`/
+  `empaqueta_scjn_coleccion.py` to dispatch through. Deliberately **not**
+  the four-collection registry issue #189 deleted: it carries no
+  `_ASSETS`/`_INDICES`/`_une_con_historial` equivalent, no per-collection
+  behaviour flag, and `leyes` (its own `abrev`/`actualizado`/`indice.json`/
+  `notas/`/codNota-reverse-index path) is not, and will not be, described by
+  it — growing it to cover `leyes` too is the sign this abstraction went too
+  far.
+- **`scjn.release`** replaced ~226 hand-duplicated lines with one private
+  generic core — `_indice_global_por_id`, `_index_de_release`,
+  `_corpus_de_release`, `_local_ids_de_release`, `_download_assets_de_release`
+  — plus ~4-line public wrappers per collection
+  (`download_scjn_reglamentos_index`/`_corpus`/`_assets`,
+  `local_reglamentos_ids`, and the symmetric `_lineamientos` names below):
+  decision 7 keeps every published name exactly where it was, so nothing on
+  PyPI breaks and `@patch("scjn.release._assets_scjn_reglamentos")`-style
+  test mocking keeps working (the generic core takes the collection's own
+  "list assets" function as an explicit parameter rather than deriving it
+  from the descriptor, so Python's late-bound module-attribute lookup still
+  lets a test substitute it).
+- **`SinTextoEnSCJN`** (decision 10): raised by `download_*_corpus` for an
+  id listed in the index with `snapshots: 0` (no asset — decision 6) — a
+  sibling of `AssetNotCached`, never that class itself, so
+  `except AssetNotCached` keeps meaning exactly "not downloaded yet". The
+  raise order is part of the contract, not an implementation detail: a cold
+  cache raises `AssetNotCached` for the **index** first (`download_*_corpus`
+  must read it before it can tell a text-less id apart from a missing
+  tarball), and only once the index says an id has no asset does it raise
+  `SinTextoEnSCJN`; an id absent from the index, or one the index lists with
+  an asset that is not on disk, still raises `AssetNotCached` for the
+  tarball.
+- **`scjn.catalog.instrumento_key`** replaces `reglamento_key` as the
+  current name (`reglamento_key` stays a working alias — see that
+  function's own docstring); still just `str(entrada["id_ordenamiento"])`.
+- **`scjn.discovery`** is new library code extracted out of the
+  `reglamentos`-only `discover_federal_reglamentos.py` (issue #220):
+  `discover_by_category`/`candidates_outside_category`/
+  `rescue_by_reform_category` (the phrase-union listing plus the
+  reform-category rescue rule) and `coverage_audit` (the opt-in, one-time,
+  exhaustive sweep, decision 8) all take a target `categoria` and phrase
+  list as parameters instead of hardcoding REGLAMENTO, and are
+  unit-testable against a stub API with no network at all
+  (`packages/scjn/tests/test_discovery.py`). `discover_federal_reglamentos.py`
+  and `discover_federal_lineamientos.py` are now both thin argparse wrappers
+  naming their own category/phrases. The coverage audit caches every reform
+  table it fetches under `--cache-dir` (default `scripts/scjn/`, gitignored
+  scratch, never a release asset) so a sibling collection's own audit reuses
+  an already-swept instrument's table and re-applies its own `categoria`
+  predicate offline instead of paying for the same ~65-70 minute sweep
+  twice.
+- **`scripts/seed_federal_reglamentos.py`** and
+  **`scripts/empaqueta_scjn_coleccion.py`** are shared by both collections,
+  parameterised by `--coleccion`, replacing the `reglamentos`-only
+  `empaqueta_scjn_reglamentos.py`.
+- **`fetch_scjn_legislacion.py`**'s `rastrea_reglamentos`/`planea_reglamentos`
+  became `rastrea_por_id(coleccion, ...)`/`planea_por_id(coleccion, ...)`;
+  the `SystemExit` guard over the six `leyes`-only flags now checks
+  membership in `scjn.cache.COLECCIONES_POR_ID` instead of naming
+  `reglamentos`.
+
+Net effect, per issue #222: a further id-keyed collection costs one
+descriptor entry, four wrapper functions, one discovery wrapper script and
+its docs — not another ~800 duplicated lines.
+
+## The `scjn-lineamientos` corpus (issue #222, done)
+
+**Every federal *lineamiento* the SCJN has** — 163 instruments, keyed by
+`idOrdenamiento` — published as a sibling GitHub release alongside
+`scjn-leyes`/`scjn-reglamentos`, on the id-keyed collection path the section
+above refactored to make this collection cheap. A very small, very sparse
+corpus next to its siblings:
+
+| corpus | instruments | snapshots | snapshots/instrument |
+|---|---|---|---|
+| `scjn-leyes` | 315 | 3707 | 11.77 |
+| `scjn-reglamentos` | 1087 | 2920 | 2.69 |
+| `scjn-lineamientos` | 163 | 173 | 1.07 (median 1, max 3) |
+
+- **Inclusion rule**: same shape as `reglamentos` — `categoriaOrdenamiento
+  == "LINEAMIENTOS"`, or any row of the instrument's own reform table has
+  `categoriaReforma == "LINEAMIENTOS"`. 159 by category, plus 4 rescued
+  (3 titled "LINEAMIENTOS ...", one a "MANUAL DE LINEAMIENTOS..." with a
+  single LINEAMIENTOS reform row and no text at all). None of the 159 has a
+  REGLAMENTO reform row, so the two id-keyed collections never overlap.
+- **No `abrev`, no `actualizado`, no DOF linking** — same reasoning as
+  `reglamentos` above, milder in degree (3 of 159 titles repeat, covering 6
+  records, against 137 of 1080), still non-zero, so `id_ordenamiento`
+  (`scjn.catalog.instrumento_key`) is the key regardless.
+- **37 of 163 have no consolidated text at all** (36 of the 159 category
+  members, plus the "MANUAL DE LINEAMIENTOS..." rescue) — 23% of this
+  corpus, against 5 of 1087 for `reglamentos`. Indexed with `snapshots: 0`
+  and no `asset` (decision 6, the same rule this issue wrote and applied
+  retroactively to `reglamentos` too), never silently dropped.
+- **`scripts/discover_federal_lineamientos.py`** is a thin wrapper over
+  `scjn.discovery`, naming `categoriaF=LINEAMIENTOS` and its own phrase
+  list; `scripts/seed_federal_reglamentos.py --coleccion lineamientos` and
+  `fetch_scjn_legislacion.py --coleccion lineamientos` (plain crawl, or
+  `--plan`) and `scripts/empaqueta_scjn_coleccion.py --coleccion
+  lineamientos` round out the pipeline — the same shared scripts
+  `reglamentos` uses, not new copies.
+- **Public reader names stay per-collection** (decision 7, symmetric with
+  `reglamentos`): `download_scjn_lineamientos_index`/`_corpus`/`_assets`,
+  `local_lineamientos_ids`, re-exported off `scjn` alongside their
+  `reglamentos` counterparts.
+- **No DOF linking, no automated publish** — unchanged from `reglamentos`
+  and issue #115, Hallazgo C: a human decides what is safe to publish, via
+  the `PUBLICAR.md` `empaqueta_scjn_coleccion.py` generates.
+- **The one-time coverage audit (decision 8) was written but not run in
+  this pass.** `scjn.discovery.coverage_audit` is fully implemented and
+  tested, and `discover_federal_lineamientos.py --auditoria-cobertura` is
+  ready to run (~65-70 minutes, ~8800 requests, sharing its cache with
+  `discover_federal_reglamentos.py --auditoria-cobertura` under
+  `scripts/scjn/`) — it was deliberately not executed as part of landing
+  this issue, given its cost; a human runs it later, once, whenever the
+  extra confidence is worth ~70 minutes against the live SCJN.
 
 ## Documentation: two sites, one division of labour (issue #119, done)
 

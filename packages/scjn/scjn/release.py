@@ -30,7 +30,7 @@ from pathlib import Path
 import requests
 
 from scjn import cache
-from scjn.cache import _SCJN_LEYES_RELEASE, _SCJN_REGLAMENTOS_RELEASE
+from scjn.cache import _SCJN_LEYES_RELEASE, LINEAMIENTOS, REGLAMENTOS, Coleccion
 from scjn.header import _fecha
 from scjn.state import ARCHIVO_ESTADO
 
@@ -722,44 +722,65 @@ def download_scjn_leyes_assets(
     return resultados
 
 
-# --- The `scjn-reglamentos` release (issue #220) --------------------------
+# --- Id-keyed collections: `scjn-reglamentos` (issue #220), generalized for
+# --- `scjn-lineamientos` in issue #222's Fase 0 -----------------------------
 #
-# A sibling release, not a parameter of the functions above: every reader
-# here is a new, separate function, duplicating the shape of its `leyes`
-# counterpart rather than threading a `coleccion` argument through it --
-# `download_scjn_leyes_*` is left untouched (issue #220's own decision 4).
-# What *is* shared is the low-level, collection-agnostic machinery
-# (`_read_asset`, `cache.asset_en_cache`) parameterized by release tag.
+# Two hand-duplicated collections were a defensible cost (#220's own decision
+# 4); three are not, so this generic core replaces what used to be a second,
+# independently-duplicated copy of index/corpus/local-ids/assets. Every
+# `Coleccion` (`scjn.cache.REGLAMENTOS`/`LINEAMIENTOS`) shares it; `leyes`
+# keeps its own separate path above, untouched -- it has `abrev`,
+# `indice.json`, `notas/` and a `codNota` reverse index, none of which any
+# id-keyed collection has.
 #
-# This corpus has no `abrev` and no linking to a DOF `codNota` (issue #220's
-# Scope): the SCJN reissues a reglamento as a brand-new `idOrdenamiento`
-# rather than as a reform of the previous one, so a title-derived key
-# collides (137 of 1080 titles repeat), and DOF linking is deferred to a
-# separate issue for reglamentos and laws alike. Consequently
-# `indice-global.json.gz` here carries no `codNota` section, and a tarball
-# ships no `indice.json`/`notas/` -- only `<id_ordenamiento>/<fecha>.md` and
-# `<id_ordenamiento>/estado.json`.
+# Neither id-keyed collection links to a DOF `codNota` (issue #220's Scope,
+# unchanged by #222): `indice-global.json.gz` here carries no `codNota`
+# section, and a tarball ships no `indice.json`/`notas/` -- only
+# `<id_ordenamiento>/<fecha>.md` and `<id_ordenamiento>/estado.json`.
 
-#: Field the `scjn-reglamentos` index carries that `scjn-leyes` never needs:
-#: the SCJN's own classification of the ordenamiento at seeding time
+#: Field an id-keyed collection's index carries that `scjn-leyes` never
+#: needs: the SCJN's own classification of the ordenamiento at seeding time
 #: (`categoriaOrdenamiento`) -- every law is already a ley/codigo/constitucion
-#: by construction, but a reglamento's inclusion rule (issue #220) can rescue
-#: an instrument the SCJN itself classifies as `ACUERDO (S)` or similar, so
-#: recording what it was actually classified as is worth keeping.
+#: by construction, but a reglamento's or lineamiento's inclusion rule can
+#: rescue an instrument the SCJN itself classifies as `ACUERDO (S)` or
+#: similar, so recording what it was actually classified as is worth
+#: keeping.
 CAMPO_CATEGORIA_ORDENAMIENTO = "categoria_ordenamiento"
 
-#: `download_scjn_reglamentos_index`'s in-process memo -- the
-#: `scjn-reglamentos` sibling of `_MEMO_INDICE_GLOBAL`.
-_MEMO_INDICE_GLOBAL_REGLAMENTOS: dict[str, dict] = {}
+
+class SinTextoEnSCJN(Exception):
+    """The SCJN classifies this instrument, but serves no consolidated text
+    for it at all (issue #222's decision 6/10) -- raised by `_corpus_de_release`
+    (and every id-keyed `download_*_corpus` wrapper) instead of
+    `AssetNotCached`, since there is no tarball to ever download, not one
+    that merely is not downloaded *yet*.
+
+    A sibling of `AssetNotCached`, not a replacement for it: `except
+    AssetNotCached` keeps meaning exactly "not downloaded yet". The raise
+    order is part of the contract (see `_corpus_de_release`): the index is
+    read first (`AssetNotCached` if it is not cached at all), then this
+    exception fires only for an `id_ordenamiento` the index actually lists
+    with no `asset` -- an id the index does not mention at all still falls
+    through to `AssetNotCached` for its tarball.
+    """
+
+    def __init__(self, id_ordenamiento: str, coleccion: str):
+        super().__init__(
+            f"'{id_ordenamiento}' no tiene texto consolidado en la SCJN (coleccion "
+            f"'{coleccion}') -- el indice lo lista con snapshots=0 y sin asset que descargar"
+        )
+        self.id_ordenamiento = id_ordenamiento
+        self.coleccion = coleccion
 
 
-def construye_indice_global_reglamentos(instrumentos: list[dict], generado: str) -> dict:
-    """The `scjn-reglamentos` release's own `indice-global.json.gz` payload —
-    the sibling of `construye_indice_global`, without a `codNota` section
-    (issue #220's Scope: no DOF linking for this corpus)::
+def _indice_global_por_id(coleccion: str, instrumentos: list[dict], generado: str) -> dict:
+    """The generic `indice-global.json.gz` payload builder behind
+    `construye_indice_global_reglamentos`/`construye_indice_global_lineamientos`
+    (issue #222's Fase 0) -- the sibling of `construye_indice_global`, without
+    a `codNota` section (no DOF linking for either id-keyed collection)::
 
-        {"generado", "coleccion": "reglamentos",
-         "instrumentos": {id_ordenamiento: {"nombre", "asset", "snapshots",
+        {"generado", "coleccion": <coleccion>,
+         "instrumentos": {id_ordenamiento: {"nombre", "asset"?, "snapshots",
                                              "categoria_ordenamiento"?,
                                              "materia"?, "vigencia"?,
                                              "resumen"?}}}
@@ -767,10 +788,42 @@ def construye_indice_global_reglamentos(instrumentos: list[dict], generado: str)
     Each of `instrumentos` is ``{"id_ordenamiento", "nombre", "asset"?,
     "snapshots"?, "categoria_ordenamiento"?, "materia"?, "vigencia"?,
     "resumen"?}``, keyed in the result by `id_ordenamiento`
-    (`scjn.catalog.reglamento_key`) rather than by a title-derived slug —
-    this corpus has no `abrev`. `snapshots` is a plain count: unlike
-    `construye_indice_global`, there is no `indice.json` to derive it from,
-    so it is read verbatim off `instrumento["snapshots"]`.
+    (`scjn.catalog.instrumento_key`) rather than by a title-derived slug —
+    neither id-keyed collection has an `abrev`. `snapshots` is a plain count:
+    unlike `construye_indice_global`, there is no `indice.json` to derive it
+    from, so it is read verbatim off `instrumento["snapshots"]`.
+
+    **`asset` is present only when `snapshots` is not zero** (issue #222's
+    decision 6): an instrument the SCJN classifies but serves no
+    consolidated text for is still indexed -- with `snapshots: 0` and no
+    `asset` key at all -- rather than defaulting to a tarball name that was
+    never packaged. This applies retroactively to `scjn-reglamentos`' own 5
+    such instruments, which the pre-#222 index silently dropped instead
+    (1082 entries, not 1087).
+    """
+    entradas: dict[str, dict] = {}
+    for instrumento in sorted(instrumentos, key=lambda i: int(i["id_ordenamiento"])):
+        clave = str(instrumento["id_ordenamiento"])
+        snapshots = instrumento.get("snapshots", 0)
+        entrada = {"nombre": instrumento["nombre"]}
+        if snapshots:
+            entrada["asset"] = instrumento.get("asset") or f"{clave}.tgz"
+        entrada["snapshots"] = snapshots
+        if instrumento.get(CAMPO_CATEGORIA_ORDENAMIENTO):
+            entrada[CAMPO_CATEGORIA_ORDENAMIENTO] = instrumento[CAMPO_CATEGORIA_ORDENAMIENTO]
+        for campo in CAMPOS_METADATOS:
+            valor = instrumento.get(campo)
+            if valor:
+                entrada[campo] = valor
+        entradas[clave] = entrada
+    return {"generado": generado, "coleccion": coleccion, "instrumentos": entradas}
+
+
+def construye_indice_global_reglamentos(instrumentos: list[dict], generado: str) -> dict:
+    """The `scjn-reglamentos` release's own `indice-global.json.gz` payload —
+    a thin wrapper over `_indice_global_por_id` (issue #222's Fase 0; the
+    body used to live here directly, see that function's own docstring for
+    the payload shape and decision 6).
 
     >>> import scjn.release as release
     >>> indice = release.construye_indice_global_reglamentos(
@@ -783,76 +836,89 @@ def construye_indice_global_reglamentos(instrumentos: list[dict], generado: str)
     >>> indice["instrumentos"]["104906"]
     {'nombre': 'REGLAMENTO...', 'asset': '104906.tgz', 'snapshots': 2, 'vigencia': 'ABROGADO (A)'}
     """
-    entradas: dict[str, dict] = {}
-    for instrumento in sorted(instrumentos, key=lambda i: int(i["id_ordenamiento"])):
-        clave = str(instrumento["id_ordenamiento"])
-        entrada = {
-            "nombre": instrumento["nombre"],
-            "asset": instrumento.get("asset") or f"{clave}.tgz",
-            "snapshots": instrumento.get("snapshots", 0),
-        }
-        if instrumento.get(CAMPO_CATEGORIA_ORDENAMIENTO):
-            entrada[CAMPO_CATEGORIA_ORDENAMIENTO] = instrumento[CAMPO_CATEGORIA_ORDENAMIENTO]
-        for campo in CAMPOS_METADATOS:
-            valor = instrumento.get(campo)
-            if valor:
-                entrada[campo] = valor
-        entradas[clave] = entrada
-    return {"generado": generado, "coleccion": "reglamentos", "instrumentos": entradas}
+    return _indice_global_por_id("reglamentos", instrumentos, generado)
 
 
-def _assets_scjn_reglamentos(timeout: int = 30) -> dict[str, str]:
-    """Every asset of the `scjn-reglamentos` release, name -> download URL —
-    merged across every part of its series (`_assets_de_partes`, issue
-    #223: this collection outgrew a single release, 1082 tarballs across
-    `scjn-reglamentos`/`scjn-reglamentos-2`). Network — used by the
-    downloader only, never by a reader."""
-    return _assets_de_partes(_SCJN_REGLAMENTOS_RELEASE, timeout)
+def construye_indice_global_lineamientos(instrumentos: list[dict], generado: str) -> dict:
+    """The `scjn-lineamientos` release's own `indice-global.json.gz` payload —
+    the `lineamientos` sibling of `construye_indice_global_reglamentos`
+    (issue #222); see `_indice_global_por_id` for the payload shape.
+
+    >>> import scjn.release as release
+    >>> indice = release.construye_indice_global_lineamientos(
+    ...     [{"id_ordenamiento": "180528", "nombre": "LINEAMIENTOS...",
+    ...       "snapshots": 1, "vigencia": "VIGENTE"}],
+    ...     generado="2026-09-10T00:00:00+00:00",
+    ... )
+    >>> indice["coleccion"]
+    'lineamientos'
+    >>> indice["instrumentos"]["180528"]
+    {'nombre': 'LINEAMIENTOS...', 'asset': '180528.tgz', 'snapshots': 1, 'vigencia': 'VIGENTE'}
+    """
+    return _indice_global_por_id("lineamientos", instrumentos, generado)
 
 
-def download_scjn_reglamentos_index(*, cache_dir=None) -> dict:
-    """The `scjn-reglamentos` release's own `indice-global.json.gz`
-    (`construye_indice_global_reglamentos`'s payload), the sibling of
-    `download_scjn_leyes_index`. There is no `codNota` section to convert to
-    `int` here (issue #220's Scope: no DOF linking for this corpus), so this
-    reader is otherwise a plain disk read.
+#: `_index_de_release`'s in-process memo, keyed by `(coleccion, cache_dir)` --
+#: the id-keyed sibling of `_MEMO_INDICE_GLOBAL` (issue #222's Fase 0;
+#: previously one hand-duplicated dict per collection).
+_MEMO_INDICE_POR_ID: dict[tuple[str, str], dict] = {}
 
-    Memoized per cache directory, same as `download_scjn_leyes_index`.
+
+def _index_de_release(coleccion: Coleccion, *, cache_dir=None) -> dict:
+    """The generic index reader behind `download_scjn_reglamentos_index`/
+    `download_scjn_lineamientos_index` (issue #222's Fase 0). There is no
+    `codNota` section to convert to `int` here (no DOF linking for either
+    id-keyed collection), so this reader is otherwise a plain disk read,
+    memoized per `(coleccion, cache_dir)`.
+
     Raises `AssetNotCached` while the index is not cached yet — run `scjn
-    download --coleccion reglamentos` first.
+    download --coleccion <nombre>` first.
     """
     directorio = cache.resuelve_cache_dir(cache_dir)
-    clave = str(directorio)
-    if clave in _MEMO_INDICE_GLOBAL_REGLAMENTOS:
-        return _MEMO_INDICE_GLOBAL_REGLAMENTOS[clave]
+    clave = (coleccion.nombre, str(directorio))
+    if clave in _MEMO_INDICE_POR_ID:
+        return _MEMO_INDICE_POR_ID[clave]
 
     contenido = _read_asset(
         ASSET_INDICE_GLOBAL, directorio,
-        release=_SCJN_REGLAMENTOS_RELEASE, coleccion="reglamentos",
+        release=coleccion.subdirectorio, coleccion=coleccion.nombre,
     )
     indice = json.loads(gzip.decompress(contenido).decode("utf-8"))
-    _MEMO_INDICE_GLOBAL_REGLAMENTOS[clave] = indice
+    _MEMO_INDICE_POR_ID[clave] = indice
     return indice
 
 
-def download_scjn_reglamentos_corpus(id_ordenamiento: str | int, *, cache_dir=None) -> dict:
-    """One `reglamentos` instrument, by its own `id_ordenamiento`, as
+def _corpus_de_release(coleccion: Coleccion, id_ordenamiento: str | int, *, cache_dir=None) -> dict:
+    """The generic corpus reader behind `download_scjn_reglamentos_corpus`/
+    `download_scjn_lineamientos_corpus` (issue #222's Fase 0), as
     ``{"id_ordenamiento": ..., "snapshots": [...]}`` — one entry per
     snapshot, each carrying its own `archivo`/`fecha_publicacion`/`markdown`,
-    oldest first.
+    oldest first. There is never an `indice.json` to read here (no DOF
+    linking for either id-keyed collection) — every snapshot's date comes
+    straight off its own file name, the same fallback `download_scjn_leyes_corpus`
+    uses for a law crawled but never linked.
 
-    Unlike `download_scjn_leyes_corpus`, there is never an `indice.json` to
-    read here (issue #220's Scope: no DOF linking for this corpus) — every
-    snapshot's date comes straight off its own file name, the same fallback
-    `download_scjn_leyes_corpus` uses for a law crawled but never linked.
+    Raises, in this order (decision 10, issue #222 -- part of the contract,
+    not an implementation detail):
 
-    Reads only that instrument's already-cached ``<id_ordenamiento>.tgz``
-    asset. Raises `AssetNotCached` while it is not on disk yet — run `scjn
-    download --coleccion reglamentos --id <id_ordenamiento>` first.
+    1. `AssetNotCached` if the collection's own index is not cached at all
+       yet — run `scjn download --coleccion <nombre>` first.
+    2. `SinTextoEnSCJN` if the index lists `id_ordenamiento` with no `asset`
+       (decision 6: the SCJN classifies it but serves no text) — there is
+       nothing to ever download for it.
+    3. `AssetNotCached` if `id_ordenamiento` is absent from the index
+       entirely, or its tarball is not on disk yet — run `scjn download
+       --coleccion <nombre> --id <id_ordenamiento>`.
     """
     clave = str(id_ordenamiento)
+    directorio = cache.resuelve_cache_dir(cache_dir)
+    indice = _index_de_release(coleccion, cache_dir=directorio)
+    entrada = indice["instrumentos"].get(clave)
+    if entrada is not None and not entrada.get("asset"):
+        raise SinTextoEnSCJN(clave, coleccion.nombre)
+
     contenido = _read_asset(
-        f"{clave}.tgz", cache_dir, release=_SCJN_REGLAMENTOS_RELEASE, coleccion="reglamentos",
+        f"{clave}.tgz", directorio, release=coleccion.subdirectorio, coleccion=coleccion.nombre,
     )
     with tarfile.open(fileobj=io.BytesIO(contenido), mode="r:gz") as tar:
         miembros = {m.name: tar.extractfile(m).read() for m in tar if m.isfile()}
@@ -873,15 +939,16 @@ def download_scjn_reglamentos_corpus(id_ordenamiento: str | int, *, cache_dir=No
     return {"id_ordenamiento": clave, "snapshots": snapshots}
 
 
-def local_reglamentos_ids(cache_dir=None) -> list[str]:
-    """Every reglamento with a `<id_ordenamiento>.tgz` already on disk under
-    `cache_dir` — the `scjn-reglamentos` sibling of `local_slugs`, sorted
+def _local_ids_de_release(coleccion: Coleccion, cache_dir=None) -> list[str]:
+    """The generic local-ids lister behind `local_reglamentos_ids`/
+    `local_lineamientos_ids` (issue #222's Fase 0) — every instrument with a
+    `<id_ordenamiento>.tgz` already on disk under `cache_dir`, sorted
     numerically: an `id_ordenamiento` is a digit string, and sorting it as
     text would rank `"100"` ahead of `"99"`.
 
     Returns an empty list for a cache directory that does not exist yet."""
     directorio = cache.resuelve_cache_dir(cache_dir)
-    carpeta_release = directorio / _SCJN_REGLAMENTOS_RELEASE
+    carpeta_release = directorio / coleccion.subdirectorio
     if not carpeta_release.is_dir():
         return []
     return sorted(
@@ -890,7 +957,9 @@ def local_reglamentos_ids(cache_dir=None) -> list[str]:
     )
 
 
-def download_scjn_reglamentos_assets(
+def _download_assets_de_release(
+    coleccion: Coleccion,
+    listar_assets,
     ids: list[str] | None = None,
     *,
     cache_dir=None,
@@ -898,14 +967,21 @@ def download_scjn_reglamentos_assets(
     timeout: int = 60,
     log=None,
 ) -> list[tuple[Path, bool]]:
-    """Put the `scjn-reglamentos` release's assets on disk: the index plus
-    one tarball per reglamento, into ``<cache_dir>/scjn-reglamentos/`` — the
-    sibling of `download_scjn_leyes_assets`; everything documented there
-    (idempotence by name, `refrescar`, the partial-download suffix) applies
-    here unchanged, including resolving the whole series of release parts
-    (`_assets_scjn_reglamentos`, issue #223) rather than one release alone.
-    `ids` picks which reglamentos to fetch, by `id_ordenamiento`; None (the
-    default) means every one the release publishes.
+    """The generic downloader behind `download_scjn_reglamentos_assets`/
+    `download_scjn_lineamientos_assets` (issue #222's Fase 0) -- puts
+    `coleccion`'s assets on disk: the index plus one tarball per instrument,
+    into ``<cache_dir>/<coleccion.subdirectorio>/``; the sibling of
+    `download_scjn_leyes_assets`, everything documented there (idempotence
+    by name, `refrescar`, the partial-download suffix, resolving the whole
+    series of release parts) applies here unchanged. `ids` picks which
+    instruments to fetch, by `id_ordenamiento`; None (the default) means
+    every one the release publishes.
+
+    `listar_assets` is the collection's own `_assets_scjn_<nombre>` function
+    (a plain `timeout -> dict[str, str]` callable) -- taken as a parameter,
+    not derived from `coleccion` here, so each public wrapper keeps calling
+    its own named function and a caller mocking it (as every existing test
+    does) keeps working unchanged.
 
     With `ids=None`, once every asset is on disk, the on-disk index (if it
     is already cached) is cross-checked against the parts actually walked:
@@ -918,7 +994,7 @@ def download_scjn_reglamentos_assets(
 
     urls = None
     if ids is None:
-        urls = _assets_scjn_reglamentos(timeout)
+        urls = listar_assets(timeout)
         nombres = [ASSET_INDICE_GLOBAL] + [
             f"{id_}.tgz"
             for id_ in sorted(
@@ -930,17 +1006,17 @@ def download_scjn_reglamentos_assets(
 
     resultados = []
     for i, nombre in enumerate(nombres, 1):
-        destino = directorio / _SCJN_REGLAMENTOS_RELEASE / nombre
+        destino = directorio / coleccion.subdirectorio / nombre
         ya_estaba = destino.exists() and not refrescar
         if ya_estaba:
             ruta = destino
         else:
             if urls is None:
-                urls = _assets_scjn_reglamentos(timeout)
+                urls = listar_assets(timeout)
             if nombre not in urls:
-                raise KeyError(_mensaje_ningun_asset(_SCJN_REGLAMENTOS_RELEASE, nombre))
+                raise KeyError(_mensaje_ningun_asset(coleccion.tag_base, nombre))
             ruta = cache.asset_en_cache(
-                _SCJN_REGLAMENTOS_RELEASE, nombre, urls[nombre],
+                coleccion.subdirectorio, nombre, urls[nombre],
                 cache_dir=directorio, refrescar=refrescar, timeout=timeout,
             )
         if log is not None:
@@ -950,7 +1026,7 @@ def download_scjn_reglamentos_assets(
 
     if ids is None and urls is not None and log is not None:
         try:
-            indice = download_scjn_reglamentos_index(cache_dir=directorio)
+            indice = _index_de_release(coleccion, cache_dir=directorio)
         except AssetNotCached:
             indice = None
         if indice is not None:
@@ -962,3 +1038,102 @@ def download_scjn_reglamentos_assets(
                         "del release lo publica"
                     )
     return resultados
+
+
+# --- `scjn-reglamentos` (issue #220): public wrappers over the generic core
+
+def _assets_scjn_reglamentos(timeout: int = 30) -> dict[str, str]:
+    """Every asset of the `scjn-reglamentos` release, name -> download URL —
+    merged across every part of its series (`_assets_de_partes`, issue
+    #223: this collection outgrew a single release, 1082 tarballs across
+    `scjn-reglamentos`/`scjn-reglamentos-2`). Network — used by the
+    downloader only, never by a reader."""
+    return _assets_de_partes(REGLAMENTOS.tag_base, timeout)
+
+
+def download_scjn_reglamentos_index(*, cache_dir=None) -> dict:
+    """The `scjn-reglamentos` release's own `indice-global.json.gz`
+    (`construye_indice_global_reglamentos`'s payload) — a thin wrapper over
+    `_index_de_release` (issue #222's Fase 0)."""
+    return _index_de_release(REGLAMENTOS, cache_dir=cache_dir)
+
+
+def download_scjn_reglamentos_corpus(id_ordenamiento: str | int, *, cache_dir=None) -> dict:
+    """One `reglamentos` instrument, by its own `id_ordenamiento` — a thin
+    wrapper over `_corpus_de_release` (issue #222's Fase 0); see its own
+    docstring for the payload shape and the `AssetNotCached`/`SinTextoEnSCJN`
+    raise order."""
+    return _corpus_de_release(REGLAMENTOS, id_ordenamiento, cache_dir=cache_dir)
+
+
+def local_reglamentos_ids(cache_dir=None) -> list[str]:
+    """Every reglamento with a `<id_ordenamiento>.tgz` already on disk under
+    `cache_dir` — a thin wrapper over `_local_ids_de_release` (issue #222's
+    Fase 0)."""
+    return _local_ids_de_release(REGLAMENTOS, cache_dir)
+
+
+def download_scjn_reglamentos_assets(
+    ids: list[str] | None = None,
+    *,
+    cache_dir=None,
+    refrescar: bool = False,
+    timeout: int = 60,
+    log=None,
+) -> list[tuple[Path, bool]]:
+    """Put the `scjn-reglamentos` release's assets on disk — a thin wrapper
+    over `_download_assets_de_release` (issue #222's Fase 0); see its own
+    docstring for the full contract."""
+    return _download_assets_de_release(
+        REGLAMENTOS, _assets_scjn_reglamentos, ids,
+        cache_dir=cache_dir, refrescar=refrescar, timeout=timeout, log=log,
+    )
+
+
+# --- `scjn-lineamientos` (issue #222): public wrappers over the generic core
+
+def _assets_scjn_lineamientos(timeout: int = 30) -> dict[str, str]:
+    """Every asset of the `scjn-lineamientos` release, name -> download URL —
+    the `lineamientos` sibling of `_assets_scjn_reglamentos` (issue #222),
+    merged across every part of its series. Network — used by the
+    downloader only, never by a reader."""
+    return _assets_de_partes(LINEAMIENTOS.tag_base, timeout)
+
+
+def download_scjn_lineamientos_index(*, cache_dir=None) -> dict:
+    """The `scjn-lineamientos` release's own `indice-global.json.gz`
+    (`construye_indice_global_lineamientos`'s payload) — a thin wrapper over
+    `_index_de_release` (issue #222's Fase 0)."""
+    return _index_de_release(LINEAMIENTOS, cache_dir=cache_dir)
+
+
+def download_scjn_lineamientos_corpus(id_ordenamiento: str | int, *, cache_dir=None) -> dict:
+    """One `lineamientos` instrument, by its own `id_ordenamiento` — a thin
+    wrapper over `_corpus_de_release` (issue #222's Fase 0); see its own
+    docstring for the payload shape and the `AssetNotCached`/`SinTextoEnSCJN`
+    raise order."""
+    return _corpus_de_release(LINEAMIENTOS, id_ordenamiento, cache_dir=cache_dir)
+
+
+def local_lineamientos_ids(cache_dir=None) -> list[str]:
+    """Every lineamiento with a `<id_ordenamiento>.tgz` already on disk
+    under `cache_dir` — a thin wrapper over `_local_ids_de_release` (issue
+    #222's Fase 0)."""
+    return _local_ids_de_release(LINEAMIENTOS, cache_dir)
+
+
+def download_scjn_lineamientos_assets(
+    ids: list[str] | None = None,
+    *,
+    cache_dir=None,
+    refrescar: bool = False,
+    timeout: int = 60,
+    log=None,
+) -> list[tuple[Path, bool]]:
+    """Put the `scjn-lineamientos` release's assets on disk — a thin wrapper
+    over `_download_assets_de_release` (issue #222's Fase 0); see its own
+    docstring for the full contract."""
+    return _download_assets_de_release(
+        LINEAMIENTOS, _assets_scjn_lineamientos, ids,
+        cache_dir=cache_dir, refrescar=refrescar, timeout=timeout, log=log,
+    )

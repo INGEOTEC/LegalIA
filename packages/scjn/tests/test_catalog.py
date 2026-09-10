@@ -107,7 +107,10 @@ class TestMintAbrev(unittest.TestCase):
 class TestReglamentoKey(unittest.TestCase):
     """`reglamento_key` (issue #220): the `scjn-reglamentos` corpus has no
     `abrev` at all, so `id_ordenamiento` is the only key -- not a slug of a
-    title, unlike `slug_instrumento`."""
+    title, unlike `slug_instrumento`. Kept as a working alias of
+    `instrumento_key` since issue #222's Fase 0 generalized it to every
+    id-keyed collection -- these tests stay on the old name on purpose, to
+    prove the alias itself still works."""
 
     def test_regresa_el_id_ordenamiento_como_cadena(self):
         self.assertEqual(
@@ -127,3 +130,18 @@ class TestReglamentoKey(unittest.TestCase):
         primero = {"id_ordenamiento": "188948", "nombre": "REGLAMENTO INTERIOR DE LA ASF"}
         segundo = {"id_ordenamiento": "187839", "nombre": "REGLAMENTO INTERIOR DE LA ASF"}
         self.assertNotEqual(catalog.reglamento_key(primero), catalog.reglamento_key(segundo))
+
+
+class TestInstrumentoKey(unittest.TestCase):
+    """`instrumento_key` (issue #222's Fase 0): the current name, shared by
+    every id-keyed collection (`reglamentos`, `lineamientos`) -- `is` the
+    same function `reglamento_key` aliases, not merely equal behaviour."""
+
+    def test_es_el_mismo_objeto_que_su_alias_pre_222(self):
+        self.assertIs(catalog.reglamento_key, catalog.instrumento_key)
+
+    def test_regresa_el_id_ordenamiento_como_cadena(self):
+        self.assertEqual(
+            catalog.instrumento_key({"id_ordenamiento": "180528", "nombre": "LINEAMIENTOS..."}),
+            "180528",
+        )

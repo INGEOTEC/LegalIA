@@ -900,6 +900,19 @@ class TestConstruyeIndiceGlobalReglamentos(unittest.TestCase):
         self.assertEqual(entrada["vigencia"], "VIGENTE")
         self.assertEqual(entrada["materia"], "ADMINISTRATIVO")
 
+    def test_snapshots_0_no_lleva_asset_decision_6(self):
+        # Issue #222's decision 6: un instrumento que la SCJN clasifica pero
+        # para el que no sirve texto se indexa con snapshots=0 y SIN 'asset'
+        # -- antes de #222 siempre se le ponia f"{clave}.tgz" aunque ese
+        # tarball nunca se empaquetara.
+        indice = release.construye_indice_global_reglamentos(
+            [{"id_ordenamiento": "96090", "nombre": "SIN TEXTO", "snapshots": 0}],
+            generado="x",
+        )
+        entrada = indice["instrumentos"]["96090"]
+        self.assertNotIn("asset", entrada)
+        self.assertEqual(entrada["snapshots"], 0)
+
 
 class ConCacheFixtureReglamentos(unittest.TestCase):
     """The `scjn-reglamentos` sibling of `ConCacheFixture`."""
@@ -945,17 +958,46 @@ class TestDownloadScjnReglamentosIndex(ConCacheFixtureReglamentos):
 
 
 class TestDownloadScjnReglamentosCorpus(ConCacheFixtureReglamentos):
-    def test_lanza_assetnotcached_cuando_el_tarball_no_esta_en_cache(self):
+    """`download_scjn_reglamentos_corpus`, now a thin wrapper over the
+    generic `_corpus_de_release` (issue #222's Fase 0). Decision 10's raise
+    order is part of the public contract, not an implementation detail: the
+    index is read *first*, so a cold cache with no index at all raises
+    `AssetNotCached` about the index itself, before the tarball is ever
+    reached -- a deliberate behaviour change from the pre-#222 reader, which
+    tried the tarball directly."""
+
+    def test_indice_no_cacheado_lanza_assetnotcached_del_indice(self):
+        with self.assertRaises(release.AssetNotCached) as ctx:
+            release.download_scjn_reglamentos_corpus("104906", cache_dir=self.tmp)
+
+        self.assertIn(release.ASSET_INDICE_GLOBAL, str(ctx.exception))
+        self.assertNotIn("--id", str(ctx.exception))
+
+    def test_id_ausente_del_indice_lanza_assetnotcached_del_tarball(self):
+        self._publica_indice({})
+
         with self.assertRaises(release.AssetNotCached) as ctx:
             release.download_scjn_reglamentos_corpus("104906", cache_dir=self.tmp)
 
         self.assertIn("104906.tgz", str(ctx.exception))
         self.assertIn("--id 104906", str(ctx.exception))
 
+    def test_sin_texto_en_scjn_cuando_el_indice_no_le_da_asset(self):
+        # Decision 6/10: el indice lista el instrumento pero con snapshots=0
+        # y sin 'asset' -- nunca se llega a intentar el tarball.
+        self._publica_indice({"104906": {"nombre": "SIN TEXTO", "snapshots": 0}})
+
+        with self.assertRaises(release.SinTextoEnSCJN) as ctx:
+            release.download_scjn_reglamentos_corpus("104906", cache_dir=self.tmp)
+
+        self.assertEqual(ctx.exception.id_ordenamiento, "104906")
+        self.assertEqual(ctx.exception.coleccion, "reglamentos")
+
     def test_nunca_hay_indice_json_ni_notas_dof(self):
         # Scope de #220: sin enlace a DOF, nunca hay indice.json/notas/ que
         # leer -- a diferencia de download_scjn_leyes_corpus, aqui no hay
         # rama "enlazado" en absoluto.
+        self._publica_indice({"104906": {"nombre": "REGLAMENTO", "asset": "104906.tgz", "snapshots": 2}})
         self._publica_tgz(
             "104906",
             **{
@@ -973,6 +1015,7 @@ class TestDownloadScjnReglamentosCorpus(ConCacheFixtureReglamentos):
         self.assertEqual(resultado["snapshots"][0]["markdown"], "**REGLAMENTO.**")
 
     def test_acepta_un_id_ordenamiento_entero(self):
+        self._publica_indice({"1": {"nombre": "x", "asset": "1.tgz", "snapshots": 1}})
         self._publica_tgz("1", **{"1/01-01-2000.md": "x"})
 
         resultado = release.download_scjn_reglamentos_corpus(1, cache_dir=self.tmp)
@@ -1221,3 +1264,91 @@ class TestDescargaAssetsScjnReglamentosAvisaFaltantes(unittest.TestCase):
 
         self.assertTrue(any("96580.tgz" in m for m in mensajes))
         self.assertFalse(any("104906.tgz" in m and "warning" in m for m in mensajes))
+
+
+class TestScjnLineamientos(unittest.TestCase):
+    """`scjn-lineamientos` (issue #222): the third id-keyed collection, a
+    thin set of wrappers over the same generic core `scjn-reglamentos`
+    already exercises above -- this class checks the wiring (right
+    subdirectory, right `coleccion` name, right exceptions), not the core
+    logic itself again."""
+
+    def setUp(self):
+        self.tmp = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+        self.release_dir = self.tmp / "scjn-lineamientos"
+        self.release_dir.mkdir(parents=True)
+
+    def _publica_indice(self, instrumentos: dict):
+        payload = {"generado": "x", "coleccion": "lineamientos", "instrumentos": instrumentos}
+        (self.release_dir / release.ASSET_INDICE_GLOBAL).write_bytes(
+            gzip.compress(json.dumps(payload).encode("utf-8"))
+        )
+
+    def _publica_tgz(self, id_ordenamiento: str, **archivos):
+        (self.release_dir / f"{id_ordenamiento}.tgz").write_bytes(_hacer_tgz(archivos))
+
+    def test_construye_indice_global_lineamientos_no_lleva_codnota(self):
+        indice = release.construye_indice_global_lineamientos(
+            [{"id_ordenamiento": "180528", "nombre": "LINEAMIENTOS...", "snapshots": 1}],
+            generado="x",
+        )
+        self.assertEqual(indice["coleccion"], "lineamientos")
+        self.assertNotIn("codNota", indice)
+
+    def test_download_index_lee_el_publicado(self):
+        self._publica_indice({"180528": {"nombre": "LINEAMIENTOS...", "asset": "180528.tgz",
+                                          "snapshots": 1}})
+
+        indice = release.download_scjn_lineamientos_index(cache_dir=self.tmp)
+
+        self.assertEqual(indice["coleccion"], "lineamientos")
+        self.assertEqual(indice["instrumentos"]["180528"]["snapshots"], 1)
+
+    def test_download_corpus_lee_snapshots_ordenados(self):
+        self._publica_indice({"180528": {"nombre": "L", "asset": "180528.tgz", "snapshots": 1}})
+        self._publica_tgz("180528", **{"180528/12-06-2019.md": "**LINEAMIENTOS.**"})
+
+        resultado = release.download_scjn_lineamientos_corpus("180528", cache_dir=self.tmp)
+
+        self.assertEqual(resultado["id_ordenamiento"], "180528")
+        self.assertEqual(resultado["snapshots"][0]["markdown"], "**LINEAMIENTOS.**")
+
+    def test_corpus_sin_texto_lanza_sintextoenscjn(self):
+        self._publica_indice({"96090": {"nombre": "SIN TEXTO", "snapshots": 0}})
+
+        with self.assertRaises(release.SinTextoEnSCJN) as ctx:
+            release.download_scjn_lineamientos_corpus("96090", cache_dir=self.tmp)
+
+        self.assertEqual(ctx.exception.coleccion, "lineamientos")
+
+    def test_local_ids_lee_scjn_lineamientos_no_scjn_reglamentos(self):
+        (self.release_dir / "180528.tgz").write_bytes(b"x")
+        (self.tmp / "scjn-reglamentos").mkdir()
+        (self.tmp / "scjn-reglamentos" / "104906.tgz").write_bytes(b"x")
+
+        self.assertEqual(release.local_lineamientos_ids(self.tmp), ["180528"])
+
+    @patch("scjn.cache.descarga", return_value=b"bytes")
+    @patch("scjn.release._assets_scjn_lineamientos")
+    def test_download_assets_baja_al_subdirectorio_propio(self, mock_assets, mock_descarga):
+        mock_assets.return_value = {
+            "indice-global.json.gz": "https://x/indice-global.json.gz",
+            "180528.tgz": "https://x/180528.tgz",
+        }
+
+        resultados = release.download_scjn_lineamientos_assets(cache_dir=self.tmp)
+
+        self.assertEqual(
+            sorted(ruta.name for ruta, _ in resultados),
+            ["180528.tgz", "indice-global.json.gz"],
+        )
+        self.assertTrue((self.tmp / "scjn-lineamientos" / "180528.tgz").is_file())
+
+    def test_asset_not_cached_nombra_el_comando_de_lineamientos(self):
+        exc = release.AssetNotCached("180528.tgz", Path("/x"), coleccion="lineamientos")
+        self.assertEqual(
+            str(exc),
+            "'180528.tgz' is not cached under /x -- run "
+            "`scjn download --coleccion lineamientos --id 180528`",
+        )

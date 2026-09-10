@@ -513,26 +513,38 @@ script never calls `gh`, and no workflow should ever call it and then
 publish on its own. Read `MANIFEST.md` in full before running the `gh
 release create`/`upload` command the script prints.
 
-### `empaqueta_scjn_reglamentos.py`
+### `empaqueta_scjn_coleccion.py --coleccion {reglamentos,lineamientos}`
 
-`reglamentos` only (issue #220): the sibling of `empaqueta_scjn_leyes.py`
-above, without `indice.json`/`notas/` or a `codNota` section — this
-collection has no DOF linking at all (issue #220's own Scope), so every
-`<id_ordenamiento>.tgz` ships only that instrument's snapshots and its own
-`estado.json`. Keyed by `id_ordenamiento` (`scjn.catalog.reglamento_key`),
-never a title-derived slug: the SCJN reissues a reglamento as a brand-new
-`idOrdenamiento` rather than as a reform of the previous one, so a slug
-would collide (137 of 1080 titles repeat).
+Both id-keyed collections (`reglamentos`, issue #220; `lineamientos`, issue
+#222) share this one script since #222's Fase 0 generalized the
+`reglamentos`-only `empaqueta_scjn_reglamentos.py` into it — the sibling of
+`empaqueta_scjn_leyes.py` above, without `indice.json`/`notas/` or a
+`codNota` section: neither collection has DOF linking at all (issue #220's
+own Scope, unchanged by #222), so every `<id_ordenamiento>.tgz` ships only
+that instrument's snapshots and its own `estado.json`. Keyed by
+`id_ordenamiento` (`scjn.catalog.instrumento_key`), never a title-derived
+slug: the SCJN reissues an instrument as a brand-new `idOrdenamiento` rather
+than as a reform of the previous one, so a slug would collide (137 of 1080
+`reglamentos` titles repeat, 3 of 159 `lineamientos` ones).
+
+**An instrument the SCJN classifies and crawls but serves no consolidated
+text for ships no tarball** (issue #222's decision 6, applied to both
+collections): its own `estado.json` still carries `rastreado`, which is
+what tells it apart from one never crawled at all — it is indexed with
+`snapshots: 0` and no `asset`, and listed in `MANIFEST.md` under its own
+heading ("Sin texto consolidado en la SCJN"), separate from "Nunca
+rastreados".
 
 #### Numbered release parts (issue #223)
 
-This collection outgrew a single GitHub release on 2026-09-10: 1082
+`scjn-reglamentos` outgrew a single GitHub release on 2026-09-10: 1082
 tarballs plus `MANIFEST.md`/`SHA256SUMS.txt`/`indice-global.json.gz` is 1085
 assets, past GitHub's 1000-asset-per-release cap, and `MANIFEST.md`'s own
 1082-row table (179 749 bytes) is past a release body's 125 000-character
-cap. So this script now *plans* a publish across a numbered series of
-release tags (`scjn-reglamentos`, `scjn-reglamentos-2`, ...) instead of
-printing one fixed `gh` recipe:
+cap. So this script *plans* a publish across a numbered series of release
+tags (`scjn-reglamentos`, `scjn-reglamentos-2`, ...) instead of printing one
+fixed `gh` recipe — the same machinery applies to `scjn-lineamientos`
+regardless of whether its own ~126 tarballs ever need a second part:
 
 - **`partes.json`** (local to `--destino`, never a published asset) records
   which asset is in which part — an asset already recorded never moves, so a
