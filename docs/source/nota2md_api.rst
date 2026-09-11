@@ -320,6 +320,20 @@ pre-#209 ``~/.cache/nota2md/scjn-leyes/`` there automatically, once) —
    [2/2] lfca.tgz: downloaded
    scjn-leyes: 2 assets in /home/user/.cache/scjn/scjn-leyes (2 downloaded, 0 already cached)
 
+``download federal-regulations`` and ``download federal-guidelines`` are the
+same shape for the ``scjn-reglamentos``/``scjn-lineamientos`` releases (issue
+#225) — also into **the ``scjn`` package's own cache**, alongside
+``scjn-leyes``. Neither collection has an ``abrev`` (the SCJN reissues an
+instrument as a brand-new id rather than reforming the previous one), so
+these two take ``--id`` (repeatable), never ``--slug``:
+
+.. code-block:: console
+
+   $ nota2md download federal-regulations --id 4570340
+   [1/2] indice-global.json.gz: downloaded
+   [2/2] 4570340.tgz: downloaded
+   scjn-reglamentos: 2 assets in /home/user/.cache/scjn/scjn-reglamentos (2 downloaded, 0 already cached)
+
 ``download gazette-metadata`` puts the ``notas-archivo`` release on disk —
 **into dofjson's own cache directory, not nota2md's** (the two releases
 share no directory, on purpose; see ``nota2md.cache``'s module docstring):
@@ -332,8 +346,12 @@ share no directory, on purpose; see ``nota2md.cache``'s module docstring):
    [117/117] notas-2026-08.tgz: downloaded
    notas-archivo: 117 assets in /home/user/.cache/dofjson (117 downloaded, 0 already cached)
 
-``download all`` runs both, each into its own cache directory — a shorthand
-for the two invocations above, not a merge of the two caches:
+``download all`` runs all four, each into its own cache directory — a
+shorthand for the four invocations above, not a merge of the caches.
+``--slug`` narrows the ``scjn-leyes`` half only; the two id-keyed collections
+have no ``--id`` on ``all`` (an id could not say which of the two it names —
+use ``download federal-regulations``/``federal-guidelines`` directly to
+narrow those):
 
 .. code-block:: console
 
@@ -341,6 +359,14 @@ for the two invocations above, not a merge of the two caches:
    [1/2] indice-global.json.gz: already cached
    [2/2] lfca.tgz: already cached
    scjn-leyes: 2 assets in /home/user/.cache/scjn/scjn-leyes (0 downloaded, 2 already cached)
+   [1/1083] indice-global.json.gz: already cached
+   [...]
+   [1083/1083] 4570340.tgz: already cached
+   scjn-reglamentos: 1083 assets in /home/user/.cache/scjn/scjn-reglamentos (0 downloaded, 1083 already cached) (2 partes)
+   [1/127] indice-global.json.gz: already cached
+   [...]
+   [127/127] 4570340.tgz: already cached
+   scjn-lineamientos: 127 assets in /home/user/.cache/scjn/scjn-lineamientos (0 downloaded, 127 already cached)
    [1/117] notas-1917.tgz: already cached
    [...]
    [117/117] notas-2026-08.tgz: already cached

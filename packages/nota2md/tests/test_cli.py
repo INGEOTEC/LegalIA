@@ -184,21 +184,6 @@ class TestCliDownload(unittest.TestCase):
 
         self.assertEqual(mock_dof.call_args.args[0], Path(DOFJSON_CACHE_DIR))
 
-    @patch("dofjson.titulos.download_dof_assets")
-    @patch("scjn.release.download_scjn_leyes_assets")
-    def test_all_baja_los_dos_releases(self, mock_assets, mock_dof):
-        mock_assets.return_value = [(self.destino / "scjn-leyes" / "a.tgz", True)]
-        mock_dof.return_value = [self.destino / "notas-1917.tgz"]
-
-        main(["download", "all"])
-
-        mock_assets.assert_called_once()
-        mock_dof.assert_called_once()
-        # Each release keeps its own cache: `all` is a shorthand for two
-        # invocations, not a merge of the two directories.
-        self.assertIsNone(mock_assets.call_args.kwargs["cache_dir"])
-        self.assertFalse(mock_dof.call_args.kwargs["refrescar"])
-
     @patch("scjn.release.download_scjn_leyes_assets")
     def test_reporta_por_asset_si_se_descargo_o_ya_estaba(self, mock_assets):
         directorio = self.destino / "scjn-leyes"
@@ -212,6 +197,148 @@ class TestCliDownload(unittest.TestCase):
         _descarga_federal_laws(None, self.destino, False, log=self.log.append)
 
         self.assertIn("1 downloaded, 1 already cached", self.log[-1])
+
+    @patch("scjn.release.download_scjn_reglamentos_assets")
+    def test_federal_regulations_sin_cache_dir_usa_el_default_de_scjn(self, mock_assets):
+        mock_assets.return_value = [(self.destino / "scjn-reglamentos" / "1.tgz", True)]
+
+        main(["download", "federal-regulations"])
+
+        args, kwargs = mock_assets.call_args
+        self.assertIsNone(args[0])
+        self.assertIsNone(kwargs["cache_dir"])
+        self.assertFalse(kwargs["refrescar"])
+
+    @patch("scjn.release.download_scjn_reglamentos_assets")
+    def test_federal_regulations_acota_con_id_repetible(self, mock_assets):
+        mock_assets.return_value = [(self.destino / "1.tgz", False)]
+
+        main(["download", "federal-regulations", "--id", "1", "--id", "2",
+              "--cache-dir", str(self.destino), "--refrescar"])
+
+        args, kwargs = mock_assets.call_args
+        self.assertEqual(args[0], ["1", "2"])
+        self.assertEqual(kwargs["cache_dir"], self.destino)
+        self.assertTrue(kwargs["refrescar"])
+
+    def test_federal_regulations_rechaza_slug(self):
+        with self.assertRaises(SystemExit):
+            main(["download", "federal-regulations", "--slug", "lft"])
+
+    def test_federal_regulations_rechaza_cache_dir_none(self):
+        with self.assertRaises(SystemExit):
+            main(["download", "federal-regulations", "--cache-dir", "none"])
+
+    @patch("scjn.release.download_scjn_lineamientos_assets")
+    def test_federal_guidelines_sin_cache_dir_usa_el_default_de_scjn(self, mock_assets):
+        mock_assets.return_value = [(self.destino / "scjn-lineamientos" / "1.tgz", True)]
+
+        main(["download", "federal-guidelines"])
+
+        args, kwargs = mock_assets.call_args
+        self.assertIsNone(args[0])
+        self.assertIsNone(kwargs["cache_dir"])
+        self.assertFalse(kwargs["refrescar"])
+
+    @patch("scjn.release.download_scjn_lineamientos_assets")
+    def test_federal_guidelines_acota_con_id_repetible(self, mock_assets):
+        mock_assets.return_value = [(self.destino / "1.tgz", False)]
+
+        main(["download", "federal-guidelines", "--id", "3",
+              "--cache-dir", str(self.destino), "--refrescar"])
+
+        args, kwargs = mock_assets.call_args
+        self.assertEqual(args[0], ["3"])
+        self.assertEqual(kwargs["cache_dir"], self.destino)
+        self.assertTrue(kwargs["refrescar"])
+
+    def test_federal_guidelines_rechaza_slug(self):
+        with self.assertRaises(SystemExit):
+            main(["download", "federal-guidelines", "--slug", "lft"])
+
+    def test_federal_guidelines_rechaza_cache_dir_none(self):
+        with self.assertRaises(SystemExit):
+            main(["download", "federal-guidelines", "--cache-dir", "none"])
+
+    def test_federal_laws_rechaza_id(self):
+        with self.assertRaises(SystemExit):
+            main(["download", "federal-laws", "--id", "1"])
+
+    def test_all_rechaza_id(self):
+        with self.assertRaises(SystemExit):
+            main(["download", "all", "--id", "1"])
+
+    @patch("dofjson.titulos.download_dof_assets")
+    @patch("scjn.release.download_scjn_lineamientos_assets")
+    @patch("scjn.release.download_scjn_reglamentos_assets")
+    @patch("scjn.release.download_scjn_leyes_assets")
+    def test_all_baja_las_cuatro_releases(
+        self, mock_leyes, mock_reglamentos, mock_lineamientos, mock_dof,
+    ):
+        mock_leyes.return_value = [(self.destino / "scjn-leyes" / "a.tgz", True)]
+        mock_reglamentos.return_value = [(self.destino / "scjn-reglamentos" / "1.tgz", True)]
+        mock_lineamientos.return_value = [(self.destino / "scjn-lineamientos" / "1.tgz", True)]
+        mock_dof.return_value = [self.destino / "notas-1917.tgz"]
+
+        main(["download", "all"])
+
+        mock_leyes.assert_called_once()
+        mock_reglamentos.assert_called_once()
+        mock_lineamientos.assert_called_once()
+        mock_dof.assert_called_once()
+        self.assertIsNone(mock_leyes.call_args.kwargs["cache_dir"])
+        self.assertIsNone(mock_reglamentos.call_args.kwargs["cache_dir"])
+        self.assertIsNone(mock_lineamientos.call_args.kwargs["cache_dir"])
+        self.assertFalse(mock_dof.call_args.kwargs["refrescar"])
+
+    @patch("dofjson.titulos.download_dof_assets")
+    @patch("scjn.release.download_scjn_lineamientos_assets")
+    @patch("scjn.release.download_scjn_reglamentos_assets")
+    @patch("scjn.release.download_scjn_leyes_assets")
+    def test_all_con_slug_solo_acota_el_lado_leyes(
+        self, mock_leyes, mock_reglamentos, mock_lineamientos, mock_dof,
+    ):
+        mock_leyes.return_value = [(self.destino / "scjn-leyes" / "lft.tgz", True)]
+        mock_reglamentos.return_value = [(self.destino / "scjn-reglamentos" / "1.tgz", True)]
+        mock_lineamientos.return_value = [(self.destino / "scjn-lineamientos" / "1.tgz", True)]
+        mock_dof.return_value = [self.destino / "notas-1917.tgz"]
+
+        main(["download", "all", "--slug", "lft"])
+
+        self.assertEqual(mock_leyes.call_args.args[0], ["lft"])
+        self.assertIsNone(mock_reglamentos.call_args.args[0])
+        self.assertIsNone(mock_lineamientos.call_args.args[0])
+
+    @patch("scjn.cache.migrate_legacy_assets")
+    @patch("scjn.release.download_scjn_reglamentos_assets")
+    def test_federal_regulations_no_migra_cache_legado(self, mock_assets, mock_migra):
+        mock_assets.return_value = [(self.destino / "1.tgz", True)]
+
+        main(["download", "federal-regulations"])
+
+        mock_migra.assert_not_called()
+
+    @patch.dict("scjn.release._ULTIMO_NUMERO_DE_PARTES", {"scjn-reglamentos": 2})
+    @patch("scjn.release.download_scjn_reglamentos_assets")
+    def test_federal_regulations_reporta_partes_cuando_hay_mas_de_una(self, mock_assets):
+        mock_assets.return_value = [(self.destino / "scjn-reglamentos" / "1.tgz", True)]
+
+        from nota2md.cli import _descarga_coleccion_por_id
+
+        _descarga_coleccion_por_id(
+            "reglamentos", None, self.destino, False, log=self.log.append,
+        )
+
+        self.assertIn("(2 partes)", self.log[-1])
+
+    @patch("scjn.cache.migrate_legacy_assets")
+    @patch("scjn.release.download_scjn_lineamientos_assets")
+    def test_federal_guidelines_no_migra_cache_legado(self, mock_assets, mock_migra):
+        mock_assets.return_value = [(self.destino / "1.tgz", True)]
+
+        main(["download", "federal-guidelines"])
+
+        mock_migra.assert_not_called()
 
 
 class TestCliDispatch(unittest.TestCase):

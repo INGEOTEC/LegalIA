@@ -570,8 +570,9 @@ through instead of a per-collection literal branch:
 ------------------------------------------
 
 One verb: putting a release on disk. A downstream package's own
-``download`` subcommands (``nota2md download federal-laws``/``all``)
-delegate to this same downloader rather than reimplementing it:
+``download`` subcommands (``nota2md download federal-laws``/
+``federal-regulations``/``federal-guidelines``/``all``, issue #225) delegate
+to this same downloader rather than reimplementing it:
 
 .. code-block:: console
 
