@@ -31,7 +31,7 @@ dependencies = [
     # The SCJN side of this project (transport, catalogue, crawl state,
     # provenance header) moved to its own package (issue #206/#207);
     # nota2md depends on it, never the reverse.
-    "scjn>=0.1.0",
+    "scjn>=0.2.0",
 ]
 dynamic = ['version']
 
@@ -47,6 +47,13 @@ Homepage = "https://github.com/INGEOTEC/LegalIA/tree/main/packages/nota2md"
 
 [project.scripts]
 nota2md = "nota2md.cli:main"
+
+[tool.uv.sources]
+# In the uv workspace (root pyproject.toml), resolve these sibling
+# monorepo packages to their local editable copies instead of PyPI.
+dofjson = { workspace = true }
+scjn = { workspace = true }
+dof2md = { workspace = true }
 
 [tool.setuptools.packages.find]
 include = ["nota2md", "nota2md.*"]

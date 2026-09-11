@@ -11,6 +11,9 @@ dist/
 venv/
 env/
 
+# uv lockfile (root pyproject.toml is a local dev convenience, not published)
+uv.lock
+
 # Tests / coverage
 .pytest_cache/
 .coverage

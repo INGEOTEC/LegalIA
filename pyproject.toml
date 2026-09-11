@@ -1,0 +1,34 @@
+[project]
+name = "legalia"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.uv]
+# The root has no source of its own -- it only glues the five packages
+# below into one uv workspace/venv, so it must never be built or installed.
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+dof2md = { workspace = true }
+dofjson = { workspace = true }
+md2akn = { workspace = true }
+nota2md = { workspace = true }
+scjn = { workspace = true }
+
+[dependency-groups]
+# `uv sync` installs every package editable, with its test extra, into one
+# .venv -- mirroring the matrix in .github/workflows/test.yml and the
+# pytest commands in CLAUDE.md. nota2md's `ocr` extra is included so its
+# dof2md-backed OCR path is importable too, matching what
+# .devcontainer/python.sh already installs eagerly.
+dev = [
+    "dof2md[test]",
+    "dofjson[test]",
+    "md2akn[test]",
+    "nota2md[ocr,test]",
+    "scjn[test]",
+]

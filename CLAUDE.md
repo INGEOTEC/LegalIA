@@ -88,7 +88,14 @@ build on each other in this sequence.
   `download_scjn_leyes_corpus`/`download_scjn_leyes_index`/
   `download_scjn_leyes_catalog`/`iter_current_federal_laws` (the `scjn`
   package's own readers, re-exported here unchanged for a caller — see
-  `scjn` above). Depends on `scjn` for all of the above; `nota2md.linking` is
+  `scjn` above). Its own CLI's `download all` puts all four of the project's
+  GitHub releases on disk since issue #225 — `federal-laws`/
+  `federal-regulations`/`federal-guidelines` (the three SCJN releases, into
+  `scjn`'s own cache) plus `gazette-metadata` (`notas-archivo`, into
+  `dofjson`'s) — though `nota2md` still reads nothing from
+  `scjn-reglamentos`/`scjn-lineamientos` itself: `download` only widens as a
+  convenience downloader, it is not a new Python-level dependency on either
+  corpus. Depends on `scjn` for all of the above; `nota2md.linking` is
   the one SCJN-adjacent concern that stays here instead — matching a
   snapshot `scjn` reads back to the DOF `codNota` that produced it, and the
   reverse (a `codNota` to the snapshot it produced, for `legal_provisions`'
@@ -392,6 +399,10 @@ parameterising the `leyes` path itself.
   and no `asset`, and lists them in `MANIFEST.md` under their own heading —
   the published index grows from 1082 to 1087 entries, the only deliberate
   change #222's Fase 0 makes to this already-published corpus's content.
+- **`nota2md download all` fetches it too, since issue #225.** A new
+  `nota2md download federal-regulations` subcommand (`--id`, repeatable,
+  never `--slug`) delegates to `download_scjn_reglamentos_assets`, and `all`
+  now includes it — `nota2md` itself still reads nothing from this corpus.
 
 ## The id-keyed collection path, refactored (issue #222's Fase 0, done)
 
@@ -523,6 +534,11 @@ corpus next to its siblings:
   `scripts/scjn/`) — it was deliberately not executed as part of landing
   this issue, given its cost; a human runs it later, once, whenever the
   extra confidence is worth ~70 minutes against the live SCJN.
+- **`nota2md download all` fetches it too, since issue #225.** A new
+  `nota2md download federal-guidelines` subcommand (`--id`, repeatable,
+  never `--slug`) delegates to `download_scjn_lineamientos_assets`, and
+  `all` now includes it — `nota2md` itself still reads nothing from this
+  corpus.
 
 ## Documentation: two sites, one division of labour (issue #119, done)
 
