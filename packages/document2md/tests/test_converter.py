@@ -5,12 +5,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from dof2md.converter import (
+from document2md.converter import (
     DEFAULT_TIMEOUT_SECONDS,
     convert_images_to_markdown,
     convert_to_markdown,
 )
-from dof2md.mineru_server import ENV_VAR as MINERU_API_URL_ENV_VAR
+from document2md.mineru_server import ENV_VAR as MINERU_API_URL_ENV_VAR
 
 
 def _fake_mineru_run(cmd, check, timeout=None):
@@ -29,7 +29,7 @@ def _fake_mineru_run(cmd, check, timeout=None):
 
 def _fake_mineru_run_with_html_table(cmd, check, timeout=None):
     """Simulates mineru emitting a complex table as raw HTML (its real
-    fallback), so we can check dof2md rewrites it to a Markdown table."""
+    fallback), so we can check document2md rewrites it to a Markdown table."""
     outdir = Path(cmd[cmd.index("-o") + 1])
     input_path = Path(cmd[cmd.index("-p") + 1])
     auto_dir = outdir / input_path.stem / "auto"
@@ -63,8 +63,8 @@ class TestConvertToMarkdown(unittest.TestCase):
     def tearDown(self):
         self.tmpdir.cleanup()
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_invokes_mineru_with_pipeline_backend(self, mock_which, mock_run):
         convert_to_markdown(self.pdf_path, self.md_path)
 
@@ -74,8 +74,8 @@ class TestConvertToMarkdown(unittest.TestCase):
         self.assertEqual(cmd[cmd.index("-b") + 1], "pipeline")
         self.assertEqual(cmd[cmd.index("-p") + 1], str(self.pdf_path))
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_relocates_images_next_to_output(self, mock_which, mock_run):
         convert_to_markdown(self.pdf_path, self.md_path)
 
@@ -85,13 +85,13 @@ class TestConvertToMarkdown(unittest.TestCase):
             "](02011980-MAT_images/abc123.jpg)", self.md_path.read_text(encoding="utf-8")
         )
 
-    @patch("dof2md.converter.shutil.which", return_value=None)
+    @patch("document2md.converter.shutil.which", return_value=None)
     def test_raises_clear_error_when_mineru_missing(self, mock_which):
         with self.assertRaises(RuntimeError):
             convert_to_markdown(self.pdf_path, self.md_path)
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_with_html_table)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run_with_html_table)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_rewrites_html_tables_to_markdown(self, mock_which, mock_run):
         convert_to_markdown(self.pdf_path, self.md_path)
 
@@ -100,8 +100,8 @@ class TestConvertToMarkdown(unittest.TestCase):
         self.assertIn("| Apartado | Págs. |", text)
         self.assertIn("| COMPETENCIA | 13-14 |", text)
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_omits_api_url_when_env_var_unset(self, mock_which, mock_run):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop(MINERU_API_URL_ENV_VAR, None)
@@ -110,8 +110,8 @@ class TestConvertToMarkdown(unittest.TestCase):
         cmd = mock_run.call_args[0][0]
         self.assertNotIn("--api-url", cmd)
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_passes_api_url_when_env_var_set(self, mock_which, mock_run):
         with patch.dict(os.environ, {MINERU_API_URL_ENV_VAR: "http://127.0.0.1:9999"}):
             convert_to_markdown(self.pdf_path, self.md_path)
@@ -120,38 +120,38 @@ class TestConvertToMarkdown(unittest.TestCase):
         self.assertIn("--api-url", cmd)
         self.assertEqual(cmd[cmd.index("--api-url") + 1], "http://127.0.0.1:9999")
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_passes_default_timeout_to_subprocess(self, mock_which, mock_run):
         convert_to_markdown(self.pdf_path, self.md_path)
 
         self.assertEqual(mock_run.call_args.kwargs["timeout"], DEFAULT_TIMEOUT_SECONDS)
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_passes_custom_timeout_to_subprocess(self, mock_which, mock_run):
         convert_to_markdown(self.pdf_path, self.md_path, timeout=42)
 
         self.assertEqual(mock_run.call_args.kwargs["timeout"], 42)
 
     @patch(
-        "dof2md.converter.subprocess.run",
+        "document2md.converter.subprocess.run",
         side_effect=subprocess.TimeoutExpired(cmd="mineru", timeout=3600),
     )
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_propagates_timeout_expired(self, mock_which, mock_run):
         with self.assertRaises(subprocess.TimeoutExpired):
             convert_to_markdown(self.pdf_path, self.md_path)
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_discards_mineru_output_by_default(self, mock_which, mock_run):
         convert_to_markdown(self.pdf_path, self.md_path)
 
         self.assertFalse((self.md_path.parent / "02011980-MAT_mineru").exists())
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_keeps_mineru_output_when_requested(self, mock_which, mock_run):
         convert_to_markdown(self.pdf_path, self.md_path, keep_mineru_output=True)
 
@@ -175,7 +175,7 @@ class TestConvertImagesToMarkdown(unittest.TestCase):
         # Tests exercising the OCR path itself shouldn't spin up a real
         # mineru-api process, so replace MineruServer with a stand-in and
         # make sure no leftover MINERU_API_URL from another test leaks in.
-        mineru_server_patcher = patch("dof2md.converter.MineruServer")
+        mineru_server_patcher = patch("document2md.converter.MineruServer")
         self.mock_mineru_server_cls = mineru_server_patcher.start()
         self.mock_mineru_server_cls.return_value = MagicMock()
         self.addCleanup(mineru_server_patcher.stop)
@@ -187,8 +187,8 @@ class TestConvertImagesToMarkdown(unittest.TestCase):
     def tearDown(self):
         self.tmpdir.cleanup()
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_ocrs_each_image_and_concatenates_in_order(self, mock_which, mock_run):
         convert_images_to_markdown(self.images, self.md_path)
 
@@ -198,8 +198,8 @@ class TestConvertImagesToMarkdown(unittest.TestCase):
         second = text.index("nota-5793654-20260715-081-U-000")
         self.assertLess(first, second)
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_namespaces_extracted_figures_per_page(self, mock_which, mock_run):
         convert_images_to_markdown(self.images, self.md_path)
 
@@ -212,25 +212,25 @@ class TestConvertImagesToMarkdown(unittest.TestCase):
             )
             self.assertIn(f"](nota-5793654_images/{img.stem}/abc123.jpg)", text)
 
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_rejects_empty_image_list(self, mock_which):
         with self.assertRaises(ValueError):
             convert_images_to_markdown([], self.md_path)
 
-    @patch("dof2md.converter.shutil.which", return_value=None)
+    @patch("document2md.converter.shutil.which", return_value=None)
     def test_raises_when_mineru_missing(self, mock_which):
         with self.assertRaises(RuntimeError):
             convert_images_to_markdown(self.images, self.md_path)
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_discards_mineru_output_by_default(self, mock_which, mock_run):
         convert_images_to_markdown(self.images, self.md_path)
 
         self.assertFalse((self.md_path.parent / "nota-5793654_mineru").exists())
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_keeps_mineru_output_per_page_when_requested(self, mock_which, mock_run):
         convert_images_to_markdown(self.images, self.md_path, keep_mineru_output=True)
 
@@ -238,8 +238,8 @@ class TestConvertImagesToMarkdown(unittest.TestCase):
         for img in self.images:
             self.assertTrue((mineru_dir / img.stem / "auto" / f"{img.stem}.md").exists())
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_keeps_one_mineru_server_alive_for_all_pages(self, mock_which, mock_run):
         # A multi-page note used to start/stop mineru's own temporary server
         # once per page (see issue #84); it should now share a single
@@ -252,8 +252,8 @@ class TestConvertImagesToMarkdown(unittest.TestCase):
         server.__exit__.assert_called_once()
         self.assertEqual(mock_run.call_count, len(self.images))
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_skips_mineru_server_for_a_single_page(self, mock_which, mock_run):
         # A one-page note has nothing to share a server across, so it should
         # behave like before: no extra server is started.
@@ -261,8 +261,8 @@ class TestConvertImagesToMarkdown(unittest.TestCase):
 
         self.mock_mineru_server_cls.assert_not_called()
 
-    @patch("dof2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
-    @patch("dof2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
+    @patch("document2md.converter.subprocess.run", side_effect=_fake_mineru_run_text_only)
+    @patch("document2md.converter.shutil.which", return_value="/usr/local/bin/mineru")
     def test_skips_mineru_server_when_caller_already_running_one(self, mock_which, mock_run):
         # If a caller is already batching multiple notes under its own
         # MineruServer (MINERU_API_URL set), this shouldn't start a nested

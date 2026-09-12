@@ -5,14 +5,17 @@ requires-python = ">=3.10"
 dependencies = []
 
 [tool.uv]
-# The root has no source of its own -- it only glues the five packages
-# below into one uv workspace/venv, so it must never be built or installed.
+# The root has no source of its own -- it only glues the packages below
+# into one uv workspace/venv, so it must never be built or installed.
 package = false
 
 [tool.uv.workspace]
 members = ["packages/*"]
 
 [tool.uv.sources]
+document2md = { workspace = true }
+# The renamed package's tombstone (issue #228): a workspace member so
+# `pytest packages/dof2md` can import it and assert it raises.
 dof2md = { workspace = true }
 dofjson = { workspace = true }
 md2akn = { workspace = true }
@@ -23,10 +26,13 @@ scjn = { workspace = true }
 # `uv sync` installs every package editable, with its test extra, into one
 # .venv -- mirroring the matrix in .github/workflows/test.yml and the
 # pytest commands in CLAUDE.md. nota2md's `ocr` extra is included so its
-# dof2md-backed OCR path is importable too, matching what
-# .devcontainer/python.sh already installs eagerly.
+# document2md-backed OCR path is importable too, matching what
+# .devcontainer/python.sh already installs eagerly. `dof2md` is the
+# tombstone, without its test extra: it ships no code, only a test of its
+# own that pytest runs from the source tree.
 dev = [
-    "dof2md[test]",
+    "document2md[test]",
+    "dof2md",
     "dofjson[test]",
     "md2akn[test]",
     "nota2md[ocr,test]",

@@ -1,20 +1,20 @@
-"""The `dof2md` console script: parses command-line arguments and runs one
-`dof2md.batch.BatchConverter` conversion."""
+"""The `document2md` console script: parses command-line arguments and runs one
+`document2md.batch.BatchConverter` conversion."""
 import argparse
 import subprocess
 import sys
 from pathlib import Path
 
-from dof2md.batch import BatchConverter
-from dof2md.converter import DEFAULT_TIMEOUT_SECONDS
+from document2md.batch import BatchConverter
+from document2md.converter import DEFAULT_TIMEOUT_SECONDS
 
 
 def parse_args(argv=None):
-    """Parse the `dof2md` command-line arguments (`argv`, or `sys.argv` when
+    """Parse the `document2md` command-line arguments (`argv`, or `sys.argv` when
     `None`) and return the resulting `argparse.Namespace`."""
     parser = argparse.ArgumentParser(
-        description="Convert a local PDF, or an ordered set of scanned page images, from "
-        "Mexico's official gazette (DOF) — or any other document — to Markdown."
+        description="Convert a local PDF, or an ordered set of scanned page images, to "
+        "Markdown — any document, such as an edition of Mexico's official gazette (DOF)."
     )
     parser.add_argument(
         "--pdf", default=None,
@@ -59,7 +59,7 @@ def parse_args(argv=None):
 
 
 def main(argv=None):
-    """Entry point for the `dof2md` console script: parse arguments, run one
+    """Entry point for the `document2md` console script: parse arguments, run one
     `BatchConverter` conversion, and print where the Markdown was saved.
     Exits with an error message (no traceback) on a missing/ambiguous input
     source or a mineru timeout."""

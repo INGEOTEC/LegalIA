@@ -20,7 +20,7 @@ analysis of the gazette, see the project's
 |---|---|
 | [dofjson](packages/dofjson) ([PyPI](https://pypi.org/project/dofjson/)) | Client for SIDOF's JSON open-data service: which legal provisions were published on a given day, and the full detail — including HTML content, when it exists — of any one of them. Also streams a compact `codNota` + `titulo` + `fecha` record of every legal provision ever published (`legal_provisions_titles`), off the same on-disk cache. |
 | [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF legal provision (`legal_provisions`), reconstructs a law's current text from nothing but its legal provisions (`reconstruct_legal_provisions`), and reads the SCJN corpus of consolidated law texts back from the `scjn-leyes` release (`download_scjn_leyes_corpus`/`_index`/`_catalog`). |
-| [dof2md](packages/dof2md) ([PyPI](https://pypi.org/project/dof2md/)) | Downloads a complete edition of the DOF as PDF and converts it — OCR included — to Markdown; the heavy artillery `nota2md` borrows for legal provisions that predate the HTML era. |
+| [document2md](packages/document2md) ([PyPI](https://pypi.org/project/document2md/)) | Converts a PDF, or an ordered set of scanned page images, to Markdown — OCR included — whatever document they come from; the heavy artillery `nota2md` borrows for legal provisions that predate the HTML era. Renamed from `dof2md` (issue #228). |
 | [md2akn](packages/md2akn) ([PyPI](https://pypi.org/project/md2akn/)) | Segments a Mexican federal law's Markdown — the output of `nota2md` — into a navigable hierarchy labelled with Akoma Ntoso's vocabulary. Depends on none of the other three packages. |
 
 Each package lives under `packages/<name>/` with its own `pyproject.toml`,
@@ -38,7 +38,7 @@ to the DOF otherwise — `source="dof"` forces the original source. See
 [`packages/nota2md`](packages/nota2md#the-scjn-path--a-laws-consolidated-text-at-each-reform).
 
 For a modern legal provision, only `dofjson` and `nota2md` are needed —
-`dof2md` stays in the background, as `nota2md`'s OCR fallback for legal
+`document2md` stays in the background, as `nota2md`'s OCR fallback for legal
 provisions that only exist as scanned page images:
 
 ```bash
@@ -113,7 +113,7 @@ for titulo in legal_provisions_titles():
 
 Install a package in editable mode with its test dependencies, then run its
 tests. The same two commands work for any of the four packages —
-`dofjson`, `nota2md`, `dof2md` and `md2akn`:
+`dofjson`, `nota2md`, `document2md` and `md2akn`:
 
 ```bash
 pip install -e "packages/dofjson[test]"

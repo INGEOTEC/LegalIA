@@ -20,21 +20,21 @@ Four sources feed the same output, and legal_provisions() picks between them:
   the only path that does: the OCR paths start from SIDOF metadata the lost
   notes have no record in.
 * **Image** — the note's scanned page image(s) are downloaded
-  (dofjson.download_nota_imagenes), OCR'd to Markdown (dof2md).
+  (dofjson.download_nota_imagenes), OCR'd to Markdown (document2md).
 * **PDF** — the note's own PDF (the edition PDF sliced to the note's pages, via
-  dofjson.download_nota_pdf) is OCR'd to Markdown (dof2md).
+  dofjson.download_nota_pdf) is OCR'd to Markdown (document2md).
 
 Both OCR paths then slice the result down to the single note with
-dof2md.cutter.cut_markdown_by_titles(), using the note's own title and the
+document2md.cutter.cut_markdown_by_titles(), using the note's own title and the
 next note's title from the per-day index as boundaries (a page/PDF usually
 holds more than one note). They are available for every note — including
 those that also have HTML — which is why dofjson downloads images/PDF
-regardless of ``existeHtml``. dof2md.cutter is only imported once an OCR path
-actually runs (see _load_converter()), same as the rest of dof2md — it is an
+regardless of ``existeHtml``. document2md.cutter is only imported once an OCR path
+actually runs (see _load_converter()), same as the rest of document2md — it is an
 optional dependency, so the HTML-only path stays lightweight.
 
 Issue #129 asked whether the SCJN corpus, now that it is the default source,
-makes the OCR paths (and dof2md with them) obsolete for laws predating the
+makes the OCR paths (and document2md with them) obsolete for laws predating the
 DOF's HTML era. It does not, and the corpus itself is the evidence: of its
 3,724 `leyes` snapshots, 2,474 carry a codNota we are certain of, and only 526
 of those are pre-1999 — 365 pre-1999 law reforms are in the corpus with no
@@ -43,7 +43,7 @@ those, and for every instrument outside `leyes` (reglamentos, tratados, NOMs,
 and everything the SCJN does not catalogue at all), the image/PDF OCR path is
 still the only way to get a Markdown at all. Kept.
 
-Passing `converter` (a dof2md.BatchConverter already `__enter__`'d by the
+Passing `converter` (a document2md.BatchConverter already `__enter__`'d by the
 caller) lets a batch of legal_provisions() calls share one already-warm
 mineru-api server instead of each OCR path starting and stopping its own —
 see BatchConverter's own docstring.
@@ -119,7 +119,7 @@ def get_document(cod_nota: int | None = None, fecha: dt.date | None = None,
 
     A note with no digital text (scanned, pre-1999ish) comes back with
     `cadenaContenido` left as it was — None or empty, and no error. It is not
-    silently OCR'd: OCR is dof2md's heavy path, and legal_provisions() already
+    silently OCR'd: OCR is document2md's heavy path, and legal_provisions() already
     owns the decision of when to take it.
     """
     if nota is None:
@@ -272,7 +272,7 @@ def legal_provisions(
     function's own `md/` output; it no longer re-downloads anything. All of
     `cache_dir`/`refrescar`/`instrumento` are ignored by the DOF paths.
 
-    "image" and "pdf" both OCR with dof2md and then slice the result to the one
+    "image" and "pdf" both OCR with document2md and then slice the result to the one
     note; "auto" never selects "pdf" — it is opt-in. Pass `nota` to reuse an
     already-fetched get_nota() note, and `notas_del_dia` to supply the per-day
     index (e.g. a saved notas JSON) instead of fetching it — the OCR paths need
@@ -287,17 +287,17 @@ def legal_provisions(
     mineru's own raw output — otherwise thrown away with its temp dir — under
     ``nota-{cod_nota}_mineru/``, for inspecting an OCR result that looks wrong.
 
-    Pass an already-`__enter__`'d `dof2md.BatchConverter` as `converter` (OCR
+    Pass an already-`__enter__`'d `document2md.BatchConverter` as `converter` (OCR
     paths only) to have this call reuse its already-warm mineru-api server
     instead of starting/stopping its own — the way to build a batch of notes
     without paying the OCR server's startup cost once per note:
 
-        with dof2md.BatchConverter() as ins:
+        with document2md.BatchConverter() as ins:
             for cod_nota in codigos_sin_html:
                 legal_provisions(cod_nota, outdir, source="image", converter=ins)
 
     Left as None (the default), a call still works exactly as before —
-    dof2md's own convert_images_to_markdown()/convert_to_markdown() manage
+    document2md's own convert_images_to_markdown()/convert_to_markdown() manage
     whatever server they individually need.
     """
     if source not in ("auto", "dof", "html", "image", "pdf"):
@@ -422,14 +422,14 @@ def _scjn_a_cache(cod_nota, instrumento, cache_dir, refrescar):
 
 
 def _load_converter(name: str):
-    # dof2md (and mineru) are only needed for the OCR paths — import lazily so
+    # document2md (and mineru) are only needed for the OCR paths — import lazily so
     # the HTML path works without them installed.
     try:
-        from dof2md import converter
+        from document2md import converter
     except ImportError as exc:  # pragma: no cover - depends on environment
         raise RuntimeError(
-            "the image/pdf path needs dof2md (and mineru) installed; "
-            "install it from packages/dof2md, or use source='html'"
+            "the image/pdf path needs document2md (and mineru) installed; "
+            "install it from packages/document2md, or use source='html'"
         ) from exc
     return getattr(converter, name)
 
@@ -438,7 +438,7 @@ def _cut_and_write(md_path, outdir, titulo, titulo_sig, min_confidence, keep_pag
     """Shared tail of the OCR paths (no shared `converter`): read the full
     OCR Markdown at `md_path`, optionally keep it, then slice it down to
     just this note and overwrite."""
-    from dof2md.cutter import cut_markdown_by_titles
+    from document2md.cutter import cut_markdown_by_titles
 
     full_markdown = md_path.read_text(encoding="utf-8")
     if keep_pages:

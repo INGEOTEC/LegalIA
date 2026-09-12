@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from dof2md.batch import BatchConverter
-from dof2md.mineru_server import ENV_VAR as MINERU_API_URL_ENV_VAR
+from document2md.batch import BatchConverter
+from document2md.mineru_server import ENV_VAR as MINERU_API_URL_ENV_VAR
 
 
 class TestBatchConverterServerLifecycle(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestBatchConverterServerLifecycle(unittest.TestCase):
         else:
             os.environ[MINERU_API_URL_ENV_VAR] = self._original_env
 
-    @patch("dof2md.batch.MineruServer")
+    @patch("document2md.batch.MineruServer")
     def test_enter_starts_a_server_when_none_is_running(self, mock_server_cls):
         mock_server_cls.return_value = MagicMock()
 
@@ -28,7 +28,7 @@ class TestBatchConverterServerLifecycle(unittest.TestCase):
 
         mock_server_cls.return_value.stop.assert_called_once()
 
-    @patch("dof2md.batch.MineruServer")
+    @patch("document2md.batch.MineruServer")
     def test_skips_starting_a_server_when_caller_already_has_one(self, mock_server_cls):
         os.environ[MINERU_API_URL_ENV_VAR] = "http://127.0.0.1:9999"
 
@@ -52,7 +52,7 @@ class TestBatchConverterCall(unittest.TestCase):
     def tearDown(self):
         self.tmpdir.cleanup()
 
-    @patch("dof2md.converter.convert_to_markdown")
+    @patch("document2md.converter.convert_to_markdown")
     def test_single_path_goes_through_convert_to_markdown(self, mock_convert):
         dest = self.converter(self.pdf_path, self.outdir, "nota-300.md")
 
@@ -62,7 +62,7 @@ class TestBatchConverterCall(unittest.TestCase):
         self.assertEqual(pdf_arg, self.pdf_path)
         self.assertEqual(md_arg, dest)
 
-    @patch("dof2md.converter.convert_images_to_markdown")
+    @patch("document2md.converter.convert_images_to_markdown")
     def test_list_of_paths_goes_through_convert_images_to_markdown(self, mock_convert):
         dest = self.converter(self.image_paths, self.outdir, "nota-200.md")
 
@@ -72,7 +72,7 @@ class TestBatchConverterCall(unittest.TestCase):
         self.assertEqual(images_arg, self.image_paths)
         self.assertEqual(md_arg, dest)
 
-    @patch("dof2md.converter.convert_to_markdown")
+    @patch("document2md.converter.convert_to_markdown")
     def test_no_titulo_keeps_the_whole_conversion_uncut(self, mock_convert):
         mock_convert.side_effect = lambda pdf, md, **kw: md.write_text(
             "todo el contenido, sin recortar", encoding="utf-8"
@@ -82,7 +82,7 @@ class TestBatchConverterCall(unittest.TestCase):
 
         self.assertEqual(dest.read_text(encoding="utf-8"), "todo el contenido, sin recortar")
 
-    @patch("dof2md.converter.convert_to_markdown")
+    @patch("document2md.converter.convert_to_markdown")
     def test_titulo_cuts_the_result(self, mock_convert):
         mock_convert.side_effect = lambda pdf, md, **kw: md.write_text(
             "resto de la nota anterior.\n\n"
@@ -105,7 +105,7 @@ class TestBatchConverterCall(unittest.TestCase):
         self.assertNotIn("NOM-042-NUCL", text)
         self.assertNotIn("resto de la nota anterior", text)
 
-    @patch("dof2md.converter.convert_to_markdown")
+    @patch("document2md.converter.convert_to_markdown")
     def test_keep_pages_writes_full_uncut_copy_alongside(self, mock_convert):
         mock_convert.side_effect = lambda pdf, md, **kw: md.write_text(
             "## T\n\nCuerpo.\n", encoding="utf-8"
@@ -120,7 +120,7 @@ class TestBatchConverterCall(unittest.TestCase):
             "## T\n\nCuerpo.\n",
         )
 
-    @patch("dof2md.converter.convert_to_markdown")
+    @patch("document2md.converter.convert_to_markdown")
     def test_keep_pages_without_titulo_writes_nothing_extra(self, mock_convert):
         mock_convert.side_effect = lambda pdf, md, **kw: md.write_text(
             "sin recorte", encoding="utf-8"
@@ -130,7 +130,7 @@ class TestBatchConverterCall(unittest.TestCase):
 
         self.assertFalse((self.outdir / "nota-300.full.md").exists())
 
-    @patch("dof2md.converter.convert_to_markdown")
+    @patch("document2md.converter.convert_to_markdown")
     def test_forwards_timeout_and_keep_mineru_output(self, mock_convert):
         self.converter(
             self.pdf_path, self.outdir, "nota-300.md",
@@ -141,7 +141,7 @@ class TestBatchConverterCall(unittest.TestCase):
         self.assertEqual(kwargs["timeout"], 42)
         self.assertTrue(kwargs["keep_mineru_output"])
 
-    @patch("dof2md.converter.convert_to_markdown")
+    @patch("document2md.converter.convert_to_markdown")
     def test_creates_outdir_if_missing(self, mock_convert):
         nested = self.outdir / "no" / "existe" / "aun"
         mock_convert.side_effect = lambda pdf, md, **kw: md.write_text("x", encoding="utf-8")

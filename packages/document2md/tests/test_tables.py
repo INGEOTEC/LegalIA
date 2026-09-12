@@ -1,6 +1,6 @@
 import unittest
 
-from dof2md.tables import html_tables_to_markdown
+from document2md.tables import html_tables_to_markdown
 
 
 class TestHtmlTablesToMarkdown(unittest.TestCase):
