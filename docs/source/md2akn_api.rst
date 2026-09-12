@@ -474,8 +474,8 @@ counts what is left that way:
 
 :py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
 where ``coverage()`` says nothing was lost, this says the units are usable.
-``splittable == 0`` is the invariant a corpus build asserts; ``single_paragraph``
-is the admissible residue:
+``splittable == 0`` is the invariant a corpus build asserts; ``unsplittable``
+is the admissible residue — a unit rule 9 has nothing left to cut:
 
 >>> tree = md2akn.parse_markdown(parrafos)
 >>> report = md2akn.max_unit_chars(tree, md2akn.text_units(parrafos, cap=40), cap=40)

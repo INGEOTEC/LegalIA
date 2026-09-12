@@ -399,7 +399,7 @@ class TestRegla9(unittest.TestCase):
         texto = "Una sola frase larguísima que no se corta por la mitad jamás.\n"
         tree = parse_markdown(texto)
         report = max_unit_chars(tree, text_units(texto, cap=20), cap=20)
-        self.assertEqual((report.over_cap, report.single_paragraph, report.splittable), (1, 1, 0))
+        self.assertEqual((report.over_cap, report.unsplittable, report.splittable), (1, 1, 0))
 
     def test_el_invariante_se_cumple_en_cada_fixture(self):
         for path in ALL_LAW_FIXTURES:

@@ -157,7 +157,7 @@ def build_rows(
         units = text_units(tree, cap=cap, template=template, split_over_cap=split_over_cap)
         reporte = max_unit_chars(tree, units, cap=cap)
         over_cap += reporte.over_cap
-        residuo += reporte.single_paragraph
+        residuo += reporte.unsplittable
         maximo = max(maximo, reporte.max_chars)
         if reporte.splittable:
             raise SystemExit(
@@ -200,7 +200,7 @@ def build_rows(
         "instruments": instrumentos,
         "instruments_by_numbering": modos,
         "units_over_cap": over_cap,
-        "units_over_cap_single_paragraph": residuo,
+        "units_over_cap_unsplittable": residuo,
         "max_unit_chars": maximo,
     }
     return unit_rows, leaf_rows, stats

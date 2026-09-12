@@ -173,10 +173,18 @@ class CapReport:
     fail on, this turns "the units are usable" into the same.
 
     `splittable == 0` is the invariant. An over-cap unit is only admissible
-    when it is a **single paragraph** — rule 9 never cuts mid-sentence, so a
-    52,578-character paragraph stays one unit and is counted in
-    `single_paragraph` instead, the residue #218's own 665 over-cap units
-    were counted as.
+    when rule 9 has nothing left to cut, which happens for two reasons and is
+    counted in `unsplittable` — the residue #218's own 665 over-cap units
+    were counted as:
+
+    - the unit's own span is a **single paragraph** — rule 9 never cuts
+      mid-sentence, so a 52,578-character paragraph stays one unit;
+    - or what pushes it over the cap is a prefix rather than its own text:
+      rule 3 prefixes every piece of a split article with that article's
+      chapeau, and `cff`'s article 20 has a 3,500-character chapeau, so each
+      of its 14 pieces is over the cap no matter how finely the piece itself
+      is cut. Splitting the chapeau would leave a piece carrying half of its
+      own context, which is worse than a long unit.
     """
 
     cap: int
@@ -185,8 +193,8 @@ class CapReport:
     max_chars: int
     #: Units whose text is longer than `cap`.
     over_cap: int
-    #: Of those, the ones that are one paragraph and so cannot be cut further.
-    single_paragraph: int
+    #: Of those, the ones rule 9 has nothing left to cut — see above.
+    unsplittable: int
     #: Of those, the ones that could still have been cut — the invariant.
     splittable: int
 
@@ -825,32 +833,46 @@ def max_unit_chars(tree: AknNode, units: list[TextUnit], *, cap: int = DEFAULT_S
     and how many of those rule 9 could still have cut.
 
     `coverage()`'s sibling (issue #227). A corpus built with `split_over_cap`
-    on has `splittable == 0`; whatever is left in `single_paragraph` is a
-    paragraph longer than the cap, which is left whole on purpose rather than
-    cut mid-sentence.
+    on has `splittable == 0`; whatever is left in `unsplittable` is a unit
+    rule 9 has nothing left to cut — see `CapReport`.
 
     Counted against the *embedded* text — a `heading`/`loose` unit's ancestor
-    path and an article's `contextual` prefix are part of what the model sees,
-    so they are part of what the cap is measured on.
+    path, an article piece's chapeau and an article's `contextual` prefix are
+    all part of what the model sees, so they are part of what the cap is
+    measured on. "Could still have been cut" is counted against the unit's
+    own span instead, and only its paragraphs that carry text: a paragraph
+    that is nothing but a reform annotation is stripped from the embedded
+    text (rule 1), so cutting there would produce an empty unit.
 
     >>> import md2akn
-    >>> text = "\\n\\n".join("Párrafo de %d." % n for n in range(1, 4))
+    >>> text = "\\n\\n".join("Párrafo de %d." % n for n in range(1, 4)) + "\\n"
     >>> report = md2akn.max_unit_chars(
     ...     md2akn.parse_markdown(text), md2akn.text_units(text, cap=20), cap=20)
     >>> (report.units, report.max_chars, report.over_cap, report.splittable)
     (3, 13, 0, 0)
     """
     doc_text = tree.span.doc.text
+    ann_ranges = _RangeIndex(_annotation_ranges(tree, doc_text), doc_text)
     max_chars = 0
-    over_cap = single_paragraph = splittable = 0
+    over_cap = unsplittable = splittable = 0
     for unit in units:
         n = len(unit.text)
         max_chars = max(max_chars, n)
         if n <= cap:
             continue
         over_cap += 1
-        if len(_paragraph_spans(doc_text, unit.start_char, unit.end_char)) <= 1:
-            single_paragraph += 1
+        con_texto = [
+            (start, end)
+            for start, end in _paragraph_spans(doc_text, unit.start_char, unit.end_char)
+            if normalize(_strip_ranges(doc_text, start, end, ann_ranges))
+        ]
+        # Rule 9's own decision, restated rather than re-derived: the greedy
+        # packer emits more than one piece exactly when the span has two or
+        # more paragraphs that carry text. A piece whose chapeau prefix alone
+        # is over the cap therefore lands here as unsplittable, since its own
+        # span is that one child paragraph.
+        if len(con_texto) <= 1:
+            unsplittable += 1
         else:
             splittable += 1
     return CapReport(
@@ -858,6 +880,6 @@ def max_unit_chars(tree: AknNode, units: list[TextUnit], *, cap: int = DEFAULT_S
         units=len(units),
         max_chars=max_chars,
         over_cap=over_cap,
-        single_paragraph=single_paragraph,
+        unsplittable=unsplittable,
         splittable=splittable,
     )
