@@ -46,18 +46,32 @@ def _done_shards(run_dir: Path) -> list[Path]:
     return parquets
 
 
-def load_vectors(run_dir: Path) -> tuple[dict[str, list], int]:
-    """`text_sha1 -> vector` over every shard with a valid `.done` marker,
-    and the embedding dimension `K` read off the data itself."""
-    vectors: dict[str, list] = {}
+def load_vectors(run_dir: Path) -> tuple[pa.Table, dict[str, int], int]:
+    """Every shard with a valid `.done` marker as one Arrow table, the row
+    each `text_sha1` sits at, and the embedding dimension `K` read off the
+    data itself.
+
+    Deliberately **not** `text_sha1 -> list[float]`. A shard's vectors stay
+    in Arrow (two bytes per `float16`) rather than becoming Python floats at
+    24 bytes apiece plus a pointer: `scjn-reglamentos` at K=2,560 is 265k
+    vectors, which is 1.4 GB as Arrow and over 20 GB as Python lists — it
+    OOM'd this machine's 15 GB before this was written that way (issue
+    #227's Fase 3). Everything downstream slices this table with `take`.
+    """
+    tables = []
     k = 0
     for parquet in _done_shards(run_dir):
         table = pq.read_table(parquet)
         if k == 0 and table.num_rows:
             k = table.schema.field("vector").type.list_size
-        for sha1, vector in zip(table.column("text_sha1").to_pylist(), table.column("vector").to_pylist()):
-            vectors[sha1] = vector
-    return vectors, k
+        tables.append(table)
+    if not tables:
+        return pa.table({"text_sha1": pa.array([], type=pa.string())}), {}, k
+    completa = pa.concat_tables(tables).combine_chunks()
+    fila_de = {
+        sha1: i for i, sha1 in enumerate(completa.column("text_sha1").to_pylist())
+    }
+    return completa, fila_de, k
 
 
 def claves_by_hash(units_parquet: Path) -> dict[str, set[str]]:
@@ -77,11 +91,14 @@ def coleccion_de(units_parquet: Path) -> str:
     return table.column("coleccion")[0].as_py() if table.num_rows else "leyes"
 
 
-def _write_vector_table(path: Path, rows: list[tuple[str, list]], k: int) -> None:
-    if rows:
-        flat = pa.array([x for _sha1, vec in rows for x in vec], type=pa.float16())
-        vector_col = pa.FixedSizeListArray.from_arrays(flat, k)
-        table = pa.table({"text_sha1": pa.array([sha1 for sha1, _vec in rows]), "vector": vector_col})
+def _write_vector_table(path: Path, vectores: pa.Table, filas: list[int], k: int) -> None:
+    """The rows of `vectores` at `filas`, as one published vector file.
+
+    `Table.take` rather than a Python-level gather: see `load_vectors` for
+    why nothing here ever turns a vector into a list of Python floats.
+    """
+    if filas:
+        table = vectores.take(pa.array(filas, type=pa.int64()))
     else:
         table = pa.table({
             "text_sha1": pa.array([], type=pa.string()),
@@ -104,29 +121,29 @@ def main(argv=None) -> None:
     vectors_dir.mkdir(parents=True, exist_ok=True)
 
     units_parquet = args.work_dir / "units.parquet"
-    vectors, k = load_vectors(run_dir)
+    vectores, fila_de, k = load_vectors(run_dir)
     by_hash = claves_by_hash(units_parquet)
     coleccion = coleccion_de(units_parquet)
     todas = sorted({c for claves in by_hash.values() for c in claves})
 
-    por_clave: dict[str, list[tuple[str, list]]] = {clave: [] for clave in todas}
-    shared: list[tuple[str, list]] = []
+    por_clave: dict[str, list[int]] = {clave: [] for clave in todas}
+    shared: list[int] = []
     missing = 0
     for sha1, claves in by_hash.items():
-        vector = vectors.get(sha1)
-        if vector is None:
+        fila = fila_de.get(sha1)
+        if fila is None:
             missing += 1
             continue
         if len(claves) > 1:
-            shared.append((sha1, vector))
+            shared.append(fila)
         else:
-            por_clave[next(iter(claves))].append((sha1, vector))
+            por_clave[next(iter(claves))].append(fila)
 
     for clave in todas:
         _write_vector_table(
-            vectors_dir / f"vectors-{clave}-{slug}-{k}.parquet", por_clave[clave], k
+            vectors_dir / f"vectors-{clave}-{slug}-{k}.parquet", vectores, por_clave[clave], k
         )
-    _write_vector_table(vectors_dir / f"vectors-shared-{slug}-{k}.parquet", shared, k)
+    _write_vector_table(vectors_dir / f"vectors-shared-{slug}-{k}.parquet", vectores, shared, k)
 
     manifest = {
         "model": args.model,
