@@ -1,0 +1,294 @@
+{
+  "coverage": {
+    "total_chars": 5927,
+    "frontmatter_chars": 357,
+    "annotation_chars": 0,
+    "covered_chars": 5570,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**ACUERDO DEL PLENO POR EL QUE SE EMITEN LOS LINEAMIENTOS PARA PRIORIZAR EL PAGO DE LA COMPENSACIÓN A LAS VÍCTIMAS DE DELITOS DEL ORDEN FEDERAL Y VIOLACIONES A DERECHOS HUMANOS COMETIDAS POR AUTORIDADES FEDERALES**",
+      "text_sha1": "3316e942c98bc117048ed9f567a83901df0b49e0"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**TEXTO ORIGINAL.** Acuerdo publicado en la Segunda Sección del Diario Oficial de la Federación, el jueves 21 de mayo de 2015.",
+      "text_sha1": "855e18ebcc1adc4fd17de6faa542a57ab8893b54"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 3,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Comisión Ejecutiva de Atención a Víctimas. **ACUERDO CEAV/PLENO/2015/014/08**",
+      "text_sha1": "f82de1aeae475168c109d42924893e4717a18422"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 4,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**ACUERDO DEL PLENO POR EL QUE SE EMITEN LOS LINEAMIENTOS PARA PRIORIZAR EL PAGO DE LA COMPENSACIÓN A LAS VÍCTIMAS DE DELITOS DEL ORDEN FEDERAL Y VIOLACIONES A DERECHOS HUMANOS COMETIDAS POR AUTORIDADES FEDERALES.**",
+      "text_sha1": "f5052a37824d660be8077bab79631c5c74c6fcba"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 5,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "El Pleno de la Comisión Ejecutiva de Atención a Víctimas, con fundamento en los artículos 84, 88, 130, 132 último párrafo, 134 y 150 de la Ley General de Víctimas; 32 fracción XIX, 72, 73, 75 fracción IV, 76 fracción VI y 77 del Reglamento de la Ley General de Víctimas, y 16, fracciones I, II y XXXI, del Estatuto Orgánico de la Comisión Ejecutiva de Atención a Víctimas, y",
+      "text_sha1": "24121358bad2fc73a1cc4b2a6619fdf9190f29e7"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 6,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**CONSIDERANDO**",
+      "text_sha1": "ef1e078f1c11b28485a2b6d5330b4c0b2e74377a"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 7,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Que la Constitución Política de los Estados Unidos Mexicanos reconoce y garantiza los derechos de las víctimas de delitos y de violaciones a los derechos humanos, mediante la obligación del Estado de promover, respetar, proteger y garantizar los derechos humanos de conformidad con los principios de universalidad, interdependencia, indivisibilidad y progresividad, debiendo proporcionar los mecanismos para prevenir, investigar, sancionar y llevar a cabo la reparación del daño;",
+      "text_sha1": "0deebce2ac9f6f91c8256cf42e3becefcad3cb3f"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 8,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Que conforme al Plan Nacional de Desarrollo (PND) 2013-2018, es prioridad construir un México en Paz que garantice el respeto y la protección de los derechos humanos, por lo que el Gobierno Federal tiene encomendado implementar políticas para la atención de víctimas de delitos y violaciones de dichos derechos, así como promover medidas especiales orientadas a fortalecer el enfoque de respeto y protección de los derechos humanos;",
+      "text_sha1": "886ba2b178488ecde4ec839ea1269e84432a6e52"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 9,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Que el Objetivo 1.5, Estrategia 1.5.3 del PND establece que se deben proporcionar servicios integrales a las víctimas u ofendidos de delitos, en el marco de la Ley General de Víctimas publicada en el Diario Oficial de la Federación el 9 de enero de 2013 y reformada el 3 de mayo de ese mismo año;",
+      "text_sha1": "4466c6e4f2697cafbabfcd114cd60318fd675570"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 10,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Que la Ley General de Víctimas, en apego a dicha estrategia, reconoce y garantiza los derechos de las víctimas del delito y de violaciones a derechos humanos, en especial el derecho a la asistencia, protección, atención, verdad, justicia y a la reparación integral;",
+      "text_sha1": "cbd69e25fddb5893aa8b23f9bd0043e9733d5d44"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 11,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Que para tales efectos, la Ley General de Víctimas considera la constitución de un Fondo con objeto de brindar los recursos necesarios para la ayuda, la asistencia y reparación integral de las víctimas del delito y las víctimas de violaciones a los derechos humanos, que será administrado y operado por medio de un fideicomiso público;",
+      "text_sha1": "cdde8251303d9e600f8035a2e644216a91003bef"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 12,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Disposiciones Generales",
+      "text_sha1": "41176cf13b7c394408a25072ecf7e6246bd7d265"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_1",
+      "piece": 1,
+      "piece_eId": "art_1__p_1",
+      "akn_type": "article",
+      "num": "1",
+      "path": [],
+      "text": "1. Los presentes Lineamientos tienen por objeto establecer las directrices o criterios encaminados a determinar un orden de atención o prelación para el pago de la compensación subsidiaria a las víctimas de delitos del orden federal y de la compensación a las víctimas de violaciones a derechos humanos cometidas por autoridades federales, cuando los recursos se eroguen con cargo al patrimonio del Fideicomiso denominado “Fondo de Ayuda, Asistencia y Reparación Integral”, en adelante el Fondo, con la finalidad de maximizar el uso de los recursos, priorizando en todo momento aquellos casos de mayor gravedad, y con ello permitir el goce del derecho a la reparación integral a favor de las víctimas, que se consagra en la Ley General de Víctimas.",
+      "text_sha1": "1182bccfca36d7bea46ebe403526cfa750084ff7"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_2",
+      "piece": 1,
+      "piece_eId": "art_2__p_1",
+      "akn_type": "article",
+      "num": "2",
+      "path": [],
+      "text": "2. Para los efectos de los presentes Lineamientos se aplicarán las definiciones establecidas en la Ley General de Víctimas, en el Reglamento de la Ley General de Víctimas, en el Estatuto Orgánico de la Comisión Ejecutiva de Atención a Víctimas, en los Lineamientos para el funcionamiento del Fondo de Ayuda, Asistencia y Reparación Integral y demás disposiciones legales aplicables. Adicionalmente, se entenderá por:",
+      "text_sha1": "beb626cc0a4bb9dca942c8bf58a8b5ce1b1c7a6d"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_2",
+      "piece": 2,
+      "piece_eId": "art_2__p_2",
+      "akn_type": "article",
+      "num": "2",
+      "path": [],
+      "text": "Priorizar: Establecer el orden de atención o prelación en el pago de los recursos económicos a favor de las víctimas de comisión de delitos del orden federal o víctimas por violación en sus derechos humanos cometidas por autoridades federales, por concepto de compensación, procurando una óptima asignación y mejor aprovechamiento de los recursos económicos que conforman el patrimonio del Fondo, en cumplimiento del último párrafo del artículo 132 de la Ley General de Víctimas.",
+      "text_sha1": "c01a248ad364d5c4901481af8277d3271e00884a"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_2",
+      "piece": 3,
+      "piece_eId": "art_2__p_3",
+      "akn_type": "article",
+      "num": "2",
+      "path": [],
+      "text": "Vulnerabilidad: situación de la víctima que tenga una relevante limitación para evitar o mitigar los daños y perjuicios derivados del hecho victimizante para afrontar los riesgos de sufrir una nueva victimización. La vulnerabilidad puede proceder de sus propias características personales o bien del contexto del hecho sufrido.",
+      "text_sha1": "384ae443980a27d3c289a459a6b58913f402da23"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_3",
+      "piece": 1,
+      "piece_eId": "art_3__p_1",
+      "akn_type": "article",
+      "num": "3",
+      "path": [],
+      "text": "3. Los Lineamientos son de observancia y aplicación general para las Unidades Administrativas de la Comisión Ejecutiva de Atención a Víctimas que tengan parti cipación (sic), intervención, injerencia o decisión, en los pagos por concepto de compensación subsidiaria a las víctimas de delitos del orden federal y la compensación a las víctimas de violaciones a derechos humanos cometidas por autoridades federales, cuando los recursos se eroguen con cargo al patrimonio del Fondo.",
+      "text_sha1": "1aba083fbae181c393cb251a894c40c591d96977"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_4",
+      "piece": 1,
+      "piece_eId": "art_4__p_1",
+      "akn_type": "article",
+      "num": "4",
+      "path": [],
+      "text": "4. Es competencia del Pleno de la Comisión Ejecutiva emitir, modificar, actualizar e interpretar los presentes Lineamientos, así como resolver aquellos casos no previstos en los mismos, de conformidad con las disposiciones legales aplicables.",
+      "text_sha1": "edd6a2c905b7d195407f58d109e687aed8565223"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_5",
+      "piece": 1,
+      "piece_eId": "art_5__p_1",
+      "akn_type": "article",
+      "num": "5",
+      "path": [],
+      "text": "5. La aplicación e interpretación de los criterios y principios previstos en estos Lineamientos se realizará, en apego al artículo 3 de la Ley General de Víctimas, favoreciendo en todo tiempo la protección más amplia de los derechos de las personas.",
+      "text_sha1": "63fa447c98f9770326afd353dc9ca89414401166"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_6",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "6",
+      "path": [],
+      "text": "6. Para la aplicación y evaluación de los presentes Lineamientos, se considerarán los principios establecidos en el artículo 5 de la Ley General de Víctimas.",
+      "text_sha1": "f890c8fb6c9f950dfaa6321c6699d830cd534261"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "cap_II",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "chapter",
+      "num": "II",
+      "path": [],
+      "text": "Capítulo II Disponibilidad y Aplicación de los recursos del Fondo",
+      "text_sha1": "732fd88be90f318b3de7c76321f1a610b804e963"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "cap_II__art_7",
+      "piece": 1,
+      "piece_eId": "cap_II__art_7__p_1",
+      "akn_type": "article",
+      "num": "7",
+      "path": [
+        "CAPÍTULO II Disponibilidad y Aplicación de los recursos del Fondo"
+      ],
+      "text": "7. Para el pago de la compensación subsidiaria a las víctimas de delitos del orden federal y la compensación a las víctimas de violaciones a derechos humanos cometidas por autoridades federales, se observarán los siguientes supuestos, atendiendo a la disponibilidad de recursos con que cuente el patrimonio del Fondo:",
+      "text_sha1": "73447deae7d0edb95e5078ad0e59b9ce946d8efa"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "cap_II__art_7",
+      "piece": 2,
+      "piece_eId": "cap_II__art_7__p_2",
+      "akn_type": "article",
+      "num": "7",
+      "path": [
+        "CAPÍTULO II Disponibilidad y Aplicación de los recursos del Fondo"
+      ],
+      "text": "Disponibilidad Aplicación",
+      "text_sha1": "ddbfe78344740c56e0acd61734777f34541f8e92"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "cap_II__art_7",
+      "piece": 3,
+      "piece_eId": "cap_II__art_7__p_3",
+      "akn_type": "article",
+      "num": "7",
+      "path": [
+        "CAPÍTULO II Disponibilidad y Aplicación de los recursos del Fondo"
+      ],
+      "text": "**a)** En caso de que el patrimonio La atención de pago a las solicitudes",
+      "text_sha1": "b88935d79b19b24b080d26e0fa6189cad5d19f07"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "cap_II__art_7",
+      "piece": 4,
+      "piece_eId": "cap_II__art_7__p_4",
+      "akn_type": "article",
+      "num": "7",
+      "path": [
+        "CAPÍTULO II Disponibilidad y Aplicación de los recursos del Fondo"
+      ],
+      "text": "del Fondo en el ejercicio fiscal de acceso a los recursos del Fondo,",
+      "text_sha1": "0ec2f54f5306bc7b43c25da518bb83494581c0d7"
+    }
+  ]
+}
