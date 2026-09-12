@@ -1,17 +1,25 @@
 """`runs/<model>/shard-*.parquet` + `units.parquet` -> one vector file per
-law, plus one for the text they share, plus the manifest (issue #218 Fase
-2 -- the shape Fase 3 eventually publishes).
+instrument, plus one for the text they share, plus the manifest (issue #218
+Fase 2, generalized to the three collections by #227 Fase 3 -- the shape
+#227's Fase 4 publishes).
 
-A shard is keyed by `text_sha1` alone and never learns which law a text came
-from; this is where the law comes back. `units.parquet`'s own
-`text_sha1 -> slug` map says, for every distinct text, which law(s) contain
-it: exactly one law sends that text's vector to `vectors-<slug>`, more than
-one sends it to `vectors-shared` instead — the identical transitorios #217
-predicted are exactly what ends up there. Every law gets a file even when it
-turns out to contain no text of its own (its vectors are entirely in the
-shared file), so a reader never has to special-case a missing asset.
+A shard is keyed by `text_sha1` alone and never learns which instrument a
+text came from; this is where the instrument comes back. `units.parquet`'s
+own `text_sha1 -> clave` map says, for every distinct text, which
+instrument(s) contain it: exactly one sends that text's vector to
+`vectors-<clave>`, more than one sends it to `vectors-shared` instead — the
+identical transitorios #217 predicted are exactly what ends up there. Every
+instrument gets a file even when it turns out to contain no text of its own
+(its vectors are entirely in the shared file), so a reader never has to
+special-case a missing asset.
 
-    python scripts/embeddings/merge_shards.py --work-dir ~/emb-run \\
+`clave` is a law's slug and the `id_ordenamiento` of a reglamento or a
+lineamiento (#227's decision 7), so the file name is the same shape for all
+three collections and a reader never branches. Dedup is per collection and
+never across them (#227's decision 8), which needs no code here at all: one
+work directory holds one collection's `units.parquet`.
+
+    python scripts/embeddings/merge_shards.py --work-dir emb-run-leyes \\
         --model Qwen/Qwen3-Embedding-0.6B
 """
 
@@ -52,12 +60,21 @@ def load_vectors(run_dir: Path) -> tuple[dict[str, list], int]:
     return vectors, k
 
 
-def slugs_by_hash(units_parquet: Path) -> dict[str, set[str]]:
-    table = pq.read_table(units_parquet, columns=["slug", "text_sha1"])
+def claves_by_hash(units_parquet: Path) -> dict[str, set[str]]:
+    """`text_sha1 -> {clave}` over `units_parquet` — which instrument(s) each
+    distinct text belongs to."""
+    table = pq.read_table(units_parquet, columns=["clave", "text_sha1"])
     by_hash: dict[str, set[str]] = defaultdict(set)
-    for slug, sha1 in zip(table.column("slug").to_pylist(), table.column("text_sha1").to_pylist()):
-        by_hash[sha1].add(slug)
+    for clave, sha1 in zip(table.column("clave").to_pylist(), table.column("text_sha1").to_pylist()):
+        by_hash[sha1].add(clave)
     return by_hash
+
+
+def coleccion_de(units_parquet: Path) -> str:
+    """The one collection `units_parquet` holds — a work directory is built
+    for exactly one (#227's decision 8), so the first row answers it."""
+    table = pq.read_table(units_parquet, columns=["coleccion"])
+    return table.column("coleccion")[0].as_py() if table.num_rows else "leyes"
 
 
 def _write_vector_table(path: Path, rows: list[tuple[str, list]], k: int) -> None:
@@ -86,38 +103,43 @@ def main(argv=None) -> None:
     vectors_dir = run_dir / "vectors"
     vectors_dir.mkdir(parents=True, exist_ok=True)
 
+    units_parquet = args.work_dir / "units.parquet"
     vectors, k = load_vectors(run_dir)
-    by_hash = slugs_by_hash(args.work_dir / "units.parquet")
-    all_slugs = sorted({s for slugs in by_hash.values() for s in slugs})
+    by_hash = claves_by_hash(units_parquet)
+    coleccion = coleccion_de(units_parquet)
+    todas = sorted({c for claves in by_hash.values() for c in claves})
 
-    per_slug: dict[str, list[tuple[str, list]]] = {law: [] for law in all_slugs}
+    por_clave: dict[str, list[tuple[str, list]]] = {clave: [] for clave in todas}
     shared: list[tuple[str, list]] = []
     missing = 0
-    for sha1, slugs in by_hash.items():
+    for sha1, claves in by_hash.items():
         vector = vectors.get(sha1)
         if vector is None:
             missing += 1
             continue
-        if len(slugs) > 1:
+        if len(claves) > 1:
             shared.append((sha1, vector))
         else:
-            per_slug[next(iter(slugs))].append((sha1, vector))
+            por_clave[next(iter(claves))].append((sha1, vector))
 
-    for law in all_slugs:
-        _write_vector_table(vectors_dir / f"vectors-{law}-{slug}-{k}.parquet", per_slug[law], k)
+    for clave in todas:
+        _write_vector_table(
+            vectors_dir / f"vectors-{clave}-{slug}-{k}.parquet", por_clave[clave], k
+        )
     _write_vector_table(vectors_dir / f"vectors-shared-{slug}-{k}.parquet", shared, k)
 
     manifest = {
         "model": args.model,
+        "coleccion": coleccion,
         "k": k,
         "dtype": "float16",
         "pooling": "last-token",
         "padding_side": "left",
         "output_transform": "bfloat16 -> float16, no normalization or quantization",
-        "laws": len(all_slugs),
+        "instruments": len(todas),
         "distinct_texts": len(by_hash),
         "shared_rows": len(shared),
-        "per_law_rows": sum(len(rows) for rows in per_slug.values()),
+        "per_instrument_rows": sum(len(rows) for rows in por_clave.values()),
         "missing_vectors": missing,
     }
     atomic_write_text(run_dir / "manifest.json", json.dumps(manifest, indent=2) + "\n")

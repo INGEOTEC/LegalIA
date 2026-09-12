@@ -23,6 +23,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from _atomic import atomic_write_bytes, atomic_write_text  # noqa: E402
+import build_units  # noqa: E402
 import encode_shard  # noqa: E402
 import merge_shards  # noqa: E402
 import plan_shards  # noqa: E402
@@ -193,14 +194,14 @@ def test_main_writes_failed_marker_on_error(tmp_path, monkeypatch):
 
 # -- merge_shards ------------------------------------------------------------ #
 
-def test_merge_shards_splits_shared_from_per_law(tmp_path, monkeypatch):
+def test_merge_shards_splits_shared_from_per_instrument(tmp_path, monkeypatch):
     work_dir = tmp_path
     # "shared" text is in both lft and lfd; "only-lft" is in lft alone.
     _write_units_parquet(work_dir / "units.parquet", [
-        {"slug": "lft", "text_sha1": "shared", "text": "x"},
-        {"slug": "lfd", "text_sha1": "shared", "text": "x"},
-        {"slug": "lft", "text_sha1": "only-lft", "text": "y"},
-        {"slug": "lfd", "text_sha1": "only-lfd", "text": "z"},
+        {"coleccion": "leyes", "clave": "lft", "text_sha1": "shared", "text": "x"},
+        {"coleccion": "leyes", "clave": "lfd", "text_sha1": "shared", "text": "x"},
+        {"coleccion": "leyes", "clave": "lft", "text_sha1": "only-lft", "text": "y"},
+        {"coleccion": "leyes", "clave": "lfd", "text_sha1": "only-lfd", "text": "z"},
     ])
     run_dir = work_dir / "runs" / "qwen3-0.6b"
     run_dir.mkdir(parents=True)
@@ -227,16 +228,17 @@ def test_merge_shards_splits_shared_from_per_law(tmp_path, monkeypatch):
     assert shared.column("text_sha1").to_pylist() == ["shared"]
 
     manifest = json.loads((run_dir / "manifest.json").read_text())
-    assert manifest["laws"] == 2
+    assert manifest["instruments"] == 2
+    assert manifest["coleccion"] == "leyes"
     assert manifest["shared_rows"] == 1
-    assert manifest["per_law_rows"] == 2
+    assert manifest["per_instrument_rows"] == 2
 
 
-def test_merge_shards_writes_an_empty_file_for_a_law_with_no_own_text(tmp_path):
+def test_merge_shards_writes_an_empty_file_for_an_instrument_with_no_own_text(tmp_path):
     work_dir = tmp_path
     _write_units_parquet(work_dir / "units.parquet", [
-        {"slug": "lft", "text_sha1": "shared", "text": "x"},
-        {"slug": "lfd", "text_sha1": "shared", "text": "x"},
+        {"coleccion": "leyes", "clave": "lft", "text_sha1": "shared", "text": "x"},
+        {"coleccion": "leyes", "clave": "lfd", "text_sha1": "shared", "text": "x"},
     ])
     run_dir = work_dir / "runs" / "qwen3-0.6b"
     run_dir.mkdir(parents=True)
@@ -270,3 +272,73 @@ def test_shard_status_classifies_done_pending_failed(tmp_path):
 
     result = status.shard_status(work_dir, "Qwen/Qwen3-Embedding-0.6B")
     assert result == {"done": [0], "failed": [1], "pending": [2]}
+
+
+# -- build_units: the three collections (issue #227 Fase 3) ------------------ #
+
+def _instrumento(clave_campo, clave, markdown):
+    registro = {
+        clave_campo: clave, "nombre": "X", "fecha_publicacion": "01-01-2020",
+        "archivo": "01-01-2020.md", "markdown": markdown,
+    }
+    if clave_campo == "slug":
+        registro["codNota"] = 5555
+    return registro
+
+
+def test_build_rows_keys_a_law_by_slug_and_keeps_codnota(monkeypatch):
+    monkeypatch.setitem(
+        build_units.COLECCIONES["leyes"], "iter",
+        lambda claves, cache_dir=None: iter([
+            _instrumento("slug", "lft", "**Artículo 1o.** Uno.\n")
+        ]),
+    )
+    rows, leaves, stats = build_units.build_rows(["lft"], cap=2000, template="bare")
+    assert {row["coleccion"] for row in rows} == {"leyes"}
+    assert {row["clave"] for row in rows} == {"lft"}
+    assert {row["slug"] for row in rows} == {"lft"}
+    assert {row["codNota"] for row in rows} == {5555}
+    assert stats["instruments"] == 1
+    assert leaves and leaves[0]["clave"] == "lft"
+
+
+def test_build_rows_keys_a_reglamento_by_id_with_no_slug_and_no_codnota(monkeypatch):
+    monkeypatch.setitem(
+        build_units.COLECCIONES["reglamentos"], "iter",
+        lambda claves, cache_dir=None: iter([
+            _instrumento("id_ordenamiento", "104906", "**Artículo 1o.** Uno.\n")
+        ]),
+    )
+    rows, _leaves, _stats = build_units.build_rows(
+        ["104906"], cap=2000, template="bare", coleccion="reglamentos",
+    )
+    assert {row["coleccion"] for row in rows} == {"reglamentos"}
+    assert {row["clave"] for row in rows} == {"104906"}
+    assert {row["slug"] for row in rows} == {None}
+    assert {row["codNota"] for row in rows} == {None}
+
+
+def test_build_rows_records_how_rule_8_read_each_instrument(monkeypatch):
+    acuerdo = "**PRIMERO.-** Uno.\n\n**SEGUNDO.-** Dos.\n\n**TERCERO.-** Tres.\n"
+    monkeypatch.setitem(
+        build_units.COLECCIONES["lineamientos"], "iter",
+        lambda claves, cache_dir=None: iter([
+            _instrumento("id_ordenamiento", "1", acuerdo),
+            _instrumento("id_ordenamiento", "2", "**Artículo 1o.** Uno.\n"),
+        ]),
+    )
+    _rows, _leaves, stats = build_units.build_rows(
+        ["1", "2"], cap=2000, template="bare", coleccion="lineamientos",
+    )
+    assert stats["instruments_by_numbering"] == {"ordinal": 1, "articulo": 1}
+    assert stats["units_over_cap"] == 0
+
+
+def test_build_units_rejects_slug_for_an_id_keyed_collection():
+    with pytest.raises(SystemExit):
+        build_units.main(["--coleccion", "reglamentos", "--slug", "lft"])
+
+
+def test_build_units_rejects_id_for_leyes():
+    with pytest.raises(SystemExit):
+        build_units.main(["--id", "104906"])

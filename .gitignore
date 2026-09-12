@@ -48,3 +48,7 @@ scripts/leyes-release/
 
 # md2akn's sweep report over the SCJN corpus (issue #162): data, never versioned
 scripts/md2akn-sweep/
+
+# Embedding work directories (issue #227 Fase 3): units, shards and vectors,
+# hundreds of MB of derived data per collection. Data is never committed to git.
+/emb-run*/
