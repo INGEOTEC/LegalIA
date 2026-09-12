@@ -5,7 +5,7 @@ requires-python = ">=3.10"
 dependencies = []
 
 [tool.uv]
-# The root has no source of its own -- it only glues the five packages
+# The root has no source of its own -- it only glues the six packages
 # below into one uv workspace/venv, so it must never be built or installed.
 package = false
 
@@ -15,6 +15,7 @@ members = ["packages/*"]
 [tool.uv.sources]
 dof2md = { workspace = true }
 dofjson = { workspace = true }
+legalvec = { workspace = true }
 md2akn = { workspace = true }
 nota2md = { workspace = true }
 scjn = { workspace = true }
@@ -28,6 +29,7 @@ scjn = { workspace = true }
 dev = [
     "dof2md[test]",
     "dofjson[test]",
+    "legalvec[test]",
     "md2akn[test]",
     "nota2md[ocr,test]",
     "scjn[test]",

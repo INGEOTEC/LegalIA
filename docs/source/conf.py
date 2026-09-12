@@ -11,6 +11,7 @@
 
 import dof2md
 import dofjson
+import legalvec
 import md2akn
 import nota2md
 import scjn
@@ -32,6 +33,7 @@ rst_epilog = f"""
 .. |nota2md_version| replace:: {nota2md.__version__}
 .. |dof2md_version| replace:: {dof2md.__version__}
 .. |md2akn_version| replace:: {md2akn.__version__}
+.. |legalvec_version| replace:: {legalvec.__version__}
 """
 
 # -- General configuration ------------------------------------------------

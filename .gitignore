@@ -52,3 +52,7 @@ scripts/md2akn-sweep/
 # Embedding work directories (issue #227 Fase 3): units, shards and vectors,
 # hundreds of MB of derived data per collection. Data is never committed to git.
 /emb-run*/
+
+# Slurm's own per-job stdout, written next to whatever directory `sbatch` was
+# run from (scripts/embeddings/, in practice).
+slurm-*.out

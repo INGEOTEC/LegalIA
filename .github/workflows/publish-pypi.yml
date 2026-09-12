@@ -8,6 +8,7 @@ on:
       - "nota2md-v*"
       - "md2akn-v*"
       - "scjn-v*"
+      - "legalvec-v*"
   workflow_dispatch:
     inputs:
       package:
@@ -20,6 +21,7 @@ on:
           - nota2md
           - md2akn
           - scjn
+          - legalvec
 
 concurrency:
   group: publish-${{ github.event_name == 'workflow_dispatch' && inputs.package || github.ref_name }}

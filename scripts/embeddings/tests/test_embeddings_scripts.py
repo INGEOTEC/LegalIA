@@ -26,6 +26,7 @@ from _atomic import atomic_write_bytes, atomic_write_text  # noqa: E402
 import build_units  # noqa: E402
 import encode_shard  # noqa: E402
 import merge_shards  # noqa: E402
+import package_vectors  # noqa: E402
 import plan_shards  # noqa: E402
 import status  # noqa: E402
 
@@ -342,3 +343,64 @@ def test_build_units_rejects_slug_for_an_id_keyed_collection():
 def test_build_units_rejects_id_for_leyes():
     with pytest.raises(SystemExit):
         build_units.main(["--id", "104906"])
+
+
+# -- package_vectors (issue #227 Fase 4) ------------------------------------- #
+
+def _work_dir_con_vectores(tmp_path, n_instrumentos, modelos=("qwen3-0.6b",)):
+    (tmp_path / "units.parquet").write_bytes(b"units")
+    (tmp_path / "leaves.parquet").write_bytes(b"leaves")
+    (tmp_path / "corpus-manifest.json").write_text('{"coleccion": "leyes"}')
+    for modelo in modelos:
+        run_dir = tmp_path / "runs" / modelo
+        (run_dir / "vectors").mkdir(parents=True)
+        (run_dir / "manifest.json").write_text(json.dumps({"model": modelo, "k": 2}))
+        for i in range(n_instrumentos):
+            (run_dir / "vectors" / f"vectors-i{i:04d}-{modelo}-2.parquet").write_bytes(b"v")
+        (run_dir / "vectors" / f"vectors-shared-{modelo}-2.parquet").write_bytes(b"s")
+    return tmp_path
+
+
+def test_package_vectors_lists_every_model_and_copies_nothing(tmp_path):
+    work_dir = _work_dir_con_vectores(tmp_path, 2, modelos=("qwen3-0.6b", "qwen3-4b"))
+
+    package_vectors.main(["--work-dir", str(work_dir), "--coleccion", "leyes"])
+
+    out = work_dir / "publish"
+    partes = (out / "parte-1.txt").read_text().split()
+    assert len(partes) == 6  # (2 instruments + 1 shared) x 2 models
+    # Nothing was copied: every listed path still points into the run itself.
+    assert all(Path(p).parent.name == "vectors" for p in partes)
+    manifest = json.loads((out / "vectors-manifest.json").read_text())
+    assert sorted(manifest["models"]) == ["qwen3-0.6b", "qwen3-4b"]
+    sumas = (out / "SHA256SUMS.txt").read_text()
+    assert "units.parquet" in sumas and "vectors-shared-qwen3-4b-2.parquet" in sumas
+    # A checksum file never lists itself.
+    assert "SHA256SUMS.txt" not in sumas
+
+
+def test_package_vectors_splits_a_collection_over_githubs_asset_cap(tmp_path):
+    # Issue #223's wall: 1000 assets per release, and part 1 also carries the
+    # five metadata assets.
+    vectores = [Path(f"vectors-{i}.parquet") for i in range(1200)]
+    partes = package_vectors.reparte("scjn-reglamentos-vectors", vectores)
+
+    assert [p["tag"] for p in partes] == [
+        "scjn-reglamentos-vectors", "scjn-reglamentos-vectors-2",
+    ]
+    assert len(partes[0]["assets"]) == 995
+    assert len(partes[1]["assets"]) == 205
+
+
+def test_package_vectors_reports_a_missing_release_body(tmp_path, capsys):
+    work_dir = _work_dir_con_vectores(tmp_path, 1)
+
+    package_vectors.main(["--work-dir", str(work_dir), "--coleccion", "lineamientos"])
+
+    salida = capsys.readouterr().out
+    assert "release_bodies_missing" in salida
+
+
+def test_package_vectors_refuses_a_work_dir_with_no_merged_vectors(tmp_path):
+    with pytest.raises(SystemExit):
+        package_vectors.main(["--work-dir", str(tmp_path), "--coleccion", "leyes"])
