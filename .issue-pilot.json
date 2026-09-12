@@ -1,0 +1,10 @@
+{
+  "base_branch": "master",
+  "branch_prefix": "issues",
+  "test_command": "pytest packages -q --ignore=packages/nota2md/tests/test_leyes_44.py --ignore=packages/scjn/tests/test_api_red.py --ignore=packages/scjn/tests/test_release_red.py --ignore=packages/md2akn/tests/test_units_release_sweep.py",
+  "model": "opus",
+  "effort": "high",
+  "max_attempts": 3,
+  "pr_draft": false,
+  "issue_labels": ["enhancement"]
+}
