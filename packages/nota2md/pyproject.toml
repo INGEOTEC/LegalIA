@@ -15,9 +15,9 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-# document2md is a sibling package in this monorepo, only needed for the image/PDF
-# OCR paths (imported lazily) — kept as an optional extra rather than a hard
-# dependency so the HTML-only path stays lightweight.
+# document2md (its own repository since issue #234) is only needed for the
+# image/PDF OCR paths (imported lazily) — kept as an optional extra rather than
+# a hard dependency so the HTML-only path stays lightweight.
 dependencies = [
     "beautifulsoup4>=4.9",
     # 0.5 renombra el dataset de titulos a titulos.legal_provisions_titles,
@@ -51,9 +51,11 @@ nota2md = "nota2md.cli:main"
 [tool.uv.sources]
 # In the uv workspace (root pyproject.toml), resolve these sibling
 # monorepo packages to their local editable copies instead of PyPI.
+# document2md is not among them any more: it has its own repository since
+# issue #234, and the root pyproject.toml's own source (which applies to
+# every workspace member) is what resolves it.
 dofjson = { workspace = true }
 scjn = { workspace = true }
-document2md = { workspace = true }
 
 [tool.setuptools.packages.find]
 include = ["nota2md", "nota2md.*"]

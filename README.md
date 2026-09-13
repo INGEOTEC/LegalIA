@@ -21,13 +21,15 @@ analysis of the gazette, see the project's
 | [dofjson](packages/dofjson) ([PyPI](https://pypi.org/project/dofjson/)) | Client for SIDOF's JSON open-data service: which legal provisions were published on a given day, and the full detail — including HTML content, when it exists — of any one of them. Also streams a compact `codNota` + `titulo` + `fecha` record of every legal provision ever published (`legal_provisions_titles`), off the same on-disk cache. |
 | [scjn](packages/scjn) ([PyPI](https://pypi.org/project/scjn/)) | Client for the SCJN's SCOW JSON API and the disk-first reader for the `scjn-leyes`, `scjn-reglamentos` and `scjn-lineamientos` releases: a federal instrument's reform-dated snapshots, and the current text of every one of them. Depends on nothing else in this monorepo. |
 | [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF legal provision (`legal_provisions`), reconstructs a law's current text from nothing but its legal provisions (`reconstruct_legal_provisions`), and reads the SCJN corpus of consolidated law texts back from the `scjn-leyes` release (`download_scjn_leyes_corpus`/`_index`/`_catalog`). |
-| [document2md](packages/document2md) ([PyPI](https://pypi.org/project/document2md/)) | Converts a PDF, or an ordered set of scanned page images, to Markdown — OCR included — whatever document they come from; the heavy artillery `nota2md` borrows for legal provisions that predate the HTML era. Renamed from `dof2md` (issue #228). |
+| [document2md](https://github.com/INGEOTEC/document2md) ([PyPI](https://pypi.org/project/document2md/)) | Converts a PDF, or an ordered set of scanned page images, to Markdown — OCR included — whatever document they come from; the heavy artillery `nota2md` borrows for legal provisions that predate the HTML era. Renamed from `dof2md` (issue #228), and **moved to its own repository** (issues #233, #234) — it is `nota2md`'s optional `ocr` extra, not a package of this monorepo. |
 | [md2akn](packages/md2akn) ([PyPI](https://pypi.org/project/md2akn/)) | Segments a Mexican federal law's Markdown — the output of `nota2md` — into a navigable hierarchy labelled with Akoma Ntoso's vocabulary. Depends on none of the other packages. |
 | [legalvec](packages/legalvec) ([PyPI](https://pypi.org/project/legalvec/)) | Disk-first reader for this project's own vector releases: one embedding per distinct text of every federal law, reglamento and lineamiento, as segmented by `md2akn`. Depends on none of the other packages. |
 
 Each package lives under `packages/<name>/` with its own `pyproject.toml`,
 dependencies, version, and tests — installed and released independently to
-PyPI. For the full API — every public and private symbol, with a worked
+PyPI. `document2md` is the exception in the table above: it depended on none
+of the others and left for its own repository (issues #233, #234), so nothing
+here is `packages/document2md/` any more. For the full API — every public and private symbol, with a worked
 example for every public one — see
 [Read the Docs](https://legalia.readthedocs.io/).
 
@@ -114,8 +116,8 @@ for titulo in legal_provisions_titles():
 ## Development
 
 Install a package in editable mode with its test dependencies, then run its
-tests. The same two commands work for any of the six packages —
-`dofjson`, `scjn`, `nota2md`, `document2md`, `md2akn` and `legalvec`:
+tests. The same two commands work for any of the five packages —
+`dofjson`, `scjn`, `nota2md`, `md2akn` and `legalvec`:
 
 ```bash
 pip install -e "packages/dofjson[test]"

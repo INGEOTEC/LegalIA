@@ -104,17 +104,14 @@ build on each other in this sequence.
   #208). `legal_provisions`' own derived output (a snapshot's extracted text,
   a DOF note's Markdown) is cached on disk under `nota2md.cache.CACHE_DIR` —
   `nota2md`'s own directory, deliberately not `dofjson`'s or `scjn`'s.
-- **`document2md`** — OCRs a PDF or a set of scanned images to Markdown via
-  `mineru` (renamed from `dof2md` in issue #228, see its own section below).
-  Has no notion of "note"/"legal provision", and no download of
-  its own — it only ever converts a PDF/images already on disk; getting a
-  whole DOF edition's PDF by date and edition is `dofjson.download_edicion_pdf`'s
-  job now (issue #134). `BatchConverter` keeps one `mineru-api` server warm
-  across a batch instead of paying startup cost per document; `nota2md`'s
-  image/PDF OCR paths accept an already-`__enter__`'d instance via their own
-  `converter` parameter. Only needed as `nota2md`'s OCR fallback for legal
-  provisions predating the HTML era (pre-1999ish) — a modern note only needs
-  `dofjson` + `nota2md`.
+- **`document2md`** — *not a package of this monorepo any more.* It OCRs a PDF
+  or a set of scanned images to Markdown via `mineru`, and lives in
+  https://github.com/INGEOTEC/document2md since issues #233/#234 (see its own
+  section below); here it is only `nota2md`'s optional `ocr` extra
+  (`document2md>=0.3.0`), imported lazily, and the read order is otherwise
+  unchanged. Only needed as `nota2md`'s OCR fallback for legal provisions
+  predating the HTML era (pre-1999ish) — a modern note only needs `dofjson` +
+  `nota2md`.
 - **`md2akn`** — segments a Mexican federal law's Markdown (what `nota2md`
   produces) into a navigable hierarchy — articles inside their chapter,
   fracciones inside their article — labelled with Akoma Ntoso's *vocabulary*
@@ -615,6 +612,12 @@ PyPI release yet either.
 
 ## `dof2md` is now `document2md` (issue #228, done)
 
+*Both packages left this repository in issues #233/#234 and now live in
+https://github.com/INGEOTEC/document2md — the paths below (`packages/dof2md/`,
+`docs/source/document2md_api.rst`, `publish-pypi.yml`'s tag rules) no longer
+exist here. The section is kept as frozen history: it records why the rename
+happened and the rules the tombstone still lives by in its new home.*
+
 The package that OCRs a PDF or a set of page images to Markdown was renamed:
 distribution, directory, import package, console script, release tag, Read
 the Docs page (`docs/source/document2md_api.rst`) and website page
@@ -670,6 +673,76 @@ version line (`0.3.0`, continued rather than reset).
   `.github/migracion-diputados.md` keeps its `dof2md` mentions — it is a
   frozen historical record, like this file's own history sections.
 
+## `document2md` moved to its own repository (issues #233, #234, done)
+
+**This section describes the tree, not a direction.** `packages/document2md/`
+and `packages/dof2md/` are gone; both live in
+https://github.com/INGEOTEC/document2md, which #233 created as a single import
+commit taken from this repository at `e1f258c` (history was not extracted — it
+stays readable here, and LegalIA is public). #234 then made this repository
+consistent with that. `document2md` is the **first** package to leave, and the
+criterion it sets is the one a later candidate is measured against.
+
+- **The criterion: no dependency on the monorepo, plus its own release
+  cadence.** `document2md` imports nothing from any package here, has had no
+  notion of the DOF since #134, and was renamed away from `dof2md` in #228
+  precisely because it is a general tool. The only thing here that uses it is
+  `nota2md`'s optional `ocr` extra, imported lazily. Sharing a repository
+  bought it nothing and cost everyone a ~100 MB `.git` and a seven-package CI
+  matrix. A package that *does* depend on a sibling (`nota2md` on `dofjson`
+  and `scjn`) has not met this bar and is not a candidate.
+- **What left, and what stayed.** The package, its tests, its Read the Docs
+  page (now that repository's `docs/source/index.rst`) and the `dof2md`
+  tombstone all left — the tombstone is `document2md`'s concern, being its own
+  old PyPI name, so LegalIA keeps no trace of either. What **stayed** is
+  `website/pages/document2md.ipynb` and its `_freeze/` payload: the website is
+  results about the gazette, which is a LegalIA concern regardless of where
+  the code that produced them lives (#119's rule, unchanged). It was not even
+  re-executed — editing its prose means re-freezing, which is a docs pass of
+  its own.
+- **The bridge, and the one condition that removes it.** `document2md` 0.3.0
+  is not on PyPI yet (publishing is a human step: a `TWINE` secret and a tag).
+  So everything that needs it importable *in this repository's own
+  environments* takes it from GitHub **pinned to #233's import commit**, never
+  a branch, so a later push there cannot change what LegalIA's CI tests: the
+  root `pyproject.toml`'s `[tool.uv.sources]` (a root-level source applies to
+  every workspace member, so it is declared once), `.github/workflows/test.yml`'s
+  `nota2md` job, and `.devcontainer/python.sh`. **Issue #235 replaces all
+  three with the plain PyPI name once 0.3.0 is published** — a separate issue
+  because its precondition has no fixed date.
+- **The published `nota2md` never carries a URL.** Its `ocr` extra is, and
+  stays, `document2md>=0.3.0`: PyPI rejects direct-URL dependencies in a
+  published package, so the bridge lives only where this repository builds its
+  own environments. This is also why `nota2md`'s own error message says `pip
+  install document2md (or nota2md[ocr])` — the path it used to name is gone,
+  and the PyPI name is the durable instruction.
+- **Publish order is now a cross-repository rule.** `document2md` 0.3.0 must
+  reach PyPI **before or at the same time as** any `nota2md` release whose
+  `ocr` extra requires it, or `pip install nota2md[ocr]` breaks for everyone
+  outside these repositories — the same rule this file already states for
+  `scjn` and `nota2md`, except the two sides are no longer released from one
+  tree.
+- **The docs split, per #119's rule.** LegalIA's Read the Docs stops
+  installing and documenting the package: `docs/source/document2md_api.rst` is
+  deleted, `conf.py` no longer imports it, `.readthedocs.yaml` no longer
+  installs it, and `requests` left `docs/requirements.txt` with it (it was
+  there only for that `--no-deps` install). `index.rst` keeps a `document2md`
+  row whose cells link **out** — repository, PyPI, its own docs site — with
+  `—` for the version, and the architecture diagram keeps the node, redrawn
+  dashed like the external systems. A row that links out is what a monorepo's
+  docs owe a package that lives elsewhere. The new repository's own Sphinx
+  site refers back here for `dofjson`/`nota2md`; it would use intersphinx, but
+  `legalia.readthedocs.io` publishes no `objects.inv` today, so those are
+  plain links and its `conf.py` records the one-line change that restores
+  intersphinx.
+- **`is_tombstone` stays in `scripts/check_package_versions.py`**, with no
+  package using it. The marker exists so "the next rename costs a key, not a
+  code edit" — deleting the mechanism along with its first user would undo
+  that on purpose. `legalvec`'s boundary test, by contrast, **did** drop
+  `document2md`/`dof2md` from the tuple it greps for: that guard says "nothing
+  else in this monorepo", and naming packages that are no longer in it would
+  make it assert something false.
+
 ## Documentation: two sites, one division of labour (issue #119, done)
 
 The project has two documentation sites, and what goes on which one is a
@@ -697,11 +770,11 @@ packages shared, and inherited unchanged by `scjn` when it joined (#212):
   subcommand. "Verified" means a live doctest, run by the separate
   `docs-doctest` job in `.github/workflows/test.yml` (network access
   allowed; the Read the Docs build itself stays HTML-only and must not
-  depend on the network). Where that is genuinely not possible — `document2md`'s
-  OCR paths need `mineru`, deliberately kept out of the doctest job for its
-  weight — the exception is written down on the page itself, with the
-  package's own pytest suite named as what verifies that behaviour instead;
-  it is not silently skipped.
+  depend on the network). Where that is genuinely not possible — as with the
+  OCR paths of `document2md`, which need `mineru` and which took this rule
+  with them to their own repository (#234) — the exception is written down on
+  the page itself, with the package's own pytest suite named as what verifies
+  that behaviour instead; it is not silently skipped.
 - **Private/internal helpers** (leading-underscore names) get a full
   docstring and appear via `:private-members:`, but need no worked example —
   they are documented for whoever is extending or debugging the package, not
@@ -739,6 +812,12 @@ minutes, measured) rather than over a handful of fixtures.
 ```bash
 pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_sweep.py
 ```
+
+There is no `pytest packages/document2md` any more: that package has its own
+repository and its own suite (#234). `uv sync` still puts it in this
+repository's `.venv`, fetched from GitHub at a pinned commit, because
+`packages/nota2md/tests/test_builder.py` patches `document2md.converter.*` —
+see the bridge in the root `pyproject.toml`.
 
 The website's notebooks are committed without their outputs, via an
 `nbstripout` clean filter (`.gitattributes` maps `*.ipynb` to it). The filter
@@ -820,7 +899,9 @@ filter is a pass-through — it just stops shrinking what it commits.
   as opaque strings, why treaty-name matching is rarity-weighted, why a
   version floor is pinned in a `pyproject.toml` dependency) — read them
   before "simplifying" the code they're attached to.
-- `document2md` and `nota2md`'s OCR paths depend on `mineru`, which is heavy;
-  `nota2md`'s HTML path (`beautifulsoup4` + `dofjson` + `requests`) works
-  standalone and is the preferred/default source — `document2md` is imported
-  lazily so installing `nota2md` alone doesn't pull it in.
+- `nota2md`'s OCR paths depend on `document2md` (its own repository since
+  #234) and through it on `mineru`, which is heavy; `nota2md`'s HTML path
+  (`beautifulsoup4` + `dofjson` + `requests`) works standalone and is the
+  preferred/default source — `document2md` is an optional extra
+  (`nota2md[ocr]`) and is imported lazily, so installing `nota2md` alone
+  doesn't pull it in.

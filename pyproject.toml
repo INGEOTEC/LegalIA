@@ -13,10 +13,16 @@ package = false
 members = ["packages/*"]
 
 [tool.uv.sources]
-document2md = { workspace = true }
-# The renamed package's tombstone (issue #228): a workspace member so
-# `pytest packages/dof2md` can import it and assert it raises.
-dof2md = { workspace = true }
+# document2md left this monorepo for https://github.com/INGEOTEC/document2md
+# (issues #233, #234), and 0.3.0 is not on PyPI yet — so this repository's own
+# environments take it from GitHub, pinned to that repository's import commit
+# rather than to a branch, so a later push there cannot change what LegalIA
+# tests. A bridge, deleted by issue #235 once PyPI serves 0.3.0; a
+# root-level source applies to every workspace member, so this is the only
+# place it is declared. nota2md's own published `ocr` extra never carries a
+# URL — it is `document2md>=0.3.0`, which is already the right PyPI
+# requirement.
+document2md = { git = "https://github.com/INGEOTEC/document2md", rev = "5bdaa2d700a5b2f0e5f14704daef56ff58dd3d8f" }
 dofjson = { workspace = true }
 legalvec = { workspace = true }
 md2akn = { workspace = true }
@@ -27,13 +33,10 @@ scjn = { workspace = true }
 # `uv sync` installs every package editable, with its test extra, into one
 # .venv -- mirroring the matrix in .github/workflows/test.yml and the
 # pytest commands in CLAUDE.md. nota2md's `ocr` extra is included so its
-# document2md-backed OCR path is importable too, matching what
-# .devcontainer/python.sh already installs eagerly. `dof2md` is the
-# tombstone, without its test extra: it ships no code, only a test of its
-# own that pytest runs from the source tree.
+# document2md-backed OCR path is importable too (pulling document2md in
+# through the git source above), matching what .devcontainer/python.sh
+# already installs eagerly.
 dev = [
-    "document2md[test]",
-    "dof2md",
     "dofjson[test]",
     "legalvec[test]",
     "md2akn[test]",

@@ -27,9 +27,15 @@ see `the LegalIA website <https://ingeotec.github.io/LegalIA/>`_.
 
 Each package under ``packages/<name>/`` has its own ``pyproject.toml``,
 version, and PyPI release, and builds on the ones before it in this read
-order: ``dofjson`` -> ``scjn`` -> ``nota2md`` -> ``document2md`` -> ``md2akn``.
+order: ``dofjson`` -> ``scjn`` -> ``nota2md`` -> ``md2akn`` -> ``legalvec``.
 
-.. list-table:: The five packages
+``document2md``, ``nota2md``'s OCR fallback for legal provisions predating the
+HTML era, used to be one of them; it has its own repository since issues #233
+and #234, and is documented at `document2md.readthedocs.io
+<https://document2md.readthedocs.io/>`_. It is listed below for the read
+order's sake, but nothing on this site documents its API any more.
+
+.. list-table:: The five packages of this repository, and document2md
    :header-rows: 1
 
    * - Package
@@ -56,12 +62,13 @@ order: ``dofjson`` -> ``scjn`` -> ``nota2md`` -> ``document2md`` -> ``md2akn``.
      - |nota2md_version|
      - `nota2md <https://pypi.org/project/nota2md/>`_
      - :doc:`nota2md_api`
-   * - ``document2md``
+   * - `document2md <https://github.com/INGEOTEC/document2md>`_
      - OCRs a PDF or a set of scanned page images to Markdown via mineru —
        ``nota2md``'s fallback for legal provisions predating the HTML era.
-     - |document2md_version|
+       Moved to its own repository in issues #233/#234.
+     - —
      - `document2md <https://pypi.org/project/document2md/>`_
-     - :doc:`document2md_api`
+     - `own repository <https://document2md.readthedocs.io/>`_
    * - ``md2akn``
      - Segments a law's Markdown into a hierarchy labelled with Akoma
        Ntoso's vocabulary. No dependency on the other four packages.
@@ -85,16 +92,18 @@ on both — building a note's Markdown off ``dofjson``, and matching a
 snapshot ``scjn`` reads back to the DOF ``codNota`` that produced it
 (:py:mod:`nota2md.linking`, the one SCJN-adjacent concern that needs both
 sides, so it stays a layer up from ``scjn`` rather than inside it) — and
-reaches into ``document2md`` only as the OCR fallback for pre-HTML-era provisions
+reaches into ``document2md`` — which lives in `its own repository
+<https://github.com/INGEOTEC/document2md>`_ and is an optional extra
+(``nota2md[ocr]``) — only as the OCR fallback for pre-HTML-era provisions
 (pre-1999ish). ``md2akn`` reads ``nota2md``'s Markdown output from disk and
-depends on none of the other four. ``legalvec`` depends on none of them
+depends on none of the others. ``legalvec`` depends on none of them
 either: it reads back the vector releases this project derives from
 ``md2akn``'s units on a GPU, which are its own data rather than the SCJN's
 (issue #227).
 
 .. graphviz::
-   :alt: How dofjson, scjn, nota2md, document2md and md2akn relate, and the
-         external systems each one talks to.
+   :alt: How dofjson, scjn, nota2md and md2akn relate, the external systems
+         each one talks to, and document2md in its own repository.
 
    digraph legalia_flow {
        rankdir=LR;
@@ -113,7 +122,7 @@ either: it reads back the vector releases this project derives from
        dofjson [label="dofjson\nDOF/SIDOF client"];
        scjn [label="scjn\nSCOW API client,\nscjn-leyes reader"];
        nota2md [label="nota2md\nnote -> Markdown,\ncodNota linking, reform replay"];
-       document2md [label="document2md\nPDF/image OCR"];
+       document2md [label="document2md\n(own repository)", style="rounded,dashed", fillcolor="#ffffff"];
        md2akn [label="md2akn\nMarkdown -> Akoma Ntoso\nvocabulary tree"];
 
        sidof -> dofjson;
@@ -137,6 +146,5 @@ API
    dofjson_api
    scjn_api
    nota2md_api
-   document2md_api
    md2akn_api
    legalvec_api

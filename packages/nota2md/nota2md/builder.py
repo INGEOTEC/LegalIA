@@ -429,7 +429,7 @@ def _load_converter(name: str):
     except ImportError as exc:  # pragma: no cover - depends on environment
         raise RuntimeError(
             "the image/pdf path needs document2md (and mineru) installed; "
-            "install it from packages/document2md, or use source='html'"
+            "pip install document2md (or nota2md[ocr]), or use source='html'"
         ) from exc
     return getattr(converter, name)
 

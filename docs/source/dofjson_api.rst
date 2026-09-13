@@ -25,7 +25,7 @@ helpers over an already-fetched day), :py:mod:`dofjson.titulos` (the
 ``notas-archivo`` release and the titles stream), :py:mod:`dofjson.archivo`
 (the resumable whole-history downloader), :py:mod:`dofjson.cli`.
 :py:mod:`dofjson.sidof`/:py:mod:`dofjson.dofweb` are never imported directly
-from *another package* (``nota2md``, ``document2md``, ``md2akn``) — the top-level
+from *another package* (``nota2md``, ``md2akn``) — the top-level
 re-exports below are the contract those callers rely on instead.
 :py:mod:`dofjson.api` is the one place inside this package allowed to depend
 on both, since it alone makes the SIDOF-or-``dofweb`` decision
@@ -72,8 +72,9 @@ preferring its HTML" — saves it as JSON:
 
 :py:func:`~dofjson.download_nota_imagenes`, unlike ``download_nota``,
 *always* fetches the scanned page image(s) regardless of whether HTML
-content exists too — this is what keeps document2md's OCR path available for
-every note, HTML or not:
+content exists too — this is what keeps the OCR path of `document2md
+<https://github.com/INGEOTEC/document2md>`_ available for every note, HTML or
+not:
 
 >>> paths = dofjson.download_nota_imagenes(4648702, outdir)
 >>> [p.name for p in paths]
