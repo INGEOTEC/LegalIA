@@ -119,6 +119,18 @@ def reparte(base: str, vectores: list[Path], metadatos: int = len(METADATOS)) ->
     return partes
 
 
+def _cd_destino(out_dir: Path) -> str:
+    """Where the generated block should `cd` to, anchored on `$REPO` so it does
+    not depend on the reader's current directory. A `--out-dir` outside the repo
+    keeps its own absolute path — there is nothing to anchor it to."""
+    raiz = Path(__file__).resolve().parents[2]
+    resuelto = out_dir.resolve()
+    try:
+        return f"$REPO/{resuelto.relative_to(raiz)}"
+    except ValueError:
+        return str(resuelto)
+
+
 def genera_publicar(coleccion: str, partes: list[dict], out_dir: Path, repo: str) -> str:
     """`PUBLICAR.md` — the exact, copy-pasteable `gh` sequence, one
     `release create` + `upload` pair per part, with each part's body read
@@ -134,8 +146,17 @@ def genera_publicar(coleccion: str, partes: list[dict], out_dir: Path, repo: str
         f"Cuerpo de cada release: `.github/<tag>.md` en el repo (≤ {LIMITE_CUERPO_NOTAS:,}",
         "caracteres, límite de GitHub). El archivo *es* el cuerpo.",
         "",
+        "La subida va por `upload_release_assets.py`, no por `xargs`: GitHub corta con",
+        "un límite secundario a la mitad de un millar de assets, y ese script reanuda",
+        "sólo lo que falta. Es idempotente — si algo falla, vuelve a correr la misma",
+        "línea.",
+        "",
         "```bash",
-        f"cd {out_dir}",
+        # The block has to be self-contained: it used to reference $REPO
+        # without ever setting it, so a verbatim copy-paste resolved
+        # --notes-file to /.github/<tag>.md and gh died on the first command.
+        "REPO=$(git rev-parse --show-toplevel)",
+        f'cd "{_cd_destino(out_dir)}"',
     ]
     for i, parte in enumerate(partes, 1):
         tag = parte["tag"]
@@ -147,13 +168,17 @@ def genera_publicar(coleccion: str, partes: list[dict], out_dir: Path, repo: str
         if i == 1:
             crear += " " + " ".join(METADATOS)
         lineas.append(crear)
-        lineas.append(f"xargs -a parte-{i}.txt gh release upload {tag} --repo {repo} --clobber")
+        lineas.append(
+            f"python $REPO/scripts/embeddings/upload_release_assets.py {tag} "
+            f"parte-{i}.txt --repo {repo}"
+        )
     lineas.append(f"gh release edit {partes[0]['tag']} --repo {repo} --latest")
     lineas.append("```")
     lineas.append("")
     lineas.append(
-        "`$REPO` es la raíz del repo. `parte-<n>.txt` apunta a los archivos donde ya "
-        "están (nada se copió): son cientos de MB por colección."
+        "El bloque se pega tal cual desde cualquier directorio del repo: `$REPO` es la "
+        "raíz, y la define la primera línea. `parte-<n>.txt` apunta a los archivos donde "
+        "ya están (nada se copió): son cientos de MB por colección."
     )
     lineas.append("")
     return "\n".join(lineas) + "\n"

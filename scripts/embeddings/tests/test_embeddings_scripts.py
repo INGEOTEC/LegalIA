@@ -13,6 +13,7 @@ package): run directly with
 
 import json
 import sys
+from types import SimpleNamespace
 from pathlib import Path
 
 import numpy as np
@@ -29,6 +30,7 @@ import merge_shards  # noqa: E402
 import package_vectors  # noqa: E402
 import plan_shards  # noqa: E402
 import status  # noqa: E402
+import upload_release_assets  # noqa: E402
 
 
 # -- _atomic -------------------------------------------------------------- #
@@ -404,3 +406,97 @@ def test_package_vectors_reports_a_missing_release_body(tmp_path, capsys):
 def test_package_vectors_refuses_a_work_dir_with_no_merged_vectors(tmp_path):
     with pytest.raises(SystemExit):
         package_vectors.main(["--work-dir", str(tmp_path), "--coleccion", "leyes"])
+
+
+def test_package_vectors_publicar_block_defines_repo_before_using_it(tmp_path):
+    # The generated block is copy-pasted verbatim; when it referenced $REPO
+    # without setting it, --notes-file resolved to /.github/<tag>.md and the
+    # very first `gh release create` failed.
+    work_dir = _work_dir_con_vectores(tmp_path, 1)
+
+    package_vectors.main(["--work-dir", str(work_dir), "--coleccion", "leyes"])
+
+    publicar = (work_dir / "publish" / "PUBLICAR.md").read_text()
+    bloque = publicar.split("```bash\n", 1)[1].split("```", 1)[0].splitlines()
+    assert bloque[0] == "REPO=$(git rev-parse --show-toplevel)"
+    assert all(
+        bloque[0] in bloque[:i] for i, linea in enumerate(bloque) if "$REPO" in linea
+    )
+    # An --out-dir outside the repo has nothing to anchor to, so it stays absolute.
+    assert bloque[1] == f'cd "{(work_dir / "publish").resolve()}"'
+
+
+# -- upload_release_assets (the secondary-rate-limit recovery) --------------- #
+
+def test_pending_skips_what_is_already_published_at_the_right_size(tmp_path):
+    a, b = tmp_path / "a.parquet", tmp_path / "b.parquet"
+    a.write_bytes(b"xxx")
+    b.write_bytes(b"yy")
+
+    faltan = upload_release_assets.pending([a, b], {"a.parquet": 3, "b.parquet": 2})
+
+    assert faltan == []
+
+
+def test_pending_reuploads_an_asset_left_short_by_a_dropped_connection(tmp_path):
+    a = tmp_path / "a.parquet"
+    a.write_bytes(b"xxx")
+
+    # Present, but truncated: presence alone would have called this done.
+    assert upload_release_assets.pending([a], {"a.parquet": 1}) == [a]
+    assert upload_release_assets.pending([a], {}) == [a]
+
+
+def test_upload_waits_out_a_secondary_rate_limit_and_resumes(tmp_path, monkeypatch):
+    rutas = []
+    for i in range(3):
+        p = tmp_path / f"v{i}.parquet"
+        p.write_bytes(b"v")
+        rutas.append(p)
+    monkeypatch.setattr(upload_release_assets, "BATCH", 1)
+    monkeypatch.setattr(upload_release_assets, "PAUSE", 0)
+    monkeypatch.setattr(upload_release_assets, "BACKOFF", 0)
+
+    publicado = {}
+    intentos = []
+
+    def falso_run(cmd, capture_output, text, check=False):
+        if cmd[1] == "release" and cmd[2] == "view":
+            return SimpleNamespace(
+                returncode=0,
+                stdout=json.dumps({"assets": [{"name": n, "size": s}
+                                              for n, s in publicado.items()]}),
+                stderr="",
+            )
+        nombres = [Path(a).name for a in cmd[7:]]
+        intentos.append(nombres)
+        if len(intentos) == 2:  # GitHub cuts us off mid-run, exactly once.
+            return SimpleNamespace(
+                returncode=1, stdout="",
+                stderr="HTTP 403: You have exceeded a secondary rate limit.",
+            )
+        for n in nombres:
+            publicado[n] = 1
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(upload_release_assets.subprocess, "run", falso_run)
+
+    assert upload_release_assets.upload("scjn-reglamentos-vectors", rutas, "o/r") == 0
+    # v0 landed, v1 hit the limit and was retried, v2 followed -- and nothing
+    # already published was uploaded twice.
+    assert intentos == [["v0.parquet"], ["v1.parquet"], ["v1.parquet"], ["v2.parquet"]]
+
+
+def test_upload_gives_up_on_an_error_that_is_not_a_rate_limit(tmp_path, monkeypatch):
+    p = tmp_path / "v.parquet"
+    p.write_bytes(b"v")
+    monkeypatch.setattr(upload_release_assets, "PAUSE", 0)
+
+    def falso_run(cmd, capture_output, text, check=False):
+        if cmd[2] == "view":
+            return SimpleNamespace(returncode=0, stdout=json.dumps({"assets": []}), stderr="")
+        return SimpleNamespace(returncode=1, stdout="", stderr="HTTP 404: release not found")
+
+    monkeypatch.setattr(upload_release_assets.subprocess, "run", falso_run)
+
+    assert upload_release_assets.upload("no-existe", [p], "o/r") == 1

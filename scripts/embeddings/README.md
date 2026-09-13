@@ -87,6 +87,12 @@ python scripts/embeddings/merge_shards.py --work-dir emb-run-leyes \
 # 5. Once every model has merged: the release assets + PUBLICAR.md (never uploaded here).
 python scripts/embeddings/package_vectors.py --work-dir emb-run-leyes \
     --coleccion leyes --out-dir emb-run-leyes/publish
+
+# 6. A human reads PUBLICAR.md and runs it. Its upload step is this, per part --
+#    resumable, because GitHub's secondary rate limit cuts a thousand-asset
+#    upload in half and `xargs` leaves no record of what landed.
+python scripts/embeddings/upload_release_assets.py scjn-leyes-vectors \
+    emb-run-leyes/publish/parte-1.txt
 ```
 
 Steps 2-4 repeat per collection against its own work directory; nothing
