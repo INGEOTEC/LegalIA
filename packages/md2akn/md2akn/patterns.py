@@ -16,6 +16,8 @@ What is here, and which issue put it there:
   transitorios and the closing signatures.
 - #160 — fracciones, incisos and subincisos.
 - #161 — the `(REFORMADO, D.O.F. ...)` annotations.
+- #227 — `NUMERAL_DECIMAL`, for the *acuerdo*-shaped instrument that numbers
+  its provisions `1.` / `2.1` rather than `Artículo N` (rule 8).
 """
 
 import re
@@ -138,6 +140,29 @@ ARTICULO_ORDINAL = re.compile(
     r"[ \t]*(?:\.\-|\.|\-|–)?[ \t]*\*\*",
     re.UNICODE,
 )
+
+#: A decimal numeral opening a block — `1.`, `2.1.`, `3.2.1` — the second way
+#: an *acuerdo*-shaped instrument numbers its provisions when it never writes
+#: `Artículo N` (issue #227's rule 8; 37 of the 89 articleless lineamientos
+#: carry five or more of these).
+#:
+#: Like `ARTICULO_ORDINAL` this one is **context-dependent and must not be
+#: applied on its own**: `1.` is also the most common fracción label in the
+#: corpus (21,416 unadorned `1.` blocks over the 315 laws, most of them tariff
+#: rows), so the builder reads it as an article only in a document that
+#: numbers nothing with `Artículo N` at all.
+#:
+#: A bare integer is admitted only when a separator follows it (`1.`, `2)`,
+#: `3.-`); a dotted numeral (`2.1`) needs none, since prose does not open with
+#: one. Without that asymmetry a paragraph opening "2003 fue el año..." would
+#: be read as provision 2003.
+NUMERAL_DECIMAL = re.compile(
+    r"^[ \t]*(?:\*\*)?[ \t]*"
+    r"(?P<num>\d+(?:\.\d+)+|\d+(?=[ \t]*(?:\.\-|\.|\)|\-|–)))"
+    r"[ \t]*(?:\.\-|\.|\)|\-|–)?[ \t]*(?:\*\*)?(?=[ \t]|$)",
+    re.UNICODE,
+)
+
 
 #: The container words, mapped to the Akoma Ntoso element each becomes.
 #: `APARTADO` has no element in the standard at all and is expressed as

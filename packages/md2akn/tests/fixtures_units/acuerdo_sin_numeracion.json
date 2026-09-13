@@ -1,0 +1,88 @@
+{
+  "coverage": {
+    "total_chars": 2131,
+    "frontmatter_chars": 298,
+    "annotation_chars": 0,
+    "covered_chars": 1833,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**EXTRACTO DE LOS LINEAMIENTOS EN MATERIA DE ADOPCIÓN DEL SISTEMA NACIONAL PARA EL DESARROLLO INTEGRAL DE LA FAMILIA** **TEXTO ORIGINAL.**",
+      "text_sha1": "df9953752f0d2f5a0326bbfb2c51ac4a81a2a082"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Extracto de los Lineamentos publicados en la Primera Sección del Diario Oficial de la Federación, el lunes 30 de mayo de 2016.",
+      "text_sha1": "e0e2f4d736c3e74613f186eb33c1d9ee385141a6"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 3,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Sistema Nacional para el Desarrollo Integral de la Familia.- Procuraduría Federal de Protección de Niñas, Niños y Adolescentes.",
+      "text_sha1": "01f5f7bc62a6c88304851ecac87d3fdcf006a06e"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 4,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**EXTRACTO DE LOS LINEAMIENTOS EN MATERIA DE ADOPCIÓN DEL SISTEMA NACIONAL PARA EL DESARROLLO INTEGRAL DE LA FAMILIA.**",
+      "text_sha1": "e8a3201c55d227061d2e6979458651ee5cad5d59"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 5,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "LAURA IBERNIA VARGAS CARRILLO, Titular del Sistema Nacional para el Desarrollo Integral de la Familia, con fundamento en lo dispuesto por los artículos 26 fracción III, 27, 28, 29, 30, 31, 117 fracción I y 122 fracción XI de la Ley General de los Derechos de Niñas, Niños y Adolescentes; 38, 40 y 72 de su Reglamento; 2 fracción XXVIII, 10 fracciones IX, XVI, XVIII, XX, XXIX y XXXI, 17 fracciones X y XI y 31 fracciones IX, X, XI y XII del Estatuto Orgánico del Sistema Nacional para el Desarrollo Integral de la Familia, informa que se cuenta con los Lineamientos en materia de Adopción del Sistema Nacional para el Desarrollo Integral de la Familia, los cuales tienen como objetivo establecer la integración y funcionamiento del Comité Técnico de Adopción y la definición del trámite administrativo de adopción nacional e internacional de niñas, niños y adolescentes, que se encuentren bajo la tutela o guarda y custodia de la Procuraduría Federal de Protección de Niñas, Niños y Adolescentes del Sistema Nacional para el Desarrollo Integral de la Familia.",
+      "text_sha1": "96fc28afdab65a44ab911a79d8ba2df98d7131d5"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 6,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "La versión íntegra de los Lineamientos en materia de Adopción del Sistema Nacional para el Desarrollo Integral de la Familia, puede consultarse en la normateca del Sistema Nacional para el Desarrollo Integral de la Familia, disponible en la siguiente dirección electrónica http://sitios.dif.gob.mx/normateca/ wp-content/Archivos/Procuraduria/LG_Adopcion.pdf",
+      "text_sha1": "46d764c43b2540210541bfe3225424f8063de228"
+    },
+    {
+      "unit_type": "conclusions",
+      "eId": "conclusions",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "conclusions",
+      "num": null,
+      "path": [],
+      "text": "Ciudad de México, a 23 de mayo de 2016.- La Titular del Sistema Nacional para el Desarrollo Integral de la Familia, Laura Ibernia Vargas Carrillo.- Rúbrica.",
+      "text_sha1": "8a5dfb6bcbaa5e85cfa9bbb0a0204b18e6986c7d"
+    }
+  ]
+}

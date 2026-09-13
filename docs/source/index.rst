@@ -68,6 +68,12 @@ order: ``dofjson`` -> ``scjn`` -> ``nota2md`` -> ``document2md`` -> ``md2akn``.
      - |md2akn_version|
      - `md2akn <https://pypi.org/project/md2akn/>`_
      - :doc:`md2akn_api`
+   * - ``legalvec``
+     - Disk-first reader for this project's own vector releases: one
+       embedding per distinct text of all three SCJN corpora.
+     - |legalvec_version|
+     - `legalvec <https://pypi.org/project/legalvec/>`_
+     - :doc:`legalvec_api`
 
 How the packages relate
 ========================
@@ -81,7 +87,10 @@ snapshot ``scjn`` reads back to the DOF ``codNota`` that produced it
 sides, so it stays a layer up from ``scjn`` rather than inside it) — and
 reaches into ``document2md`` only as the OCR fallback for pre-HTML-era provisions
 (pre-1999ish). ``md2akn`` reads ``nota2md``'s Markdown output from disk and
-depends on none of the other four.
+depends on none of the other four. ``legalvec`` depends on none of them
+either: it reads back the vector releases this project derives from
+``md2akn``'s units on a GPU, which are its own data rather than the SCJN's
+(issue #227).
 
 .. graphviz::
    :alt: How dofjson, scjn, nota2md, document2md and md2akn relate, and the
@@ -130,3 +139,4 @@ API
    nota2md_api
    document2md_api
    md2akn_api
+   legalvec_api

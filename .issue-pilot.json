@@ -1,7 +1,7 @@
 {
   "base_branch": "master",
   "branch_prefix": "issues",
-  "test_command": "uv run pytest packages/dofjson -q && uv run pytest packages/document2md -q && uv run pytest packages/dof2md -q && uv run pytest packages/scjn -q --ignore=packages/scjn/tests/test_api_red.py --ignore=packages/scjn/tests/test_release_red.py && uv run pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py && uv run pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_sweep.py",
+  "test_command": "uv run pytest packages/dofjson -q && uv run pytest packages/document2md -q && uv run pytest packages/dof2md -q && uv run pytest packages/scjn -q --ignore=packages/scjn/tests/test_api_red.py --ignore=packages/scjn/tests/test_release_red.py && uv run pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py && uv run pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_sweep.py && uv run pytest packages/legalvec -q",
   "model": "opus",
   "effort": "high",
   "max_attempts": 3,

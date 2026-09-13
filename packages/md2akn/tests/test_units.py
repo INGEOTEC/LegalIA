@@ -25,6 +25,7 @@ from md2akn.units import (
     DEFAULT_SPLIT_CAP,
     coverage,
     leaf_map,
+    max_unit_chars,
     normalize,
     text_units,
 )
@@ -314,3 +315,101 @@ if __name__ == "__main__":  # pragma: no cover
             encoding="utf-8",
         )
         print("wrote", destino)
+
+
+# -- issue #227: rules 8 and 9 --------------------------------------------- #
+
+class TestRegla8(unittest.TestCase):
+    """The *acuerdo*-shaped instrument: no `Artículo N` anywhere, provisions
+    numbered `**PRIMERO.-**` or `1.` instead (issue #227's rule 8)."""
+
+    ORDINALES = "**PRIMERO.-** Uno.\n\n**SEGUNDO.-** Dos.\n\n**TERCERO.-** Tres.\n"
+    NUMERALES = "".join(f"{n}. Provisión número {n}.\n\n" for n in range(1, 7))
+
+    def test_los_ordinales_abren_articulo_en_un_documento_sin_articulos(self):
+        units = text_units(self.ORDINALES)
+        self.assertEqual([u.unit_type for u in units], ["article"] * 3)
+        self.assertEqual([u.num for u in units], ["PRIMERO", "SEGUNDO", "TERCERO"])
+
+    def test_los_numerales_abren_articulo_cuando_no_hay_ordinales(self):
+        units = text_units(self.NUMERALES)
+        self.assertEqual([u.unit_type for u in units], ["article"] * 6)
+        self.assertEqual([u.num for u in units], [str(n) for n in range(1, 7)])
+
+    def test_un_solo_ordinal_no_alcanza_el_umbral(self):
+        """Below the threshold the document keeps the behaviour it had: a
+        bolded ordinal in an ordinary paragraph is not a provision."""
+        units = text_units("**PRIMERO.-** Uno.\n\nY un párrafo cualquiera.\n")
+        self.assertEqual([u.unit_type for u in units], ["preamble"])
+
+    def test_una_ley_no_cambia(self):
+        """The gate is what makes rule 8 safe: a document with a single
+        `Artículo N` outside its transitorios never switches it on, so the
+        bolded ordinals below stay ordinary paragraphs."""
+        texto = (
+            "**Artículo 1o.** Esta ley regula el objeto.\n\n"
+            "**PRIMERO.-** No es una provisión, es un párrafo.\n\n"
+            "**SEGUNDO.-** Tampoco.\n\n**TERCERO.-** Tampoco.\n"
+        )
+        units = text_units(texto)
+        self.assertEqual([u.unit_type for u in units], ["article"])
+
+    def test_los_ordinales_de_los_transitorios_siguen_funcionando(self):
+        texto = (
+            "**Artículo 1o.** Uno.\n\n## Transitorios\n\n"
+            "**Primero.** Entrará en vigor.\n\n**Segundo.** Se abroga.\n"
+        )
+        units = text_units(texto)
+        self.assertEqual(
+            [(u.unit_type, u.num) for u in units if u.unit_type == "article"],
+            [("article", "1o"), ("article", "Primero"), ("article", "Segundo")],
+        )
+
+
+class TestRegla9(unittest.TestCase):
+    """No unit over the cap, except a single paragraph that is (issue #227)."""
+
+    PARRAFOS = "\n\n".join(f"Párrafo número {n}, con algo de texto." for n in range(1, 7)) + "\n"
+
+    def test_un_preambulo_sobre_el_cap_se_parte_en_parrafos(self):
+        units = text_units(self.PARRAFOS, cap=80)
+        self.assertGreater(len(units), 1)
+        self.assertEqual({u.unit_type for u in units}, {"preamble"})
+        self.assertEqual([u.piece for u in units], list(range(1, len(units) + 1)))
+        for unit in units:
+            self.assertLessEqual(len(unit.text), 80)
+
+    def test_las_piezas_cubren_el_mismo_rango_que_la_unidad_entera(self):
+        entera = text_units(self.PARRAFOS, cap=80, split_over_cap=False)
+        partida = text_units(self.PARRAFOS, cap=80)
+        self.assertEqual(len(entera), 1)
+        self.assertEqual(partida[0].start_char, entera[0].start_char)
+        self.assertEqual(partida[-1].end_char, entera[0].end_char)
+        for anterior, siguiente in zip(partida, partida[1:]):
+            self.assertEqual(anterior.end_char, siguiente.start_char)
+
+    def test_un_parrafo_mas_largo_que_el_cap_se_deja_entero(self):
+        texto = "Una sola frase larguísima que no se corta por la mitad jamás.\n"
+        units = text_units(texto, cap=20)
+        self.assertEqual(len(units), 1)
+        self.assertEqual(units[0].piece, 0)
+        self.assertGreater(len(units[0].text), 20)
+
+    def test_max_unit_chars_cuenta_el_residuo(self):
+        texto = "Una sola frase larguísima que no se corta por la mitad jamás.\n"
+        tree = parse_markdown(texto)
+        report = max_unit_chars(tree, text_units(texto, cap=20), cap=20)
+        self.assertEqual((report.over_cap, report.unsplittable, report.splittable), (1, 1, 0))
+
+    def test_el_invariante_se_cumple_en_cada_fixture(self):
+        for path in ALL_LAW_FIXTURES:
+            with self.subTest(fixture=path.name):
+                texto = path.read_text(encoding="utf-8")
+                tree = parse_markdown(texto)
+                report = max_unit_chars(tree, text_units(texto, cap=200), cap=200)
+                self.assertEqual(report.splittable, 0)
+
+    def test_split_over_cap_falso_reproduce_el_comportamiento_anterior(self):
+        units = text_units(self.PARRAFOS, cap=80, split_over_cap=False)
+        self.assertEqual(len(units), 1)
+        self.assertEqual(units[0].piece, 0)

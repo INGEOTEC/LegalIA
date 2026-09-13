@@ -11,8 +11,8 @@ build:
   jobs:
     post_install:
       # Installed in read order (CLAUDE.md: dofjson -> scjn -> nota2md ->
-      # document2md -> md2akn), each pulling in its own real dependencies so
-      # autodoc can import it — except document2md.
+      # document2md -> md2akn -> legalvec), each pulling in its own real
+      # dependencies so autodoc can import it — except document2md.
       - pip install -e packages/dofjson
       - pip install -e packages/scjn
       - pip install -e packages/nota2md
@@ -23,6 +23,9 @@ build:
       # would only slow the docs build down for nothing.
       - pip install --no-deps -e packages/document2md
       - pip install -e packages/md2akn
+      # docs/source/conf.py imports it for |legalvec_version|, and
+      # legalvec_api.rst's automodule needs pyarrow/numpy to import it.
+      - pip install -e packages/legalvec
 
 sphinx:
   configuration: docs/source/conf.py

@@ -339,12 +339,24 @@ their ancestor path either way.
 pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_sweep.py
 ```
 
-The excluded test sweeps `coverage()`'s invariant over the whole cached
-`scjn-leyes` release (~4.5 minutes, and a ~300 MB local cache not every
-machine has) rather than over a handful of fixtures — see its own module
-docstring.
+The excluded test sweeps the `coverage()` and `max_unit_chars()` invariants
+over the whole cached SCJN corpus — `scjn-leyes`, `scjn-reglamentos` and
+`scjn-lineamientos`, ~13 minutes and a ~380 MB local cache not every machine
+has — rather than over a handful of fixtures; see its own module docstring.
 
 ## Changelog
+
+- **0.3.0** — the *acuerdo*-shaped instrument (issue #227, Fase 1), as two
+  rules added to `text_units`' own list rather than a renegotiation of it:
+  **rule 8**, an instrument that never writes `Artículo N` numbers its
+  provisions `**PRIMERO.-**` or `1.` / `2.1` instead, decided once per
+  document (`md2akn.structure.modo_sin_articulos`) so no law and no
+  article-numbered reglamento can change; and **rule 9**, no unit over the
+  cap — one still over it is cut again at paragraph boundaries, never
+  mid-sentence, with `split_over_cap=False` reproducing the pre-#227 output
+  byte for byte. New public names: `max_unit_chars` and `CapReport`,
+  `coverage()`'s sibling invariant ("the units are usable", where
+  `coverage()` says "nothing is lost").
 
 - **0.2.0** — `md2akn.units`: `text_units`, `normalize`, `leaf_map`,
   `coverage`, and the `TextUnit`/`LeafRef`/`Coverage` dataclasses (issue

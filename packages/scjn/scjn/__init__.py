@@ -33,19 +33,23 @@ from scjn.release import (
     download_scjn_reglamentos_corpus,
     download_scjn_reglamentos_index,
     iter_current_federal_laws,
+    iter_current_lineamientos,
+    iter_current_reglamentos,
     local_lineamientos_ids,
     local_reglamentos_ids,
     local_slugs,
     markdown_de_snapshot,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "download_scjn_leyes_corpus",
     "download_scjn_leyes_index",
     "download_scjn_leyes_catalog",
     "iter_current_federal_laws",
+    "iter_current_reglamentos",
+    "iter_current_lineamientos",
     "markdown_de_snapshot",
     "download_scjn_leyes_assets",
     "local_slugs",

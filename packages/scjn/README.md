@@ -40,6 +40,21 @@ puts the release on disk; every reader in `scjn.release` then reads off it
 with no network request at all, raising `scjn.release.AssetNotCached` for
 whatever is not there yet.
 
+## Changelog
+
+- **0.3.0** — `iter_current_reglamentos` / `iter_current_lineamientos`
+  (issue #227, Fase 2): `iter_current_federal_laws`' id-keyed siblings, the
+  *current* text of every instrument of either collection, one tarball open
+  at a time. No `codNota` and no `abrev` (neither collection is DOF-linked),
+  the newest snapshot chosen from the file names since an id-keyed tarball
+  ships no `indice.json`, and an instrument the index lists with no
+  consolidated text at all is skipped rather than raising `SinTextoEnSCJN`.
+
+- **0.2.0** — the package's first release: the SCOW transport (`scjn.api`),
+  the catalogue algebra, the crawl state, the provenance header and the
+  disk-first readers of the `scjn-leyes`/`scjn-reglamentos`/
+  `scjn-lineamientos` releases (issues #206-#212, #220, #222).
+
 ## Development
 
 ```bash

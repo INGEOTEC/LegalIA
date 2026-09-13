@@ -1137,3 +1137,107 @@ def download_scjn_lineamientos_assets(
         LINEAMIENTOS, _assets_scjn_lineamientos, ids,
         cache_dir=cache_dir, refrescar=refrescar, timeout=timeout, log=log,
     )
+
+
+# --- The current text of an id-keyed instrument (issue #227's Fase 2) -------
+
+def _iter_current_de_release(
+    coleccion: Coleccion, ids: list[str] | None = None, *, cache_dir=None
+) -> Iterator[dict]:
+    """The generic current-text iterator behind `iter_current_reglamentos`/
+    `iter_current_lineamientos` (issue #227's Fase 2) — the id-keyed sibling
+    of `iter_current_federal_laws`, yielding ``{"id_ordenamiento", "nombre",
+    "materia", "vigencia", "resumen", "fecha_publicacion", "archivo",
+    "markdown"}`` per instrument.
+
+    A true generator, for the same reason its `leyes` counterpart is one: one
+    `<id_ordenamiento>.tgz` is opened, its newest snapshot read, and the
+    tarball's bytes dropped before the next id is reached, so walking the
+    whole of `scjn-reglamentos` (1,082 instruments, ~6.6 minutes to decode on
+    `headmaster`) never holds more than one instrument in memory.
+    `_corpus_de_release` would not do here — it decodes every snapshot of an
+    instrument just to keep the one that turns out to be the newest.
+
+    There is no `indice.json` in an id-keyed tarball (no DOF linking for
+    either collection, issue #220), so "newest" comes from the snapshots'
+    own file names, `DD-MM-YYYY.md` — parsed with `_fecha` rather than
+    compared as text, and tie-broken by `archivo` only to make the pick
+    deterministic. There is no `codNota` and no `abrev` in what comes back,
+    for the same reason.
+
+    `materia`/`vigencia`/`resumen`/`nombre` come off the cached index at no
+    extra request, and are **partial** for these collections, unlike leyes:
+    `materia` is present for 533 of 1,087 reglamentos and 112 of 163
+    lineamientos, `resumen` for 544 and 14 (issue #227's own measurement). A
+    missing one is not a bug to chase.
+
+    `ids=None` (the default) means "every instrument this machine has", via
+    `_local_ids_de_release` — a disk-only reader, exactly like
+    `iter_current_federal_laws`. An instrument the index lists with no text
+    at all (`snapshots: 0`, issue #222's decision 6) is **skipped** rather
+    than raising `SinTextoEnSCJN`: there are 5 such reglamentos and 37 such
+    lineamientos, none of them has a tarball to read, and a corpus walk
+    should not have to catch an exception per instrument the SCJN never
+    published text for. An id named explicitly that has no text is skipped on
+    the same terms — `download_*_corpus` is where asking for one by name
+    raises.
+    """
+    directorio = cache.resuelve_cache_dir(cache_dir)
+    if ids is None:
+        ids = _local_ids_de_release(coleccion, directorio)
+
+    try:
+        instrumentos = _index_de_release(coleccion, cache_dir=directorio)["instrumentos"]
+    except AssetNotCached:
+        instrumentos = {}
+
+    for id_ordenamiento in ids:
+        clave = str(id_ordenamiento)
+        entrada = instrumentos.get(clave)
+        if entrada is not None and not entrada.get("asset"):
+            continue
+        contenido = _read_asset(
+            f"{clave}.tgz", directorio,
+            release=coleccion.subdirectorio, coleccion=coleccion.nombre,
+        )
+        with tarfile.open(fileobj=io.BytesIO(contenido), mode="r:gz") as tar:
+            candidatos = [
+                relativo
+                for m in tar.getmembers()
+                if m.isfile()
+                for relativo in (m.name.partition("/")[2],)
+                if relativo != ARCHIVO_ESTADO
+            ]
+            if not candidatos:
+                continue
+            archivo = max(candidatos, key=lambda nombre: (_fecha(nombre[:10]), nombre))
+            markdown = tar.extractfile(tar.getmember(f"{clave}/{archivo}")).read().decode("utf-8")
+
+        entrada = entrada or {}
+        yield {
+            "id_ordenamiento": clave,
+            "nombre": entrada.get("nombre"),
+            **{campo: entrada.get(campo) for campo in CAMPOS_METADATOS},
+            "fecha_publicacion": archivo[:10],
+            "archivo": archivo,
+            "markdown": markdown,
+        }
+
+
+def iter_current_reglamentos(
+    ids: list[str] | None = None, *, cache_dir=None
+) -> Iterator[dict]:
+    """The current text of every federal *reglamento* the `scjn-reglamentos`
+    release publishes — a thin wrapper over `_iter_current_de_release` (issue
+    #227's Fase 2); see its own docstring for the payload shape and for what
+    happens to an instrument with no consolidated text."""
+    return _iter_current_de_release(REGLAMENTOS, ids, cache_dir=cache_dir)
+
+
+def iter_current_lineamientos(
+    ids: list[str] | None = None, *, cache_dir=None
+) -> Iterator[dict]:
+    """The current text of every federal *lineamiento* the
+    `scjn-lineamientos` release publishes — the `lineamientos` sibling of
+    `iter_current_reglamentos` (issue #227's Fase 2)."""
+    return _iter_current_de_release(LINEAMIENTOS, ids, cache_dir=cache_dir)

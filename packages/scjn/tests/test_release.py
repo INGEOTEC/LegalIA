@@ -1352,3 +1352,102 @@ class TestScjnLineamientos(unittest.TestCase):
             "'180528.tgz' is not cached under /x -- run "
             "`scjn download --coleccion lineamientos --id 180528`",
         )
+
+
+class TestIterCurrentPorId(ConCacheFixtureReglamentos):
+    """`iter_current_reglamentos`/`iter_current_lineamientos` (issue #227's
+    Fase 2) — `iter_current_federal_laws`' id-keyed sibling: the newest
+    snapshot of each instrument, with no `indice.json` to read it off."""
+
+    def setUp(self):
+        super().setUp()
+        release._MEMO_INDICE_POR_ID.clear()
+
+    def test_gana_la_fecha_mas_nueva_no_el_orden_alfabetico(self):
+        # "05-01-1999" precede a "22-05-1998" como texto pero no como fecha.
+        self._publica_indice(
+            {"104906": {"nombre": "REGLAMENTO", "asset": "104906.tgz", "snapshots": 2,
+                        "materia": "ADMINISTRATIVO", "vigencia": "VIGENTE"}}
+        )
+        self._publica_tgz(
+            "104906",
+            **{
+                "104906/22-05-1998.md": "**VIEJO.**",
+                "104906/05-01-1999.md": "**NUEVO.**",
+                "104906/estado.json": json.dumps({"rastreado": "2026-09-09"}),
+            },
+        )
+
+        [reglamento] = list(release.iter_current_reglamentos(cache_dir=self.tmp))
+
+        self.assertEqual(reglamento["id_ordenamiento"], "104906")
+        self.assertEqual(reglamento["archivo"], "05-01-1999.md")
+        self.assertEqual(reglamento["fecha_publicacion"], "05-01-1999")
+        self.assertEqual(reglamento["markdown"], "**NUEVO.**")
+        self.assertEqual(reglamento["nombre"], "REGLAMENTO")
+        self.assertEqual(reglamento["materia"], "ADMINISTRATIVO")
+        self.assertEqual(reglamento["vigencia"], "VIGENTE")
+
+    def test_nunca_trae_codnota_ni_abrev(self):
+        # No hay enlace a DOF para estas colecciones (#220), asi que el
+        # registro que sale de aqui no tiene codNota ni abrev que dar.
+        self._publica_indice({"1": {"nombre": "x", "asset": "1.tgz", "snapshots": 1}})
+        self._publica_tgz("1", **{"1/01-01-2000.md": "x"})
+
+        [instrumento] = list(release.iter_current_reglamentos(cache_dir=self.tmp))
+
+        self.assertNotIn("codNota", instrumento)
+        self.assertNotIn("abrev", instrumento)
+        self.assertNotIn("slug", instrumento)
+
+    def test_salta_un_instrumento_sin_texto_en_vez_de_lanzar(self):
+        # Decision 6 de #222: 5 reglamentos y 37 lineamientos estan indexados
+        # con snapshots=0 y sin asset. `download_*_corpus` lanza
+        # SinTextoEnSCJN por ellos; un recorrido del corpus los salta.
+        self._publica_indice(
+            {
+                "1": {"nombre": "CON TEXTO", "asset": "1.tgz", "snapshots": 1},
+                "2": {"nombre": "SIN TEXTO", "snapshots": 0},
+            }
+        )
+        self._publica_tgz("1", **{"1/01-01-2000.md": "x"})
+
+        claves = [i["id_ordenamiento"] for i in release.iter_current_reglamentos(cache_dir=self.tmp)]
+
+        self.assertEqual(claves, ["1"])
+
+    def test_es_un_generador_perezoso(self):
+        self._publica_indice({"1": {"nombre": "x", "asset": "1.tgz", "snapshots": 1}})
+        self._publica_tgz("1", **{"1/01-01-2000.md": "x"})
+
+        iterador = release.iter_current_reglamentos(["1", "no-existe"], cache_dir=self.tmp)
+
+        self.assertEqual(next(iterador)["id_ordenamiento"], "1")
+        with self.assertRaises(release.AssetNotCached):
+            next(iterador)
+
+    def test_sin_indice_cacheado_los_metadatos_degradan_a_none(self):
+        self._publica_tgz("1", **{"1/01-01-2000.md": "x"})
+
+        [instrumento] = list(release.iter_current_reglamentos(["1"], cache_dir=self.tmp))
+
+        self.assertIsNone(instrumento["nombre"])
+        self.assertIsNone(instrumento["materia"])
+        self.assertEqual(instrumento["markdown"], "x")
+
+    def test_lineamientos_lee_su_propio_subdirectorio(self):
+        directorio = self.tmp / "scjn-lineamientos"
+        directorio.mkdir()
+        (directorio / release.ASSET_INDICE_GLOBAL).write_bytes(
+            gzip.compress(json.dumps({
+                "generado": "x", "coleccion": "lineamientos",
+                "instrumentos": {"31834": {"nombre": "LINEAMIENTOS", "asset": "31834.tgz",
+                                           "snapshots": 1}},
+            }).encode("utf-8"))
+        )
+        (directorio / "31834.tgz").write_bytes(_hacer_tgz({"31834/15-07-2008.md": "**L.**"}))
+
+        [lineamiento] = list(release.iter_current_lineamientos(cache_dir=self.tmp))
+
+        self.assertEqual(lineamiento["id_ordenamiento"], "31834")
+        self.assertEqual(lineamiento["nombre"], "LINEAMIENTOS")

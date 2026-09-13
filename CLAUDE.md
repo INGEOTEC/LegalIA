@@ -122,12 +122,40 @@ build on each other in this sequence.
   the other packages, so it comes last in the read order. The project emits no
   Akoma Ntoso XML anywhere: only the vocabulary is borrowed, and the earlier
   XML converter that lived in `nota2md` was removed (issue #168).
+  `text_units()` (issue #218) is the retrieval-unit view the embedding work
+  builds on, under **nine** rules since issue #227 added two: **rule 8**, an
+  instrument that never writes `Artículo N` numbers its provisions
+  `**PRIMERO.-**` or `1.` / `2.1` instead, decided once per *document*
+  (`md2akn.structure.modo_sin_articulos`) and therefore incapable of changing
+  a law — proved, not argued: regenerating the 315 laws' `units.parquet` with
+  rule 8 on and rule 9 off reproduced the pre-#227 file to the byte, and the
+  release sweep asserts the gate is off for every law; and **rule 9**, no unit
+  over the cap — one still over it is cut again at paragraph boundaries, never
+  mid-sentence, with whatever cannot be cut (a single over-cap paragraph, or a
+  chapeau prefix rule 3 repeats) counted by `max_unit_chars`, `coverage()`'s
+  sibling invariant. `split_over_cap=False` reproduces the pre-#227 output.
+
+- **`legalvec`** — the disk-first reader for this project's *own* vector
+  releases (issue #227's Fase 4, which is #218's Fase 3 widened to three
+  corpora): `scjn-leyes-vectors`, `scjn-reglamentos-vectors`,
+  `scjn-lineamientos-vectors`, one embedding per distinct text of each
+  corpus. Deliberately not part of `scjn` — `scjn` means "client for the
+  Court", and these vectors are this project's own, derived on a GPU from a
+  specific model revision — and it imports nothing else in this monorepo
+  (`packages/legalvec/tests/test_boundary.py` greps for that), which is why
+  it can take `pyarrow` and `numpy`. Minimum surface:
+  `download_vectors_assets` (the only network, resolving a numbered release
+  series the way #223 does), `load_vectors` (an instrument's own file unioned
+  with the shared one, deduplicated by `text_sha1` — neither is usable
+  alone), `load_units`, `VectorSet`, `AssetNotCached`, `model_slug`, and its
+  own `$LEGALVEC_CACHE_DIR`.
 
 **Data is never committed to git.** The SCJN corpus of consolidated law
-texts, `dofjson`'s notes archive, and downloaded titles datasets all live
-only in GitHub releases (`scjn-leyes`, `notas-archivo`) or are `.gitignore`d
-local scratch directories (`/output/`, `/notas-archivo/`, `scripts/scjn/`,
-`scripts/legal_provisions/`).
+texts, `dofjson`'s notes archive, the vectors derived from either, and
+downloaded titles datasets all live only in GitHub releases (`scjn-leyes`,
+`notas-archivo`, `scjn-*-vectors`) or are `.gitignore`d local scratch
+directories (`/output/`, `/notas-archivo/`, `scripts/scjn/`,
+`scripts/legal_provisions/`, `/emb-run*/`).
 Read them back via `download_scjn_leyes_corpus`/`download_scjn_leyes_index` /
 `legal_provisions_titles` (the latter over the cache `nota2md download
 gazette-metadata` populates), never by looking for a file in the repo.
@@ -541,6 +569,50 @@ corpus next to its siblings:
   `all` now includes it — `nota2md` itself still reads nothing from this
   corpus.
 
+## A vector for every text of all three corpora (issue #227, done)
+
+**This section describes the tree, not a direction.** All four phases landed
+in one branch: `md2akn`'s rules 8 and 9 (Fase 1), `scjn`'s
+`iter_current_reglamentos`/`iter_current_lineamientos` (Fase 2),
+`scripts/embeddings/`'s `--coleccion` and the six model × corpus runs on
+`cemieredes` (Fase 3), and the `legalvec` package plus the three releases'
+upload plans (Fase 4). What is **not** done, deliberately: nothing is
+published. Issue #115's Hallazgo C stands — a human runs the `PUBLICAR.md`
+`scripts/embeddings/package_vectors.py` generates, and `legalvec` has no
+PyPI release yet either.
+
+- **The unit contract of #218 was not renegotiated**, only extended: cap
+  2,000, the article as the unit, the chapeau-prefixed split, the `unit_type`
+  vocabulary, `normalize()`, `text_sha1` and `bare`/`contextual` are
+  unchanged, and rules 8 and 9 were *added* to the same numbered list and
+  recorded in each corpus' own `corpus-manifest.json`
+  (`split_over_cap`, `md2akn_version`, `instruments_by_numbering`,
+  `units_over_cap`/`units_over_cap_unsplittable`).
+- **Rule 8 is gated on the document, never on the pattern.** `ARTICULO_ORDINAL`
+  and the new `NUMERAL_DECIMAL` are read as article openers only where
+  `modo_sin_articulos` finds no `ARTICULO` match outside the transitorios.
+  Measured: rule 8 fires for 0 of 315 laws, 7 of 1,082 reglamentos and 83 of
+  126 lineamientos.
+- **`clave`, not `slug`, is what names a published file.** `units.parquet`
+  gained `coleccion` and `clave` (a law's slug, an `id_ordenamiento`
+  otherwise — #220's key, unchanged), and `merge_shards.py` writes
+  `vectors-<clave>-<model>-<K>.parquet`, so a reader never branches.
+  `slug`/`codNota` stay null for the id-keyed collections: there is no DOF
+  link for them and inventing one was out of scope.
+- **Dedup is inside a collection, never across them** (0.9 % saved, against a
+  shared file three independently republished corpora would all have to be
+  published against), one work directory per collection (`emb-run-<coleccion>/`,
+  gitignored), and **both models stay live** — #217's proxy evaluation has
+  not been run, so nothing has earned the right to drop the 4B, and the two
+  never share a file per instrument.
+- **Three releases, not one**, mirroring the three corpus releases;
+  `scjn-reglamentos-vectors` needs the numbered series #223 built (2,171
+  assets against GitHub's 1,000-asset cap), and `legalvec` resolves a series
+  by probing GitHub until a part 404s, recording a part count nowhere.
+- The run itself, on `cemieredes`' three A100s: 12 + 30 + 1 shards per model,
+  0 failed, weights downloaded and deleted per model. 381,349 distinct texts
+  across the three corpora, ~2.0 GB of vectors.
+
 ## `dof2md` is now `document2md` (issue #228, done)
 
 The package that OCRs a PDF or a set of page images to Markdown was renamed:
@@ -659,9 +731,10 @@ pytest packages/scjn -q --ignore=packages/scjn/tests/test_api_red.py \
 ```
 
 A fourth test file is excluded for a different reason — not network, but
-wall-clock time plus a ~300 MB local cache not every machine has: issue
-#218's `md2akn.units.coverage()` invariant, swept over the whole cached
-`scjn-leyes` release (~4.5 minutes) rather than over a handful of fixtures.
+wall-clock time plus a ~380 MB local cache not every machine has: issue
+#218's `md2akn.units.coverage()` invariant and issue #227's
+`max_unit_chars()` one, swept over all three cached SCJN releases (~12
+minutes, measured) rather than over a handful of fixtures.
 
 ```bash
 pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_sweep.py

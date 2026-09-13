@@ -63,6 +63,7 @@ from md2akn.patterns import (
     DOF_TRANSITORIOS,
     MAX_EPIGRAFE,
     NOTA_EDITORIAL,
+    NUMERAL_DECIMAL,
     PRECEDENCIA,
     SOLO_NEGRITAS,
     TRANSITORIOS,
@@ -155,6 +156,88 @@ def clasifica(bloque) -> tuple[str, dict]:
     return "contenido", {}
 
 
+#: How an instrument that never writes `Artículo N` numbers its provisions
+#: (issue #227's rule 8) — `modo_sin_articulos`' two answers, plus `None` for
+#: "it numbers them the ordinary way, or not recognizably at all".
+MODO_ORDINAL = "ordinal"
+MODO_NUMERAL = "numeral"
+
+#: How many bold ordinals (`**PRIMERO.-**`) an articleless document needs
+#: before they are read as its article numbering. Measured over the 89
+#: articleless lineamientos of the `scjn-lineamientos` release (issue #227):
+#: 83 of them carry three or more. A document with one or two is not numbering
+#: provisions with them — it is a decree quoting an ordinal in passing.
+MIN_ORDINALES = 3
+
+#: The same threshold for decimal numerals, higher because the signal is
+#: weaker: 37 of the 89 carry five or more (`1.`, `2.1.`), and a handful of
+#: numbered items in an otherwise unnumbered acuerdo is a list, not a
+#: provision numbering scheme.
+MIN_NUMERALES = 5
+
+
+def modo_sin_articulos(bloques) -> str | None:
+    """Rule 8 (issue #227), decided **once per document**: how this
+    instrument numbers its provisions, when it never writes `Artículo N`.
+
+    A *lineamiento* is usually an **acuerdo**, and an acuerdo does not number
+    its provisions `Artículo N`: it writes `**PRIMERO.-**`, or `1.` / `2.1`.
+    70.6 % of the `scjn-lineamientos` corpus (89 of 126 instruments with text)
+    has no article heading anywhere, and every character of such a document
+    used to fall into the one unit that swallows whatever precedes the first
+    recognized structure — the `preamble`, 51,246 characters long at its
+    worst (issue #227's own measurement).
+
+    Returns `None` when the document has any `ARTICULO` match outside its
+    transitorios — the overwhelmingly common case, and what makes this rule
+    safe by construction: no law, and none of the 1,073 reglamentos that do
+    number articles, can change, because the rule never switches on for them.
+    That is a property of the *gate*, not of a loosened pattern:
+    `ARTICULO_ORDINAL` and `NUMERAL_DECIMAL` are read exactly as before
+    everywhere else.
+
+    Otherwise `MODO_ORDINAL` when the document carries at least
+    `MIN_ORDINALES` bold ordinals, `MODO_NUMERAL` when it carries at least
+    `MIN_NUMERALES` decimal numerals, and `None` when it carries neither —
+    3 of the 89 number their provisions in some way this does not recognize
+    (a roman-numeral outline, mostly), and they keep the behaviour they
+    already had rather than being guessed at.
+
+    >>> from md2akn.segmenter import iter_blocks
+    >>> from md2akn.structure import modo_sin_articulos
+    >>> texto = "**PRIMERO.-** Uno.\\n\\n**SEGUNDO.-** Dos.\\n\\n**TERCERO.-** Tres."
+    >>> modo_sin_articulos(list(iter_blocks(texto)))
+    'ordinal'
+    >>> modo_sin_articulos(list(iter_blocks("**Artículo 1o.** Uno."))) is None
+    True
+    """
+    en_transitorios = False
+    ordinales = 0
+    numerales = 0
+    for bloque in bloques:
+        kind, _campos = clasifica(bloque)
+        if kind == "articulo":
+            if not en_transitorios:
+                return None
+        elif kind == "transitorios":
+            en_transitorios = True
+        elif kind == "contenedor":
+            # A container after transitorios belongs to a further decree's own
+            # text, exactly as `_Constructor._bloque_contenedor` reads it.
+            en_transitorios = False
+        elif kind == "articulo_ordinal":
+            if not en_transitorios:
+                ordinales += 1
+        elif kind == "contenido" and not en_transitorios:
+            if NUMERAL_DECIMAL.match(bloque.text.split("\n", 1)[0]):
+                numerales += 1
+    if ordinales >= MIN_ORDINALES:
+        return MODO_ORDINAL
+    if numerales >= MIN_NUMERALES:
+        return MODO_NUMERAL
+    return None
+
+
 def _es_epigrafe(bloque, kind: str) -> bool:
     """Whether `bloque` is the epigraph of the container just opened.
 
@@ -242,6 +325,10 @@ class _Constructor:
         self._pendientes = Pendientes()
         self._transitorios: AknNode | None = None
         self._pendiente_epigrafe: AknNode | None = None
+        #: Rule 8 (issue #227), decided once for the whole document before
+        #: the pass starts -- `None` for every law and every instrument that
+        #: numbers articles the ordinary way.
+        self._modo_sin_articulos = modo_sin_articulos(bloques)
 
     # -- helpers ---------------------------------------------------------
 
@@ -300,6 +387,8 @@ class _Constructor:
                 self._agrega_conclusiones(bloque)
                 continue
             kind, campos = clasifica(bloque)
+            if self._modo_sin_articulos is not None:
+                kind, campos = self._promueve_a_articulo(bloque, kind, campos)
 
             if self._pendiente_epigrafe is not None:
                 contenedor = self._pendiente_epigrafe
@@ -370,10 +459,31 @@ class _Constructor:
         self._articulo = None
         self._interior = None
 
+    def _promueve_a_articulo(self, bloque, kind, campos):
+        """Rule 8 (issue #227) applied to one block: in a document that
+        numbers nothing with `Artículo N` (`modo_sin_articulos`), the shape
+        that document *does* number with opens an article in the body too.
+
+        Called before the epigraph check rather than inside the block
+        handlers, so that a promoted provision can never be swallowed as the
+        epigraph of the container above it.
+        """
+        if self._modo_sin_articulos == MODO_ORDINAL:
+            if kind == "articulo_ordinal":
+                return "articulo", campos
+            return kind, campos
+        if kind == "contenido" and self._transitorios is None:
+            m = NUMERAL_DECIMAL.match(bloque.text.split("\n", 1)[0])
+            if m:
+                return "articulo", {"num": _limpia(m.group("num"))}
+        return kind, campos
+
     def _bloque_articulo_ordinal(self, bloque, campos):
         # `**Primero.**` numbers a transitorio provision; outside
         # transitorios the same shape is an ordinary bolded paragraph opener
-        # and must stay content.
+        # and must stay content -- unless the whole document numbers its
+        # provisions that way, which `_promueve_a_articulo` decides before
+        # this handler is ever reached (rule 8, issue #227).
         if self._transitorios is None:
             self._bloque_contenido(bloque, campos)
             return

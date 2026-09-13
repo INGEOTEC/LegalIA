@@ -5,7 +5,11 @@ retry what is still missing, then delete the weights before returning.
 Disk is rationed one model at a time on this cluster (`/home` is 795 GB,
 123 GB free) — the same reason `../Chimalli-overleaf/submit_jobs.py`
 downloads and deletes per model rather than keeping every model's weights
-around. `cemieredes` has three A100s and each `sbatch` job asks for one GPU,
+around. `--keep-weights` is the one exception, and it exists because issue
+#227 made this a three-collection run: the same model then goes over
+`emb-run-leyes`, `emb-run-reglamentos` and `emb-run-lineamientos` back to
+back, and deleting the weights between them would re-download them twice
+(~8 GB each for the 4B). Pass it for every collection but the last. `cemieredes` has three A100s and each `sbatch` job asks for one GPU,
 so Slurm runs up to three shards in parallel by itself; nothing here manages
 that beyond submitting every pending shard at once.
 
@@ -13,6 +17,8 @@ that beyond submitting every pending shard at once.
         --model Qwen/Qwen3-Embedding-0.6B
     python scripts/embeddings/submit_jobs.py --work-dir ~/emb-run \\
         --model Qwen/Qwen3-Embedding-0.6B --dry-run
+    python scripts/embeddings/submit_jobs.py --work-dir emb-run-leyes \\
+        --model Qwen/Qwen3-Embedding-4B --keep-weights   # more collections follow
 """
 
 from __future__ import annotations
@@ -88,6 +94,11 @@ def main(argv=None) -> None:
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--poll-interval", type=int, default=60)
     parser.add_argument("--max-attempts", type=int, default=3)
+    parser.add_argument("--keep-weights", action="store_true",
+                         help="Do not delete the model's weights when this run finishes -- "
+                              "the same model still has another collection's work directory "
+                              "to go over (issue #227). Pass it for every collection but "
+                              "the last.")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
 
@@ -113,7 +124,7 @@ def main(argv=None) -> None:
             break
         attempt += 1
 
-    if not args.dry_run:
+    if not args.dry_run and not args.keep_weights:
         cache_dir = hf_cache_dir(args.model)
         if cache_dir.exists():
             print(f"rm -rf {cache_dir}")

@@ -1,0 +1,231 @@
+{
+  "coverage": {
+    "total_chars": 4460,
+    "frontmatter_chars": 354,
+    "annotation_chars": 0,
+    "covered_chars": 4106,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**LINEAMIENTOS DEL VEINTITRES DE FEBRERO DE DOS MIL SIETE, RELATIVOS A LAS MEDIDAS DE AUSTERIDAD RELACIONADAS CON LA OPTIMIZACION DE ESPACIOS DE LOS INMUEBLES QUE UTILIZA LA SUPREMA CORTE DE JUSTICIA DE LA NACION**",
+      "text_sha1": "4fcdc015fec6c97483e73817bb0636f7cea41e9c"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**TEXTO ORIGINAL.** Lineamientos publicados en la Primera Sección del Diario Oficial de la Federación, el miércoles 28 de febrero de 2007.",
+      "text_sha1": "6fd66ad8ddf8c28bb4c450e9b673cac619a944bf"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 3,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Suprema Corte de Justicia de la Nación.",
+      "text_sha1": "e7936b20c2614fa777cfdbeb6b13745863e640ef"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 4,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**LINEAMIENTOS DEL VEINTITRES DE FEBRERO DE DOS MIL SIETE, RELATIVOS A LAS MEDIDAS DE AUSTERIDAD RELACIONADAS CON LA OPTIMIZACION DE ESPACIOS DE LOS INMUEBLES QUE UTILIZA LA SUPREMA CORTE DE JUSTICIA DE LA NACION.**",
+      "text_sha1": "23fe6b383fcc0dac239faf1098488cc67a3a034b"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 5,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**CONSIDERANDO:**",
+      "text_sha1": "ef7886249e35a8d2ec7890cf2930a3b1f27f4e6d"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_PRIMERO",
+      "piece": 1,
+      "piece_eId": "art_PRIMERO__p_1",
+      "akn_type": "article",
+      "num": "PRIMERO",
+      "path": [],
+      "text": "**PRIMERO.** El artículo 127 del Reglamento Interior de la Suprema Corte de Justicia de la Nación prevé en sus fracciones XII y XXI que la Oficialía Mayor, tendrá como atribuciones apoyar al Ministro Presidente en su gestión administrativa coadyuvando a la eficiencia, eficacia y transparencia en el manejo de los recursos materiales y presupuestales;",
+      "text_sha1": "49307b1c5b6cd90c7049c59c994c8409d98e88e9"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_SEGUNDO",
+      "piece": 1,
+      "piece_eId": "art_SEGUNDO__p_1",
+      "akn_type": "article",
+      "num": "SEGUNDO",
+      "path": [],
+      "text": "**SEGUNDO.** El Comité de Gobierno y Administración de la Suprema Corte de Justicia de la Nación, en el punto Séptimo del Acuerdo General de Administración II/2007, en sesión celebrada el veintinueve de enero de dos mil siete, acordó optimizar los espacios de los inmuebles propiedad de este Alto Tribunal, con la finalidad de evitar la adquisición o arrendamiento de nuevos inmuebles, ello como parte de las medidas de carácter general en materia de racionalidad, austeridad y disciplina presupuestaria para el ejercicio fiscal de dos mil siete;",
+      "text_sha1": "bbb0265b4856cefaeb67b215aa53609c73b2e132"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_TERCERO",
+      "piece": 1,
+      "piece_eId": "art_TERCERO__p_1",
+      "akn_type": "article",
+      "num": "TERCERO",
+      "path": [],
+      "text": "**TERCERO.** Con la finalidad de coadyuvar a las medidas de racionalidad, austeridad y disciplina presupuestaria resulta conveniente emitir los presentes Lineamientos que regulen la optimización de espacios de los inmuebles propiedad de este Alto Tribunal;",
+      "text_sha1": "7fe1c775bd78dcfd01032d3d3d686e6bea9f8742"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_CUARTO",
+      "piece": 1,
+      "piece_eId": "art_CUARTO__p_1",
+      "akn_type": "article",
+      "num": "CUARTO",
+      "path": [],
+      "text": "**CUARTO.** En términos de lo previsto en el numeral 1 del punto vigésimo segundo del Acuerdo General de Administración II/2007, del Comité de Gobierno y Administración de la Suprema Corte de Justicia de la Nación, por el que se determinan las medidas de carácter general en materia de racionalidad, austeridad y disciplina presupuestaria para el ejercicio fiscal del dos mil siete, el Oficial Mayor, por conducto del Secretario de Administración, y en conjunto con el Secretario Ejecutivo de Asuntos Jurídicos, expedirán los lineamientos en los que se precisen las reglas que rijan el ejercicio de las partidas presupuestales que estarán sujetas a las medidas previstas en ese Acuerdo General.",
+      "text_sha1": "f9bd9a967844e4d33aa24879d3c6cda2c8bdd7c9"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_CUARTO",
+      "piece": 2,
+      "piece_eId": "art_CUARTO__p_2",
+      "akn_type": "article",
+      "num": "CUARTO",
+      "path": [],
+      "text": "Por lo expuesto, y con fundamento en la citada disposición legal, se expiden los siguientes:",
+      "text_sha1": "80071d87121cfafa9ce99a1df497aa453f7bdbd4"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_CUARTO",
+      "piece": 3,
+      "piece_eId": "art_CUARTO__p_3",
+      "akn_type": "article",
+      "num": "CUARTO",
+      "path": [],
+      "text": "**LINEAMIENTOS:**",
+      "text_sha1": "d1875938ead38bf510b4f23abc5db985d6ea9dae"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_PRIMERO_2",
+      "piece": 1,
+      "piece_eId": "art_PRIMERO_2__p_1",
+      "akn_type": "article",
+      "num": "PRIMERO",
+      "path": [],
+      "text": "**PRIMERO.** El objeto de los presentes Lineamientos consiste en optimizar los espacios de los inmuebles propiedad de este Alto Tribunal, con la finalidad de evitar la adquisición o arrendamiento de nuevos inmuebles.",
+      "text_sha1": "8a606f9f25f91a2ee9e88b8edfbc89a0945c2f18"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_PRIMERO_2",
+      "piece": 2,
+      "piece_eId": "art_PRIMERO_2__p_2",
+      "akn_type": "article",
+      "num": "PRIMERO",
+      "path": [],
+      "text": "La Secretaría General de la Presidencia será la responsable de la administración de los espacios.",
+      "text_sha1": "08a61e1785e940eb89c8973780e44b2b91099114"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_SEGUNDO_2",
+      "piece": 1,
+      "piece_eId": "art_SEGUNDO_2__p_1",
+      "akn_type": "article",
+      "num": "SEGUNDO",
+      "path": [],
+      "text": "**SEGUNDO.** La Dirección General de Adquisiciones (sic) Servicios tendrá a su cargo la elaboración de un censo respecto de los inmuebles y de los espacios ociosos o subutilizados existentes en ellos, el cual deberá remitir al Oficial Mayor y al Secretario General de la Presidencia a más tardar en el mes de marzo.",
+      "text_sha1": "0abad1301fb5539707a4224a3c099a0fad972a2c"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_TERCERO_2",
+      "piece": 1,
+      "piece_eId": "art_TERCERO_2__p_1",
+      "akn_type": "article",
+      "num": "TERCERO",
+      "path": [],
+      "text": "**TERCERO.** Corresponderá a la Dirección General de Adquisiciones y Servicios, bajo la supervisión del Secretario Ejecutivo de Servicios, publicar y mantener actualizado el padrón inmobiliario de la Suprema Corte de Justicia de la Nación, incluyendo todos los inmuebles que ocupa, ya sean de la Federación o de un tercero.",
+      "text_sha1": "6724596584ce87f02b562f55aa7e2250e452641a"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_CUARTO_2",
+      "piece": 1,
+      "piece_eId": "art_CUARTO_2__p_1",
+      "akn_type": "article",
+      "num": "CUARTO",
+      "path": [],
+      "text": "**CUARTO.** La Secretaría Ejecutiva de Servicios, con la opinión de los titulares de las áreas administrativas de este Alto Tribunal, propondrá a la Oficialía Mayor los niveles a los que corresponda ocupar una oficina y aquéllos a los que deba asignarse un modular.",
+      "text_sha1": "a91212345ab6c21542b1bb3f1ada735cc604c82d"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_QUINTO",
+      "piece": 1,
+      "piece_eId": "art_QUINTO__p_1",
+      "akn_type": "article",
+      "num": "QUINTO",
+      "path": [],
+      "text": "**QUINTO.** Con la finalidad de optimizar los espacios y evitar la adquisición o arrendamiento de nuevos inmuebles, la Secretaría Ejecutiva de Servicios propondrá al Oficial Mayor la superficie mínima y máxima de las oficinas que correspondan a los servidores públicos de este Alto Tribunal, según su nivel.",
+      "text_sha1": "fd582b5b72424324046983e270d0ca2678aef91c"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_QUINTO",
+      "piece": 2,
+      "piece_eId": "art_QUINTO__p_2",
+      "akn_type": "article",
+      "num": "QUINTO",
+      "path": [],
+      "text": "Asimismo, la Oficialía Mayor propondrá qué áreas administrativas requieren oficinas en más de un inmueble y sus dimensiones adecuadas para prestar un servicio eficiente.",
+      "text_sha1": "508de8618f8024ce62a732280e165c4a9e794b3c"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_SEXTO",
+      "piece": 1,
+      "piece_eId": "art_SEXTO__p_1",
+      "akn_type": "article",
+      "num": "SEXTO",
+      "path": [],
+      "text": "**SEXTO.** A más tardar en el mes de abril, la Secretaría Ejecutiva de Servicios, acorde con los límites de superficie de las oficinas que haya señalado, propondrá a la Secretaría General de la Presidencia cuáles son las que deben reducirse y la forma de optimizar los espacios ociosos o subutilizados.",
+      "text_sha1": "b83ed4479a7e0eb38b9b2d053f05ab5921482507"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_SEXTO",
+      "piece": 2,
+      "piece_eId": "art_SEXTO__p_2",
+      "akn_type": "article",
+      "num": "SEXTO",
+      "path": [],
+      "text": "La Secretaría General de la Presidencia valorará dicha propuesta y, a más tardar en el mes de julio, someterá al Comité de Gobierno y Administración los ajustes que estime pertinentes.",
+      "text_sha1": "3a7576616dc9df36a80c68597914cdb27da24687"
+    }
+  ]
+}

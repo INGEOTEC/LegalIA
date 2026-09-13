@@ -278,6 +278,35 @@ machine already have", no network at all:
 >>> "104906" in release.local_reglamentos_ids()
 True
 
+:py:func:`~scjn.iter_current_reglamentos` is
+:py:func:`~scjn.iter_current_federal_laws`' id-keyed sibling (issue #227):
+the *current* text of each instrument — one tarball opened, its newest
+snapshot read, its bytes dropped before the next id — which is what a corpus
+build walks. There is no ``indice.json`` in an id-keyed tarball, so "newest"
+comes from the snapshots' own ``DD-MM-YYYY.md`` file names, parsed as dates
+rather than compared as text; and there is no ``codNota`` and no ``abrev`` in
+what comes back, because this collection has no DOF link (issue #220):
+
+>>> [reglamento] = list(scjn.iter_current_reglamentos(["104906"]))
+>>> sorted(reglamento)
+['archivo', 'fecha_publicacion', 'id_ordenamiento', 'markdown', 'materia', 'nombre', 'resumen', 'vigencia']
+>>> reglamento["archivo"]
+'25-01-2017.md'
+
+``materia``/``vigencia``/``resumen`` come off the cached index at no extra
+request, exactly as for a law — but they are **partial** here, unlike leyes:
+``materia`` is present for 533 of 1,087 reglamentos and 112 of 163
+lineamientos, ``resumen`` for 544 and 14 (issue #227's own measurement). A
+missing one is the SCJN not having classified that instrument, not a bug to
+chase.
+
+An instrument the index lists with no consolidated text at all (``snapshots:
+0`` — 5 reglamentos, 37 lineamientos, issue #222's decision 6) is **skipped**
+by this iterator rather than raising :py:exc:`~scjn.SinTextoEnSCJN`: a corpus
+walk should not have to catch an exception per instrument the SCJN never
+published text for. Asking for one by name is where that exception still
+belongs, and :py:func:`~scjn.download_scjn_reglamentos_corpus` still raises it.
+
 ``scjn-lineamientos`` — the third collection (issue #222)
 ------------------------------------------------------------
 
@@ -338,6 +367,13 @@ here as a follow-up, once the release is published — until then this
 behaviour is verified by ``packages/scjn/tests/test_release.py``'s
 ``TestScjnLineamientos`` class against a synthetic on-disk release, the same
 posture :py:mod:`scjn.api` takes toward the live SCJN below.
+
+:py:func:`~scjn.iter_current_lineamientos` (issue #227) falls under that same
+exception, and for the same reason: it is the exact wrapper
+:py:func:`~scjn.iter_current_reglamentos` is — both are four lines over
+:py:func:`~scjn.release._iter_current_de_release`, documented with a live
+example above — over a release that is not published yet.
+``TestIterCurrentPorId`` covers it against a synthetic on-disk release.
 
 .. automodule:: scjn.release
    :members:
