@@ -21,16 +21,16 @@ jobs:
       - name: Install system dependencies (mineru's opencv needs libGL)
         if: matrix.package == 'nota2md'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libgl1 libglib2.0-0
-      # document2md has its own repository since issue #234; until 0.3.0 is on
-      # PyPI it is installed from a pinned commit there (issue #235 replaces
-      # this with the plain PyPI name). nota2md needs it importable because
+      # document2md has its own repository since issue #234 and comes from PyPI,
+      # as nota2md's `ocr` extra requires it (issue #235 removed the pinned-git
+      # bridge). nota2md needs it importable because
       # packages/nota2md/tests/test_builder.py patches document2md.converter.*.
       - name: Install sibling packages (dofjson, scjn) and document2md for nota2md
         if: matrix.package == 'nota2md'
         run: |
           pip install -e packages/dofjson
           pip install -e packages/scjn
-          pip install "document2md @ git+https://github.com/INGEOTEC/document2md@5bdaa2d700a5b2f0e5f14704daef56ff58dd3d8f"
+          pip install document2md
       - name: Install package and test dependencies
         run: pip install -e "packages/${{ matrix.package }}[test]"
       - name: Run tests
