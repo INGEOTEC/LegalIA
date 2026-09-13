@@ -1,9 +1,9 @@
 """Shell out to mineru to OCR a PDF or a set of scanned page images into
 Markdown, then rewrite its raw HTML table fallback into Markdown tables (see
-dof2md.tables).
+document2md.tables).
 
 Reuses an already-running mineru-api server via MINERU_API_URL when one is
-set (see dof2md.mineru_server), so a batch of documents shares one warm
+set (see document2md.mineru_server), so a batch of documents shares one warm
 server instead of each call starting and stopping its own.
 """
 import contextlib
@@ -13,9 +13,9 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from dof2md.mineru_server import ENV_VAR as MINERU_API_URL_ENV_VAR
-from dof2md.mineru_server import MineruServer
-from dof2md.tables import html_tables_to_markdown
+from document2md.mineru_server import ENV_VAR as MINERU_API_URL_ENV_VAR
+from document2md.mineru_server import MineruServer
+from document2md.tables import html_tables_to_markdown
 
 # Some real DOF editions run to hundreds of pages with heavy table content,
 # and mineru has been observed to stall indefinitely on a single page/table
@@ -46,7 +46,7 @@ def _require_mineru() -> None:
     if shutil.which("mineru") is None:
         raise RuntimeError(
             "'mineru' is required to convert documents but isn't installed. "
-            "Install dof2md's dependencies: pip install dof2md"
+            "Install document2md's dependencies: pip install document2md"
         )
 
 

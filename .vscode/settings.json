@@ -2,7 +2,7 @@
     "python-envs.defaultEnvManager": "ms-python.python:system",
     "python.analysis.extraPaths": [
         "./packages",
-        "./packages/dof2md",
+        "./packages/document2md",
         "./packages/dofjson",
         "./packages/nota2md"
     ],

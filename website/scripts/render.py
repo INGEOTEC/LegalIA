@@ -63,7 +63,7 @@ FREEZE = WEBSITE / "_freeze"
 WORKFLOW = REPO / ".github" / "workflows" / "website.yml"
 
 # What the executable pages import, as {module: pip requirement}. The
-# devcontainer's postCreateCommand only installs packages/dof2md, so the
+# devcontainer's postCreateCommand only installs packages/document2md, so the
 # rendering dependencies are installed on demand here rather than assumed.
 # `jupyter` is quarto's execution engine for .ipynb sources, not a notebook
 # import.

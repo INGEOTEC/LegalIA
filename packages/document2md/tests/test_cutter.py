@@ -1,6 +1,6 @@
 import unittest
 
-from dof2md.cutter import cut_markdown_by_titles, locate_titles
+from document2md.cutter import cut_markdown_by_titles, locate_titles
 
 
 class TestCutMarkdownByTitles(unittest.TestCase):

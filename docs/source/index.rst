@@ -27,7 +27,7 @@ see `the LegalIA website <https://ingeotec.github.io/LegalIA/>`_.
 
 Each package under ``packages/<name>/`` has its own ``pyproject.toml``,
 version, and PyPI release, and builds on the ones before it in this read
-order: ``dofjson`` -> ``scjn`` -> ``nota2md`` -> ``dof2md`` -> ``md2akn``.
+order: ``dofjson`` -> ``scjn`` -> ``nota2md`` -> ``document2md`` -> ``md2akn``.
 
 .. list-table:: The five packages
    :header-rows: 1
@@ -56,12 +56,12 @@ order: ``dofjson`` -> ``scjn`` -> ``nota2md`` -> ``dof2md`` -> ``md2akn``.
      - |nota2md_version|
      - `nota2md <https://pypi.org/project/nota2md/>`_
      - :doc:`nota2md_api`
-   * - ``dof2md``
+   * - ``document2md``
      - OCRs a PDF or a set of scanned page images to Markdown via mineru —
        ``nota2md``'s fallback for legal provisions predating the HTML era.
-     - |dof2md_version|
-     - `dof2md <https://pypi.org/project/dof2md/>`_
-     - :doc:`dof2md_api`
+     - |document2md_version|
+     - `document2md <https://pypi.org/project/document2md/>`_
+     - :doc:`document2md_api`
    * - ``md2akn``
      - Segments a law's Markdown into a hierarchy labelled with Akoma
        Ntoso's vocabulary. No dependency on the other four packages.
@@ -79,12 +79,12 @@ on both — building a note's Markdown off ``dofjson``, and matching a
 snapshot ``scjn`` reads back to the DOF ``codNota`` that produced it
 (:py:mod:`nota2md.linking`, the one SCJN-adjacent concern that needs both
 sides, so it stays a layer up from ``scjn`` rather than inside it) — and
-reaches into ``dof2md`` only as the OCR fallback for pre-HTML-era provisions
+reaches into ``document2md`` only as the OCR fallback for pre-HTML-era provisions
 (pre-1999ish). ``md2akn`` reads ``nota2md``'s Markdown output from disk and
 depends on none of the other four.
 
 .. graphviz::
-   :alt: How dofjson, scjn, nota2md, dof2md and md2akn relate, and the
+   :alt: How dofjson, scjn, nota2md, document2md and md2akn relate, and the
          external systems each one talks to.
 
    digraph legalia_flow {
@@ -104,7 +104,7 @@ depends on none of the other four.
        dofjson [label="dofjson\nDOF/SIDOF client"];
        scjn [label="scjn\nSCOW API client,\nscjn-leyes reader"];
        nota2md [label="nota2md\nnote -> Markdown,\ncodNota linking, reform replay"];
-       dof2md [label="dof2md\nPDF/image OCR"];
+       document2md [label="document2md\nPDF/image OCR"];
        md2akn [label="md2akn\nMarkdown -> Akoma Ntoso\nvocabulary tree"];
 
        sidof -> dofjson;
@@ -114,8 +114,8 @@ depends on none of the other four.
        scjn_leyes -> scjn;
        dofjson -> nota2md;
        scjn -> nota2md;
-       nota2md -> dof2md [label="OCR fallback\n(pre-HTML-era notes)", style=dashed];
-       dof2md -> mineru;
+       nota2md -> document2md [label="OCR fallback\n(pre-HTML-era notes)", style=dashed];
+       document2md -> mineru;
        nota2md -> md2akn [label="Markdown"];
    }
 
@@ -128,5 +128,5 @@ API
    dofjson_api
    scjn_api
    nota2md_api
-   dof2md_api
+   document2md_api
    md2akn_api

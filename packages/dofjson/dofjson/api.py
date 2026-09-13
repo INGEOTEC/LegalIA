@@ -1,7 +1,7 @@
 """Unified entry point for reading and downloading DOF content — and the one
 place that is allowed to know dofjson.sidof (SIDOF) and dofjson.dofweb
 (the DOF's own website) both exist. Every other function, in this package
-(dofjson.archivo, dofjson.cli) or another one (nota2md, dof2md...), calls
+(dofjson.archivo, dofjson.cli) or another one (nota2md, document2md...), calls
 just this instead of juggling sidof/dofweb itself, which is the bug this
 module exists to close: a caller that only ever calls ``sidof`` and never
 considers that the day/note could be sitting in ``dofweb`` instead.
@@ -242,7 +242,7 @@ def download_nota_imagenes(
 
     Unlike download_nota(), this ALWAYS fetches the page images, even for a
     note that also has digital HTML content (cadenaContenido / existeHtml
-    "S"). That is what makes the image→OCR path (dof2md) available for every
+    "S"). That is what makes the image→OCR path (document2md) available for every
     note, not only the image-only ones — the scanned page is the certified
     original, and OCR'ing it is a way to get a note's Markdown that does not
     depend on the HTML being present or well-formed.
@@ -298,7 +298,7 @@ _EDICION_DIARIO_KEYS = {"MAT": "Matutina", "VES": "Vespertina", "EXT": "Extraord
 def download_edicion_pdf(date: dt.date, edicion: str, outdir: Path, timeout: int = 60) -> Path:
     """Download a whole DOF edition's PDF by date and edition (MAT/VES/EXT),
     resolving its codDiario from sidof.get_diario() first -- the piece
-    dof2md.downloader used to fake by guessing a www.dof.gob.mx filename
+    document2md.downloader used to fake by guessing a www.dof.gob.mx filename
     from the date instead (see issue #134). Cached in `outdir` via
     _edicion_pdf_cacheada(), same as download_nota_pdf()'s own edition
     fetch, so calling this again for the same edition does not re-download
@@ -338,7 +338,7 @@ def download_nota_pdf(cod_nota: int, outdir: Path, nota: dict | None = None) -> 
     There is no per-note PDF endpoint — the DOF only serves the full edition
     (dofjson.sidof.download_pdf) — so this is the note-scoped counterpart of
     download_nota_imagenes(): a PDF holding just the note's pages, ready to
-    hand to dof2md. Works for any note, with or without HTML content.
+    hand to document2md. Works for any note, with or without HTML content.
 
     The edition PDF itself is cached in `outdir` (see
     _edicion_pdf_cacheada()) rather than downloaded-and-discarded per note,

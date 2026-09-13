@@ -6,18 +6,18 @@ per document:
         for pdf_path, outdir, filename in jobs:
             convert(pdf_path, outdir, filename)
 
-dof2md itself has no notion of what a "note" is or where a document came
+document2md itself has no notion of what a "note" is or where a document came
 from — a job is just a PDF (a single path) or a set of scanned page images (a
 list of paths), an output directory, and an output filename. Whatever calls
 this decides what those mean (a DOF legal provision, or anything else).
 """
 from pathlib import Path
 
-from dof2md import converter as _converter
-from dof2md.converter import DEFAULT_TIMEOUT_SECONDS
-from dof2md.cutter import cut_markdown_by_titles
-from dof2md.mineru_server import ENV_VAR as _MINERU_API_URL_ENV_VAR
-from dof2md.mineru_server import MineruServer
+from document2md import converter as _converter
+from document2md.converter import DEFAULT_TIMEOUT_SECONDS
+from document2md.cutter import cut_markdown_by_titles
+from document2md.mineru_server import ENV_VAR as _MINERU_API_URL_ENV_VAR
+from document2md.mineru_server import MineruServer
 
 
 class BatchConverter:
@@ -30,7 +30,7 @@ class BatchConverter:
 
     `titulo`/`titulo_siguiente`, when given, slice the OCR'd Markdown down
     to the text between their two boundaries (see
-    dof2md.cutter.cut_markdown_by_titles) — e.g. a DOF legal provision's own
+    document2md.cutter.cut_markdown_by_titles) — e.g. a DOF legal provision's own
     title and the next one's, to cut a page shared with the notes before and
     after it down to just this one. Left out (the default), the whole
     conversion is kept as-is, on the assumption that the whole document is

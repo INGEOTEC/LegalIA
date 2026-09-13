@@ -22,7 +22,7 @@ for nodo in ley.walk():               # every node, in document order
 
 ## The name does not mean XML
 
-`md2akn` follows the repository's naming convention (`nota2md`, `dof2md`:
+`md2akn` follows the repository's naming convention (`nota2md`, `document2md`:
 input → output), but the `2` does **not** mean this package emits Akoma Ntoso
 XML. It never does, and neither does anything else in LegalIA: the project
 does not emit Akoma Ntoso XML at any point (issue #168). What is taken from
@@ -288,7 +288,7 @@ about that corpus, not about Markdown, and lives in
 here.
 
 For the same reason the only dependency is `spacy`. Nothing from `dofjson`,
-`nota2md` or `dof2md`: taking any of them would drag in release downloads and
+`nota2md` or `document2md`: taking any of them would drag in release downloads and
 mineru for a package that reads a file.
 
 ## Installation

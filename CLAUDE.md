@@ -104,8 +104,9 @@ build on each other in this sequence.
   #208). `legal_provisions`' own derived output (a snapshot's extracted text,
   a DOF note's Markdown) is cached on disk under `nota2md.cache.CACHE_DIR` —
   `nota2md`'s own directory, deliberately not `dofjson`'s or `scjn`'s.
-- **`dof2md`** — OCRs a PDF or a set of scanned images to Markdown via
-  `mineru`. Has no notion of "note"/"legal provision", and no download of
+- **`document2md`** — OCRs a PDF or a set of scanned images to Markdown via
+  `mineru` (renamed from `dof2md` in issue #228, see its own section below).
+  Has no notion of "note"/"legal provision", and no download of
   its own — it only ever converts a PDF/images already on disk; getting a
   whole DOF edition's PDF by date and edition is `dofjson.download_edicion_pdf`'s
   job now (issue #134). `BatchConverter` keeps one `mineru-api` server warm
@@ -540,6 +541,63 @@ corpus next to its siblings:
   `all` now includes it — `nota2md` itself still reads nothing from this
   corpus.
 
+## `dof2md` is now `document2md` (issue #228, done)
+
+The package that OCRs a PDF or a set of page images to Markdown was renamed:
+distribution, directory, import package, console script, release tag, Read
+the Docs page (`docs/source/document2md_api.rst`) and website page
+(`website/pages/document2md.ipynb`) all say `document2md` now. Nothing else
+changed — same `BatchConverter`, same CLI flags (including the Spanish
+`--titulo`/`--titulo-siguiente`, deliberately untouched), same output, same
+version line (`0.3.0`, continued rather than reset).
+
+- **A package is named after what it does, not after the corpus that first
+  needed it.** That is the criterion this rename settles, and the one the
+  project's later package renames follow. `dof2md` had had no notion of the
+  DOF since issue #134 moved the edition download out into
+  `dofjson.download_edicion_pdf`; nothing in it knows what a note or a legal
+  provision is. The name also has to survive the backend: `mineru` is an
+  implementation detail and a cloud OCR/layout service is a plausible second
+  one, so `ocr2md` was rejected along with `scan2md` (excludes born-digital
+  PDFs) and `pdf2md` (excludes the image path, which is the one `nota2md`
+  actually uses for pre-1999 notes).
+- **The multi-backend seam is not here.** No `backend=` parameter, no
+  registry, no second converter — the *possibility* of one is the reason for
+  the name, not part of the rename; it gets its own issue.
+- **`packages/dof2md/` still exists, as a tombstone that raises.** It is a
+  code-less final release for the old PyPI name: `__version__ = "0.3.0"`,
+  then an unconditional `ImportError` naming `document2md` and
+  `pip install document2md`. It does **not** depend on `document2md` — a
+  working shim was rejected, because it would keep the old package alive as
+  real, maintained code, and would let `pip install dof2md` quietly keep
+  working through a transitive import. Silence was rejected too: PyPI would
+  otherwise keep serving 0.2.0 forever with nothing saying it was renamed.
+- **`__version__` must stay above the `raise`, as a plain literal.** Both
+  setuptools' `attr:` resolution and `scripts/check_package_versions.py`'s
+  `local_version()` read it statically (AST, no import) — that is what makes
+  a module which raises on import buildable and publishable at all.
+  `packages/dof2md/tests/test_tombstone.py` guards the ordering, alongside
+  the test that the import raises.
+- **The version gate learned about tombstones.**
+  `[tool.legalia] tombstone = true`, in the package's own `pyproject.toml`,
+  exempts it from `check_package_versions.py`'s one-step-ahead rule (issue
+  #194): once `dof2md-v0.3.0` is published, local and PyPI agree forever,
+  which the gate would otherwise report as a failure on every pull request
+  from then on. The marker is data in the package it describes, so the next
+  rename costs a key, not a code edit.
+- **Publish order:** `document2md` 0.3.0 goes to PyPI **before or at the
+  same time as** any `nota2md` release whose `ocr` extra requires it
+  (`document2md>=0.3.0`), or `pip install nota2md[ocr]` breaks for everyone
+  outside this repo — the same rule this file already states for `scjn` and
+  `nota2md`. `dof2md-v0.3.0` (the tombstone) can go at any point after;
+  `publish-pypi.yml` keeps its `dof2md-v*` tag rule for exactly that one
+  last release.
+- The website page was **not** re-executed (it needs `mineru` and a real
+  edition PDF): the rename changes no output, so the `website/_freeze/`
+  payloads were edited textually, which is what `freeze: true` publishes.
+  `.github/migracion-diputados.md` keeps its `dof2md` mentions — it is a
+  frozen historical record, like this file's own history sections.
+
 ## Documentation: two sites, one division of labour (issue #119, done)
 
 The project has two documentation sites, and what goes on which one is a
@@ -567,7 +625,7 @@ packages shared, and inherited unchanged by `scjn` when it joined (#212):
   subcommand. "Verified" means a live doctest, run by the separate
   `docs-doctest` job in `.github/workflows/test.yml` (network access
   allowed; the Read the Docs build itself stays HTML-only and must not
-  depend on the network). Where that is genuinely not possible — `dof2md`'s
+  depend on the network). Where that is genuinely not possible — `document2md`'s
   OCR paths need `mineru`, deliberately kept out of the doctest job for its
   weight — the exception is written down on the page itself, with the
   package's own pytest suite named as what verifies that behaviour instead;
@@ -689,7 +747,7 @@ filter is a pass-through — it just stops shrinking what it commits.
   as opaque strings, why treaty-name matching is rarity-weighted, why a
   version floor is pinned in a `pyproject.toml` dependency) — read them
   before "simplifying" the code they're attached to.
-- `dof2md` and `nota2md`'s OCR paths depend on `mineru`, which is heavy;
+- `document2md` and `nota2md`'s OCR paths depend on `mineru`, which is heavy;
   `nota2md`'s HTML path (`beautifulsoup4` + `dofjson` + `requests`) works
-  standalone and is the preferred/default source — `dof2md` is imported
+  standalone and is the preferred/default source — `document2md` is imported
   lazily so installing `nota2md` alone doesn't pull it in.

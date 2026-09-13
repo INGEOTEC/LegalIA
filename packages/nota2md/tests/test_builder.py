@@ -198,7 +198,7 @@ class TestLegalProvisions(unittest.TestCase):
         with self.assertRaises(ValueError):
             legal_provisions(1, self.outdir, source="html", nota=nota)
 
-    @patch("dof2md.converter.convert_images_to_markdown")
+    @patch("document2md.converter.convert_images_to_markdown")
     @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_image_path_ocrs_and_cuts_to_the_note(self, mock_download, mock_convert):
         image_only = {
@@ -239,7 +239,7 @@ class TestLegalProvisions(unittest.TestCase):
         self.assertNotIn("tail de la nota anterior", text)
         self.assertNotIn("SUP 036", text)
 
-    @patch("dof2md.converter.convert_to_markdown")
+    @patch("document2md.converter.convert_to_markdown")
     @patch("nota2md.builder.dofjson.download_nota_pdf")
     def test_pdf_path_ocrs_note_pdf_and_cuts(self, mock_download_pdf, mock_convert):
         nota = {
@@ -310,7 +310,7 @@ class TestLegalProvisions(unittest.TestCase):
                     )
                 self.assertIn(dofjson.FUENTE_WEB, str(ctx.exception))
 
-    @patch("dof2md.converter.convert_images_to_markdown")
+    @patch("document2md.converter.convert_images_to_markdown")
     @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_keep_pages_writes_full_uncut_copy(self, mock_download, mock_convert):
         image_only = {
@@ -333,7 +333,7 @@ class TestLegalProvisions(unittest.TestCase):
             "full page text",
         )
 
-    @patch("dof2md.converter.convert_images_to_markdown")
+    @patch("document2md.converter.convert_images_to_markdown")
     @patch("nota2md.builder.dofjson.get_notas")
     @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_fetches_notas_del_dia_through_the_unified_dofjson_entry_point(

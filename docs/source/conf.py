@@ -9,7 +9,7 @@
 # rather than reached via sys.path manipulation here, so conf.py only needs
 # to import the already-installed packages to read their __version__.
 
-import dof2md
+import document2md
 import dofjson
 import md2akn
 import nota2md
@@ -23,14 +23,14 @@ author = "INGEOTEC"
 
 # Each package under packages/<name>/ is versioned and released
 # independently (see CLAUDE.md's read order: dofjson -> scjn -> nota2md ->
-# dof2md -> md2akn), so there is no single project version to set here.
+# document2md -> md2akn), so there is no single project version to set here.
 # Instead each package gets its own substitution, used on index.rst's
 # version table and in each *_api.rst page's own header.
 rst_epilog = f"""
 .. |dofjson_version| replace:: {dofjson.__version__}
 .. |scjn_version| replace:: {scjn.__version__}
 .. |nota2md_version| replace:: {nota2md.__version__}
-.. |dof2md_version| replace:: {dof2md.__version__}
+.. |document2md_version| replace:: {document2md.__version__}
 .. |md2akn_version| replace:: {md2akn.__version__}
 """
 
@@ -71,9 +71,9 @@ autodoc_class_signature = "separated"
 add_function_parentheses = False
 add_module_names = False
 
-# dof2md never imports mineru itself in-process — it only shells out to the
-# mineru-api CLI as a subprocess (see dof2md/mineru_server.py) — so autodoc
-# needs no mock for it; dof2md is installed with --no-deps in
+# document2md never imports mineru itself in-process — it only shells out to the
+# mineru-api CLI as a subprocess (see document2md/mineru_server.py) — so autodoc
+# needs no mock for it; document2md is installed with --no-deps in
 # .readthedocs.yaml precisely so the heavy mineru[pipeline] install (and its
 # libgl1/opencv system dependency, see test.yml) never has to happen for a
 # docs build.
