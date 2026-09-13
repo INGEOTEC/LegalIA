@@ -18,6 +18,7 @@ document2md = { workspace = true }
 # `pytest packages/dof2md` can import it and assert it raises.
 dof2md = { workspace = true }
 dofjson = { workspace = true }
+legalvec = { workspace = true }
 md2akn = { workspace = true }
 nota2md = { workspace = true }
 scjn = { workspace = true }
@@ -34,6 +35,7 @@ dev = [
     "document2md[test]",
     "dof2md",
     "dofjson[test]",
+    "legalvec[test]",
     "md2akn[test]",
     "nota2md[ocr,test]",
     "scjn[test]",

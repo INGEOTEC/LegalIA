@@ -47,6 +47,11 @@ DEFAULT_SPLIT_CAP = 2000
 
 _WHITESPACE = re.compile(r"\s+")
 
+#: A blank line — the paragraph boundary rule 9 splits an over-cap unit at,
+#: and exactly the boundary `md2akn.segmenter.iter_blocks` reads the document
+#: with: a Markdown block *is* a paragraph here.
+_PARAGRAPH_BREAK = re.compile(r"\n[ \t]*\n")
+
 #: The Akoma Ntoso container types that carry a `.heading` and therefore get
 #: their own `heading` unit (rule 4): `book`/`title`/`chapter`/`section`, and
 #: `level` (an apartado) -- but only in the one shape that ever reaches
@@ -159,6 +164,39 @@ class Coverage:
     annotation_chars: int
     covered_chars: int
     uncovered_chars: int
+
+
+@dataclass(frozen=True)
+class CapReport:
+    """The cap invariant, as data (issue #227's rule 9) — `coverage()`'s
+    sibling: `coverage()` turned "nothing is lost" into something a test can
+    fail on, this turns "the units are usable" into the same.
+
+    `splittable == 0` is the invariant. An over-cap unit is only admissible
+    when rule 9 has nothing left to cut, which happens for two reasons and is
+    counted in `unsplittable` — the residue #218's own 665 over-cap units
+    were counted as:
+
+    - the unit's own span is a **single paragraph** — rule 9 never cuts
+      mid-sentence, so a 52,578-character paragraph stays one unit;
+    - or what pushes it over the cap is a prefix rather than its own text:
+      rule 3 prefixes every piece of a split article with that article's
+      chapeau, and `cff`'s article 20 has a 3,500-character chapeau, so each
+      of its 14 pieces is over the cap no matter how finely the piece itself
+      is cut. Splitting the chapeau would leave a piece carrying half of its
+      own context, which is worse than a long unit.
+    """
+
+    cap: int
+    units: int
+    #: The longest unit's embedded text, in characters.
+    max_chars: int
+    #: Units whose text is longer than `cap`.
+    over_cap: int
+    #: Of those, the ones rule 9 has nothing left to cut — see above.
+    unsplittable: int
+    #: Of those, the ones that could still have been cut — the invariant.
+    splittable: int
 
 
 def normalize(text: str) -> str:
@@ -306,32 +344,167 @@ def _with_context(raw_text: str, path: tuple[str, ...]) -> str:
     return normalize(f"{prefix}\n\n{raw_text}")
 
 
-def _with_article_template(raw_text: str, template: str, article: AknNode, law_name: str | None) -> str:
+def _with_article_template(raw_text: str, template: str, num: str | None, law_name: str | None) -> str:
+    """`raw_text`, prefixed as `template` says — rule 7's article prefix.
+
+    Takes the article's `num` rather than the node itself so that rule 9 can
+    re-wrap one of its pieces with the same prefix without carrying the tree
+    around (see `_capped_pieces`).
+    """
     if template == "contextual":
         prefix_parts = []
         if law_name:
             prefix_parts.append(law_name)
-        if article.num:
-            prefix_parts.append(f"Artículo {article.num}")
+        if num:
+            prefix_parts.append(f"Artículo {num}")
         if prefix_parts:
             return normalize(f"{', '.join(prefix_parts)}. {raw_text}")
     return normalize(raw_text)
 
 
-def _leaf_unit(unit_type: str, node: AknNode, ann_ranges) -> TextUnit:
-    text = normalize(_node_text(node, ann_ranges))
-    return TextUnit(
-        unit_type=unit_type,
-        eId=node.eId,
-        piece=0,
-        piece_eId=None,
-        akn_type=node.akn_type,
-        num=node.num,
-        path=(),
-        start_char=node.start_char,
-        end_char=node.end_char,
-        text=text,
-        text_sha1=_sha1(text),
+def _paragraph_spans(doc_text: str, start: int, end: int) -> list[tuple[int, int]]:
+    """`[start, end)` cut at blank lines, one span per paragraph, in order.
+
+    The separator stays with the paragraph it follows, so the spans partition
+    the range exactly — no character falls between two of them, which is what
+    keeps `coverage()` true of a unit rule 9 has split.
+    """
+    spans: list[tuple[int, int]] = []
+    cursor = start
+    for m in _PARAGRAPH_BREAK.finditer(doc_text, start, end):
+        if m.end() <= cursor:
+            continue
+        spans.append((cursor, m.end()))
+        cursor = m.end()
+    if cursor < end:
+        spans.append((cursor, end))
+    return spans
+
+
+def _capped_pieces(
+    start: int,
+    end: int,
+    ann_ranges: "_RangeIndex",
+    cap: int,
+    wrap,
+    split_over_cap: bool,
+) -> list[tuple[int, int, str]]:
+    """Rule 9 (issue #227): `[start, end)` as consecutive
+    `(start, end, text)` pieces, each fitting `cap`.
+
+    One piece — the whole range — whenever the text already fits, whenever
+    `split_over_cap` is off, or whenever the range is a **single paragraph**
+    that does not fit: an over-cap paragraph is left whole rather than cut
+    mid-sentence, and `max_unit_chars` counts what is left that way. Otherwise
+    paragraphs are packed greedily, in document order, into the longest run
+    whose own embedded text still fits.
+
+    `wrap` is the unit's own text-building step — `normalize`, the ancestor
+    path prefix, or the article template — applied to every candidate piece,
+    so the cap is measured against what actually gets embedded rather than
+    against the raw slice.
+    """
+    doc_text = ann_ranges.doc_text
+    whole = wrap(_strip_ranges(doc_text, start, end, ann_ranges))
+    if not split_over_cap or len(whole) <= cap:
+        return [(start, end, whole)]
+    spans = _paragraph_spans(doc_text, start, end)
+    if len(spans) <= 1:
+        return [(start, end, whole)]
+
+    pieces: list[tuple[int, int, str]] = []
+    grupo: tuple[int, int, str] | None = None
+    for s, e in spans:
+        if grupo is None:
+            grupo = (s, e, wrap(_strip_ranges(doc_text, s, e, ann_ranges)))
+            continue
+        candidato = wrap(_strip_ranges(doc_text, grupo[0], e, ann_ranges))
+        if len(candidato) > cap:
+            pieces.append(grupo)
+            grupo = (s, e, wrap(_strip_ranges(doc_text, s, e, ann_ranges)))
+        else:
+            grupo = (grupo[0], e, candidato)
+    pieces.append(grupo)
+
+    # A piece whose text came out empty -- a paragraph that was nothing but a
+    # reform annotation, stripped as metadata -- is not a unit. Its characters
+    # still have to belong to one, or `coverage()` would report them
+    # uncovered, so they are folded into the neighbouring piece's span.
+    fusionadas: list[tuple[int, int, str]] = []
+    arrastre = None
+    for pieza in pieces:
+        if not pieza[2]:
+            if fusionadas:
+                anterior = fusionadas[-1]
+                fusionadas[-1] = (anterior[0], pieza[1], anterior[2])
+            else:
+                arrastre = pieza[0] if arrastre is None else arrastre
+            continue
+        if arrastre is not None:
+            pieza = (arrastre, pieza[1], pieza[2])
+            arrastre = None
+        fusionadas.append(pieza)
+    return fusionadas or [(start, end, whole)]
+
+
+def _units_from_pieces(
+    pieces: list[tuple[int, int, str]],
+    *,
+    unit_type: str,
+    eId: str,
+    akn_type: str,
+    num: str | None,
+    path: tuple[str, ...],
+    piece_eId: str | None,
+    first_piece: int = 0,
+    piece_type: str | None = None,
+    whole_if_single: bool = True,
+) -> list[TextUnit]:
+    """`_capped_pieces`' output as `TextUnit`s.
+
+    A single piece is the unit whole, `piece` 0 — exactly what every unit
+    looked like before rule 9. Several are consecutive pieces of it, numbered
+    from `first_piece + 1`, all carrying the same `piece_eId` (the node the
+    text came from, when there is one: paragraph pieces of the same child of
+    an article share it) and `piece_type` as their `unit_type` when the split
+    changes what they are — a split `article` becomes `article_piece`, while a
+    split `preamble` stays a `preamble`, since the vocabulary has no other
+    name for it and rule 9 adds none (issue #227).
+
+    `whole_if_single` is off for the pieces rule 3 already numbers — one of
+    an article's children is piece `n` of that article whether or not rule 9
+    then cuts it in two, and renumbering it 0 would claim it is the whole
+    article.
+    """
+    if whole_if_single and len(pieces) == 1:
+        start, end, text = pieces[0]
+        return [
+            TextUnit(
+                unit_type=unit_type, eId=eId, piece=first_piece,
+                piece_eId=piece_eId if first_piece else None,
+                akn_type=akn_type, num=num, path=path,
+                start_char=start, end_char=end, text=text, text_sha1=_sha1(text),
+            )
+        ]
+    return [
+        TextUnit(
+            unit_type=piece_type or unit_type, eId=eId, piece=first_piece + i,
+            piece_eId=piece_eId, akn_type=akn_type, num=num, path=path,
+            start_char=start, end_char=end, text=text, text_sha1=_sha1(text),
+        )
+        for i, (start, end, text) in enumerate(pieces, 1)
+    ]
+
+
+def _leaf_units(
+    unit_type: str, node: AknNode, ann_ranges, cap: int, split_over_cap: bool
+) -> list[TextUnit]:
+    pieces = _capped_pieces(
+        node.start_char, node.end_char, ann_ranges, cap, normalize, split_over_cap
+    )
+    return _units_from_pieces(
+        pieces, unit_type=unit_type, eId=node.eId, akn_type=node.akn_type,
+        num=node.num, path=(), piece_eId=None,
     )
 
 
@@ -342,25 +515,24 @@ def _article_units(
     cap: int,
     template: str,
     law_name: str | None,
+    split_over_cap: bool = True,
 ) -> list[TextUnit]:
+    def wrap(raw_text: str, chapeau_raw: str = "") -> str:
+        combined = f"{chapeau_raw}\n\n{raw_text}" if chapeau_raw else raw_text
+        return _with_article_template(combined, template, article.num, law_name)
+
     whole_raw = _node_text(article, ann_ranges)
     if len(normalize(whole_raw)) <= cap or not article.children:
-        text = _with_article_template(whole_raw, template, article, law_name)
-        return [
-            TextUnit(
-                unit_type="article",
-                eId=article.eId,
-                piece=0,
-                piece_eId=None,
-                akn_type="article",
-                num=article.num,
-                path=path,
-                start_char=article.start_char,
-                end_char=article.end_char,
-                text=text,
-                text_sha1=_sha1(text),
-            )
-        ]
+        # Rule 2, unchanged — and rule 9 behind it, for the one shape rule 3
+        # cannot reach: an article with no children at all whose own text is
+        # over the cap (a 25,000-character transitorio, say).
+        pieces = _capped_pieces(
+            article.start_char, article.end_char, ann_ranges, cap, wrap, split_over_cap
+        )
+        return _units_from_pieces(
+            pieces, unit_type="article", eId=article.eId, akn_type="article",
+            num=article.num, path=path, piece_eId=None, piece_type="article_piece",
+        )
 
     chapeau = [c for c in article.children if c.is_chapeau]
     remaining = [c for c in article.children if not c.is_chapeau]
@@ -368,44 +540,28 @@ def _article_units(
     piece = 0
     chapeau_raw = ""
     if chapeau:
-        piece = 1
         chapeau_raw = _group_text(chapeau, ann_ranges)
-        text = _with_article_template(chapeau_raw, template, article, law_name)
-        units.append(
-            TextUnit(
-                unit_type="article_piece",
-                eId=article.eId,
-                piece=piece,
-                piece_eId=chapeau[0].eId,
-                akn_type="article",
-                num=article.num,
-                path=path,
-                start_char=chapeau[0].start_char,
-                end_char=chapeau[-1].end_char,
-                text=text,
-                text_sha1=_sha1(text),
-            )
+        pieces = _capped_pieces(
+            chapeau[0].start_char, chapeau[-1].end_char, ann_ranges, cap, wrap,
+            split_over_cap,
         )
+        units.extend(_units_from_pieces(
+            pieces, unit_type="article_piece", eId=article.eId, akn_type="article",
+            num=article.num, path=path, piece_eId=chapeau[0].eId, first_piece=piece,
+            whole_if_single=False,
+        ))
+        piece = units[-1].piece
     for child in remaining:
-        piece += 1
-        child_raw = _node_text(child, ann_ranges)
-        combined = f"{chapeau_raw}\n\n{child_raw}" if chapeau_raw else child_raw
-        text = _with_article_template(combined, template, article, law_name)
-        units.append(
-            TextUnit(
-                unit_type="article_piece",
-                eId=article.eId,
-                piece=piece,
-                piece_eId=child.eId,
-                akn_type="article",
-                num=article.num,
-                path=path,
-                start_char=child.start_char,
-                end_char=child.end_char,
-                text=text,
-                text_sha1=_sha1(text),
-            )
+        pieces = _capped_pieces(
+            child.start_char, child.end_char, ann_ranges, cap,
+            lambda raw: wrap(raw, chapeau_raw), split_over_cap,
         )
+        units.extend(_units_from_pieces(
+            pieces, unit_type="article_piece", eId=article.eId, akn_type="article",
+            num=article.num, path=path, piece_eId=child.eId, first_piece=piece,
+            whole_if_single=False,
+        ))
+        piece = units[-1].piece
     return units
 
 
@@ -430,26 +586,25 @@ def _loose_groups(leaves: list[AknNode], ann_ranges, cap: int) -> list[list[AknN
     return groups
 
 
-def _loose_units(leaves: list[AknNode], path: tuple[str, ...], ann_ranges, cap: int) -> list[TextUnit]:
+def _loose_units(
+    leaves: list[AknNode],
+    path: tuple[str, ...],
+    ann_ranges,
+    cap: int,
+    split_over_cap: bool = True,
+) -> list[TextUnit]:
     units = []
     for group in _loose_groups(leaves, ann_ranges, cap):
-        raw = _group_text(group, ann_ranges)
-        text = _with_context(raw, path)
-        units.append(
-            TextUnit(
-                unit_type="loose",
-                eId=group[0].eId,
-                piece=0,
-                piece_eId=None,
-                akn_type=group[0].akn_type,
-                num=None,
-                path=path,
-                start_char=group[0].start_char,
-                end_char=group[-1].end_char,
-                text=text,
-                text_sha1=_sha1(text),
-            )
+        # The grouping above packs by raw length; the cap rule 9 enforces is
+        # on the embedded text, which also carries the ancestor path.
+        pieces = _capped_pieces(
+            group[0].start_char, group[-1].end_char, ann_ranges, cap,
+            lambda raw: _with_context(raw, path), split_over_cap,
         )
+        units.extend(_units_from_pieces(
+            pieces, unit_type="loose", eId=group[0].eId, akn_type=group[0].akn_type,
+            num=None, path=path, piece_eId=None,
+        ))
     return units
 
 
@@ -461,28 +616,21 @@ def _walk_container(
     template: str,
     law_name: str | None,
     units: list[TextUnit],
+    split_over_cap: bool = True,
 ) -> None:
     children = node.children
     first_start = children[0].start_char if children else node.end_char
     if node.akn_type in _CONTAINER_TYPES:
         heading_raw = _strip_ranges(ann_ranges.doc_text, node.start_char, first_start, ann_ranges)
         if normalize(heading_raw):
-            text = _with_context(heading_raw, path)
-            units.append(
-                TextUnit(
-                    unit_type="heading",
-                    eId=node.eId,
-                    piece=0,
-                    piece_eId=None,
-                    akn_type=node.akn_type,
-                    num=node.num,
-                    path=path,
-                    start_char=node.start_char,
-                    end_char=first_start,
-                    text=text,
-                    text_sha1=_sha1(text),
-                )
+            pieces = _capped_pieces(
+                node.start_char, first_start, ann_ranges, cap,
+                lambda raw: _with_context(raw, path), split_over_cap,
             )
+            units.extend(_units_from_pieces(
+                pieces, unit_type="heading", eId=node.eId, akn_type=node.akn_type,
+                num=node.num, path=path, piece_eId=None,
+            ))
         child_path = path + (_container_label(node),)
     else:
         child_path = path
@@ -491,20 +639,30 @@ def _walk_container(
     while i < n:
         child = children[i]
         if child.akn_type == "article":
-            units.extend(_article_units(child, child_path, ann_ranges, cap, template, law_name))
+            units.extend(_article_units(
+                child, child_path, ann_ranges, cap, template, law_name, split_over_cap,
+            ))
             i += 1
         elif _is_loose_leaf(child):
             j = i + 1
             while j < n and _is_loose_leaf(children[j]):
                 j += 1
-            units.extend(_loose_units(children[i:j], child_path, ann_ranges, cap))
+            units.extend(_loose_units(children[i:j], child_path, ann_ranges, cap, split_over_cap))
             i = j
         else:
-            _walk_container(child, child_path, ann_ranges, cap, template, law_name, units)
+            _walk_container(
+                child, child_path, ann_ranges, cap, template, law_name, units, split_over_cap,
+            )
             i += 1
 
 
-def text_units(source, *, cap: int = DEFAULT_SPLIT_CAP, template: str = "bare") -> list[TextUnit]:
+def text_units(
+    source,
+    *,
+    cap: int = DEFAULT_SPLIT_CAP,
+    template: str = "bare",
+    split_over_cap: bool = True,
+) -> list[TextUnit]:
     """Every text of a law, ready to embed — articles, container epigraphs,
     loose content, the preamble and the closing signatures, in document
     order.
@@ -513,7 +671,8 @@ def text_units(source, *, cap: int = DEFAULT_SPLIT_CAP, template: str = "bare") 
     (`md2akn.parse_markdown`'s return), so a caller who parsed for another
     reason does not pay to parse twice.
 
-    The seven rules (issue #218 Fase 1):
+    The nine rules — seven from issue #218's Fase 1, two added by #227 and
+    numbered into the same list rather than replacing any of them:
 
     1. Frontmatter and reform annotations are metadata, never embedded.
     2. An article no longer than `cap` (normalized) is one unit, whole.
@@ -527,6 +686,19 @@ def text_units(source, *, cap: int = DEFAULT_SPLIT_CAP, template: str = "bare") 
     7. `heading`/`loose` units always carry their ancestor `path` in the
        embedded text; whether an article carries its own number and the
        law's name is `template`'s call (`"bare"` or `"contextual"`).
+    8. An instrument that never writes `Artículo N` numbers its provisions
+       some other way, and that is decided once per document, in
+       `md2akn.structure.modo_sin_articulos` — bold ordinals
+       (`**PRIMERO.-**`), or failing those decimal numerals (`1.`, `2.1`),
+       open articles in its body too. Gated on the *document*, so no law and
+       no article-numbered reglamento can change.
+    9. No unit exceeds `cap`: one still over it after rules 2-6 is cut again
+       at **paragraph** boundaries into consecutive pieces, reusing `piece` /
+       `piece_eId` and the same context prefix. A single paragraph longer
+       than `cap` is left whole — never cut mid-sentence — and
+       `max_unit_chars` counts what is left that way. `split_over_cap=False`
+       turns this rule off, which is how a pre-#227 vector set is reproduced
+       byte for byte.
 
     >>> import md2akn
     >>> text = (
@@ -536,6 +708,13 @@ def text_units(source, *, cap: int = DEFAULT_SPLIT_CAP, template: str = "bare") 
     >>> units = md2akn.text_units(text)
     >>> [(u.unit_type, u.text) for u in units]
     [('heading', '**CAPITULO I** **Del objeto**'), ('article', '**Artículo 1o.** Esta ley regula el objeto.')]
+
+    Rule 9, on a document with one over-cap unit and three paragraphs to cut
+    it at:
+
+    >>> acuerdo = "\\n\\n".join(["Párrafo de %d." % n for n in range(1, 4)])
+    >>> [(u.unit_type, u.piece, u.text) for u in md2akn.text_units(acuerdo, cap=20)]
+    [('preamble', 1, 'Párrafo de 1.'), ('preamble', 2, 'Párrafo de 2.'), ('preamble', 3, 'Párrafo de 3.')]
     """
     if template not in TEMPLATES:
         raise ValueError(f"unknown template: {template!r} (expected one of {TEMPLATES})")
@@ -547,16 +726,18 @@ def text_units(source, *, cap: int = DEFAULT_SPLIT_CAP, template: str = "bare") 
     units: list[TextUnit] = []
     preamble = next((c for c in tree.children if c.akn_type == "preamble"), None)
     if preamble is not None:
-        units.append(_leaf_unit("preamble", preamble, ann_ranges))
+        units.extend(_leaf_units("preamble", preamble, ann_ranges, cap, split_over_cap))
 
     body = next((c for c in tree.children if c.akn_type == "body"), None)
     if body is not None:
         root_path = (law_name,) if law_name else ()
-        _walk_container(body, root_path, ann_ranges, cap, template, law_name, units)
+        _walk_container(
+            body, root_path, ann_ranges, cap, template, law_name, units, split_over_cap,
+        )
 
     conclusions = next((c for c in tree.children if c.akn_type == "conclusions"), None)
     if conclusions is not None:
-        units.append(_leaf_unit("conclusions", conclusions, ann_ranges))
+        units.extend(_leaf_units("conclusions", conclusions, ann_ranges, cap, split_over_cap))
 
     return units
 
@@ -644,4 +825,61 @@ def coverage(tree: AknNode, units: list[TextUnit]) -> Coverage:
         annotation_chars=annotation,
         covered_chars=covered,
         uncovered_chars=uncovered,
+    )
+
+
+def max_unit_chars(tree: AknNode, units: list[TextUnit], *, cap: int = DEFAULT_SPLIT_CAP) -> CapReport:
+    """The cap invariant, as data: how many of `units` are longer than `cap`,
+    and how many of those rule 9 could still have cut.
+
+    `coverage()`'s sibling (issue #227). A corpus built with `split_over_cap`
+    on has `splittable == 0`; whatever is left in `unsplittable` is a unit
+    rule 9 has nothing left to cut — see `CapReport`.
+
+    Counted against the *embedded* text — a `heading`/`loose` unit's ancestor
+    path, an article piece's chapeau and an article's `contextual` prefix are
+    all part of what the model sees, so they are part of what the cap is
+    measured on. "Could still have been cut" is counted against the unit's
+    own span instead, and only its paragraphs that carry text: a paragraph
+    that is nothing but a reform annotation is stripped from the embedded
+    text (rule 1), so cutting there would produce an empty unit.
+
+    >>> import md2akn
+    >>> text = "\\n\\n".join("Párrafo de %d." % n for n in range(1, 4)) + "\\n"
+    >>> report = md2akn.max_unit_chars(
+    ...     md2akn.parse_markdown(text), md2akn.text_units(text, cap=20), cap=20)
+    >>> (report.units, report.max_chars, report.over_cap, report.splittable)
+    (3, 13, 0, 0)
+    """
+    doc_text = tree.span.doc.text
+    ann_ranges = _RangeIndex(_annotation_ranges(tree, doc_text), doc_text)
+    max_chars = 0
+    over_cap = unsplittable = splittable = 0
+    for unit in units:
+        n = len(unit.text)
+        max_chars = max(max_chars, n)
+        if n <= cap:
+            continue
+        over_cap += 1
+        con_texto = [
+            (start, end)
+            for start, end in _paragraph_spans(doc_text, unit.start_char, unit.end_char)
+            if normalize(_strip_ranges(doc_text, start, end, ann_ranges))
+        ]
+        # Rule 9's own decision, restated rather than re-derived: the greedy
+        # packer emits more than one piece exactly when the span has two or
+        # more paragraphs that carry text. A piece whose chapeau prefix alone
+        # is over the cap therefore lands here as unsplittable, since its own
+        # span is that one child paragraph.
+        if len(con_texto) <= 1:
+            unsplittable += 1
+        else:
+            splittable += 1
+    return CapReport(
+        cap=cap,
+        units=len(units),
+        max_chars=max_chars,
+        over_cap=over_cap,
+        unsplittable=unsplittable,
+        splittable=splittable,
     )

@@ -439,6 +439,55 @@ is decided per published vector set, not in this package:
 >>> contextual[0].text
 'Artículo 9o. **ARTICULO 9o.-** Son obligaciones de los patrones: I.- Cumplir las disposiciones de las normas de trabajo; II.- Pagar a los trabajadores los salarios e indemnizaciones;'
 
+Rules 8 and 9: the *acuerdo*-shaped instrument, and the cap
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Issue #227 added two rules to the same list, for the two collections
+:py:mod:`scjn` publishes alongside the laws. A *lineamiento* is usually an
+**acuerdo**, and an acuerdo does not number its provisions ``Artículo N``: it
+writes ``**PRIMERO.-**``, or ``1.`` / ``2.1``. Rule 8 reads those as articles
+— but only in a document that numbers *nothing* with ``Artículo N``, a
+decision taken once per document by
+:py:func:`~md2akn.structure.modo_sin_articulos`. That gate is what makes the
+rule safe: it is off for all 315 federal laws, so none of them can change.
+
+>>> acuerdo = "**PRIMERO.-** Uno.\n\n**SEGUNDO.-** Dos.\n\n**TERCERO.-** Tres.\n"
+>>> [(u.unit_type, u.num) for u in md2akn.text_units(acuerdo)]
+[('article', 'PRIMERO'), ('article', 'SEGUNDO'), ('article', 'TERCERO')]
+
+The same three ordinals in a document that *does* have an article stay
+ordinary paragraphs, which is what they are:
+
+>>> ley = "**Artículo 1o.** Uno.\n\n" + acuerdo
+>>> [(u.unit_type, u.num) for u in md2akn.text_units(ley)]
+[('article', '1o')]
+
+Rule 9 is the cap, enforced rather than hoped for: a unit still over it after
+rules 2-6 is cut again at **paragraph** boundaries, reusing ``piece`` and the
+same context prefix. A single paragraph longer than the cap is left whole —
+nothing is ever cut mid-sentence — and :py:func:`~md2akn.max_unit_chars`
+counts what is left that way:
+
+>>> parrafos = "\n\n".join("Párrafo número %d." % n for n in range(1, 5)) + "\n"
+>>> [(u.unit_type, u.piece, u.text) for u in md2akn.text_units(parrafos, cap=40)]
+[('preamble', 1, 'Párrafo número 1. Párrafo número 2.'), ('preamble', 2, 'Párrafo número 3. Párrafo número 4.')]
+
+:py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
+where ``coverage()`` says nothing was lost, this says the units are usable.
+``splittable == 0`` is the invariant a corpus build asserts; ``unsplittable``
+is the admissible residue — a unit rule 9 has nothing left to cut:
+
+>>> tree = md2akn.parse_markdown(parrafos)
+>>> report = md2akn.max_unit_chars(tree, md2akn.text_units(parrafos, cap=40), cap=40)
+>>> (report.units, report.max_chars, report.over_cap, report.splittable)
+(2, 35, 0, 0)
+
+``split_over_cap=False`` turns rule 9 off, which is how a vector set built
+before #227 is reproduced byte for byte:
+
+>>> len(md2akn.text_units(parrafos, cap=40, split_over_cap=False))
+1
+
 .. automodule:: md2akn.units
    :members:
    :private-members:

@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [document2md, dof2md, dofjson, md2akn, nota2md, scjn]
+        package: [document2md, dof2md, dofjson, legalvec, md2akn, nota2md, scjn]
         python-version: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
@@ -70,6 +70,7 @@ jobs:
           # (see docs/source/document2md_api.rst).
           pip install --no-deps -e packages/document2md
           pip install -e packages/md2akn
+          pip install -e packages/legalvec
       - name: Download the scjn-leyes assets the docs exercise (disk-first reads since #209)
         run: scjn download --slug lfca
       - name: Download the scjn-reglamentos asset the docs exercise (issue #223)
