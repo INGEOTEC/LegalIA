@@ -204,6 +204,7 @@ def modo_sin_articulos(bloques) -> str | None:
     already had rather than being guessed at.
 
     >>> from md2akn.segmenter import iter_blocks
+    >>> from md2akn.structure import modo_sin_articulos
     >>> texto = "**PRIMERO.-** Uno.\\n\\n**SEGUNDO.-** Dos.\\n\\n**TERCERO.-** Tres."
     >>> modo_sin_articulos(list(iter_blocks(texto)))
     'ordinal'
