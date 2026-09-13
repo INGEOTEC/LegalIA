@@ -8,7 +8,7 @@
 
 <meta name="dcterms.date" content="2026-08-26">
 
-<title>dof2md: OCR for the Official Gazette – LegalIA</title>
+<title>document2md: OCR for the Official Gazette – LegalIA</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -144,8 +144,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">DOF Titles</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="../pages/dof2md.html" aria-current="page"> 
-<span class="menu-text">dof2md</span></a>
+    <a class="nav-link active" href="../pages/document2md.html" aria-current="page"> 
+<span class="menu-text">document2md</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../pages/references.html"> 
@@ -182,7 +182,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#what-dof2md-does" id="toc-what-dof2md-does" class="nav-link active" data-scroll-target="#what-dof2md-does"><span class="header-section-number">1</span> What dof2md does</a></li>
+  <li><a href="#what-document2md-does" id="toc-what-document2md-does" class="nav-link active" data-scroll-target="#what-document2md-does"><span class="header-section-number">1</span> What document2md does</a></li>
   <li><a href="#a-real-edition-converted" id="toc-a-real-edition-converted" class="nav-link" data-scroll-target="#a-real-edition-converted"><span class="header-section-number">2</span> A real edition, converted</a></li>
   <li><a href="#from-the-command-line" id="toc-from-the-command-line" class="nav-link" data-scroll-target="#from-the-command-line"><span class="header-section-number">3</span> From the command line</a></li>
   
@@ -194,7 +194,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">dof2md: OCR for the Official Gazette</h1>
+<h1 class="title">document2md: OCR for the Official Gazette</h1>
 <p class="subtitle lead">Turning a DOF edition’s PDF straight into Markdown</p>
 </div>
 
@@ -216,7 +216,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div>
   <div class="abstract">
     <div class="block-title">Abstract</div>
-    <p>dof2md is the LegalIA package that never looks at a “note” at all: given a PDF or a set of scanned page images from Mexico’s Official Gazette — DOF, for Diario Oficial de la Federación, its Spanish name — it produces Markdown, optionally cropped down to a single note by title. It is, underneath, a wrapper around mineru for the OCR and layout analysis; this page shows it converting a real, current edition end to end, and explains what dof2md adds on top of mineru itself.</p>
+    <p>document2md is the LegalIA package that never looks at a “note” at all: given a PDF or a set of scanned page images from Mexico’s Official Gazette — DOF, for Diario Oficial de la Federación, its Spanish name — it produces Markdown, optionally cropped down to a single note by title. It is, underneath, a wrapper around mineru for the OCR and layout analysis; this page shows it converting a real, current edition end to end, and explains what document2md adds on top of mineru itself.</p>
   </div>
 </div>
 
@@ -226,7 +226,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="https://colab.research.google.com/github/INGEOTEC/LegalIA/blob/master/website/pages/dof2md.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" class="img-fluid figure-img"></a></p>
+<p><a href="https://colab.research.google.com/github/INGEOTEC/LegalIA/blob/master/website/pages/document2md.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" class="img-fluid figure-img"></a></p>
 <figcaption>Open in Colab</figcaption>
 </figure>
 </div>
@@ -234,12 +234,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="cell-1" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># %pip install dof2md</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># %pip install document2md</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<section id="what-dof2md-does" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="what-dof2md-does"><span class="header-section-number">1</span> What dof2md does</h2>
-<p><a href="https://pypi.org/project/dof2md/">dof2md</a> operates at the coarsest grain of the three LegalIA packages that work with the gazette: it has no notion of which note a page belongs to, only of pages. Given a PDF — a whole DOF edition, or any other document — or an ordered list of scanned page images, it produces Markdown. It is, underneath, a wrapper around <a href="https://github.com/opendatalab/MinerU">mineru</a> for the OCR and layout analysis itself; that should be explicit rather than implied. On top of mineru, dof2md adds:</p>
+<section id="what-document2md-does" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="what-document2md-does"><span class="header-section-number">1</span> What document2md does</h2>
+<p><a href="https://pypi.org/project/document2md/">document2md</a> operates at the coarsest grain of the three LegalIA packages that work with the gazette: it has no notion of which note a page belongs to, only of pages. Given a PDF — a whole DOF edition, or any other document — or an ordered list of scanned page images, it produces Markdown. It is, underneath, a wrapper around <a href="https://github.com/opendatalab/MinerU">mineru</a> for the OCR and layout analysis itself; that should be explicit rather than implied. On top of mineru, document2md adds:</p>
 <ul>
 <li>Keeping mineru’s own <code>mineru-api</code> server warm across a batch of documents, instead of paying its startup (and model-loading) cost once per document.</li>
 <li>Stitching the OCR of a list of page images — several scanned pages of the same note — into one continuous Markdown document.</li>
@@ -247,11 +247,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Cropping the result down to a single note, by locating its title and the next note’s title in the OCR’d text — useful because a scanned page usually holds the tail of one note and the head of the next.</li>
 </ul>
 <p>It is only needed directly for notes that predate the HTML era of the gazette (pre-1999-ish) and survive only as scanned images — <code>nota2md</code> borrows it lazily as its own OCR fallback for that path. Used on its own, as here, it never talks to <code>dofjson</code> or <code>nota2md</code> at all.</p>
-<p>This page tells one story end to end, with one real edition; it is not the API reference. For every option <code>BatchConverter</code>/<code>dof2md</code> accept, each with its own worked example, see <a href="https://legalia.readthedocs.io/en/latest/dof2md_api.html">dof2md’s page on Read the Docs</a>.</p>
+<p>This page tells one story end to end, with one real edition; it is not the API reference. For every option <code>BatchConverter</code>/<code>document2md</code> accept, each with its own worked example, see <a href="https://legalia.readthedocs.io/en/latest/document2md_api.html">document2md’s page on Read the Docs</a>.</p>
 </section>
 <section id="a-real-edition-converted" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="a-real-edition-converted"><span class="header-section-number">2</span> A real edition, converted</h2>
-<p>On June 16, 2026, the DOF’s evening edition (<code>VES</code>) carried a single decree: administrative measures for the venues of the 2026 FIFA World Cup in Mexico City and the Guadalajara metropolitan area. At four pages it is one of the shortest editions in the gazette’s recent archive, and, being a current edition, its PDF already carries the pages’ own text rather than only a scan of them, which keeps mineru’s OCR pass short. That makes it a fast, realistic example of dof2md converting a complete edition, with <code>dofjson</code>/<code>nota2md</code> and their note lookups nowhere in the picture:</p>
+<p>On June 16, 2026, the DOF’s evening edition (<code>VES</code>) carried a single decree: administrative measures for the venues of the 2026 FIFA World Cup in Mexico City and the Guadalajara metropolitan area. At four pages it is one of the shortest editions in the gazette’s recent archive, and, being a current edition, its PDF already carries the pages’ own text rather than only a scan of them, which keeps mineru’s OCR pass short. That makes it a fast, realistic example of document2md converting a complete edition, with <code>dofjson</code>/<code>nota2md</code> and their note lookups nowhere in the picture:</p>
 <div id="cell-4" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
@@ -270,11 +270,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>PosixPath('output/edicion-327945.pdf')</code></pre>
 </div>
 </div>
-<p><code>BatchConverter</code> is dof2md’s entry point — the Python name behind the <code>dof2md</code> command — and it keeps mineru’s server warm, which only pays off across a batch; for a single document it still runs the same OCR/layout pipeline underneath:</p>
+<p><code>BatchConverter</code> is document2md’s entry point — the Python name behind the <code>document2md</code> command — and it keeps mineru’s server warm, which only pays off across a batch; for a single document it still runs the same OCR/layout pipeline underneath:</p>
 <div id="cell-6" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dof2md <span class="im">import</span> BatchConverter</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> document2md <span class="im">import</span> BatchConverter</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> BatchConverter() <span class="im">as</span> convert:</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    md_path <span class="op">=</span> convert(pdf_path, <span class="st">"output"</span>, <span class="st">"16062026-VES.md"</span>)</span>
@@ -325,20 +325,20 @@ Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- 
 CLAUDIA SHEINBAUM PARDO, Presidenta de los Estados Unidos Mexicanos, en ejercicio de la facultad que me confiere el artículo 89, fracción I, de la Constitución Política de los Estados Unidos Mexicanos; con fundamento en los ar</code></pre>
 </div>
 </div>
-<p>This edition carries a single note, so nothing needed cropping. A typical edition carries dozens, and the same call accepts a <code>titulo</code> and <code>titulo_siguiente</code> to keep only the text between them — the note’s own title and the next note’s, as they appear in the gazette’s index. See <a href="https://legalia.readthedocs.io/en/latest/dof2md_api.html#dof2md-batch-python-entry-point">dof2md’s page on Read the Docs</a> for that full example, worked with a scanned page holding two notes back to back, and for <code>min_confidence</code>, <code>keep_pages</code> and the other options <code>BatchConverter.__call__</code> accepts.</p>
+<p>This edition carries a single note, so nothing needed cropping. A typical edition carries dozens, and the same call accepts a <code>titulo</code> and <code>titulo_siguiente</code> to keep only the text between them — the note’s own title and the next note’s, as they appear in the gazette’s index. See <a href="https://legalia.readthedocs.io/en/latest/document2md_api.html#document2md-batch-python-entry-point">document2md’s page on Read the Docs</a> for that full example, worked with a scanned page holding two notes back to back, and for <code>min_confidence</code>, <code>keep_pages</code> and the other options <code>BatchConverter.__call__</code> accepts.</p>
 </section>
 <section id="from-the-command-line" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="from-the-command-line"><span class="header-section-number">3</span> From the command line</h2>
-<p>Downloading a whole edition’s PDF by date and edition is a <code>dofjson</code> function, not a CLI flag (<code>dofjson.download_edicion_pdf(date, edicion, outdir)</code>, as above) — <code>dof2md</code> itself never downloads anything. Once the PDF is sitting in <code>output/</code>, <code>--pdf</code> converts it from the command line:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dof2md</span> <span class="at">--pdf</span> output/edicion-327945.pdf <span class="at">--filename</span> local-copy.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>--titulo</code>/<code>--titulo-siguiente</code> crop the result to one note the same way <code>BatchConverter</code> does above; see <a href="https://legalia.readthedocs.io/en/latest/dof2md_api.html#dof2md-cli-command-line-entry-point">dof2md’s page on Read the Docs</a> for the full flag reference, including <code>--images</code> for a set of scanned pages already on disk.</p>
+<p>Downloading a whole edition’s PDF by date and edition is a <code>dofjson</code> function, not a CLI flag (<code>dofjson.download_edicion_pdf(date, edicion, outdir)</code>, as above) — <code>document2md</code> itself never downloads anything. Once the PDF is sitting in <code>output/</code>, <code>--pdf</code> converts it from the command line:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">document2md</span> <span class="at">--pdf</span> output/edicion-327945.pdf <span class="at">--filename</span> local-copy.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>--titulo</code>/<code>--titulo-siguiente</code> crop the result to one note the same way <code>BatchConverter</code> does above; see <a href="https://legalia.readthedocs.io/en/latest/document2md_api.html#document2md-cli-command-line-entry-point">document2md’s page on Read the Docs</a> for the full flag reference, including <code>--images</code> for a set of scanned pages already on disk.</p>
 </section>
 
 
 <div id="quarto-appendix" class="default"><section id="methodological-note" class="level2 unnumbered appendix"><h2 class="anchored quarto-appendix-heading">Methodological note</h2><div class="quarto-appendix-contents">
 
-<p>This page is a Jupyter notebook executed at render time; the PDF converted above is the DOF’s own evening edition of June 16, 2026, downloaded fresh via <code>dofjson.download_edicion_pdf</code> from SIDOF (<code>https://sidof.segob.gob.mx</code>). It tells one story, with one real document; the package’s full API — every public and private symbol, each public one with its own worked example — is on <a href="https://legalia.readthedocs.io/en/latest/dof2md_api.html">Read the Docs</a>, not duplicated here.</p>
-<p>This page was written by the LegalIA team together with Claude, Anthropic’s coding assistant, through <a href="https://claude.com/claude-code">Claude Code</a>: the assistant helped design and implement dof2md itself, along with its test suite. As with the rest of the project, the authors reviewed and validated every change before it was committed.</p>
+<p>This page is a Jupyter notebook executed at render time; the PDF converted above is the DOF’s own evening edition of June 16, 2026, downloaded fresh via <code>dofjson.download_edicion_pdf</code> from SIDOF (<code>https://sidof.segob.gob.mx</code>). It tells one story, with one real document; the package’s full API — every public and private symbol, each public one with its own worked example — is on <a href="https://legalia.readthedocs.io/en/latest/document2md_api.html">Read the Docs</a>, not duplicated here.</p>
+<p>This page was written by the LegalIA team together with Claude, Anthropic’s coding assistant, through <a href="https://claude.com/claude-code">Claude Code</a>: the assistant helped design and implement document2md itself, along with its test suite. As with the rest of the project, the authors reviewed and validated every change before it was committed.</p>
 
 
 </div></section></div></main> <!-- /main -->

@@ -152,8 +152,8 @@ if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.M
 <span class="menu-text">DOF Titles</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../pages/dof2md.html"> 
-<span class="menu-text">dof2md</span></a>
+    <a class="nav-link" href="../pages/document2md.html"> 
+<span class="menu-text">document2md</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../pages/references.html"> 
@@ -249,7 +249,7 @@ if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.M
 </section>
 <section id="what-can-actually-be-read" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="what-can-actually-be-read"><span class="header-section-number">3</span> What can actually be read</h2>
-<p>Every note carries three flags — <code>existeHtml</code>, <code>existeImagen</code>, <code>existePdf</code> — saying which forms of it the gazette actually holds. They are the first thing to check before any downstream work, because they decide <em>how</em> a note can be read at all: a note with HTML is converted directly by <code>nota2md</code>’s default path, cleanly and cheaply; a note that exists only as scanned pages or as a PDF has to go through OCR, which is what <code>nota2md</code> borrows <a href="../pages/dof2md.html"><code>dof2md</code></a> for. And the answer changes drastically across the century.</p>
+<p>Every note carries three flags — <code>existeHtml</code>, <code>existeImagen</code>, <code>existePdf</code> — saying which forms of it the gazette actually holds. They are the first thing to check before any downstream work, because they decide <em>how</em> a note can be read at all: a note with HTML is converted directly by <code>nota2md</code>’s default path, cleanly and cheaply; a note that exists only as scanned pages or as a PDF has to go through OCR, which is what <code>nota2md</code> borrows <a href="../pages/document2md.html"><code>document2md</code></a> for. And the answer changes drastically across the century.</p>
 <p>The flags are not in the titles dataset described below — that keeps only <code>codNota</code>, <code>titulo</code>, <code>fecha</code> and <code>codOrgaUno</code> — so this reads the release assets themselves. One command puts them all in the per-user cache (~59 MB, 116 assets; a second run downloads nothing):</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">nota2md</span> download gazette-metadata</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>and the cell below aggregates every note in them. It is the slowest cell on this site — it parses all 1.2 million records, a few minutes — which is why the site renders this page from its frozen output rather than re-executing it.</p>
@@ -578,7 +578,7 @@ Figure&nbsp;1: Share of each decade’s notes for which the gazette holds HTML, 
 <p>The PDF series is not redundant with the images. <strong>25,500 notes have a PDF and no scanned image</strong>, concentrated in the 1990s (15,276) and the 1930s (3,214), the oldest of them <code>codNota</code> 4438455, published 26 November 1921. A pipeline that treated “has an image” as the OCR-eligibility test would drop every one of them.</p>
 </div>
 </div>
-<p>Read downstream, the three series are a routing table. A note the HTML series covers takes <code>legal_provisions</code>’ cheap path — <code>nota2md</code> converts its HTML directly, no OCR and no page-boundary guessing. A note the HTML series misses but one of the other two covers is an OCR job: <code>nota2md</code> downloads the scanned pages, or the note’s own PDF sliced out of the edition, and runs them through <a href="../pages/dof2md.html"><code>dof2md</code></a>/mineru before cutting the note out of the page. A note none of the three covers cannot be built from this archive at all, whichever tool is pointed at it.</p>
+<p>Read downstream, the three series are a routing table. A note the HTML series covers takes <code>legal_provisions</code>’ cheap path — <code>nota2md</code> converts its HTML directly, no OCR and no page-boundary guessing. A note the HTML series misses but one of the other two covers is an OCR job: <code>nota2md</code> downloads the scanned pages, or the note’s own PDF sliced out of the edition, and runs them through <a href="../pages/document2md.html"><code>document2md</code></a>/mineru before cutting the note out of the page. A note none of the three covers cannot be built from this archive at all, whichever tool is pointed at it.</p>
 </section>
 <section id="how-the-archive-grows" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="how-the-archive-grows"><span class="header-section-number">4</span> How the archive grows</h2>
