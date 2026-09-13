@@ -395,7 +395,8 @@ directly, only the ``scjn download`` CLI (or
 ``scripts/fetch_federal_law_metadata.py``) does. This behaviour is instead
 verified for real, against the live service, by
 ``packages/scjn/tests/test_api_red.py`` — not silently skipped, exactly the
-mechanism :doc:`document2md_api`'s OCR paths already use for ``mineru``.
+mechanism `document2md <https://document2md.readthedocs.io/>`_'s OCR paths
+already use for ``mineru``.
 
 .. automodule:: scjn.api
    :members:

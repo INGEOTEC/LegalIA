@@ -112,7 +112,7 @@ print(dest)
 Builds the Markdown of a **single DOF legal provision**, identified by its
 `codNota`.
 
-Where [`document2md`](../document2md) converts a whole edition PDF and
+Where [`document2md`](https://github.com/INGEOTEC/document2md) converts a whole edition PDF and
 [`dofjson`](../dofjson) is a thin client for SIDOF's JSON service,
 `legal_provisions` ties them together to produce the Markdown for one legal
 provision, from any of four sources:
@@ -406,7 +406,7 @@ with BatchConverter() as ins:
         legal_provisions(cod_nota, "output", source="image", converter=ins)
 ```
 
-This is the same `BatchConverter` [`document2md`](../document2md) itself uses to
+This is the same `BatchConverter` [`document2md`](https://github.com/INGEOTEC/document2md) itself uses to
 convert any batch of documents — DOF-sourced or not.
 
 ## `reconstruct_legal_provisions` — a law's current text from its DOF legal provisions
@@ -585,7 +585,7 @@ edits are picked up:
 
 ```bash
 pip install -e "packages/dofjson"
-pip install -e "packages/document2md"          # only needed for the image/PDF OCR paths
+pip install document2md          # own repository; only needed for the image/PDF OCR paths
 pip install -e "packages/nota2md[test]"
 ```
 

@@ -13,9 +13,12 @@ importing the package, so it needs none of its dependencies installed), and
 whether the local version is a valid single-step jump ahead of PyPI: the
 next patch, or the next minor with patch reset to 0. A package PyPI has
 never published (`pypi_latest_version` returns `None`) always passes this
-check — there is nothing to jump ahead of yet. So does a package marked
+check — there is nothing to jump ahead of yet. So would a package marked
 `[tool.legalia] tombstone = true`: a renamed package's final release, whose
-version stops moving once it is published (see `is_tombstone`).
+version stops moving once it is published (see `is_tombstone`). No package
+here carries that marker today — the one that did, `dof2md`, left with
+`document2md` for its own repository (issue #234) — but the mechanism stays,
+because it exists so the next rename costs a key rather than an edit here.
 
 Usage:
 
@@ -80,13 +83,20 @@ def next_version(version: Version) -> tuple[Version, Version]:
 def is_tombstone(package_dir: Path) -> bool:
     """Whether `pyproject.toml` marks the package as a tombstone: a renamed
     package's final release, kept only so `pip install <old name>` fails with
-    a message pointing at the new one (issue #228, `dof2md` → `document2md`).
+    a message pointing at the new one.
 
     Such a package is exempt from the one-step-ahead gate: once its final
     version is published, local and PyPI agree forever, which the check below
     would otherwise report as "local is not ahead of PyPI" on every pull
     request from then on. The marker lives in the package it describes, so the
-    next rename costs a key rather than an edit here."""
+    next rename costs a key rather than an edit here.
+
+    The rename that motivated it, `dof2md` → `document2md` (issue #228), is why
+    this reads as past incident rather than live configuration: both packages
+    moved to https://github.com/INGEOTEC/document2md in issue #234, taking the
+    only `tombstone = true` marker with them. That repository's own copy of
+    this script keeps the check (under `[tool.document2md]`); this one keeps it
+    for whatever gets renamed next."""
     pyproject = tomllib.load(open(package_dir / "pyproject.toml", "rb"))
     return bool(pyproject.get("tool", {}).get("legalia", {}).get("tombstone", False))
 
