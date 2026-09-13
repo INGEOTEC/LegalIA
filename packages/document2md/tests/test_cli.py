@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from dof2md.cli import main, parse_args
+from document2md.cli import main, parse_args
 
 
 class TestParseArgs(unittest.TestCase):
@@ -69,7 +69,7 @@ class TestMain(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 main(["--images", str(Path(tmpdir) / "missing.jpg"), "--filename", "out.md"])
 
-    @patch("dof2md.cli.BatchConverter")
+    @patch("document2md.cli.BatchConverter")
     def test_main_converts_a_local_pdf(self, mock_batch_converter):
         mock_convert = mock_batch_converter.return_value.__enter__.return_value
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -83,7 +83,7 @@ class TestMain(unittest.TestCase):
                 min_confidence=0.6, keep_pages=False, keep_mineru_output=False,
             )
 
-    @patch("dof2md.cli.BatchConverter")
+    @patch("document2md.cli.BatchConverter")
     def test_main_converts_local_images(self, mock_batch_converter):
         mock_convert = mock_batch_converter.return_value.__enter__.return_value
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -99,7 +99,7 @@ class TestMain(unittest.TestCase):
                 min_confidence=0.6, keep_pages=False, keep_mineru_output=False,
             )
 
-    @patch("dof2md.cli.BatchConverter")
+    @patch("document2md.cli.BatchConverter")
     def test_main_passes_keep_mineru_output_flag(self, mock_batch_converter):
         mock_convert = mock_batch_converter.return_value.__enter__.return_value
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -110,7 +110,7 @@ class TestMain(unittest.TestCase):
 
             self.assertTrue(mock_convert.call_args.kwargs["keep_mineru_output"])
 
-    @patch("dof2md.cli.BatchConverter")
+    @patch("document2md.cli.BatchConverter")
     def test_main_passes_title_cropping_flags(self, mock_batch_converter):
         mock_convert = mock_batch_converter.return_value.__enter__.return_value
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -131,7 +131,7 @@ class TestMain(unittest.TestCase):
             self.assertEqual(kwargs["min_confidence"], 0.8)
             self.assertTrue(kwargs["keep_pages"])
 
-    @patch("dof2md.cli.BatchConverter")
+    @patch("document2md.cli.BatchConverter")
     def test_main_exits_clearly_when_conversion_times_out(self, mock_batch_converter):
         mock_convert = mock_batch_converter.return_value.__enter__.return_value
         mock_convert.side_effect = subprocess.TimeoutExpired(cmd="mineru", timeout=3600)

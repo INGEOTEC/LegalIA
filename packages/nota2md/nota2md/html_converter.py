@@ -13,7 +13,7 @@ DOF note HTML is regular, and drives the whole mapping:
   ``font-style:italic``. Text is fragmented into many adjacent spans (one per
   run, plus standalone spans holding a single space).
 
-The mapping is chosen so the output resembles what dof2md/mineru produce from
+The mapping is chosen so the output resembles what document2md/mineru produce from
 the scanned page images of the same note (``#``/``##`` headings, ``**bold**``,
 ``*italic*``, GitHub tables), so that a note's Markdown looks the same whether
 it came from the HTML or the OCR path.

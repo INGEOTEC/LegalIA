@@ -22,7 +22,7 @@ class TestSinDependenciasDelMonorepo(unittest.TestCase):
                 limpia = linea.strip()
                 if not (limpia.startswith("import ") or limpia.startswith("from ")):
                     continue
-                for paquete in ("scjn", "nota2md", "dofjson", "md2akn", "dof2md"):
+                for paquete in ("scjn", "nota2md", "dofjson", "md2akn", "document2md", "dof2md"):
                     if limpia.startswith(f"import {paquete}") or limpia.startswith(f"from {paquete}"):
                         ofensas.append(f"{ruta.name}: {limpia}")
         self.assertEqual(ofensas, [])

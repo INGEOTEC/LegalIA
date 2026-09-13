@@ -13,7 +13,9 @@ importing the package, so it needs none of its dependencies installed), and
 whether the local version is a valid single-step jump ahead of PyPI: the
 next patch, or the next minor with patch reset to 0. A package PyPI has
 never published (`pypi_latest_version` returns `None`) always passes this
-check — there is nothing to jump ahead of yet.
+check — there is nothing to jump ahead of yet. So does a package marked
+`[tool.legalia] tombstone = true`: a renamed package's final release, whose
+version stops moving once it is published (see `is_tombstone`).
 
 Usage:
 
@@ -75,11 +77,29 @@ def next_version(version: Version) -> tuple[Version, Version]:
     return next_patch, next_minor
 
 
+def is_tombstone(package_dir: Path) -> bool:
+    """Whether `pyproject.toml` marks the package as a tombstone: a renamed
+    package's final release, kept only so `pip install <old name>` fails with
+    a message pointing at the new one (issue #228, `dof2md` → `document2md`).
+
+    Such a package is exempt from the one-step-ahead gate: once its final
+    version is published, local and PyPI agree forever, which the check below
+    would otherwise report as "local is not ahead of PyPI" on every pull
+    request from then on. The marker lives in the package it describes, so the
+    next rename costs a key rather than an edit here."""
+    pyproject = tomllib.load(open(package_dir / "pyproject.toml", "rb"))
+    return bool(pyproject.get("tool", {}).get("legalia", {}).get("tombstone", False))
+
+
 def check_package(package: str) -> tuple[str, str | None, str, bool, str]:
     """Returns (package, pypi_version, local_version, ok, detail)."""
     pypi = pypi_latest_version(package)
-    local = local_version(PACKAGES_DIR / package)
+    package_dir = PACKAGES_DIR / package
+    local = local_version(package_dir)
     local_v = Version(local)
+
+    if is_tombstone(package_dir):
+        return package, pypi, local, True, "tombstone: final release, not maintained"
 
     if pypi is None:
         return package, pypi, local, True, "never published"

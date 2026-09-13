@@ -1,7 +1,7 @@
 # Build-time dependencies for the Sphinx docs, kept separate from any
 # package's own pyproject.toml. dofjson, nota2md and md2akn are installed
 # normally by .readthedocs.yaml, pulling in their own real dependencies
-# (requests, beautifulsoup4, platformdirs, spacy, ...); only dof2md is
+# (requests, beautifulsoup4, platformdirs, spacy, ...); only document2md is
 # installed --no-deps (it never imports mineru in-process, only shells out
 # to mineru-api — see docs/source/conf.py), so its own runtime need for
 # `requests` is repeated here explicitly.

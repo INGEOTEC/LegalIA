@@ -2,11 +2,11 @@
 
 mineru renders simple tables as Markdown but falls back to raw HTML
 (``<table>…</table>`` with rowspan/colspan) for anything complex. This module
-rewrites those HTML tables into GitHub Markdown tables so dof2md's output is
+rewrites those HTML tables into GitHub Markdown tables so document2md's output is
 Markdown all the way through — no leftover HTML.
 
 Implemented with the standard library's ``html.parser`` only (no BeautifulSoup)
-to keep dof2md's dependencies to just ``requests`` and ``mineru``.
+to keep document2md's dependencies to just ``requests`` and ``mineru``.
 """
 import re
 from html.parser import HTMLParser

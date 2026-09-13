@@ -112,7 +112,7 @@ print(dest)
 Builds the Markdown of a **single DOF legal provision**, identified by its
 `codNota`.
 
-Where [`dof2md`](../dof2md) converts a whole edition PDF and
+Where [`document2md`](../document2md) converts a whole edition PDF and
 [`dofjson`](../dofjson) is a thin client for SIDOF's JSON service,
 `legal_provisions` ties them together to produce the Markdown for one legal
 provision, from any of four sources:
@@ -121,11 +121,11 @@ provision, from any of four sources:
 |---|---|---|
 | **SCJN** | Reads the law's consolidated text as it read right after this reform out of the `scjn-leyes` release — no DOF request at all. See [the SCJN path](#the-scjn-path--a-laws-consolidated-text-at-each-reform). | The default, whenever the corpus covers this `codNota` with a link we are certain of. `source="dof"` turns it off. |
 | **HTML** | Converts the legal provision's `cadenaContenido` HTML directly (a DOF-tailored BeautifulSoup converter). | The legal provision has digital text. Preferred: clean, already scoped to the one legal provision, no OCR. |
-| **Image** | Downloads the legal provision's scanned page image(s) via `dofjson`, OCRs them with `dof2md`/mineru, then slices out the one legal provision. | Image-only legal provisions — or any legal provision, when you want the certified scanned original. |
-| **PDF** | Downloads the legal provision's own PDF (the edition PDF sliced to the legal provision's pages, via `dofjson.download_nota_pdf`), OCRs it with `dof2md`/mineru, then slices out the one legal provision. | When you'd rather OCR a PDF than page images. |
+| **Image** | Downloads the legal provision's scanned page image(s) via `dofjson`, OCRs them with `document2md`/mineru, then slices out the one legal provision. | Image-only legal provisions — or any legal provision, when you want the certified scanned original. |
+| **PDF** | Downloads the legal provision's own PDF (the edition PDF sliced to the legal provision's pages, via `dofjson.download_nota_pdf`), OCRs it with `document2md`/mineru, then slices out the one legal provision. | When you'd rather OCR a PDF than page images. |
 
 Both OCR paths (image and PDF) mirror the HTML path's output style (`#`/`##`
-headings, `**bold**`, `*italic*`, GitHub tables — `dof2md` rewrites mineru's
+headings, `**bold**`, `*italic*`, GitHub tables — `document2md` rewrites mineru's
 HTML tables to Markdown), so a legal provision's Markdown looks much the same
 whichever source it came from.
 
@@ -207,7 +207,7 @@ documento = get_document(nota=fetch_nota(5793655))
 
 A note with no digital text (scanned, pre-1999ish) comes back with
 `cadenaContenido` as it was — `None` or empty, and no error raised. It is not
-silently OCR'd: OCR is `dof2md`'s heavy path, and `legal_provisions` already
+silently OCR'd: OCR is `document2md`'s heavy path, and `legal_provisions` already
 owns the decision of when to take it. `html_to_markdown` itself stays public,
 as the string-to-string primitive this is built on.
 
@@ -387,7 +387,7 @@ legal_provisions(5793655, "output", source="dof")   # -> output/nota-5793655.md
 ```
 
 The HTML path needs only `beautifulsoup4`; the image and PDF paths additionally
-need `dof2md` (and mineru), imported lazily so the HTML path works without them.
+need `document2md` (and mineru), imported lazily so the HTML path works without them.
 
 ### Batch conversion — reusing one OCR server across many legal provisions
 
@@ -395,10 +395,10 @@ Left alone, every `legal_provisions(..., source="image"|"pdf")` call manages
 its own OCR server as needed. Building many legal provisions in one run
 (e.g. every legal provision in a law's `historial` that has no HTML) can
 instead share one already-warm `mineru-api` server across all of them, by
-passing an already-`__enter__`'d `dof2md.BatchConverter` as `converter`:
+passing an already-`__enter__`'d `document2md.BatchConverter` as `converter`:
 
 ```python
-from dof2md import BatchConverter
+from document2md import BatchConverter
 from nota2md import legal_provisions
 
 with BatchConverter() as ins:
@@ -406,7 +406,7 @@ with BatchConverter() as ins:
         legal_provisions(cod_nota, "output", source="image", converter=ins)
 ```
 
-This is the same `BatchConverter` [`dof2md`](../dof2md) itself uses to
+This is the same `BatchConverter` [`document2md`](../document2md) itself uses to
 convert any batch of documents — DOF-sourced or not.
 
 ## `reconstruct_legal_provisions` — a law's current text from its DOF legal provisions
@@ -576,7 +576,7 @@ From Python, the four downloads are `scjn.release.download_scjn_leyes_assets`,
 ```bash
 pip install nota2md          # legal_provisions' HTML path, plus reconstruct_legal_provisions
                               # and the scjn-leyes release readers
-pip install nota2md[ocr]     # also pulls in dof2md, for legal_provisions' image/PDF OCR paths
+pip install nota2md[ocr]     # also pulls in document2md, for legal_provisions' image/PDF OCR paths
 ```
 
 `dofjson` and `requests` are hard dependencies and install automatically. For
@@ -585,7 +585,7 @@ edits are picked up:
 
 ```bash
 pip install -e "packages/dofjson"
-pip install -e "packages/dof2md"          # only needed for the image/PDF OCR paths
+pip install -e "packages/document2md"          # only needed for the image/PDF OCR paths
 pip install -e "packages/nota2md[test]"
 ```
 

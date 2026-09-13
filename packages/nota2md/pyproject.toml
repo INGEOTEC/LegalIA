@@ -15,7 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-# dof2md is a sibling package in this monorepo, only needed for the image/PDF
+# document2md is a sibling package in this monorepo, only needed for the image/PDF
 # OCR paths (imported lazily) — kept as an optional extra rather than a hard
 # dependency so the HTML-only path stays lightweight.
 dependencies = [
@@ -39,7 +39,7 @@ dynamic = ['version']
 # A python-docx "scjn" extra went away with the .docx crawl path in issue
 # #179 -- the SCJN's JSON API serves the same text as plain text. Not to be
 # confused with the `scjn` package now in `dependencies` above.
-ocr = ["dof2md>=0.2.0"]
+ocr = ["document2md>=0.3.0"]
 test = ["pytest>=7.0"]
 
 [project.urls]
@@ -53,7 +53,7 @@ nota2md = "nota2md.cli:main"
 # monorepo packages to their local editable copies instead of PyPI.
 dofjson = { workspace = true }
 scjn = { workspace = true }
-dof2md = { workspace = true }
+document2md = { workspace = true }
 
 [tool.setuptools.packages.find]
 include = ["nota2md", "nota2md.*"]

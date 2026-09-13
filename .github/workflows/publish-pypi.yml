@@ -3,6 +3,9 @@ name: Publish to PyPI
 on:
   push:
     tags:
+      - "document2md-v*"
+      # Kept for the tombstone's one last release (issue #228): dof2md was
+      # renamed to document2md and needs a final publish saying so.
       - "dof2md-v*"
       - "dofjson-v*"
       - "nota2md-v*"
@@ -16,6 +19,7 @@ on:
         required: true
         type: choice
         options:
+          - document2md
           - dof2md
           - dofjson
           - nota2md
