@@ -113,6 +113,26 @@ for titulo in legal_provisions_titles():
     ...
 ```
 
+### `legalvec` — the vectors of every text, on disk
+
+`legalvec` reads back this project's three vector releases, and is disk-first:
+putting them there is its own command line's job. `legalvec download` with no
+flags fetches all three, for both models (~2.08 GB); `--collection`, `--key`
+(a law's slug, an `id_ordenamiento` otherwise) and `--model` narrow that, and
+`legalvec status` says what the cache already holds without touching the
+network:
+
+```bash
+legalvec download --collection lineamientos    # 49 MB, both models
+legalvec status
+```
+
+```python
+import legalvec
+
+conjunto = legalvec.load_vectors("lineamientos", "102583", "qwen3-0.6b")
+```
+
 ## Development
 
 Install a package in editable mode with its test dependencies, then run its

@@ -44,17 +44,15 @@ lineamiento (issue #227's decision 7), so a reader never branches on which
 collection it is reading — the same reason the corpus build writes that
 column at all.
 
-**Not yet published**, and that is a decision, not an omission: issue #115's
-Hallazgo C says a human publishes anything derived from the SCJN, and issue
-#227 generated each release's upload plan
-(``scripts/embeddings/package_vectors.py``'s ``PUBLICAR.md``) without running
-it. So the examples below build a tiny release on disk and read it back
-rather than downloading one — which is also exactly how the package's own
-tests exercise it. The one function with no offline example is
-:py:func:`~legalvec.download_vectors_assets`, for the same reason there is
-nothing to download from yet; ``packages/legalvec/tests/test_release.py``'s
-``TestDownloadVectorsAssets`` covers it against a patched HTTP layer, and a
-live example belongs here once the releases exist.
+The three releases were published by hand — issue #115's Hallazgo C says a
+human publishes anything derived from the SCJN, so issue #227 generated each
+release's upload plan (``scripts/embeddings/package_vectors.py``'s
+``PUBLICAR.md``) and a person ran it. The reading examples below still build a
+tiny release on disk and read it back rather than downloading one, which is
+both what the package's own tests do and what keeps this page cheap: the three
+releases are ~2.08 GB together. The one example that does reach the network,
+:py:func:`~legalvec.download_vectors_assets`, names a single lineamiento and a
+single model, which is under 2 MB.
 
 Reading a release
 -----------------
@@ -142,6 +140,18 @@ unchanged). Naming ``claves`` fetches only those instruments' own files —
 plus, always, each model's shared file and the five metadata assets, since
 neither an instrument's vectors nor their texts can be read without them:
 
+>>> resultados = legalvec.download_vectors_assets(
+...     "lineamientos", ["102583"], models=("Qwen/Qwen3-Embedding-0.6B",))
+>>> sorted(p.name for p, _descargado in resultados)
+['SHA256SUMS.txt', 'corpus-manifest.json', 'leaves.parquet', 'units.parquet', 'vectors-102583-qwen3-0.6b-1024.parquet', 'vectors-manifest.json', 'vectors-shared-qwen3-0.6b-1024.parquet']
+
+Seven assets, under 2 MB — the five metadata ones, the model's shared file and
+this one lineamiento's own. The example asserts on the asset *names* and never
+on the ``downloaded`` flag each result carries, because that flag is ``True``
+on a cold cache and ``False`` on a warm one, and the job running this doctest
+caches ``~/.cache/legalvec`` between runs. Whole collections are named the same
+way, without ``claves`` — not shown here, since ``leyes`` alone is 589 MB:
+
 .. code-block:: python
 
     legalvec.download_vectors_assets("leyes", ["lft", "cpeum"])
@@ -155,6 +165,75 @@ file per instrument would make whoever wants the 0.6B download the 4B's 2,560
 floats to throw them away (issue #227's decisions 9 and 10).
 
 .. automodule:: legalvec.release
+   :members:
+   :private-members:
+   :undoc-members:
+
+``legalvec.cli`` — command-line entry point
+--------------------------------------------
+
+Two verbs. ``legalvec download`` is an argparse front end over
+:py:func:`~legalvec.download_vectors_assets` and nothing more — it resolves no
+release series and builds no asset list of its own, so the CLI and the Python
+API can never mean different things:
+
+.. code-block:: console
+
+   $ legalvec download --collection lineamientos --key 102583 --model Qwen/Qwen3-Embedding-0.6B
+   [1/7] units.parquet: downloaded
+   [2/7] leaves.parquet: downloaded
+   [3/7] corpus-manifest.json: downloaded
+   [4/7] vectors-manifest.json: downloaded
+   [5/7] SHA256SUMS.txt: downloaded
+   [6/7] vectors-shared-qwen3-0.6b-1024.parquet: downloaded
+   [7/7] vectors-102583-qwen3-0.6b-1024.parquet: downloaded
+   scjn-lineamientos-vectors: 7 assets in /home/user/.cache/legalvec/scjn-lineamientos-vectors (7 downloaded, 0 already cached)
+
+``--collection`` defaults to ``all``, so the bare ``legalvec download`` fetches
+all three releases for both models — ~2.08 GB across ~3,067 assets, which is
+what its ``--help`` says out loud. ``--key`` is one flag for all three
+collections (a law's slug, an ``id_ordenamiento`` otherwise), because
+``units.parquet`` has had one uniform ``clave`` column since issue #227; it
+needs a single ``--collection``, since a clave belongs to one collection and
+applying it to three would silently download nothing but the metadata for the
+other two. ``--model`` takes either form of a model's name, exactly as
+:py:func:`~legalvec.model_slug` does. The flags are in English where
+:py:mod:`scjn`'s are in Spanish: this is new code, and CLAUDE.md's language
+policy is that new code is written in English while existing identifiers are
+left alone.
+
+``legalvec status`` is the offline counterpart — it reads the cache directory
+and makes no request at all:
+
+.. code-block:: console
+
+   $ legalvec status
+   cache: /home/user/.cache/legalvec
+     scjn-leyes-vectors         not downloaded
+     scjn-reglamentos-vectors   not downloaded
+     scjn-lineamientos-vectors  metadata 5/5; 1.8 MB; qwen3-0.6b: 1 instrument
+
+The per-model counts are read off the published file names rather than taken
+from :py:data:`~legalvec.MODELS`, so a release written at another revision — or
+at another ``K`` — is reported as what it actually is. What makes that
+parseable is the shared file: a clave carries dashes (``lif-2026``) and so does
+a slug (``qwen3-0.6b``), so ``vectors-lif-2026-qwen3-0.6b-1024.parquet`` has no
+boundary to split on, while ``vectors-shared-<slug>-<K>.parquet`` has no clave
+in it at all and therefore names every model present.
+
+Both verbs honour ``--cache-dir``, falling back to
+``$LEGALVEC_CACHE_DIR``/:py:data:`~legalvec.cache.CACHE_DIR`. There is no verb
+that reads or searches the vectors: ``status`` reports what is on disk, and
+using the vectors stays the Python API's job
+(:py:func:`~legalvec.load_vectors`, :py:func:`~legalvec.load_units`).
+
+The examples above are shown as console blocks rather than doctests, the same
+way :py:mod:`scjn.cli`'s are — what verifies them is the ``docs-doctest`` job
+in ``.github/workflows/test.yml``, which runs both verbs for real against the
+same sub-2 MB slice this page's own download example uses, plus
+``packages/legalvec/tests/test_cli.py``.
+
+.. automodule:: legalvec.cli
    :members:
    :private-members:
    :undoc-members:

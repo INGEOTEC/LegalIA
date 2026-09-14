@@ -145,7 +145,16 @@ build on each other in this sequence.
   series the way #223 does), `load_vectors` (an instrument's own file unioned
   with the shared one, deduplicated by `text_sha1` — neither is usable
   alone), `load_units`, `VectorSet`, `AssetNotCached`, `model_slug`, and its
-  own `$LEGALVEC_CACHE_DIR`.
+  own `$LEGALVEC_CACHE_DIR`. Since issue #239 it also has a console script,
+  `legalvec download` (an argparse front end over `download_vectors_assets`,
+  `--collection` defaulting to `all` — ~2.08 GB for the three releases, both
+  models — and one `--key` for all three collections, since `units.parquet`
+  has one uniform `clave` column) plus the strictly offline `legalvec
+  status`; both helpers stay private in `legalvec.cli`, so the public
+  surface above is unchanged, and the flags are English
+  (`--collection`/`--key`/`--refresh`) where `scjn`'s are Spanish. It is not
+  wired into `nota2md download all`: `nota2md` reads nothing from these
+  releases, and the boundary test says so.
 
 **Data is never committed to git.** The SCJN corpus of consolidated law
 texts, `dofjson`'s notes archive, the vectors derived from either, and
@@ -573,10 +582,12 @@ in one branch: `md2akn`'s rules 8 and 9 (Fase 1), `scjn`'s
 `iter_current_reglamentos`/`iter_current_lineamientos` (Fase 2),
 `scripts/embeddings/`'s `--coleccion` and the six model × corpus runs on
 `cemieredes` (Fase 3), and the `legalvec` package plus the three releases'
-upload plans (Fase 4). What is **not** done, deliberately: nothing is
-published. Issue #115's Hallazgo C stands — a human runs the `PUBLICAR.md`
-`scripts/embeddings/package_vectors.py` generates, and `legalvec` has no
-PyPI release yet either.
+upload plans (Fase 4). Publishing stayed a human step, as issue #115's
+Hallazgo C requires — a person ran the `PUBLICAR.md`
+`scripts/embeddings/package_vectors.py` generates, and the three releases
+have been live since 2026-09-13 (which is what lets issue #239's CLI and the
+docs page's own download example fetch a real, tiny slice of one). No
+workflow publishes them, and `legalvec` has no PyPI release either.
 
 - **The unit contract of #218 was not renegotiated**, only extended: cap
   2,000, the article as the unit, the chapeau-prefixed split, the `unit_type`
