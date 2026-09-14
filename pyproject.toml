@@ -13,16 +13,10 @@ package = false
 members = ["packages/*"]
 
 [tool.uv.sources]
-# document2md left this monorepo for https://github.com/INGEOTEC/document2md
-# (issues #233, #234), and 0.3.0 is not on PyPI yet — so this repository's own
-# environments take it from GitHub, pinned to that repository's import commit
-# rather than to a branch, so a later push there cannot change what LegalIA
-# tests. A bridge, deleted by issue #235 once PyPI serves 0.3.0; a
-# root-level source applies to every workspace member, so this is the only
-# place it is declared. nota2md's own published `ocr` extra never carries a
-# URL — it is `document2md>=0.3.0`, which is already the right PyPI
-# requirement.
-document2md = { git = "https://github.com/INGEOTEC/document2md", rev = "5bdaa2d700a5b2f0e5f14704daef56ff58dd3d8f" }
+# document2md is not listed here: it left this monorepo for
+# https://github.com/INGEOTEC/document2md (issues #233, #234), and since 0.3.0
+# reached PyPI (2026-09-13) this repository takes it from PyPI like any outside
+# user does — the pinned-git bridge #234 needed was deleted in issue #235.
 dofjson = { workspace = true }
 legalvec = { workspace = true }
 md2akn = { workspace = true }
@@ -34,8 +28,7 @@ scjn = { workspace = true }
 # .venv -- mirroring the matrix in .github/workflows/test.yml and the
 # pytest commands in CLAUDE.md. nota2md's `ocr` extra is included so its
 # document2md-backed OCR path is importable too (pulling document2md in
-# through the git source above), matching what .devcontainer/python.sh
-# already installs eagerly.
+# from PyPI), matching what .devcontainer/python.sh already installs.
 dev = [
     "dofjson[test]",
     "legalvec[test]",

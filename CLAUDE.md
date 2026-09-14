@@ -700,16 +700,20 @@ criterion it sets is the one a later candidate is measured against.
   the code that produced them lives (#119's rule, unchanged). It was not even
   re-executed — editing its prose means re-freezing, which is a docs pass of
   its own.
-- **The bridge, and the one condition that removes it.** `document2md` 0.3.0
-  is not on PyPI yet (publishing is a human step: a `TWINE` secret and a tag).
-  So everything that needs it importable *in this repository's own
-  environments* takes it from GitHub **pinned to #233's import commit**, never
-  a branch, so a later push there cannot change what LegalIA's CI tests: the
+- **The bridge, and the condition that removed it.** `document2md` 0.3.0 was
+  not on PyPI when #234 landed (publishing is a human step: a `TWINE` secret
+  and a tag), so everything that needed it importable *in this repository's own
+  environments* took it from GitHub **pinned to #233's import commit**, never a
+  branch, so a later push there could not change what LegalIA's CI tested: the
   root `pyproject.toml`'s `[tool.uv.sources]` (a root-level source applies to
-  every workspace member, so it is declared once), `.github/workflows/test.yml`'s
-  `nota2md` job, and `.devcontainer/python.sh`. **Issue #235 replaces all
-  three with the plain PyPI name once 0.3.0 is published** — a separate issue
-  because its precondition has no fixed date.
+  every workspace member, so it was declared once),
+  `.github/workflows/test.yml`'s `nota2md` job, and `.devcontainer/python.sh`.
+  That bridge is **gone**: 0.3.0 reached PyPI on 2026-09-13 and issue #235
+  replaced all three with the plain PyPI name the same day, so this repository
+  now depends on `document2md` exactly the way any outside user does. The
+  devcontainer names no requirement of its own for it — it installs
+  `packages/nota2md[ocr,test]`, and the `ocr` extra is the single place the
+  requirement is declared.
 - **The published `nota2md` never carries a URL.** Its `ocr` extra is, and
   stays, `document2md>=0.3.0`: PyPI rejects direct-URL dependencies in a
   published package, so the bridge lives only where this repository builds its
@@ -815,9 +819,9 @@ pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_swee
 
 There is no `pytest packages/document2md` any more: that package has its own
 repository and its own suite (#234). `uv sync` still puts it in this
-repository's `.venv`, fetched from GitHub at a pinned commit, because
-`packages/nota2md/tests/test_builder.py` patches `document2md.converter.*` —
-see the bridge in the root `pyproject.toml`.
+repository's `.venv`, from PyPI via `nota2md`'s `ocr` extra (issue #235
+removed the pinned-git bridge), because
+`packages/nota2md/tests/test_builder.py` patches `document2md.converter.*`.
 
 The website's notebooks are committed without their outputs, via an
 `nbstripout` clean filter (`.gitattributes` maps `*.ipynb` to it). The filter
