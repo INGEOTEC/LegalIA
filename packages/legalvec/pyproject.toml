@@ -29,6 +29,9 @@ dynamic = ['version']
 [project.optional-dependencies]
 test = ["pytest>=7.0"]
 
+[project.scripts]
+legalvec = "legalvec.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/INGEOTEC/LegalIA/tree/main/packages/legalvec"
 
