@@ -36,3 +36,14 @@ dev = [
     "nota2md[ocr,test]",
     "scjn[test]",
 ]
+# The exploratory-analysis group (issue #241): what `scripts/embeddings/`'s
+# UMAP scripts need and nothing else does. Deliberately kept out of `dev`, so
+# the package test matrix does not pay for umap-learn's numba/scikit-learn
+# stack -- run those scripts with `uv run --group viz ...`. `numpy`/`pyarrow`
+# arrive with legalvec.
+viz = [
+    "umap-learn",
+    "pynndescent",
+    "altair",
+    "pandas",
+]

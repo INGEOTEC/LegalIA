@@ -620,6 +620,21 @@ workflow publishes them, and `legalvec` has no PyPI release either.
 - The run itself, on `cemieredes`' three A100s: 12 + 30 + 1 shards per model,
   0 failed, weights downloaded and deleted per model. 381,349 distinct texts
   across the three corpora, ~2.0 GB of vectors.
+- **Someone finally looked at them, in issue #241.** Four more scripts under
+  `scripts/embeddings/` — `prepare_umap_input.py`, `project_umap.py`,
+  `submit_umap.py`/`submit_umap.sh`, `build_umap_html.py`, plus a root
+  `[dependency-groups] viz` (`umap-learn`, `pynndescent`, `altair`,
+  `pandas`, deliberately not in `dev`) — fit UMAP on **all** 381,349 of the
+  0.6B model's vectors, three `n_neighbors` configurations (15/50/200), one
+  exclusive CPU node each on a *different* Slurm cluster (`geoint`: three
+  ~60-core, ~245 GB nodes, no GPU, shared `/home`, so the jobs run this
+  repository's own `.venv`), and turn the result into one standalone
+  Vega-Lite HTML explorer. No sample, no fallback and no retry: a
+  configuration that dies is reported and the HTML is built from what
+  finished. Nothing derived is committed (`emb-run-umap/`, `output/`),
+  nothing in `packages/` changed, and no `legalvec` API was added — the
+  measured per-configuration table, the cluster's own facts and the
+  interaction model live in `scripts/embeddings/README.md`.
 
 ## `dof2md` is now `document2md` (issue #228, done)
 
