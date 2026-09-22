@@ -1,8 +1,10 @@
 """Turn the nearest-foreign-neighbour matrix into one standalone HTML page.
 
-Issue #242, the second half: `instrument_matrix.py` counted, for every unit
-of every instrument, which *other* instrument owns the nearest text; this
-embeds the 1,523 rows of that matrix and draws them.
+Issue #242, the second half: `instrument_matrix.py` asked, for every unit of
+every instrument, which *other* instrument owns the nearest text, and gave
+each unit row one unit of weight to split (`1/m` over its `m` answers); this
+embeds the 1,523 rows of that matrix and draws them. The weights are
+fractional, which is why the page's counts carry a decimal.
 
     uv run --group viz python scripts/embeddings/build_instrument_umap_html.py
     uv run --group viz python scripts/embeddings/build_instrument_umap_html.py \\
@@ -165,12 +167,17 @@ def project(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, force: bool = Fa
 
 def top_targets(matrix, instruments, index: int, limit: int = TOP_TARGETS) -> str:
     """The `limit` instruments this one points at hardest, as
-    `"nombre (count)"` lines for the tooltip."""
+    `"nombre (weight)"` lines for the tooltip.
+
+    One decimal, not an integer: a count is now a sum of `1/m` weights, and
+    truncating it would show `0` for every instrument reached only through
+    shared boilerplate.
+    """
     import numpy as np
 
     row = matrix[index]
     order = np.argsort(row)[::-1][:limit]
-    return "\n".join(f"{instruments['nombre'].iloc[int(j)]} ({int(row[j])})"
+    return "\n".join(f"{instruments['nombre'].iloc[int(j)]} ({row[j]:.1f})"
                      for j in order if row[j] > 0)
 
 
@@ -178,9 +185,12 @@ def instrument_points(work_dir: Path, *, log=print):
     """One row per instrument: its coordinates in the four projections, both
     directions of the matrix, and the targets the page needs.
 
-    `out` is the row sum — how many of its units found a foreign neighbour,
-    counting every tied owner; `in` is the column sum — how many foreign
-    units point *at* it, which the directed matrix would otherwise hide. `t`
+    `out` is the row sum — which, under the `1/m` rule, is exactly its number
+    of unit rows, so it equals `units`: both are kept, because the equality is
+    a visible check of the rule on every tooltip. `in` is the column sum — how
+    much foreign weight points *at* it, which the directed matrix would
+    otherwise hide, and the number that actually varies. Both are rounded to
+    one decimal, since a weight is a sum of fractions. `t`
     is its ten strongest targets as one comma-separated string, the same
     trick #241's page uses for a point's neighbours: one short string beats a
     JSON array by ~40 % over thousands of rows, and Vega's `split` reads it
@@ -195,14 +205,20 @@ def instrument_points(work_dir: Path, *, log=print):
     coordinates = pq.read_table(out_dir / "umap.parquet").to_pandas()
 
     points = instruments[["i", "coleccion", "clave", "nombre", "units"]].copy()
-    points["out"] = matrix.sum(axis=1).astype("int64")
-    points["in"] = matrix.sum(axis=0).astype("int64")
+    # Widened to `float64` *before* rounding, and kept there: Altair serialises
+    # the data into the page itself, and float32's nearest value to 3349.4 is
+    # written out as `3349.39990234375`, which is what the tooltip would then
+    # show. Rounding a float32 does not help — the rounded value is not
+    # representable either. The matrix on disk stays `float32`; this is two
+    # columns of 1,523 numbers headed for JSON.
+    points["out"] = matrix.sum(axis=1).astype("float64").round(1)
+    points["in"] = matrix.sum(axis=0).astype("float64").round(1)
     points["top"] = [top_targets(matrix, instruments, i) for i in range(len(points))]
     points["t"] = [",".join(str(int(j)) for j in np.argsort(matrix[i])[::-1][:RING_TARGETS]
                             if matrix[i, j] > 0)
                    for i in range(len(points))]
     points = points.merge(coordinates, on="i", how="inner")
-    log(f"{len(points)} instruments, {int(matrix.sum())} counts")
+    log(f"{len(points)} instruments, {float(matrix.sum()):.1f} total weight")
     return points
 
 

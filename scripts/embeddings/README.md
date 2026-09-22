@@ -560,13 +560,13 @@ unit of every federal law, reglamento and lineamiento:
 > which instrument owns the text closest to this one, among all the texts
 > that are not exclusively mine?
 
-Counting the answers gives a square matrix `A` (1,523 × 1,523, rows and
-columns in `instruments.parquet`'s `i` order): for every unit row of
-instrument `I`, every instrument `J` owning a winning text gets
-`A[I, J] += 1`. An instrument is then represented by **where its articles'
-nearest foreign neighbours live** — a distribution over the other
-instruments — rather than by its own text, and two instruments land together
-when their articles point at the same places.
+Weighing the answers gives a square matrix `A` (1,523 × 1,523, rows and
+columns in `instruments.parquet`'s `i` order): every unit row of instrument
+`I` hands out a total weight of **1**, `A[I, J] += 1/m` to each of the `m`
+instruments owning a winning text. An instrument is then represented by
+**where its articles' nearest foreign neighbours live** — a distribution over
+the other instruments — rather than by its own text, and two instruments land
+together when their articles point at the same places.
 
 ### Where things are
 
@@ -599,9 +599,13 @@ Each of these was a decision in issue #242, not a default:
   `--tolerance` (1e-6) of its best. Identical texts across collections are
   *exact* ties in float32, and breaking them by column index would silently
   prefer `leyes` to everything else.
-- **+1 to each instrument owning a winning text**, never `1/m`: a text two
-  instruments share is evidence about both. Row sums therefore exceed the
-  unit count, and the L2 normalisation before UMAP absorbs the scale.
+- **`1/m` to each of the `m` instruments owning a winning text.** A text two
+  instruments share is evidence about both, so both are credited — but a unit
+  row is one article and weighs one, however many instruments answer for it.
+  Row sums therefore equal the instrument's unit-row count exactly, which
+  `matrix.json` records as `row_sums_equal_units`. The first pass added +1 to
+  each instead; see *What the first run measured, and why the rule changed*
+  below.
 - **Per unit row, not per distinct text.** A boilerplate transitorio repeated
   `m` times inside a code is `m` articles and counts `m` times — the same
   choice #241's centroids made.
@@ -627,8 +631,10 @@ itself**, imported and called with no projection, rather than a second copy:
 the two scripts must never disagree about which vector row a unit got.
 
 `nearest.parquet` keeps the evidence, one row per unit row: `similarity`,
-`n_winners` (how many vector rows tied) and `targets` (the instruments
-credited), next to `clave`, `unit_type` and `eId`.
+`n_winners` (how many vector rows tied), `targets` (the instruments
+credited), `m` (how many of them) and `weight` (`1/m`), next to `clave`,
+`unit_type` and `eId`. `n_winners` and `m` are different numbers: one winning
+row can have several owners, and two tied rows can share one.
 
 ### The Slurm plumbing
 
@@ -639,7 +645,10 @@ own Slurm output, never resubmitted automatically. `--wait
 --max-wait-minutes N` returns **75** while the job is still there, 0 once
 `.done` exists and 1 if the job left the queue without one, so an automated
 session can poll in chunks instead of holding a process open. `.done` makes a
-plain rerun a no-op; `--force` recomputes.
+plain rerun a no-op; `--force` recomputes — `--submit --force` forwards the
+flag into the job (the `.done` check happens there, not at submission time)
+and deletes the previous run's `.done` first, so `--wait` cannot mistake the
+run being replaced for the one it is waiting on.
 
 ### The page
 
@@ -661,7 +670,11 @@ and red rings on the ten instruments its units point at hardest (the
 comma-separated-string trick #241 validated, read back with Vega's `split`).
 `nearest` is **off**, for the reason #241 measured. The tooltip carries
 `nombre`, `clave`, `coleccion`, `units`, both directions of the matrix and
-the five strongest targets with their counts. The same provenance footer and
+the five strongest targets with their weights — all three to **one decimal**,
+since a weight is a sum of fractions. `units pointing out` now equals `units`
+for every instrument, which is the `1/m` rule visible on every tooltip; both
+are kept for exactly that reason, and the column sum (`foreign units pointing
+here`) is the one that varies. The same provenance footer and
 `usermeta.provenance` as #241's page, through the same helpers.
 
 **A person still confirms the interaction in a browser.** What the script
@@ -674,61 +687,88 @@ written `.vl.json` reloaded, and the tests below.
 uv run --group viz pytest scripts/embeddings/tests/test_instrument_matrix.py -q
 ```
 
-A five-instrument toy corpus over two collections whose vectors are written
-by hand, so every count in the expected matrix is derivable with a pen: a
+A six-instrument toy corpus over two collections whose vectors are written
+by hand, so every weight in the expected matrix is derivable with a pen: a
 text shared inside a collection wins at cosine 1, a text identical across
 collections wins at cosine 1 from the other side, one row ties across two
-foreign instruments and credits both, one text repeated twice inside an
-instrument counts twice, and an instrument's own exclusive texts are masked.
-Blocking is asserted invisible (`--block-rows 1` against the default), the
-Slurm plumbing is driven through a fake `squeue` in its three states, and the
-page is built with a stub reducer.
+foreign instruments and gives ½ to each, one text repeated twice inside an
+instrument counts twice, an instrument's own exclusive texts are masked, and
+a boilerplate line carried by three leyes at once ("Se deroga.") is won
+outright — one winning row, three owners — by a lineamiento whose unit hands
+them ⅓ each. The row-sum identity (`A.sum(axis=1)` = each instrument's unit
+count, `A.sum()` = the unit rows) is asserted on the toy matrix, as are
+`float32` and `weight == 1/m`. Blocking is asserted invisible (`--block-rows
+1` against the default), the Slurm plumbing is driven through a fake `squeue`
+in its three states (plus `--force` forwarded into the job and the previous
+`.done` dropped), and the page is built with a stub reducer.
 
-### Measured, `geoint`, 2026-09-22
+### What the first run measured, and why the rule changed
+
+The first run of this matrix credited **+1 to each** instrument owning a
+winning text, and produced `A.sum() = 1,639,503` for 408,804 unit rows — four
+counts per row on average against a median of one. Ties were not the cause
+(678 rows had any). It was the *owners* rule: a single winning column can be
+owned by hundreds of instruments at once (the worst row: **847**), because
+boilerplate — a transitorio, "Se deroga." — is one vector row shared across a
+whole collection. `A` was therefore counting article–instrument *incidences*,
+not articles, and the "strongest targets" of many instruments were simply
+whoever owns the most boilerplate.
+
+Hence the `1/m` rule above: a unit row with one unambiguous foreign
+neighbour still adds 1, and a row answered by 847 instruments adds 1/847 to
+each instead of 847 counts at once. The winner search, the tolerance, the
+masking and everything on the page are unchanged — only the crediting is, so
+the two maps differ by the rule alone. The first matrix was overwritten in
+place (`--force`); `matrix.json`'s `weighting` says which rule produced what
+is on disk.
+
+### Measured, `geoint`, 2026-09-22 (the `1/m` run, job 42196)
 
 The matrix, one job on `geoint1` (62 threads, `--exclude=geoint0`):
 
 | phase | seconds |
 |---|---|
-| load (the join + `vectors.npy`) | 3.0 |
+| load (the join + `vectors.npy`) | 2.4 |
 | normalise (381,349 rows, in place) | 0.8 |
-| sweep (381,349 × 381,349 cosines, blocked) | 667.7 |
+| sweep (381,349 × 381,349 cosines, blocked) | 665.9 |
 | write | 0.5 |
-| **total** | **673.2 s (11.2 min)** |
+| **total** | **670.8 s (11.2 min)** |
 
-Peak RSS **3.79 GB** of the ~245 GB a node has — a third of what the issue
+Peak RSS **4.27 GB** of the ~245 GB a node has — a fraction of what the issue
 budgeted, because a 1,024-row block and one normalised copy of the matrix is
 all that is ever live. Inside the 5–30 minute estimate, and nowhere near the
-two-hour ceiling.
+two-hour ceiling; the same arithmetic as the +1 run, to within 3 seconds.
 
 | what | value |
 |---|---|
 | unit rows answered | 408,804 |
 | vector rows | 381,349 (10,309 owned by more than one instrument) |
 | instruments | 1,523 |
-| `A.sum()` | 1,639,503 |
+| `A.sum()` | **408,804.0** — one unit row, one unit of weight |
+| every row sums to that instrument's unit count | yes (`row_sums_equal_units`, worst deviation 4.9e-4) |
 | non-zero cells | 864,966 of 2,319,529 (37 %) |
 | unit rows with a tie | 678 (676 two-way, 2 three-to-five-way) |
+| largest `m` | 847 |
 | mean similarity of the winner | 0.843 |
 | unit rows whose winner is an identical text (cosine 1) | 35,829 (8.8 %) |
 
-**The number worth reading twice is `A.sum()`: 1,639,503 counts for 408,804
-unit rows, four per row on average against a median of one.** Ties are not
-the cause — only 678 rows have any. It is the *owners* rule: a single
-winning column can be owned by hundreds of instruments at once (the worst
-row credits **847**), because boilerplate — a transitorio, "Se deroga." — is
-one vector row shared across a whole collection. That is exactly what "+1 to
-each instrument owning a winning text" says to do, and the row
-normalisation before UMAP is what keeps such a row from dominating the
-geometry; it is recorded here because it is the difference between reading
-`A` as "articles" and reading it as "article–instrument incidences".
+The `m` histogram — how many instruments a unit row's answer is split over —
+is what the change is about:
+
+| `m` | 1 | 2 | 3–5 | 6–20 | 21–100 | 101+ |
+|---|---|---|---|---|---|---|
+| unit rows | 377,349 | 11,317 | 8,454 | 5,679 | 4,105 | 1,900 |
+
+92 % of unit rows have a single answer and are credited exactly as before;
+the 1,900 rows with `m ≥ 101` are the boilerplate ones that used to add up to
+847 counts each, and now add one between them.
 
 The four fits, on the login node, `random_state=0`:
 
 | `n_neighbors` | 4 | 8 | 16 | 32 | total |
 |---|---|---|---|---|---|
-| seconds | 28.6 | 15.1 | 16.1 | 19.1 | **78.9** |
+| seconds | 38.7 | 18.1 | 20.6 | 21.0 | **98.4** |
 
-The page: **1.4 MB** for 1,523 instruments — three orders of magnitude under
+The page: **1.40 MB** for 1,523 instruments — three orders of magnitude under
 the unit-level page, which is what one point per instrument instead of one
 per unit row buys — with the footer present exactly once.

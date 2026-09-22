@@ -7,12 +7,13 @@ every unit of every federal law, reglamento and lineamiento:
     which instrument owns the text closest to this one, among all the texts
     that are not exclusively mine?
 
-The answer is a square count matrix `A` (1,523 x 1,523, rows and columns in
-`instruments.parquet`'s own `i` order): for every unit row of instrument `I`,
-every instrument `J` owning a winning text gets `A[I, J] += 1`. The diagonal
-is zero by construction, `A` is **not** symmetric (a reglamento pointing at
-its law says nothing about the law pointing back), and
-`build_instrument_umap_html.py` is what turns it into a page.
+The answer is a square weight matrix `A` (1,523 x 1,523, rows and columns in
+`instruments.parquet`'s own `i` order): every unit row of instrument `I`
+distributes a total weight of **1** over the `m` instruments owning a winning
+text, `A[I, J] += 1/m` for each of them. The diagonal is zero by construction,
+`A` is **not** symmetric (a reglamento pointing at its law says nothing about
+the law pointing back), and `build_instrument_umap_html.py` is what turns it
+into a page.
 
     python instrument_matrix.py --dry-run     # the sbatch command
     python instrument_matrix.py --submit      # one job on geoint1/geoint2
@@ -29,8 +30,14 @@ changing quietly:
   within `--tolerance` (1e-6 on float32 cosine) of its best, because identical
   texts across collections are *exact* ties and picking the lowest column
   index would silently prefer `leyes` to everything else.
-* **+1 to each instrument owning a winning text**, never `1/m`: a text two
-  instruments share is evidence about both.
+* **`1/m` to each of the `m` instruments owning a winning text.** A text two
+  instruments share is evidence about both, so both are credited — but a unit
+  row is one article and weighs one, however many instruments answer for it.
+  The first pass added +1 to each instead, and a single winning column can be
+  owned by hundreds of instruments (the worst row: 847), because boilerplate
+  ("Se deroga.", a standard transitorio) is one vector row shared across a
+  whole collection; `A` then counted article-instrument incidences rather
+  than articles. Row sums now equal the instrument's unit-row count exactly.
 * **Per unit row, not per distinct text**: a boilerplate transitorio repeated
   `m` times inside a code is `m` articles, and counts `m` times — the same
   choice #241's centroids already made.
@@ -45,11 +52,15 @@ changing quietly:
 Outputs, under `--work-dir/instrument-matrix/`, written atomically with
 `.done` last:
 
-* `matrix.npy` — `(1523, 1523)` `int32`, row `i` the source instrument.
+* `matrix.npy` — `(1523, 1523)` `float32` (`float64` while accumulating), row
+  `i` the source instrument.
 * `nearest.parquet` — one row per **unit row** (408,804): `i`, `coleccion`,
   `clave`, `unit_type`, `eId`, `row` (vector row), `similarity`, `n_winners`
-  (how many vector rows tied), `targets` (the instruments credited).
-* `matrix.json` — seconds per phase, the tie histogram, `shared_rows`, the
+  (how many vector *rows* tied — a different number from `m`, since one row
+  can have several owners and two tied rows can share one), `targets` (the
+  instruments credited), `m` (how many of them) and `weight` (`1/m`).
+* `matrix.json` — the weighting rule and the row-sum identity it implies,
+  seconds per phase, the tie and `m` histograms, `shared_rows`, the
   tolerance, peak RSS, threads, host.
 * `job.json`, `slurm-<jobid>.out` when it ran through Slurm.
 
@@ -171,6 +182,27 @@ def _winner_histogram(counts) -> dict:
     }
 
 
+def _m_histogram(counts) -> dict:
+    """`m` bucketed the way `matrix.json` reports it.
+
+    Wider buckets than `_winner_histogram`'s: `m` is what the `1/m` rule
+    divides by, and the boilerplate rows this pass is about sit in the last
+    two buckets (the worst row of the first run had `m = 847`), where
+    `n_winners` never leaves the first.
+    """
+    import numpy as np
+
+    counts = np.asarray(counts)
+    return {
+        "1": int((counts == 1).sum()),
+        "2": int((counts == 2).sum()),
+        "3-5": int(((counts >= 3) & (counts <= 5)).sum()),
+        "6-20": int(((counts >= 6) & (counts <= 20)).sum()),
+        "21-100": int(((counts >= 21) & (counts <= 100)).sum()),
+        "101+": int((counts >= 101).sum()),
+    }
+
+
 def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
                  block_rows: int = DEFAULT_BLOCK_ROWS, threads: int | None = None,
                  collections=None, cache_dir=None, log=print) -> dict:
@@ -205,7 +237,10 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     owners = owners_of_rows(units, n_vectors)
     shared_rows = sum(1 for group in owners if len(group) > 1)
     instruments = int(units["i"].max()) + 1
-    matrix = np.zeros((instruments, instruments), dtype=np.int32)
+    # `float64` while accumulating: 408,804 additions of fractions as small as
+    # 1/847, summed to an identity the summary asserts at 1e-3. It is written
+    # as `float32`, which halves a 9 MB file and verifies at that tolerance.
+    matrix = np.zeros((instruments, instruments), dtype=np.float64)
 
     # One result per (instrument, vector row): every unit row of `I` carrying
     # the same text has the same answer, and multiplying it back afterwards is
@@ -230,6 +265,14 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
             for offset, row in enumerate(block):
                 winners = np.flatnonzero(similarity[offset] >= best[offset] - tolerance)
                 targets = sorted({j for c in winners.tolist() for j in owners[c]} - {i})
+                if not targets:
+                    # 1,522 candidate instruments are never all masked, so an
+                    # empty target set is a broken join or a broken mask, not a
+                    # case with a sensible weight -- and `1/m` would divide by 0.
+                    raise SystemExit(
+                        f"instrument {i}, vector row {int(row)}: no foreign "
+                        "target at all, which cannot happen (only the source's "
+                        "exclusively owned columns are masked)")
                 result_i.append(i)
                 result_row.append(int(row))
                 result_sim.append(float(best[offset]))
@@ -242,24 +285,42 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     timings["sweep"] = round(time.time() - mark, 1)
     log(f"sweep in {timings['sweep']}s")
 
+    # `m` counts *instruments*, not tied vector rows: an instrument owning two
+    # tied winners is one target (`targets` is a set), so no instrument is
+    # favoured for repeating a text.
+    result_m = np.array([len(targets) for targets in result_targets], dtype="int32")
     answers = pd.DataFrame({
         "i": np.array(result_i, dtype="int32"),
         "row": np.array(result_row, dtype="int32"),
         "similarity": np.array(result_sim, dtype="float32"),
         "n_winners": np.array(result_winners, dtype="int32"),
         "targets": result_targets,
+        "m": result_m,
+        "weight": (1.0 / result_m).astype("float32"),
     })
     nearest = units.merge(answers, on=["i", "row"], how="left")
     if len(nearest) != len(units):
         raise SystemExit("the per-(instrument, text) answers did not join back "
                          f"one-to-one: {len(nearest)} rows against {len(units)}")
 
-    # +1 per unit row, to every instrument owning a winning text. Done from
+    # One unit row, one unit of weight: `1/m` to each of the `m` instruments
+    # owning a winning text. The division is redone here in `float64` rather
+    # than read from the `float32` column, so the row sums land on the unit
+    # count to far better than the 1e-3 the summary checks them at. Done from
     # the joined table rather than from `answers`, so a text repeated m times
     # inside one instrument really does count m times.
     for source, targets in zip(nearest["i"].to_numpy(), nearest["targets"]):
+        weight = 1.0 / len(targets)
         for target in targets:
-            matrix[source, target] += 1
+            matrix[source, target] += weight
+    matrix = matrix.astype(np.float32)
+
+    # The row-sum identity is the whole point of the `1/m` rule: every unit row
+    # weighs 1, so an instrument's row sums to how many unit rows it has.
+    units_per_instrument = (nearest.groupby("i").size()
+                            .reindex(range(instruments), fill_value=0).to_numpy())
+    row_sums_equal_units = bool(np.allclose(matrix.sum(axis=1), units_per_instrument,
+                                            atol=1e-3))
 
     mark = time.time()
     atomic_write_npy(out_dir / "matrix.npy", matrix)
@@ -273,6 +334,8 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         "similarity": pa.array(nearest["similarity"].to_numpy(), type=pa.float32()),
         "n_winners": pa.array(nearest["n_winners"].to_numpy(), type=pa.int32()),
         "targets": pa.array(list(nearest["targets"]), type=pa.list_(pa.int32())),
+        "m": pa.array(nearest["m"].to_numpy(), type=pa.int32()),
+        "weight": pa.array(nearest["weight"].to_numpy(), type=pa.float32()),
     }))
     timings["write"] = round(time.time() - mark, 1)
 
@@ -280,10 +343,15 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         "unit_rows": int(len(nearest)),
         "vector_rows": int(n_vectors),
         "instruments": instruments,
-        "matrix_sum": int(matrix.sum()),
+        "weighting": "1/m",
+        "matrix_dtype": str(matrix.dtype),
+        "matrix_sum": round(float(matrix.sum()), 3),
+        "row_sums_equal_units": row_sums_equal_units,
         "nonzero_cells": int((matrix > 0).sum()),
         "tie_rows": int((nearest["n_winners"] > 1).sum()),
         "n_winners": _winner_histogram(nearest["n_winners"].to_numpy()),
+        "max_m": int(nearest["m"].max()),
+        "m": _m_histogram(nearest["m"].to_numpy()),
         "shared_rows": shared_rows,
         "tolerance": tolerance,
         "block_rows": block_rows,
@@ -303,10 +371,17 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
 
 def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
                    tolerance: float = DEFAULT_TOLERANCE,
-                   block_rows: int = DEFAULT_BLOCK_ROWS) -> list[str]:
+                   block_rows: int = DEFAULT_BLOCK_ROWS,
+                   force: bool = False) -> list[str]:
     """The one `sbatch` line this issue submits. Absolute paths throughout:
     Slurm copies the wrapper into its own spool directory and chdirs, so a
-    relative `--work-dir` would point at nothing."""
+    relative `--work-dir` would point at nothing.
+
+    `--force` is forwarded into the job: the `.done` the previous run left is
+    checked inside the job, not here, so recomputing a directory that already
+    has one (issue #242's second pass rewrites the whole matrix) needs the flag
+    on the other side of `sbatch` too.
+    """
     work_dir = Path(work_dir).resolve()
     cmd = ["sbatch", "--parsable", "--job-name=instrument-matrix",
            f"--time={TIME_LIMIT}",
@@ -317,12 +392,14 @@ def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
             "--work-dir", str(work_dir),
             "--tolerance", repr(tolerance),
             "--block-rows", str(block_rows)]
+    if force:
+        cmd.append("--force")
     return cmd
 
 
 def submit(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
            tolerance: float = DEFAULT_TOLERANCE, block_rows: int = DEFAULT_BLOCK_ROWS,
-           dry_run: bool = False, log=print) -> dict:
+           force: bool = False, dry_run: bool = False, log=print) -> dict:
     """Submit the sweep as one Slurm job and record `job.json`."""
     from _atomic import atomic_write_text
 
@@ -333,8 +410,16 @@ def submit(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
     out_dir = output_dir(work_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    done = out_dir / ".done"
+    if force and done.exists() and not dry_run:
+        # The marker of the *previous* run has to go before the new job starts,
+        # or `--wait` reads it and reports a job that has barely been queued as
+        # finished. The job writes its own once it has rewritten everything.
+        done.unlink()
+        log(f"{done} removed: --force means the finished run is being replaced")
+
     cmd = sbatch_command(work_dir, exclude=exclude, tolerance=tolerance,
-                         block_rows=block_rows)
+                         block_rows=block_rows, force=force)
     log(" ".join(cmd))
     if dry_run:
         return {"dry_run": True, "command": cmd}
@@ -448,7 +533,8 @@ def main(argv=None) -> int:
     parser.add_argument("--dry-run", action="store_true",
                         help="print the sbatch command without submitting it")
     parser.add_argument("--force", action="store_true",
-                        help="recompute even if .done is already there")
+                        help="recompute even if .done is already there; --submit "
+                             "forwards it into the job")
     args = parser.parse_args(argv)
 
     if args.report:
@@ -456,7 +542,7 @@ def main(argv=None) -> int:
 
     if args.dry_run or args.submit:
         submit(args.work_dir, exclude=args.exclude, tolerance=args.tolerance,
-               block_rows=args.block_rows, dry_run=args.dry_run)
+               block_rows=args.block_rows, force=args.force, dry_run=args.dry_run)
         if not args.wait:
             return 0
 

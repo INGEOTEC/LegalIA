@@ -658,12 +658,17 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   `--submit`/`--wait`/`--report`/`--dry-run` in `submit_umap.py`'s style,
   whose `queued_jobs` it imports) and `build_instrument_umap_html.py` —
   answer, for **every unit row of every instrument**, "which *other*
-  instrument owns the text nearest to this one?", and count the answers into
+  instrument owns the text nearest to this one?", and weigh the answers into
   a directed 1,523 × 1,523 matrix (`emb-run-umap/instrument-matrix/`, still
   gitignored). The rules are the issue's, not defaults: all six unit types;
   every tied winner counts (1e-6 on float32 cosine, because identical texts
-  across collections tie exactly); +1 to **each** instrument owning a winner,
-  never a split; per unit row, so a transitorio repeated *m* times counts *m*
+  across collections tie exactly); **a unit row distributes a total weight of
+  1, `1/m` to each of the `m` instruments owning a winner**, so `A.sum()` is
+  the unit-row count (408,804) and every row sums to that instrument's own —
+  the second pass' rule, after the first pass' +1-to-each made one boilerplate
+  row ("Se deroga.", owned by up to **847** instruments) credit hundreds of
+  cells at once and `A` count article–instrument incidences rather than
+  articles; per unit row, so a transitorio repeated *m* times counts *m*
   times; and only columns owned *exclusively* by the source are masked — a
   text it shares with another instrument is that unit's strongest foreign
   neighbour, not something to hide. Exact cosine by blocked matmul, never
