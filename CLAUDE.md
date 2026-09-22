@@ -677,7 +677,8 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   4/8/16/32, `random_state=0` — seconds at this size, so a reproducible page
   is worth the single-threaded fit) into
   `output/umap-instruments-qwen3-0.6b.html`, where a click rings an
-  instrument and the ten it points at hardest. `build_umap_html`'s join and
+  instrument and the five it points at hardest — the same five the tooltip
+  names, one `target N` row each, weight first. `build_umap_html`'s join and
   footer helpers are **imported**, never copied, so the two pages cannot
   disagree about which vector row a unit got.
 

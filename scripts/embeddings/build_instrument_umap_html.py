@@ -33,9 +33,10 @@ structure rather than about vocabulary.
 The page (`output/umap-instruments-qwen3-0.6b.html` and its `.vl.json`) is
 one layered scatter: colour by collection (legend-bound toggle), size by unit
 count, a radio for `n_neighbors`, and a click that rings the picked
-instrument in black and its ten strongest targets in red — the smallest
-interaction that makes a *relation* visible. It carries the same provenance
-footer #241's page does, through the same helpers.
+instrument in black and its five strongest targets in red — the same five
+the tooltip names, one row each — the smallest interaction that makes a
+*relation* visible. It carries the same provenance footer #241's page does,
+through the same helpers.
 
 The session that writes this file cannot click: what is verified here is the
 spec (`chart.to_dict()` against the Vega-Lite schema, plus
@@ -66,11 +67,17 @@ DEFAULT_RADIO_VALUE = 16
 
 DEFAULT_OUTPUT = Path("output/umap-instruments-qwen3-0.6b.html")
 
-#: How many targets the tooltip lists, and how many the click rings. Five
-#: lines is what fits in a tooltip; ten rings is what stays readable at 1,523
-#: points.
+#: How many targets the tooltip names and the click rings -- one number for
+#: both, so the red rings are exactly the instruments the tooltip lists. Each
+#: is its own tooltip row (`top1`..`top5`): vega-tooltip's default style clips
+#: a value cell at 300px x 7em, so five newline-joined long names in a single
+#: cell showed only about three of them.
 TOP_TARGETS = 5
-RING_TARGETS = 10
+
+#: What an empty `target N` row shows. Not `None`: vega-tooltip prints a null
+#: value as the word "null" and skips only `undefined`, which a column of a
+#: table cannot hold.
+NO_TARGET = "\u2014"
 
 SCRIPT_PATH = "scripts/embeddings/build_instrument_umap_html.py"
 
@@ -165,20 +172,35 @@ def project(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, force: bool = Fa
     return summary
 
 
-def top_targets(matrix, instruments, index: int, limit: int = TOP_TARGETS) -> str:
-    """The `limit` instruments this one points at hardest, as
-    `"nombre (weight)"` lines for the tooltip.
+def strongest_targets(matrix, index: int, limit: int = TOP_TARGETS) -> list[int]:
+    """The ids of the (at most) `limit` instruments this one points at
+    hardest: weight > 0 only, heaviest first, ties by ascending id.
 
-    One decimal, not an integer: a count is now a sum of `1/m` weights, and
-    truncating it would show `0` for every instrument reached only through
-    shared boilerplate.
+    The one ranking both the tooltip's `target N` rows and the red rings read,
+    so the names and the rings cannot disagree, and an instrument this one
+    never points at is never ringed.
     """
     import numpy as np
 
+    row = np.asarray(matrix[index])
+    # A stable sort of the negated row keeps equal weights in ascending id.
+    order = np.argsort(-row, kind="stable")
+    return [int(j) for j in order[:limit] if row[j] > 0]
+
+
+def target_rows(matrix, instruments, index: int, limit: int = TOP_TARGETS) -> list[str]:
+    """Exactly `limit` tooltip rows for this instrument: `"weight  nombre"`
+    for each of its strongest targets, then `NO_TARGET` for the rest.
+
+    Weight first, two spaces, one decimal: a count is a sum of `1/m` weights,
+    and truncating it would show `0` for every instrument reached only through
+    shared boilerplate; putting it first keeps it visible however long the
+    name is.
+    """
     row = matrix[index]
-    order = np.argsort(row)[::-1][:limit]
-    return "\n".join(f"{instruments['nombre'].iloc[int(j)]} ({row[j]:.1f})"
-                     for j in order if row[j] > 0)
+    named = [f"{float(row[j]):.1f}  {instruments['nombre'].iloc[j]}"
+             for j in strongest_targets(matrix, index, limit)]
+    return named + [NO_TARGET] * (limit - len(named))
 
 
 def instrument_points(work_dir: Path, *, log=print):
@@ -190,11 +212,12 @@ def instrument_points(work_dir: Path, *, log=print):
     a visible check of the rule on every tooltip. `in` is the column sum — how
     much foreign weight points *at* it, which the directed matrix would
     otherwise hide, and the number that actually varies. Both are rounded to
-    one decimal, since a weight is a sum of fractions. `t`
-    is its ten strongest targets as one comma-separated string, the same
-    trick #241's page uses for a point's neighbours: one short string beats a
-    JSON array by ~40 % over thousands of rows, and Vega's `split` reads it
-    back in the filter.
+    one decimal, since a weight is a sum of fractions. `top1`..`top5`
+    are the tooltip's `target N` rows (`target_rows`), and `t` is the same
+    targets' ids as one comma-separated string, the trick #241's page uses
+    for a point's neighbours: one short string beats a JSON array by ~40 %
+    over thousands of rows, and Vega's `split` reads it back in the filter.
+    Both come from one `strongest_targets` call per instrument.
     """
     import numpy as np
     import pyarrow.parquet as pq
@@ -213,9 +236,10 @@ def instrument_points(work_dir: Path, *, log=print):
     # columns of 1,523 numbers headed for JSON.
     points["out"] = matrix.sum(axis=1).astype("float64").round(1)
     points["in"] = matrix.sum(axis=0).astype("float64").round(1)
-    points["top"] = [top_targets(matrix, instruments, i) for i in range(len(points))]
-    points["t"] = [",".join(str(int(j)) for j in np.argsort(matrix[i])[::-1][:RING_TARGETS]
-                            if matrix[i, j] > 0)
+    rows = [target_rows(matrix, instruments, i) for i in range(len(points))]
+    for rank in range(TOP_TARGETS):
+        points[f"top{rank + 1}"] = [targets[rank] for targets in rows]
+    points["t"] = [",".join(str(j) for j in strongest_targets(matrix, i))
                    for i in range(len(points))]
     points = points.merge(coordinates, on="i", how="inner")
     log(f"{len(points)} instruments, {float(matrix.sum()):.1f} total weight")
@@ -273,8 +297,8 @@ def build_chart(points, *, n_neighbors=DEFAULT_N_NEIGHBORS, radio_value=DEFAULT_
         alt.Tooltip("units:Q", title="units"),
         alt.Tooltip("out:Q", title="units pointing out"),
         alt.Tooltip("in:Q", title="foreign units pointing here"),
-        alt.Tooltip("top:N", title="strongest targets"),
-    ]
+    ] + [alt.Tooltip(f"top{rank}:N", title=f"target {rank}")
+         for rank in range(1, TOP_TARGETS + 1)]
 
     def framed():
         return alt.Chart(points).transform_calculate(
@@ -329,7 +353,7 @@ def build_chart(points, *, n_neighbors=DEFAULT_N_NEIGHBORS, radio_value=DEFAULT_
                     "each point is a law, reglamento or lineamiento; size = its units,"
                     " colour = its collection (click the legend to hide one)",
                     "click a point: black ring + name on it, ○ red rings on the "
-                    f"{RING_TARGETS} instruments its units point at hardest; "
+                    f"{TOP_TARGETS} instruments named in the tooltip; "
                     "double-click to clear",
                     "the matrix is directed: the tooltip's two counts are the units"
                     " pointing out and the foreign units pointing here",

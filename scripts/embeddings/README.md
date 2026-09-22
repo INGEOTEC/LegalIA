@@ -666,16 +666,32 @@ One layered scatter: colour by collection (legend-bound toggle), size by
 `units` on a **log** scale (1 to 3,663 — on a linear scale every lineamiento
 would be an invisible dot), a radio for `n_neighbors` defaulting to 16, and a
 click that puts a black ring and the instrument's name on the picked point
-and red rings on the ten instruments its units point at hardest (the
+and red rings on the five instruments its units point at hardest (the
 comma-separated-string trick #241 validated, read back with Vega's `split`).
 `nearest` is **off**, for the reason #241 measured. The tooltip carries
 `nombre`, `clave`, `coleccion`, `units`, both directions of the matrix and
-the five strongest targets with their weights — all three to **one decimal**,
-since a weight is a sum of fractions. `units pointing out` now equals `units`
-for every instrument, which is the `1/m` rule visible on every tooltip; both
-are kept for exactly that reason, and the column sum (`foreign units pointing
-here`) is the one that varies. The same provenance footer and
-`usermeta.provenance` as #241's page, through the same helpers.
+the five strongest targets — all weights to **one decimal**, since a weight
+is a sum of fractions. `units pointing out` now equals `units` for every
+instrument, which is the `1/m` rule visible on every tooltip; both are kept
+for exactly that reason, and the column sum (`foreign units pointing here`)
+is the one that varies. The same provenance footer and `usermeta.provenance`
+as #241's page, through the same helpers.
+
+**The five targets are five tooltip rows, and they are the five red rings.**
+Each is its own field (`top1`..`top5`, titled `target 1`..`target 5`, after
+`foreign units pointing here`), written **weight first**, two spaces, then
+the name — the Universidad Autónoma Chapingo's first row reads `13.0  LEY
+Orgánica de la Universidad Autónoma Agraria Antonio Narro`. The earlier page put all five, newline-joined and weight last, in a
+single `strongest targets` cell, and vega-tooltip's default style clips a
+value cell at **300px × 7em** — with federal instruments' names, about three
+of the five lines survived and the weights were the part cut off. No custom
+tooltip CSS was added; one row per target fits the default. An instrument
+with fewer than five non-zero targets fills the remaining rows with an em
+dash `—`, not a null: vega-tooltip prints a null as the word `null` and skips
+only `undefined`. Both the rows and the `t` string the red-ring filter reads
+come from one helper, `strongest_targets` (weight > 0 only, heaviest first,
+ties by ascending `i`, at most `TOP_TARGETS = 5`), so the names and the rings
+cannot disagree and an instrument that receives no weight is never ringed.
 
 **A person still confirms the interaction in a browser.** What the script
 verifies is the spec: `chart.to_dict()` against the Vega-Lite schema, the

@@ -596,9 +596,52 @@ def test_the_point_table_carries_both_directions_and_the_targets(with_matrix, st
     # What points *at* `a`: `b`'s 2.833, `c`'s 0.833, `900`'s 1 and `902`'s
     # 0.333.
     assert points[points["clave"] == "a"].iloc[0]["in"] == pytest.approx(5.0, abs=0.05)
-    # One decimal, because a weight is a sum of fractions.
-    assert row["top"].splitlines()[0].startswith("Ley A (2.8)")
+    # One decimal, weight first, because a weight is a sum of fractions and
+    # a long name must not push it out of the tooltip.
+    assert row["top1"] == "2.8  Ley A"
     assert str(index["a"]) in row["t"].split(",")
+    assert "top" not in points.columns
+
+
+def test_strongest_targets_are_non_zero_heaviest_first_ties_by_id():
+    matrix = np.array([[0.0, 1.0, 3.0, 0.0, 1.0, 2.0, 0.5, 0.0]], dtype=np.float32)
+    strongest = build_instrument_umap_html.strongest_targets
+    assert strongest(matrix, 0) == [2, 5, 1, 4, 6]       # 1 and 4 tie: 1 first
+    assert strongest(matrix, 0, limit=3) == [2, 5, 1]
+    # Fewer non-zero weights than the limit: only those, never a zero id.
+    assert strongest(matrix, 0, limit=20) == [2, 5, 1, 4, 6]
+    assert strongest(np.zeros((1, 4)), 0) == []
+
+
+def test_target_rows_are_always_five_padded_with_an_em_dash():
+    import pandas as pd
+
+    instruments = pd.DataFrame({"nombre": ["Zero", "One", "Two", "Three"]})
+    matrix = np.array([[0.0, 0.25, 11.3, 0.0]], dtype=np.float32)
+    rows = build_instrument_umap_html.target_rows(matrix, instruments, 0)
+    assert rows == ["11.3  Two", "0.2  One", "\u2014", "\u2014", "\u2014"]
+    assert len(rows) == build_instrument_umap_html.TOP_TARGETS == 5
+
+
+def test_the_rings_are_exactly_the_tooltips_targets(with_matrix, stub_umap):
+    build_instrument_umap_html.project(with_matrix, log=lambda *a: None)
+    points = build_instrument_umap_html.instrument_points(with_matrix,
+                                                          log=lambda *a: None)
+    matrix = np.load(instrument_matrix.output_dir(with_matrix) / "matrix.npy")
+    nombre = dict(zip(points["i"].astype(int), points["nombre"]))
+    columns = [f"top{rank}" for rank in range(1, 6)]
+    for _, row in points.iterrows():
+        ids = [int(j) for j in row["t"].split(",") if j]
+        named = [row[c] for c in columns if row[c] != build_instrument_umap_html.NO_TARGET]
+        assert [text.split("  ", 1)[1] for text in named] == [nombre[j] for j in ids]
+        assert all(matrix[int(row["i"]), j] > 0 for j in ids)
+        # The placeholders only ever trail.
+        assert all(row[c] == build_instrument_umap_html.NO_TARGET
+                   for c in columns[len(named):])
+    # `b` points at four instruments, so its fifth row is the placeholder.
+    b = points[points["clave"] == "b"].iloc[0]
+    assert len(b["t"].split(",")) == 4
+    assert b["top5"] == "\u2014"
 
 
 def test_the_spec_carries_every_interaction(with_matrix, stub_umap):
@@ -617,13 +660,22 @@ def test_the_spec_carries_every_interaction(with_matrix, stub_umap):
     assert '"bind": "legend"' in text
     assert '"renderer": "canvas"' in text
     assert "split(pick.t[0]" in text                 # the red rings
-    for field in ("nombre", "clave", "coleccion", "units", "out", "in", "top"):
+    for field in ("nombre", "clave", "coleccion", "units", "out", "in",
+                  "top1", "top2", "top3", "top4", "top5"):
         assert f'"field": "{field}"' in text
+    assert '"field": "top"' not in text
+    scatter = next(layer for layer in spec["layer"] if layer["mark"]["type"] == "circle")
+    titles = [entry["title"] for entry in scatter["encoding"]["tooltip"]]
+    assert titles == ["instrument", "clave", "collection", "units", "units pointing out",
+                      "foreign units pointing here", "target 1", "target 2",
+                      "target 3", "target 4", "target 5"]
     layers = spec["layer"]
     assert any(layer["mark"].get("stroke") == "#d62728" for layer in layers)
     assert any(layer["mark"].get("stroke") == "#000000" for layer in layers)
     assert any(layer["mark"].get("type") == "text" for layer in layers)
     assert any("black ring" in line for line in spec["title"]["subtitle"])
+    assert any("5 instruments named in the tooltip" in line
+               for line in spec["title"]["subtitle"])
 
 
 def test_the_written_page_says_what_produced_it(with_matrix, stub_umap, tmp_path):
