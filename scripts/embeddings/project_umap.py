@@ -6,8 +6,8 @@ With ~245 GB per node the fit is on **all** 381,349 vectors (the `float32`
 matrix is ~1.6 GB), so there is no sample and no experiment mode: a
 configuration that dies is reported, not quietly replaced by a smaller one.
 
-    python project_umap.py --work-dir emb-run-umap --n-neighbors 15 --knn 15
-    python project_umap.py --work-dir emb-run-umap --n-neighbors 200
+    python project_umap.py --work-dir emb-run-umap --n-neighbors 4 --knn 15
+    python project_umap.py --work-dir emb-run-umap --n-neighbors 32
 
 Outputs, under `--work-dir/<name>/` (`name` defaults to `nn{n:03d}`):
 
@@ -26,7 +26,11 @@ With `--knn 15` it also writes `--work-dir/neighbors.parquet` (at the work
 directory's **root**, not inside the configuration): the neighbours live in
 the 1,024-dimension embedding space, not in any 2-D projection, so they are
 configuration-independent and every projection shares them. The launcher
-passes `--knn` to the cheapest configuration only.
+passes `--knn` to the cheapest configuration only. For the same reason an
+existing `neighbors.parquet` is **kept**: a later sweep over other
+`n_neighbors` values changes no distance in the embedding space, so
+recomputing it would burn minutes to rewrite the same table. `--force-knn`
+is the way to ask for it anyway.
 """
 
 from __future__ import annotations
@@ -40,6 +44,14 @@ import time
 from pathlib import Path
 
 DEFAULT_MODEL = "Qwen/Qwen3-Embedding-0.6B"
+
+#: The configurations issue #241's second sweep fits, one job each, and the
+#: single place the other two scripts read them from: `submit_umap.py` submits
+#: these and `build_umap_html.py` offers exactly these in its radio. They
+#: replace the first pass's 15/50/200 — a reader asked for a *finer* look at
+#: local structure, and `n_neighbors` 4 to 32 is that range. The earlier
+#: directories stay on disk and are still reachable with `--projections all`.
+DEFAULT_N_NEIGHBORS = (4, 8, 16, 32)
 
 
 def thread_count(requested: int | None = None) -> int:
@@ -140,6 +152,7 @@ def project(
     metric: str = "cosine",
     name: str | None = None,
     knn: int = 0,
+    force_knn: bool = False,
     threads: int | None = None,
     model: str = DEFAULT_MODEL,
     log=print,
@@ -187,11 +200,16 @@ def project(
     timings["centroids"] = round(time.time() - mark, 1)
     log(f"{name}: {centroids.shape[0]} centroids transformed in {timings['centroids']}s")
 
+    neighbors_path = work_dir / "neighbors.parquet"
+    if knn and neighbors_path.exists() and not force_knn:
+        log(f"{name}: {neighbors_path} exists, kept (the neighbours live in the "
+            "embedding space, not in this projection) -- pass --force-knn to recompute")
+        knn = 0
     if knn:
         mark = time.time()
         indices, distances = nearest_neighbors(vectors, knn)
         timings["knn"] = round(time.time() - mark, 1)
-        atomic_write_table(work_dir / "neighbors.parquet", pa.table({
+        atomic_write_table(neighbors_path, pa.table({
             "row": pa.array(range(indices.shape[0]), type=pa.int32()),
             "neighbors": pa.array(indices.tolist(), type=pa.list_(pa.int32())),
             "distances": pa.array(distances.tolist(), type=pa.list_(pa.float32())),
@@ -249,6 +267,8 @@ def main(argv=None) -> None:
     parser.add_argument("--name", default=None, help="output directory (default nnNNN)")
     parser.add_argument("--knn", type=int, default=0,
                         help="k cosine neighbours to write at the work-dir root (0 = none)")
+    parser.add_argument("--force-knn", action="store_true",
+                        help="recompute neighbors.parquet even if it is already there")
     parser.add_argument("--threads", type=int, default=None)
     parser.add_argument("--model", default=DEFAULT_MODEL,
                         help="recorded in projection.json; the vectors themselves "
@@ -266,6 +286,7 @@ def main(argv=None) -> None:
         metric=args.metric,
         name=args.name,
         knn=args.knn,
+        force_knn=args.force_knn,
         threads=threads,
         model=args.model,
     )

@@ -160,6 +160,21 @@ standalone HTML file — an overview of all ~400,000 unit rows, a detail view
 of a clicked instrument and of a clicked text's nearest neighbours, and a
 view with one point per instrument.
 
+### Where things are
+
+| What | Path |
+|---|---|
+| The script that generates the page | `scripts/embeddings/build_umap_html.py` |
+| The page | `output/umap-vectors-qwen3-0.6b.html` |
+| Its Vega-Lite spec, on its own | `output/umap-vectors-qwen3-0.6b.vl.json` |
+| Work directory (vectors, projections, neighbours) | `emb-run-umap/` |
+| One directory per configuration | `emb-run-umap/nn004`, `nn008`, `nn016`, `nn032` |
+| Earlier sweep, kept on disk | `emb-run-umap/nn015`, `nn050`, `nn200` |
+
+Neither `emb-run-umap/` nor `output/` is committed, so this table is how a
+reader finds the file that produced a page they were handed. The page itself
+carries the same answer in a footer — see the provenance footer below.
+
 **This is a different cluster from everything above.** The vector build ran
 on `cemieredes` (GPUs, its own `/home/mgraffg/.venvs/cluster` venv, one GPU
 per `sbatch` job); this runs on `geoint`: partition `compute`, three nodes
@@ -174,11 +189,17 @@ a GPU that does not exist here.
 `geoint0` is also the login node and was saturated by another user's work
 outside Slurm, so every job is submitted with `--exclude=geoint0`
 (`submit_umap.py --exclude`, that value as the default): two configurations
-run on `geoint1`/`geoint2` and the third queues. The heaviest one
-(`n_neighbors=200`) is submitted first so it starts immediately, then the
-one that also computes the k-nearest-neighbour table, then the rest.
+run on `geoint1`/`geoint2` and the rest queue. They are submitted heaviest
+first (`32, 16, 8, 4`), so the long poles start immediately; no job waits on
+another, because the shared neighbour table is computed once and kept.
 `prepare_umap_input.py` and `build_umap_html.py` do run on the login node —
 they are minutes and a couple of GB.
+
+The sweep is `project_umap.DEFAULT_N_NEIGHBORS = (4, 8, 16, 32)`, one
+constant the launcher and the HTML builder both import. It replaced the first
+pass's 15 / 50 / 200 when a reader asked for a finer look at local structure;
+those three directories were **not** deleted, and `build_umap_html.py
+--projections all` brings them back into the radio.
 
 ```bash
 uv sync --group viz                       # umap-learn, pynndescent, altair, pandas
@@ -232,7 +253,10 @@ inside a configuration: the neighbours live in the 1,024-dimension embedding
 space, so they are the same for every projection. They come from a separate
 `pynndescent.NNDescent(n_neighbors=16)` index with the self column dropped,
 rather than from UMAP's private `_knn_indices`. The launcher passes `--knn`
-to the cheapest configuration only.
+to the cheapest configuration only, and an existing `neighbors.parquet` is
+**kept** rather than rewritten (`--force-knn` overrides): a second sweep over
+other `n_neighbors` changes no distance in the embedding space, so k stays 15
+across every sweep and the second one paid nothing for it.
 
 ### `submit_umap.py` — and why its wait is chunked
 
@@ -272,21 +296,52 @@ full point table inline it once.
   neighbour that is also in the same instrument reads as both, the picked
   point itself, over a faint `--background-points` sample. Empty until
   something is clicked; a text mark names the instrument and the `eId`.
-- **Instruments**: one mark per instrument at its centroid, size by unit
-  count, with its own `pick_instrument` selection feeding the detail view.
+- **Instruments**: a three-layer view — one mark per instrument at its
+  centroid (size by unit count, its own `pick_instrument` selection), plus a
+  black ring and the instrument's name around whatever was clicked, in
+  *either* view. Ring and label are filtered by the same predicate the detail
+  view uses (`pick.i` **or** `pick_instrument.i`), so the two cannot
+  disagree. A ring rather than a colour change, because colour already means
+  collection.
 
-Knobs: `--unit-types`, `--projections`, `--neighbors 0` (drops the field and
-the layer), `--text-chars N` (N characters of the unit's own text in the
-tooltip), `--background-points`, `--overview-sample` (thins only the
-overview layer), `--inline-js` (embed vega/vega-lite/vega-embed instead of
-loading them from jsdelivr) and `--no-nearest`.
+**What each mark means is on the page**, as the views' own subtitles rather
+than a hand-drawn legend layer (a subtitle is a few lines of spec, renders
+the same on every renderer, and cannot drift from the data):
 
-`--no-nearest` is the escape hatch issue #241 asked for: the overview's
-`pick` uses Vega-Lite's `nearest: true`, whose Voronoi over ~400,000 marks
-may be slow in a browser. It is left **on** by default because a session
-with no browser is in no position to declare it unworkable; if it is,
-`--no-nearest` (select the mark under the cursor) and `--overview-sample`
-are the two knobs, and neither changes the detail data.
+| Mark | Meaning |
+|---|---|
+| ◆ black diamond, detail view | the clicked text |
+| ○ red rings, detail view | its 15 nearest neighbours by cosine, across all three collections (the count is `--neighbors`, never a literal) |
+| filled shapes, detail view | every unit of the same instrument; shape = unit type |
+| grey cloud, detail view | the `--background-points` sample, for orientation only |
+| black ring + name, instrument view | the instrument of the clicked text, or the clicked centroid |
+
+Knobs: `--unit-types`, `--projections` (a comma-separated list, or `all` for
+every finished directory including the earlier sweep's), `--neighbors 0`
+(drops the field and the layer), `--text-chars N` (N characters of the unit's
+own text in the tooltip), `--background-points`, `--overview-sample` (thins
+only the overview layer), `--inline-js` (embed vega/vega-lite/vega-embed
+instead of loading them from jsdelivr) and `--nearest`.
+
+`--nearest` is **off** by default, and that is a bug fix rather than a
+preference. Vega-Lite implements `nearest: true` by inserting a hidden
+Voronoi mark that captures the pointer; the tooltip is then evaluated on that
+mark, whose datum is a wrapper, so every field it names comes out
+`undefined`. The first pass shipped `nearest` on and the whole overview
+tooltip read `undefined` — that is the finding. With it off the pointer has
+to land on the mark itself, so the overview mark went from `size=3`,
+`opacity=0.3` to `size=10`, `opacity=0.25`: clickable, still a cloud. The
+flag remains, for anyone who wants the old behaviour back.
+
+Every generated page ends with a small grey **provenance footer** naming this
+script, the repository commit (`unknown` where there is no git), the ISO
+date, the work directory, the projections and the exact command line; the
+`.vl.json` carries the same record in `usermeta.provenance`, so a page and a
+spec can be matched. It is inserted by post-processing Altair's HTML —
+Altair's saver has no hook for anything outside the chart, and inserting
+after the chart's `<div>` leaves both the CDN and the `--inline-js` template
+intact. `build_umap_html.py` also prints the absolute path of both files
+when it finishes.
 
 **The interactive behaviour is verified by a person opening the file.** What
 the scripts themselves verify is the spec: `chart.to_dict()` validates
@@ -350,6 +405,43 @@ output/umap-vectors-qwen3-0.6b.html: 113.6 MB, 408804 points
 67.1 MB, and `--projections nn015` or `--overview-sample` cut it
 further. The default is left where issue #241 asked for it, and the size is
 printed rather than hidden.
+
+### Measured, the second sweep, `geoint`, 2026-09-21
+
+Four jobs, submitted at once, `--exclude=geoint0`: `nn032` and `nn016`
+started immediately on `geoint1`/`geoint2`, `nn008` and `nn004` queued
+(`Resources`, then `Priority`) and started ~4 min later on the node each
+freed. `prepare_umap_input.py` was **not** rerun — the same 381,349 vectors —
+and `neighbors.parquet` was kept, so k stays 15 and the kNN column is empty
+for every row.
+
+| config | `n_neighbors` | node | load | fit | centroids | kNN | total | peak RSS |
+|---|---|---|---|---|---|---|---|---|
+| `nn004` | 4 | `geoint2` | 1.4 s | 803.7 s | 21.5 s | kept | **836.7 s** | 10.1 GB |
+| `nn008` | 8 | `geoint1` | 1.5 s | 346.1 s | 21.5 s | kept | **382.3 s** | 10.3 GB |
+| `nn016` | 16 | `geoint2` | 1.5 s | 191.4 s | 21.8 s | kept | **232.8 s** | 10.1 GB |
+| `nn032` | 32 | `geoint1` | 1.5 s | 170.1 s | 23.2 s | kept | **212.7 s** | 10.4 GB |
+
+**In this range the cost runs the other way**: `n_neighbors=4` cost 4.7× the
+fit of `n_neighbors=32`, where the first sweep had `n_neighbors=200` cost
+2.3× `n_neighbors=15`. A small neighbourhood makes a sparser, more
+fragmented graph, and UMAP's own heuristic then runs many more epochs over
+it. So the launcher's "heaviest first" rule, which sorts by descending
+`n_neighbors`, in fact submitted this sweep *cheapest* first. It is kept as
+issue #241 specifies it — with two idle nodes and four jobs of 3–14 minutes
+the order cost nothing — but the rule is a heuristic about a monotone cost,
+and this table is the measurement that says the cost is not monotone. Peak
+RSS was ~10 GB for all four, of ~245 GB.
+
+The page itself, rebuilt from the four:
+
+```
+408804 points, 1523 instruments
+output/umap-vectors-qwen3-0.6b.html: 124.7 MB, 408804 points
+```
+
+124.7 MB against the first pass's 113.6, for the one reason that matters
+here: four `x`/`y` pairs per point instead of three.
 
 One correction the run itself forced: reloading the written `.vl.json` with
 `alt.Chart.from_dict` **validates every inlined data row against the

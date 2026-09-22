@@ -1,8 +1,9 @@
 """Launch one Slurm job per UMAP configuration, and wait for them in chunks.
 
-Issue #241. Three configurations (`n_neighbors` 15 / 50 / 200) over the same
-`vectors.npy`, one exclusive node each, an 8-hour limit and no retry: a fit
-that dies is a finding, not something to hide behind a relaunch.
+Issue #241. Four configurations (`n_neighbors` 4 / 8 / 16 / 32, the shared
+`project_umap.DEFAULT_N_NEIGHBORS`) over the same `vectors.npy`, one exclusive
+node each, an 8-hour limit and no retry: a fit that dies is a finding, not
+something to hide behind a relaunch.
 
     python submit_umap.py                       # submit and return
     python submit_umap.py --wait                # submit (if needed) and block
@@ -35,18 +36,24 @@ import sys
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from project_umap import DEFAULT_N_NEIGHBORS  # noqa: E402
+
 SUBMIT_SH = Path(__file__).with_name("submit_umap.sh")
 PROJECT_UMAP = Path(__file__).with_name("project_umap.py")
 
-#: The three configurations issue #241 sweeps, and the one that also computes
-#: the shared k-nearest-neighbour table.
-DEFAULT_CONFIGS = (15, 50, 200)
-DEFAULT_KNN_CONFIG = 15
+#: The configurations issue #241 sweeps, defined once in `project_umap.py`,
+#: and the cheapest one — which is also the one asked for the shared
+#: k-nearest-neighbour table, on the days that table has to be built at all
+#: (`project_umap.py` keeps an existing one).
+DEFAULT_CONFIGS = DEFAULT_N_NEIGHBORS
+DEFAULT_KNN_CONFIG = min(DEFAULT_N_NEIGHBORS)
 DEFAULT_KNN = 15
 
 #: The login node of this cluster is saturated by another user's work outside
-#: Slurm, so every job excludes it by default and the three configurations
-#: share `geoint1`/`geoint2` (two run, the third queues).
+#: Slurm, so every job excludes it by default and the four configurations
+#: share `geoint1`/`geoint2` (two run, the rest queue).
 DEFAULT_EXCLUDE = "geoint0"
 
 #: Exit status meaning "the chunk elapsed, jobs are still running" — 75 is
@@ -60,23 +67,24 @@ def config_name(n_neighbors: int) -> str:
     return f"nn{n_neighbors:03d}"
 
 
-def submission_order(configs, knn_config: int | None) -> list[int]:
-    """Heaviest configuration first, then the one that also computes the kNN
-    table, then the rest ascending.
+def submission_order(configs) -> list[int]:
+    """Heaviest configuration first, i.e. descending `n_neighbors`.
 
-    Two nodes run at a time, so submission order decides what waits: the
-    `n_neighbors=200` fit is the long pole (its k-NN graph and fuzzy simplicial
-    set are ~13x the smallest one's), and the kNN job is what every
-    projection's neighbour highlight depends on.
+    Two nodes run at a time, so submission order decides what waits, and the
+    first sweep measured the fit cost growing with `n_neighbors`
+    (`n_neighbors=200` cost ~2.3x `n_neighbors=15`). **The second sweep
+    measured the opposite below 32**: `n_neighbors=4` cost 4.7x
+    `n_neighbors=32`, a sparser graph costing UMAP many more epochs. So this
+    is a heuristic about a cost that is not monotone — see the README's two
+    measured tables before trusting it with a sweep whose jobs are hours
+    rather than minutes.
+
+    The first pass also pulled the kNN configuration forward, because every
+    projection's neighbour highlight waited on it; that tiebreak is gone with
+    the reason for it — `neighbors.parquet` is computed once and kept, so no
+    job waits on another.
     """
-    remaining = sorted(set(configs))
-    if not remaining:
-        return []
-    order = [remaining.pop(-1)]
-    if knn_config in remaining:
-        order.append(knn_config)
-        remaining.remove(knn_config)
-    return order + remaining
+    return sorted(set(configs), reverse=True)
 
 
 def pending_configs(work_dir: Path, configs) -> list[int]:
@@ -117,7 +125,7 @@ def submit(work_dir: Path, *, configs=DEFAULT_CONFIGS, min_dist: float = 0.1,
             "prepare_umap_input.py first"
         )
 
-    pending = pending_configs(work_dir, submission_order(configs, knn_config))
+    pending = pending_configs(work_dir, submission_order(configs))
     for n in configs:
         if n not in pending:
             log(f"{config_name(n)}: .done exists, skipping")

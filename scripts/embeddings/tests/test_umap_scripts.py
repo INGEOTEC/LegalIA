@@ -243,6 +243,33 @@ def test_project_writes_neighbours_at_the_work_dir_root_without_the_self_row(
     assert not (projected_input / "nn015" / "neighbors.parquet").exists()
 
 
+def test_project_keeps_an_existing_neighbour_table(projected_input, stub_umap, monkeypatch):
+    """The neighbours live in the embedding space, not in a projection, so a
+    second sweep must not spend minutes rewriting the same table."""
+    (projected_input / "neighbors.parquet").write_bytes(b"not a parquet file")
+
+    def explode(*args, **kwargs):
+        raise AssertionError("the kNN was recomputed")
+
+    monkeypatch.setattr(project_umap, "nearest_neighbors", explode)
+
+    summary = project_umap.project(projected_input, n_neighbors=4, knn=15,
+                                   log=lambda *a: None)
+    assert summary["knn"] == 0
+    assert "knn" not in summary["seconds"]
+    assert (projected_input / "neighbors.parquet").read_bytes() == b"not a parquet file"
+
+
+def test_force_knn_recomputes_the_neighbour_table(projected_input, stub_umap):
+    (projected_input / "neighbors.parquet").write_bytes(b"not a parquet file")
+
+    summary = project_umap.project(projected_input, n_neighbors=4, knn=15,
+                                   force_knn=True, log=lambda *a: None)
+    assert summary["knn"] == 15
+    table = pq.read_table(projected_input / "neighbors.parquet").to_pydict()
+    assert len(table["row"]) == 20
+
+
 def test_project_writes_no_done_marker_when_the_fit_fails(projected_input, monkeypatch):
     class Exploding(StubUMAP):
         def fit_transform(self, matrix):
@@ -272,10 +299,17 @@ def test_set_thread_env_pins_numba_before_it_is_imported(monkeypatch):
 
 # -- submit_umap ---------------------------------------------------------- #
 
-def test_submission_order_puts_the_heaviest_then_the_knn_configuration_first():
-    assert submit_umap.submission_order((15, 50, 200), 15) == [200, 15, 50]
-    assert submit_umap.submission_order((15, 50), None) == [50, 15]
-    assert submit_umap.submission_order((), 15) == []
+def test_submission_order_is_the_heaviest_configuration_first():
+    assert submit_umap.submission_order((4, 8, 16, 32)) == [32, 16, 8, 4]
+    assert submit_umap.submission_order((8, 4)) == [8, 4]
+    assert submit_umap.submission_order(()) == []
+
+
+def test_the_default_sweep_is_the_one_project_umap_declares():
+    assert project_umap.DEFAULT_N_NEIGHBORS == (4, 8, 16, 32)
+    assert submit_umap.DEFAULT_CONFIGS == project_umap.DEFAULT_N_NEIGHBORS
+    assert submit_umap.DEFAULT_KNN_CONFIG == 4
+    assert build_umap_html.DEFAULT_PROJECTIONS == ("nn004", "nn008", "nn016", "nn032")
 
 
 def test_the_sbatch_wrapper_asks_for_a_whole_node_for_eight_hours():
@@ -287,24 +321,38 @@ def test_the_sbatch_wrapper_asks_for_a_whole_node_for_eight_hours():
     assert "/home/mgraffg/software/LegalIA/.venv/bin/python" in wrapper
 
 
-def test_dry_run_prints_one_command_per_pending_configuration(tmp_path):
+def test_dry_run_prints_the_four_configurations_heaviest_first(tmp_path):
     work_dir = tmp_path / "work"
-    (work_dir / "nn050").mkdir(parents=True)
+    work_dir.mkdir()
     (work_dir / "prepare.done").write_text("")
-    (work_dir / "nn050" / ".done").write_text("")
 
     lines = []
     submit_umap.submit(work_dir, dry_run=True, log=lines.append)
 
     commands = [line for line in lines if line.startswith("sbatch")]
-    assert len(commands) == 2
+    assert len(commands) == 4
+    assert [c.split("--n-neighbors ")[1].split()[0] for c in commands] == \
+        ["32", "16", "8", "4"]
     assert all("--parsable" in c for c in commands)
-    assert any("--n-neighbors 200" in c for c in commands)
-    assert any("--n-neighbors 15 " in c and "--knn 15" in c for c in commands)
-    assert not any("--n-neighbors 50 " in c for c in commands)
     assert all("--exclude=geoint0" in c for c in commands)
-    assert any("nn050: .done exists, skipping" == line for line in lines)
+    # Only the cheapest one is asked for the shared kNN table.
+    assert [("--knn 15" in c) for c in commands] == [False, False, False, True]
     assert not (work_dir / "jobs.json").exists()
+
+
+def test_dry_run_skips_a_configuration_that_already_finished(tmp_path):
+    work_dir = tmp_path / "work"
+    (work_dir / "nn016").mkdir(parents=True)
+    (work_dir / "prepare.done").write_text("")
+    (work_dir / "nn016" / ".done").write_text("")
+
+    lines = []
+    submit_umap.submit(work_dir, dry_run=True, log=lines.append)
+
+    commands = [line for line in lines if line.startswith("sbatch")]
+    assert len(commands) == 3
+    assert not any("--n-neighbors 16 " in c for c in commands)
+    assert any("nn016: .done exists, skipping" == line for line in lines)
 
 
 def test_submit_refuses_to_start_without_a_prepared_input(tmp_path):
@@ -324,9 +372,9 @@ def test_submit_records_the_job_ids(tmp_path, monkeypatch):
         return SimpleNamespace(returncode=0, stdout=f"{1000 + len(calls)}\n", stderr="")
 
     monkeypatch.setattr(submit_umap.subprocess, "run", fake_run)
-    state = submit_umap.submit(work_dir, configs=(15, 50), log=lambda *a: None)
+    state = submit_umap.submit(work_dir, configs=(4, 8), log=lambda *a: None)
 
-    assert [job["name"] for job in state["jobs"]] == ["nn050", "nn015"]
+    assert [job["name"] for job in state["jobs"]] == ["nn008", "nn004"]
     assert [job["job_id"] for job in state["jobs"]] == ["1001", "1002"]
     assert [job["knn"] for job in state["jobs"]] == [0, 15]
     assert json.loads((work_dir / "jobs.json").read_text())["jobs"] == state["jobs"]
@@ -431,13 +479,15 @@ def test_report_marks_a_configuration_without_done_as_failed(tmp_path, capsys):
 
 @pytest.fixture
 def built(tmp_path, cache):
-    """A work directory with two finished projections over the tiny corpus."""
+    """A work directory with three finished projections over the tiny corpus:
+    two of the current sweep, plus one left over from the first one — which is
+    what makes the `--projections all` rule testable."""
     work_dir = tmp_path / "work"
     prepare_umap_input.prepare(work_dir, collections=COLLECTIONS, cache_dir=cache,
                                log=lambda *a: None)
     n = np.load(work_dir / "vectors.npy").shape[0]
     instruments = pq.read_table(work_dir / "instruments.parquet").num_rows
-    for name, n_neighbors in (("nn015", 15), ("nn050", 50)):
+    for name, n_neighbors in (("nn004", 4), ("nn016", 16), ("nn050", 50)):
         out = work_dir / name
         out.mkdir()
         pq.write_table(pa.table({
@@ -464,12 +514,22 @@ def built(tmp_path, cache):
 
 
 def test_finished_projections_skips_what_never_finished(built):
-    (built / "nn200").mkdir()
+    (built / "nn008").mkdir()
     found = build_umap_html.finished_projections(built)
-    assert [p["name"] for p in found] == ["nn015", "nn050"]
-    assert [p["n_neighbors"] for p in found] == [15, 50]
+    assert [p["name"] for p in found] == ["nn004", "nn016"]
+    assert [p["n_neighbors"] for p in found] == [4, 16]
     assert [p["name"] for p in build_umap_html.finished_projections(built, {"nn050"})] \
         == ["nn050"]
+
+
+def test_all_reaches_the_earlier_sweeps_directories(built):
+    """`nn050` is outside the current sweep: absent by default, back with
+    `all`, because nothing on disk was thrown away."""
+    assert [p["name"] for p in build_umap_html.finished_projections(built, "all")] == \
+        ["nn004", "nn016", "nn050"]
+    assert build_umap_html._wanted_projections(None) is None
+    assert build_umap_html._wanted_projections("all") == "all"
+    assert build_umap_html._wanted_projections("nn004,nn050") == {"nn004", "nn050"}
 
 
 def test_one_point_per_unit_row(built, cache):
@@ -553,6 +613,62 @@ def test_neighbors_zero_drops_the_field_and_the_layer(built, cache):
     assert "n" not in dataset[0]
 
 
+def test_the_overview_has_no_voronoi_layer_by_default(built, cache):
+    """`nearest` is what makes Vega-Lite insert a hidden Voronoi mark that
+    captures the pointer, and every tooltip evaluated on it reads
+    `undefined`. The default spec must not contain one anywhere."""
+    _, spec = spec_of(built, cache, neighbors=2)
+    assert "voronoi" not in json.dumps(spec)
+    pick = next(p for p in spec["params"] if p["name"] == "pick")
+    assert pick["select"].get("nearest", False) is False
+    # `pick` stays on the overview, and the mark is big enough to be clicked
+    # now that the pointer has to land on it.
+    overview = spec["vconcat"][0]["hconcat"][0]
+    assert pick["views"] == [overview["name"]]
+    assert overview["mark"] == {"type": "circle", "size": 10}
+
+    _, with_nearest = spec_of(built, cache, neighbors=2, nearest=True)
+    pick = next(p for p in with_nearest["params"] if p["name"] == "pick")
+    assert pick["select"]["nearest"] is True
+
+
+def test_the_instrument_view_rings_and_names_whatever_was_clicked(built, cache):
+    _, spec = spec_of(built, cache, neighbors=2)
+    instrument_view = spec["vconcat"][1]
+    layers = instrument_view["layer"]
+    assert len(layers) == 3
+    # The centroids keep the selection (Vega-Lite hoists a selection to the
+    # top level and points it back at its own view); the ring and the label are
+    # filtered by the same predicate the detail view uses, so a click in either
+    # view lands.
+    pick_instrument = next(p for p in spec["params"] if p["name"] == "pick_instrument")
+    assert pick_instrument["views"] == [layers[0]["name"]]
+    for layer in layers[1:]:
+        predicate = layer["transform"][-1]["filter"]
+        assert "pick.i" in predicate and "pick_instrument.i" in predicate
+    assert layers[1]["mark"]["filled"] is False
+    assert layers[1]["mark"]["stroke"] == "#000000"
+    assert layers[2]["mark"]["type"] == "text"
+    assert layers[2]["encoding"]["text"]["field"] == "nm"
+
+
+def test_the_subtitles_explain_every_mark(built, cache):
+    _, spec = spec_of(built, cache, neighbors=7)
+    detail_subtitle = spec["vconcat"][0]["hconcat"][1]["title"]["subtitle"]
+    assert any("black diamond" in line for line in detail_subtitle)
+    assert any("7 nearest neighbours" in line for line in detail_subtitle)
+    assert any("shape = unit type" in line for line in detail_subtitle)
+    instrument_subtitle = spec["vconcat"][1]["title"]["subtitle"]
+    assert any("black ring" in line for line in instrument_subtitle)
+
+
+def test_the_neighbour_line_is_absent_without_neighbours(built, cache):
+    _, spec = spec_of(built, cache, neighbors=0)
+    detail_subtitle = spec["vconcat"][0]["hconcat"][1]["title"]["subtitle"]
+    assert not any("nearest neighbours" in line for line in detail_subtitle)
+    assert any("black diamond" in line for line in detail_subtitle)
+
+
 def test_text_chars_adds_the_text_to_the_tooltip(built, cache):
     _, spec = spec_of(built, cache, neighbors=2, text_chars=20)
     assert '"title": "text"' in json.dumps(spec)
@@ -568,7 +684,53 @@ def test_the_written_html_embeds_the_spec(built, cache, tmp_path):
     assert "pick_instrument" in html
     assert output.with_suffix(".vl.json").exists()
     assert measured["points"] == 6 and measured["html_bytes"] > 0
-    assert measured["projections"] == ["nn015", "nn050"]
+    assert measured["projections"] == ["nn004", "nn016"]
+
+
+def test_the_page_says_what_produced_it(built, cache, tmp_path):
+    output = tmp_path / "out" / "umap.html"
+    measured = build_umap_html.build(built, output, neighbors=2, background_points=2,
+                                     collections=COLLECTIONS, cache_dir=cache,
+                                     argv=["build_umap_html.py", "--neighbors", "2"],
+                                     log=lambda *a: None)
+
+    html = output.read_text(encoding="utf-8")
+    assert html.count("Generated by scripts/embeddings/build_umap_html.py") == 1
+    assert "<footer" in html
+    assert str(built.resolve()) in html
+    assert "nn004, nn016" in html
+    assert "build_umap_html.py --neighbors 2" in html
+    # The footer goes after the chart's own div, not inside it.
+    assert html.index('<div id="vis"></div>') < html.index("<footer")
+
+    spec = json.loads(output.with_suffix(".vl.json").read_text(encoding="utf-8"))
+    provenance = spec["usermeta"]["provenance"]
+    assert set(provenance) == {"script", "commit", "date", "work_dir", "argv",
+                               "projections"}
+    assert provenance["projections"] == ["nn004", "nn016"]
+    assert provenance["script"] == "scripts/embeddings/build_umap_html.py"
+    assert measured["provenance"] == provenance
+
+
+def test_an_unknown_commit_is_never_a_failed_build(tmp_path):
+    assert build_umap_html.repository_commit(tmp_path) == "unknown"
+
+
+def test_the_footer_lands_in_either_altair_template():
+    """`--inline-js` only swaps the `<script>` tags for the libraries' own
+    source; both templates carry the same chart `div`, which is what
+    `insert_footer` anchors on. The inlined path itself needs
+    `vl-convert-python`, which this environment deliberately does not have."""
+    footer = build_umap_html.footer_html(
+        {"script": "s", "commit": "c", "date": "d", "work_dir": "w",
+         "argv": "a", "projections": ["nn004"]})
+    with_div = build_umap_html.insert_footer(
+        '<body>\n  <div id="vis"></div>\n  <script>1</script>\n</body>', footer)
+    assert with_div.index('<div id="vis"></div>') < with_div.index(footer)
+    assert with_div.index(footer) < with_div.index("<script>")
+
+    without_div = build_umap_html.insert_footer("<body></body>", footer)
+    assert without_div.index(footer) < without_div.index("</body>")
 
 
 def test_build_refuses_a_work_dir_with_no_finished_projection(tmp_path, cache):
