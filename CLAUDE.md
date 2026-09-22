@@ -681,6 +681,61 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   names, one `target N` row each, weight first. `build_umap_html`'s join and
   footer helpers are **imported**, never copied, so the two pages cannot
   disagree about which vector row a unit got.
+- **The website's Atlas reads one committed file, since issue #244.**
+  `scripts/embeddings/export_atlas_data.py` turns #242's outputs into
+  `website/pages/atlas/atlas.json` (~0.5 MB): `meta`, one short-keyed entry
+  per instrument (`c`/`k`/`n`, `p` = its **provisions** — the export and the
+  page say *provisions*, never *units*, which a general reader does not
+  understand — `in`, and `out`/`inc` as `[id, weight]` pairs from
+  `build_instrument_umap_html.strongest_targets` over the row and over the
+  column), and the four projections as `[x, y]` pairs. It is a pure read —
+  no refit, no `--force`, `matrix.npy`/`umap.parquet` untouched — and it is
+  the one derived file committed for the page, the same category as
+  `website/pages/data/scjn-leyes-summary.json` (a sub-MB summary the site
+  cannot be built without, not a corpus or a vector set). Regenerating it is
+  this exporter run by a human, never a workflow (issue #115, Hallazgo C);
+  `meta.commit` is provenance for the file and is never displayed.
+
+## The Atlas page (issues #244, #245)
+
+The website's **Atlas** (`website/pages/atlas.qmd`, navbar entry *Atlas*
+right after *Federal Laws*, titled *An Atlas of Mexican Federal Law: Laws,
+Regulations and Guidelines*) is #242's instrument map made public. Two issues,
+split on purpose: #244 exports the data (`website/pages/atlas/atlas.json`,
+see the #242 bullet above), #245 draws it.
+
+- **A hand-written D3 v7 page, not a notebook.** `atlas.qmd` has no code
+  cells — only the `<!-- atlas:app -->` block mounting
+  `website/pages/atlas/atlas.js`/`atlas.css` (D3 from jsdelivr, no build
+  step, no other library) and the explanatory prose. The site's notebooks are
+  frozen results to reproduce; this is a tool for people to use, and the
+  publish runner has Quarto only, so what is committed is exactly what the
+  browser runs. It needs no freeze entry; `_quarto.yml`'s
+  `project.resources: ["pages/atlas/**"]` is what copies the JSON, JS and CSS
+  into `_site`, and every path is relative (`atlas/atlas.json`) so the page
+  works from `_site/pages/atlas.html` and a local `http.server` alike.
+- **What it fixes about the #242 page**: circle *area* is proportional to
+  provisions (square-root radius, 2.5 px floor — the old log scale made
+  almost every point look the same size); a detail panel lists all five
+  closest instruments and the five that point here (vega-tooltip had clipped
+  them to three), each name selecting that instrument; numbered lines join a
+  selection to its five targets; a search box folds accents and case; the
+  `n_neighbors` radio is a labelled *Neighbourhood size* segmented control
+  with a caption; zoom keeps radii in screen pixels. The interface is
+  English and says **provisions**, never *units*, *tooltip* or
+  *n_neighbors*; instrument names stay as the corpus spells them. No
+  provenance footer, script name or commit on the page.
+- **The site's palette, not Vega's**: laws `#2a78d6`, regulations
+  `#008300`, guidelines `#e87ba4` — the site's own rule that a colour means
+  the same thing on every page.
+- **Verified in a real browser.** `scripts/embeddings/tests/test_atlas_page.py`
+  drives headless Chromium through Playwright (in the root `viz` dependency
+  group; `uv run --group viz playwright install chromium` once per machine)
+  over a harness page built from the qmd's own app block, and writes a
+  screenshot to `output/atlas-chapingo.png`; without the browser those tests
+  skip with the reason and the static checks still run. No Home teaser card:
+  `website/index.ipynb` is frozen, and editing it is a re-freeze pass of its
+  own.
 
 ## `dof2md` is now `document2md` (issue #228, done)
 

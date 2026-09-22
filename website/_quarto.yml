@@ -1,6 +1,10 @@
 project:
   type: website
   output-dir: _site
+  # The Atlas (issue #245) is a hand-written D3 page that fetches its data at
+  # run time, so its JSON, JS and CSS have to be copied into _site as they are.
+  resources:
+    - "pages/atlas/**"
   post-render:
     - scripts/fix_home_citations.py
 
@@ -32,6 +36,8 @@ website:
         text: Archive
       - href: pages/leyes.ipynb
         text: Federal Laws
+      - href: pages/atlas.qmd
+        text: Atlas
       - href: pages/titles.ipynb
         text: DOF Titles
       - href: pages/document2md.ipynb

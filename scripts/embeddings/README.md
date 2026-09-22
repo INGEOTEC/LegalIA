@@ -574,6 +574,7 @@ together when their articles point at the same places.
 |---|---|
 | The matrix (a Slurm job) | `scripts/embeddings/instrument_matrix.py` |
 | The page | `scripts/embeddings/build_instrument_umap_html.py` → `output/umap-instruments-qwen3-0.6b.html` (+ `.vl.json`) |
+| The website's data (issue #244) | `scripts/embeddings/export_atlas_data.py` → `website/pages/atlas/atlas.json` (committed) |
 | Everything derived | `emb-run-umap/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
 Nothing here is committed, and nothing `prepare_umap_input.py` or
@@ -697,6 +698,87 @@ cannot disagree and an instrument that receives no weight is never ringed.
 verifies is the spec: `chart.to_dict()` against the Vega-Lite schema, the
 written `.vl.json` reloaded, and the tests below.
 
+### The atlas export
+
+The website's Atlas (issue #245) cannot read parquet or npy, so
+`export_atlas_data.py` (issue #244) writes one compact JSON into the
+website's own tree, **`website/pages/atlas/atlas.json`** — the one derived
+file committed for the page, like `website/pages/data/scjn-leyes-summary.json`:
+
+```bash
+uv run --group viz python scripts/embeddings/export_atlas_data.py
+```
+
+It is a pure read of `instruments.parquet`, `matrix.npy`, `matrix.json`,
+`umap.parquet` and `umap.json`: `project()` is called only so a missing
+matrix fails with a `SystemExit` naming `instrument_matrix.py`, and is a
+no-op because `umap.parquet` exists (there is no `--force`). Seconds, no
+Slurm, no network. Flags: `--work-dir`, `--output`, `--n-neighbors`
+(default `4,8,16,32`, each already fitted), `--top` (5), `--decimals` (4,
+coordinates). Run by a human and committed, never by a workflow (issue #115,
+Hallazgo C).
+
+One object, keys in this order:
+
+- `meta` — `title`, `generated` (ISO UTC), `commit` (provenance for the file,
+  never displayed by the page), `model`, `instruments` (1,523), `provisions`
+  (`matrix.json`'s `unit_rows`, 408,804), `distinct_texts` (`vector_rows`,
+  381,349), `collections` (`{"leyes": 315, "reglamentos": 1082,
+  "lineamientos": 126}`, counted from the table), `n_neighbors`,
+  `default_n_neighbors` (16), `umap` (`min_dist`, `metric`, `random_state`,
+  `umap_version` of the first fit), `weighting` (`"1/m"`), `top` (5),
+  `sources` (the three corpus releases, then the three `scjn-*-vectors`).
+- `instruments` — a list whose index is `i`, each `{"c": coleccion, "k":
+  clave, "n": nombre, "p": provisions, "in": incoming weight, "out": [[j, w],
+  …], "inc": [[j, w], …]}`. `out` is `strongest_targets(A, i, top)` and `inc`
+  the same helper over `A.T` (who points *here* hardest): weight > 0 only,
+  heaviest first, ties by ascending id, weights to one decimal — the ranking
+  the research page uses, imported, so the two cannot disagree. `out`'s
+  total is not exported: it equals `p` by construction.
+- `projections` — `{"4": [[x, y], …], "8": …, "16": …, "32": …}`, one pair
+  per instrument in `i` order, rounded to `--decimals`, in `[0, 1]`.
+
+**Provisions, not units**, in everything the export carries: a unit is an
+article, a transitory article or another indivisible text unit
+(`md2akn.text_units`), which a general reader calls a provision. The Python
+side keeps `units`; the words `units` and `tooltip` appear nowhere in the
+file. The exporter refuses (`SystemExit`) a matrix whose shape does not match
+the table, a requested `n_neighbors` missing from `umap.parquet`, an
+instrument with an empty `out`, and provisions that do not add up to
+`matrix.json`'s `unit_rows`.
+
+Measured on 2026-09-22: **502 kB**, under a second; the Universidad Autónoma
+Chapingo (`luach`) points at Narro 13.0, UAM 11.3, Colegio de Postgraduados
+2.0, Ley Agraria 1.0 and Semillas 1.0 — all five, which the #242 tooltip
+showed only three of — and `cpeum` has 2,276 provisions. One instrument has
+an empty `inc` (nothing points at it); every `out` is non-empty.
+
+### The Atlas page
+
+The file above is what the website's **Atlas** reads
+(`website/pages/atlas.qmd`, navbar *Atlas*, issue #245): a hand-written D3 v7
+application in `website/pages/atlas/atlas.js` and `atlas.css`, the public
+successor of this section's research page. It draws circle **area**
+proportional to provisions (a square-root radius, 2.5 px floor) in the site's
+palette (laws `#2a78d6`, regulations `#008300`, guidelines `#e87ba4`), lists
+all five closest instruments and the five that point here in a detail panel
+instead of a tooltip, joins the selection to its five targets with numbered
+lines, and has a search box (accents and case folded), a labelled
+*Neighbourhood size* control over the four layouts, and a collection legend.
+Its browser tests run the qmd's own markup in headless Chromium:
+
+```bash
+uv run --group viz playwright install chromium   # once
+uv run --group viz pytest scripts/embeddings/tests/test_atlas_page.py -q
+```
+
+They serve `website/pages` over `http.server` (Chromium will not `fetch` from
+`file://`) with a harness page whose body is the qmd's `<!-- atlas:app -->`
+block verbatim, and leave a screenshot with Chapingo selected at
+`output/atlas-chapingo.png` (gitignored). Without Playwright or its Chromium
+they skip with the reason; the static checks on the qmd, `_quarto.yml` and the
+two files always run.
+
 ### Tests
 
 ```bash
@@ -717,6 +799,10 @@ count, `A.sum()` = the unit rows) is asserted on the toy matrix, as are
 1` against the default), the Slurm plumbing is driven through a fake `squeue`
 in its three states (plus `--force` forwarded into the job and the previous
 `.done` dropped), and the page is built with a stub reducer.
+`tests/test_export_atlas_data.py` imports the same toy corpus and checks the
+atlas export against it: the schema and key order, `p`/`in`/`out`/`inc`
+against the matrix and `strongest_targets`, rounded unit-square projections,
+no refit, and each refusal above.
 
 ### What the first run measured, and why the rule changed
 
