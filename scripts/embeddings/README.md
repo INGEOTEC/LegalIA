@@ -753,6 +753,32 @@ Chapingo (`luach`) points at Narro 13.0, UAM 11.3, Colegio de Postgraduados
 showed only three of — and `cpeum` has 2,276 provisions. One instrument has
 an empty `inc` (nothing points at it); every `out` is non-empty.
 
+### The Atlas page
+
+The file above is what the website's **Atlas** reads
+(`website/pages/atlas.qmd`, navbar *Atlas*, issue #245): a hand-written D3 v7
+application in `website/pages/atlas/atlas.js` and `atlas.css`, the public
+successor of this section's research page. It draws circle **area**
+proportional to provisions (a square-root radius, 2.5 px floor) in the site's
+palette (laws `#2a78d6`, regulations `#008300`, guidelines `#e87ba4`), lists
+all five closest instruments and the five that point here in a detail panel
+instead of a tooltip, joins the selection to its five targets with numbered
+lines, and has a search box (accents and case folded), a labelled
+*Neighbourhood size* control over the four layouts, and a collection legend.
+Its browser tests run the qmd's own markup in headless Chromium:
+
+```bash
+uv run --group viz playwright install chromium   # once
+uv run --group viz pytest scripts/embeddings/tests/test_atlas_page.py -q
+```
+
+They serve `website/pages` over `http.server` (Chromium will not `fetch` from
+`file://`) with a harness page whose body is the qmd's `<!-- atlas:app -->`
+block verbatim, and leave a screenshot with Chapingo selected at
+`output/atlas-chapingo.png` (gitignored). Without Playwright or its Chromium
+they skip with the reason; the static checks on the qmd, `_quarto.yml` and the
+two files always run.
+
 ### Tests
 
 ```bash
