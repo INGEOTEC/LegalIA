@@ -52,4 +52,9 @@ viz = [
     # wins" rule is made of (issue #241, third pass) -- a session with no
     # browser cannot click, so the compiled signals are the evidence.
     "vl-convert-python",
+    # The website's Atlas (issue #245) is a hand-written D3 page; its tests
+    # load, click, search and screenshot it in headless Chromium. Needs a
+    # one-time `uv run --group viz playwright install chromium`; without the
+    # browser those tests skip and the static checks still run.
+    "playwright",
 ]
