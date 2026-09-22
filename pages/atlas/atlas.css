@@ -198,6 +198,12 @@
   align-items: start;
 }
 
+/* Quarto places `aside`, `div.aside` and `.column-margin` in the page margin
+   with `grid-column: body-end/page-end`; no child of this grid may inherit that. */
+.atlas-main > * {
+  grid-column: auto;
+}
+
 .atlas-map-column {
   min-width: 0;
 }
@@ -380,6 +386,14 @@
   letter-spacing: 0.08em;
 }
 
+/* Quarto's theme gives an h2 a bottom rule and padding, and an h3 its own
+   serif font; the panel's headings are designed without either. */
+.atlas-panel h2,
+.atlas-panel h3 {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
 .atlas-panel-title {
   margin: 0.45rem 0 0.35rem;
   font-family: "Palatino Linotype", Palatino, "URW Palladio L", Georgia, serif;
@@ -401,6 +415,7 @@
 
 .atlas-panel-heading {
   margin: 1rem 0 0.1rem;
+  font-family: var(--atlas-sans);
   font-size: 0.78rem;
   font-weight: 600;
   text-transform: uppercase;
