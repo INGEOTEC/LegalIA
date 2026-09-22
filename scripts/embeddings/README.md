@@ -550,3 +550,185 @@ the `n` column — one comma-separated string of 15 vector rows per point,
 answer to "what do the neighbours cost". The compiled-Vega check ran on the
 real spec and logged both clear streams, as above; the footer is present
 exactly once.
+
+## The instrument map (issue #242)
+
+The UMAP explorer above is a picture of **texts**. This is a picture of the
+1,523 **instruments** that own them, built from one question asked of every
+unit of every federal law, reglamento and lineamiento:
+
+> which instrument owns the text closest to this one, among all the texts
+> that are not exclusively mine?
+
+Counting the answers gives a square matrix `A` (1,523 × 1,523, rows and
+columns in `instruments.parquet`'s `i` order): for every unit row of
+instrument `I`, every instrument `J` owning a winning text gets
+`A[I, J] += 1`. An instrument is then represented by **where its articles'
+nearest foreign neighbours live** — a distribution over the other
+instruments — rather than by its own text, and two instruments land together
+when their articles point at the same places.
+
+### Where things are
+
+| What | Path |
+|---|---|
+| The matrix (a Slurm job) | `scripts/embeddings/instrument_matrix.py` |
+| The page | `scripts/embeddings/build_instrument_umap_html.py` → `output/umap-instruments-qwen3-0.6b.html` (+ `.vl.json`) |
+| Everything derived | `emb-run-umap/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
+
+Nothing here is committed, and nothing `prepare_umap_input.py` or
+`project_umap.py` wrote is touched: this is one subdirectory inside #241's
+own work directory, and it only ever *reads* `vectors.npy`,
+`vector_ids.parquet` and `instruments.parquet`.
+
+```bash
+uv run --group viz python scripts/embeddings/instrument_matrix.py --dry-run
+uv run --group viz python scripts/embeddings/instrument_matrix.py --submit
+uv run --group viz python scripts/embeddings/instrument_matrix.py --wait --max-wait-minutes 9
+uv run --group viz python scripts/embeddings/build_instrument_umap_html.py
+```
+
+### The rules that define `A`
+
+Each of these was a decision in issue #242, not a default:
+
+- **All six `unit_type`s count**, not only `article`: the question is about
+  everything that makes up a document. There is no `--unit-types` flag —
+  narrowing it is a later experiment, not a knob.
+- **Ties count, every one of them.** A row's winners are every column within
+  `--tolerance` (1e-6) of its best. Identical texts across collections are
+  *exact* ties in float32, and breaking them by column index would silently
+  prefer `leyes` to everything else.
+- **+1 to each instrument owning a winning text**, never `1/m`: a text two
+  instruments share is evidence about both. Row sums therefore exceed the
+  unit count, and the L2 normalisation before UMAP absorbs the scale.
+- **Per unit row, not per distinct text.** A boilerplate transitorio repeated
+  `m` times inside a code is `m` articles and counts `m` times — the same
+  choice #241's centroids made.
+- **Only columns owned *exclusively* by the source are masked.** A text `I`
+  shares with `J` stays a candidate: the nearest foreign neighbour of such a
+  unit is that very text, at similarity 1, which is the strongest relation
+  there is and the last thing to hide.
+- **Exact cosine, by blocked matrix products.** Not `neighbors.parquet`
+  (k=15 neighbours of an article of a 3,600-article code are all inside that
+  code, so the foreign one is never among them) and not an approximate
+  index. The published vectors are **not** normalised — their norms run 92 to
+  121 — so the matrix is normalised once, in place, before any product.
+  `--block-rows` (default 1,024) bounds one product at ~1.6 GB whatever the
+  instrument; `ccf`'s 3,654 distinct texts against all 381,349 would be
+  5.6 GB in one piece. Blocking changes no count, which a test asserts.
+- **Directed, never symmetrised.** A reglamento pointing at its law says
+  nothing about the law pointing back. The other direction is not thrown
+  away: the page's tooltip carries both the row sum (`units pointing out`)
+  and the column sum (`foreign units pointing here`).
+
+The unit → instrument → vector row join is **`build_umap_html.load_frames`
+itself**, imported and called with no projection, rather than a second copy:
+the two scripts must never disagree about which vector row a unit got.
+
+`nearest.parquet` keeps the evidence, one row per unit row: `similarity`,
+`n_winners` (how many vector rows tied) and `targets` (the instruments
+credited), next to `clave`, `unit_type` and `eId`.
+
+### The Slurm plumbing
+
+`--dry-run`/`--submit`/`--wait`/`--report`, in `submit_umap.py`'s own style
+and reusing its `queued_jobs`: one job, `--exclude=geoint0`, a two-hour
+ceiling, and **no retry** — a job that dies is reported with the tail of its
+own Slurm output, never resubmitted automatically. `--wait
+--max-wait-minutes N` returns **75** while the job is still there, 0 once
+`.done` exists and 1 if the job left the queue without one, so an automated
+session can poll in chunks instead of holding a process open. `.done` makes a
+plain rerun a no-op; `--force` recomputes.
+
+### The page
+
+`build_instrument_umap_html.py` runs on the login node — 1,523 × 1,523 is
+seconds of work, so there is no job to submit. Rows are L2-normalised (a
+zero row raises rather than reaching UMAP as `nan`), then fitted four times
+with `n_neighbors` 4 / 8 / 16 / 32, `metric="cosine"`, `min_dist=0.1` and
+**`random_state=0`** — the opposite of `project_umap.py`'s decision, for the
+opposite reason: a seed costs a single-threaded fit, which at this size is
+seconds, and buys a reproducible page. Each projection is min-max scaled into
+`[0, 1]` with its raw range recorded, so the radio switches between them
+without rescaling an axis.
+
+One layered scatter: colour by collection (legend-bound toggle), size by
+`units` on a **log** scale (1 to 3,663 — on a linear scale every lineamiento
+would be an invisible dot), a radio for `n_neighbors` defaulting to 16, and a
+click that puts a black ring and the instrument's name on the picked point
+and red rings on the ten instruments its units point at hardest (the
+comma-separated-string trick #241 validated, read back with Vega's `split`).
+`nearest` is **off**, for the reason #241 measured. The tooltip carries
+`nombre`, `clave`, `coleccion`, `units`, both directions of the matrix and
+the five strongest targets with their counts. The same provenance footer and
+`usermeta.provenance` as #241's page, through the same helpers.
+
+**A person still confirms the interaction in a browser.** What the script
+verifies is the spec: `chart.to_dict()` against the Vega-Lite schema, the
+written `.vl.json` reloaded, and the tests below.
+
+### Tests
+
+```bash
+uv run --group viz pytest scripts/embeddings/tests/test_instrument_matrix.py -q
+```
+
+A five-instrument toy corpus over two collections whose vectors are written
+by hand, so every count in the expected matrix is derivable with a pen: a
+text shared inside a collection wins at cosine 1, a text identical across
+collections wins at cosine 1 from the other side, one row ties across two
+foreign instruments and credits both, one text repeated twice inside an
+instrument counts twice, and an instrument's own exclusive texts are masked.
+Blocking is asserted invisible (`--block-rows 1` against the default), the
+Slurm plumbing is driven through a fake `squeue` in its three states, and the
+page is built with a stub reducer.
+
+### Measured, `geoint`, 2026-09-22
+
+The matrix, one job on `geoint1` (62 threads, `--exclude=geoint0`):
+
+| phase | seconds |
+|---|---|
+| load (the join + `vectors.npy`) | 3.0 |
+| normalise (381,349 rows, in place) | 0.8 |
+| sweep (381,349 × 381,349 cosines, blocked) | 667.7 |
+| write | 0.5 |
+| **total** | **673.2 s (11.2 min)** |
+
+Peak RSS **3.79 GB** of the ~245 GB a node has — a third of what the issue
+budgeted, because a 1,024-row block and one normalised copy of the matrix is
+all that is ever live. Inside the 5–30 minute estimate, and nowhere near the
+two-hour ceiling.
+
+| what | value |
+|---|---|
+| unit rows answered | 408,804 |
+| vector rows | 381,349 (10,309 owned by more than one instrument) |
+| instruments | 1,523 |
+| `A.sum()` | 1,639,503 |
+| non-zero cells | 864,966 of 2,319,529 (37 %) |
+| unit rows with a tie | 678 (676 two-way, 2 three-to-five-way) |
+| mean similarity of the winner | 0.843 |
+| unit rows whose winner is an identical text (cosine 1) | 35,829 (8.8 %) |
+
+**The number worth reading twice is `A.sum()`: 1,639,503 counts for 408,804
+unit rows, four per row on average against a median of one.** Ties are not
+the cause — only 678 rows have any. It is the *owners* rule: a single
+winning column can be owned by hundreds of instruments at once (the worst
+row credits **847**), because boilerplate — a transitorio, "Se deroga." — is
+one vector row shared across a whole collection. That is exactly what "+1 to
+each instrument owning a winning text" says to do, and the row
+normalisation before UMAP is what keeps such a row from dominating the
+geometry; it is recorded here because it is the difference between reading
+`A` as "articles" and reading it as "article–instrument incidences".
+
+The four fits, on the login node, `random_state=0`:
+
+| `n_neighbors` | 4 | 8 | 16 | 32 | total |
+|---|---|---|---|---|---|
+| seconds | 28.6 | 15.1 | 16.1 | 19.1 | **78.9** |
+
+The page: **1.4 MB** for 1,523 instruments — three orders of magnitude under
+the unit-level page, which is what one point per instrument instead of one
+per unit row buys — with the footer present exactly once.

@@ -653,6 +653,28 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   and why `nearest` is off (it makes Vega-Lite insert a Voronoi layer that
   turns every overview tooltip into `undefined`) live in
   `scripts/embeddings/README.md`.
+- **And then at the instruments they belong to, in issue #242.** Two more
+  scripts in the same directory — `instrument_matrix.py` (one Slurm job,
+  `--submit`/`--wait`/`--report`/`--dry-run` in `submit_umap.py`'s style,
+  whose `queued_jobs` it imports) and `build_instrument_umap_html.py` —
+  answer, for **every unit row of every instrument**, "which *other*
+  instrument owns the text nearest to this one?", and count the answers into
+  a directed 1,523 × 1,523 matrix (`emb-run-umap/instrument-matrix/`, still
+  gitignored). The rules are the issue's, not defaults: all six unit types;
+  every tied winner counts (1e-6 on float32 cosine, because identical texts
+  across collections tie exactly); +1 to **each** instrument owning a winner,
+  never a split; per unit row, so a transitorio repeated *m* times counts *m*
+  times; and only columns owned *exclusively* by the source are masked — a
+  text it shares with another instrument is that unit's strongest foreign
+  neighbour, not something to hide. Exact cosine by blocked matmul, never
+  `neighbors.parquet`, whose k=15 cannot see past a 3,600-article code's own
+  articles. The rows are then L2-normalised and embedded (`n_neighbors`
+  4/8/16/32, `random_state=0` — seconds at this size, so a reproducible page
+  is worth the single-threaded fit) into
+  `output/umap-instruments-qwen3-0.6b.html`, where a click rings an
+  instrument and the ten it points at hardest. `build_umap_html`'s join and
+  footer helpers are **imported**, never copied, so the two pages cannot
+  disagree about which vector row a unit got.
 
 ## `dof2md` is now `document2md` (issue #228, done)
 
