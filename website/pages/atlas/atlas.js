@@ -170,10 +170,14 @@
     sizeLegend.setAttribute("aria-label", "Circle area is proportional to provisions");
     const legend = element("div", { className: "atlas-legend" }, [collectionLegend, sizeLegend]);
     const mapWrap = element("div", { className: "atlas-map-wrap" }, [svgNode, label]);
-    const panel = element("aside", {
+    // A <div role="complementary">, never an <aside>: Quarto's page CSS sends
+    // every `aside` to the page margin (`grid-column: body-end/page-end
+    // !important`), which inside `.atlas-main` left the map a 0 px track.
+    const panel = element("div", {
       className: "atlas-panel",
+      role: "complementary",
       "aria-live": "polite",
-      "aria-label": "Selected instrument",
+      "aria-label": "Instrument details",
     });
     const main = element("div", { className: "atlas-main" }, [
       element("div", { className: "atlas-map-column" }, [mapWrap, legend]),

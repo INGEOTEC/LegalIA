@@ -736,6 +736,20 @@ see the #242 bullet above), #245 draws it.
   skip with the reason and the static checks still run. No Home teaser card:
   `website/index.ipynb` is frozen, and editing it is a re-freeze pass of its
   own.
+- **The harness is not the site (issue #247).** As first published, the map
+  showed no point: the detail panel was an `<aside>`, and Quarto's page CSS
+  sends every `aside:not(.footnotes):not(.sidebar)` to the page margin with
+  `grid-column: body-end/page-end !important` (and greys and shrinks its
+  text). Inside `.atlas-main` those named lines do not exist, so the grid grew
+  implicit tracks and the map's `1fr` track got 0 px. The harness never loads
+  the site's stylesheet, so it could not see this. The panel is now a
+  `<div role="complementary">`, `atlas.css` resets `grid-column` on every
+  child of `.atlas-main` (and Quarto's h2 rule / h3 font on the panel's
+  headings), and the `test_rendered_*` tests render `pages/atlas.qmd` with a
+  local Quarto into the gitignored `website/_site/` and drive that page. They
+  skip only when no Quarto is found — on `PATH`, else the newest
+  `~/.local/opt/quarto-*/bin/quarto` (1.9.38, CI's version, lives there on
+  the development machine, outside `PATH`).
 
 ## `dof2md` is now `document2md` (issue #228, done)
 

@@ -5,21 +5,31 @@
 
 The page is a hand-written D3 application (`website/pages/atlas/atlas.js`,
 `atlas.css`) over the committed `website/pages/atlas/atlas.json` (issue #244),
-wrapped by `website/pages/atlas.qmd`. Quarto is not installed where these
-tests run, so the browser tests load a harness page instead: an HTML file
-served next to `website/pages/atlas/` whose body is the qmd's own
-`<!-- atlas:app -->` block, copied verbatim — so what is clicked here is the
-markup the site publishes, not a look-alike.
+wrapped by `website/pages/atlas.qmd`. Most browser tests load a harness
+page: an HTML file served next to `website/pages/atlas/` whose body is the
+qmd's own `<!-- atlas:app -->` block, copied verbatim — so what is clicked
+here is the markup the site publishes, not a look-alike. It is fast and needs
+no Quarto, but it carries only `atlas.css`, not the site's own stylesheet.
+
+That is how issue #247 got published: Quarto's CSS sends every `aside` to the
+page margin with `grid-column: body-end/page-end !important`, and the panel
+was an `<aside>`, so on the real page the map's grid track was 0 px wide. The
+`rendered_*` tests at the bottom therefore render `pages/atlas.qmd` with
+Quarto into `website/_site/` (gitignored) and drive the page Quarto wrote.
 
 The static checks at the top always run. The browser tests skip, with the
-reason, when Playwright or its Chromium is missing.
+reason, when Playwright or its Chromium is missing; the rendered-page tests
+also skip when no Quarto binary is found (on `PATH`, else the newest
+`~/.local/opt/quarto-*/bin/quarto`).
 """
 
 import functools
 import http.server
 import json
 import re
+import shutil
 import statistics
+import subprocess
 import threading
 from pathlib import Path
 
@@ -33,6 +43,11 @@ APP_JS = PAGES / "atlas" / "atlas.js"
 APP_CSS = PAGES / "atlas" / "atlas.css"
 DATA = PAGES / "atlas" / "atlas.json"
 SCREENSHOT = REPO / "output" / "atlas-chapingo.png"
+SITE = WEBSITE / "_site"
+RENDERED_SCREENSHOT = REPO / "output" / "atlas-rendered.png"
+RENDERED_CHAPINGO_SCREENSHOT = REPO / "output" / "atlas-rendered-chapingo.png"
+#: Quarto's margin text colour, `#636056`: what an `aside` on the site gets.
+QUARTO_MARGIN_COLOR = "rgb(99, 96, 86)"
 
 TITLE = "An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines"
 SUBTITLE = ("315 laws, 1,082 regulations and 126 guidelines, placed by where their "
@@ -148,6 +163,19 @@ HARNESS = """<!doctype html>
 </body>
 </html>
 """
+
+
+def serve(directory):
+    """Start a quiet HTTP server over `directory` on a free port."""
+
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+    httpd = http.server.ThreadingHTTPServer(
+        ("127.0.0.1", 0), functools.partial(Handler, directory=str(directory)))
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd
 
 
 @pytest.fixture(scope="module")
@@ -415,3 +443,127 @@ def test_a_screenshot_with_chapingo_selected(page):
     SCREENSHOT.parent.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=str(SCREENSHOT), full_page=True)
     assert SCREENSHOT.stat().st_size > 10_000
+
+
+# -- the page Quarto renders (issue #247) ------------------------------------ #
+
+def find_quarto():
+    """Quarto on `PATH`, else the newest one installed under `~/.local/opt`."""
+    found = shutil.which("quarto")
+    if found:
+        return found
+    installed = sorted(Path.home().glob(".local/opt/quarto-*/bin/quarto"),
+                       key=lambda path: [int(part) if part.isdigit() else part
+                                         for part in re.split(r"[.-]", path.parts[-3])])
+    return str(installed[-1]) if installed else None
+
+
+@pytest.fixture(scope="module")
+def rendered_site():
+    """`pages/atlas.qmd` rendered by Quarto into `website/_site/`, served over
+    HTTP; the URL of the rendered Atlas page."""
+    quarto = find_quarto()
+    if quarto is None:
+        pytest.skip("Quarto not found: put it on PATH or install it under "
+                    "~/.local/opt/quarto-<version>/bin/quarto (CI uses 1.9.38)")
+    subprocess.run([quarto, "render", "pages/atlas.qmd"], cwd=WEBSITE, check=True,
+                   capture_output=True, timeout=300)
+    assert (SITE / "pages" / "atlas.html").exists()
+    assert (SITE / "pages" / "atlas" / "atlas.js").read_text(encoding="utf-8") \
+        == APP_JS.read_text(encoding="utf-8")
+    httpd = serve(SITE)
+    yield f"http://127.0.0.1:{httpd.server_address[1]}/pages/atlas.html"
+    httpd.shutdown()
+    httpd.server_close()
+
+
+@pytest.fixture
+def rendered_page(browser, rendered_site):
+    page = open_page(browser, rendered_site)
+    yield page
+    page.close()
+
+
+def rendered_svg_box(page):
+    return page.locator("svg.atlas-map").bounding_box()
+
+
+def visible_circles_inside(page, box):
+    """Circles with a non-zero box whose centre lies inside `box` (both in
+    viewport coordinates, as Playwright's `bounding_box` reports them)."""
+    return page.eval_on_selector_all(
+        "circle.atlas-point",
+        """(nodes, box) => nodes.filter(node => {
+             const r = node.getBoundingClientRect();
+             const cx = r.x + r.width / 2, cy = r.y + r.height / 2;
+             return r.width > 0 && r.height > 0
+               && cx >= box.x && cx <= box.x + box.width
+               && cy >= box.y && cy <= box.y + box.height;
+           }).length""",
+        box)
+
+
+def test_rendered_map_has_width_and_visible_points(rendered_page):
+    box = rendered_svg_box(rendered_page)
+    assert box["width"] > 600
+    assert visible_circles_inside(rendered_page, box) >= 1400
+    tracks = rendered_page.evaluate(
+        "() => getComputedStyle(document.querySelector('.atlas-main'))"
+        ".gridTemplateColumns")
+    widths = [float(track.removesuffix("px")) for track in tracks.split()]
+    assert len(widths) == 2, tracks
+    assert all(width > 0 for width in widths), tracks
+    RENDERED_SCREENSHOT.parent.mkdir(parents=True, exist_ok=True)
+    rendered_page.screenshot(path=str(RENDERED_SCREENSHOT), full_page=True)
+    assert RENDERED_SCREENSHOT.stat().st_size > 10_000
+
+
+def test_rendered_panel_is_not_in_quartos_margin(rendered_page):
+    assert rendered_page.locator("#atlas aside").count() == 0
+    panel = rendered_page.locator(".atlas-panel")
+    assert panel.get_attribute("role") == "complementary"
+    style = panel.evaluate(
+        "node => { const s = getComputedStyle(node);"
+        " return {column: s.gridColumnStart + ' / ' + s.gridColumnEnd, color: s.color}; }")
+    assert style["column"] == "auto / auto"
+    assert style["color"] != QUARTO_MARGIN_COLOR
+    assert style["color"] == "rgb(31, 30, 27)"            # --atlas-ink
+    # Quarto's heading rule and serif font do not reach the panel's headings.
+    select_by_search(rendered_page, "chapingo", CHAPINGO)
+    assert rendered_page.eval_on_selector(
+        ".atlas-panel h2", "n => getComputedStyle(n).borderBottomWidth") == "0px"
+    assert "sans-serif" in rendered_page.eval_on_selector(
+        ".atlas-panel h3", "n => getComputedStyle(n).fontFamily")
+
+
+def test_rendered_page_at_phone_width(browser, rendered_site):
+    page = open_page(browser, rendered_site, width=390, height=800)
+    try:
+        box = rendered_svg_box(page)
+        assert box["width"] > 300
+        panel = page.locator(".atlas-panel").bounding_box()
+        assert panel["y"] >= box["y"] + box["height"]
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= 390
+    finally:
+        page.close()
+
+
+def test_rendered_selection_draws_five_lines(rendered_page):
+    search(rendered_page, "chapingo")
+    rendered_page.press("#atlas-search", "Enter")
+    rendered_page.wait_for_function(
+        "name => document.querySelector('.atlas-panel h2')?.textContent === name",
+        arg=CHAPINGO)
+    assert rendered_page.locator(".atlas-out .atlas-target").count() == 5
+    rendered_page.wait_for_timeout(900)
+    box = rendered_svg_box(rendered_page)
+    lines = rendered_page.locator("line.atlas-link")
+    assert lines.count() == 5
+    for n in range(5):
+        line = lines.nth(n).bounding_box()
+        assert line is not None
+        assert box["x"] - 1 <= line["x"] and line["x"] + line["width"] <= box["x"] + box["width"] + 1
+        assert box["y"] - 1 <= line["y"] and line["y"] + line["height"] <= box["y"] + box["height"] + 1
+    RENDERED_CHAPINGO_SCREENSHOT.parent.mkdir(parents=True, exist_ok=True)
+    rendered_page.screenshot(path=str(RENDERED_CHAPINGO_SCREENSHOT), full_page=True)
+    assert RENDERED_CHAPINGO_SCREENSHOT.stat().st_size > 10_000

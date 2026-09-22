@@ -777,7 +777,13 @@ They serve `website/pages` over `http.server` (Chromium will not `fetch` from
 block verbatim, and leave a screenshot with Chapingo selected at
 `output/atlas-chapingo.png` (gitignored). Without Playwright or its Chromium
 they skip with the reason; the static checks on the qmd, `_quarto.yml` and the
-two files always run.
+two files always run. The `test_rendered_*` tests (issue #247) render
+`pages/atlas.qmd` with Quarto into `website/_site/` (gitignored) and drive the
+page Quarto actually wrote, site CSS included — the harness alone missed that
+Quarto's `aside` rule collapsed the map to 0 px — leaving
+`output/atlas-rendered.png` and `output/atlas-rendered-chapingo.png`; they
+skip only when no Quarto is found on `PATH` or under
+`~/.local/opt/quarto-*/bin/quarto`.
 
 ### Tests
 
