@@ -620,6 +620,67 @@ workflow publishes them, and `legalvec` has no PyPI release either.
 - The run itself, on `cemieredes`' three A100s: 12 + 30 + 1 shards per model,
   0 failed, weights downloaded and deleted per model. 381,349 distinct texts
   across the three corpora, ~2.0 GB of vectors.
+- **Someone finally looked at them, in issue #241.** Four more scripts under
+  `scripts/embeddings/` — `prepare_umap_input.py`, `project_umap.py`,
+  `submit_umap.py`/`submit_umap.sh`, `build_umap_html.py`, plus a root
+  `[dependency-groups] viz` (`umap-learn`, `pynndescent`, `altair`,
+  `pandas`, `vl-convert-python`, deliberately not in `dev`) — fit UMAP on
+  **all** 381,349 of the
+  0.6B model's vectors, four `n_neighbors` configurations (16/32/64/128, the
+  shared `project_umap.DEFAULT_N_NEIGHBORS`; the earlier sweeps' 4/8 and
+  15/50/200 stay on disk and come back with `build_umap_html.py
+  --projections all`), one
+  exclusive CPU node each on a *different* Slurm cluster (`geoint`: three
+  ~60-core, ~245 GB nodes, no GPU, shared `/home`, so the jobs run this
+  repository's own `.venv`), and turn the result into one standalone
+  Vega-Lite HTML explorer — `scripts/embeddings/build_umap_html.py` is the
+  file that generates the page, and since the second pass the page says so
+  itself, in a footer naming the script, the commit, the date, the work
+  directory and the command line (the same record the `.vl.json` carries in
+  `usermeta.provenance`). **Exactly one instrument is highlighted at a time**
+  since the third pass — the last click wins, wired by clearing each
+  selection from the other view's marks
+  (`clear="dblclick, @centroids_1_marks:click"` and its mirror) and checked
+  by compiling the spec to Vega with `vl_convert`, which fails the build
+  rather than shipping a page whose two selections stay on at once; the
+  nearest-neighbour rings are off by default (`--neighbors 0`), off rather
+  than deleted, since the kNN table and `project_umap.py --knn` are
+  untouched. No sample, no fallback and no retry: a
+  configuration that dies is reported and the HTML is built from what
+  finished. Nothing derived is committed (`emb-run-umap/`, `output/`),
+  nothing in `packages/` changed, and no `legalvec` API was added — the
+  measured per-configuration table, the cluster's own facts, the mark legend
+  and why `nearest` is off (it makes Vega-Lite insert a Voronoi layer that
+  turns every overview tooltip into `undefined`) live in
+  `scripts/embeddings/README.md`.
+- **And then at the instruments they belong to, in issue #242.** Two more
+  scripts in the same directory — `instrument_matrix.py` (one Slurm job,
+  `--submit`/`--wait`/`--report`/`--dry-run` in `submit_umap.py`'s style,
+  whose `queued_jobs` it imports) and `build_instrument_umap_html.py` —
+  answer, for **every unit row of every instrument**, "which *other*
+  instrument owns the text nearest to this one?", and weigh the answers into
+  a directed 1,523 × 1,523 matrix (`emb-run-umap/instrument-matrix/`, still
+  gitignored). The rules are the issue's, not defaults: all six unit types;
+  every tied winner counts (1e-6 on float32 cosine, because identical texts
+  across collections tie exactly); **a unit row distributes a total weight of
+  1, `1/m` to each of the `m` instruments owning a winner**, so `A.sum()` is
+  the unit-row count (408,804) and every row sums to that instrument's own —
+  the second pass' rule, after the first pass' +1-to-each made one boilerplate
+  row ("Se deroga.", owned by up to **847** instruments) credit hundreds of
+  cells at once and `A` count article–instrument incidences rather than
+  articles; per unit row, so a transitorio repeated *m* times counts *m*
+  times; and only columns owned *exclusively* by the source are masked — a
+  text it shares with another instrument is that unit's strongest foreign
+  neighbour, not something to hide. Exact cosine by blocked matmul, never
+  `neighbors.parquet`, whose k=15 cannot see past a 3,600-article code's own
+  articles. The rows are then L2-normalised and embedded (`n_neighbors`
+  4/8/16/32, `random_state=0` — seconds at this size, so a reproducible page
+  is worth the single-threaded fit) into
+  `output/umap-instruments-qwen3-0.6b.html`, where a click rings an
+  instrument and the five it points at hardest — the same five the tooltip
+  names, one `target N` row each, weight first. `build_umap_html`'s join and
+  footer helpers are **imported**, never copied, so the two pages cannot
+  disagree about which vector row a unit got.
 
 ## `dof2md` is now `document2md` (issue #228, done)
 

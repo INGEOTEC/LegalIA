@@ -40,3 +40,34 @@ def atomic_write_bytes(path: Path, data: bytes) -> None:
 
 def atomic_write_text(path: Path, text: str) -> None:
     atomic_write_bytes(path, text.encode("utf-8"))
+
+
+def atomic_write_table(path: Path, table) -> None:
+    """`pyarrow.parquet.write_table` through `<path>.parcial` (issue #241).
+
+    `pyarrow` is imported here rather than at module level so a script that
+    only writes markers does not pay for it.
+    """
+    import pyarrow.parquet as pq
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_name(path.name + PARTIAL_SUFFIX)
+    pq.write_table(table, partial)
+    partial.replace(path)
+
+
+def atomic_write_npy(path: Path, array) -> None:
+    """`numpy.save` through `<path>.parcial` (issue #241): `vectors.npy` is
+    ~780 MB, long enough to write that a job killed half-way through it is a
+    real possibility."""
+    import numpy as np
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_name(path.name + PARTIAL_SUFFIX)
+    with open(partial, "wb") as handle:
+        np.save(handle, array, allow_pickle=False)
+        handle.flush()
+        os.fsync(handle.fileno())
+    partial.replace(path)

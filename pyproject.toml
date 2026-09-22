@@ -36,3 +36,20 @@ dev = [
     "nota2md[ocr,test]",
     "scjn[test]",
 ]
+# The exploratory-analysis group (issue #241): what `scripts/embeddings/`'s
+# UMAP scripts need and nothing else does. Deliberately kept out of `dev`, so
+# the package test matrix does not pay for umap-learn's numba/scikit-learn
+# stack -- run those scripts with `uv run --group viz ...`. `numpy`/`pyarrow`
+# arrive with legalvec.
+viz = [
+    "umap-learn",
+    "pynndescent",
+    "altair",
+    "pandas",
+    # Altair's Vega-Lite compiler, for two things build_umap_html.py does:
+    # its `--inline-js` path, and the offline check that the compiled Vega
+    # really carries the cross-view `clear` streams the page's "last click
+    # wins" rule is made of (issue #241, third pass) -- a session with no
+    # browser cannot click, so the compiled signals are the evidence.
+    "vl-convert-python",
+]
