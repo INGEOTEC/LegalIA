@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>References – LegalIA</title>
+<title>An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines – LegalIA</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,26 +23,7 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-}
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
+</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -93,7 +74,7 @@ div.csl-indent {
 
 </head>
 
-<body class="nav-fixed fullcontent quarto-light">
+<body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -123,7 +104,7 @@ div.csl-indent {
 <span class="menu-text">Federal Laws</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../pages/atlas.html"> 
+    <a class="nav-link active" href="../pages/atlas.html" aria-current="page"> 
 <span class="menu-text">Atlas</span></a>
   </li>  
   <li class="nav-item">
@@ -135,7 +116,7 @@ div.csl-indent {
 <span class="menu-text">document2md</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="../pages/references.html" aria-current="page"> 
+    <a class="nav-link" href="../pages/references.html"> 
 <span class="menu-text">References</span></a>
   </li>  
   <li class="nav-item">
@@ -161,22 +142,22 @@ div.csl-indent {
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content column-page" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">References</h1>
-<p class="subtitle lead">Publications that support the LegalIA project</p>
+<h1 class="title">An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines</h1>
+<p class="subtitle lead">315 laws, 1,082 regulations and 126 guidelines, placed by where their provisions’ closest texts live</p>
 </div>
 
 
 
-<div class="quarto-title-meta">
+<div class="quarto-title-meta column-page">
 
     
   
@@ -188,38 +169,48 @@ div.csl-indent {
 </header>
 
 
-<p>The following publications by the members of the research team inform the project’s design and support its feasibility: they cover natural language processing techniques for Spanish, the construction of specialized language resources, and the regulatory dimension of artificial intelligence in the legal domain.</p>
-<div id="refs" class="references csl-bib-body hanging-indent" role="list">
-<div id="ref-Graff2026IALegal" class="csl-entry" role="listitem">
-Graff, Mario, and Jersain Zadamig Llamas Covarrubias. 2026. <em><span class="nocase">La Inteligencia Artificial en el <span>Á</span>mbito Legal</span></em>. Under review.
+<!-- atlas:app -->
+<link rel="stylesheet" href="atlas/atlas.css">
+<div id="atlas" class="atlas" data-src="atlas/atlas.json">
+
 </div>
-<div id="ref-Graff2020EvoMSA:Analysis" class="csl-entry" role="listitem">
-Graff, Mario, Sabino Miranda-Jiménez, Eric S. Tellez, and Daniela Moctezuma. 2020. <span>“<span class="nocase">EvoMSA: A Multilingual Evolutionary Approach for Sentiment Analysis</span>.”</span> <em>Computational Intelligence Magazine</em> 15 (1): 76–88. <a href="http://arxiv.org/abs/1812.02307">http://arxiv.org/abs/1812.02307</a>.
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="atlas/atlas.js"></script>
+<!-- /atlas:app -->
+<div class="atlas-prose">
+<div class="atlas-lead">
+<p>Every federal law, regulation and guideline the Supreme Court publishes in consolidated form is one point on this map. Two instruments sit close together when the texts nearest to their provisions live in the same places — the organic laws of the public universities, for instance, land beside one another, whatever words they happen to use.</p>
 </div>
-<div id="ref-Graff2022AData" class="csl-entry" role="listitem">
-Graff, Mario, Daniela Moctezuma, Sabino Miranda-Jiménez, and Eric S. Tellez. 2022. <span>“<span class="nocase">A Python Library for Exploratory Data Analysis and Knowledge Discovery on Twitter Data</span>.”</span> <em>Computers <span>&amp;</span> Geosciences</em> 159 (February). <a href="http://arxiv.org/abs/2009.01826">http://arxiv.org/abs/2009.01826</a>.
+<section id="how-to-read-the-map" class="level2">
+<h2 class="anchored" data-anchor-id="how-to-read-the-map">How to read the map</h2>
+<div class="fronts">
+<section id="a-point" class="level3 front">
+<h3 class="anchored" data-anchor-id="a-point">A point</h3>
+<p>One law, regulation or guideline. Its area is proportional to its provisions (articles, transitory articles and the other pieces it is divided into), and its colour is its collection: blue for laws, green for regulations, magenta for guidelines.</p>
+</section>
+<section id="distance" class="level3 front">
+<h3 class="anchored" data-anchor-id="distance">Distance</h3>
+<p>Two instruments sit together when their provisions’ closest texts live in the same places, not when they use the same words. The map is a picture of where federal law borrows from and repeats itself.</p>
+</section>
+<section id="the-numbers" class="level3 front">
+<h3 class="anchored" data-anchor-id="the-numbers">The numbers</h3>
+<p>Each provision was matched to the single closest text outside its own instrument, over 381,349 distinct texts. A match shared by <em>m</em> instruments gives 1/<em>m</em> to each, so an instrument’s matches add up to its provisions.</p>
+</section>
 </div>
-<div id="ref-Graff2025BoW" class="csl-entry" role="listitem">
-Graff, Mario, Daniela Moctezuma, and Eric S. Téllez. 2025. <span>“<span class="nocase">Bag-of-Word approach is not dead: A performance analysis on a myriad of text classification challenges</span>.”</span> <em>Natural Language Processing Journal</em> 11: 100154. <a href="https://doi.org/10.1016/j.nlp.2025.100154">https://doi.org/10.1016/j.nlp.2025.100154</a>.
+<p>Search for an instrument or click a point: the panel lists the five instruments its provisions are closest to, with how many of its provisions went to each, and the five instruments whose provisions point at it hardest. Lines on the map join it to its five closest instruments, numbered as in the panel; a name in the panel selects that instrument, so the relations can be followed from one instrument to the next. Scroll or pinch to zoom, drag to pan, and press Escape or click an empty spot to clear the selection. The collection buttons under the map show one collection at a time.</p>
+</section>
+<section id="an-example" class="level2">
+<h2 class="anchored" data-anchor-id="an-example">An example</h2>
+<p>The <em>LEY que crea la Universidad Autónoma Chapingo</em> has 35 provisions. For 13 of them, the closest text outside the law belongs to the <em>LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro</em>; for 11.3, to the <em>LEY Orgánica de la Universidad Autónoma Metropolitana</em> (a decimal is a match shared between several instruments); 2 go to the <em>REGLAMENTO INTERIOR DEL COLEGIO DE POSTGRADUADOS</em>, and one each to the <em>LEY Agraria</em> and to the <em>LEY Federal de Producción, Certificación y Comercio de Semillas</em>. The remaining 6.7 are spread over other instruments, and on the map the law sits among the organic laws of the UNAM, Antonio Narro and the UAM. The relation is directed: 28 provisions of other instruments have their closest text in Chapingo’s law, 9 of them in Antonio Narro’s and 7 in the UAM’s.</p>
+</section>
+<section id="the-neighbourhood-size" class="level2">
+<h2 class="anchored" data-anchor-id="the-neighbourhood-size">The neighbourhood size</h2>
+<p>The map is drawn four times from the same data. The neighbourhood size is how many neighbours each instrument is placed against when the map is drawn: small values keep tight local groups, such as the universities above, and large values keep the overall shape, such as how the laws, the regulations and the guidelines sit relative to one another. Switching it changes the layout, never the relations the panel lists.</p>
+<div class="atlas-data">
+<p><strong>Data.</strong> The texts are the three consolidated corpora this project publishes from the Supreme Court (SCJN) — <a href="../pages/leyes.html">laws</a> (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes"><code>scjn-leyes</code></a>), regulations (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos"><code>scjn-reglamentos</code></a>) and guidelines (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos"><code>scjn-lineamientos</code></a>) — divided into provisions and embedded with <code>Qwen/Qwen3-Embedding-0.6B</code>. The map is a UMAP projection, cosine metric, of each instrument’s matches. The Diario Oficial de la Federación remains the official source of legal text. Map data generated on <span data-atlas-generated="">22 September 2026</span>.</p>
+<p><em>Read more:</em> how instruments are divided into provisions (<a href="https://legalia.readthedocs.io/en/latest/md2akn_api.html"><code>md2akn</code></a>) and how the vectors are read back (<a href="https://legalia.readthedocs.io/en/latest/legalvec_api.html"><code>legalvec</code></a>).</p>
 </div>
-<div id="ref-LlamasCovarrubias2022Enfoques" class="csl-entry" role="listitem">
-Llamas Covarrubias, Jersain Zadamig, Olivia Andrea Mendoza Enríquez, and Mario Graff Guerrero. 2022. <span>“<span class="nocase">Enfoques regulatorios para la Inteligencia Artificial (IA)</span>.”</span> <em>Revista Chilena de Derecho</em> 49 (3): 31–62. <a href="https://doi.org/10.7764/R.493.2">https://doi.org/10.7764/R.493.2</a>.
-</div>
-<div id="ref-Tellez2017AAnalysis" class="csl-entry" role="listitem">
-Tellez, Eric S., Sabino Miranda-Jiménez, Mario Graff, Daniela Moctezuma, Oscar S. Siordia, and Elio A. Villaseñor. 2017. <span>“<span class="nocase">A case study of Spanish text transformations for twitter sentiment analysis</span>.”</span> <em>Expert Systems with Applications</em> 81: 457–71. <a href="https://doi.org/10.1016/j.eswa.2017.03.071">https://doi.org/10.1016/j.eswa.2017.03.071</a>.
-</div>
-<div id="ref-Tellez2017ATwitter" class="csl-entry" role="listitem">
-Tellez, Eric S., Sabino Miranda-Jiménez, Mario Graff, Daniela Moctezuma, Ranyart R. Suárez, and Oscar S. Siordia. 2017. <span>“<span class="nocase">A simple approach to multilingual polarity classification in Twitter</span>.”</span> <em>Pattern Recognition Letters</em> 94: 68–74. <a href="https://doi.org/10.1016/j.patrec.2017.05.024">https://doi.org/10.1016/j.patrec.2017.05.024</a>.
-</div>
-<div id="ref-Tellez2023Regionalized" class="csl-entry" role="listitem">
-Tellez, Eric S., Daniela Moctezuma, Sabino Miranda, Mario Graff, and Guillermo Ruiz. 2023. <span>“<span class="nocase">Regionalized models for Spanish language variations based on Twitter</span>.”</span> <em>Language Resources and Evaluation</em> 57. <a href="https://doi.org/10.1007/s10579-023-09640-9">https://doi.org/10.1007/s10579-023-09640-9</a>.
-</div>
-<div id="ref-Tellez2018AnOptimization" class="csl-entry" role="listitem">
-Tellez, Eric S., Daniela Moctezuma, Sabino Miranda-Jiménez, and Mario Graff. 2018. <span>“<span class="nocase">An automated text categorization framework based on hyperparameter optimization</span>.”</span> <em>Knowledge-Based Systems</em> 149 (June): 110–23. <a href="https://doi.org/10.1016/J.KNOSYS.2018.03.003">https://doi.org/10.1016/J.KNOSYS.2018.03.003</a>.
-</div>
-<div id="ref-Tellez2026Fundamentos" class="csl-entry" role="listitem">
-Tellez, Eric S., Guillermo Ruiz, Daniela Moctezuma, and Mario Graff. 2026. <em><span class="nocase">Fundamentos de Inteligencia Artificial</span></em>. Under review.
-</div>
+</section>
 </div>
 
 
