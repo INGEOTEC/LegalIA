@@ -624,10 +624,12 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   `scripts/embeddings/` — `prepare_umap_input.py`, `project_umap.py`,
   `submit_umap.py`/`submit_umap.sh`, `build_umap_html.py`, plus a root
   `[dependency-groups] viz` (`umap-learn`, `pynndescent`, `altair`,
-  `pandas`, deliberately not in `dev`) — fit UMAP on **all** 381,349 of the
-  0.6B model's vectors, four `n_neighbors` configurations (4/8/16/32, the
-  shared `project_umap.DEFAULT_N_NEIGHBORS`; a first sweep's 15/50/200 stays
-  on disk and comes back with `build_umap_html.py --projections all`), one
+  `pandas`, `vl-convert-python`, deliberately not in `dev`) — fit UMAP on
+  **all** 381,349 of the
+  0.6B model's vectors, four `n_neighbors` configurations (16/32/64/128, the
+  shared `project_umap.DEFAULT_N_NEIGHBORS`; the earlier sweeps' 4/8 and
+  15/50/200 stay on disk and come back with `build_umap_html.py
+  --projections all`), one
   exclusive CPU node each on a *different* Slurm cluster (`geoint`: three
   ~60-core, ~245 GB nodes, no GPU, shared `/home`, so the jobs run this
   repository's own `.venv`), and turn the result into one standalone
@@ -635,7 +637,15 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   file that generates the page, and since the second pass the page says so
   itself, in a footer naming the script, the commit, the date, the work
   directory and the command line (the same record the `.vl.json` carries in
-  `usermeta.provenance`). No sample, no fallback and no retry: a
+  `usermeta.provenance`). **Exactly one instrument is highlighted at a time**
+  since the third pass — the last click wins, wired by clearing each
+  selection from the other view's marks
+  (`clear="dblclick, @centroids_1_marks:click"` and its mirror) and checked
+  by compiling the spec to Vega with `vl_convert`, which fails the build
+  rather than shipping a page whose two selections stay on at once; the
+  nearest-neighbour rings are off by default (`--neighbors 0`), off rather
+  than deleted, since the kNN table and `project_umap.py --knn` are
+  untouched. No sample, no fallback and no retry: a
   configuration that dies is reported and the HTML is built from what
   finished. Nothing derived is committed (`emb-run-umap/`, `output/`),
   nothing in `packages/` changed, and no `legalvec` API was added — the

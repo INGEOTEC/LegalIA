@@ -45,13 +45,14 @@ from pathlib import Path
 
 DEFAULT_MODEL = "Qwen/Qwen3-Embedding-0.6B"
 
-#: The configurations issue #241's second sweep fits, one job each, and the
+#: The configurations issue #241's third sweep fits, one job each, and the
 #: single place the other two scripts read them from: `submit_umap.py` submits
 #: these and `build_umap_html.py` offers exactly these in its radio. They
-#: replace the first pass's 15/50/200 — a reader asked for a *finer* look at
-#: local structure, and `n_neighbors` 4 to 32 is that range. The earlier
-#: directories stay on disk and are still reachable with `--projections all`.
-DEFAULT_N_NEIGHBORS = (4, 8, 16, 32)
+#: replace the second sweep's 4/8/16/32 — 4 and 8 shattered the cloud into
+#: filaments, so the reader asked to move the window *up*, keeping 16 and 32
+#: (already on disk, reused as they are) and adding 64 and 128. Every earlier
+#: directory stays on disk and is still reachable with `--projections all`.
+DEFAULT_N_NEIGHBORS = (16, 32, 64, 128)
 
 
 def thread_count(requested: int | None = None) -> int:

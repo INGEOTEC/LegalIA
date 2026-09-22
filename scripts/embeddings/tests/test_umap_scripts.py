@@ -306,10 +306,10 @@ def test_submission_order_is_the_heaviest_configuration_first():
 
 
 def test_the_default_sweep_is_the_one_project_umap_declares():
-    assert project_umap.DEFAULT_N_NEIGHBORS == (4, 8, 16, 32)
+    assert project_umap.DEFAULT_N_NEIGHBORS == (16, 32, 64, 128)
     assert submit_umap.DEFAULT_CONFIGS == project_umap.DEFAULT_N_NEIGHBORS
-    assert submit_umap.DEFAULT_KNN_CONFIG == 4
-    assert build_umap_html.DEFAULT_PROJECTIONS == ("nn004", "nn008", "nn016", "nn032")
+    assert submit_umap.DEFAULT_KNN_CONFIG == 16
+    assert build_umap_html.DEFAULT_PROJECTIONS == ("nn016", "nn032", "nn064", "nn128")
 
 
 def test_the_sbatch_wrapper_asks_for_a_whole_node_for_eight_hours():
@@ -332,7 +332,7 @@ def test_dry_run_prints_the_four_configurations_heaviest_first(tmp_path):
     commands = [line for line in lines if line.startswith("sbatch")]
     assert len(commands) == 4
     assert [c.split("--n-neighbors ")[1].split()[0] for c in commands] == \
-        ["32", "16", "8", "4"]
+        ["128", "64", "32", "16"]
     assert all("--parsable" in c for c in commands)
     assert all("--exclude=geoint0" in c for c in commands)
     # Only the cheapest one is asked for the shared kNN table.
@@ -372,9 +372,11 @@ def test_submit_records_the_job_ids(tmp_path, monkeypatch):
         return SimpleNamespace(returncode=0, stdout=f"{1000 + len(calls)}\n", stderr="")
 
     monkeypatch.setattr(submit_umap.subprocess, "run", fake_run)
-    state = submit_umap.submit(work_dir, configs=(4, 8), log=lambda *a: None)
+    # Two of the sweep's own configurations, so the kNN rule below is the
+    # real one: only `DEFAULT_KNN_CONFIG` (the cheapest, 16) asks for it.
+    state = submit_umap.submit(work_dir, configs=(16, 32), log=lambda *a: None)
 
-    assert [job["name"] for job in state["jobs"]] == ["nn008", "nn004"]
+    assert [job["name"] for job in state["jobs"]] == ["nn032", "nn016"]
     assert [job["job_id"] for job in state["jobs"]] == ["1001", "1002"]
     assert [job["knn"] for job in state["jobs"]] == [0, 15]
     assert json.loads((work_dir / "jobs.json").read_text())["jobs"] == state["jobs"]
@@ -487,7 +489,7 @@ def built(tmp_path, cache):
                                log=lambda *a: None)
     n = np.load(work_dir / "vectors.npy").shape[0]
     instruments = pq.read_table(work_dir / "instruments.parquet").num_rows
-    for name, n_neighbors in (("nn004", 4), ("nn016", 16), ("nn050", 50)):
+    for name, n_neighbors in (("nn016", 16), ("nn032", 32), ("nn050", 50)):
         out = work_dir / name
         out.mkdir()
         pq.write_table(pa.table({
@@ -514,10 +516,10 @@ def built(tmp_path, cache):
 
 
 def test_finished_projections_skips_what_never_finished(built):
-    (built / "nn008").mkdir()
+    (built / "nn064").mkdir()
     found = build_umap_html.finished_projections(built)
-    assert [p["name"] for p in found] == ["nn004", "nn016"]
-    assert [p["n_neighbors"] for p in found] == [4, 16]
+    assert [p["name"] for p in found] == ["nn016", "nn032"]
+    assert [p["n_neighbors"] for p in found] == [16, 32]
     assert [p["name"] for p in build_umap_html.finished_projections(built, {"nn050"})] \
         == ["nn050"]
 
@@ -526,10 +528,10 @@ def test_all_reaches_the_earlier_sweeps_directories(built):
     """`nn050` is outside the current sweep: absent by default, back with
     `all`, because nothing on disk was thrown away."""
     assert [p["name"] for p in build_umap_html.finished_projections(built, "all")] == \
-        ["nn004", "nn016", "nn050"]
+        ["nn016", "nn032", "nn050"]
     assert build_umap_html._wanted_projections(None) is None
     assert build_umap_html._wanted_projections("all") == "all"
-    assert build_umap_html._wanted_projections("nn004,nn050") == {"nn004", "nn050"}
+    assert build_umap_html._wanted_projections("nn016,nn050") == {"nn016", "nn050"}
 
 
 def test_one_point_per_unit_row(built, cache):
@@ -664,9 +666,129 @@ def test_the_subtitles_explain_every_mark(built, cache):
 
 def test_the_neighbour_line_is_absent_without_neighbours(built, cache):
     _, spec = spec_of(built, cache, neighbors=0)
-    detail_subtitle = spec["vconcat"][0]["hconcat"][1]["title"]["subtitle"]
-    assert not any("nearest neighbours" in line for line in detail_subtitle)
-    assert any("black diamond" in line for line in detail_subtitle)
+    detail = spec["vconcat"][0]["hconcat"][1]["title"]
+    assert not any("nearest neighbours" in line for line in detail["subtitle"])
+    assert any("black diamond" in line for line in detail["subtitle"])
+    # ... and the title stops promising them too.
+    assert "neighbours" not in detail["text"]
+    assert detail["text"] == ("click a unit or an instrument: every unit of "
+                             "that instrument")
+
+
+def test_neighbours_are_off_by_default_everywhere(built, cache, monkeypatch):
+    """Issue #241's third pass: "quita los vecinos en este momento" -- off,
+    not gone. The whole kNN path stays; only every default moved to 0."""
+    import inspect
+
+    for function in (build_umap_html.load_frames, build_umap_html.build_chart,
+                     build_umap_html.build):
+        assert inspect.signature(function).parameters["neighbors"].default == 0
+
+    found = build_umap_html.finished_projections(built)
+    points, instruments = build_umap_html.load_frames(
+        built, found, cache_dir=cache, collections=COLLECTIONS, log=lambda *a: None)
+    assert "n" not in points.columns
+    spec = build_umap_html.build_chart(points, instruments, found,
+                                       background_points=2).to_dict()
+    assert "split(pick.n[0]" not in json.dumps(spec)
+
+    seen = {}
+    monkeypatch.setattr(build_umap_html, "build",
+                        lambda *args, **kwargs: seen.update(kwargs))
+    build_umap_html.main([])
+    assert seen["neighbors"] == 0
+    build_umap_html.main(["--neighbors", "15"])
+    assert seen["neighbors"] == 15
+
+
+# -- "the last click wins" ------------------------------------------------ #
+
+def test_each_selection_is_cleared_by_a_click_in_the_other_view(built, cache):
+    """The spec-level half: both `clear` streams are strings that keep
+    `dblclick` and add the other view's marks."""
+    _, spec = spec_of(built, cache, neighbors=2)
+    pick = next(p for p in spec["params"] if p["name"] == "pick")
+    pick_instrument = next(p for p in spec["params"] if p["name"] == "pick_instrument")
+    assert pick["select"]["clear"] == "dblclick, @centroids_1_marks:click"
+    assert pick_instrument["select"]["clear"] == "dblclick, @overview_marks:click"
+    # The names those streams address are on the two clickable views -- with
+    # the suffix Altair adds to a layer child inside a concat, which is why
+    # the constant says `centroids_1_marks` and not `centroids_marks`.
+    assert spec["vconcat"][0]["hconcat"][0]["name"] == "overview"
+    assert spec["vconcat"][1]["layer"][0]["name"] == "centroids_1"
+    assert build_umap_html.OVERVIEW_MARKS == "overview_marks"
+    assert build_umap_html.CENTROIDS_MARKS == "centroids_1_marks"
+
+
+def toy_last_click_spec():
+    """The smallest chart with this page's nesting: a named unit view beside
+    a layered view whose first child is named, both carrying a selection that
+    the other view's marks clear. It exists to pin down *Vega-Lite's own*
+    naming rule, independently of what `build_chart` happens to do."""
+    import altair as alt
+    import pandas as pd
+
+    data = pd.DataFrame({"x": [0.0, 1.0], "y": [1.0, 0.0], "i": [0, 1]})
+    pick = alt.selection_point(
+        name="pick", fields=["i"], on="click", empty=False,
+        clear=f"dblclick, @{build_umap_html.CENTROIDS_MARKS}:click")
+    pick_instrument = alt.selection_point(
+        name="pick_instrument", fields=["i"], on="click", empty=False,
+        clear=f"dblclick, @{build_umap_html.OVERVIEW_MARKS}:click")
+    unit = lambda: alt.Chart(data).mark_circle().encode(x="x:Q", y="y:Q")  # noqa: E731
+    overview = unit().add_params(pick).properties(name="overview")
+    centroids = unit().add_params(pick_instrument).properties(name="centroids")
+    return alt.vconcat(alt.hconcat(overview, unit()),
+                       alt.layer(centroids, unit(), unit())).to_dict()
+
+
+def test_vega_lite_names_a_unit_view_and_a_layer_child_differently():
+    """Why `CENTROIDS_MARKS` carries a `_1`: a unit spec keeps its own name,
+    a layer child gets its parent's concat index appended. Measured here, on
+    a toy spec, so a Vega-Lite upgrade that changes the rule fails a fast
+    test rather than a two-hour build."""
+    vega = build_umap_html.compiled_vega(toy_last_click_spec())
+    marks = [m["name"] for m in build_umap_html._vega_marks(vega) if m.get("name")]
+    assert build_umap_html.OVERVIEW_MARKS in marks
+    assert build_umap_html.CENTROIDS_MARKS in marks
+    assert "centroids_marks" not in marks
+
+    clears = build_umap_html.clearing_marknames(vega)
+    assert clears["pick_tuple"] == [build_umap_html.CENTROIDS_MARKS]
+    assert clears["pick_instrument_tuple"] == [build_umap_html.OVERVIEW_MARKS]
+
+
+def test_the_compiled_real_spec_clears_each_selection_from_the_other_view(built, cache):
+    _, spec = spec_of(built, cache, neighbors=2)
+    lines = []
+    found = build_umap_html.check_last_click_wins(spec, log=lines.append)
+    assert build_umap_html.OVERVIEW_MARKS in found["marks"]
+    assert build_umap_html.CENTROIDS_MARKS in found["marks"]
+    assert found["clears"]["pick_tuple"] == [build_umap_html.CENTROIDS_MARKS]
+    assert found["clears"]["pick_instrument_tuple"] == [build_umap_html.OVERVIEW_MARKS]
+    assert any("cleared by @" in line for line in lines)
+
+
+def test_a_spec_whose_selections_never_clear_each_other_fails_the_build(built, cache):
+    """Without the cross-view streams both selections stay on at once, which
+    is the defect this pass exists to fix -- so the build stops instead of
+    writing a 70 MB page nobody can use."""
+    _, spec = spec_of(built, cache, neighbors=2)
+    for param in spec["params"]:
+        if param["name"] in ("pick", "pick_instrument"):
+            param["select"]["clear"] = "dblclick"
+    with pytest.raises(SystemExit) as raised:
+        build_umap_html.check_last_click_wins(spec, log=lambda *a: None)
+    assert "pick_tuple" in str(raised.value)
+
+
+def test_the_build_records_the_wiring_it_checked(built, cache, tmp_path):
+    measured = build_umap_html.build(built, tmp_path / "out" / "umap.html",
+                                     background_points=2, collections=COLLECTIONS,
+                                     cache_dir=cache, log=lambda *a: None)
+    wiring = measured["last_click_wins"]
+    assert wiring["clears"]["pick_tuple"] == [build_umap_html.CENTROIDS_MARKS]
+    assert wiring["clears"]["pick_instrument_tuple"] == [build_umap_html.OVERVIEW_MARKS]
 
 
 def test_text_chars_adds_the_text_to_the_tooltip(built, cache):
@@ -684,7 +806,7 @@ def test_the_written_html_embeds_the_spec(built, cache, tmp_path):
     assert "pick_instrument" in html
     assert output.with_suffix(".vl.json").exists()
     assert measured["points"] == 6 and measured["html_bytes"] > 0
-    assert measured["projections"] == ["nn004", "nn016"]
+    assert measured["projections"] == ["nn016", "nn032"]
 
 
 def test_the_page_says_what_produced_it(built, cache, tmp_path):
@@ -698,7 +820,7 @@ def test_the_page_says_what_produced_it(built, cache, tmp_path):
     assert html.count("Generated by scripts/embeddings/build_umap_html.py") == 1
     assert "<footer" in html
     assert str(built.resolve()) in html
-    assert "nn004, nn016" in html
+    assert "nn016, nn032" in html
     assert "build_umap_html.py --neighbors 2" in html
     # The footer goes after the chart's own div, not inside it.
     assert html.index('<div id="vis"></div>') < html.index("<footer")
@@ -707,7 +829,7 @@ def test_the_page_says_what_produced_it(built, cache, tmp_path):
     provenance = spec["usermeta"]["provenance"]
     assert set(provenance) == {"script", "commit", "date", "work_dir", "argv",
                                "projections"}
-    assert provenance["projections"] == ["nn004", "nn016"]
+    assert provenance["projections"] == ["nn016", "nn032"]
     assert provenance["script"] == "scripts/embeddings/build_umap_html.py"
     assert measured["provenance"] == provenance
 
@@ -719,11 +841,13 @@ def test_an_unknown_commit_is_never_a_failed_build(tmp_path):
 def test_the_footer_lands_in_either_altair_template():
     """`--inline-js` only swaps the `<script>` tags for the libraries' own
     source; both templates carry the same chart `div`, which is what
-    `insert_footer` anchors on. The inlined path itself needs
-    `vl-convert-python`, which this environment deliberately does not have."""
+    `insert_footer` anchors on -- so the footer is tested against both
+    templates rather than by running the inlined path, whose only other
+    requirement (`vl-convert-python`) the viz group now ships for the
+    compiled-spec check."""
     footer = build_umap_html.footer_html(
         {"script": "s", "commit": "c", "date": "d", "work_dir": "w",
-         "argv": "a", "projections": ["nn004"]})
+         "argv": "a", "projections": ["nn016"]})
     with_div = build_umap_html.insert_footer(
         '<body>\n  <div id="vis"></div>\n  <script>1</script>\n</body>', footer)
     assert with_div.index('<div id="vis"></div>') < with_div.index(footer)

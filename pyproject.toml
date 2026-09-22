@@ -46,4 +46,10 @@ viz = [
     "pynndescent",
     "altair",
     "pandas",
+    # Altair's Vega-Lite compiler, for two things build_umap_html.py does:
+    # its `--inline-js` path, and the offline check that the compiled Vega
+    # really carries the cross-view `clear` streams the page's "last click
+    # wins" rule is made of (issue #241, third pass) -- a session with no
+    # browser cannot click, so the compiled signals are the evidence.
+    "vl-convert-python",
 ]

@@ -10,15 +10,25 @@ is a Vega-Lite spec generated with Altair. Three linked views over one fixed
   several unit rows, so it is drawn once per row that carries it), coloured
   by collection. Clicking a mark sets `pick`; clicking a legend entry toggles
   a whole collection through `collections`.
-* **Detail** — the clicked instrument's every unit, the clicked text's
-  nearest neighbours (a distinct outline mark, so a neighbour that is *also*
-  in the same instrument reads as both), and the clicked point itself, over a
-  faint background of `--background-points` random points. Empty until
-  something is clicked.
+* **Detail** — the clicked instrument's every unit, the clicked point itself
+  and — with `--neighbors k` — the clicked text's `k` nearest neighbours (a
+  distinct outline mark, so a neighbour that is *also* in the same instrument
+  reads as both), over a faint background of `--background-points` random
+  points. Empty until something is clicked.
 * **Instruments** — one mark per law/reglamento/lineamiento at its centroid,
   size by unit count, with its own `pick_instrument` selection that feeds the
   detail view too, and a black ring plus the instrument's name around
   whatever was clicked in *either* view.
+
+**The last click wins.** The two views own two independent selections, and
+Vega-Lite cannot define one selection over two concatenated views — so each
+selection is *cleared* by a click in the other's marks: `pick`'s `clear` is
+`"dblclick, @centroids_1_marks:click"` and `pick_instrument`'s is
+`"dblclick, @overview_marks:click"` (the string event-selector form, which
+Altair accepts as it is, so `dblclick` clearing survives alongside it).
+Exactly one instrument is ever highlighted, and the `pick.i ||
+pick_instrument.i` predicate the ring, the label and the detail view share
+degenerates to whichever one is live.
 
 A radio switches between the finished projections; the axes are hidden
 because UMAP's axes mean nothing. Every non-obvious mark is explained in its
@@ -28,12 +38,14 @@ the spec carries in `usermeta.provenance`.
 
     uv run --group viz python scripts/embeddings/build_umap_html.py
     uv run --group viz python scripts/embeddings/build_umap_html.py \\
-        --unit-types article,article_piece --neighbors 0 --text-chars 200
+        --unit-types article,article_piece --neighbors 15 --text-chars 200
 
 The session that generates this file cannot click in a browser: the spec is
 verified by Altair's own schema validation (`chart.to_dict()`), by reloading
-the written `.vl.json`, and by the tests in `tests/test_umap_scripts.py`.
-The interactive behaviour itself is verified by a person opening the file.
+the written `.vl.json`, by compiling it to Vega and asserting both `clear`
+streams really reach the other view's marks (`check_last_click_wins`), and by
+the tests in `tests/test_umap_scripts.py`. The interactive behaviour itself
+is verified by a person opening the file.
 """
 
 from __future__ import annotations
@@ -79,6 +91,20 @@ DEFAULT_PROJECTIONS = tuple(f"nn{n:03d}" for n in DEFAULT_N_NEIGHBORS)
 #: What this script is, for the provenance footer: a reader who opens the HTML
 #: has no other way to find out what produced it.
 SCRIPT_PATH = "scripts/embeddings/build_umap_html.py"
+
+#: The compiled-Vega mark names of the two clickable views, which the
+#: cross-view `clear` streams reference by `@<name>:click`. Vega-Lite compiles
+#: a view named `v` into a mark named `v_marks`; the asymmetry between the two
+#: names below is Altair's, one step earlier: a **unit** view keeps the name it
+#: was given (`overview`), while a **layer child** inside a concat gets that
+#: concat row's index appended — so `.properties(name="centroids")` on the
+#: first layer of the vconcat's second row reaches Vega-Lite as `centroids_1`
+#: and compiles to `centroids_1_marks`. Measured with Altair 6.3 / Vega-Lite
+#: 6.4; a bare `centroids_marks` is not something any naming of ours produces.
+#: Nothing trusts these strings: `check_last_click_wins` compiles the real spec
+#: and fails the build if either name, or either clear stream, is not emitted.
+OVERVIEW_MARKS = "overview_marks"
+CENTROIDS_MARKS = "centroids_1_marks"
 
 
 def finished_projections(work_dir: Path, wanted=None) -> list[dict]:
@@ -129,7 +155,7 @@ def load_frames(
     projections: list[dict],
     *,
     unit_types=UNIT_TYPES,
-    neighbors: int = 15,
+    neighbors: int = 0,
     text_chars: int = 0,
     collections=tuple(COLLECTION_CODES),
     cache_dir=None,
@@ -284,8 +310,103 @@ def insert_footer(html: str, footer: str) -> str:
     return html.replace("</body>", "  " + footer + "\n</body>", 1)
 
 
+def _spec_skeleton(spec: dict) -> dict:
+    """`spec` with its inlined datasets truncated to five rows.
+
+    Mark names and signals are decided by the spec's *structure*, so the
+    Vega compiler answers the same question about the skeleton as about the
+    real thing — at 408,804 rows less. The same trick the schema check
+    already uses.
+    """
+    skeleton = dict(spec)
+    skeleton["datasets"] = {name: rows[:5]
+                            for name, rows in spec.get("datasets", {}).items()}
+    return skeleton
+
+
+def compiled_vega(spec: dict) -> dict:
+    """`spec` compiled to Vega, the way a browser would compile it."""
+    try:
+        import vl_convert
+    except ImportError as error:  # pragma: no cover - the viz group ships it
+        raise SystemExit(
+            "vl-convert-python is needed to check the compiled spec -- "
+            "install the viz group (uv sync --group viz)"
+        ) from error
+    return vl_convert.vegalite_to_vega(_spec_skeleton(spec))
+
+
+def _vega_marks(node: dict) -> list[dict]:
+    """Every mark of a compiled Vega spec, groups included, flattened."""
+    found = []
+    for mark in node.get("marks", []) or []:
+        found.append(mark)
+        found.extend(_vega_marks(mark))
+    return found
+
+
+def _vega_signals(node: dict) -> list[dict]:
+    """Every signal of a compiled Vega spec, at whatever group it sits in."""
+    found = list(node.get("signals", []) or [])
+    for mark in node.get("marks", []) or []:
+        found.extend(_vega_signals(mark))
+    return found
+
+
+def clearing_marknames(vega: dict) -> dict[str, list[str]]:
+    """Per selection tuple signal, the mark names a click on which clears it.
+
+    A selection's `clear` stream compiles to an `on` entry whose `update` is
+    the literal `"null"`; `@<name>:click` becomes an event with that
+    `markname`. So this is the compiled evidence that "the last click wins"
+    is really wired — the one thing a session with no browser can check.
+    """
+    clears: dict[str, list[str]] = {}
+    for signal in _vega_signals(vega):
+        if not signal["name"].endswith("_tuple"):
+            continue
+        names = [event["markname"]
+                 for entry in signal.get("on", []) or []
+                 if entry.get("update") == "null"
+                 for event in entry.get("events", []) or []
+                 if isinstance(event, dict) and "markname" in event]
+        if names:
+            clears[signal["name"]] = names
+    return clears
+
+
+def check_last_click_wins(spec: dict, log=print) -> dict:
+    """Compile `spec` and fail the build unless each selection is cleared by
+    a click in the other view's marks.
+
+    Returns what was found, so the caller can log it next to the rest of the
+    measurements. A page whose two selections can both be live at once is
+    the defect this pass exists to fix, so an unwired spec raises rather than
+    being written out with a warning.
+    """
+    vega = compiled_vega(spec)
+    marks = [mark["name"] for mark in _vega_marks(vega) if mark.get("name")]
+    clears = clearing_marknames(vega)
+    found = {
+        "marks": sorted(name for name in marks if name.endswith("_marks")),
+        "clears": clears,
+    }
+    wanted = {"pick_tuple": CENTROIDS_MARKS, "pick_instrument_tuple": OVERVIEW_MARKS}
+    problems = [f"the compiled Vega has no mark named {name}"
+                for name in (OVERVIEW_MARKS, CENTROIDS_MARKS) if name not in marks]
+    problems += [f"{signal} is not cleared by a click on {markname} "
+                 f"(cleared by: {clears.get(signal, [])})"
+                 for signal, markname in wanted.items()
+                 if markname not in clears.get(signal, [])]
+    if problems:
+        raise SystemExit("the 'last click wins' wiring is broken: " + "; ".join(problems))
+    log("last click wins: " + ", ".join(
+        f"{signal} cleared by @{markname}:click" for signal, markname in wanted.items()))
+    return found
+
+
 def build_chart(points: pd.DataFrame, instruments: pd.DataFrame, projections: list[dict],
-                *, neighbors: int = 15, text_chars: int = 0,
+                *, neighbors: int = 0, text_chars: int = 0,
                 background_points: int = 20000, overview_sample: int | None = None,
                 nearest: bool = False, provenance: dict | None = None, seed: int = 0):
     """The whole spec: overview | detail over instruments, with the
@@ -307,8 +428,13 @@ def build_chart(points: pd.DataFrame, instruments: pd.DataFrame, projections: li
         ),
     )
     pick_fields = ["v", "i", "e"] + (["n"] if neighbors else [])
+    # "The last click wins": a click on the instrument view's centroids clears
+    # this selection, and vice versa below. A comma merges event streams, so
+    # `dblclick` clearing survives; `@<markname>:click` is what scopes a stream
+    # to one view's marks, which is why both views are named.
     pick = alt.selection_point(name="pick", fields=pick_fields, on="click",
-                               nearest=nearest, clear="dblclick", empty=False)
+                               nearest=nearest,
+                               clear=f"dblclick, @{CENTROIDS_MARKS}:click", empty=False)
     collections = alt.selection_point(name="collections", fields=["c"], bind="legend")
 
     color = alt.Color(
@@ -356,11 +482,15 @@ def build_chart(points: pd.DataFrame, instruments: pd.DataFrame, projections: li
                 opacity=alt.condition(collections, alt.value(0.25), alt.value(0.02)),
                 tooltip=tooltip)
         .add_params(pick, collections)
-        .properties(width=520, height=520,
+        # `name` is what the cross-view clear streams address: Vega-Lite turns
+        # it into the compiled mark name `overview_marks`.
+        .properties(name="overview", width=520, height=520,
                     title=alt.TitleParams(
                         f"{len(overview_data)} units of the three corpora",
                         subtitle=["click a unit to fill the two views below and to the right;"
-                                  " double-click to clear"]))
+                                  " double-click to clear",
+                                  "the last click wins: clicking an instrument below clears"
+                                  " this selection, and the other way round"]))
     )
 
     same_instrument = (
@@ -421,15 +551,19 @@ def build_chart(points: pd.DataFrame, instruments: pd.DataFrame, projections: li
             "across all three collections")
     detail_subtitle.append(
         "filled shapes: every unit of the same instrument (shape = unit type)")
+    detail_title = (
+        "click a unit or an instrument: its units, the neighbours of the clicked text"
+        if neighbors else
+        "click a unit or an instrument: every unit of that instrument"
+    )
     detail = alt.layer(*layers).properties(
         width=520, height=520,
-        title=alt.TitleParams(
-            "click a unit or an instrument: its units, the neighbours of the clicked text",
-            subtitle=detail_subtitle),
+        title=alt.TitleParams(detail_title, subtitle=detail_subtitle),
     )
 
-    pick_instrument = alt.selection_point(name="pick_instrument", fields=["i"],
-                                          on="click", clear="dblclick", empty=False)
+    pick_instrument = alt.selection_point(
+        name="pick_instrument", fields=["i"], on="click",
+        clear=f"dblclick, @{OVERVIEW_MARKS}:click", empty=False)
     centroids_layer = (
         framed(instruments, "cx", "cy")
         .mark_circle()
@@ -442,6 +576,10 @@ def build_chart(points: pd.DataFrame, instruments: pd.DataFrame, projections: li
                          alt.Tooltip("col:N", title="collection"),
                          alt.Tooltip("un:Q", title="units")])
         .add_params(pick_instrument)
+        # Named for the same reason the overview is, with the one difference
+        # the constant records: a layer child compiles to `centroids_1_marks`,
+        # not to `centroids_marks`.
+        .properties(name="centroids")
     )
     # The ring and the label answer "where did what I just clicked come
     # from?", whichever view the click landed in -- `same_instrument` is the
@@ -467,7 +605,9 @@ def build_chart(points: pd.DataFrame, instruments: pd.DataFrame, projections: li
                     title=alt.TitleParams(
                         f"{len(instruments)} instruments, at the centroid of their units",
                         subtitle=["black ring + name: the instrument of the clicked text "
-                                  "(or the clicked centroid)"]))
+                                  "(or the clicked centroid)",
+                                  "clicking a centroid clears the unit picked above: "
+                                  "only one instrument is ever highlighted"]))
     )
 
     usermeta = {"embedOptions": {"renderer": "canvas", "actions": False}}
@@ -487,7 +627,7 @@ def build_chart(points: pd.DataFrame, instruments: pd.DataFrame, projections: li
 
 
 def build(work_dir: Path, output: Path, *, unit_types=UNIT_TYPES, projections=None,
-          neighbors: int = 15, text_chars: int = 0, background_points: int = 20000,
+          neighbors: int = 0, text_chars: int = 0, background_points: int = 20000,
           overview_sample: int | None = None, nearest: bool = False, inline_js: bool = False,
           collections=tuple(COLLECTION_CODES), cache_dir=None, argv=None,
           log=print) -> dict:
@@ -512,6 +652,9 @@ def build(work_dir: Path, output: Path, *, unit_types=UNIT_TYPES, projections=No
                         overview_sample=overview_sample, nearest=nearest,
                         provenance=provenance)
     spec = chart.to_dict()  # validates against the Vega-Lite schema
+    # Before anything is written: a page whose two selections stay on at once
+    # is exactly what this build is supposed to stop producing.
+    wiring = check_last_click_wins(spec, log=log)
 
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -538,10 +681,7 @@ def build(work_dir: Path, output: Path, *, unit_types=UNIT_TYPES, projections=No
     # rows -- the structure is what a schema can say anything about.
     reloaded = json.loads(spec_path.read_text(encoding="utf-8"))
     alt.Chart.from_dict(reloaded, validate=False)
-    skeleton = dict(reloaded)
-    skeleton["datasets"] = {name: rows[:5]
-                            for name, rows in reloaded.get("datasets", {}).items()}
-    alt.Chart.from_dict(skeleton)
+    alt.Chart.from_dict(_spec_skeleton(reloaded))
 
     measured = {
         "output": str(output),
@@ -553,6 +693,7 @@ def build(work_dir: Path, output: Path, *, unit_types=UNIT_TYPES, projections=No
         "projections": [p["name"] for p in found],
         "neighbors": neighbors,
         "unit_types": list(unit_types),
+        "last_click_wins": wiring,
         "provenance": provenance,
     }
     log(json.dumps(measured, indent=2))
@@ -581,8 +722,12 @@ def main(argv=None) -> None:
     parser.add_argument("--projections", default=None,
                         help="comma-separated configuration names, or 'all' for every "
                              f"finished directory (default: {', '.join(DEFAULT_PROJECTIONS)})")
-    parser.add_argument("--neighbors", type=int, default=15,
-                        help="neighbours per point (0 drops the field and the layer)")
+    parser.add_argument("--neighbors", type=int, default=0,
+                        help="neighbours per point to ring in the detail view. 0, the "
+                             "default, drops the `n` field, the red-ring layer and the "
+                             "subtitle line that explains them; the kNN table itself "
+                             "(neighbors.parquet) is kept on disk either way, so "
+                             "--neighbors 15 restores the full page with no refit")
     parser.add_argument("--text-chars", type=int, default=0,
                         help="characters of the unit's own text to put in the tooltip")
     parser.add_argument("--background-points", type=int, default=20000)

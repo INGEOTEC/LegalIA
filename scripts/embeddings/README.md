@@ -157,8 +157,10 @@ dependency on `torch`/`transformers` being importable at all.
 The same vectors, looked at. Issue #241 adds four scripts that fit UMAP on
 **every** vector of the three corpora and turn the result into one
 standalone HTML file — an overview of all ~400,000 unit rows, a detail view
-of a clicked instrument and of a clicked text's nearest neighbours, and a
-view with one point per instrument.
+of a clicked instrument (and, with `--neighbors k`, of a clicked text's `k`
+nearest neighbours), and a view with one point per instrument. Exactly one
+instrument is highlighted at a time: **the last click wins**, whichever view
+it landed in.
 
 ### Where things are
 
@@ -168,8 +170,8 @@ view with one point per instrument.
 | The page | `output/umap-vectors-qwen3-0.6b.html` |
 | Its Vega-Lite spec, on its own | `output/umap-vectors-qwen3-0.6b.vl.json` |
 | Work directory (vectors, projections, neighbours) | `emb-run-umap/` |
-| One directory per configuration | `emb-run-umap/nn004`, `nn008`, `nn016`, `nn032` |
-| Earlier sweep, kept on disk | `emb-run-umap/nn015`, `nn050`, `nn200` |
+| One directory per configuration | `emb-run-umap/nn016`, `nn032`, `nn064`, `nn128` |
+| Earlier sweeps, kept on disk | `emb-run-umap/nn004`, `nn008`, `nn015`, `nn050`, `nn200` |
 
 Neither `emb-run-umap/` nor `output/` is committed, so this table is how a
 reader finds the file that produced a page they were handed. The page itself
@@ -190,19 +192,22 @@ a GPU that does not exist here.
 outside Slurm, so every job is submitted with `--exclude=geoint0`
 (`submit_umap.py --exclude`, that value as the default): two configurations
 run on `geoint1`/`geoint2` and the rest queue. They are submitted heaviest
-first (`32, 16, 8, 4`), so the long poles start immediately; no job waits on
+first (`128, 64, 32, 16`), so the long poles start immediately; no job waits on
 another, because the shared neighbour table is computed once and kept.
 `prepare_umap_input.py` and `build_umap_html.py` do run on the login node —
 they are minutes and a couple of GB.
 
-The sweep is `project_umap.DEFAULT_N_NEIGHBORS = (4, 8, 16, 32)`, one
-constant the launcher and the HTML builder both import. It replaced the first
-pass's 15 / 50 / 200 when a reader asked for a finer look at local structure;
-those three directories were **not** deleted, and `build_umap_html.py
---projections all` brings them back into the radio.
+The sweep is `project_umap.DEFAULT_N_NEIGHBORS = (16, 32, 64, 128)`, one
+constant the launcher and the HTML builder both import. It has moved twice:
+15 / 50 / 200 first, then 4 / 8 / 16 / 32 for a finer look at local
+structure, then this window when the small neighbourhoods turned out to
+shatter the cloud into filaments. **Nothing is ever deleted**: `nn016` and
+`nn032` were reused exactly as they were (only 64 and 128 ran), and
+`build_umap_html.py --projections all` brings every earlier directory back
+into the radio.
 
 ```bash
-uv sync --group viz                       # umap-learn, pynndescent, altair, pandas
+uv sync --group viz                       # umap-learn, pynndescent, altair, pandas, vl-convert-python
 uv run --group viz python scripts/embeddings/prepare_umap_input.py
 uv run --group viz python scripts/embeddings/submit_umap.py --wait
 uv run --group viz python scripts/embeddings/build_umap_html.py
@@ -292,10 +297,12 @@ full point table inline it once.
 - **Overview**: `pick` (a point selection on click) and `collections` (a
   point selection bound to the colour legend, which hides a whole corpus).
 - **Detail**: the picked instrument's every unit (honouring `pick` *or*
-  `pick_instrument`), the picked text's neighbours as an outline mark so a
-  neighbour that is also in the same instrument reads as both, the picked
-  point itself, over a faint `--background-points` sample. Empty until
-  something is clicked; a text mark names the instrument and the `eId`.
+  `pick_instrument`), the picked point itself, and — only with `--neighbors
+  k` — that text's neighbours as an outline mark, so a neighbour that is also
+  in the same instrument reads as both; all over a faint
+  `--background-points` sample. Empty until something is clicked; a text mark
+  names the instrument and the `eId`. The view's title says which of the two
+  it is showing, so it never promises neighbours that are switched off.
 - **Instruments**: a three-layer view — one mark per instrument at its
   centroid (size by unit count, its own `pick_instrument` selection), plus a
   black ring and the instrument's name around whatever was clicked, in
@@ -311,14 +318,14 @@ the same on every renderer, and cannot drift from the data):
 | Mark | Meaning |
 |---|---|
 | ◆ black diamond, detail view | the clicked text |
-| ○ red rings, detail view | its 15 nearest neighbours by cosine, across all three collections (the count is `--neighbors`, never a literal) |
+| ○ red rings, detail view | with `--neighbors k` only: its `k` nearest neighbours by cosine, across all three collections (the count is the flag's value, never a literal) |
 | filled shapes, detail view | every unit of the same instrument; shape = unit type |
 | grey cloud, detail view | the `--background-points` sample, for orientation only |
 | black ring + name, instrument view | the instrument of the clicked text, or the clicked centroid |
 
 Knobs: `--unit-types`, `--projections` (a comma-separated list, or `all` for
-every finished directory including the earlier sweep's), `--neighbors 0`
-(drops the field and the layer), `--text-chars N` (N characters of the unit's
+every finished directory including the earlier sweeps'), `--neighbors N`
+(**0 by default** — see below), `--text-chars N` (N characters of the unit's
 own text in the tooltip), `--background-points`, `--overview-sample` (thins
 only the overview layer), `--inline-js` (embed vega/vega-lite/vega-embed
 instead of loading them from jsdelivr) and `--nearest`.
@@ -333,6 +340,56 @@ to land on the mark itself, so the overview mark went from `size=3`,
 `opacity=0.3` to `size=10`, `opacity=0.25`: clickable, still a cloud. The
 flag remains, for anyone who wants the old behaviour back.
 
+#### The last click wins
+
+The overview and the instrument view own two independent selections, and
+Vega-Lite cannot define one selection over two concatenated views. Before
+this was wired, clicking a unit and then a centroid left **both** live: the
+detail view showed the union of two instruments and the bottom view ringed
+two centroids, with nothing on the page saying which units belonged to
+which.
+
+The fix is that each selection is *cleared* by a click in the other's marks.
+A selection's `clear` accepts any Vega event stream, `@<markname>:click`
+scopes a stream to one view's marks, and a comma merges streams — so
+`dblclick` clearing survives alongside it:
+
+| selection | `clear` |
+|---|---|
+| `pick` (overview) | `dblclick, @centroids_1_marks:click` |
+| `pick_instrument` (instrument view) | `dblclick, @overview_marks:click` |
+
+Those mark names are the compiler's, not ours. `build_umap_html.py` names
+the two clickable views (`.properties(name="overview")` and
+`name="centroids"`), Vega-Lite compiles a view named `v` into a mark named
+`v_marks`, and Altair adds one twist on the way: a **layer child** inside a
+concat gets that concat row's index appended, so `centroids` reaches
+Vega-Lite as `centroids_1` and ends up as `centroids_1_marks`. A unit view
+like the overview keeps its name as it is. Both names are module constants
+(`OVERVIEW_MARKS`, `CENTROIDS_MARKS`).
+
+Nothing trusts them. `check_last_click_wins` compiles the spec to Vega with
+`vl_convert` (on a copy whose inlined datasets are truncated to five rows —
+mark names and signals are structural) and **fails the build** unless both
+marks exist and each selection's `*_tuple` signal has a clearing `on` entry
+(`update: "null"`) carrying the other view's `markname`. It runs before
+anything is written, its result goes into the logged `measured` dict as
+`last_click_wins`, and `tests/test_umap_scripts.py` asserts the same thing
+on a toy spec — so a Vega-Lite or Altair upgrade that renames a mark fails a
+13-second test rather than a 70 MB build. **A person still confirms the
+clicks in a browser**: the compiled signals are evidence that the streams
+are wired, not that the page feels right.
+
+#### Neighbours are off by default
+
+`--neighbors` defaults to **0**: no red rings, no `n` field in the inlined
+data, no neighbour line in the detail subtitle, and a detail title that does
+not mention them ("click a unit or an instrument: every unit of that
+instrument"). The reader asked for the neighbours to go "en este momento",
+so the machinery is switched off rather than removed — `--neighbors 15`
+restores the full page with no refit, because `neighbors.parquet` stays on
+disk and `project_umap.py --knn` is untouched.
+
 Every generated page ends with a small grey **provenance footer** naming this
 script, the repository commit (`unknown` where there is no git), the ISO
 date, the work directory, the projections and the exact command line; the
@@ -345,8 +402,10 @@ when it finishes.
 
 **The interactive behaviour is verified by a person opening the file.** What
 the scripts themselves verify is the spec: `chart.to_dict()` validates
-against the Vega-Lite schema, the written `.vl.json` is reloaded with
-Altair, and `tests/test_umap_scripts.py` asserts the `pick`,
+against the Vega-Lite schema, the spec is compiled to Vega and both
+cross-view `clear` streams are asserted (see "the last click wins" above,
+which is also the one check that *stops* the build), the written `.vl.json`
+is reloaded with Altair, and `tests/test_umap_scripts.py` asserts the `pick`,
 `pick_instrument`, `collections` and `proj` params, the neighbour filter, the
 legend binding and the canvas renderer are all in it.
 
@@ -449,3 +508,45 @@ schema**, which on a 113 MB spec had not finished after ten minutes. The
 reload now happens with `validate=False`, and the schema check runs on a
 copy whose datasets are truncated to five rows — the spec's structure is
 what a schema can say anything about anyway.
+
+### Measured, the third sweep, `geoint`, 2026-09-22
+
+The window moved up to 16 / 32 / 64 / 128, so only **two** jobs ran:
+`submit_umap.py` skipped `nn016` and `nn032` (both already `.done`) and
+submitted `nn128` then `nn064`, which started at once on `geoint1`/`geoint2`.
+`prepare_umap_input.py` was not rerun — the same 381,349 vectors — and
+`neighbors.parquet` was kept again, so k stays 15 across all three sweeps.
+
+| config | `n_neighbors` | node | load | fit | centroids | kNN | total | peak RSS |
+|---|---|---|---|---|---|---|---|---|
+| `nn016` | 16 | `geoint2` | 1.5 s | 191.4 s | 21.8 s | kept | **232.8 s** | 10.1 GB |
+| `nn032` | 32 | `geoint1` | 1.5 s | 170.1 s | 23.2 s | kept | **212.7 s** | 10.4 GB |
+| `nn064` | 64 | `geoint2` | 1.5 s | 238.5 s | 27.3 s | kept | **276.9 s** | 11.3 GB |
+| `nn128` | 128 | `geoint1` | 1.5 s | 342.2 s | 35.6 s | kept | **389.3 s** | 13.4 GB |
+
+(The first two rows are the second sweep's own measurement, repeated here
+because these are the directories this sweep reused rather than refitted.)
+
+**Above 32 the cost is monotone again**, and mildly so: 128 costs 2.0× the
+fit of 16, against the 4.7× *penalty* 4 paid over 32 in the second sweep. So
+the launcher's "heaviest first" rule submitted this sweep in genuine
+heaviest-first order — the first time in three sweeps. Peak RSS grows with
+`n_neighbors` as the neighbour graph does (10.1 → 13.4 GB), still an order
+of magnitude under the ~245 GB a node has. Centroid `transform` follows the
+same curve (21.8 → 35.6 s).
+
+The page, rebuilt from the four with neighbours off:
+
+```
+408804 points, 1523 instruments
+last click wins: pick_tuple cleared by @centroids_1_marks:click,
+                 pick_instrument_tuple cleared by @overview_marks:click
+output/umap-vectors-qwen3-0.6b.html: 78.2 MB, 408804 points
+```
+
+**78.2 MB**, against the second sweep's 124.7 for the same four projections:
+the `n` column — one comma-separated string of 15 vector rows per point,
+~100 bytes × 408,804 — was the whole difference, which is the measured
+answer to "what do the neighbours cost". The compiled-Vega check ran on the
+real spec and logged both clear streams, as above; the footer is present
+exactly once.

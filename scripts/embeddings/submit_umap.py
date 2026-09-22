@@ -1,6 +1,6 @@
 """Launch one Slurm job per UMAP configuration, and wait for them in chunks.
 
-Issue #241. Four configurations (`n_neighbors` 4 / 8 / 16 / 32, the shared
+Issue #241. Four configurations (`n_neighbors` 16 / 32 / 64 / 128, the shared
 `project_umap.DEFAULT_N_NEIGHBORS`) over the same `vectors.npy`, one exclusive
 node each, an 8-hour limit and no retry: a fit that dies is a finding, not
 something to hide behind a relaunch.
