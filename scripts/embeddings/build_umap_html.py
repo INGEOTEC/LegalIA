@@ -387,8 +387,18 @@ def build(work_dir: Path, output: Path, *, unit_types=UNIT_TYPES, projections=No
         chart.save(str(output), format="html")
 
     # A reload is the cheap end-to-end check a session with no browser can
-    # actually make: `from_dict` re-validates the spec it just wrote.
-    alt.Chart.from_dict(json.loads(spec_path.read_text(encoding="utf-8")))
+    # actually make. It is done in two halves on purpose: the whole spec is
+    # reloaded with `validate=False` (a 113 MB spec put through jsonschema
+    # validates all 408,804 inlined data rows against the schema's `any`,
+    # which measured at over ten minutes without finishing), and the schema
+    # check itself then runs on a copy whose datasets are truncated to five
+    # rows -- the structure is what a schema can say anything about.
+    reloaded = json.loads(spec_path.read_text(encoding="utf-8"))
+    alt.Chart.from_dict(reloaded, validate=False)
+    skeleton = dict(reloaded)
+    skeleton["datasets"] = {name: rows[:5]
+                            for name, rows in reloaded.get("datasets", {}).items()}
+    alt.Chart.from_dict(skeleton)
 
     measured = {
         "output": str(output),

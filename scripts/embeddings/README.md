@@ -306,3 +306,54 @@ Synthetic data, no network, no Slurm, no real UMAP fit: `umap` and
 neighbours, so what is under test is the dedup rule, the centroid mean, the
 `[0, 1]` scaling and its affine reuse, the `.done` contract, the launcher's
 submission order / wait / report, and the generated spec.
+
+### Measured, on `geoint`, 2026-09-21
+
+`prepare_umap_input.py`, on the login node: **775.5 s** (12.9 min) for
+**381,349** vectors at K=1,024 — 107,691 leyes + 264,911 reglamentos +
+8,747 lineamientos, exactly the distinct-text counts of the three
+`units.parquet` — plus **1,523** instrument centroids (315 + 1,082 + 126).
+`vectors.npy` is 781 MB, `vector_ids.parquet` 17 MB, peak RSS ~1.4 GB.
+
+Then three jobs, submitted at once, `--exclude=geoint0`: `nn200` and `nn015`
+started immediately on `geoint1`/`geoint2`, `nn050` queued for `Resources`
+and started ~5 min later on `geoint2`. Every configuration finished; none
+came near the 8-hour limit.
+
+| config | `n_neighbors` | node | load | fit | centroids | kNN | total | peak RSS |
+|---|---|---|---|---|---|---|---|---|
+| `nn015` | 15 | `geoint2` | 14.5 s | 203.9 s | 22.3 s | 15.3 s | **284.5 s** | 10.1 GB |
+| `nn050` | 50 | `geoint2` | 1.5 s | 211.8 s | 25.0 s | — | **258.5 s** | 10.8 GB |
+| `nn200` | 200 | `geoint1` | 14.5 s | 469.8 s | 45.6 s | — | **555.7 s** | 15.8 GB |
+
+So the estimates in the issue (20–60 min, 30–90 min, 1–3 h) were an order of
+magnitude pessimistic: 62 numba threads on an idle 60-core node fit 381,349
+× 1,024 in 3–8 minutes, and `n_neighbors=200` costs ~2.3× the fit of
+`n_neighbors=15` rather than ~13×. The k=15 cosine neighbour table
+(`pynndescent`, 16 neighbours with the self column dropped) took **15.3 s**
+and 42 MB of parquet — cheap enough that computing it in the cheapest job,
+once, is not a real economy so much as a way to keep it out of the
+projections. Peak RSS never passed 16 GB of the ~245 GB a node has, so the
+"fit on everything" decision was never close to the constraint it was
+weighed against.
+
+`build_umap_html.py`, on the login node, ~2 min:
+
+```
+408804 points, 1523 instruments
+output/umap-vectors-qwen3-0.6b.html: 113.6 MB, 408804 points
+```
+
+**113.6 MB, not the 50–60 MB the issue estimated** — three projections'
+`x`/`y` pairs, the neighbour strings and JSON's own key overhead over
+408,804 rows. The knobs are real: `--neighbors 0` drops it to
+67.1 MB, and `--projections nn015` or `--overview-sample` cut it
+further. The default is left where issue #241 asked for it, and the size is
+printed rather than hidden.
+
+One correction the run itself forced: reloading the written `.vl.json` with
+`alt.Chart.from_dict` **validates every inlined data row against the
+schema**, which on a 113 MB spec had not finished after ten minutes. The
+reload now happens with `validate=False`, and the schema check runs on a
+copy whose datasets are truncated to five rows — the spec's structure is
+what a schema can say anything about anyway.
