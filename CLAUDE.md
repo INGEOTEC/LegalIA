@@ -681,6 +681,20 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   names, one `target N` row each, weight first. `build_umap_html`'s join and
   footer helpers are **imported**, never copied, so the two pages cannot
   disagree about which vector row a unit got.
+- **The website's Atlas reads one committed file, since issue #244.**
+  `scripts/embeddings/export_atlas_data.py` turns #242's outputs into
+  `website/pages/atlas/atlas.json` (~0.5 MB): `meta`, one short-keyed entry
+  per instrument (`c`/`k`/`n`, `p` = its **provisions** — the export and the
+  page say *provisions*, never *units*, which a general reader does not
+  understand — `in`, and `out`/`inc` as `[id, weight]` pairs from
+  `build_instrument_umap_html.strongest_targets` over the row and over the
+  column), and the four projections as `[x, y]` pairs. It is a pure read —
+  no refit, no `--force`, `matrix.npy`/`umap.parquet` untouched — and it is
+  the one derived file committed for the page, the same category as
+  `website/pages/data/scjn-leyes-summary.json` (a sub-MB summary the site
+  cannot be built without, not a corpus or a vector set). Regenerating it is
+  this exporter run by a human, never a workflow (issue #115, Hallazgo C);
+  `meta.commit` is provenance for the file and is never displayed.
 
 ## `dof2md` is now `document2md` (issue #228, done)
 
