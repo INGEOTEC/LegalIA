@@ -349,16 +349,22 @@
         .attr("r", rs + 3.5);
 
       const name = source.n.length > 70 ? `${source.n.slice(0, 68)}…` : source.n;
-      const anchor = sx < width * 0.25 ? "start" : sx > width * 0.75 ? "end" : "middle";
-      overlay
+      const text = overlay
         .selectAll("text.atlas-name")
         .data([source])
         .join("text")
         .attr("class", "atlas-name")
-        .attr("x", sx)
-        .attr("y", sy - rs - 10)
-        .attr("text-anchor", anchor)
         .text(name);
+      // Centred over the point, but kept inside the map: shifted sideways at
+      // an edge, and drawn under the point when there is no room above it.
+      let length = text.node().getComputedTextLength();
+      for (let keep = name.length - 2; length > width - 8 && keep > 8; keep -= 2) {
+        text.text(`${source.n.slice(0, keep)}…`);
+        length = text.node().getComputedTextLength();
+      }
+      const left = Math.max(4, Math.min(width - 4 - length, sx - length / 2));
+      const above = sy - rs - 10;
+      text.attr("x", left).attr("y", above < 16 ? sy + rs + 20 : above);
     }
 
     // -- the detail panel ------------------------------------------------------- //
@@ -446,10 +452,19 @@
     }
 
     // -- selecting ------------------------------------------------------------- //
+    // Zoom so the instrument and its five closest instruments all fit: the
+    // relation is what was asked for, and centring on the point alone left
+    // most of its lines running off the map.
     function reveal(d) {
-      const k = Math.max(transform.k, 2);
+      const members = [d, ...d.out.map(([j]) => items[j])];
+      const [x0, x1] = d3.extent(members, (m) => x(m.bx));
+      const [y0, y1] = d3.extent(members, (m) => y(m.by));
+      const pad = 70;
+      const k = Math.max(1, Math.min(4,
+        (width - 2 * pad) / Math.max(x1 - x0, 1),
+        (height - 2 * pad) / Math.max(y1 - y0, 1)));
       const target = d3.zoomIdentity
-        .translate(width / 2 - k * x(d.bx), height / 2 - k * y(d.by))
+        .translate(width / 2 - (k * (x0 + x1)) / 2, height / 2 - (k * (y0 + y1)) / 2)
         .scale(k);
       svg.transition().duration(600).call(zoom.transform, target);
     }
