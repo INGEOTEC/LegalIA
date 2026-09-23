@@ -159,6 +159,7 @@ def load_frames(
     text_chars: int = 0,
     collections=tuple(COLLECTION_CODES),
     cache_dir=None,
+    extra_columns=(),
     log=print,
 ):
     """The two datasets the spec inlines: one row per unit row, and one row
@@ -169,6 +170,11 @@ def load_frames(
     `instruments.parquet` on `(coleccion, clave)` (which instrument it
     belongs to) -> each projection's `coordinates.parquet`/
     `centroids.parquet` on that row.
+
+    `extra_columns` are carried from `units.parquet` into the unit rows
+    verbatim, under their own names (null where a collection's table has no
+    such column): issue #249's labels and full texts ride this same join
+    rather than a second copy of it.
     """
     work_dir = Path(work_dir)
     frames = []
@@ -176,7 +182,10 @@ def load_frames(
         columns = ["coleccion", "clave", "unit_type", "eId", "text_sha1"]
         if text_chars:
             columns.append("text")
-        table = legalvec.load_units(coleccion, cache_dir=cache_dir).select(columns)
+        table = legalvec.load_units(coleccion, cache_dir=cache_dir)
+        columns += [name for name in extra_columns
+                    if name in table.column_names and name not in columns]
+        table = table.select(columns)
         frames.append(table.to_pandas())
     units = pd.concat(frames, ignore_index=True)
     log(f"{len(units)} unit rows in {len(collections)} collection(s)")
@@ -198,6 +207,8 @@ def load_frames(
     })
     if text_chars:
         points["t"] = units["text"].fillna("").astype(str).str.slice(0, text_chars)
+    for name in extra_columns:
+        points[name] = units[name].to_numpy() if name in units.columns else None
 
     instrument_points = pd.DataFrame({
         "i": instruments["i"].astype("int64"),

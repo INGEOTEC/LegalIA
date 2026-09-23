@@ -55,3 +55,7 @@ scripts/md2akn-sweep/
 # Slurm's own per-job stdout, written next to whatever directory `sbatch` was
 # run from (scripts/embeddings/, in practice).
 slurm-*.out
+
+# The Atlas pair explanations (issue #249): installed from the atlas-pairs
+# release (or export_atlas_pairs.py --install), ~264 MB, never committed.
+/website/pages/atlas/pairs/
