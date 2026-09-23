@@ -575,6 +575,7 @@ together when their articles point at the same places.
 | The matrix (a Slurm job) | `scripts/embeddings/instrument_matrix.py` |
 | The page | `scripts/embeddings/build_instrument_umap_html.py` → `output/umap-instruments-qwen3-0.6b.html` (+ `.vl.json`) |
 | The website's data (issue #244) | `scripts/embeddings/export_atlas_data.py` → `website/pages/atlas/atlas.json` (committed) |
+| The pair explanations (issue #249) | `scripts/embeddings/export_atlas_pairs.py` → `emb-run-umap/atlas-pairs/` (`pairs/`, `manifest.json`, `atlas-pairs.tar.gz`, `SHA256SUMS.txt`, `PUBLICAR.md`, `.done`), installed into `website/pages/atlas/pairs/` (gitignored); published by hand as the release `atlas-pairs`, body `.github/atlas-pairs.md` |
 | Everything derived | `emb-run-umap/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
 Nothing here is committed, and nothing `prepare_umap_input.py` or
@@ -753,6 +754,90 @@ Chapingo (`luach`) points at Narro 13.0, UAM 11.3, Colegio de Postgraduados
 showed only three of — and `cpeum` has 2,276 provisions. One instrument has
 an empty `inc` (nothing points at it); every `out` is non-empty.
 
+### The pair explanations (issue #249)
+
+`atlas.json` says the Constitution is closest to the LGIPE with a weight of
+116.6 and nothing more. `export_atlas_pairs.py` writes the evidence behind
+every such number, one JSON per pair `(i, j)` the panel lists under *Closest
+instruments* — `j` among `strongest_targets(A, i, 5)`, taken from
+`export_atlas_data.weighted_targets` itself, so the files are exactly
+`atlas.json`'s `out` lists — with the full text of both sides:
+
+```bash
+uv run --group viz python scripts/embeddings/export_atlas_pairs.py \
+    --atlas website/pages/atlas/atlas.json --install website/pages/atlas/pairs
+```
+
+It needs `emb-run-umap/instrument-matrix/.done` (plus `matrix.npy`,
+`nearest.parquet`, `vectors.npy`, `vector_ids.parquet`,
+`instruments.parquet`, each refused by name when missing) and the `legalvec`
+cache, and is a pure read of all of them. `.done` makes a rerun export
+nothing unless `--force`; `--install DIR` (run even then) replaces `DIR` with
+a copy of `pairs/`, so a pair from an earlier run cannot survive there.
+`--atlas` checks an existing `atlas.json` pair by pair, weight by weight and
+`clave` by `clave`. Other flags: `--work-dir`, `--cache-dir`, `--top` (5),
+`--tolerance` (1e-6), `--out-dir` (`<work-dir>/atlas-pairs`), `--repo`.
+
+`pairs/<i>-<j>.json`, `i`/`j` being positions in `atlas.json`'s
+`instruments`, holds, keys in this order: `source` and `target` (`i`, `k`
+clave, `c` collection, `n` name — `k` lets the page notice a tarball built
+against another instrument table), `weight` (`round(A[i, j], 1)`, the panel's
+number), `provisions` (rows listed), `rows` and `texts`. A row is one **unit
+row** of `nearest.parquet` whose `targets` hold `j` — a text repeated inside
+the source is one row per repetition, as in the matrix, so `Σ 1/m` over the
+rows is `A[i, j]` (asserted to 1e-3 per pair) — with `label`, `path` (the
+breadcrumb, `" › "`-joined, never merged into the label), `unit_type`, `text`
+(a vector row, a key into `texts`), `targets` (every unit of `j` carrying a
+winning text, each `label`/`path`/`text`), `similarity` (4 decimals) and `m`
+(an integer; the page turns it into `1` or `1/m`). Rows go similarity first,
+then the heavier weight (smaller `m`), then label. `texts` holds each text
+once per file, as `md2akn` emits it.
+
+- **The winners are recomputed, not read.** `nearest.parquet` records which
+  instruments won, not which of their vector rows, and recording that would
+  mean rerunning #242's Slurm job. So the exporter multiplies each pair's
+  source rows by all of `j`'s rows (normalised, from `vectors.npy`), keeps
+  every `j` row within the tolerance of the recorded best, and asserts `j`'s
+  own best equals `nearest.parquet`'s `similarity` to 1e-6 for every row —
+  it must, since `j` owns a global winner and none of its rows is masked.
+- **Labels** (`unit_label`) are English for the type word and the corpus'
+  spelling for the rest: `Article 27`, `Article 2, part 3`, `Heading V`,
+  `Preamble`, `Closing`, `Loose text`, and, for anything inside a
+  transitorios block (an `article` whose `path` ends in `TRANSITORIOS …`,
+  which is where the corpus puts them — not `loose`), `Transitory provisions,
+  29 DE AGOSTO DE 2008 · Único`.
+- **Release + per-pair files, not a commit and not one file.** The files are
+  far too big for `master`; GitHub release assets send no
+  `Access-Control-Allow-Origin` header, so a browser cannot read them from a
+  release; GitHub Pages gzips JSON on the fly (`atlas.json`, 502 kB, is served
+  as 141 kB), so one plain `.json` per pair costs a median click ~3 kB. The
+  tarball is published by a human as the release `atlas-pairs`
+  (`PUBLICAR.md`, generated, never run by the script; issue #115, Hallazgo
+  C), and the website's publish workflow unpacks it into the site (#250).
+  It is reproducible: sorted members, mtime/uid/gid 0, gzip mtime 0.
+
+Measured on 2026-09-23 against the `1/m` run (job 42196), on the login node:
+
+| | value |
+|---|---|
+| wall clock | 6 min 11 s (5 min 8 s of it the per-pair products), 3.1 GB peak RSS |
+| pairs | 7,604 |
+| unit rows the pairs explain | 301,583 of 408,804 (weight 269,324.3) |
+| unit rows per pair | median 12, p90 86, p99 459, max 2,461 |
+| JSON | 355.8 MB raw, 59.7 MB gzipped file by file; per file median 12.4 kB / 3.0 kB, p95 202 / 31 kB, max 3.2 MB / 312 kB |
+| `atlas-pairs.tar.gz` | 53.5 MB |
+| largest file | `pairs/1286-476.json`: the *REGLAMENTO INTERIOR DE LA SECRETARIA DE HACIENDA Y CREDITO PUBLICO* → another instrument with the same title (the SCJN reissues a reglamento under a new id), 2,461 rows |
+| Constitution → LGIPE (`pairs/8-158.json`) | 170 unit rows, 123 distinct texts, weight 116.6; 55 rows with `m > 1` (`m` up to 153, the boilerplate transitorios "**Primero.** El presente Decreto entrará en vigor…"); the first two rows are the "D.O.F. 2 DE JUNIO DE 2026" headings at 1.0 with `m = 1`, then the transitorios at 1.0 |
+
+Every file's `weight` equals its `atlas.json` `out` weight, every text key
+resolves, every file is sorted, and `Σ 1/m` is within 0.05 of `weight` except
+for float noise on 27 exact halves (13.25 is 13.2 in `atlas.json` too).
+Nothing under `instrument-matrix/` and no byte of `atlas.json` changed
+(checksums before and after). The issue's own plan quoted 125 rows for the
+Constitution → LGIPE pair and 9 with `m > 1`, and a median of 9 rows per
+pair; those do not add up to its own 301,583 total, which is the per-unit-row
+count above.
+
 ### The Atlas page
 
 The file above is what the website's **Atlas** reads
@@ -808,7 +893,13 @@ in its three states (plus `--force` forwarded into the job and the previous
 `tests/test_export_atlas_data.py` imports the same toy corpus and checks the
 atlas export against it: the schema and key order, `p`/`in`/`out`/`inc`
 against the matrix and `strongest_targets`, rounded unit-square projections,
-no refit, and each refusal above.
+no refit, and each refusal above. `tests/test_export_atlas_pairs.py` does
+the same for the pair explanations: one file per `strongest_targets` pair,
+each file's rows exactly `nearest.parquet`'s and adding up to its cell, every
+winning target text re-checked with numpy, the tie, the three-owner
+boilerplate and the repeated text of the toy corpus, `unit_label` on every
+type, the manifest, the sums, the reproducible tarball, `PUBLICAR.md`, the
+rerun/`--force`/`--install` rules and the refusals.
 
 ### What the first run measured, and why the rule changed
 
