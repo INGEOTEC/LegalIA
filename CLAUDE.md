@@ -159,9 +159,9 @@ build on each other in this sequence.
 **Data is never committed to git.** The SCJN corpus of consolidated law
 texts, `dofjson`'s notes archive, the vectors derived from either, and
 downloaded titles datasets all live only in GitHub releases (`scjn-leyes`,
-`notas-archivo`, `scjn-*-vectors`) or are `.gitignore`d local scratch
-directories (`/output/`, `/notas-archivo/`, `scripts/scjn/`,
-`scripts/legal_provisions/`, `/emb-run*/`).
+`notas-archivo`, `scjn-*-vectors`, `atlas-pairs`) or are `.gitignore`d local
+scratch directories (`/output/`, `/notas-archivo/`, `scripts/scjn/`,
+`scripts/legal_provisions/`, `/emb-run*/`, `/website/pages/atlas/pairs/`).
 Read them back via `download_scjn_leyes_corpus`/`download_scjn_leyes_index` /
 `legal_provisions_titles` (the latter over the cache `nota2md download
 gazette-metadata` populates), never by looking for a file in the repo.
@@ -750,6 +750,21 @@ see the #242 bullet above), #245 draws it.
   skip only when no Quarto is found — on `PATH`, else the newest
   `~/.local/opt/quarto-*/bin/quarto` (1.9.38, CI's version, lives there on
   the development machine, outside `PATH`).
+- **A weight explains itself (issues #249, #250).** Each *Closest
+  instruments* weight is a button that opens a native `<dialog>`: the
+  provisions behind the number, each beside the closest text the target has,
+  both in full, with similarity and its `1` or `1/m`, 50 rows at a time.
+  *Points here* stays plain. The data is one `pairs/<i>-<j>.json` per pair
+  (7,604, ~356 MB), written by `scripts/embeddings/export_atlas_pairs.py`
+  (#249) and never committed: a human publishes it as the `atlas-pairs`
+  release (`PUBLICAR.md`, issue #115, Hallazgo C); `website.yml` downloads,
+  verifies and unpacks that asset into `website/pages/atlas/pairs/` before
+  publishing, and **fails if it is missing** — so the release must exist
+  before a change reaches `master`. Locally, `export_atlas_pairs.py --install
+  website/pages/atlas/pairs` fills the same gitignored directory. The page
+  fetches a file on the first click only, and shows a "not available" or
+  "different version of the map" message (checked by both instruments' `k`)
+  rather than failing.
 
 ## `dof2md` is now `document2md` (issue #228, done)
 

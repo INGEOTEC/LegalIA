@@ -870,6 +870,58 @@ Quarto's `aside` rule collapsed the map to 0 px — leaving
 skip only when no Quarto is found on `PATH` or under
 `~/.local/opt/quarto-*/bin/quarto`.
 
+**The explanation dialog (issue #250).** Each weight under *Closest
+instruments* is a `button.atlas-why` that opens a native `<dialog>` over the
+pair file #249 exports: a heading naming both instruments, one sentence
+("170 provisions of … have their closest text outside it in …; they add up to
+116.6 of its 2,276 provisions."), and a table — number, the source provision
+(label, breadcrumb, full text), the closest text in the target (the same, plus
+"also N other provisions … carry this text" when several do), similarity to
+three decimals, and the weight as `1` or `1/m` with "this text is shared by
+*m* instruments". Rows keep the file's order and arrive 50 at a time ("Show 50
+more (120 left)"); the mount's `data-page-size` changes that number, and
+exists for the tests. Text is Markdown rendered bold-only, paragraphs on blank
+lines, never shortened, never parsed as HTML. The file is fetched on the first
+click only (a `Map` per page load), from the mount's `data-pairs`
+(`atlas/pairs/`), and checked by both instruments' `k`: a 404 or network error
+says "The explanation for this pair is not available.", a mismatch "The
+explanation was built for a different version of the map." Escape, the close
+button and a backdrop click close it; the selection, lines and zoom are
+untouched and focus returns to the weight. *Points here* has no file behind
+it (only the five closest are exported) and stays plain numbers.
+
+To see it locally the pairs have to be under `website/pages/atlas/pairs/`
+(gitignored): either `uv run --group viz python
+scripts/embeddings/export_atlas_pairs.py --install website/pages/atlas/pairs`,
+or the published release by hand:
+
+```bash
+gh release download atlas-pairs --repo INGEOTEC/LegalIA \
+    --pattern atlas-pairs.tar.gz --pattern SHA256SUMS.txt --dir /tmp/atlas-pairs
+(cd /tmp/atlas-pairs && sha256sum -c --ignore-missing SHA256SUMS.txt)
+mkdir -p /tmp/atlas-pairs/unpacked && tar -xzf /tmp/atlas-pairs/atlas-pairs.tar.gz -C /tmp/atlas-pairs/unpacked
+rm -rf website/pages/atlas/pairs && mv /tmp/atlas-pairs/unpacked/pairs website/pages/atlas/pairs
+```
+
+The site does the same: `.github/workflows/website.yml`'s *Fetch the Atlas
+pair explanations* step runs those lines (plus `manifest.json` into the same
+directory) before `quarto publish`, and fails when the release or the asset
+is missing, because a site without the files would answer every click with
+"not available". It only copies what a human published (issue #115, Hallazgo
+C) — so **publish `atlas-pairs` before this reaches `master`**, or the next
+website run fails. `_quarto.yml`'s `pages/atlas/**` resource glob already
+ships the directory.
+
+The dialog's tests run over a toy site — the six-instrument corpus exported
+by both scripts into a temporary `website/pages/` look-alike with the real
+`atlas.js`/`atlas.css` — and check the rows against the pair file, the weights
+against the panel, `1/m`, paging, the three ways to close, focus, no request
+before the click and one per pair, both messages, bold-only rendering, and a
+390 px phone. With the real pairs installed, one more test opens the
+Constitution → LGIPE table (170 rows, 116.6, `1/101`) and saves
+`output/atlas-explain-cpeum-lgipe.png`; without them it skips. A rendered-site
+test checks Quarto's `h2` rule does not reach the dialog.
+
 ### Tests
 
 ```bash
