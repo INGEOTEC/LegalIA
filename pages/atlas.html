@@ -42,7 +42,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-8d41ce0f7a064c7399262d85766ee5c3.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-a75c6b3971abe940aaf08f6004731536.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -171,7 +171,7 @@ ul.task-list li input[type="checkbox"] {
 
 <!-- atlas:app -->
 <link rel="stylesheet" href="atlas/atlas.css">
-<div id="atlas" class="atlas" data-src="atlas/atlas.json">
+<div id="atlas" class="atlas" data-src="atlas/atlas.json" data-pairs="atlas/pairs/">
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
@@ -198,10 +198,12 @@ ul.task-list li input[type="checkbox"] {
 </section>
 </div>
 <p>Search for an instrument or click a point: the panel lists the five instruments its provisions are closest to, with how many of its provisions went to each, and the five instruments whose provisions point at it hardest. Lines on the map join it to its five closest instruments, numbered as in the panel; a name in the panel selects that instrument, so the relations can be followed from one instrument to the next. Scroll or pinch to zoom, drag to pan, and press Escape or click an empty spot to clear the selection. The collection buttons under the map show one collection at a time.</p>
+<p>A weight under <em>Closest instruments</em> is itself a button: it opens a table of the provisions behind that number, each beside the closest text the other instrument has, both in full, with how similar the two are and how much the match adds to the weight — 1, or 1/<em>m</em> when the matching text is shared by <em>m</em> instruments, as the standard closing articles of a reform decree often are.</p>
 </section>
 <section id="an-example" class="level2">
 <h2 class="anchored" data-anchor-id="an-example">An example</h2>
 <p>The <em>LEY que crea la Universidad Autónoma Chapingo</em> has 35 provisions. For 13 of them, the closest text outside the law belongs to the <em>LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro</em>; for 11.3, to the <em>LEY Orgánica de la Universidad Autónoma Metropolitana</em> (a decimal is a match shared between several instruments); 2 go to the <em>REGLAMENTO INTERIOR DEL COLEGIO DE POSTGRADUADOS</em>, and one each to the <em>LEY Agraria</em> and to the <em>LEY Federal de Producción, Certificación y Comercio de Semillas</em>. The remaining 6.7 are spread over other instruments, and on the map the law sits among the organic laws of the UNAM, Antonio Narro and the UAM. The relation is directed: 28 provisions of other instruments have their closest text in Chapingo’s law, 9 of them in Antonio Narro’s and 7 in the UAM’s.</p>
+<p>The Constitution’s closest instrument is the <em>LEY General de Instituciones y Procedimientos Electorales</em>, at 116.6. Its table lists 170 provisions: 79 parts of the electoral articles (41, 96 and 116 above all) and two headings count a whole 1 each, while 89 are transitory articles of reform decrees — mostly the standard “the present decree enters into force…”, shared by up to 153 instruments — which together add only 35.6.</p>
 </section>
 <section id="the-neighbourhood-size" class="level2">
 <h2 class="anchored" data-anchor-id="the-neighbourhood-size">The neighbourhood size</h2>

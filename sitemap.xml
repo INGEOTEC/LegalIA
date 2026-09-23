@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ingeotec.github.io/LegalIA/pages/titles.html</loc>
-    <lastmod>2026-09-22T23:15:08.190Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ingeotec.github.io/LegalIA/pages/dataset.html</loc>
-    <lastmod>2026-09-22T23:15:08.190Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ingeotec.github.io/LegalIA/pages/leyes.html</loc>
-    <lastmod>2026-09-22T23:15:08.190Z</lastmod>
-  </url>
-  <url>
     <loc>https://ingeotec.github.io/LegalIA/index.html</loc>
-    <lastmod>2026-09-22T23:15:08.189Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ingeotec.github.io/LegalIA/pages/references.html</loc>
-    <lastmod>2026-09-22T23:15:08.190Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ingeotec.github.io/LegalIA/pages/document2md.html</loc>
-    <lastmod>2026-09-22T23:15:08.190Z</lastmod>
+    <lastmod>2026-09-23T19:40:01.748Z</lastmod>
   </url>
   <url>
     <loc>https://ingeotec.github.io/LegalIA/pages/atlas.html</loc>
-    <lastmod>2026-09-22T23:15:08.189Z</lastmod>
+    <lastmod>2026-09-23T19:40:01.748Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ingeotec.github.io/LegalIA/pages/leyes.html</loc>
+    <lastmod>2026-09-23T19:40:01.750Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ingeotec.github.io/LegalIA/pages/titles.html</loc>
+    <lastmod>2026-09-23T19:40:01.750Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ingeotec.github.io/LegalIA/pages/references.html</loc>
+    <lastmod>2026-09-23T19:40:01.750Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ingeotec.github.io/LegalIA/pages/document2md.html</loc>
+    <lastmod>2026-09-23T19:40:01.750Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ingeotec.github.io/LegalIA/pages/dataset.html</loc>
+    <lastmod>2026-09-23T19:40:01.750Z</lastmod>
   </url>
 </urlset>

@@ -10,6 +10,14 @@
 // Deliberately no framework and no build step: the site is published by a
 // runner that has Quarto and nothing else, so what is committed here is what
 // the browser runs.
+//
+// A weight under *Closest instruments* is a button (issue #250): it opens a
+// native <dialog> listing the provisions behind that number, read from one
+// file per pair, `<data-pairs>/<i>-<j>.json` (issue #249; `data-pairs` on the
+// mount, default `atlas/pairs/`). A file is fetched on the first click only,
+// once per page load, and checked against this map by both instruments'
+// `k`. The mount's `data-page-size` (default 50) is how many rows the table
+// shows at a time; it exists so the page's own tests can page a small table.
 (function () {
   "use strict";
 
@@ -36,6 +44,9 @@
   const EMPTY =
     "Search for an instrument or click a point to see which laws, " +
     "regulations and guidelines its provisions are closest to.";
+  const PAGE_SIZE = 50;
+  const NOT_AVAILABLE = "The explanation for this pair is not available.";
+  const OTHER_VERSION = "The explanation was built for a different version of the map.";
 
   const mount = document.getElementById("atlas");
   if (!mount) return;
@@ -183,7 +194,20 @@
       element("div", { className: "atlas-map-column" }, [mapWrap, legend]),
       panel,
     ]);
-    mount.append(toolbar, main);
+    // One dialog, reused for every pair: the provisions behind a weight.
+    const closeButton = element("button", {
+      type: "button",
+      className: "atlas-explain-close",
+      "aria-label": "Close",
+      text: "\u00d7",
+    });
+    const explainBody = element("div", { className: "atlas-explain-body" });
+    const dialog = element(
+      "dialog",
+      { className: "atlas-explain", "aria-labelledby": "atlas-explain-title" },
+      [closeButton, explainBody]
+    );
+    mount.append(toolbar, main, dialog);
 
     // -- the map --------------------------------------------------------------- //
     const svg = d3.select(svgNode);
@@ -372,7 +396,10 @@
     }
 
     // -- the detail panel ------------------------------------------------------- //
-    function targetList(pairs, total, className) {
+    // `from` is the selected instrument when the list is its *Closest
+    // instruments*: only those weights have a file behind them, so only they
+    // become buttons. *Points here* keeps plain numbers.
+    function targetList(pairs, total, className, from) {
       const list = element("ol", { className: `atlas-targets ${className}` });
       pairs.forEach(([j, w]) => {
         const target = items[j];
@@ -384,9 +411,24 @@
           text: target.n,
         });
         button.addEventListener("click", () => select(j, { reveal: true }));
+        let weight;
+        if (from === undefined) {
+          weight = element("span", { className: "atlas-weight", text: w.toFixed(1) });
+        } else {
+          weight = element("button", {
+            type: "button",
+            className: "atlas-weight atlas-why",
+            "data-i": String(j),
+            "aria-haspopup": "dialog",
+            title: `Why these provisions are closest to ${target.n}`,
+            "aria-label": `${w.toFixed(1)}: why these provisions are closest to ${target.n}`,
+            text: w.toFixed(1),
+          });
+          weight.addEventListener("click", () => explain(from, j, weight));
+        }
         list.append(
           element("li", { className: "atlas-target" }, [
-            element("span", { className: "atlas-weight", text: w.toFixed(1) }),
+            weight,
             element("span", { className: "atlas-bar", "aria-hidden": "true" }, [
               element("span", {
                 className: "atlas-bar-fill",
@@ -434,7 +476,7 @@
           className: "atlas-note",
           text: `where its ${provisions(d.p)}' nearest texts live`,
         }),
-        targetList(d.out, d.p, "atlas-out"),
+        targetList(d.out, d.p, "atlas-out", d.i),
         element("h3", { className: "atlas-panel-heading", text: "Points here" })
       );
       if (d.inc.length) {
@@ -454,6 +496,203 @@
         );
       }
     }
+
+    // -- the explanation dialog ------------------------------------------------ //
+    const pairsBase = new URL(mount.dataset.pairs || "atlas/pairs/", document.baseURI);
+    const pageSize = Math.max(1, parseInt(mount.dataset.pageSize, 10) || PAGE_SIZE);
+    const explanations = new Map(); // "<i>-<j>" -> the promise of its file
+    let opener = null;
+    let showing = 0; // which request the dialog is waiting for
+
+    // md2akn's Markdown carries `**bold**` and little else: that is all this
+    // renders. Everything else is text, never HTML; a blank line starts a
+    // paragraph. Nothing is shortened.
+    function renderText(text) {
+      const fragment = document.createDocumentFragment();
+      String(text || "")
+        .split(/\n\s*\n/)
+        .forEach((paragraph) => {
+          if (!paragraph.trim()) return;
+          const parts = paragraph.split("**");
+          // An unpaired `**` stays as written.
+          if (parts.length % 2 === 0) {
+            const tail = parts.pop();
+            parts[parts.length - 1] += `**${tail}`;
+          }
+          const node = element("p", { className: "atlas-explain-text" });
+          parts.forEach((part, n) => {
+            if (part) node.append(n % 2 ? element("strong", { text: part }) : part);
+          });
+          fragment.append(node);
+        });
+      return fragment;
+    }
+
+    function loadPair(i, j) {
+      const key = `${i}-${j}`;
+      if (!explanations.has(key)) {
+        const request = fetch(new URL(`${key}.json`, pairsBase)).then((response) => {
+          if (!response.ok) throw new Error(`${response.status}`);
+          return response.json();
+        });
+        // A failure is not remembered: the next click may try again.
+        request.catch(() => explanations.delete(key));
+        explanations.set(key, request);
+      }
+      return explanations.get(key);
+    }
+
+    function explainTitle(source, target) {
+      return element("h2", { id: "atlas-explain-title", className: "atlas-explain-title" }, [
+        "Why ",
+        element("em", { text: source.n }),
+        " is close to ",
+        element("em", { text: target.n }),
+      ]);
+    }
+
+    function status(text) {
+      return element("p", { className: "atlas-explain-status", text });
+    }
+
+    function provisionCell(label, path, text) {
+      const cell = [element("span", { className: "atlas-explain-label", text: label })];
+      if (path) cell.push(element("span", { className: "atlas-explain-path", text: path }));
+      cell.push(renderText(text));
+      return cell;
+    }
+
+    function explanationRow(pair, row, n, target) {
+      const texts = pair.texts || {};
+      const targets = row.targets || [];
+      const closest = [];
+      if (targets.length) {
+        const first = targets[0];
+        closest.push(...provisionCell(first.label, first.path, texts[first.text]));
+        const others = targets.length - 1;
+        if (others > 0) {
+          const same = targets.every((entry) => entry.text === first.text);
+          const provisionWord = others === 1 ? "provision" : "provisions";
+          const verb = same ? (others === 1 ? "carries this text" : "carry this text")
+            : (others === 1 ? "is as close" : "are as close");
+          closest.push(element("span", {
+            className: "atlas-explain-also",
+            text: `also ${others} other ${provisionWord} of ${target.n} ${verb}`,
+          }));
+        }
+      }
+      const weight = [element("span", {
+        className: "atlas-explain-fraction",
+        text: row.m === 1 ? "1" : `1/${row.m}`,
+      })];
+      if (row.m > 1) {
+        weight.push(element("span", {
+          className: "atlas-explain-share",
+          text: `this text is shared by ${row.m} instruments`,
+        }));
+      }
+      return element("tr", {}, [
+        element("td", { className: "atlas-explain-n", "data-column": "#", text: String(n + 1) }),
+        element("td", { className: "atlas-explain-source", "data-column": "Provision" },
+          provisionCell(row.label, row.path, texts[row.text])),
+        element("td", { className: "atlas-explain-target", "data-column": "Closest text" },
+          closest),
+        element("td", {
+          className: "atlas-explain-similarity",
+          "data-column": "Similarity",
+          text: Number(row.similarity).toFixed(3),
+        }),
+        element("td", { className: "atlas-explain-weight", "data-column": "Weight" }, weight),
+      ]);
+    }
+
+    function renderPair(pair, source, target) {
+      const rows = pair.rows || [];
+      const count = element("p", { className: "atlas-explain-count" });
+      const tbody = element("tbody");
+      const more = element("button", { type: "button", className: "atlas-explain-more" });
+      let shown = 0;
+
+      function showMore() {
+        const next = Math.min(rows.length, shown + pageSize);
+        for (let n = shown; n < next; n += 1) {
+          tbody.append(explanationRow(pair, rows[n], n, target));
+        }
+        shown = next;
+        const left = rows.length - shown;
+        count.textContent = `Showing ${d3.format(",")(shown)} of ${d3.format(",")(rows.length)}`;
+        more.hidden = left === 0;
+        more.textContent =
+          `Show ${d3.format(",")(Math.min(pageSize, left))} more (${d3.format(",")(left)} left)`;
+      }
+      more.addEventListener("click", showMore);
+
+      const table = element("table", { className: "atlas-explain-table" }, [
+        element("thead", {}, [
+          element("tr", {}, [
+            element("th", { className: "atlas-explain-n", scope: "col", text: "#" }),
+            element("th", { scope: "col", text: `Provision of ${source.n}` }),
+            element("th", { scope: "col", text: `Closest text in ${target.n}` }),
+            element("th", { className: "atlas-explain-similarity", scope: "col", text: "Similarity" }),
+            element("th", { className: "atlas-explain-weight", scope: "col", text: "Weight" }),
+          ]),
+        ]),
+        tbody,
+      ]);
+      explainBody.replaceChildren(
+        explainTitle(source, target),
+        element("p", { className: "atlas-explain-lead" }, [
+          `${provisions(pair.provisions)} of `,
+          element("em", { text: source.n }),
+          " have their closest text outside it in ",
+          element("em", { text: target.n }),
+          `; they add up to ${Number(pair.weight).toFixed(1)} of its ${provisions(source.p)}.`,
+        ]),
+        count,
+        table,
+        more
+      );
+      showMore();
+    }
+
+    function explain(i, j, button) {
+      const source = items[i];
+      const target = items[j];
+      const request = ++showing;
+      opener = button;
+      explainBody.replaceChildren(explainTitle(source, target), status("Loading\u2026"));
+      if (!dialog.open) dialog.showModal();
+      dialog.scrollTop = 0;
+      loadPair(i, j)
+        .then((pair) => {
+          if (request !== showing) return;
+          if (!pair || !pair.source || !pair.target ||
+              pair.source.k !== source.k || pair.target.k !== target.k) {
+            explainBody.replaceChildren(explainTitle(source, target), status(OTHER_VERSION));
+            return;
+          }
+          renderPair(pair, source, target);
+        })
+        .catch(() => {
+          if (request !== showing) return;
+          explainBody.replaceChildren(explainTitle(source, target), status(NOT_AVAILABLE));
+        });
+    }
+
+    closeButton.addEventListener("click", () => dialog.close());
+    // A click on the backdrop reaches the dialog itself, outside its box.
+    dialog.addEventListener("click", (event) => {
+      if (event.target !== dialog) return;
+      const box = dialog.getBoundingClientRect();
+      const inside = event.clientX >= box.left && event.clientX <= box.right &&
+        event.clientY >= box.top && event.clientY <= box.bottom;
+      if (!inside) dialog.close();
+    });
+    dialog.addEventListener("close", () => {
+      showing += 1; // a late answer must not fill a closed dialog
+      if (opener && opener.isConnected) opener.focus();
+      opener = null;
+    });
 
     // -- selecting ------------------------------------------------------------- //
     // Zoom so the instrument and its five closest instruments all fit: the
@@ -725,7 +964,8 @@
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && event.target !== input) clear();
+      // An open dialog takes Escape for itself: it closes, the selection stays.
+      if (event.key === "Escape" && event.target !== input && !dialog.open) clear();
     });
 
     // -- start ----------------------------------------------------------------- //

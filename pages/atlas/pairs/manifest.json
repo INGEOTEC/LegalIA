@@ -1,0 +1,58 @@
+{
+  "generated": "2026-09-23T17:22:21+00:00",
+  "commit": "ab1ecea",
+  "work_dir": "emb-run-umap",
+  "matrix": {
+    "unit_rows": 408804,
+    "vector_rows": 381349,
+    "instruments": 1523,
+    "weighting": "1/m",
+    "matrix_dtype": "float32",
+    "matrix_sum": 408804.0,
+    "row_sums_equal_units": true,
+    "nonzero_cells": 864966,
+    "tie_rows": 678,
+    "n_winners": {
+      "1": 408126,
+      "2": 676,
+      "3-5": 2,
+      "6+": 0
+    },
+    "max_m": 847,
+    "m": {
+      "1": 377349,
+      "2": 11317,
+      "3-5": 8454,
+      "6-20": 5679,
+      "21-100": 4105,
+      "101+": 1900
+    },
+    "shared_rows": 10309,
+    "tolerance": 1e-06,
+    "block_rows": 1024,
+    "threads": 62,
+    "node": "geoint1",
+    "slurm_job_id": "42196",
+    "seconds": {
+      "load": 2.4,
+      "normalise": 0.8,
+      "sweep": 665.9,
+      "write": 0.5
+    },
+    "seconds_total": 670.8,
+    "peak_rss_gb": 4.27
+  },
+  "top": 5,
+  "tolerance": 1e-06,
+  "pairs": 7604,
+  "provisions": 301583,
+  "weight": 269324.3,
+  "bytes": 355831737,
+  "largest": {
+    "file": "pairs/1286-476.json",
+    "rows": 2461,
+    "bytes": 3169200
+  },
+  "release": "atlas-pairs",
+  "asset": "atlas-pairs.tar.gz"
+}

@@ -495,6 +495,266 @@
   text-decoration: underline;
 }
 
+/* A weight under "Closest instruments" opens its explanation (issue #250):
+   a button that looks exactly like the number it replaced, so the panel does
+   not move. */
+.atlas-why {
+  justify-self: start;
+  padding: 0;
+  border: none;
+  background: none;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  color: var(--atlas-ink) !important;
+  cursor: pointer;
+  text-decoration: underline dotted var(--atlas-faint);
+  text-underline-offset: 3px;
+}
+
+.atlas-why:hover,
+.atlas-why:focus-visible {
+  text-decoration: underline solid var(--atlas-ink);
+}
+
+.atlas-why:focus-visible {
+  outline: 2px solid var(--atlas-link);
+  outline-offset: 2px;
+}
+
+/* -- the explanation dialog ------------------------------------------------ */
+
+.atlas-explain {
+  box-sizing: border-box;
+  width: min(1100px, calc(100vw - 2rem));
+  max-width: 1100px;
+  max-height: 90vh;
+  padding: 0;
+  border: 1px solid var(--atlas-rule);
+  border-top: 3px solid var(--atlas-link);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--atlas-ink);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.atlas-explain::backdrop {
+  background: rgba(31, 30, 27, 0.45);
+}
+
+.atlas-explain-close {
+  position: sticky;
+  top: 0.6rem;
+  float: right;
+  z-index: 1;
+  width: 2.1rem;
+  height: 2.1rem;
+  margin: 0.6rem 0.6rem 0 0;
+  padding: 0;
+  border: 1px solid var(--atlas-rule);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 1.35rem !important;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.atlas-explain-close:hover,
+.atlas-explain-close:focus-visible {
+  border-color: var(--atlas-ink);
+}
+
+.atlas-explain-body {
+  padding: 1.1rem 1.4rem 1.4rem;
+}
+
+/* Quarto's theme gives an h2 a bottom rule and padding: not here. */
+.atlas-explain h2 {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.atlas-explain-title {
+  margin: 0 2.6rem 0.6rem 0;
+  font-family: "Palatino Linotype", Palatino, "URW Palladio L", Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.atlas-explain-title em,
+.atlas-explain-lead em {
+  font-style: italic;
+}
+
+.atlas-explain-lead {
+  margin: 0 0 0.8rem;
+  color: var(--atlas-muted);
+}
+
+.atlas-explain-status,
+.atlas-explain-count {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--atlas-muted);
+}
+
+.atlas-explain-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.9rem;
+}
+
+.atlas-explain-table th,
+.atlas-explain-table td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid var(--atlas-rule);
+  vertical-align: top;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.atlas-explain-table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--atlas-muted);
+  border-bottom-color: var(--atlas-ink);
+}
+
+.atlas-explain-table .atlas-explain-n {
+  width: 2.4rem;
+}
+
+.atlas-explain-table .atlas-explain-similarity {
+  width: 6.4rem;
+}
+
+.atlas-explain-table .atlas-explain-weight {
+  width: 8.5rem;
+}
+
+.atlas-explain-table td.atlas-explain-n,
+.atlas-explain-table td.atlas-explain-similarity,
+.atlas-explain-table td.atlas-explain-weight,
+.atlas-explain-table th.atlas-explain-n,
+.atlas-explain-table th.atlas-explain-similarity,
+.atlas-explain-table th.atlas-explain-weight {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: normal;
+}
+
+.atlas-explain-n,
+.atlas-explain-similarity,
+.atlas-explain-fraction {
+  white-space: nowrap;
+}
+
+.atlas-explain-fraction {
+  display: block;
+  font-weight: 600;
+}
+
+.atlas-explain-label {
+  display: block;
+  font-weight: 600;
+}
+
+.atlas-explain-path,
+.atlas-explain-share,
+.atlas-explain-also {
+  display: block;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--atlas-faint);
+}
+
+.atlas-explain-also {
+  margin-top: 0.3rem;
+  font-style: italic;
+}
+
+.atlas-explain-text {
+  margin: 0.35rem 0 0;
+  font-family: "Palatino Linotype", Palatino, "URW Palladio L", Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.atlas-explain-more {
+  margin-top: 0.9rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid #c9c7be;
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.atlas-explain-more:hover,
+.atlas-explain-more:focus-visible {
+  border-color: var(--atlas-ink);
+}
+
+/* On a phone the dialog is the screen, and each row stacks its cells, each
+   named by its column. */
+@media (max-width: 640px) {
+  .atlas-explain {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .atlas-explain-body {
+    padding: 0.9rem 1rem 1.2rem;
+  }
+
+  .atlas-explain-table,
+  .atlas-explain-table tbody,
+  .atlas-explain-table tr,
+  .atlas-explain-table td {
+    display: block;
+    width: auto !important;
+  }
+
+  .atlas-explain-table thead {
+    display: none;
+  }
+
+  .atlas-explain-table tr {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--atlas-rule);
+  }
+
+  .atlas-explain-table td,
+  .atlas-explain-table td.atlas-explain-n,
+  .atlas-explain-table td.atlas-explain-similarity,
+  .atlas-explain-table td.atlas-explain-weight {
+    padding: 0.25rem 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .atlas-explain-table td::before {
+    content: attr(data-column);
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--atlas-muted);
+  }
+}
+
 .atlas-error {
   padding: 1rem;
   border: 1px solid var(--atlas-rule);
