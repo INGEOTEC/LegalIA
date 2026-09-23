@@ -8,7 +8,7 @@ number-sections: false
 
 <!-- atlas:app -->
 <link rel="stylesheet" href="atlas/atlas.css">
-<div id="atlas" class="atlas" data-src="atlas/atlas.json"></div>
+<div id="atlas" class="atlas" data-src="atlas/atlas.json" data-pairs="atlas/pairs/"></div>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="atlas/atlas.js"></script>
 <!-- /atlas:app -->
@@ -59,6 +59,12 @@ followed from one instrument to the next. Scroll or pinch to zoom, drag to
 pan, and press Escape or click an empty spot to clear the selection. The
 collection buttons under the map show one collection at a time.
 
+A weight under *Closest instruments* is itself a button: it opens a table of
+the provisions behind that number, each beside the closest text the other
+instrument has, both in full, with how similar the two are and how much the
+match adds to the weight — 1, or 1/*m* when the matching text is shared by *m*
+instruments, as the standard closing articles of a reform decree often are.
+
 ## An example
 
 The *LEY que crea la Universidad Autónoma Chapingo* has 35 provisions. For 13
@@ -72,6 +78,13 @@ over other instruments, and on the map the law sits among the organic laws of
 the UNAM, Antonio Narro and the UAM. The relation is directed: 28 provisions of other
 instruments have their closest text in Chapingo's law, 9 of them in Antonio
 Narro's and 7 in the UAM's.
+
+The Constitution's closest instrument is the *LEY General de Instituciones y
+Procedimientos Electorales*, at 116.6. Its table lists 170 provisions: 79
+parts of the electoral articles (41, 96 and 116 above all) and two headings
+count a whole 1 each, while 89 are transitory articles of reform decrees —
+mostly the standard "the present decree enters into force…", shared by up to
+153 instruments — which together add only 35.6.
 
 ## The neighbourhood size
 

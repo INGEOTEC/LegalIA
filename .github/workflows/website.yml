@@ -25,6 +25,34 @@ jobs:
         with:
           version: 1.9.38
 
+      # The Atlas pair explanations (issues #249/#250): ~7,600 JSON files,
+      # ~356 MB, too big for git, so they live in the `atlas-pairs` release,
+      # which a human publishes by running the PUBLICAR.md that
+      # scripts/embeddings/export_atlas_pairs.py generates (issue #115,
+      # Hallazgo C). This step only copies that already-published asset into
+      # the site; the workflow publishes nothing SCJN-derived of its own. It
+      # fails when the release or the asset is missing: a site without the
+      # files would answer every click with "not available".
+      - name: Fetch the Atlas pair explanations
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          download=/tmp/atlas-pairs
+          mkdir -p "$download/unpacked"
+          gh release download atlas-pairs --repo "$GITHUB_REPOSITORY" \
+            --pattern 'atlas-pairs.tar.gz' --pattern 'SHA256SUMS.txt' --dir "$download"
+          test -s "$download/atlas-pairs.tar.gz"
+          grep -q '  atlas-pairs.tar.gz$' "$download/SHA256SUMS.txt"
+          (cd "$download" && sha256sum -c --ignore-missing SHA256SUMS.txt)
+          tar -xzf "$download/atlas-pairs.tar.gz" -C "$download/unpacked"
+          rm -rf website/pages/atlas/pairs
+          mv "$download/unpacked/pairs" website/pages/atlas/pairs
+          mv "$download/unpacked/manifest.json" website/pages/atlas/pairs/manifest.json
+          count=$(find website/pages/atlas/pairs -name '*-*.json' | wc -l)
+          test "$count" -gt 0
+          echo "atlas-pairs: $count pair files in website/pages/atlas/pairs"
+
       # Execution results are frozen (website/_freeze, with `freeze: true` —
       # see _quarto.yml), so rendering needs neither Python nor the local
       # notas-archivo/ raw data. Any re-execution here is a failure, not a

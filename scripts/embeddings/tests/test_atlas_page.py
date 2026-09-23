@@ -17,6 +17,13 @@ was an `<aside>`, so on the real page the map's grid track was 0 px wide. The
 `rendered_*` tests at the bottom therefore render `pages/atlas.qmd` with
 Quarto into `website/_site/` (gitignored) and drive the page Quarto wrote.
 
+Issue #250's explanation dialog is tested twice: over a toy site (the
+six-instrument corpus of `test_instrument_matrix.py`, exported by
+`export_atlas_data.py` and `export_atlas_pairs.py` into a temporary directory
+laid out like `website/pages/`, with the real `atlas.js`/`atlas.css`), and,
+when `website/pages/atlas/pairs/` has been installed, over the real
+Constitution -> LGIPE pair.
+
 The static checks at the top always run. The browser tests skip, with the
 reason, when Playwright or its Chromium is missing; the rendered-page tests
 also skip when no Quarto binary is found (on `PATH`, else the newest
@@ -30,10 +37,17 @@ import re
 import shutil
 import statistics
 import subprocess
+import sys
 import threading
 from pathlib import Path
 
 import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from test_instrument_matrix import (  # noqa: E402,F401
+    cache, index_of, prepared, stub_umap, with_matrix)
 
 REPO = Path(__file__).resolve().parents[3]
 WEBSITE = REPO / "website"
@@ -44,6 +58,12 @@ APP_CSS = PAGES / "atlas" / "atlas.css"
 DATA = PAGES / "atlas" / "atlas.json"
 SCREENSHOT = REPO / "output" / "atlas-chapingo.png"
 SITE = WEBSITE / "_site"
+PAIRS = PAGES / "atlas" / "pairs"
+WORKFLOW = REPO / ".github" / "workflows" / "website.yml"
+EXPLAIN_SCREENSHOT = REPO / "output" / "atlas-explain-cpeum-lgipe.png"
+LGIPE = "LEY General de Instituciones y Procedimientos Electorales"
+NOT_AVAILABLE = "The explanation for this pair is not available."
+OTHER_VERSION = "The explanation was built for a different version of the map."
 RENDERED_SCREENSHOT = REPO / "output" / "atlas-rendered.png"
 RENDERED_CHAPINGO_SCREENSHOT = REPO / "output" / "atlas-rendered-chapingo.png"
 #: Quarto's margin text colour, `#636056`: what an `aside` on the site gets.
@@ -108,7 +128,8 @@ def test_the_qmd_has_the_agreed_front_matter_and_no_code():
 def test_the_qmd_mounts_the_application_with_relative_paths():
     block = app_block(QMD.read_text(encoding="utf-8"))
     assert '<link rel="stylesheet" href="atlas/atlas.css">' in block
-    assert '<div id="atlas" class="atlas" data-src="atlas/atlas.json"></div>' in block
+    assert ('<div id="atlas" class="atlas" data-src="atlas/atlas.json" '
+            'data-pairs="atlas/pairs/"></div>') in block
     assert '<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>' in block
     assert '<script src="atlas/atlas.js"></script>' in block
 
@@ -138,6 +159,43 @@ def test_the_navbar_puts_atlas_right_after_federal_laws_and_ships_its_files():
     assert names[:5] == ["Home", "Archive", "Federal Laws", "Atlas", "DOF Titles"]
     assert ("pages/atlas.qmd", "Atlas") in [(h, n.strip()) for h, n in entries]
     assert re.search(r'resources:\s*\n\s*-\s*"pages/atlas/\*\*"', text)
+
+
+def test_the_publish_workflow_fetches_the_pair_explanations_before_publishing():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    step = text.index("name: Fetch the Atlas pair explanations")
+    assert step < text.index("quarto-dev/quarto-actions/publish")
+    body = text[step:text.index("quarto-dev/quarto-actions/publish")]
+    assert "gh release download atlas-pairs" in body
+    assert "--pattern 'atlas-pairs.tar.gz'" in body and "--pattern 'SHA256SUMS.txt'" in body
+    assert "sha256sum -c --ignore-missing SHA256SUMS.txt" in body
+    assert "set -euo pipefail" in body                 # a missing asset fails the job
+    assert "website/pages/atlas/pairs" in body
+    assert "GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in body
+    assert "Hallazgo C" in text
+
+
+def test_the_installed_pairs_are_never_committed():
+    lines = (REPO / ".gitignore").read_text(encoding="utf-8").splitlines()
+    assert "/website/pages/atlas/pairs/" in lines
+    tracked = subprocess.run(["git", "-C", str(REPO), "ls-files", "website/pages/atlas/pairs"],
+                             capture_output=True, text=True, check=True).stdout
+    assert tracked == ""
+
+
+def test_the_qmd_describes_the_explanation_and_its_example():
+    text = QMD.read_text(encoding="utf-8")
+    assert "opens a table of\nthe provisions behind that number" in text
+    for number in ("116.6", "170 provisions", "35.6", "153"):
+        assert number in text, number
+
+
+def test_the_application_carries_the_dialog_and_its_two_messages():
+    js = APP_JS.read_text(encoding="utf-8")
+    for needle in (NOT_AVAILABLE, OTHER_VERSION, "showModal", "mount.dataset.pairs",
+                   "mount.dataset.pageSize", "atlas-why"):
+        assert needle in js, needle
+    assert ".atlas-explain::backdrop" in APP_CSS.read_text(encoding="utf-8")
 
 
 def test_the_data_file_is_the_244_export():
@@ -567,3 +625,337 @@ def test_rendered_selection_draws_five_lines(rendered_page):
     RENDERED_CHAPINGO_SCREENSHOT.parent.mkdir(parents=True, exist_ok=True)
     rendered_page.screenshot(path=str(RENDERED_CHAPINGO_SCREENSHOT), full_page=True)
     assert RENDERED_CHAPINGO_SCREENSHOT.stat().st_size > 10_000
+
+
+# -- the explanation dialog over a toy site (issue #250) ---------------------- #
+
+def quiet(*args):
+    pass
+
+
+@pytest.fixture
+def toy_site(with_matrix, stub_umap, cache, tmp_path):
+    """A directory laid out like `website/pages/`: the real `atlas.js` and
+    `atlas.css`, and the toy corpus' own `atlas.json` and `atlas/pairs/`."""
+    import export_atlas_data
+    import export_atlas_pairs
+
+    site = tmp_path / "site"
+    (site / "atlas").mkdir(parents=True)
+    shutil.copy(APP_JS, site / "atlas" / "atlas.js")
+    shutil.copy(APP_CSS, site / "atlas" / "atlas.css")
+    export_atlas_data.export(with_matrix, site / "atlas" / "atlas.json", log=quiet)
+    out_dir = tmp_path / "atlas-pairs"
+    export_atlas_pairs.export(with_matrix, out_dir=out_dir, cache_dir=cache, log=quiet)
+    export_atlas_pairs.install(out_dir, site / "atlas" / "pairs", log=quiet)
+    return {"site": site, "index": index_of(with_matrix),
+            "atlas": json.loads((site / "atlas" / "atlas.json").read_text(encoding="utf-8"))}
+
+
+class Toy:
+    """One page over the toy site, with every request it made."""
+
+    def __init__(self, browser, toy_site, page_size=None, width=1280, height=900):
+        block = app_block(QMD.read_text(encoding="utf-8"))
+        if page_size is not None:
+            block = block.replace('data-pairs="atlas/pairs/"',
+                                  f'data-pairs="atlas/pairs/" data-page-size="{page_size}"')
+        site = toy_site["site"]
+        (site / "harness.html").write_text(HARNESS.format(app=block), encoding="utf-8")
+        self.index = toy_site["index"]
+        self.site = site
+        self.httpd = serve(site)
+        self.requests = []
+        self.errors = []
+        self.page = browser.new_page(viewport={"width": width, "height": height})
+        self.page.on("request", lambda request: self.requests.append(request.url))
+        self.page.on("pageerror", lambda error: self.errors.append(str(error)))
+        self.page.goto(f"http://127.0.0.1:{self.httpd.server_address[1]}/harness.html")
+        self.page.wait_for_selector('#atlas[data-ready="true"]', timeout=30000)
+
+    def pair_file(self, source, target):
+        return self.site / "atlas" / "pairs" / f"{self.index[source]}-{self.index[target]}.json"
+
+    def pair(self, source, target):
+        return json.loads(self.pair_file(source, target).read_text(encoding="utf-8"))
+
+    def pair_requests(self):
+        return [url for url in self.requests if "/atlas/pairs/" in url]
+
+    def select(self, clave, name):
+        self.page.locator(f'circle[data-k="{clave}"]').dispatch_event("click")
+        self.page.wait_for_function(
+            "name => document.querySelector('.atlas-panel h2')?.textContent === name",
+            arg=name)
+
+    def why(self, target):
+        return self.page.locator(f'.atlas-out .atlas-why[data-i="{self.index[target]}"]')
+
+    def open(self, target):
+        self.why(target).click()
+        self.page.wait_for_selector("dialog.atlas-explain[open]")
+        self.page.wait_for_function(
+            "() => !document.querySelector('.atlas-explain-status')"
+            " || document.querySelector('.atlas-explain-status').textContent !== 'Loading\u2026'")
+
+    def is_open(self):
+        return self.page.evaluate("() => document.querySelector('dialog.atlas-explain').open")
+
+    def close(self):
+        self.page.close()
+        self.httpd.shutdown()
+        self.httpd.server_close()
+
+
+@pytest.fixture
+def toy(browser, toy_site):
+    toy = Toy(browser, toy_site)
+    yield toy
+    toy.close()
+
+
+def weights_in_table(page):
+    total = 0.0
+    for text in page.locator(".atlas-explain-table tbody .atlas-explain-fraction").all_inner_texts():
+        numerator, _, denominator = text.partition("/")
+        total += float(numerator) / float(denominator or 1)
+    return total
+
+
+def test_toy_weight_opens_the_provisions_behind_it(toy):
+    """`b -> a` (2.8): four unit rows — the shared transitorio twice, the tie
+    and the three-owner boilerplate — whose weights add up to the panel's
+    number."""
+    toy.select("b", "Ley B")
+    panel_weight = toy.why("a").inner_text()
+    assert panel_weight == "2.8"
+    toy.open("a")
+    page = toy.page
+    assert page.locator("#atlas-explain-title").inner_text() == "Why Ley B is close to Ley A"
+    pair = toy.pair("b", "a")
+    rows = page.locator(".atlas-explain-table tbody tr")
+    assert rows.count() == pair["provisions"] == 4
+    lead = page.locator(".atlas-explain-lead").inner_text()
+    assert lead == ("4 provisions of Ley B have their closest text outside it in Ley A; "
+                    "they add up to 2.8 of its 4 provisions.")
+    assert weights_in_table(page) == pytest.approx(float(panel_weight), abs=0.05)
+    fractions = page.locator(".atlas-explain-fraction").all_inner_texts()
+    assert fractions.count("1") == 2 and "1/2" in fractions and "1/3" in fractions
+    assert "this text is shared by 3 instruments" in page.locator(".atlas-explain-table").inner_text()
+    assert page.locator(".atlas-explain-similarity").nth(1).inner_text() == "1.000"
+    # Both sides, in full.
+    first = page.locator(".atlas-explain-table tbody tr").first
+    assert "transitorio compartido" in first.locator(".atlas-explain-source").inner_text()
+    assert "transitorio compartido" in first.locator(".atlas-explain-target").inner_text()
+    assert page.locator(".atlas-explain-count").inner_text() == "Showing 4 of 4"
+    assert not page.locator(".atlas-explain-more").is_visible()
+    assert toy.errors == []
+
+
+@pytest.mark.parametrize("how", ["escape", "button", "backdrop"])
+def test_toy_dialog_closes_and_leaves_the_map_alone(toy, how):
+    toy.select("b", "Ley B")
+    page = toy.page
+    page.wait_for_timeout(300)
+    positions = page.eval_on_selector_all(
+        "circle.atlas-point", "nodes => nodes.map(n => n.getAttribute('cx'))")
+    links = page.locator("line.atlas-link").count()
+    toy.open("a")
+    if how == "escape":
+        page.keyboard.press("Escape")
+    elif how == "button":
+        page.locator(".atlas-explain-close").click()
+    else:
+        page.mouse.click(5, 5)
+    page.wait_for_function("() => !document.querySelector('dialog.atlas-explain').open")
+    assert panel_title(page) == "Ley B"
+    assert page.locator("circle.atlas-ring").count() == 1
+    assert page.locator("line.atlas-link").count() == links
+    assert page.eval_on_selector_all(
+        "circle.atlas-point", "nodes => nodes.map(n => n.getAttribute('cx'))") == positions
+    assert page.evaluate(
+        "i => document.activeElement.classList.contains('atlas-why')"
+        " && document.activeElement.dataset.i === String(i)", toy.index["a"])
+    assert toy.errors == []
+
+
+def test_toy_points_here_weights_are_plain_numbers(toy):
+    toy.select("a", "Ley A")
+    page = toy.page
+    assert page.locator(".atlas-inc .atlas-target").count() > 0
+    assert page.locator(".atlas-inc .atlas-why").count() == 0
+    assert page.locator(".atlas-inc button.atlas-weight").count() == 0
+    page.locator(".atlas-inc .atlas-weight").first.click()
+    page.wait_for_timeout(200)
+    assert not toy.is_open()
+    assert toy.pair_requests() == []
+    # Every closest instrument's weight is a button.
+    assert page.locator(".atlas-out .atlas-why").count() == \
+        page.locator(".atlas-out .atlas-target").count() == 4
+
+
+def test_toy_fetches_on_click_only_and_once_per_pair(toy):
+    toy.select("b", "Ley B")
+    assert toy.pair_requests() == []
+    for _ in range(2):
+        toy.open("a")
+        toy.page.keyboard.press("Escape")
+    toy.open("900")
+    toy.page.keyboard.press("Escape")
+    requested = sorted(url.rsplit("/", 1)[1] for url in toy.pair_requests())
+    assert requested == sorted([f"{toy.index['b']}-{toy.index['a']}.json",
+                                f"{toy.index['b']}-{toy.index['900']}.json"])
+
+
+def test_toy_missing_pair_says_not_available_and_the_page_keeps_working(toy):
+    toy.pair_file("b", "a").unlink()
+    toy.select("b", "Ley B")
+    toy.open("a")
+    page = toy.page
+    assert page.locator(".atlas-explain-status").inner_text() == NOT_AVAILABLE
+    assert page.locator("#atlas-explain-title").inner_text() == "Why Ley B is close to Ley A"
+    page.keyboard.press("Escape")
+    toy.select("c", "Ley C")
+    assert page.locator("circle.atlas-ring").count() == 1
+    toy.open("a")
+    assert page.locator(".atlas-explain-table tbody tr").count() == toy.pair("c", "a")["provisions"]
+    assert toy.errors == []
+
+
+def test_toy_pair_built_for_another_map_says_so(toy):
+    path = toy.pair_file("b", "a")
+    pair = json.loads(path.read_text(encoding="utf-8"))
+    pair["source"]["k"] = "zzz"
+    path.write_text(json.dumps(pair, ensure_ascii=False), encoding="utf-8")
+    toy.select("b", "Ley B")
+    toy.open("a")
+    assert toy.page.locator(".atlas-explain-status").inner_text() == OTHER_VERSION
+    assert toy.page.locator(".atlas-explain-table").count() == 0
+    assert toy.errors == []
+
+
+def test_toy_table_pages_by_the_mounts_page_size(browser, toy_site):
+    toy = Toy(browser, toy_site, page_size=3)
+    try:
+        toy.select("b", "Ley B")
+        toy.open("a")
+        page = toy.page
+        rows = page.locator(".atlas-explain-table tbody tr")
+        assert rows.count() == 3
+        assert page.locator(".atlas-explain-count").inner_text() == "Showing 3 of 4"
+        more = page.locator(".atlas-explain-more")
+        assert more.inner_text() == "Show 1 more (1 left)"
+        more.click()
+        assert rows.count() == 4
+        assert page.locator(".atlas-explain-count").inner_text() == "Showing 4 of 4"
+        assert not more.is_visible()
+        assert rows.locator(".atlas-explain-n").all_inner_texts() == ["1", "2", "3", "4"]
+    finally:
+        toy.close()
+
+
+def test_toy_text_renders_bold_and_paragraphs_and_nothing_else(toy):
+    path = toy.pair_file("b", "a")
+    pair = json.loads(path.read_text(encoding="utf-8"))
+    first = pair["rows"][0]
+    pair["texts"][str(first["text"])] = "**Primero.-** Uno <b>dos</b> **suelto\n\nTres"
+    path.write_text(json.dumps(pair, ensure_ascii=False), encoding="utf-8")
+    toy.select("b", "Ley B")
+    toy.open("a")
+    cell = toy.page.locator(".atlas-explain-table tbody tr").first.locator(".atlas-explain-source")
+    paragraphs = cell.locator("p.atlas-explain-text")
+    assert paragraphs.count() == 2
+    assert paragraphs.first.locator("strong").all_inner_texts() == ["Primero.-"]
+    assert paragraphs.first.inner_text() == "Primero.- Uno <b>dos</b> **suelto"
+    assert cell.locator("b").count() == 0
+    assert paragraphs.nth(1).inner_text() == "Tres"
+
+
+def test_toy_dialog_fills_a_phone_and_stacks_its_rows(browser, toy_site):
+    toy = Toy(browser, toy_site, width=390, height=844)
+    try:
+        toy.select("b", "Ley B")
+        toy.why("a").scroll_into_view_if_needed()
+        toy.open("a")
+        page = toy.page
+        box = page.locator("dialog.atlas-explain").bounding_box()
+        assert box["width"] == pytest.approx(390, abs=1)
+        assert box["height"] == pytest.approx(844, abs=1)
+        cells = page.locator(".atlas-explain-table tbody tr").first.locator("td")
+        tops = [cells.nth(n).bounding_box()["y"] for n in range(cells.count())]
+        assert tops == sorted(tops) and len(set(tops)) == len(tops)      # stacked
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= 390
+        assert page.evaluate(
+            "() => { const d = document.querySelector('dialog.atlas-explain');"
+            " return d.scrollWidth <= d.clientWidth; }")
+    finally:
+        toy.close()
+
+
+# -- the real Constitution -> LGIPE pair, when installed ---------------------- #
+
+def test_the_constitution_explains_its_lgipe_weight(page):
+    if not PAIRS.is_dir():
+        pytest.skip(f"{PAIRS} is not installed: run export_atlas_pairs.py --install "
+                    "website/pages/atlas/pairs, or unpack the atlas-pairs release there")
+    requests = []
+    page.on("request", lambda request: requests.append(request.url))
+    select_by_search(page, "constitucion", CONSTITUTION)
+    assert not [url for url in requests if "/atlas/pairs/" in url]
+    row = page.locator(".atlas-out .atlas-target").filter(has_text=LGIPE)
+    button = row.locator(".atlas-why")
+    assert button.inner_text() == "116.6"
+    button.click()
+    page.wait_for_selector(".atlas-explain-table tbody tr")
+    title = page.locator("#atlas-explain-title").inner_text()
+    assert CONSTITUTION in title and LGIPE in title
+    lead = page.locator(".atlas-explain-lead").inner_text()
+    assert lead.startswith("170 provisions of ")
+    assert "they add up to 116.6 of its 2,276 provisions" in lead
+    rows = page.locator(".atlas-explain-table tbody tr")
+    assert rows.count() == 50
+    more = page.locator(".atlas-explain-more")
+    assert more.inner_text() == "Show 50 more (120 left)"
+    for shown in (100, 150, 170):
+        more.click()
+        assert rows.count() == shown
+    assert not more.is_visible()
+    assert page.locator(".atlas-explain-count").inner_text() == "Showing 170 of 170"
+    assert weights_in_table(page) == pytest.approx(116.6, abs=0.05)
+    fractions = page.locator(".atlas-explain-fraction").all_inner_texts()
+    assert "1/101" in fractions and "1" in fractions
+    table = page.locator(".atlas-explain-table").inner_text()
+    assert "this text is shared by 101 instruments" in table
+    # The whole text, both sides: the file's own, rendered without its `**`.
+    claves = [entry["k"] for entry in json.loads(DATA.read_text(encoding="utf-8"))["instruments"]]
+    name = f"{claves.index('cpeum')}-{button.get_attribute('data-i')}.json"
+    assert [url.rsplit("/", 1)[1] for url in requests if "/atlas/pairs/" in url] == [name]
+    pair = json.loads((PAIRS / name).read_text(encoding="utf-8"))
+    longest = max(pair["rows"], key=lambda r: len(pair["texts"][str(r["text"])]))
+    expected = pair["texts"][str(longest["text"])].replace("**", "")
+    assert expected[-60:] in table
+    assert forbidden_in(page.content()) == []
+    page.locator(".atlas-explain-close").click()
+    page.wait_for_function("() => !document.querySelector('dialog.atlas-explain').open")
+    assert panel_title(page) == CONSTITUTION
+    button.click()
+    page.wait_for_selector(".atlas-explain-table tbody tr")
+    page.wait_for_timeout(300)
+    EXPLAIN_SCREENSHOT.parent.mkdir(parents=True, exist_ok=True)
+    page.screenshot(path=str(EXPLAIN_SCREENSHOT))
+    assert EXPLAIN_SCREENSHOT.stat().st_size > 10_000
+    assert len([url for url in requests if "/atlas/pairs/" in url]) == 1
+
+
+def test_rendered_dialog_heading_has_no_quarto_rule(rendered_page):
+    """The #247 lesson, for the dialog: Quarto's h2 rule must not reach it."""
+    select_by_search(rendered_page, "chapingo", CHAPINGO)
+    rendered_page.locator(".atlas-out .atlas-why").first.click()
+    rendered_page.wait_for_selector("dialog.atlas-explain[open] h2")
+    assert rendered_page.eval_on_selector(
+        ".atlas-explain h2", "n => getComputedStyle(n).borderBottomWidth") == "0px"
+    box = rendered_page.locator("dialog.atlas-explain").bounding_box()
+    assert box["width"] > 600
+    rendered_page.keyboard.press("Escape")
+    rendered_page.wait_for_function("() => !document.querySelector('dialog.atlas-explain').open")
+    assert panel_title(rendered_page) == CHAPINGO
