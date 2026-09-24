@@ -308,6 +308,184 @@ class TestFormateaParrafo(unittest.TestCase):
         self.assertIn("**Artículo 2o.-** Otra disposición.", markdown)
 
 
+class TestTableRowsInTabbedBlocks(unittest.TestCase):
+    """Issue #253: a blank-line-separated block that carries a tab is
+    diverted to `_paragraphs_from_tabbed_block` and comes back as one
+    Markdown paragraph per recovered table row, instead of one per wrapped
+    source line. The two fixtures below are the API's own `contenido` for
+    `lfd` article 40 and article 244-B, exactly as it answered on
+    2026-09-23 (issue #253's own measurement)."""
+
+    ART40 = (
+        '[N. DE E. CANTIDADES ACTUALIZADAS MEDIANTE EL ANEXO NÚMERO 4 DE LA '
+        'RESOLUCIÓN MISCELÁNEA FISCAL PARA 2026, D.O.F. DEL 28 DE DICIEMBRE DE '
+        '2025.]\r\n(REFORMADO PRIMER PÁRRAFO, D.O.F. 1 DE DICIEMBRE DE '
+        '2004)\r\nARTICULO 40.- Por el trámite y, en su caso, por el '
+        'otorgamiento de las inscripciones, concesiones o autorizaciones que a '
+        'continuación se señalan, se pagará el derecho aduanero de '
+        'inscripciones, concesiones y autorizaciones, conforme a las '
+        'siguientes cuotas:\r\n\r\n\t\t\t\t\tCuota\r\n\t\t\t\t\tSin '
+        'ajuste\t\tCon ajuste\r\n\r\na).- Por la inscripción en el registro '
+        'del\r\ndespacho de mercancías\t\t\t$8,769.47\t\t$8,769\r\n\r\nb).- '
+        'Por la autorización de depósito fiscal\r\npara someterse al proceso '
+        'de ensamble\r\ny fabricación de vehículos a empresas de\r\nla '
+        'industria automotriz terminal o manufacturera\r\nde vehículos de '
+        'autotransporte\t\t$17,821.85\t\t$17,822\r\n\r\nc).- Por la '
+        'autorización para la entrada o\r\nsalida de mercancías del '
+        'territorio nacional\r\npor lugar distinto al '
+        'autorizado\t\t$17,256.04\t$17,256\r\n\r\n(REFORMADO, D.O.F. 9 DE '
+        'DICIEMBRE DE 2019)\r\nf).- Por la autorización de representante '
+        'legal\t$14,144.29\t\t$14,144'
+    )
+
+    ART244B = (
+        '[N. DE E. CANTIDADES ACTUALIZADAS MEDIANTE EL ANEXO NÚMERO 4 DE LA '
+        'RESOLUCIÓN MISCELÁNEA FISCAL PARA 2026, D.O.F. DEL 28 DE DICIEMBRE DE '
+        '2025.]\r\nARTICULO 244-B.- Los concesionarios y permisionarios de '
+        'bandas de frecuencias del espectro radioeléctrico comprendidas en '
+        'los rangos de frecuencias en megahertz señalados en la tabla A, '
+        'pagarán anualmente el derecho por el uso, goce, aprovechamiento o '
+        'explotación de bandas de frecuencia del espectro radioeléctrico, por '
+        'cada región en la que operen y por cada kilohertz concesionado o '
+        'permisionado, de conformidad con la tabla B, como '
+        'sigue:\r\n\r\n(REFORMADA, D.O.F. 12 DE NOVIEMBRE DE '
+        '2021)\r\nTabla A\r\n\r\nI. Rango de frecuencias en '
+        'Megahertz\r\n\r\nDe 1850 MHz\ta 1915 MHz\r\n\r\nDe 1930 MHz\ta 1995 '
+        'MHz\r\n\r\nTabla B\r\n\r\nCobertura\t\t\t\t\tCuota por cada '
+        'kilohertz\r\n\t\t\t\t\t\tconcesionado o\r\n\t\t\t\t\t\tpermisionado '
+        '1MHz=1000 KHz\r\n\r\nTodos los municipios de Baja\r\nCalifornia, '
+        'Baja California Sur y el\r\nmunicipio de San Luis '
+        'Río\r\nColorado del estado de Sonora.\t\t\t\t$4,764.53\r\n\r\nTodos '
+        'los municipios de Sinaloa y\r\ntodos los de Sonora, excepto '
+        'el\r\nmunicipio de San Luis Río\r\nColorado.\t\t\t\t\t\t\t$706.29'
+    )
+
+    def _markdown40(self):
+        from scjn.api import Articulo, articulos_a_markdown
+
+        return articulos_a_markdown(
+            [Articulo(1, 1, "ARTÍCULO  40", self.ART40)]
+        )
+
+    def _markdown244b(self):
+        from scjn.api import Articulo, articulos_a_markdown
+
+        return articulos_a_markdown(
+            [Articulo(1, 1, "ARTÍCULO  244 B", self.ART244B)]
+        )
+
+    def test_el_primer_bloque_sin_tabulador_no_cambia(self):
+        parrafos = self._markdown40().rstrip("\n").split("\n\n")
+        self.assertEqual(
+            parrafos[0], "**(REFORMADO PRIMER PÁRRAFO, D.O.F. 1 DE DICIEMBRE DE 2004)**"
+        )
+        self.assertTrue(parrafos[1].startswith("**ARTICULO 40.-** Por el trámite"))
+        markdown = self._markdown40()
+        self.assertNotIn("N. DE E.", markdown)
+
+    def test_el_encabezado_envuelto_en_dos_lineas_se_arma_como_una_fila(self):
+        parrafos = self._markdown40().rstrip("\n").split("\n\n")
+        self.assertIn("|  | Cuota Sin ajuste | Con ajuste |", parrafos)
+
+    def test_la_fila_b_es_un_solo_parrafo_de_tres_celdas(self):
+        parrafos = self._markdown40().rstrip("\n").split("\n\n")
+        self.assertIn(
+            "| b).- Por la autorización de depósito fiscal para someterse al "
+            "proceso de ensamble y fabricación de vehículos a empresas de la "
+            "industria automotriz terminal o manufacturera de vehículos de "
+            "autotransporte | $17,821.85 | $17,822 |",
+            parrafos,
+        )
+        self.assertTrue(all(len(p) >= 10 for p in parrafos))
+
+    def test_la_anotacion_queda_en_negritas_justo_antes_de_la_fila_f(self):
+        parrafos = self._markdown40().rstrip("\n").split("\n\n")
+        indice_anotacion = parrafos.index(
+            "**(REFORMADO, D.O.F. 9 DE DICIEMBRE DE 2019)**"
+        )
+        self.assertEqual(
+            parrafos[indice_anotacion + 1],
+            "| f).- Por la autorización de representante legal | $14,144.29 | $14,144 |",
+        )
+
+    def test_tabla_a_y_tabla_b_sin_tabulador_no_cambian(self):
+        markdown = self._markdown244b()
+        self.assertIn("Tabla A", markdown.split("\n\n"))
+        self.assertIn("Tabla B", markdown.split("\n\n"))
+
+    def test_rango_de_frecuencias_se_arma_como_fila_de_dos_celdas(self):
+        parrafos = self._markdown244b().rstrip("\n").split("\n\n")
+        self.assertIn("| De 1850 MHz | a 1915 MHz |", parrafos)
+
+    def test_encabezado_de_tres_lineas_se_arma_como_una_sola_fila(self):
+        parrafos = self._markdown244b().rstrip("\n").split("\n\n")
+        self.assertIn(
+            "| Cobertura | Cuota por cada kilohertz concesionado o permisionado "
+            "1MHz=1000 KHz |",
+            parrafos,
+        )
+
+    def test_la_celda_envuelta_de_baja_california_termina_en_la_cuota(self):
+        parrafos = self._markdown244b().rstrip("\n").split("\n\n")
+        fila = next(p for p in parrafos if "Baja California" in p)
+        self.assertTrue(fila.endswith("| $4,764.53 |"))
+        self.assertEqual(fila.count("|"), 3)
+
+    def test_bloque_multilinea_sin_tabulador_sigue_siendo_una_linea_por_parrafo(self):
+        from scjn.api import Articulo, articulos_a_markdown
+
+        arts = [
+            Articulo(1, 1, "X", "Primera línea envuelta.\r\nSegunda línea envuelta.")
+        ]
+
+        markdown = articulos_a_markdown(arts)
+
+        self.assertEqual(
+            markdown, "Primera línea envuelta.\n\nSegunda línea envuelta.\n"
+        )
+
+    def test_encabezado_de_articulo_o_ordinal_en_linea_con_tabulador_no_es_fila(self):
+        from scjn.api import Articulo, articulos_a_markdown
+
+        arts = [
+            Articulo(
+                1,
+                1,
+                "ARTÍCULO 131",
+                "ARTICULO 131.- Por la expedición del permiso.\t\t$638.23\t\t$638",
+            )
+        ]
+
+        markdown = articulos_a_markdown(arts)
+
+        self.assertEqual(
+            markdown,
+            "**ARTICULO 131.-** Por la expedición del permiso. $638.23 $638\n",
+        )
+        self.assertNotIn("|", markdown)
+
+    def test_una_barra_dentro_de_una_celda_se_escapa(self):
+        from scjn.api import Articulo, articulos_a_markdown
+
+        arts = [Articulo(1, 1, "X", "a).- Texto con | barra\tvalor")]
+
+        markdown = articulos_a_markdown(arts)
+
+        self.assertEqual(markdown, "| a).- Texto con \\| barra | valor |\n")
+
+    def test_una_linea_de_prosa_con_un_tabulador_perdido_se_vuelve_fila_de_dos_celdas(self):
+        # Documented and accepted (issue #253's decisions): a guard on cell
+        # length would be a heuristic guarding a heuristic. 1 of 23,592 tab
+        # lines in the corpus is prose with a stray tab (`lce`).
+        from scjn.api import Articulo, articulos_a_markdown
+
+        arts = [Articulo(1, 1, "X", "Esto es prosa\tcon un tabulador perdido.")]
+
+        markdown = articulos_a_markdown(arts)
+
+        self.assertEqual(markdown, "| Esto es prosa | con un tabulador perdido. |\n")
+
+
 class TestSeleccion(unittest.TestCase):
     """Los 5 instrumentos del issue #115 en los que el buscador viejo trajo
     otro documento, reducidos a los candidatos que la API devuelve hoy para

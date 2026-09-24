@@ -72,6 +72,16 @@ so one law changing makes the published one stale.
     ./scripts/empaqueta_scjn_leyes.py --instrumento lft
     less scripts/scjn/leyes-release/MANIFEST.md   # short now. still read it all.
 
+A fix to how `scjn.api.articulos_a_markdown` converts an article's own
+`contenido` (issue #253's table-row recovery, for one) only reaches an
+already-published snapshot by naming it here too, once
+`scripts/fetch_scjn_legislacion.py --reintenta <slug>` has re-crawled it —
+packaging never re-derives a snapshot from anything cached locally, so
+skipping this step would keep publishing the old conversion. `--instrumento`
+repeated over #253's own 35 slugs packages exactly the rewritten laws; the
+manifest names them for review the same way it does for `--instrumento lft`
+above.
+
 The DOF notes travel *with* the snapshots on purpose: `notas/` is the text
 each link was decided against (#126/#127), so shipping both makes the link
 auditable without going back to the network.

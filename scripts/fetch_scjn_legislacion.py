@@ -70,6 +70,28 @@ wrong just to verify a fix aimed at 5. Leaves the collection's own
 no stability contract (the same posture `dofjson.dofweb` takes toward the
 DOF's own website).
 
+Issue #253 gives ``--reintenta`` a second reason to name a slug, distinct
+from #115's "wrong document": a fix to how ``scjn.api.articulos_a_markdown``
+recovers a table wrapped over several tab-separated lines only reaches a
+snapshot already on disk by re-crawling it — the raw `contenido` the API
+answers is not cached anywhere, so nothing short of asking the SCJN again
+picks up the new conversion for a law that has one. Measured against the
+cached ``scjn-leyes`` release on 2026-09-23: 35 of 315 laws, 567 of 3,707
+snapshots carry at least one such block —
+``ligie-2022 lfd lfisan lieps locg lissste lissfam cff lss lisr lcf loefam
+lih lif-2026 lfprh lmeum lsem lan cpeum ldcmpme lft loam ldsca lgdp lgs lsar
+lgvs lgn lspm liva lce lfda loapf cpf lbio`` (``scjn-reglamentos``/
+``scjn-lineamientos`` were not measured, though they are written by the same
+`scjn.api.snapshot` and inherit the fix). Re-crawling those 35 with
+``--reintenta`` and repackaging (``scripts/empaqueta_scjn_leyes.py``) is a
+human step, same as any other publish (issue #115, Hallazgo C) — its
+``MANIFEST.md`` then lists exactly the rewritten instrumentos for review.
+The downstream `nota2md` package's own derived cache
+(``<CACHE_DIR>/scjn-leyes/md/<slug>-<archivo>.md``) is keyed by file name and
+reused when present, so it goes stale for these 35 laws until it is deleted
+or `nota2md.legal_provisions`/`reconstruct_legal_provisions` are called with
+`refrescar=True`.
+
 A fourth case, issue #124's follow-up ("Dos casos disparadores"): an
 instrumento the coverage sweep above never finds *anything* for at all,
 either because the SCJN's own full-text search never matches the
@@ -205,6 +227,17 @@ extra to keep rastreando.
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion \
         --reintenta ccf --reintenta lisr --reintenta lsint --reintenta lfd --reintenta lopgjdf
+    # issue #253's table-row fix, over the 35 laws it measured:
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn \
+        --reintenta ligie-2022 --reintenta lfd --reintenta lfisan --reintenta lieps \
+        --reintenta locg --reintenta lissste --reintenta lissfam --reintenta cff \
+        --reintenta lss --reintenta lisr --reintenta lcf --reintenta loefam \
+        --reintenta lih --reintenta lif-2026 --reintenta lfprh --reintenta lmeum \
+        --reintenta lsem --reintenta lan --reintenta cpeum --reintenta ldcmpme \
+        --reintenta lft --reintenta loam --reintenta ldsca --reintenta lgdp \
+        --reintenta lgs --reintenta lsar --reintenta lgvs --reintenta lgn \
+        --reintenta lspm --reintenta liva --reintenta lce --reintenta lfda \
+        --reintenta loapf --reintenta cpf --reintenta lbio
 """
 
 import argparse

@@ -303,6 +303,56 @@ def test_hay_fixtures_de_unidades():
     assert len(UNIT_FIXTURE_NAMES) >= 2
 
 
+# -- issue #253: a `scjn.api`-recovered table row ------------------------- #
+
+class TestTableRowShape(unittest.TestCase):
+    """`scjn.api.articulos_a_markdown` now recovers a table row as one
+    `"| cell | cell |"` paragraph (issue #253). This package needs no change
+    for that — a row starting with `|` matches none of `clasifica`'s
+    patterns, so it falls through to the ordinary `"contenido"`/`content`
+    leaf, and `MARCADOR_LISTA` requires its marker at the very head of the
+    block, which `|` is not. This test pins that reading so a later change
+    to either package cannot regress it silently; it changes no `md2akn`
+    code."""
+
+    TEXT = (
+        "---\nfuente: scjn\n---\n\n"
+        "**ARTICULO 40.-** Por el trámite y, en su caso, se pagará conforme "
+        "a las siguientes cuotas:\n\n"
+        "| a).- Por la inscripción en el registro del despacho de "
+        "mercancías | $8,769.47 | $8,769 |\n\n"
+        "| b).- Por la autorización de depósito fiscal para someterse al "
+        "proceso de ensamble | $17,821.85 | $17,822 |\n\n"
+        "| c).- Por la autorización para la entrada o salida de mercancías "
+        "del territorio nacional | $17,256.04 | $17,256 |\n"
+    )
+
+    def test_una_fila_es_una_hoja_de_contenido_y_no_un_inciso(self):
+        tree = parse_markdown(self.TEXT)
+        articulo = next(n for n in tree.walk() if n.akn_type == "article")
+        filas = [c for c in articulo.children if c.text.strip().startswith("|")]
+
+        self.assertEqual(len(filas), 3)
+        for fila in filas:
+            self.assertEqual(fila.akn_type, "content")
+            self.assertFalse(fila.children)
+
+    def test_text_units_da_una_unidad_por_fila_con_el_texto_completo(self):
+        # A cap small enough to force the split-by-paragraph rule (#218's
+        # rule 3): each row is its own paragraph, so each becomes its own
+        # unit rather than being folded into one whole-article unit.
+        units = text_units(self.TEXT, cap=10)
+        filas = [u for u in units if u.text.strip().startswith("|")]
+
+        self.assertEqual(len(filas), 3)
+        self.assertTrue(
+            any(
+                "b).-" in u.text and "$17,821.85" in u.text and "$17,822" in u.text
+                for u in filas
+            )
+        )
+
+
 if __name__ == "__main__":  # pragma: no cover
     import sys
 
