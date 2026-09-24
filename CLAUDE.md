@@ -766,6 +766,71 @@ see the #242 bullet above), #245 draws it.
   "different version of the map" message (checked by both instruments' `k`)
   rather than failing.
 
+## Tables in SCJN snapshots (issue #253, done)
+
+The SCOW API hands `scjn.api.articulos_of_reforma` each article's `contenido`
+as **plain text**, no HTML. A table survives in it as three signals: a blank
+line (`\r\n\r\n`) ends a row, a bare newline (`\r\n`) is a wrapped line
+inside a cell, and a run of tabs separates columns. `articulos_a_markdown`
+used to split on **every** newline alike, so a wrapped multi-line cell came
+back as several separate Markdown paragraphs instead of the one table row it
+always was.
+
+- **Only a blank-line-separated block that carries a tab changes.** Every
+  other block converts exactly as before, byte for byte — the existing
+  tests in `packages/scjn/tests/test_api.py` pass unmodified, and the
+  module's long-standing promise of reproducing the retired `.docx` path
+  still holds wherever there is no tab.
+- **One recovered row is one Markdown paragraph**, `"| cell | cell |"`,
+  blank-line separated from the next — no GFM header separator, no header
+  inference, no column padding. Chosen over a GFM table on 2026-09-23
+  because `md2akn` reads consecutive lines as one block and has no rule to
+  cut a table by rows: a GFM table would turn `ligie-2022`'s tariff (393,640
+  tab lines in one snapshot) into one giant unit, and a `|---|` line would
+  itself become a noise unit. A GFM shape plus an `md2akn` table rule can be
+  a later issue.
+- **A wrapped multi-line header is rebuilt by merging, cell by cell.** A
+  tabbed line whose own first cell is empty continues the row already being
+  built rather than starting a new one — this is how a header spread over
+  several tabbed lines (`Cobertura` / `Cuota por cada kilohertz` /
+  `concesionado o` / `permisionado 1MHz=1000 KHz`) comes back as the single
+  row it always was. Headers are best-effort this way; data rows are what
+  the fix is actually for.
+- **An `Artículo N`/ordinal lead on a tabbed line is never read as a row.**
+  2 of 23,592 measured tab lines open with `**ARTICULO N.-**`; turning one
+  into a row would drop that article from `md2akn`'s own tree, which is
+  worse than a fee value left inline as prose.
+- **A recovered row bypasses `_formatea_parrafo`.** An all-caps row would
+  otherwise be bolded whole, and a cell led by `a).-` would be read as a
+  list marker — both wrong for a table row. A reform annotation
+  (`(REFORMADO, D.O.F. ...)`) inside a tabbed block keeps its usual bold
+  treatment, since that is the shape `md2akn.patterns.ANOTACION` already
+  recognises.
+- **Measured on the cached `scjn-leyes` release (2026-09-23): 35 of 315
+  laws, 567 of 3,707 snapshots** carry at least one tab-bearing block —
+  `ligie-2022`/`lfd`/`lfisan` are the three heaviest.
+  `scjn-reglamentos`/`scjn-lineamientos` were not measured (their tarballs
+  were not in the local cache that day), but both are written by the same
+  `scjn.api.snapshot` and inherit the fix.
+- **Nothing rewrites an already-published snapshot on its own.** The raw
+  `contenido` is not cached anywhere, so a snapshot written before this fix
+  keeps its old shape until it is re-crawled: `scripts/fetch_scjn_legislacion.py
+  --reintenta <slug>` over the 35 laws above, then
+  `scripts/empaqueta_scjn_leyes.py` (whose `MANIFEST.md` lists exactly the
+  rewritten instruments), then a human republish (issue #115, Hallazgo C).
+  `nota2md`'s own derived cache
+  (`<CACHE_DIR>/scjn-leyes/md/<slug>-<archivo>.md`) is keyed by file name and
+  reused when present, so it goes stale for these 35 laws until deleted or
+  `refrescar=True` is passed.
+- **`md2akn` needed no change.** A row starting with `|` matches none of
+  `clasifica`'s patterns (falls through to an ordinary `content` leaf) and
+  `MARCADOR_LISTA` requires its marker at the head of the block, which `|`
+  is not — so `a).-` at the head of a row never opens an inciso. A test
+  pins this reading (`packages/md2akn/tests/test_units.py`) so a later
+  change to either package cannot regress it silently.
+- **`scjn` went to 0.4.0** — a behaviour change in every future snapshot of
+  the 35 laws above; `nota2md`'s floor `scjn>=0.2.0` is unaffected.
+
 ## `dof2md` is now `document2md` (issue #228, done)
 
 *Both packages left this repository in issues #233/#234 and now live in

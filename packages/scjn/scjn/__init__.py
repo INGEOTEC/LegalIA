@@ -41,7 +41,7 @@ from scjn.release import (
     markdown_de_snapshot,
 )
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "download_scjn_leyes_corpus",

@@ -42,6 +42,16 @@ whatever is not there yet.
 
 ## Changelog
 
+- **0.4.0** — `articulos_a_markdown` recovers table rows from a
+  blank-line-separated block of an article's `contenido` that carries a tab
+  (issue #253): the SCJN's plain text uses a run of tabs as its only column
+  separator, and a wrapped multi-line cell used to come back as one
+  Markdown paragraph per source line instead of one per row. A block with
+  no tab is unaffected, byte for byte. Measured on the cached `scjn-leyes`
+  release: 35 of 315 laws, 567 of 3,707 snapshots — a snapshot already on
+  disk only picks up the fix via `scripts/fetch_scjn_legislacion.py
+  --reintenta <slug>`, never automatically.
+
 - **0.3.0** — `iter_current_reglamentos` / `iter_current_lineamientos`
   (issue #227, Fase 2): `iter_current_federal_laws`' id-keyed siblings, the
   *current* text of every instrument of either collection, one tarball open

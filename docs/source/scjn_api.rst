@@ -384,19 +384,39 @@ example above — over a release that is not published yet.
 -------------------------------------
 
 **The one documented exception to "every public symbol has a verified
-example" on this page.** :py:mod:`scjn.api` is an unauthenticated client for
-three JSON endpoints (``BusquedaFrase``, ``Reforma``, ``Articulos``) that
-replaced this project's legacy WebForms crawler (issue #172, retired in
-#179). A doctest per endpoint would put the docs gate at the mercy of the
-SCJN's own uptime, and crawling is not a caller-facing API the way the
-readers above are — a caller never instantiates :py:class:`~scjn.api.ScjnApi`
-directly, only the ``scjn download`` CLI (or
-``scripts/fetch_scjn_legislacion.py`` /
+example" on this page — the network endpoints only.** :py:mod:`scjn.api` is
+an unauthenticated client for three JSON endpoints (``BusquedaFrase``,
+``Reforma``, ``Articulos``) that replaced this project's legacy WebForms
+crawler (issue #172, retired in #179). A doctest per endpoint would put the
+docs gate at the mercy of the SCJN's own uptime, and crawling is not a
+caller-facing API the way the readers above are — a caller never
+instantiates :py:class:`~scjn.api.ScjnApi` directly, only the
+``scjn download`` CLI (or ``scripts/fetch_scjn_legislacion.py`` /
 ``scripts/fetch_federal_law_metadata.py``) does. This behaviour is instead
 verified for real, against the live service, by
 ``packages/scjn/tests/test_api_red.py`` — not silently skipped, exactly the
 mechanism `document2md <https://document2md.readthedocs.io/>`_'s OCR paths
 already use for ``mineru``.
+
+The Markdown writer below it (:py:func:`~scjn.api.articulos_a_markdown` and
+what it calls) touches no network, so it keeps a verified example like every
+other symbol on this page. A blank-line-separated block of an article's
+``contenido`` that carries a tab is the one shape it treats differently
+(issue #253) — the SCJN's only column signal in otherwise plain text — and
+comes back as one ``"| cell | cell |"`` paragraph per recovered row instead
+of one paragraph per wrapped source line:
+
+>>> from scjn.api import Articulo, articulos_a_markdown
+>>> contenido = (
+...     "ARTICULO 1.- Cuotas:\r\n\r\n"
+...     "a).- Concepto\r\n"
+...     "envuelto en dos líneas\t\t$1.00\t\t$1"
+... )
+>>> print(articulos_a_markdown([Articulo(1, 1, "ARTÍCULO 1", contenido)]))
+**ARTICULO 1.-** Cuotas:
+<BLANKLINE>
+| a).- Concepto envuelto en dos líneas | $1.00 | $1 |
+<BLANKLINE>
 
 .. automodule:: scjn.api
    :members:

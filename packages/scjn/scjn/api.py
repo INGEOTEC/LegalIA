@@ -376,6 +376,13 @@ class ScjnApi:
 # Comercio, against 0 in the corresponding file on disk, which is exactly the
 # stripping already having happened), so the logic is reused unchanged.
 #
+# The one exception is a blank-line-separated block that carries a tab
+# (issue #253): the SCJN's plain-text `contenido` uses a run of tabs as its
+# only column separator, so such a block is diverted to
+# `_paragraphs_from_tabbed_block` and recovers one Markdown paragraph per
+# table row instead of one per wrapped source line. A block with no tab is
+# completely unaffected and still reproduces the .docx path byte for byte.
+#
 # `referencia`/`orden` are not used to shape the file. They are reliable
 # (issue #173: never empty over ~13 000 articles, `orden` always contiguous)
 # but their vocabulary is open — besides `ENCABEZADO`/`TÍTULO PRIMERO`/
@@ -402,7 +409,10 @@ from scjn.text import (  # noqa: E402  (deliberately below the client)
 # in exactly the same shape, which is why the classifier is reused byte for
 # byte rather than rewritten — that reuse is what makes a snapshot written
 # from the API diffable against the one the WebForms crawler wrote for the
-# same law and the same date.
+# same law and the same date. That diffability holds for a block with no
+# tab; `_LEAD_ARTICULO`/`_LEAD_ORDINAL` are reused by
+# `_paragraphs_from_tabbed_block` too (issue #253), as the guard that keeps
+# an article/ordinal lead out of a recovered table row.
 #
 # These patterns are the SCJN side of a comparison, so they stay their own
 # copy on purpose. A near-identical set used to live in a retired module
@@ -460,22 +470,183 @@ _SALTO_HTML = re.compile(r"<\s*br\s*/?\s*>|</\s*p\s*>", re.I)
 _ETIQUETA_HTML = re.compile(r"<[^>]*>")
 
 
+# --- Table rows inside a tabbed block (issue #253) -----------------------
+#
+# A blank line ends a table row in the SCJN's plain-text `contenido`, a bare
+# newline is a wrapped line inside a cell, and a run of tabs separates
+# columns — see this module's own docstring section above for how that was
+# found. `_BLOCK_SEPARATOR` recovers the first signal (tolerant of a blank
+# line that itself carries stray spaces/tabs, and of `_SALTO_HTML` having
+# turned an HTML `<br>`/`</p>` into a bare `\n`); a block with no tab keeps
+# converting exactly as before, one paragraph per line — only a tab-bearing
+# block is handed to `_paragraphs_from_tabbed_block`.
+_BLOCK_SEPARATOR = re.compile(r"\r?\n[ \t]*(?:\r?\n)+")
+
+#: A whole line that is nothing but a parenthesised, uppercase-led
+#: annotation (`(REFORMADO, D.O.F. 9 DE DICIEMBRE DE 2019)`) — the same
+#: shape `md2akn.patterns.ANOTACION` recognises, checked here only so a
+#: reform annotation inside a tabbed block still comes out as its own bold
+#: paragraph rather than as a table row.
+_BLOCK_ANNOTATION = re.compile(r"^\(([A-ZÁÉÍÓÚÑ][^()]*)\)$")
+
+
+def _normalize_cell(texto: str) -> str:
+    """One tab-separated cell, trimmed, with inner whitespace collapsed to a
+    single space and a literal ``|`` escaped so it cannot be read as the
+    column separator of the row paragraph it ends up in — the same escaping
+    a Markdown table cell needs regardless of what it was extracted from."""
+    return re.sub(r"\s+", " ", texto.strip()).replace("|", "\\|")
+
+
+def _merge_row(previous: list[str], current: list[str]) -> list[str]:
+    """`previous` with `current`'s cells folded into it, cell by cell — how
+    a header wrapped over several tabbed lines (each continuation line
+    starting with an empty first cell) is rebuilt into the single row it
+    always was. An empty cell on either side contributes nothing; two
+    non-empty ones are space-joined; a cell `current` has and `previous`
+    does not is appended rather than dropped."""
+    combinada = list(previous)
+    for indice, celda in enumerate(current):
+        if indice >= len(combinada):
+            combinada.append(celda)
+        elif celda:
+            combinada[indice] = f"{combinada[indice]} {celda}".strip()
+    return combinada
+
+
+def _paragraphs_from_tabbed_block(bloque: str) -> list[str]:
+    """The Markdown paragraphs recovered from one blank-line-separated block
+    of an article's `contenido` that carries at least one tab — the SCJN's
+    only column signal in plain text (issue #253).
+
+    Each line of the block (split on the same `\\r\\n`/`\\n`/`\\r` newlines
+    as `_PARRAFOS`, trimmed of a trailing `\\r` only — a leading run of tabs
+    has to survive) is one of four things, tested in this order:
+
+    - a whole line that is a parenthesised, uppercase annotation flushes the
+      row being built and any pending wrapped label, and is emitted as its
+      own paragraph through `_formatea_parrafo` (which bolds it, the same
+      treatment a block with no tab already gives one);
+    - a line with no tab is a wrapped label: folded, space-joined, into the
+      *pending* first cell of the row about to start;
+    - a line whose own first cell (up to its first run of tabs) reads as an
+      `Artículo N`/ordinal lead (`_LEAD_ARTICULO`/`_LEAD_ORDINAL`) is never a
+      row — turning it into one would drop the article from `md2akn`'s own
+      tree — so it is emitted as an ordinary paragraph instead, its tab runs
+      collapsed to single spaces;
+    - every other tabbed line is split on runs of tabs into cells; one whose
+      own first cell is empty continues the row already being built, cell by
+      cell (`_merge_row`) — this is how a header wrapped over several tabbed
+      lines (`Cobertura` / `Cuota por cada kilohertz` / `concesionado o` /
+      `permisionado 1MHz=1000 KHz`) comes back as one row — anything else
+      starts a new one.
+
+    `quita_notas_editoriales` runs on every line first; one that comes back
+    empty (an `[N. DE E. ...]` opener) is dropped outright, same as a block
+    with no tab. A finished row renders as `"| cell | cell |"`, blank-line
+    separated from the next paragraph like any other, and — unlike every
+    other paragraph this module writes — is never passed through
+    `_formatea_parrafo`: an all-caps row would otherwise be bolded whole, and
+    a cell led by `a).-` would be read as a list marker.
+    """
+    paragraphs: list[str] = []
+    row: list[str] | None = None
+    pending_label: str | None = None
+
+    def _flush_row() -> None:
+        nonlocal row
+        if row is not None:
+            paragraphs.append("| " + " | ".join(row) + " |")
+            row = None
+
+    def _flush_label() -> None:
+        nonlocal pending_label
+        if pending_label is not None:
+            paragraphs.append(_formatea_parrafo(pending_label))
+            pending_label = None
+
+    for cruda in _PARRAFOS.split(bloque):
+        linea = cruda.strip("\r")
+        if not linea:
+            continue
+
+        if _BLOCK_ANNOTATION.match(linea.strip()):
+            _flush_row()
+            _flush_label()
+            anotacion = quita_notas_editoriales(linea.strip())
+            if anotacion:
+                paragraphs.append(_formatea_parrafo(anotacion))
+            continue
+
+        linea = quita_notas_editoriales(linea)
+        if not linea:
+            continue
+
+        if "\t" not in linea:
+            etiqueta = linea.strip()
+            pending_label = etiqueta if pending_label is None else f"{pending_label} {etiqueta}"
+            continue
+
+        primera_celda = re.split(r"\t+", linea, maxsplit=1)[0].strip()
+        if _LEAD_ARTICULO.match(primera_celda) or _LEAD_ORDINAL.match(primera_celda):
+            _flush_row()
+            _flush_label()
+            paragraphs.append(_formatea_parrafo(re.sub(r"\t+", " ", linea)))
+            continue
+
+        celdas_crudas = re.split(r"\t+", linea)
+        vacia_al_inicio = celdas_crudas[0] == ""
+        celdas = [_normalize_cell(c) for c in celdas_crudas]
+        if pending_label is not None:
+            celdas[0] = f"{pending_label} {celdas[0]}".strip()
+            pending_label = None
+        if vacia_al_inicio and row is not None:
+            row = _merge_row(row, celdas)
+        else:
+            _flush_row()
+            row = celdas
+
+    _flush_row()
+    _flush_label()
+    return paragraphs
+
+
 def articulos_a_markdown(articulos: list[Articulo]) -> str:
     """The reform's consolidated text as the same light Markdown the
     retired `scjn.docx_a_markdown` produced from the .docx: one
     blank-line-separated
     paragraph per source paragraph, editorial asides removed, a heading for
     "Al margen un sello"/"Transitorios", a bolded caption for an ALL-CAPS
-    line and a bolded lead for an "Artículo N"/ordinal/list-marker one."""
-    parrafos: list[str] = []
+    line and a bolded lead for an "Artículo N"/ordinal/list-marker one.
+
+    A blank-line-separated block that carries a tab is the one exception
+    (issue #253): the SCJN uses a run of tabs as a table's column separator
+    in otherwise plain text, so such a block is handed to
+    `_paragraphs_from_tabbed_block` and comes back as one paragraph per
+    recovered row instead of one per wrapped line. A block with no tab is
+    unaffected."""
+    bloques: list[str] = []
     for articulo in articulos:
         contenido = _ETIQUETA_HTML.sub("", _SALTO_HTML.sub("\n", articulo.contenido))
-        for parrafo in _PARRAFOS.split(contenido):
-            parrafo = parrafo.strip()
-            if parrafo:
-                parrafos.append(parrafo)
-    limpios = [quita_notas_editoriales(p) for p in parrafos]
-    bloques = [_formatea_parrafo(p) for p in limpios if p]
+        for bloque in _BLOCK_SEPARATOR.split(contenido):
+            if not bloque.strip():
+                continue
+            if "\t" in bloque:
+                # `bloque` itself is passed through unstripped: a leading
+                # run of tabs is real content here — the empty first cell
+                # `_paragraphs_from_tabbed_block` reads as "continue the row
+                # already being built" (a header wrapped over several
+                # tabbed lines) — and stripping it away would silently turn
+                # that continuation into a label instead.
+                bloques.extend(_paragraphs_from_tabbed_block(bloque))
+                continue
+            for linea in _PARRAFOS.split(bloque):
+                linea = linea.strip()
+                if not linea:
+                    continue
+                linea = quita_notas_editoriales(linea)
+                if linea:
+                    bloques.append(_formatea_parrafo(linea))
     return "\n\n".join(bloques) + "\n"
 
 
