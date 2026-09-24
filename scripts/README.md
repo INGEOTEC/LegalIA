@@ -577,6 +577,60 @@ regardless of whether its own ~126 tarballs ever need a second part:
 `MANIFEST.md` in full, then run `PUBLICAR.md`'s commands verbatim. Nothing
 here calls `gh` itself.
 
+### `find_scjn_table_instruments.py`
+
+Issue #255's first attempt re-converted a tab-bearing snapshot **in place**,
+in a since-deleted script, and only kept the rewrite when a word-order
+check passed. That check rejected
+roughly half of every affected snapshot as a false `mismatch`: when a
+table's column header wraps over several source lines, #253's merge rule
+rebuilds it as one row, and the words can come out in a different order
+than the old line-by-line dump had them — a faithful reassembly, not an
+upstream edit, but indistinguishable from one under a strict word-order
+check. The repository owner replaced the approach rather than loosen the
+check (a review fix on issue #255).
+
+This script is only the **probe** half of the replacement procedure: for
+every instrument already on disk under `<outdir>/<coleccion>/` with an
+`id_ordenamiento` in its `estado.json`, it asks the SCJN for that
+instrument's **latest version only**
+(`ScjnApi.reformas_of_ordenamiento`, the newest reform with
+`tieneArticulos` true, then one `articulos_of_reforma` call) and records
+whether that latest version's raw `contenido` contains a tab — #253's own
+signal, checked fresh against the API, never against what is on disk. Two
+requests per instrument, no search, never `--reintenta`-style
+re-identification. An instrument without a recorded `id_ordenamiento` is
+reported and skipped rather than searched for by name (issue #115).
+
+```bash
+./scripts/find_scjn_table_instruments.py --coleccion leyes
+./scripts/find_scjn_table_instruments.py --coleccion reglamentos
+./scripts/find_scjn_table_instruments.py --coleccion lineamientos
+```
+
+Writes `--output` (default `<outdir>/<coleccion>-table-instruments.json`)
+after every instrument, and resumes by skipping a key already present in
+it — safe to kill and re-run. An API error is recorded per instrument and
+does not stop the run; the script exits non-zero if any occurred.
+
+**What happens with the result is manual, deliberately not automated by
+this script** (the same posture as `--plan`/`--actualiza` elsewhere: a
+sweep this size is exactly where issue #115's wrong-document risk would
+compound if it ran unattended). An instrument the output marks
+`has_table: true` gets **all** of its snapshots re-downloaded from
+scratch — delete its `*.md` files only (`estado.json`/`indice.json`/
+`notas/` stay), then `fetch_scjn_legislacion.py --instrumento <key>` (never
+`--reintenta`, which deletes `estado.json` and re-searches by name) — which
+also picks up any reform published since the last crawl. `leyes` reforms
+picked up this way still need `enlaza_scjn_legislacion.py --instrumento
+<slug>`; the id-keyed collections have no DOF linking at all. An instrument
+marked `has_table: false` is left exactly as published, even if an older
+snapshot of it still has a tab — confirmed with the repository owner
+explicitly. Packaging is still `empaqueta_scjn_leyes.py --instrumento
+<slug>` / `empaqueta_scjn_coleccion.py --coleccion <c> --instrumento <id>`
+above, over only the selected instruments — this script never repackages
+or publishes anything itself.
+
 ### Retirado: `repara_notas_editoriales_scjn.py`
 
 Issue #129 retired the one-time `repara_notas_editoriales_scjn.py` that used
