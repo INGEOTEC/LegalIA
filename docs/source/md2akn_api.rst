@@ -488,6 +488,35 @@ before #227 is reproduced byte for byte:
 >>> len(md2akn.text_units(parrafos, cap=40, split_over_cap=False))
 1
 
+``split_articles``: one vector per article, whatever its length (issue #256)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Rules 2 and 3 exist because the 2 000-character cap was once believed to be
+close to a limit of the embedding model. It is not: an embedding model's own
+window is tens of thousands of tokens, far past any article in the corpus.
+``split_articles=False`` turns rules 3 and 9 off for articles entirely — one
+article is always one unit, ``piece == 0`` — while every other rule (the
+cap on ``heading``/``loose``/``preamble``/``conclusions``, rule 8's
+ordinal/decimal articles) stays exactly as it was:
+
+>>> whole = md2akn.text_units(long_article, cap=10, split_articles=False)
+>>> [(u.unit_type, u.piece) for u in whole]
+[('article', 0)]
+>>> whole[0].text
+'**ARTICULO 9o.-** Son obligaciones de los patrones: I.- Cumplir las disposiciones de las normas de trabajo; II.- Pagar a los trabajadores los salarios e indemnizaciones;'
+
+:py:func:`~md2akn.max_unit_chars` takes the same keyword, so an over-cap
+article is counted in its own ``articles_over_cap`` rather than
+``over_cap``/``splittable`` — rule 9 was never offered the chance to cut it:
+
+>>> tree = md2akn.parse_markdown(long_article)
+>>> report = md2akn.max_unit_chars(tree, whole, cap=10, split_articles=False)
+>>> (report.over_cap, report.splittable, report.articles_over_cap)
+(0, 0, 1)
+
+Default behaviour (``split_articles=True``) is unchanged — the doctests
+above never pass it and keep splitting articles past the cap.
+
 .. automodule:: md2akn.units
    :members:
    :private-members:

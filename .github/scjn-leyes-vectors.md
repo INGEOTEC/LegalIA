@@ -60,18 +60,19 @@ separados (decisión 10): quien quiera el 0.6B no tiene por qué bajarse los
 ## Cómo se construyeron
 
 `float16`, pooling de último token, `padding_side="left"`, sin
-normalización, sin cuantización y sin truncar — la única transformación
-sobre la salida del modelo es el cast a `float16`. Los detalles exactos
-están en `vectors-manifest.json`.
+normalización, sin cuantización. Los detalles exactos están en
+`vectors-manifest.json`.
 
-Las unidades son las de `md2akn.text_units()`: el artículo es la unidad; uno
-más largo que el `cap` se parte en sus propios hijos, con el chapeau
-repetido al frente de cada pieza; el epígrafe de un capítulo, el preámbulo,
-los transitorios y las firmas son unidades también, y `md2akn.coverage()`
-verifica que ningún carácter del documento se quede fuera. Desde #227
-ninguna unidad excede el `cap` salvo cuando un solo párrafo (o un chapeau) ya
-lo excede por sí mismo: 1 211 de las 120 107, contadas en
-`corpus-manifest.json`.
+**Desde issue #256, un artículo es siempre una unidad entera, sin importar
+su longitud** (`split_articles=False` en `md2akn.text_units()`): ya no se
+parte en piezas por el `cap` de 2 000 caracteres — ese tope sigue rigiendo
+para el epígrafe de un capítulo, el preámbulo, los transitorios y el
+contenido suelto, nunca para un artículo. Un artículo más largo que la
+ventana del modelo (32 768 tokens para el 0.6B, 40 960 para el 4B) se
+**trunca** a esa ventana en vez de partirse — nunca se ventanea ni se
+promedia — y cada texto truncado queda contado en `vectors-manifest.json`
+(`texts_truncated`, `max_tokens_embedded`). `md2akn.coverage()` sigue
+verificando que ningún carácter del documento se quede fuera.
 
 ## Advertencias
 

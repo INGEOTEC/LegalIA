@@ -128,6 +128,7 @@ def build_rows(
     template: str,
     cache_dir=None,
     split_over_cap: bool = True,
+    split_articles: bool = True,
     coleccion: str = "leyes",
 ):
     """`(unit_rows, leaf_rows, stats)` over every instrument the collection's
@@ -138,14 +139,18 @@ def build_rows(
     instruments were read, how rule 8 read each of them, and what rule 9 left
     over the cap (issue #227's decisions 2 and 3 — the two new rules are
     recorded, like the other seven, rather than being invisible in the
-    output).
+    output). `split_articles=False` (issue #256) moves an over-cap article
+    out of `over_cap`/`unsplittable` and into its own `articles_over_cap` /
+    `longest_article_chars`, since rule 9 was never offered the chance to cut
+    it -- the "still over the cap" failure below stays about rule 9's own
+    invariant, not about an article left whole on purpose.
     """
     lector = COLECCIONES[coleccion]
     unit_rows: list[dict] = []
     leaf_rows: list[dict] = []
     instrumentos = 0
     modos: dict[str, int] = {}
-    over_cap = residuo = maximo = 0
+    over_cap = residuo = maximo = articles_over_cap = longest_article = 0
     for instrumento in lector["iter"](claves, cache_dir=cache_dir):
         instrumentos += 1
         clave = str(instrumento[lector["clave"]])
@@ -154,11 +159,19 @@ def build_rows(
         modo = modo_sin_articulos(list(iter_blocks(markdown, fin_meta)))
         modos[modo or "articulo"] = modos.get(modo or "articulo", 0) + 1
         tree = parse_markdown(markdown)
-        units = text_units(tree, cap=cap, template=template, split_over_cap=split_over_cap)
-        reporte = max_unit_chars(tree, units, cap=cap)
+        units = text_units(
+            tree, cap=cap, template=template, split_over_cap=split_over_cap,
+            split_articles=split_articles,
+        )
+        reporte = max_unit_chars(tree, units, cap=cap, split_articles=split_articles)
         over_cap += reporte.over_cap
         residuo += reporte.unsplittable
         maximo = max(maximo, reporte.max_chars)
+        articles_over_cap += reporte.articles_over_cap
+        longest_article = max(
+            longest_article,
+            max((len(u.text) for u in units if u.unit_type == "article"), default=0),
+        )
         if reporte.splittable:
             raise SystemExit(
                 f"{coleccion}/{clave}: {reporte.splittable} unit(s) over the cap that "
@@ -202,6 +215,8 @@ def build_rows(
         "units_over_cap": over_cap,
         "units_over_cap_unsplittable": residuo,
         "max_unit_chars": maximo,
+        "articles_over_cap": articles_over_cap,
+        "longest_article_chars": longest_article,
     }
     return unit_rows, leaf_rows, stats
 
@@ -234,6 +249,10 @@ def main(argv=None) -> None:
                          help="Turn off rule 9 (issue #227): leave a unit that is still over "
                               "the cap after the article split whole, as #218 did. Only ever "
                               "used to reproduce a pre-#227 corpus byte for byte.")
+    parser.add_argument("--no-split-articles", dest="split_articles", action="store_false",
+                         help="Turn off rules 3/9 for articles (issue #256): every article is "
+                              "one unit, whole, whatever its length. `cap` keeps governing "
+                              "loose/heading/preamble/conclusions unchanged.")
     args = parser.parse_args(argv)
 
     if args.slug and args.coleccion != "leyes":
@@ -249,7 +268,8 @@ def main(argv=None) -> None:
     started = time.time()
     unit_rows, leaf_rows, stats = build_rows(
         claves, cap=args.cap, template=args.template,
-        split_over_cap=args.split_over_cap, coleccion=args.coleccion,
+        split_over_cap=args.split_over_cap, split_articles=args.split_articles,
+        coleccion=args.coleccion,
     )
 
     _write_parquet(work_dir / "units.parquet", unit_rows, UNITS_SCHEMA)
@@ -269,6 +289,7 @@ def main(argv=None) -> None:
         "cap": args.cap,
         "template": args.template,
         "split_over_cap": args.split_over_cap,
+        "split_articles": args.split_articles,
         "md2akn_version": md2akn.__version__,
         "seconds": round(time.time() - started, 1),
     }

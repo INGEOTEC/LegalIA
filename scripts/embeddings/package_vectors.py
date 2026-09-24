@@ -23,6 +23,16 @@ checked into `.github/<tag>.md`, the pattern `.github/historial-legislativo.md`
 set: the file *is* the body, so it is reviewed in a pull request rather than
 typed into a web form.
 
+Because issue #256 replaces these releases **in place** (same tags, whole
+articles instead of split ones), `PUBLICAR.md` also lists every asset
+currently on the live release series that the new asset set does not
+contain, with the `gh release delete-asset` command to remove each — read
+via a read-only `gh release view <tag> --json assets` per part of the
+series, probed the same way `legalvec`/`scjn.release` resolve one. Uploading
+with `--clobber` (already in `upload_release_assets.py`) replaces the files
+whose names are unchanged; this section is only for names that drop out
+entirely. A first publish (no live release yet) reports no stale assets.
+
     python scripts/embeddings/package_vectors.py --work-dir emb-run-leyes \\
         --coleccion leyes
 """
@@ -32,6 +42,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 #: GitHub's own cap on a release's asset count (issue #223).
@@ -102,10 +113,12 @@ def reparte(base: str, vectores: list[Path], metadatos: int = len(METADATOS)) ->
     1 reserving room for the metadata assets it alone carries.
 
     Unlike `scripts/empaqueta_scjn_coleccion.py`'s own partition, this one is
-    computed rather than read back from a `partes.json`: nothing of these
-    three releases is published yet, so there is no arbitrary already-live
-    split to preserve. Once they are published, a repartition would have to
-    be recorded the way #223 records that one.
+    computed rather than read back from a `partes.json`: it is recomputed on
+    every run from this run's own asset list, not preserved as an arbitrary
+    already-live split the way #223 records `scjn-reglamentos`' partition.
+    When a repartition changes the tag series (issue #256's in-place
+    replace), `stale_assets` below is what tells the caller so — this
+    function itself does not compare against what is live.
     """
     partes: list[dict] = []
     restantes = list(vectores)
@@ -117,6 +130,79 @@ def reparte(base: str, vectores: list[Path], metadatos: int = len(METADATOS)) ->
         presupuesto = MAX_ASSETS_POR_RELEASE
         n += 1
     return partes
+
+
+def _live_assets(tag: str, repo: str, *, runner=None) -> list[str] | None:
+    """`tag`'s current asset names, read-only, or `None` when the tag does
+    not exist (a release not published yet, or the series' last part).
+
+    `runner` defaults to `None` rather than binding `subprocess.run` in the
+    signature, so a test can intercept it either by passing its own stub or
+    by monkeypatching this module's `subprocess` name -- a default bound at
+    def time would freeze in the real function before any monkeypatch ever
+    runs (no network in a unit test, per issue #256's own test list).
+    """
+    run = runner or subprocess.run
+    result = run(
+        ["gh", "release", "view", tag, "--repo", repo, "--json", "assets"],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        return None
+    data = json.loads(result.stdout)
+    return [asset["name"] for asset in data.get("assets", [])]
+
+
+def live_series_assets(base_tag: str, repo: str, *, runner=None) -> dict[str, list[str]]:
+    """`{tag: [asset names]}` for every part of `base_tag`'s series
+    currently live on GitHub, probing `-2`, `-3`, ... until one 404s — the
+    same resolution `legalvec`/`scjn.release` use for a numbered series
+    (issue #256). Empty when the release does not exist yet (a first
+    publish)."""
+    live: dict[str, list[str]] = {}
+    n = 1
+    while True:
+        tag = _tag_de_parte(base_tag, n)
+        assets = _live_assets(tag, repo, runner=runner)
+        if assets is None:
+            break
+        live[tag] = assets
+        n += 1
+    return live
+
+
+def stale_assets(
+    coleccion: str, partes: list[dict], repo: str, *, runner=None
+) -> tuple[dict[str, list[str]], bool]:
+    """`({tag: [stale asset names]}, partition_changed)` for `coleccion`'s
+    live release series against the new `partes` this run built (issue
+    #256): a release replaced in place still has to say what to delete, not
+    just what to upload.
+
+    An asset counts as stale when its name does not appear anywhere in the
+    new asset set, regardless of which new part carries it — `--clobber`
+    already handles a same-named file moving between parts, it is only a
+    name dropping out entirely that needs `gh release delete-asset`.
+    `partition_changed` is true when there *is* a live series (a first
+    publish has nothing to compare against) and its tag set differs from
+    the new one -- said explicitly in `PUBLICAR.md` rather than left for a
+    reader to notice a missing/extra numbered tag on their own.
+    """
+    live = live_series_assets(TAGS[coleccion], repo, runner=runner)
+    nuevos: set[str] = set()
+    for i, parte in enumerate(partes):
+        nuevos |= {p.name for p in parte["assets"]}
+        if i == 0:
+            nuevos |= set(METADATOS)
+
+    stale: dict[str, list[str]] = {}
+    for tag, nombres in live.items():
+        sobrantes = sorted(n for n in nombres if n not in nuevos)
+        if sobrantes:
+            stale[tag] = sobrantes
+
+    partition_changed = bool(live) and set(live) != {parte["tag"] for parte in partes}
+    return stale, partition_changed
 
 
 def _cd_destino(out_dir: Path) -> str:
@@ -131,10 +217,19 @@ def _cd_destino(out_dir: Path) -> str:
         return str(resuelto)
 
 
-def genera_publicar(coleccion: str, partes: list[dict], out_dir: Path, repo: str) -> str:
+def genera_publicar(
+    coleccion: str,
+    partes: list[dict],
+    out_dir: Path,
+    repo: str,
+    stale: dict[str, list[str]] | None = None,
+    partition_changed: bool = False,
+) -> str:
     """`PUBLICAR.md` — the exact, copy-pasteable `gh` sequence, one
     `release create` + `upload` pair per part, with each part's body read
-    from its own checked-in `.github/<tag>.md`."""
+    from its own checked-in `.github/<tag>.md`, plus the `gh release
+    delete-asset` commands for `stale` (issue #256's in-place replace)."""
+    stale = stale or {}
     lineas = [
         f"# Publicar `{TAGS[coleccion]}` — comandos generados, correr a mano",
         "",
@@ -150,6 +245,15 @@ def genera_publicar(coleccion: str, partes: list[dict], out_dir: Path, repo: str
         "un límite secundario a la mitad de un millar de assets, y ese script reanuda",
         "sólo lo que falta. Es idempotente — si algo falla, vuelve a correr la misma",
         "línea.",
+    ]
+    if partition_changed:
+        lineas += [
+            "",
+            "**La partición en partes cambió respecto a lo publicado.** El número de "
+            "tags (o su conjunto) ya no es el mismo -- revisa la sección de assets "
+            "obsoletos abajo con cuidado antes de borrar nada.",
+        ]
+    lineas += [
         "",
         "```bash",
         # The block has to be self-contained: it used to reference $REPO
@@ -172,6 +276,15 @@ def genera_publicar(coleccion: str, partes: list[dict], out_dir: Path, repo: str
             f"python $REPO/scripts/embeddings/upload_release_assets.py {tag} "
             f"parte-{i}.txt --repo {repo}"
         )
+    if stale:
+        lineas.append("")
+        lineas.append(
+            "# Assets que la release en vivo tiene y este conjunto nuevo ya no -- "
+            "issue #256: borrar sólo después de que las subidas de arriba terminen."
+        )
+        for tag in sorted(stale):
+            for nombre in stale[tag]:
+                lineas.append(f"gh release delete-asset {tag} {nombre} --repo {repo} --yes")
     lineas.append(f"gh release edit {partes[0]['tag']} --repo {repo} --latest")
     lineas.append("```")
     lineas.append("")
@@ -180,6 +293,18 @@ def genera_publicar(coleccion: str, partes: list[dict], out_dir: Path, repo: str
         "raíz, y la define la primera línea. `parte-<n>.txt` apunta a los archivos donde "
         "ya están (nada se copió): son cientos de MB por colección."
     )
+    if stale:
+        total = sum(len(v) for v in stale.values())
+        lineas.append(
+            f"\n{total} asset(s) obsoleto(s) en la release en vivo que este run ya no "
+            "produce (nombres largos porque el artículo entero cambió de pieza a unidad "
+            "-- ver `gh release delete-asset` arriba)."
+        )
+    else:
+        lineas.append(
+            "\nNingún asset obsoleto: la release en vivo (si existe) no tiene ningún "
+            "nombre que este conjunto ya no produzca."
+        )
     lineas.append("")
     return "\n".join(lineas) + "\n"
 
@@ -223,8 +348,10 @@ def main(argv=None) -> int:
         (out_dir / f"parte-{i}.txt").write_text(
             "\n".join(str(p.resolve()) for p in parte["assets"]) + "\n", encoding="utf-8",
         )
+    stale, partition_changed = stale_assets(args.coleccion, partes, args.repo)
     (out_dir / "PUBLICAR.md").write_text(
-        genera_publicar(args.coleccion, partes, out_dir, args.repo), encoding="utf-8",
+        genera_publicar(args.coleccion, partes, out_dir, args.repo, stale, partition_changed),
+        encoding="utf-8",
     )
 
     raiz = Path(__file__).resolve().parents[2]
@@ -238,6 +365,8 @@ def main(argv=None) -> int:
         "vector_files": len(vectores),
         "assets_total": total,
         "partes": [{"tag": p["tag"], "assets": len(p["assets"])} for p in partes],
+        "stale_assets": {tag: len(v) for tag, v in stale.items()},
+        "partition_changed": partition_changed,
         "out_dir": str(out_dir),
         "release_bodies_missing": faltan,
     }, indent=2, ensure_ascii=False))

@@ -161,10 +161,12 @@ def test_main_encodes_pending_shard_with_a_fake_pipeline(tmp_path, monkeypatch):
         json.dumps({"shards": [{"index": 0, "text_sha1": ["a", "b"]}]})
     )
 
-    monkeypatch.setattr(encode_shard, "build_pipeline", lambda model, device: object())
+    fake_pipe = SimpleNamespace(model=SimpleNamespace(config=SimpleNamespace(max_position_embeddings=100)))
+    monkeypatch.setattr(encode_shard, "build_pipeline", lambda model, device, attn_implementation: fake_pipe)
 
-    def _fake_encode(pipe, texts, batch_size):
-        return np.stack([np.full(4, float(len(t)), dtype=np.float16) for t in texts])
+    def _fake_encode(pipe, texts, *, max_length, max_batch_tokens, batch_size):
+        vectors = np.stack([np.full(4, float(len(t)), dtype=np.float16) for t in texts])
+        return vectors, [len(t) for t in texts], [], max(len(t) for t in texts)
 
     monkeypatch.setattr(encode_shard, "encode_texts", _fake_encode)
 
@@ -176,6 +178,55 @@ def test_main_encodes_pending_shard_with_a_fake_pipeline(tmp_path, monkeypatch):
     assert (run_dir / "shard-0000.done").exists()
     table = pq.read_table(run_dir / "shard-0000.parquet")
     assert sorted(table.column("text_sha1").to_pylist()) == ["a", "b"]
+    marker = json.loads((run_dir / "shard-0000.done").read_text())
+    assert marker["max_length"] == 100
+    assert marker["texts_truncated"] == []
+
+
+# -- encode_shard: window truncation + token-budget batching (issue #256) --- #
+# Pure-Python logic, deliberately with no `torch`/`transformers` dependency --
+# same reason `encode_texts` itself is always monkeypatched out above.
+
+def test_max_position_embeddings_reads_the_model_config():
+    pipe = SimpleNamespace(model=SimpleNamespace(config=SimpleNamespace(max_position_embeddings=32768)))
+    assert encode_shard.max_position_embeddings(pipe) == 32768
+
+
+def test_max_position_embeddings_rejects_a_config_with_no_window():
+    pipe = SimpleNamespace(model=SimpleNamespace(config=SimpleNamespace()))
+    with pytest.raises(SystemExit):
+        encode_shard.max_position_embeddings(pipe)
+
+
+def test_token_counts_and_truncated_flags_texts_over_max_length():
+    tokenizer = lambda text: {"input_ids": text.split()}  # noqa: E731
+    counts, truncated = encode_shard.token_counts_and_truncated(
+        tokenizer, ["one two", "one two three four five"], max_length=3,
+    )
+    assert counts == [2, 5]
+    assert truncated == [1]
+
+
+def test_build_batches_never_exceeds_the_padded_token_budget():
+    counts = [10, 10, 10, 10]
+    batches = encode_shard.build_batches(counts, max_batch_tokens=25, batch_size=10)
+    for batch in batches:
+        assert max(counts[i] for i in batch) * len(batch) <= 25
+    assert sorted(i for batch in batches for i in batch) == [0, 1, 2, 3]
+
+
+def test_build_batches_respects_the_row_cap_even_under_budget():
+    counts = [1] * 10
+    batches = encode_shard.build_batches(counts, max_batch_tokens=1000, batch_size=3)
+    assert all(len(batch) <= 3 for batch in batches)
+    assert sorted(i for batch in batches for i in batch) == list(range(10))
+
+
+def test_build_batches_isolates_a_text_over_the_budget_alone():
+    counts = [5, 5, 500]
+    batches = encode_shard.build_batches(counts, max_batch_tokens=50, batch_size=10)
+    solo = next(batch for batch in batches if 2 in batch)
+    assert solo == [2]
 
 
 def test_main_writes_failed_marker_on_error(tmp_path, monkeypatch):
@@ -183,7 +234,7 @@ def test_main_writes_failed_marker_on_error(tmp_path, monkeypatch):
     _write_units_parquet(work_dir / "units.parquet", [{"text_sha1": "a", "text": "Uno"}])
     (work_dir / "shards.json").write_text(json.dumps({"shards": [{"index": 0, "text_sha1": ["a"]}]}))
 
-    def _boom(model, device):
+    def _boom(model, device, attn_implementation):
         raise RuntimeError("no GPU here")
 
     monkeypatch.setattr(encode_shard, "build_pipeline", _boom)
@@ -348,6 +399,18 @@ def test_build_units_rejects_id_for_leyes():
 
 
 # -- package_vectors (issue #227 Fase 4) ------------------------------------- #
+
+@pytest.fixture(autouse=True)
+def _no_gh_network(monkeypatch):
+    """`stale_assets` (issue #256) calls `gh release view` -- every test in
+    this module that reaches `package_vectors.main` must stay offline. This
+    reports "no live release found" for every tag by default; a test that
+    cares about stale assets overrides it with its own fake."""
+    monkeypatch.setattr(
+        package_vectors, "subprocess",
+        SimpleNamespace(run=lambda *a, **k: SimpleNamespace(returncode=1, stdout="")),
+    )
+
 
 def _work_dir_con_vectores(tmp_path, n_instrumentos, modelos=("qwen3-0.6b",)):
     (tmp_path / "units.parquet").write_bytes(b"units")

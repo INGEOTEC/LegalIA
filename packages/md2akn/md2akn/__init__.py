@@ -58,7 +58,7 @@ from md2akn.units import (
 )
 from md2akn.validate import Report, Violation, validate
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "parse_legal_provisions",

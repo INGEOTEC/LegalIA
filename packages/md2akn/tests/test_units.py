@@ -463,3 +463,114 @@ class TestRegla9(unittest.TestCase):
         units = text_units(self.PARRAFOS, cap=80, split_over_cap=False)
         self.assertEqual(len(units), 1)
         self.assertEqual(units[0].piece, 0)
+
+
+# -- issue #256: split_articles=False, one unit per article whatever its length -- #
+
+class TestSplitArticles(unittest.TestCase):
+    """`split_articles=False` (issue #256): rules 3 and 9 never apply to an
+    `article` — it is always one unit, `piece == 0`, whatever its length."""
+
+    def test_over_cap_article_stays_one_unit(self):
+        tree = _tree_with_article_children(
+            [("Chapeau breve.", True, False),
+             ("Primera fracción, bastante larga para forzar el corte normal.", False, False),
+             ("Segunda fracción, también larga, para que el corte tenga dos piezas.", False, False)],
+        )
+        split = text_units(tree, cap=20)
+        self.assertGreater(len(split), 1)
+        self.assertTrue(all(u.unit_type == "article_piece" for u in split))
+
+        whole = text_units(tree, cap=20, split_articles=False)
+        self.assertEqual(len(whole), 1)
+        self.assertEqual(whole[0].unit_type, "article")
+        self.assertEqual(whole[0].piece, 0)
+        self.assertIsNone(whole[0].piece_eId)
+        self.assertIn("Chapeau", whole[0].text)
+        self.assertIn("Segunda fracción", whole[0].text)
+
+    def test_short_article_is_unaffected_by_the_flag(self):
+        tree = _tree_with_article_children([("Texto breve.", True, False)])
+        self.assertEqual(
+            text_units(tree, cap=1000),
+            text_units(tree, cap=1000, split_articles=False),
+        )
+
+    def test_ordinal_numbered_article_stays_whole(self):
+        # `_article_units` treats `article.num` opaquely, so a rule-8
+        # ordinal-numbered article (issue #227) goes through the same code
+        # path as an ordinary `Artículo N`.
+        tree = _tree_with_article_children(
+            [("Chapeau del PRIMERO.", True, False),
+             ("Primera parte, larga.", False, False),
+             ("Segunda parte, también larga.", False, False)],
+            article_num="PRIMERO",
+        )
+        split = text_units(tree, cap=15)
+        self.assertGreater(len(split), 1)
+        whole = text_units(tree, cap=15, split_articles=False)
+        self.assertEqual(len(whole), 1)
+        self.assertEqual(whole[0].num, "PRIMERO")
+        self.assertEqual(whole[0].piece, 0)
+
+    def test_transitorio_numbered_article_stays_whole(self):
+        tree = _tree_with_article_children(
+            [("Chapeau del transitorio.", True, False),
+             ("Primera parte, larga.", False, False),
+             ("Segunda parte, también larga.", False, False)],
+            article_num="Segundo",
+        )
+        whole = text_units(tree, cap=15, split_articles=False)
+        self.assertEqual(len(whole), 1)
+        self.assertEqual(whole[0].num, "Segundo")
+        self.assertEqual(whole[0].piece, 0)
+
+    def test_loose_heading_and_preamble_ignore_the_flag(self):
+        texto = (
+            "Primer párrafo del preámbulo, bastante largo para forzar un corte según el cap dado.\n\n"
+            "Segundo párrafo del preámbulo, también largo, para asegurar más de una pieza al partir.\n\n"
+            "**CAPITULO I**\n\n"
+            "Una fila suelta, bastante larga también, para que el heading o loose se corte igual.\n\n"
+            "**Artículo 1o.** " + ("Texto largo del artículo. " * 20) + "\n"
+        )
+        split = text_units(texto, cap=40)
+        whole = text_units(texto, cap=40, split_articles=False)
+        non_article_split = [u for u in split if u.unit_type not in ("article", "article_piece")]
+        non_article_whole = [u for u in whole if u.unit_type != "article"]
+        self.assertEqual(non_article_split, non_article_whole)
+        self.assertTrue(non_article_split)  # the fixture actually exercises preamble/heading/loose
+
+    def test_coverage_and_leaf_map_hold(self):
+        for path in ALL_LAW_FIXTURES:
+            with self.subTest(fixture=path.name):
+                texto = path.read_text(encoding="utf-8")
+                tree = parse_markdown(texto)
+                units = text_units(texto, cap=200, split_articles=False)
+                self.assertEqual(coverage(tree, units).uncovered_chars, 0)
+                self.assertFalse(any(u.unit_type == "article_piece" for u in units))
+                self.assertTrue(all(u.piece == 0 for u in units if u.unit_type == "article"))
+                refs = leaf_map(tree, units)
+                # Every leaf under an article is mapped to that article's
+                # single whole unit -- never to an `article_piece`.
+                article_units = {u.eId: u for u in units if u.unit_type == "article"}
+                for ref in refs:
+                    if ref.unit_eId in article_units:
+                        self.assertEqual(ref.unit_piece, 0)
+
+    def test_max_unit_chars_counts_unsplit_articles_separately(self):
+        texto = "**Artículo 1o.** " + ("Texto largo del artículo. " * 20) + "\n"
+        tree = parse_markdown(texto)
+        units = text_units(texto, cap=40, split_articles=False)
+        report = max_unit_chars(tree, units, cap=40, split_articles=False)
+        self.assertEqual(report.articles_over_cap, 1)
+        self.assertEqual(report.over_cap, 0)
+        self.assertEqual(report.splittable, 0)
+
+    def test_default_split_articles_keeps_the_invariant_over_every_fixture(self):
+        for path in ALL_LAW_FIXTURES:
+            with self.subTest(fixture=path.name):
+                texto = path.read_text(encoding="utf-8")
+                tree = parse_markdown(texto)
+                units = text_units(texto, cap=200, split_articles=False)
+                report = max_unit_chars(tree, units, cap=200, split_articles=False)
+                self.assertEqual(report.splittable, 0)
