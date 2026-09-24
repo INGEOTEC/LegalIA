@@ -152,6 +152,17 @@ there is no `--max-wait-hours` ceiling or `scancel` here: a shard job that
 does not finish is handled by `submit_jobs.py`'s own `--max-attempts` retry
 loop, resumed the same chunked way on the next call.
 
+**`submit_jobs.py --mem` (default `32G`) is not optional in practice**, even
+though `submit.sh` itself carries no `#SBATCH --mem`. Found running #256's
+own GPU phase: with another user's job holding two of `cemieredes`' three
+A100s (and part of the node's ~1 TB of memory), a shard job submitted with
+no `--mem` sat `PENDING (Resources)` indefinitely even once a GPU freed up
+— on this cluster, "no `--mem` given" resolves to reserving the *entire*
+node's memory for the job (`DefMemPerNode=UNLIMITED` at the partition
+level apparently means "no accounting", not "use what's free"), so the job
+was waiting for the other one to vacate the whole node, not just a GPU.
+`--mem=32G` (comfortably more than one shard needs) fixed it immediately.
+
 Incremental re-embedding after a reform: replan against what a model already
 has, then resubmit — only the new units reach the GPU at all.
 
@@ -162,6 +173,29 @@ python scripts/embeddings/plan_shards.py --work-dir emb-run-leyes \
 python scripts/embeddings/submit_jobs.py --work-dir emb-run-leyes \
     --model Qwen/Qwen3-Embedding-0.6B
 ```
+
+## The shared cluster venv had drifted (found running issue #256)
+
+`/home/mgraffg/.venvs/cluster` (`submit.sh`'s hardcoded interpreter, shared
+with `../Chimalli-overleaf`) had `torch==2.14.0+cu130` — a build needing a
+newer NVIDIA driver than `cemieredes` actually has (525.116.04, CUDA 12.0).
+`torch.cuda.is_available()` silently returned `False` with no error, so
+`encode_shard.py`'s `device_map="auto"` fell back to CPU without complaint
+(`"Device set to use cpu"` in the Slurm log is the only sign). Fixed by
+reinstalling a driver-compatible build:
+
+```bash
+uv pip install --python /home/mgraffg/.venvs/cluster/bin/python \
+    "torch==2.4.1" torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu121
+uv pip install --python /home/mgraffg/.venvs/cluster/bin/python accelerate
+```
+
+(`accelerate` was also missing — newer `transformers` needs it for
+`device_map="auto"`, which #227's original run predates.) Check
+`torch.cuda.is_available()` returns `True` under `srun --gres=gpu:1` before
+trusting a "successful" shard: a CPU fallback still writes a `.done` marker,
+just very slowly, and would otherwise go unnoticed until someone asks why
+a 20-text shard took hours.
 
 ## The CPU smoke test
 

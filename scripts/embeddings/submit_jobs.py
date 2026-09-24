@@ -13,6 +13,13 @@ back, and deleting the weights between them would re-download them twice
 so Slurm runs up to three shards in parallel by itself; nothing here manages
 that beyond submitting every pending shard at once.
 
+**Every shard job carries an explicit `--mem` now** (issue #256, `--mem`,
+default `32G`): `submit.sh` itself asks for none, which on this cluster
+resolves to reserving the *whole node's* memory for the job rather than
+"no limit" -- found the hard way when another user's job held part of a
+node and ours then waited "Resources" pending forever even once a GPU was
+free, because Slurm was holding out for the entire node's memory to clear.
+
 **The wait is chunked, the same way `submit_umap.py` chunks its own**
 (issue #256): a `claude -p` session driving this has a per-command timeout,
 and ending a turn to wait for a background process kills the supervisor
@@ -75,10 +82,10 @@ def pending_shards(work_dir: Path, model: str) -> list[int]:
 
 def submit_shard(
     work_dir: Path, model: str, shard: int, batch_size: int, max_batch_tokens: int,
-    attn_implementation: str | None, dry_run: bool,
+    attn_implementation: str | None, dry_run: bool, mem: str = "32G",
 ) -> str | None:
     cmd = [
-        "sbatch", "--parsable", str(SUBMIT_SH), str(ENCODE_SHARD),
+        "sbatch", "--parsable", f"--mem={mem}", str(SUBMIT_SH), str(ENCODE_SHARD),
         "--work-dir", str(work_dir), "--model", model, "--shard", str(shard),
         "--batch-size", str(batch_size), "--max-batch-tokens", str(max_batch_tokens),
     ]
@@ -97,6 +104,7 @@ def jobs_json_path(work_dir: Path, model: str) -> Path:
 def submit(
     work_dir: Path, model: str, pending: list[int], *, batch_size: int, max_batch_tokens: int,
     attn_implementation: str | None = None, attempt: int, dry_run: bool = False, log=print,
+    mem: str = "32G",
 ) -> dict:
     """Submit every shard index in `pending` and record the attempt's job ids
     in `runs/<model-slug>/jobs.json` -- the state `wait()` resumes from
@@ -106,6 +114,7 @@ def submit(
         for shard in pending
         if (job_id := submit_shard(
             work_dir, model, shard, batch_size, max_batch_tokens, attn_implementation, dry_run,
+            mem,
         ))
     ]
     state = {
@@ -194,6 +203,14 @@ def main(argv=None) -> int:
     parser.add_argument("--attn-implementation", default=None,
                          help="Forwarded to encode_shard.py, e.g. 'sdpa' -- only set when the "
                               "smoke test found the default attention backend OOMs.")
+    parser.add_argument("--mem", default="32G",
+                         help="sbatch --mem for a shard job. submit.sh itself requests no "
+                              "--mem, which this cluster resolves to the whole node's memory "
+                              "(issue #256, found the hard way: with another job already "
+                              "holding part of a node, a shard job with no --mem then waits "
+                              "forever for the *entire* node to free up, not just a GPU). "
+                              "32G is one A100 shard's worth against this cluster's 3 A100s "
+                              "sharing ~1 TB, not a measured requirement.")
     parser.add_argument("--poll-interval", type=int, default=60)
     parser.add_argument("--max-attempts", type=int, default=3)
     parser.add_argument("--max-wait-minutes", type=float, default=0.0,
@@ -246,7 +263,7 @@ def main(argv=None) -> int:
         submit(
             args.work_dir, args.model, pending, batch_size=args.batch_size,
             max_batch_tokens=args.max_batch_tokens, attn_implementation=args.attn_implementation,
-            attempt=attempt, dry_run=args.dry_run,
+            attempt=attempt, dry_run=args.dry_run, mem=args.mem,
         )
         if args.dry_run:
             break

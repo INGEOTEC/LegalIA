@@ -94,6 +94,25 @@ def test_submit_shard_omits_attn_implementation_when_not_set(tmp_path, monkeypat
     assert "--attn-implementation" not in captured["cmd"]
 
 
+def test_submit_shard_requests_mem_by_default(tmp_path, monkeypatch):
+    # submit.sh itself asks for no --mem, which this cluster resolves to the
+    # whole node's memory -- a shard job with no --mem then waits forever for
+    # the entire node to free up rather than just a GPU (issue #256, found on
+    # the real cluster). --mem must always be on the sbatch command line.
+    captured = {}
+
+    def fake_run(dry_run, cmd, **kwargs):
+        captured["cmd"] = cmd
+        return SimpleNamespace(stdout="1001\n")
+
+    monkeypatch.setattr(submit_jobs, "run", fake_run)
+    submit_jobs.submit_shard(Path("work"), MODEL, 0, 32, 20000, None, dry_run=False)
+    assert "--mem=32G" in captured["cmd"]
+
+    submit_jobs.submit_shard(Path("work"), MODEL, 0, 32, 20000, None, dry_run=False, mem="64G")
+    assert "--mem=64G" in captured["cmd"]
+
+
 def test_wait_returns_finished_when_squeue_reports_nothing(tmp_path, monkeypatch):
     work_dir = tmp_path / "work"
     run_dir = work_dir / "runs" / SLUG
