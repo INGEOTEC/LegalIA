@@ -577,6 +577,43 @@ regardless of whether its own ~126 tarballs ever need a second part:
 `MANIFEST.md` in full, then run `PUBLICAR.md`'s commands verbatim. Nothing
 here calls `gh` itself.
 
+### `reconvert_scjn_tables.py`
+
+Re-converts, in place, exactly the snapshots that contain a tab — issue
+#253's table-row fix only reaches an already-written `<key>/<fecha>.md` by
+asking the SCJN again, since the raw `contenido` the API answers is never
+cached. Neither `fetch_scjn_legislacion.py --instrumento` (would also pull
+in any reform published since the crawl) nor `--reintenta` (`leyes`-only,
+deletes `estado.json`/`indice.json` and re-searches without the recorded
+`id_ordenamiento` — issue #115's wrong-document path) fits this job: this
+script instead reads the affected snapshot's own header
+(`id_ordenamiento`/`reforma_id`) and calls `scjn.api.articulos_of_reforma`
+directly, one request, no search, no reform table — the header is never
+recomputed and every sibling (`estado.json`, `indice.json`, `notas/`, the
+file name) stays untouched. Works over any of the three id-addressable
+collections (`--coleccion leyes|reglamentos|lineamientos`).
+
+A rewrite only happens when the new body says the same words as the old one
+(`*`, `|` and `\` stripped, whitespace collapsed) and itself carries no tab
+— otherwise the file is left byte-identical and reported as `mismatch`, for
+a human to look at. `--control N` re-converts N tab-less snapshots without
+writing and checks they round-trip byte for byte, which is how the
+header/body split itself gets verified before trusting the real pass:
+
+```bash
+./scripts/reconvert_scjn_tables.py --coleccion leyes --dry-run
+./scripts/reconvert_scjn_tables.py --coleccion leyes --control 3
+./scripts/reconvert_scjn_tables.py --coleccion leyes 2>&1 | tee scripts/scjn/reconvert-leyes.log
+```
+
+Resumable for free: a rewritten file has no tab, so re-running makes zero
+requests for anything already fixed. The JSON report
+(`--report`, default `<outdir>/<coleccion>-reconvert-report.json`) is
+rewritten after every instrument. Packaging only the instruments this
+script actually rewrote is still `empaqueta_scjn_leyes.py --instrumento
+<slug>` / `empaqueta_scjn_coleccion.py --coleccion <c> --instrumento <id>`
+above — this script never repackages or publishes anything itself.
+
 ### Retirado: `repara_notas_editoriales_scjn.py`
 
 Issue #129 retired the one-time `repara_notas_editoriales_scjn.py` that used
