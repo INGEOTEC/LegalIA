@@ -74,14 +74,15 @@ so one law changing makes the published one stale.
 
 A fix to how `scjn.api.articulos_a_markdown` converts an article's own
 `contenido` (issue #253's table-row recovery, for one) only reaches an
-already-published snapshot by naming it here too, once
-`scripts/reconvert_scjn_tables.py --coleccion leyes` has re-converted it —
-**not** `--reintenta <slug>`, which deletes `estado.json`/`indice.json` and
-re-searches without the recorded `id_ordenamiento` (issue #115's
-wrong-document path); packaging never re-derives a snapshot from anything
-cached locally, so skipping the re-conversion step would keep publishing the
-old one. `--instrumento` repeated over whichever instruments
-`reconvert_scjn_tables.py` actually rewrote packages exactly those laws; the
+already-published snapshot by naming it here too, once a law flagged by
+`scripts/find_scjn_table_instruments.py` has had all of its snapshots
+re-downloaded (`fetch_scjn_legislacion.py --instrumento <slug>`, after
+deleting its `*.md` files — never `--reintenta <slug>`, which deletes
+`estado.json`/`indice.json` and re-searches without the recorded
+`id_ordenamiento`, issue #115's wrong-document path); packaging never
+re-derives a snapshot from anything cached locally, so skipping the
+re-download step would keep publishing the old one. `--instrumento` repeated
+over whichever laws were actually re-downloaded packages exactly those; the
 manifest names them for review the same way it does for `--instrumento lft`
 above.
 

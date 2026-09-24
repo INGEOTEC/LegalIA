@@ -84,13 +84,21 @@ lgvs lgn lspm liva lce lfda loapf cpf lbio`` (``scjn-reglamentos``/
 even though it names slugs the same way: ``--reintenta`` deletes
 ``estado.json``/``indice.json`` and re-searches every named instrumento
 without its recorded ``id_ordenamiento`` — issue #115's wrong-document path,
-for a job that already knows exactly which document and which reform it
-needs re-converted. Issue #255's ``scripts/reconvert_scjn_tables.py`` is
-built for this instead: it reads each tab-bearing snapshot's own header back
-(``id_ordenamiento``/``reforma_id``) and asks only
-``scjn.api.articulos_of_reforma`` for it, one request, no search — see that
-script's own docstring. Repackaging only the instruments it actually
-rewrote is still ``scripts/empaqueta_scjn_leyes.py --instrumento <slug>`` /
+for a job that already knows exactly which document it means. A first
+attempt (issue #255) re-converted a snapshot in place and kept the rewrite
+only when a word-order check passed, but that check rejected roughly half
+of every affected snapshot as a false mismatch (a table header wrapped over
+several lines reassembles with its words in a different order than the old
+line-by-line dump had them — a faithful reassembly, not an upstream edit).
+The repository owner replaced it (a review fix on #255):
+``scripts/find_scjn_table_instruments.py`` probes each instrument's
+*latest* version only for a tab, and an instrument it flags gets **all**
+of its snapshots re-downloaded from scratch — delete its ``*.md`` files,
+keep ``estado.json``/``indice.json``/``notas/``, then this script's own
+``--instrumento <key>`` (never ``--reintenta``) — which also picks up any
+reform published since the last crawl, on purpose. See that script's own
+docstring. Repackaging only the selected instruments is still
+``scripts/empaqueta_scjn_leyes.py --instrumento <slug>`` /
 ``scripts/empaqueta_scjn_coleccion.py --coleccion <c> --instrumento <id>``,
 a human step same as any other publish (issue #115, Hallazgo C) — its
 ``MANIFEST.md`` then lists exactly the rewritten instrumentos for review.
@@ -235,9 +243,10 @@ extra to keep rastreando.
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion
     ./scripts/fetch_scjn_legislacion.py --outdir scjn-legislacion \
         --reintenta ccf --reintenta lisr --reintenta lsint --reintenta lfd --reintenta lopgjdf
-    # issue #253's table-row fix: not --reintenta (see above) -- use
-    # scripts/reconvert_scjn_tables.py instead, over whichever collection.
-    ./scripts/reconvert_scjn_tables.py --coleccion leyes
+    # issue #253's table-row fix: not --reintenta (see above) -- probe latest
+    # versions for a tab, then re-download a flagged instrument whole:
+    ./scripts/find_scjn_table_instruments.py --coleccion leyes
+    ./scripts/fetch_scjn_legislacion.py --outdir scripts/scjn --instrumento lft
 """
 
 import argparse

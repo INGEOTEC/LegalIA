@@ -814,13 +814,14 @@ always was.
   `scjn.api.snapshot` and inherit the fix.
 - **Nothing rewrites an already-published snapshot on its own.** The raw
   `contenido` is not cached anywhere, so a snapshot written before this fix
-  keeps its old shape until it is re-converted — see "Re-converting
-  table-bearing SCJN snapshots (issue #255)" below for how (not
-  `--reintenta`, which deletes `estado.json`/`indice.json` and re-searches
-  without the recorded `id_ordenamiento` — issue #115's wrong-document
-  path), then `scripts/empaqueta_scjn_leyes.py`/`empaqueta_scjn_coleccion.py`
-  (whose `MANIFEST.md` lists exactly the rewritten instruments), then a
-  human republish (issue #115, Hallazgo C).
+  keeps its old shape until it is re-downloaded — see "Re-downloading
+  table-bearing SCJN instruments (issue #255, review fix)" below for how
+  (not `--reintenta`, which deletes `estado.json`/`indice.json` and
+  re-searches without the recorded `id_ordenamiento` — issue #115's
+  wrong-document path), then
+  `scripts/empaqueta_scjn_leyes.py`/`empaqueta_scjn_coleccion.py` (whose
+  `MANIFEST.md` lists exactly the rewritten instruments), then a human
+  republish (issue #115, Hallazgo C).
   `nota2md`'s own derived cache
   (`<CACHE_DIR>/scjn-leyes/md/<slug>-<archivo>.md`) is keyed by file name and
   reused when present, so it goes stale for a rewritten law until deleted or
@@ -834,42 +835,57 @@ always was.
 - **`scjn` went to 0.4.0** — a behaviour change in every future snapshot of
   the 35 laws above; `nota2md`'s floor `scjn>=0.2.0` is unaffected.
 
-## Re-converting table-bearing SCJN snapshots (issue #255, done)
+## Re-downloading table-bearing SCJN instruments (issue #255, review fix)
 
-`scripts/reconvert_scjn_tables.py` is how issue #253's fix above actually
-reaches an already-written snapshot: for every `<outdir>/<coleccion>/<key>/*.md`
-that contains a tab, it reads that file's own provenance header
-(`id_ordenamiento`/`reforma_id`), calls `scjn.api.articulos_of_reforma`
-directly — one request, no search, no reform table — and rewrites only the
-body, keeping the header bytes verbatim. Neither existing
-`fetch_scjn_legislacion.py` flag fits: `--instrumento` would also fetch any
-reform published since the crawl (an unlinked snapshot), and `--reintenta`
-deletes `estado.json`/`indice.json` and re-searches without the recorded
-`id_ordenamiento` (issue #115's wrong-document path) — this is neither case,
-it already knows exactly which document and reform it wants re-converted.
+Issue #255's first attempt (a since-deleted script) re-converted a snapshot
+**in place**, body only, and only wrote it back when a word-order check passed (`words(old) == words(new)`, ignoring
+`*`/`|`/`\`/whitespace). That check was too strict: when a table's column
+header is wrapped over several source lines, #253's merge rule rebuilds it
+as one row, and a header's own words can come out in a different order than
+the old line-by-line dump had them (`Dia Tipo de Vialidad Noche` vs `Tipo de
+Vialidad Dia Noche` — same words, same table, different order because the
+old dump was never in reading order to begin with). That rejected roughly
+half of every affected snapshot in `leyes`/`reglamentos` as a false
+`mismatch`, leaving those instruments inconsistently converted. A per-word
+order check cannot tell a genuine upstream text edit apart from a faithful
+but differently-ordered reassembly of the same table — so the repository
+owner replaced the whole approach rather than loosening the check.
 
-- **A rewrite only happens when the words match.** `words(text)` strips `*`,
-  `|` and `\`, then splits on whitespace; a snapshot whose new body doesn't
-  say the same words as the old one is left byte-identical and reported as
-  `mismatch`, for a human to look at rather than guessed at — the SCJN may
-  have edited the underlying text, which is a content change beyond this
-  issue.
-- **`--control N`** re-converts `N` tab-less snapshots without writing and
-  asserts they round-trip byte for byte — how the header/body split itself
-  is verified against an *unaffected* snapshot, before trusting the real
-  pass on an affected one. Run it before every real pass.
-- **Resumable for free**: a rewritten file has no tab, so re-running makes
-  zero requests for anything already fixed. See the script's own docstring
-  and `scripts/README.md`'s `reconvert_scjn_tables.py` section for the
-  commands.
-- **Repackaging and publishing are unchanged, and still manual** (issue
-  #115, Hallazgo C): `empaqueta_scjn_leyes.py`/`empaqueta_scjn_coleccion.py`
-  `--instrumento` over whichever instruments were actually `rewritten`, then
-  a human runs the `gh release upload` commands they print. This issue
-  itself commits no data — the run's report and repackaged release
-  directories live under the gitignored `scripts/scjn/`, and its own
-  publish hand-off is written to `scripts/scjn/reconvert-tables-PUBLISH.md`
-  (also not committed).
+**The procedure now, authoritative since this fix:**
+
+1. For every instrument of all three collections, ask the SCJN for its
+   **latest version only** (`scjn.api.ScjnApi.reformas_of_ordenamiento`, the
+   newest reform with `tieneArticulos` true, then
+   `articulos_of_reforma` for that one reform) — `scripts/find_scjn_table_instruments.py`.
+2. **Has a table** iff any article's raw `contenido` contains a tab — #253's
+   own signal, checked on the fresh API answer, never on what is on disk.
+3. An instrument whose *latest* version has no table is left exactly as
+   published, even if an older snapshot of it still has one. Confirmed with
+   the repository owner explicitly: a `mismatch` from the abandoned approach
+   is not itself a reason to touch an instrument now.
+4. A selected instrument (latest version has a table) gets **all** of its
+   snapshots re-downloaded from scratch — `fetch_scjn_legislacion.py
+   --instrumento <key>` after deleting only its `*.md` files (never
+   `estado.json`/`indice.json`/`notas/`) — which also picks up any reform
+   published since the last crawl, on purpose: a half-updated instrument is
+   worse than a fully current one.
+5. `leyes` reforms newly picked up this way are linked
+   (`enlaza_scjn_legislacion.py`), same as any other new reform; the
+   id-keyed collections have no DOF linking at all, unchanged.
+6. Packaging (`empaqueta_scjn_leyes.py`/`empaqueta_scjn_coleccion.py
+   --instrumento`) and publishing stay exactly as before — manual, issue
+   #115 Hallazgo C — over only the selected instruments.
+
+There is no word-level verification step any more: a full re-download from
+the SCJN's own current answer is trusted the same way any other crawl is,
+and a genuine upstream edit (if any) is exactly what a fresh crawl is
+supposed to pick up.
+
+- **Hand-off**: `scripts/scjn/table-instruments-PUBLISH.md` (gitignored,
+  regenerated by re-running the pipeline) — probed/selected/re-downloaded/
+  failed counts per collection, the codNota-change report for `leyes`, and
+  the exact `gh release upload`/`gh release edit` commands. Nothing is
+  published automatically.
 - **Out of scope, deliberately**: derived data (`md2akn` `units.parquet`,
   the three `*-vectors` releases, the Atlas matrix/`atlas.json`/
   `atlas-pairs`) is untouched and stays stale until a future issue plans
