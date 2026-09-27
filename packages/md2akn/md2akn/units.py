@@ -197,6 +197,11 @@ class CapReport:
     unsplittable: int
     #: Of those, the ones that could still have been cut — the invariant.
     splittable: int
+    #: `article` units over `cap` that rule 3/9 never had a chance to split
+    #: because `split_articles=False` — counted separately from `over_cap`
+    #: (issue #256), since leaving an article whole is the point rather than
+    #: a residue. Always 0 when `split_articles=True` (the default).
+    articles_over_cap: int = 0
 
 
 def normalize(text: str) -> str:
@@ -516,12 +521,25 @@ def _article_units(
     template: str,
     law_name: str | None,
     split_over_cap: bool = True,
+    split_articles: bool = True,
 ) -> list[TextUnit]:
     def wrap(raw_text: str, chapeau_raw: str = "") -> str:
         combined = f"{chapeau_raw}\n\n{raw_text}" if chapeau_raw else raw_text
         return _with_article_template(combined, template, article.num, law_name)
 
     whole_raw = _node_text(article, ann_ranges)
+    if not split_articles:
+        # split_articles=False: rules 3 and 9 never apply to an article --
+        # whatever its length, it is one `article` unit, `piece` 0.
+        text = wrap(whole_raw)
+        return [
+            TextUnit(
+                unit_type="article", eId=article.eId, piece=0, piece_eId=None,
+                akn_type="article", num=article.num, path=path,
+                start_char=article.start_char, end_char=article.end_char,
+                text=text, text_sha1=_sha1(text),
+            )
+        ]
     if len(normalize(whole_raw)) <= cap or not article.children:
         # Rule 2, unchanged — and rule 9 behind it, for the one shape rule 3
         # cannot reach: an article with no children at all whose own text is
@@ -617,6 +635,7 @@ def _walk_container(
     law_name: str | None,
     units: list[TextUnit],
     split_over_cap: bool = True,
+    split_articles: bool = True,
 ) -> None:
     children = node.children
     first_start = children[0].start_char if children else node.end_char
@@ -641,6 +660,7 @@ def _walk_container(
         if child.akn_type == "article":
             units.extend(_article_units(
                 child, child_path, ann_ranges, cap, template, law_name, split_over_cap,
+                split_articles,
             ))
             i += 1
         elif _is_loose_leaf(child):
@@ -652,6 +672,7 @@ def _walk_container(
         else:
             _walk_container(
                 child, child_path, ann_ranges, cap, template, law_name, units, split_over_cap,
+                split_articles,
             )
             i += 1
 
@@ -662,6 +683,7 @@ def text_units(
     cap: int = DEFAULT_SPLIT_CAP,
     template: str = "bare",
     split_over_cap: bool = True,
+    split_articles: bool = True,
 ) -> list[TextUnit]:
     """Every text of a law, ready to embed — articles, container epigraphs,
     loose content, the preamble and the closing signatures, in document
@@ -675,9 +697,13 @@ def text_units(
     numbered into the same list rather than replacing any of them:
 
     1. Frontmatter and reform annotations are metadata, never embedded.
-    2. An article no longer than `cap` (normalized) is one unit, whole.
+    2. An article no longer than `cap` (normalized) is one unit, whole. With
+       `split_articles=False`, every article is one unit whatever its
+       length — this rule then applies unconditionally, and rule 3 never
+       fires.
     3. A longer article splits at its direct children: the chapeau alone,
        then one piece per remaining child, each prefixed with the chapeau.
+       Never applied when `split_articles=False` (see rule 2).
     4. A container's epigraph — the text before its first child — is its own
        `heading` unit.
     5. Consecutive leaf children of a non-article node are grouped into one
@@ -698,7 +724,9 @@ def text_units(
        than `cap` is left whole — never cut mid-sentence — and
        `max_unit_chars` counts what is left that way. `split_over_cap=False`
        turns this rule off, which is how a pre-#227 vector set is reproduced
-       byte for byte.
+       byte for byte. Never applied to an article when `split_articles=False`
+       (see rule 2) — an over-cap article is then left whole, counted by
+       `max_unit_chars`' own `articles_over_cap` rather than `over_cap`.
 
     >>> import md2akn
     >>> text = (
@@ -733,6 +761,7 @@ def text_units(
         root_path = (law_name,) if law_name else ()
         _walk_container(
             body, root_path, ann_ranges, cap, template, law_name, units, split_over_cap,
+            split_articles,
         )
 
     conclusions = next((c for c in tree.children if c.akn_type == "conclusions"), None)
@@ -828,7 +857,9 @@ def coverage(tree: AknNode, units: list[TextUnit]) -> Coverage:
     )
 
 
-def max_unit_chars(tree: AknNode, units: list[TextUnit], *, cap: int = DEFAULT_SPLIT_CAP) -> CapReport:
+def max_unit_chars(
+    tree: AknNode, units: list[TextUnit], *, cap: int = DEFAULT_SPLIT_CAP, split_articles: bool = True
+) -> CapReport:
     """The cap invariant, as data: how many of `units` are longer than `cap`,
     and how many of those rule 9 could still have cut.
 
@@ -844,6 +875,11 @@ def max_unit_chars(tree: AknNode, units: list[TextUnit], *, cap: int = DEFAULT_S
     that is nothing but a reform annotation is stripped from the embedded
     text (rule 1), so cutting there would produce an empty unit.
 
+    `split_articles` must match the flag `units` was built with (issue #256):
+    when it is `False`, an over-cap `article` unit was never offered to rule 9
+    at all, so it is counted in `articles_over_cap` instead of `over_cap` —
+    `splittable == 0` stays the invariant either way.
+
     >>> import md2akn
     >>> text = "\\n\\n".join("Párrafo de %d." % n for n in range(1, 4)) + "\\n"
     >>> report = md2akn.max_unit_chars(
@@ -854,11 +890,14 @@ def max_unit_chars(tree: AknNode, units: list[TextUnit], *, cap: int = DEFAULT_S
     doc_text = tree.span.doc.text
     ann_ranges = _RangeIndex(_annotation_ranges(tree, doc_text), doc_text)
     max_chars = 0
-    over_cap = unsplittable = splittable = 0
+    over_cap = unsplittable = splittable = articles_over_cap = 0
     for unit in units:
         n = len(unit.text)
         max_chars = max(max_chars, n)
         if n <= cap:
+            continue
+        if not split_articles and unit.unit_type == "article":
+            articles_over_cap += 1
             continue
         over_cap += 1
         con_texto = [
@@ -882,4 +921,5 @@ def max_unit_chars(tree: AknNode, units: list[TextUnit], *, cap: int = DEFAULT_S
         over_cap=over_cap,
         unsplittable=unsplittable,
         splittable=splittable,
+        articles_over_cap=articles_over_cap,
     )

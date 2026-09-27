@@ -60,21 +60,27 @@ if _TIENE_SCJN:
     )
 
 
-def _barre(instrumentos, clave):
+def _barre(instrumentos, clave, *, split_articles: bool = True):
     """`(vistos, sin_cubrir, partibles)` over `instrumentos` — one parse per
     instrument, both invariants checked on the same tree so the sweep is
-    walked once rather than once per assertion."""
+    walked once rather than once per assertion.
+
+    `split_articles=False` (issue #256) sweeps the same corpus under the
+    whole-article rule: `coverage()` must still be 0 and `splittable` must
+    still be 0, with an over-cap article counted in `articles_over_cap`
+    rather than `splittable`.
+    """
     vistos = 0
     sin_cubrir = []
     partibles = []
     for instrumento in instrumentos:
         vistos += 1
         tree = parse_markdown(instrumento["markdown"])
-        units = text_units(tree)
+        units = text_units(tree, split_articles=split_articles)
         cov = coverage(tree, units)
         if cov.uncovered_chars:
             sin_cubrir.append((instrumento[clave], instrumento["archivo"], cov))
-        cap = max_unit_chars(tree, units)
+        cap = max_unit_chars(tree, units, split_articles=split_articles)
         if cap.splittable:
             partibles.append((instrumento[clave], instrumento["archivo"], cap))
     return vistos, sin_cubrir, partibles
@@ -82,8 +88,8 @@ def _barre(instrumentos, clave):
 
 @unittest.skipUnless(_TIENE_SCJN, "scjn is not installed")
 class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
-    def _comprueba(self, instrumentos, clave):
-        vistos, sin_cubrir, partibles = _barre(instrumentos, clave)
+    def _comprueba(self, instrumentos, clave, *, split_articles: bool = True):
+        vistos, sin_cubrir, partibles = _barre(instrumentos, clave, split_articles=split_articles)
         self.assertGreater(vistos, 0)
         self.assertEqual(
             sin_cubrir, [], f"{len(sin_cubrir)} of {vistos} left characters uncovered"
@@ -109,6 +115,24 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
     )
     def test_lineamientos(self):
         self._comprueba(iter_current_lineamientos(), "id_ordenamiento")
+
+    # -- issue #256: split_articles=False, one case per collection -------- #
+
+    @unittest.skipUnless(_TIENE_SCJN and local_slugs(), "no scjn-leyes release cached locally")
+    def test_leyes_split_articles_false(self):
+        self._comprueba(iter_current_federal_laws(), "slug", split_articles=False)
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_reglamentos_ids(), "no scjn-reglamentos release cached locally"
+    )
+    def test_reglamentos_split_articles_false(self):
+        self._comprueba(iter_current_reglamentos(), "id_ordenamiento", split_articles=False)
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_lineamientos_ids(), "no scjn-lineamientos release cached locally"
+    )
+    def test_lineamientos_split_articles_false(self):
+        self._comprueba(iter_current_lineamientos(), "id_ordenamiento", split_articles=False)
 
     @unittest.skipUnless(_TIENE_SCJN and local_slugs(), "no scjn-leyes release cached locally")
     def test_la_regla_8_no_se_activa_en_ninguna_ley(self):

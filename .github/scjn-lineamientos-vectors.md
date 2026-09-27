@@ -35,6 +35,14 @@ una reforma del anterior, así que cualquier clave derivada del título choca
 Los dos archivos de vectores se leen juntos: `legalvec.load_vectors` une el
 propio con el compartido y deduplica por `text_sha1`.
 
+**Desde issue #256, un artículo es siempre una unidad entera**, sin importar
+su longitud (`split_articles=False`): ya no se parte por el `cap` de 2 000
+caracteres, que sigue rigiendo sólo para el epígrafe de un capítulo, el
+preámbulo, los transitorios y el contenido suelto. Un artículo más largo que
+la ventana del modelo se **trunca** a esa ventana (nunca se parte ni se
+promedia); cada texto truncado queda contado en `vectors-manifest.json`
+(`texts_truncated`, `max_tokens_embedded`).
+
 ## Los números
 
 | | 0.6B | 4B |

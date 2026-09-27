@@ -46,6 +46,23 @@ def _done_shards(run_dir: Path) -> list[Path]:
     return parquets
 
 
+def truncation_stats(run_dir: Path) -> dict:
+    """Every shard's own `texts_truncated`/`max_tokens_embedded`
+    (`encode_shard.py`, issue #256), aggregated across the whole run: the
+    union of truncated texts, and the longest sequence any shard actually
+    handed the model."""
+    texts_truncated: list[dict] = []
+    max_tokens_embedded = 0
+    for marker in sorted(run_dir.glob("shard-*.done")):
+        try:
+            record = json.loads(marker.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        texts_truncated.extend(record.get("texts_truncated", []))
+        max_tokens_embedded = max(max_tokens_embedded, record.get("max_tokens_embedded", 0))
+    return {"texts_truncated": texts_truncated, "max_tokens_embedded": max_tokens_embedded}
+
+
 def load_vectors(run_dir: Path) -> tuple[pa.Table, dict[str, int], int]:
     """Every shard with a valid `.done` marker as one Arrow table, the row
     each `text_sha1` sits at, and the embedding dimension `K` read off the
@@ -158,6 +175,7 @@ def main(argv=None) -> None:
         "shared_rows": len(shared),
         "per_instrument_rows": sum(len(rows) for rows in por_clave.values()),
         "missing_vectors": missing,
+        **truncation_stats(run_dir),
     }
     atomic_write_text(run_dir / "manifest.json", json.dumps(manifest, indent=2) + "\n")
     print(json.dumps(manifest, indent=2))

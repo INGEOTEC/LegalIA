@@ -59,18 +59,27 @@ work/
 nota2md download all
 
 # 1. The corpus, as two Parquet files + a manifest. Once per collection:
-python scripts/embeddings/build_units.py --work-dir emb-run-leyes
+#    --no-split-articles (issue #256) turns rules 3/9 off for articles: one
+#    article is one unit whatever its length, truncated at the model's own
+#    window rather than split. Omit it to keep the default, cap-2000 shape
+#    that reproduces a pre-#256 vector set byte for byte.
+python scripts/embeddings/build_units.py --work-dir emb-run-leyes --no-split-articles
 python scripts/embeddings/build_units.py --work-dir emb-run-reglamentos \
-    --coleccion reglamentos
+    --coleccion reglamentos --no-split-articles
 python scripts/embeddings/build_units.py --work-dir emb-run-lineamientos \
-    --coleccion lineamientos
+    --coleccion lineamientos --no-split-articles
 
 # 2. Dedup by text_sha1, sort by estimated token length, balance into shards.
 python scripts/embeddings/plan_shards.py --work-dir emb-run-leyes --num-shards 12
 
 # 3. One model at a time: download it, submit every pending shard, wait, retry, delete it.
+#    --max-batch-tokens (issue #256) replaces the fixed --batch-size as what
+#    governs memory; --batch-size stays as the upper bound on a batch's row
+#    count. See "encode_shard.py: window truncation and token-budget
+#    batching" below, and "submit_jobs.py: why its wait is chunked too" for
+#    --max-wait-minutes.
 python scripts/embeddings/submit_jobs.py --work-dir emb-run-leyes \
-    --model Qwen/Qwen3-Embedding-0.6B
+    --model Qwen/Qwen3-Embedding-0.6B --max-batch-tokens 20000
 python scripts/embeddings/status.py --work-dir emb-run-leyes \
     --model Qwen/Qwen3-Embedding-0.6B
 
@@ -99,6 +108,61 @@ Steps 2-4 repeat per collection against its own work directory; nothing
 below `build_units.py`/`merge_shards.py` knows what a collection is — a
 shard is keyed by `text_sha1` alone.
 
+**Migrating an already-published collection to whole articles** (issue
+#256's own run): build into a *new* work directory,
+`emb-run-whole-<coleccion>/`, rather than the one that already holds the
+published (split-article) vectors — `package_vectors.py`'s `PUBLICAR.md`
+still targets the same release tags, replacing them in place, but nothing
+here overwrites the old work directory while the new one is being built.
+
+### `encode_shard.py`: window truncation and token-budget batching (issue #256)
+
+An article is never split any more when `--no-split-articles` built the
+corpus, so a handful of texts are longer than a model's own context window
+(measured against the pre-#256 `units.parquet` files: 4 exceed the 0.6B's
+32,768 tokens, 2 the 4B's 40,960). Those are **truncated at the model's own
+`max_position_embeddings`**, read from its config rather than hard-coded —
+never split, windowed or mean-pooled (the user's own decision) — and every
+truncated text is recorded, by `text_sha1` and its real (pre-truncation)
+token count, in that shard's own `.done` marker and carried into
+`merge_shards.py`'s `manifest.json` as `texts_truncated` /
+`max_tokens_embedded`.
+
+The fixed `--batch-size` a shard's texts used to be embedded under (default
+32, sorted by character length) is replaced by batches built in **token**
+order under a padded-token budget, `--max-batch-tokens`: a batch's cost is
+its own longest text's token count times its row count, since every row in
+a batch pads out to the batch's longest sequence. `--batch-size` stays as
+the upper bound on a batch's row count. A text whose own token count already
+exceeds `--max-batch-tokens` is embedded alone, in a batch of one, rather
+than blocking every shorter text from ever batching with it.
+
+### `submit_jobs.py`: why its wait is chunked too (issue #256)
+
+Same reason, same shape as `submit_umap.py`'s own chunked wait (below):
+`submit_jobs.py --model ... ` used to block on `squeue` with no ceiling,
+which an automated session driving this cannot hold. `--max-wait-minutes N`
+returns exit status 75 ("still running") while shard jobs remain queued or
+running, and the caller simply calls the same command again — the state
+(the attempt's own job ids) lives in `runs/<model-slug>/jobs.json`, not in a
+process that has to stay alive. `0` (the default) blocks until every
+pending shard finishes, the pre-#256 behaviour. `--report` prints the
+pending-shard count offline, no Slurm at all. Unlike `submit_umap.py`
+there is no `--max-wait-hours` ceiling or `scancel` here: a shard job that
+does not finish is handled by `submit_jobs.py`'s own `--max-attempts` retry
+loop, resumed the same chunked way on the next call.
+
+**`submit_jobs.py --mem` (default `32G`) is not optional in practice**, even
+though `submit.sh` itself carries no `#SBATCH --mem`. Found running #256's
+own GPU phase: with another user's job holding two of `cemieredes`' three
+A100s (and part of the node's ~1 TB of memory), a shard job submitted with
+no `--mem` sat `PENDING (Resources)` indefinitely even once a GPU freed up
+— on this cluster, "no `--mem` given" resolves to reserving the *entire*
+node's memory for the job (`DefMemPerNode=UNLIMITED` at the partition
+level apparently means "no accounting", not "use what's free"), so the job
+was waiting for the other one to vacate the whole node, not just a GPU.
+`--mem=32G` (comfortably more than one shard needs) fixed it immediately.
+
 Incremental re-embedding after a reform: replan against what a model already
 has, then resubmit — only the new units reach the GPU at all.
 
@@ -109,6 +173,29 @@ python scripts/embeddings/plan_shards.py --work-dir emb-run-leyes \
 python scripts/embeddings/submit_jobs.py --work-dir emb-run-leyes \
     --model Qwen/Qwen3-Embedding-0.6B
 ```
+
+## The shared cluster venv had drifted (found running issue #256)
+
+`/home/mgraffg/.venvs/cluster` (`submit.sh`'s hardcoded interpreter, shared
+with `../Chimalli-overleaf`) had `torch==2.14.0+cu130` — a build needing a
+newer NVIDIA driver than `cemieredes` actually has (525.116.04, CUDA 12.0).
+`torch.cuda.is_available()` silently returned `False` with no error, so
+`encode_shard.py`'s `device_map="auto"` fell back to CPU without complaint
+(`"Device set to use cpu"` in the Slurm log is the only sign). Fixed by
+reinstalling a driver-compatible build:
+
+```bash
+uv pip install --python /home/mgraffg/.venvs/cluster/bin/python \
+    "torch==2.4.1" torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu121
+uv pip install --python /home/mgraffg/.venvs/cluster/bin/python accelerate
+```
+
+(`accelerate` was also missing — newer `transformers` needs it for
+`device_map="auto"`, which #227's original run predates.) Check
+`torch.cuda.is_available()` returns `True` under `srun --gres=gpu:1` before
+trusting a "successful" shard: a CPU fallback still writes a `.done` marker,
+just very slowly, and would otherwise go unnoticed until someone asks why
+a 20-text shard took hours.
 
 ## The CPU smoke test
 
@@ -148,9 +235,15 @@ dependency on `torch`/`transformers` being importable at all.
   depend on `scjn`'s cache layout).
 - `padding_side = "left"` on the tokenizer is not optional (last-token
   pooling), and the only transform applied to the model's own output is the
-  cast to `float16` — no normalization, no quantization, no truncation.
+  cast to `float16` — no normalization, no quantization.
 - A failing shard writes `shard-XXXX.failed` and does not fail the run;
   `status.py` says what to relaunch.
+- Since issue #256, a text over the model's own context window is
+  truncated at `max_position_embeddings` (read from the model's config) and
+  recorded, never split/windowed/mean-pooled; batches are built under a
+  padded-token budget (`--max-batch-tokens`) instead of a fixed row count,
+  because `--no-split-articles` corpus texts vary far more in length than
+  the pre-#256, cap-2000 shape did.
 
 ## The UMAP explorer (issue #241)
 
@@ -264,6 +357,9 @@ other `n_neighbors` changes no distance in the embedding space, so k stays 15
 across every sweep and the second one paid nothing for it.
 
 ### `submit_umap.py` — and why its wait is chunked
+
+(`submit_jobs.py` gained the same chunked wait for the same reason in issue
+#256 — see "submit_jobs.py: why its wait is chunked too" above.)
 
 `submit_umap.py --wait` blocks polling `squeue` until every job has left the
 queue, up to `--max-wait-hours 8`, then prints the table and `scancel`s

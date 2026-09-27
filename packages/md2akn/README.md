@@ -346,6 +346,15 @@ has — rather than over a handful of fixtures; see its own module docstring.
 
 ## Changelog
 
+- **0.4.0** — `text_units(source, split_articles=False)` (issue #256): every
+  `article` node yields exactly one unit, `piece == 0`, whatever its length
+  — rules 3 and 9 never apply to an article this way. Default behaviour
+  (`split_articles=True`) is unchanged and stays byte-identical.
+  `max_unit_chars` gained `split_articles` and `CapReport` gained
+  `articles_over_cap`, counting an over-cap article separately from
+  `over_cap`/`splittable` so the `splittable == 0` invariant stays
+  meaningful either way.
+
 - **0.3.0** — the *acuerdo*-shaped instrument (issue #227, Fase 1), as two
   rules added to `text_units`' own list rather than a renegotiation of it:
   **rule 8**, an instrument that never writes `Artículo N` numbers its
