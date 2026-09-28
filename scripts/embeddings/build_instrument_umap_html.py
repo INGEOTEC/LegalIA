@@ -3,7 +3,7 @@
 Issue #242, the second half: `instrument_matrix.py` asked, for every unit of
 every instrument, which *other* instrument owns the nearest text, and gave
 each unit row one unit of weight to split (`1/m` over its `m` answers); this
-embeds the 1,523 rows of that matrix and draws them. The weights are
+embeds the rows of that matrix (1,303 in the Atlas) and draws them. The weights are
 fractional, which is why the page's counts carry a decimal.
 
     uv run --group viz python scripts/embeddings/build_instrument_umap_html.py
@@ -11,7 +11,7 @@ fractional, which is why the page's counts carry a decimal.
         --n-neighbors 8,16 --force --output output/instruments.html
 
 An instrument is therefore represented by **where its articles' nearest
-foreign neighbours live** — a 1,523-long distribution over the other
+foreign neighbours live** — a distribution over the other
 instruments — rather than by its own text. Two laws land together when their
 articles point at the same places, which is a statement about the corpus'
 structure rather than about vocabulary.
@@ -19,10 +19,10 @@ structure rather than about vocabulary.
 * Rows are L2-normalised (`normalise_rows`), so a 3,600-article code and a
   single-article lineamiento are compared by *where* they point, never by how
   much they point. A zero row would mean an instrument whose every unit
-  failed to find a foreign neighbour, which cannot happen (1,522 candidates
-  are always available) — so it raises rather than becoming a `nan`.
+  failed to find a foreign neighbour, which cannot happen (every other instrument
+  is always a candidate) — so it raises rather than becoming a `nan`.
 * Four UMAP fits, `n_neighbors` 4 / 8 / 16 / 32, `metric="cosine"`,
-  `min_dist=0.1`, **`random_state=0`**: at 1,523 points the fit is seconds,
+  `min_dist=0.1`, **`random_state=0`**: at ~1,300 points the fit is seconds,
   so the single-threaded cost a seed forces is worth a reproducible page
   (the opposite of `project_umap.py`'s decision, for the opposite reason).
   They run on the login node; no Slurm job, nothing to wait for.
@@ -233,7 +233,7 @@ def instrument_points(work_dir: Path, *, log=print):
     # written out as `3349.39990234375`, which is what the tooltip would then
     # show. Rounding a float32 does not help — the rounded value is not
     # representable either. The matrix on disk stays `float32`; this is two
-    # columns of 1,523 numbers headed for JSON.
+    # columns of ~1,300 numbers headed for JSON.
     points["out"] = matrix.sum(axis=1).astype("float64").round(1)
     points["in"] = matrix.sum(axis=0).astype("float64").round(1)
     rows = [target_rows(matrix, instruments, i) for i in range(len(points))]

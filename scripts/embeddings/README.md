@@ -647,16 +647,16 @@ answer to "what do the neighbours cost". The compiled-Vega check ran on the
 real spec and logged both clear streams, as above; the footer is present
 exactly once.
 
-## The instrument map (issue #242)
+## The instrument map (issues #242, #259)
 
 The UMAP explorer above is a picture of **texts**. This is a picture of the
-1,523 **instruments** that own them, built from one question asked of every
-unit of every federal law, reglamento and lineamiento:
+1,303 unique **instruments** that own them, built from one question asked of
+every unit of every federal law, reglamento and lineamiento:
 
 > which instrument owns the text closest to this one, among all the texts
 > that are not exclusively mine?
 
-Weighing the answers gives a square matrix `A` (1,523 × 1,523, rows and
+Weighing the answers gives a square matrix `A` (1,303 × 1,303, rows and
 columns in `instruments.parquet`'s `i` order): every unit row of instrument
 `I` hands out a total weight of **1**, `A[I, J] += 1/m` to each of the `m`
 instruments owning a winning text. An instrument is then represented by
@@ -664,27 +664,103 @@ instruments owning a winning text. An instrument is then represented by
 the other instruments — rather than by its own text, and two instruments land
 together when their articles point at the same places.
 
+The vectors are the whole-article ones (`split_articles: false`, `md2akn`
+0.4.0, issue #256) that `legalvec` reads back from the three
+`scjn-*-vectors` releases.
+
 ### Where things are
 
 | What | Path |
 |---|---|
+| The input, read once (issues #241, #259) | `scripts/embeddings/prepare_umap_input.py --unique-names` → `emb-run-atlas/` (`vectors.npy`, `vector_ids.parquet`, `instruments.parquet`, `centroid_input.npy`, `input.json`, `unique-instruments.json`, `prepare.done`) |
+| Which instruments are unique | `scripts/embeddings/unique_instruments.py` |
 | The matrix (a Slurm job) | `scripts/embeddings/instrument_matrix.py` |
-| The page | `scripts/embeddings/build_instrument_umap_html.py` → `output/umap-instruments-qwen3-0.6b.html` (+ `.vl.json`) |
+| The research page | `scripts/embeddings/build_instrument_umap_html.py` → `output/umap-instruments-qwen3-0.6b.html` (+ `.vl.json`) |
 | The website's data (issue #244) | `scripts/embeddings/export_atlas_data.py` → `website/pages/atlas/atlas.json` (committed) |
-| The pair explanations (issue #249) | `scripts/embeddings/export_atlas_pairs.py` → `emb-run-umap/atlas-pairs/` (`pairs/`, `manifest.json`, `atlas-pairs.tar.gz`, `SHA256SUMS.txt`, `PUBLICAR.md`, `.done`), installed into `website/pages/atlas/pairs/` (gitignored); published by hand as the release `atlas-pairs`, body `.github/atlas-pairs.md` |
-| Everything derived | `emb-run-umap/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
+| The pair explanations (issue #249) | `scripts/embeddings/export_atlas_pairs.py` → `emb-run-atlas/atlas-pairs/` (`pairs/`, `manifest.json`, `atlas-pairs.tar.gz`, `SHA256SUMS.txt`, `PUBLICAR.md`, `.done`), installed into `website/pages/atlas/pairs/` (gitignored); published by hand as the release `atlas-pairs`, body `.github/atlas-pairs.md` |
+| Everything derived | `emb-run-atlas/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
-Nothing here is committed, and nothing `prepare_umap_input.py` or
-`project_umap.py` wrote is touched: this is one subdirectory inside #241's
-own work directory, and it only ever *reads* `vectors.npy`,
-`vector_ids.parquet` and `instruments.parquet`.
+Nothing here is committed except `atlas.json`. Every command takes
+`--work-dir emb-run-atlas` explicitly: the scripts' own default stays
+`emb-run-umap/`, the unit-level explorer's work directory, which this chain
+never touches.
 
 ```bash
-uv run --group viz python scripts/embeddings/instrument_matrix.py --dry-run
-uv run --group viz python scripts/embeddings/instrument_matrix.py --submit
-uv run --group viz python scripts/embeddings/instrument_matrix.py --wait --max-wait-minutes 9
-uv run --group viz python scripts/embeddings/build_instrument_umap_html.py
+uv run --group viz python scripts/embeddings/prepare_umap_input.py \
+    --work-dir emb-run-atlas --unique-names
+uv run --group viz python scripts/embeddings/instrument_matrix.py --work-dir emb-run-atlas --dry-run
+uv run --group viz python scripts/embeddings/instrument_matrix.py --work-dir emb-run-atlas --submit
+uv run --group viz python scripts/embeddings/instrument_matrix.py --work-dir emb-run-atlas \
+    --wait --max-wait-minutes 9
+uv run --group viz python scripts/embeddings/build_instrument_umap_html.py --work-dir emb-run-atlas
+uv run --group viz python scripts/embeddings/export_atlas_data.py --work-dir emb-run-atlas
+uv run --group viz python scripts/embeddings/export_atlas_pairs.py --work-dir emb-run-atlas \
+    --atlas website/pages/atlas/atlas.json --install website/pages/atlas/pairs
 ```
+
+Before `prepare_umap_input.py`, check that the three cached
+`~/.cache/legalvec/scjn-*-vectors/corpus-manifest.json` say `"split_articles":
+false`, and refresh with `uv run legalvec download --collection all` if not.
+The unique-name selection also reads the SCJN corpus for the two id-keyed
+collections' snapshot dates; a missing tarball raises `scjn.AssetNotCached`,
+whose message names the `scjn download --coleccion ...` command that fixes it.
+
+### Unique instruments (issue #259)
+
+The SCJN does not reform a reglamento or a lineamiento into a new version: it
+reissues it under a new `idOrdenamiento` and keeps the old one. So the
+corpora hold several instruments with the same name, and drawing each would
+count the same regulation several times. The Atlas compares **unique** laws,
+regulations and guidelines, and `unique_instruments.py` is the rule:
+
+- **Only `reglamentos` and `lineamientos` are grouped.** Laws are keyed by
+  `abrev`, a curated key, and pass through untouched (`lamn` and `lamni` both
+  read "LEY DE AMNISTÍA" and both stay). Names are never compared across
+  collections.
+- **A name is folded** — NFKD, combining marks dropped, whitespace collapsed,
+  casefolded — and nothing looser: no fuzzy matching, and punctuation is not
+  folded. That is what pairs `REGLAMENTO  DEL CONCURSO PROGOL…` (a double
+  space) with its reissue.
+- **The newest original publication date wins**: the date of the instrument's
+  own *oldest* snapshot, read from the SCJN corpus and parsed (`fecha_publicacion`
+  is `DD-MM-YYYY`, never compared as a string); a tie goes to the larger
+  integer `id_ordenamiento`. It agrees with the SCJN's own `vigencia ==
+  "VIGENTE"` in all 104 groups that have exactly one VIGENTE member, and has no
+  ties today. The newest *latest*-snapshot date is not usable: an abrogated
+  instrument's last snapshot can carry the date of the decree that replaced it,
+  so it ties often.
+- **Only instruments that have vectors compete**, so a text-less instrument
+  can never win a group and erase one the Atlas can draw.
+
+| collection | same-name groups | dropped | kept |
+|---|---|---|---|
+| leyes | (not grouped) | 0 | 315 |
+| reglamentos | 138 | 219 | 863 |
+| lineamientos | 1 | 1 | 125 |
+| **total** | | 220 | **1,303** |
+
+Four kept pairs of regulations still differ only by punctuation (a final
+period, or a comma) — `159474`/`178861`, `52327`/`107302`, `69462`/`108392` and
+`81471`/`108459` — since the rule folds accents, whitespace and case only.
+
+`prepare_umap_input.py --unique-names` applies it **before the vector matrix is
+stacked**, so a dropped instrument has no row in `instruments.parquet`, no unit
+row in the join, and no place in `matrix.npy`. The vector rows are restricted
+to texts a *kept* instrument carries too: `legalvec.load_vectors` always unions
+in the collection's whole shared file, which also holds texts only a dropped
+instrument owns, and those never become a row (so they can never be a
+candidate). `unique-instruments.json` records, per collection, the
+before/kept/dropped counts and every dropped instrument with its name, first
+publication date and the `clave` that replaced it; `input.json` records
+`"unique_names": true`. `instrument_matrix.py` asserts that the joined unit rows
+equal the sum of `instruments.parquet`'s `units`. Without the flag nothing
+changes, which keeps the unit-level explorer's inputs reproducible.
+
+`export_atlas_data.py` and `export_atlas_pairs.py` refuse (`SystemExit`) a work
+directory whose `input.json` does not record `unique_names: true`, or whose
+`instruments.parquet` still lists an instrument `unique-instruments.json` says
+was dropped, so the website cannot be fed a map that counts a reissued
+regulation several times.
 
 ### The rules that define `A`
 
@@ -701,9 +777,10 @@ Each of these was a decision in issue #242, not a default:
   instruments share is evidence about both, so both are credited — but a unit
   row is one article and weighs one, however many instruments answer for it.
   Row sums therefore equal the instrument's unit-row count exactly, which
-  `matrix.json` records as `row_sums_equal_units`. The first pass added +1 to
-  each instead; see *What the first run measured, and why the rule changed*
-  below.
+  `matrix.json` records as `row_sums_equal_units`. Without it a single
+  boilerplate winner ("Se deroga.", a standard transitorio) owned by hundreds
+  of instruments would credit hundreds of cells at once, and `A` would count
+  article–instrument incidences rather than articles.
 - **Per unit row, not per distinct text.** A boilerplate transitorio repeated
   `m` times inside a code is `m` articles and counts `m` times — the same
   choice #241's centroids made.
@@ -717,12 +794,11 @@ Each of these was a decision in issue #242, not a default:
   index. The published vectors are **not** normalised — their norms run 92 to
   121 — so the matrix is normalised once, in place, before any product.
   `--block-rows` (default 1,024) bounds one product at ~1.6 GB whatever the
-  instrument; `ccf`'s 3,654 distinct texts against all 381,349 would be
-  5.6 GB in one piece. Blocking changes no count, which a test asserts.
+  instrument. Blocking changes no count, which a test asserts.
 - **Directed, never symmetrised.** A reglamento pointing at its law says
   nothing about the law pointing back. The other direction is not thrown
-  away: the page's tooltip carries both the row sum (`units pointing out`)
-  and the column sum (`foreign units pointing here`).
+  away: the research page's tooltip carries both the row sum (`units pointing
+  out`) and the column sum (`foreign units pointing here`).
 
 The unit → instrument → vector row join is **`build_umap_html.load_frames`
 itself**, imported and called with no projection, rather than a second copy:
@@ -746,11 +822,12 @@ session can poll in chunks instead of holding a process open. `.done` makes a
 plain rerun a no-op; `--force` recomputes — `--submit --force` forwards the
 flag into the job (the `.done` check happens there, not at submission time)
 and deletes the previous run's `.done` first, so `--wait` cannot mistake the
-run being replaced for the one it is waiting on.
+run being replaced for the one it is waiting on. The job runs this checkout's
+own `.venv` (shared `/home`), so it executes whatever branch is checked out.
 
-### The page
+### The research page
 
-`build_instrument_umap_html.py` runs on the login node — 1,523 × 1,523 is
+`build_instrument_umap_html.py` runs on the login node — 1,303 × 1,303 is
 seconds of work, so there is no job to submit. Rows are L2-normalised (a
 zero row raises rather than reaching UMAP as `nan`), then fitted four times
 with `n_neighbors` 4 / 8 / 16 / 32, `metric="cosine"`, `min_dist=0.1` and
@@ -761,29 +838,23 @@ seconds, and buys a reproducible page. Each projection is min-max scaled into
 without rescaling an axis.
 
 One layered scatter: colour by collection (legend-bound toggle), size by
-`units` on a **log** scale (1 to 3,663 — on a linear scale every lineamiento
-would be an invisible dot), a radio for `n_neighbors` defaulting to 16, and a
+`units` on a **log** scale, a radio for `n_neighbors` defaulting to 16, and a
 click that puts a black ring and the instrument's name on the picked point
 and red rings on the five instruments its units point at hardest (the
 comma-separated-string trick #241 validated, read back with Vega's `split`).
 `nearest` is **off**, for the reason #241 measured. The tooltip carries
 `nombre`, `clave`, `coleccion`, `units`, both directions of the matrix and
 the five strongest targets — all weights to **one decimal**, since a weight
-is a sum of fractions. `units pointing out` now equals `units` for every
-instrument, which is the `1/m` rule visible on every tooltip; both are kept
-for exactly that reason, and the column sum (`foreign units pointing here`)
-is the one that varies. The same provenance footer and `usermeta.provenance`
-as #241's page, through the same helpers.
+is a sum of fractions. `units pointing out` equals `units` for every
+instrument, which is the `1/m` rule visible on every tooltip; the column sum
+(`foreign units pointing here`) is the one that varies. The same provenance
+footer and `usermeta.provenance` as #241's page, through the same helpers.
 
 **The five targets are five tooltip rows, and they are the five red rings.**
 Each is its own field (`top1`..`top5`, titled `target 1`..`target 5`, after
 `foreign units pointing here`), written **weight first**, two spaces, then
-the name — the Universidad Autónoma Chapingo's first row reads `13.0  LEY
-Orgánica de la Universidad Autónoma Agraria Antonio Narro`. The earlier page put all five, newline-joined and weight last, in a
-single `strongest targets` cell, and vega-tooltip's default style clips a
-value cell at **300px × 7em** — with federal instruments' names, about three
-of the five lines survived and the weights were the part cut off. No custom
-tooltip CSS was added; one row per target fits the default. An instrument
+the name — vega-tooltip's default style clips a value cell at **300px × 7em**,
+so one row per target is what fits without custom tooltip CSS. An instrument
 with fewer than five non-zero targets fills the remaining rows with an em
 dash `—`, not a null: vega-tooltip prints a null as the word `null` and skips
 only `undefined`. Both the rows and the `t` string the red-ring filter reads
@@ -797,13 +868,13 @@ written `.vl.json` reloaded, and the tests below.
 
 ### The atlas export
 
-The website's Atlas (issue #245) cannot read parquet or npy, so
-`export_atlas_data.py` (issue #244) writes one compact JSON into the
-website's own tree, **`website/pages/atlas/atlas.json`** — the one derived
-file committed for the page, like `website/pages/data/scjn-leyes-summary.json`:
+The website's Atlas cannot read parquet or npy, so `export_atlas_data.py`
+(issue #244) writes one compact JSON into the website's own tree,
+**`website/pages/atlas/atlas.json`** — the one derived file committed for the
+page, like `website/pages/data/scjn-leyes-summary.json`:
 
 ```bash
-uv run --group viz python scripts/embeddings/export_atlas_data.py
+uv run --group viz python scripts/embeddings/export_atlas_data.py --work-dir emb-run-atlas
 ```
 
 It is a pure read of `instruments.parquet`, `matrix.npy`, `matrix.json`,
@@ -818,13 +889,15 @@ Hallazgo C).
 One object, keys in this order:
 
 - `meta` — `title`, `generated` (ISO UTC), `commit` (provenance for the file,
-  never displayed by the page), `model`, `instruments` (1,523), `provisions`
-  (`matrix.json`'s `unit_rows`, 408,804), `distinct_texts` (`vector_rows`,
-  381,349), `collections` (`{"leyes": 315, "reglamentos": 1082,
-  "lineamientos": 126}`, counted from the table), `n_neighbors`,
-  `default_n_neighbors` (16), `umap` (`min_dist`, `metric`, `random_state`,
-  `umap_version` of the first fit), `weighting` (`"1/m"`), `top` (5),
-  `sources` (the three corpus releases, then the three `scjn-*-vectors`).
+  never displayed by the page), `model`, `instruments` (1,303), `provisions`
+  (`matrix.json`'s `unit_rows`, 161,989), `distinct_texts` (`vector_rows`,
+  145,788), `collections` (`{"leyes": 315, "reglamentos": 863,
+  "lineamientos": 125}`, counted from the table), `unique_names` (`true`),
+  `duplicates_dropped` (`{"reglamentos": 219, "lineamientos": 1}`, from
+  `unique-instruments.json`), `n_neighbors`, `default_n_neighbors` (16), `umap`
+  (`min_dist`, `metric`, `random_state`, `umap_version` of the first fit),
+  `weighting` (`"1/m"`), `top` (5), `sources` (the three corpus releases, then
+  the three `scjn-*-vectors`).
 - `instruments` — a list whose index is `i`, each `{"c": coleccion, "k":
   clave, "n": nombre, "p": provisions, "in": incoming weight, "out": [[j, w],
   …], "inc": [[j, w], …]}`. `out` is `strongest_targets(A, i, top)` and `inc`
@@ -839,40 +912,41 @@ One object, keys in this order:
 article, a transitory article or another indivisible text unit
 (`md2akn.text_units`), which a general reader calls a provision. The Python
 side keeps `units`; the words `units` and `tooltip` appear nowhere in the
-file. The exporter refuses (`SystemExit`) a matrix whose shape does not match
-the table, a requested `n_neighbors` missing from `umap.parquet`, an
-instrument with an empty `out`, and provisions that do not add up to
-`matrix.json`'s `unit_rows`.
+file. The exporter refuses (`SystemExit`) a work directory not prepared with
+`--unique-names`, a matrix whose shape does not match the table, a requested
+`n_neighbors` missing from `umap.parquet`, an instrument with an empty `out`,
+and provisions that do not add up to `matrix.json`'s `unit_rows`.
 
-Measured on 2026-09-22: **502 kB**, under a second; the Universidad Autónoma
-Chapingo (`luach`) points at Narro 13.0, UAM 11.3, Colegio de Postgraduados
-2.0, Ley Agraria 1.0 and Semillas 1.0 — all five, which the #242 tooltip
-showed only three of — and `cpeum` has 2,276 provisions. One instrument has
-an empty `inc` (nothing points at it); every `out` is non-empty.
+Measured on 2026-09-28: **426.7 kB** (114.9 kB gzipped), under a second; the
+Universidad Autónoma Chapingo (`luach`) points at the UAM 11.3, Narro 8.0, the
+IPN 1.3, Ley Agraria 1.0 and INFONACOT 1.0 — all five — and `cpeum` has 1,328
+provisions. Every instrument has at least one instrument pointing at it, and
+every `out` is non-empty.
 
 ### The pair explanations (issue #249)
 
-`atlas.json` says the Constitution is closest to the LGIPE with a weight of
-116.6 and nothing more. `export_atlas_pairs.py` writes the evidence behind
-every such number, one JSON per pair `(i, j)` the panel lists under *Closest
-instruments* — `j` among `strongest_targets(A, i, 5)`, taken from
+`atlas.json` says the Constitution is closest to the Código Penal Federal with
+a weight of 70.5 and nothing more. `export_atlas_pairs.py` writes the evidence
+behind every such number, one JSON per pair `(i, j)` the panel lists under
+*Closest instruments* — `j` among `strongest_targets(A, i, 5)`, taken from
 `export_atlas_data.weighted_targets` itself, so the files are exactly
 `atlas.json`'s `out` lists — with the full text of both sides:
 
 ```bash
-uv run --group viz python scripts/embeddings/export_atlas_pairs.py \
+uv run --group viz python scripts/embeddings/export_atlas_pairs.py --work-dir emb-run-atlas \
     --atlas website/pages/atlas/atlas.json --install website/pages/atlas/pairs
 ```
 
-It needs `emb-run-umap/instrument-matrix/.done` (plus `matrix.npy`,
+It needs `emb-run-atlas/instrument-matrix/.done` (plus `matrix.npy`,
 `nearest.parquet`, `vectors.npy`, `vector_ids.parquet`,
-`instruments.parquet`, each refused by name when missing) and the `legalvec`
-cache, and is a pure read of all of them. `.done` makes a rerun export
-nothing unless `--force`; `--install DIR` (run even then) replaces `DIR` with
-a copy of `pairs/`, so a pair from an earlier run cannot survive there.
-`--atlas` checks an existing `atlas.json` pair by pair, weight by weight and
-`clave` by `clave`. Other flags: `--work-dir`, `--cache-dir`, `--top` (5),
-`--tolerance` (1e-6), `--out-dir` (`<work-dir>/atlas-pairs`), `--repo`.
+`instruments.parquet`, each refused by name when missing), a work directory
+prepared with `--unique-names`, and the `legalvec` cache, and is a pure read of
+all of them. `.done` makes a rerun export nothing unless `--force`; `--install
+DIR` (run even then) replaces `DIR` with a copy of `pairs/`, so a pair from an
+earlier run cannot survive there. `--atlas` checks an existing `atlas.json`
+pair by pair, weight by weight and `clave` by `clave`. Other flags:
+`--work-dir`, `--cache-dir`, `--top` (5), `--tolerance` (1e-6), `--out-dir`
+(`<work-dir>/atlas-pairs`), `--repo`.
 
 `pairs/<i>-<j>.json`, `i`/`j` being positions in `atlas.json`'s
 `instruments`, holds, keys in this order: `source` and `target` (`i`, `k`
@@ -905,41 +979,45 @@ once per file, as `md2akn` emits it.
 - **Release + per-pair files, not a commit and not one file.** The files are
   far too big for `master`; GitHub release assets send no
   `Access-Control-Allow-Origin` header, so a browser cannot read them from a
-  release; GitHub Pages gzips JSON on the fly (`atlas.json`, 502 kB, is served
-  as 141 kB), so one plain `.json` per pair costs a median click ~3 kB. The
+  release; GitHub Pages gzips JSON on the fly (`atlas.json`, 427 kB, is served
+  as 115 kB), so one plain `.json` per pair costs a median click ~3 kB. The
   tarball is published by a human as the release `atlas-pairs`
   (`PUBLICAR.md`, generated, never run by the script; issue #115, Hallazgo
   C), and the website's publish workflow unpacks it into the site (#250).
   It is reproducible: sorted members, mtime/uid/gid 0, gzip mtime 0.
+- **`PUBLICAR.md` replaces the release in place.** The `atlas-pairs` tag
+  already exists after its first publication, so the generated file leads with
+  `gh release upload ... --clobber` and `gh release edit --notes-file
+  .github/atlas-pairs.md` (the create command is kept only for a repository
+  that has no such release yet), under the warning to do it **before** the
+  pull request that carries the regenerated `atlas.json` is merged to
+  `master`: `website.yml` pairs the committed `atlas.json` with whatever the
+  release holds when it runs, and the page's `k` check would answer every click
+  with the "different version of the map" message.
 
-Measured on 2026-09-23 against the `1/m` run (job 42196), on the login node:
+Measured on 2026-09-28, on the login node:
 
 | | value |
 |---|---|
-| wall clock | 6 min 11 s (5 min 8 s of it the per-pair products), 3.1 GB peak RSS |
-| pairs | 7,604 |
-| unit rows the pairs explain | 301,583 of 408,804 (weight 269,324.3) |
-| unit rows per pair | median 12, p90 86, p99 459, max 2,461 |
-| JSON | 355.8 MB raw, 59.7 MB gzipped file by file; per file median 12.4 kB / 3.0 kB, p95 202 / 31 kB, max 3.2 MB / 312 kB |
-| `atlas-pairs.tar.gz` | 53.5 MB |
-| largest file | `pairs/1286-476.json`: the *REGLAMENTO INTERIOR DE LA SECRETARIA DE HACIENDA Y CREDITO PUBLICO* → another instrument with the same title (the SCJN reissues a reglamento under a new id), 2,461 rows |
-| Constitution → LGIPE (`pairs/8-158.json`) | 170 unit rows, 123 distinct texts, weight 116.6; 55 rows with `m > 1` (`m` up to 153, the boilerplate transitorios "**Primero.** El presente Decreto entrará en vigor…"); the first two rows are the "D.O.F. 2 DE JUNIO DE 2026" headings at 1.0 with `m = 1`, then the transitorios at 1.0 |
+| wall clock | 46 s |
+| pairs | 6,501 |
+| unit rows the pairs explain | 115,055 of 161,989 (weight 90,688.1) |
+| unit rows per pair | median 7, p90 41, p99 157, max 732 (`pairs/0-6.json`, *CÓDIGO Civil Federal* → *CÓDIGO Nacional de Procedimientos Civiles y Familiares*) |
+| JSON | 183.3 MB raw, 42.2 MB gzipped file by file; per file median 10.3 kB / 2.9 kB, p95 104.9 / 22.4 kB, max 1.19 MB / 219 kB |
+| `atlas-pairs.tar.gz` | 37.2 MB |
+| largest file | `pairs/1122-1059.json` (1.19 MB, 102 rows): the *REGLAMENTO INTERIOR DE LA SECRETARIA DE MEDIO AMBIENTE Y RECURSOS NATURALES* → the same title with a final period, one of the four punctuation-only pairs above |
+| Constitution → Código Penal Federal (`pairs/8-9.json`) | 185 unit rows, 108 distinct texts, weight 70.5; 128 rows with `m > 1` (`m` up to 157, the boilerplate transitorio "**Primero.** El presente Decreto entrará en vigor el día siguiente…"); 152 transitory rows add 44.8, the other 33 (31 headings, two articles) add 25.7 |
 
 Every file's `weight` equals its `atlas.json` `out` weight, every text key
 resolves, every file is sorted, and `Σ 1/m` is within 0.05 of `weight` except
-for float noise on 27 exact halves (13.25 is 13.2 in `atlas.json` too).
-Nothing under `instrument-matrix/` and no byte of `atlas.json` changed
-(checksums before and after). The issue's own plan quoted 125 rows for the
-Constitution → LGIPE pair and 9 with `m > 1`, and a median of 9 rows per
-pair; those do not add up to its own 301,583 total, which is the per-unit-row
-count above.
+for float noise on exact halves.
 
 ### The Atlas page
 
 The file above is what the website's **Atlas** reads
 (`website/pages/atlas.qmd`, navbar *Atlas*, issue #245): a hand-written D3 v7
 application in `website/pages/atlas/atlas.js` and `atlas.css`, the public
-successor of this section's research page. It draws circle **area**
+successor of the research page. It draws circle **area**
 proportional to provisions (a square-root radius, 2.5 px floor) in the site's
 palette (laws `#2a78d6`, regulations `#008300`, guidelines `#e87ba4`), lists
 all five closest instruments and the five that point here in a detail panel
@@ -960,22 +1038,25 @@ block verbatim, and leave a screenshot with Chapingo selected at
 they skip with the reason; the static checks on the qmd, `_quarto.yml` and the
 two files always run. The `test_rendered_*` tests (issue #247) render
 `pages/atlas.qmd` with Quarto into `website/_site/` (gitignored) and drive the
-page Quarto actually wrote, site CSS included — the harness alone missed that
-Quarto's `aside` rule collapsed the map to 0 px — leaving
+page Quarto actually wrote, site CSS included — the harness alone cannot see
+Quarto's `aside` rule collapse the map to 0 px — leaving
 `output/atlas-rendered.png` and `output/atlas-rendered-chapingo.png`; they
 skip only when no Quarto is found on `PATH` or under
-`~/.local/opt/quarto-*/bin/quarto`.
+`~/.local/opt/quarto-*/bin/quarto`. Every number the tests compare with the
+page (the subtitle's counts, Chapingo's five targets, the Constitution's
+provisions, the pair dialog's rows) is read off `atlas.json` and the installed
+pair file, so the prose and the data cannot drift.
 
 **The explanation dialog (issue #250).** Each weight under *Closest
 instruments* is a `button.atlas-why` that opens a native `<dialog>` over the
 pair file #249 exports: a heading naming both instruments, one sentence
-("170 provisions of … have their closest text outside it in …; they add up to
-116.6 of its 2,276 provisions."), and a table — number, the source provision
+("185 provisions of … have their closest text outside it in …; they add up to
+70.5 of its 1,328 provisions."), and a table — number, the source provision
 (label, breadcrumb, full text), the closest text in the target (the same, plus
 "also N other provisions … carry this text" when several do), similarity to
 three decimals, and the weight as `1` or `1/m` with "this text is shared by
 *m* instruments". Rows keep the file's order and arrive 50 at a time ("Show 50
-more (120 left)"); the mount's `data-page-size` changes that number, and
+more (135 left)"); the mount's `data-page-size` changes that number, and
 exists for the tests. Text is Markdown rendered bold-only, paragraphs on blank
 lines, never shortened, never parsed as HTML. The file is fetched on the first
 click only (a `Map` per page load), from the mount's `data-pairs`
@@ -988,8 +1069,8 @@ it (only the five closest are exported) and stays plain numbers.
 
 To see it locally the pairs have to be under `website/pages/atlas/pairs/`
 (gitignored): either `uv run --group viz python
-scripts/embeddings/export_atlas_pairs.py --install website/pages/atlas/pairs`,
-or the published release by hand:
+scripts/embeddings/export_atlas_pairs.py --work-dir emb-run-atlas --install
+website/pages/atlas/pairs`, or the published release by hand:
 
 ```bash
 gh release download atlas-pairs --repo INGEOTEC/LegalIA \
@@ -1004,9 +1085,9 @@ pair explanations* step runs those lines (plus `manifest.json` into the same
 directory) before `quarto publish`, and fails when the release or the asset
 is missing, because a site without the files would answer every click with
 "not available". It only copies what a human published (issue #115, Hallazgo
-C) — so **publish `atlas-pairs` before this reaches `master`**, or the next
-website run fails. `_quarto.yml`'s `pages/atlas/**` resource glob already
-ships the directory.
+C) — so **replace `atlas-pairs` before this reaches `master`**, or the next
+website run pairs the new `atlas.json` with the old pair files.
+`_quarto.yml`'s `pages/atlas/**` resource glob already ships the directory.
 
 The dialog's tests run over a toy site — the six-instrument corpus exported
 by both scripts into a temporary `website/pages/` look-alike with the real
@@ -1014,108 +1095,96 @@ by both scripts into a temporary `website/pages/` look-alike with the real
 against the panel, `1/m`, paging, the three ways to close, focus, no request
 before the click and one per pair, both messages, bold-only rendering, and a
 390 px phone. With the real pairs installed, one more test opens the
-Constitution → LGIPE table (170 rows, 116.6, `1/101`) and saves
-`output/atlas-explain-cpeum-lgipe.png`; without them it skips. A rendered-site
-test checks Quarto's `h2` rule does not reach the dialog.
+Constitution's heaviest pair (Código Penal Federal, 185 rows, 70.5, `1/157`)
+and saves `output/atlas-explain-cpeum.png`; without them it skips. A
+rendered-site test checks Quarto's `h2` rule does not reach the dialog.
 
 ### Tests
 
 ```bash
-uv run --group viz pytest scripts/embeddings/tests/test_instrument_matrix.py -q
+uv run --group viz pytest scripts/embeddings/tests -q
 ```
 
-A six-instrument toy corpus over two collections whose vectors are written
-by hand, so every weight in the expected matrix is derivable with a pen: a
-text shared inside a collection wins at cosine 1, a text identical across
-collections wins at cosine 1 from the other side, one row ties across two
-foreign instruments and gives ½ to each, one text repeated twice inside an
-instrument counts twice, an instrument's own exclusive texts are masked, and
-a boilerplate line carried by three leyes at once ("Se deroga.") is won
-outright — one winning row, three owners — by a lineamiento whose unit hands
-them ⅓ each. The row-sum identity (`A.sum(axis=1)` = each instrument's unit
-count, `A.sum()` = the unit rows) is asserted on the toy matrix, as are
-`float32` and `weight == 1/m`. Blocking is asserted invisible (`--block-rows
-1` against the default), the Slurm plumbing is driven through a fake `squeue`
-in its three states (plus `--force` forwarded into the job and the previous
-`.done` dropped), and the page is built with a stub reducer.
-`tests/test_export_atlas_data.py` imports the same toy corpus and checks the
-atlas export against it: the schema and key order, `p`/`in`/`out`/`inc`
-against the matrix and `strongest_targets`, rounded unit-square projections,
-no refit, and each refusal above. `tests/test_export_atlas_pairs.py` does
-the same for the pair explanations: one file per `strongest_targets` pair,
-each file's rows exactly `nearest.parquet`'s and adding up to its cell, every
-winning target text re-checked with numpy, the tie, the three-owner
-boilerplate and the repeated text of the toy corpus, `unit_label` on every
-type, the manifest, the sums, the reproducible tarball, `PUBLICAR.md`, the
-rerun/`--force`/`--install` rules and the refusals.
+`tests/test_instrument_matrix.py`: a six-instrument toy corpus over two
+collections whose vectors are written by hand, so every weight in the
+expected matrix is derivable with a pen: a text shared inside a collection
+wins at cosine 1, a text identical across collections wins at cosine 1 from
+the other side, one row ties across two foreign instruments and gives ½ to
+each, one text repeated twice inside an instrument counts twice, an
+instrument's own exclusive texts are masked, and a boilerplate line carried
+by three leyes at once ("Se deroga.") is won outright — one winning row,
+three owners — by a lineamiento whose unit hands them ⅓ each. The row-sum
+identity (`A.sum(axis=1)` = each instrument's unit count, `A.sum()` = the unit
+rows, both equal to `instruments.parquet`'s `units`) is asserted on the toy
+matrix, as are `float32` and `weight == 1/m`. Blocking is asserted invisible
+(`--block-rows 1` against the default), the Slurm plumbing is driven through
+a fake `squeue` in its three states (plus `--force` forwarded into the job
+and the previous `.done` dropped), and the page is built with a stub reducer.
+`tests/test_unique_instruments.py` covers the selection on toy records — the
+newest original date, a three-member group, accent/double-space folding, a
+date tie resolved by the larger id, `DD-MM-YYYY` parsing, leyes and cross-
+collection names never merged, and the snapshot-date lookup against a stub
+reader. `tests/test_umap_scripts.py` runs `prepare_umap_input.py
+--unique-names` over a toy corpus with a duplicated lineamiento: the dropped
+instrument's exclusive and shared-file-only vectors get no row, and
+`unique-instruments.json`/`input.json` say what happened (the default keeps
+everything and writes no report). `tests/test_export_atlas_data.py` imports
+the same toy corpus and checks the atlas export against it: the schema and
+key order, `p`/`in`/`out`/`inc` against the matrix and `strongest_targets`,
+rounded unit-square projections, no refit, and each refusal above (including
+a work directory prepared without `--unique-names`).
+`tests/test_export_atlas_pairs.py` does the same for the pair explanations:
+one file per `strongest_targets` pair, each file's rows exactly
+`nearest.parquet`'s and adding up to its cell, every winning target text
+re-checked with numpy, the tie, the three-owner boilerplate and the repeated
+text of the toy corpus, `unit_label` on every type, the manifest, the sums,
+the reproducible tarball, a `PUBLICAR.md` that replaces the existing release
+first, the rerun/`--force`/`--install` rules and the refusals.
 
-### What the first run measured, and why the rule changed
+### Measured, 2026-09-28
 
-The first run of this matrix credited **+1 to each** instrument owning a
-winning text, and produced `A.sum() = 1,639,503` for 408,804 unit rows — four
-counts per row on average against a median of one. Ties were not the cause
-(678 rows had any). It was the *owners* rule: a single winning column can be
-owned by hundreds of instruments at once (the worst row: **847**), because
-boilerplate — a transitorio, "Se deroga." — is one vector row shared across a
-whole collection. `A` was therefore counting article–instrument *incidences*,
-not articles, and the "strongest targets" of many instruments were simply
-whoever owns the most boilerplate.
-
-Hence the `1/m` rule above: a unit row with one unambiguous foreign
-neighbour still adds 1, and a row answered by 847 instruments adds 1/847 to
-each instead of 847 counts at once. The winner search, the tolerance, the
-masking and everything on the page are unchanged — only the crediting is, so
-the two maps differ by the rule alone. The first matrix was overwritten in
-place (`--force`); `matrix.json`'s `weighting` says which rule produced what
-is on disk.
-
-### Measured, `geoint`, 2026-09-22 (the `1/m` run, job 42196)
-
-The matrix, one job on `geoint1` (62 threads, `--exclude=geoint0`):
+Prepared on the login node in 156.6 s (315 + 863 + 125 instruments, 145,788
+distinct texts). The matrix, one job (42202) on `geoint1` (62 threads,
+`--exclude=geoint0`):
 
 | phase | seconds |
 |---|---|
-| load (the join + `vectors.npy`) | 2.4 |
-| normalise (381,349 rows, in place) | 0.8 |
-| sweep (381,349 × 381,349 cosines, blocked) | 665.9 |
-| write | 0.5 |
-| **total** | **670.8 s (11.2 min)** |
+| load (the join + `vectors.npy`) | 4.2 |
+| normalise (145,788 rows, in place) | 0.3 |
+| sweep (145,788 × 145,788 cosines, blocked) | 109.8 |
+| write | 0.3 |
+| **total** | **115.1 s** |
 
-Peak RSS **4.27 GB** of the ~245 GB a node has — a fraction of what the issue
-budgeted, because a 1,024-row block and one normalised copy of the matrix is
-all that is ever live. Inside the 5–30 minute estimate, and nowhere near the
-two-hour ceiling; the same arithmetic as the +1 run, to within 3 seconds.
+Peak RSS **2.11 GB** of the ~245 GB a node has — a 1,024-row block and one
+normalised copy of the matrix is all that is ever live.
 
 | what | value |
 |---|---|
-| unit rows answered | 408,804 |
-| vector rows | 381,349 (10,309 owned by more than one instrument) |
-| instruments | 1,523 |
-| `A.sum()` | **408,804.0** — one unit row, one unit of weight |
-| every row sums to that instrument's unit count | yes (`row_sums_equal_units`, worst deviation 4.9e-4) |
-| non-zero cells | 864,966 of 2,319,529 (37 %) |
-| unit rows with a tie | 678 (676 two-way, 2 three-to-five-way) |
-| largest `m` | 847 |
-| mean similarity of the winner | 0.843 |
-| unit rows whose winner is an identical text (cosine 1) | 35,829 (8.8 %) |
+| unit rows answered | 161,989 |
+| vector rows | 145,788 (4,853 owned by more than one instrument) |
+| instruments | 1,303 |
+| `A.sum()` | **161,989.0** — one unit row, one unit of weight |
+| every row sums to that instrument's unit count | yes (`row_sums_equal_units`) |
+| non-zero cells | 556,384 of 1,697,809 (33 %) |
+| unit rows with a tie | 2,556 (2,510 two-way, 46 three-to-five-way) |
+| largest `m` | 650 |
+| mean similarity of the winner | 0.813 |
+| unit rows whose winner is an identical text (cosine 1) | 21,852 (13.5 %) |
 
-The `m` histogram — how many instruments a unit row's answer is split over —
-is what the change is about:
+The `m` histogram — how many instruments a unit row's answer is split over:
 
 | `m` | 1 | 2 | 3–5 | 6–20 | 21–100 | 101+ |
 |---|---|---|---|---|---|---|
-| unit rows | 377,349 | 11,317 | 8,454 | 5,679 | 4,105 | 1,900 |
+| unit rows | 141,294 | 5,630 | 5,758 | 4,124 | 3,554 | 1,629 |
 
-92 % of unit rows have a single answer and are credited exactly as before;
-the 1,900 rows with `m ≥ 101` are the boilerplate ones that used to add up to
-847 counts each, and now add one between them.
+87 % of unit rows have a single answer and are credited a whole 1; the 1,629
+with `m ≥ 101` are the boilerplate ones, which add one between them.
 
 The four fits, on the login node, `random_state=0`:
 
 | `n_neighbors` | 4 | 8 | 16 | 32 | total |
 |---|---|---|---|---|---|
-| seconds | 38.7 | 18.1 | 20.6 | 21.0 | **98.4** |
+| seconds | 14.0 | 5.2 | 6.0 | 6.9 | **32.1** |
 
-The page: **1.40 MB** for 1,523 instruments — three orders of magnitude under
-the unit-level page, which is what one point per instrument instead of one
-per unit row buys — with the footer present exactly once.
+The research page: **1.2 MB** for 1,303 instruments, with the footer present
+exactly once.

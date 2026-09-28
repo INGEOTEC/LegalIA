@@ -1,10 +1,10 @@
 """Export the evidence behind every *Closest instruments* weight of the Atlas.
 
 Issue #249. The Atlas (`website/pages/atlas.qmd`, issues #244/#245) says the
-Constitution is closest to the *LEY General de Instituciones y Procedimientos
-Electorales* with a weight of 116.6, and nothing more. That number is a sum:
+Constitution is closest to the *CÓDIGO Penal Federal* with a weight of 70.5,
+and nothing more. That number is a sum:
 every provision (unit row) of the Constitution whose nearest text outside the
-Constitution belongs to the LGIPE adds `1/m` to it, `m` being how many
+Constitution belongs to the Código Penal Federal adds `1/m` to it, `m` being how many
 instruments own that winning text (issue #242's rule, `instrument_matrix.py`).
 This script writes, for every pair the panel lists under **Closest
 instruments**, which provisions those are and what they matched, with the full
@@ -21,7 +21,7 @@ It is a pure read of #242's outputs — `instrument-matrix/matrix.npy`,
 and never touches any of them. No Slurm, no network, ~3 minutes.
 
 * **Which pairs.** `export_atlas_data.weighted_targets` over `matrix.npy`,
-  imported, so the files are exactly `atlas.json`'s `out` lists: 7,604 pairs,
+  imported, so the files are exactly `atlas.json`'s `out` lists: 6,501 pairs,
   file `pairs/<i>-<j>.json`, `i`/`j` being positions in `atlas.json`'s
   `instruments` array (= `instruments.parquet`'s `i`). `--atlas` checks an
   existing `atlas.json` against that, pair by pair and `clave` by `clave`.
@@ -47,7 +47,7 @@ fixed mtime/uid/gid, gzip mtime 0), `SHA256SUMS.txt` and `PUBLICAR.md`, with
 `--install DIR` then replaces `DIR` with a copy of `pairs/` (the site's own,
 gitignored `website/pages/atlas/pairs/`).
 
-**Nothing here publishes anything.** The files are ~264 MB, too much for
+**Nothing here publishes anything.** The files are ~183 MB, too much for
 `master`, and GitHub release assets carry no CORS header, so the page cannot
 read them from a release either: a human publishes the tarball as the release
 `atlas-pairs` by running `PUBLICAR.md`, and the website's publish workflow

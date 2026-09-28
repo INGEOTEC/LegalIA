@@ -1,7 +1,7 @@
 // The Atlas of Mexican federal law (issue #245).
 //
 // A hand-written D3 v7 application over one file, `atlas.json`, which
-// `scripts/embeddings/export_atlas_data.py` exports (issue #244): 1,523
+// `scripts/embeddings/export_atlas_data.py` exports (issue #244): 1,303
 // instruments, each with its provisions (`p`), the weight other instruments'
 // provisions send it (`in`), its five closest instruments (`out`) and the five
 // that point at it hardest (`inc`), as `[id, weight]` pairs, plus four

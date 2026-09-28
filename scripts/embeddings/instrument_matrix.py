@@ -1,13 +1,13 @@
 """Count, per instrument, where its units' nearest *foreign* neighbours live.
 
-Issue #242. Issue #241 drew the picture of 381,349 texts; this draws the
-picture of the 1,523 instruments that own them, by asking one question of
+Issue #242. Issue #241 drew the picture of the texts; this draws the
+picture of the unique instruments that own them (1,303 in the Atlas), by asking one question of
 every unit of every federal law, reglamento and lineamiento:
 
     which instrument owns the text closest to this one, among all the texts
     that are not exclusively mine?
 
-The answer is a square weight matrix `A` (1,523 x 1,523, rows and columns in
+The answer is a square weight matrix `A` (instruments x instruments, rows and columns in
 `instruments.parquet`'s own `i` order): every unit row of instrument `I`
 distributes a total weight of **1** over the `m` instruments owning a winning
 text, `A[I, J] += 1/m` for each of them. The diagonal is zero by construction,
@@ -52,9 +52,9 @@ changing quietly:
 Outputs, under `--work-dir/instrument-matrix/`, written atomically with
 `.done` last:
 
-* `matrix.npy` — `(1523, 1523)` `float32` (`float64` while accumulating), row
+* `matrix.npy` — `(instruments, instruments)` `float32` (`float64` while accumulating), row
   `i` the source instrument.
-* `nearest.parquet` — one row per **unit row** (408,804): `i`, `coleccion`,
+* `nearest.parquet` — one row per **unit row** (161,989 in the Atlas): `i`, `coleccion`,
   `clave`, `unit_type`, `eId`, `row` (vector row), `similarity`, `n_winners`
   (how many vector *rows* tied — a different number from `m`, since one row
   can have several owners and two tied rows can share one), `targets` (the
@@ -247,7 +247,7 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     owners = owners_of_rows(units, n_vectors)
     shared_rows = sum(1 for group in owners if len(group) > 1)
     instruments = int(units["i"].max()) + 1
-    # `float64` while accumulating: 408,804 additions of fractions as small as
+    # `float64` while accumulating: 162,000 additions of fractions as small as
     # 1/847, summed to an identity the summary asserts at 1e-3. It is written
     # as `float32`, which halves a 9 MB file and verifies at that tolerance.
     matrix = np.zeros((instruments, instruments), dtype=np.float64)

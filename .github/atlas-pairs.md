@@ -1,12 +1,12 @@
 The evidence behind every **Closest instruments** weight of the website's
 [Atlas](https://ingeotec.github.io/LegalIA/pages/atlas.html): for each of the
-1,523 federal laws, regulations and guidelines, and each of the (at most) five
+1,303 unique federal laws, regulations and guidelines, and each of the (at most) five
 instruments it points at hardest, which of its provisions point there, the
 text they matched on the other side, and how much each one adds to the weight.
 
 | Asset | Contents |
 |---|---|
-| `atlas-pairs.tar.gz` | `pairs/<i>-<j>.json`, one file per pair, plus `manifest.json` |
+| `atlas-pairs.tar.gz` | `pairs/<i>-<j>.json`, one file per pair (6,501 files, 183 MB of JSON, 37 MB compressed), plus `manifest.json` |
 | `manifest.json` | What produced the files: commit, matrix summary, tolerance, counts, sizes |
 | `SHA256SUMS.txt` | The digest of the two assets above |
 
@@ -22,6 +22,6 @@ file.
 The website's publish workflow downloads this asset and unpacks it into the
 site: GitHub release assets carry no CORS header, so a browser cannot read
 them from here. Built by `scripts/embeddings/export_atlas_pairs.py` (issue
-#249) from the gitignored `emb-run-umap/` work directory, and published by a
+#249) from the gitignored `emb-run-atlas/` work directory, and published by a
 human, never by a workflow (issue #115, Hallazgo C). The SCJN is not an
 official source of legal text; the DOF is.
