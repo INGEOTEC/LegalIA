@@ -22,7 +22,7 @@ six-instrument corpus of `test_instrument_matrix.py`, exported by
 `export_atlas_data.py` and `export_atlas_pairs.py` into a temporary directory
 laid out like `website/pages/`, with the real `atlas.js`/`atlas.css`), and,
 when `website/pages/atlas/pairs/` has been installed, over the real
-Constitution -> LGIPE pair.
+pair the Constitution's heaviest weight names.
 
 The static checks at the top always run. The browser tests skip, with the
 reason, when Playwright or its Chromium is missing; the rendered-page tests
@@ -60,8 +60,7 @@ SCREENSHOT = REPO / "output" / "atlas-chapingo.png"
 SITE = WEBSITE / "_site"
 PAIRS = PAGES / "atlas" / "pairs"
 WORKFLOW = REPO / ".github" / "workflows" / "website.yml"
-EXPLAIN_SCREENSHOT = REPO / "output" / "atlas-explain-cpeum-lgipe.png"
-LGIPE = "LEY General de Instituciones y Procedimientos Electorales"
+EXPLAIN_SCREENSHOT = REPO / "output" / "atlas-explain-cpeum.png"
 NOT_AVAILABLE = "The explanation for this pair is not available."
 OTHER_VERSION = "The explanation was built for a different version of the map."
 RENDERED_SCREENSHOT = REPO / "output" / "atlas-rendered.png"
@@ -70,18 +69,39 @@ RENDERED_CHAPINGO_SCREENSHOT = REPO / "output" / "atlas-rendered-chapingo.png"
 QUARTO_MARGIN_COLOR = "rgb(99, 96, 86)"
 
 TITLE = "An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines"
-SUBTITLE = ("315 laws, 1,082 regulations and 126 guidelines, placed by where their "
-            "provisions' closest texts live")
 PALETTE = {"leyes": "#2a78d6", "reglamentos": "#008300", "lineamientos": "#e87ba4"}
 CONSTITUTION = "CONSTITUCIÓN Política de los Estados Unidos Mexicanos"
 CHAPINGO = "LEY que crea la Universidad Autónoma Chapingo"
-CHAPINGO_TARGETS = [
-    ("13.0", "LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro"),
-    ("11.3", "LEY Orgánica de la Universidad Autónoma Metropolitana"),
-    ("2.0", "REGLAMENTO INTERIOR DEL COLEGIO DE POSTGRADUADOS"),
-    ("1.0", "LEY Agraria"),
-    ("1.0", "LEY Federal de Producción, Certificación y Comercio de Semillas"),
-]
+
+
+def atlas_data() -> dict:
+    return json.loads(DATA.read_text(encoding="utf-8"))
+
+
+def instrument(data: dict, clave: str) -> dict:
+    return next(entry for entry in data["instruments"] if entry["k"] == clave)
+
+
+def counts(data: dict) -> dict:
+    """The numbers the page prints, read off `atlas.json` so the prose, the
+    subtitle and the legend cannot drift from the data."""
+    collections = data["meta"]["collections"]
+    return {"leyes": collections["leyes"], "reglamentos": collections["reglamentos"],
+            "lineamientos": collections["lineamientos"]}
+
+
+def subtitle_of(data: dict) -> str:
+    n = counts(data)
+    return (f"{n['leyes']:,} laws, {n['reglamentos']:,} regulations and "
+            f"{n['lineamientos']:,} guidelines, placed by where their "
+            "provisions' closest texts live")
+
+
+def targets_of(data: dict, clave: str) -> list[tuple[str, str]]:
+    """`(weight, name)` per closest instrument, as the panel prints them."""
+    return [(f"{weight:.1f}", data["instruments"][j]["n"])
+            for j, weight in instrument(data, clave)["out"]]
+
 
 #: What the page must never say: the Python side's word for a provision, the
 #: HTML word for the element the page replaced, the parameter's own name, and
@@ -117,7 +137,7 @@ def test_the_qmd_has_the_agreed_front_matter_and_no_code():
     text = QMD.read_text(encoding="utf-8")
     fields = front_matter(text)
     assert fields["title"] == TITLE
-    assert fields["subtitle"] == SUBTITLE
+    assert fields["subtitle"] == subtitle_of(atlas_data())
     assert fields["page-layout"] == "full"
     assert fields["toc"] == "false"
     assert fields["number-sections"] == "false"
@@ -186,8 +206,18 @@ def test_the_installed_pairs_are_never_committed():
 def test_the_qmd_describes_the_explanation_and_its_example():
     text = QMD.read_text(encoding="utf-8")
     assert "opens a table of\nthe provisions behind that number" in text
-    for number in ("116.6", "170 provisions", "35.6", "153"):
-        assert number in text, number
+    data = atlas_data()
+    constitution = instrument(data, "cpeum")
+    j, weight = constitution["out"][0]
+    pair = json.loads((PAIRS / f"{data['instruments'].index(constitution)}-{j}.json")
+                      .read_text(encoding="utf-8")) if PAIRS.is_dir() else None
+    assert data["instruments"][j]["n"] in text
+    assert f"{weight:.1f}" in text
+    if pair is not None:
+        transitory = [r for r in pair["rows"] if r["label"].startswith("Transitory")]
+        for number in (f"{pair['provisions']} provisions", str(max(r["m"] for r in pair["rows"])),
+                       f"{sum(1 / r['m'] for r in transitory):.1f}"):
+            assert number in text, number
 
 
 def test_the_application_carries_the_dialog_and_its_two_messages():
@@ -200,7 +230,14 @@ def test_the_application_carries_the_dialog_and_its_two_messages():
 
 def test_the_data_file_is_the_244_export():
     data = json.loads(DATA.read_text(encoding="utf-8"))
-    assert len(data["instruments"]) == data["meta"]["instruments"] == 1523
+    assert len(data["instruments"]) == data["meta"]["instruments"] == sum(
+        data["meta"]["collections"].values())
+    # Unique instruments only (issue #259): no `duplicates_dropped` key without
+    # `unique_names`, and no name repeated inside a reissued collection.
+    assert data["meta"]["unique_names"] is True
+    assert set(data["meta"]["duplicates_dropped"]) <= {"reglamentos", "lineamientos"}
+    names = [(e["c"], e["n"]) for e in data["instruments"] if e["c"] != "leyes"]
+    assert len(names) == len(set(names))
     assert sorted(data["projections"], key=int) == ["4", "8", "16", "32"]
 
 
@@ -318,7 +355,7 @@ def panel_title(page):
 
 def test_every_instrument_is_one_circle_in_the_sites_palette(page):
     circles = page.locator("circle.atlas-point")
-    assert circles.count() == 1523
+    assert circles.count() == atlas_data()["meta"]["instruments"]
     fills = set(page.eval_on_selector_all(
         "circle.atlas-point", "nodes => nodes.map(n => n.getAttribute('fill'))"))
     assert fills == set(PALETTE.values())
@@ -342,7 +379,8 @@ def test_constitucion_finds_the_constitution_first_and_enter_selects_it(page):
     page.wait_for_function(
         "name => document.querySelector('.atlas-panel h2')?.textContent === name",
         arg=CONSTITUTION)
-    assert "2,276 provisions" in page.locator(".atlas-panel").inner_text()
+    provisions = instrument(atlas_data(), "cpeum")["p"]
+    assert f"{provisions:,} provisions" in page.locator(".atlas-panel").inner_text()
     # Brought into view: after the pan, its centre is inside the map.
     page.wait_for_timeout(900)
     box = page.locator("svg.atlas-map").bounding_box()
@@ -364,12 +402,13 @@ def test_chapingo_shows_all_five_closest_instruments_and_five_lines(page):
     assert rows.count() == 5
     weights = rows.locator(".atlas-weight").all_inner_texts()
     names = rows.locator(".atlas-target-name").all_inner_texts()
-    assert list(zip(weights, names)) == CHAPINGO_TARGETS
+    assert list(zip(weights, names)) == targets_of(atlas_data(), "luach")
     assert page.locator(".atlas-inc .atlas-target").count() == 5
     panel = page.locator(".atlas-panel").inner_text()
-    assert "35 provisions" in panel
+    luach = instrument(atlas_data(), "luach")
+    assert f"{luach['p']} provisions" in panel
     assert "abbreviation luach" in panel
-    assert "28 provisions of other instruments" in panel
+    assert f"{round(luach['in'])} provisions of other instruments" in panel
     assert page.locator("line.atlas-link").count() == 5
     badges = page.locator("g.atlas-badge text").all_text_contents()
     assert sorted(badges) == ["1", "2", "3", "4", "5"]
@@ -383,7 +422,7 @@ def test_a_name_in_the_panel_selects_that_instrument(page):
     page.locator(".atlas-out .atlas-target-name").first.click()
     page.wait_for_function(
         "name => document.querySelector('.atlas-panel h2')?.textContent === name",
-        arg=CHAPINGO_TARGETS[0][1])
+        arg=targets_of(atlas_data(), "luach")[0][1])
     assert page.locator("circle.atlas-ring").count() == 1
 
 
@@ -431,9 +470,10 @@ def test_a_collection_button_dims_the_other_two(page):
     assert page.get_attribute(law, "opacity") == "0.8"
     assert page.locator(regulation).first.get_attribute("opacity") == "0.8"
     laws = page.locator('.atlas-collection[data-c="leyes"]')
-    assert "315 laws" in laws.inner_text()
-    assert "1,082 regulations" in page.locator(".atlas-collections").inner_text()
-    assert "126 guidelines" in page.locator(".atlas-collections").inner_text()
+    n = counts(atlas_data())
+    assert f"{n['leyes']:,} laws" in laws.inner_text()
+    assert f"{n['reglamentos']:,} regulations" in page.locator(".atlas-collections").inner_text()
+    assert f"{n['lineamientos']:,} guidelines" in page.locator(".atlas-collections").inner_text()
     laws.click()
     assert laws.get_attribute("aria-pressed") == "true"
     assert page.get_attribute(law, "opacity") == "0.8"
@@ -564,7 +604,7 @@ def visible_circles_inside(page, box):
 def test_rendered_map_has_width_and_visible_points(rendered_page):
     box = rendered_svg_box(rendered_page)
     assert box["width"] > 600
-    assert visible_circles_inside(rendered_page, box) >= 1400
+    assert visible_circles_inside(rendered_page, box) >= 0.9 * atlas_data()["meta"]["instruments"]
     tracks = rendered_page.evaluate(
         "() => getComputedStyle(document.querySelector('.atlas-main'))"
         ".gridTemplateColumns")
@@ -892,45 +932,51 @@ def test_toy_dialog_fills_a_phone_and_stacks_its_rows(browser, toy_site):
         toy.close()
 
 
-# -- the real Constitution -> LGIPE pair, when installed ---------------------- #
+# -- the real Constitution pair, when installed ------------------------------- #
 
-def test_the_constitution_explains_its_lgipe_weight(page):
+def test_the_constitution_explains_its_heaviest_weight(page):
     if not PAIRS.is_dir():
         pytest.skip(f"{PAIRS} is not installed: run export_atlas_pairs.py --install "
                     "website/pages/atlas/pairs, or unpack the atlas-pairs release there")
+    data = atlas_data()
+    cpeum = instrument(data, "cpeum")
+    target_index, weight = cpeum["out"][0]
+    target = data["instruments"][target_index]["n"]
+    name = f"{data['instruments'].index(cpeum)}-{target_index}.json"
+    pair = json.loads((PAIRS / name).read_text(encoding="utf-8"))
+    total = pair["provisions"]
+    shared = max(r["m"] for r in pair["rows"])
+
     requests = []
     page.on("request", lambda request: requests.append(request.url))
     select_by_search(page, "constitucion", CONSTITUTION)
     assert not [url for url in requests if "/atlas/pairs/" in url]
-    row = page.locator(".atlas-out .atlas-target").filter(has_text=LGIPE)
+    row = page.locator(".atlas-out .atlas-target").filter(has_text=target)
     button = row.locator(".atlas-why")
-    assert button.inner_text() == "116.6"
+    assert button.inner_text() == f"{weight:.1f}"
     button.click()
     page.wait_for_selector(".atlas-explain-table tbody tr")
     title = page.locator("#atlas-explain-title").inner_text()
-    assert CONSTITUTION in title and LGIPE in title
+    assert CONSTITUTION in title and target in title
     lead = page.locator(".atlas-explain-lead").inner_text()
-    assert lead.startswith("170 provisions of ")
-    assert "they add up to 116.6 of its 2,276 provisions" in lead
+    assert lead.startswith(f"{total} provisions of ")
+    assert f"they add up to {weight:.1f} of its {cpeum['p']:,} provisions" in lead
     rows = page.locator(".atlas-explain-table tbody tr")
     assert rows.count() == 50
     more = page.locator(".atlas-explain-more")
-    assert more.inner_text() == "Show 50 more (120 left)"
-    for shown in (100, 150, 170):
+    assert more.inner_text() == f"Show 50 more ({total - 50} left)"
+    for shown in [*range(100, total, 50), total]:
         more.click()
         assert rows.count() == shown
     assert not more.is_visible()
-    assert page.locator(".atlas-explain-count").inner_text() == "Showing 170 of 170"
-    assert weights_in_table(page) == pytest.approx(116.6, abs=0.05)
+    assert page.locator(".atlas-explain-count").inner_text() == f"Showing {total} of {total}"
+    assert weights_in_table(page) == pytest.approx(weight, abs=0.05)
     fractions = page.locator(".atlas-explain-fraction").all_inner_texts()
-    assert "1/101" in fractions and "1" in fractions
+    assert f"1/{shared}" in fractions and "1" in fractions
     table = page.locator(".atlas-explain-table").inner_text()
-    assert "this text is shared by 101 instruments" in table
+    assert f"this text is shared by {shared} instruments" in table
     # The whole text, both sides: the file's own, rendered without its `**`.
-    claves = [entry["k"] for entry in json.loads(DATA.read_text(encoding="utf-8"))["instruments"]]
-    name = f"{claves.index('cpeum')}-{button.get_attribute('data-i')}.json"
     assert [url.rsplit("/", 1)[1] for url in requests if "/atlas/pairs/" in url] == [name]
-    pair = json.loads((PAIRS / name).read_text(encoding="utf-8"))
     longest = max(pair["rows"], key=lambda r: len(pair["texts"][str(r["text"])]))
     expected = pair["texts"][str(longest["text"])].replace("**", "")
     assert expected[-60:] in table

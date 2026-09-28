@@ -72,7 +72,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_umap_html as html  # noqa: E402
 import instrument_matrix  # noqa: E402
 from build_instrument_umap_html import TOP_TARGETS  # noqa: E402
-from export_atlas_data import weighted_targets  # noqa: E402
+from export_atlas_data import duplicates_dropped, weighted_targets  # noqa: E402
 
 RELEASE = "atlas-pairs"
 ASSET = "atlas-pairs.tar.gz"
@@ -195,6 +195,9 @@ def check_inputs(work_dir: Path) -> None:
             raise SystemExit(f"{path} is missing -- this export reads what "
                              "instrument_matrix.py (issue #242) and "
                              "prepare_umap_input.py (issue #241) wrote")
+    # The Atlas draws unique instruments only (issue #259): refuse a work
+    # directory prepared without `--unique-names`, as `export_atlas_data.py` does.
+    duplicates_dropped(work_dir)
 
 
 def pairs_of(matrix, top: int = TOP_TARGETS) -> list[tuple[int, int, float]]:
@@ -427,18 +430,12 @@ def publish_instructions(out_dir: Path, repo: str, manifest: dict) -> str:
         "",
         f"Release body: `.github/{RELEASE}.md` in the repository. The file *is* the body.",
         "",
-        "The first publication:",
+        f"**Replace the `{RELEASE}` release before the pull request that carries this",
+        "`atlas.json` is merged to `master`.** The website's publish workflow pairs the",
+        "committed `atlas.json` with whatever this release holds when it runs, and the pair",
+        "dialogs would show the page's \"different version of the map\" message.",
         "",
-        "```bash",
-        "REPO=$(git rev-parse --show-toplevel)",
-        f'cd "{_cd_target(out_dir)}"',
-        "sha256sum -c SHA256SUMS.txt",
-        f'gh release create {RELEASE} --repo {repo} --title "LegalIA — Atlas pair explanations" '
-        f"--notes-file $REPO/.github/{RELEASE}.md {assets}",
-        "```",
-        "",
-        "Every later regeneration replaces the assets of the same tag, which is the",
-        "one name the website's publish workflow downloads:",
+        "Replacing the assets of the existing release, in place (same tag):",
         "",
         "```bash",
         "REPO=$(git rev-parse --show-toplevel)",
@@ -446,6 +443,16 @@ def publish_instructions(out_dir: Path, repo: str, manifest: dict) -> str:
         "sha256sum -c SHA256SUMS.txt",
         f"gh release upload {RELEASE} --repo {repo} {assets} --clobber",
         f"gh release edit {RELEASE} --repo {repo} --notes-file $REPO/.github/{RELEASE}.md",
+        "```",
+        "",
+        "Only if the release does not exist yet:",
+        "",
+        "```bash",
+        "REPO=$(git rev-parse --show-toplevel)",
+        f'cd "{_cd_target(out_dir)}"',
+        "sha256sum -c SHA256SUMS.txt",
+        f'gh release create {RELEASE} --repo {repo} --title "LegalIA — Atlas pair explanations" '
+        f"--notes-file $REPO/.github/{RELEASE}.md {assets}",
         "```",
         "",
         "Read all of this before running it. Nothing here publishes itself "

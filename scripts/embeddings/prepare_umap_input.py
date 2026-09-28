@@ -14,6 +14,16 @@ here, because it got a vector in each release.
 
     uv run --group viz python scripts/embeddings/prepare_umap_input.py
     uv run --group viz python scripts/embeddings/prepare_umap_input.py --force
+    uv run --group viz python scripts/embeddings/prepare_umap_input.py \\
+        --work-dir emb-run-atlas --unique-names
+
+`--unique-names` (issue #259, what the Atlas is built with) keeps one
+instrument per name in `reglamentos` and `lineamientos` — see
+`unique_instruments.py` for the rule — and removes the others **before** the
+vector matrix is stacked. A dropped instrument therefore has no row anywhere
+downstream, and a vector row that only dropped instruments own does not exist,
+so it can never be a candidate either. Off by default, so #241's unit-level
+inputs stay reproducible.
 
 Outputs, all under `--work-dir` (`emb-run-umap/`, gitignored):
 
@@ -23,7 +33,11 @@ Outputs, all under `--work-dir` (`emb-run-umap/`, gitignored):
   `distinct_texts`.
 * `centroid_input.npy` — `(instruments, K)` `float32`, the mean of an
   instrument's **unit rows'** vectors.
-* `input.json` — model, K, N, per-collection counts, `legalvec.__version__`.
+* `input.json` — model, K, N, per-collection counts, `legalvec.__version__`,
+  and whether `--unique-names` was on.
+* `unique-instruments.json` — only with `--unique-names`: per collection the
+  before/kept/dropped counts, and every dropped instrument with its name, its
+  first-publication date and the `clave` that replaced it.
 * `prepare.done` — written last; re-running without `--force` is a no-op.
 """
 
@@ -40,6 +54,7 @@ import pyarrow as pa
 import legalvec
 
 from _atomic import atomic_write_npy, atomic_write_table, atomic_write_text
+from unique_instruments import first_publication_dates, select_unique
 
 #: The three corpora, in the order their rows are stacked into `vectors.npy`.
 COLLECTIONS = ("leyes", "reglamentos", "lineamientos")
@@ -49,6 +64,41 @@ COLLECTIONS = ("leyes", "reglamentos", "lineamientos")
 DEFAULT_MODEL = "Qwen/Qwen3-Embedding-0.6B"
 
 DONE_MARKER = "prepare.done"
+
+UNIQUE_REPORT = "unique-instruments.json"
+
+
+def drop_duplicates(coleccion: str, records: list[dict], *, reader=None, log=print):
+    """`records` without the same-name duplicates of `coleccion`, the set of
+    `text_sha1` the kept ones own, and this collection's entry of
+    `unique-instruments.json`.
+
+    `leyes` is never grouped (`select_unique`), so its entry reports
+    `dropped: 0`, and it is not looked up in the SCJN corpus at all.
+    """
+    dated = first_publication_dates(
+        [{"coleccion": coleccion, "clave": r["clave"], "nombre": r["nombre"]} for r in records],
+        reader=reader)
+    kept_dated, dropped_dated = select_unique(dated)
+    kept_claves = {r["clave"] for r in kept_dated}
+    kept = [r for r in records if r["clave"] in kept_claves]
+    owned = {sha1 for r in kept for sha1 in r["text_sha1"]}
+    report = {
+        "before": len(records),
+        "kept": len(kept),
+        "dropped": len(dropped_dated),
+        "dropped_instruments": [
+            {
+                "clave": d["clave"],
+                "nombre": d["nombre"],
+                "first_publication": d["first_publication"].strftime("%d-%m-%Y"),
+                "replaced_by": d["replaced_by"],
+            }
+            for d in dropped_dated
+        ],
+    }
+    log(f"  {coleccion}: unique names keep {len(kept)} of {len(records)} instruments")
+    return kept, owned, report
 
 
 def instruments_of(units: pa.Table) -> list[dict]:
@@ -73,7 +123,8 @@ def instruments_of(units: pa.Table) -> list[dict]:
     return list(by_clave.values())
 
 
-def collection_matrix(coleccion: str, records: list[dict], model: str, *, cache_dir=None, log=print):
+def collection_matrix(coleccion: str, records: list[dict], model: str, *, cache_dir=None,
+                      owned: set[str] | None = None, log=print):
     """Every distinct vector of one collection, plus the row each
     `text_sha1` landed on.
 
@@ -94,7 +145,7 @@ def collection_matrix(coleccion: str, records: list[dict], model: str, *, cache_
         vectors = legalvec.load_vectors(coleccion, record["clave"], model, cache_dir=cache_dir)
         k = vectors.k
         for i, sha1 in enumerate(vectors.text_sha1):
-            if sha1 in row_of:
+            if sha1 in row_of or (owned is not None and sha1 not in owned):
                 continue
             row_of[sha1] = len(rows)
             # `.copy()` on purpose: a view would keep the whole `VectorSet`
@@ -137,9 +188,15 @@ def prepare(
     collections: tuple[str, ...] = COLLECTIONS,
     cache_dir=None,
     force: bool = False,
+    unique_names: bool = False,
+    corpus_reader=None,
     log=print,
 ) -> dict:
-    """Write the whole input set, returning what `input.json` records."""
+    """Write the whole input set, returning what `input.json` records.
+
+    `unique_names` applies `unique_instruments.select_unique` per collection.
+    `corpus_reader` is `first_publication_dates`' own `reader` hook.
+    """
     work_dir = Path(work_dir)
     marker = work_dir / DONE_MARKER
     if marker.exists() and not force:
@@ -153,14 +210,19 @@ def prepare(
     ids_sha1: list[str] = []
     instruments: list[dict] = []
     per_collection: dict[str, dict] = {}
+    unique_report: dict[str, dict] = {}
     k = None
 
     for coleccion in collections:
         units = legalvec.load_units(coleccion, cache_dir=cache_dir)
         records = instruments_of(units)
         log(f"{coleccion}: {units.num_rows} unit rows, {len(records)} instruments")
+        owned = None
+        if unique_names:
+            records, owned, unique_report[coleccion] = drop_duplicates(
+                coleccion, records, reader=corpus_reader, log=log)
         matrix, row_of, k_collection = collection_matrix(
-            coleccion, records, model, cache_dir=cache_dir, log=log
+            coleccion, records, model, cache_dir=cache_dir, owned=owned, log=log
         )
         if k is not None and k_collection != k:
             raise SystemExit(
@@ -185,7 +247,7 @@ def prepare(
                 "distinct_texts": len(set(record["text_sha1"])),
             })
         per_collection[coleccion] = {
-            "unit_rows": units.num_rows,
+            "unit_rows": sum(len(r["text_sha1"]) for r in records),
             "instruments": len(records),
             "distinct_texts": matrix.shape[0],
             "first_row": offset,
@@ -222,10 +284,14 @@ def prepare(
         "k": k,
         "n": int(vectors.shape[0]),
         "instruments": len(instruments),
+        "unique_names": unique_names,
         "collections": per_collection,
         "legalvec_version": legalvec.__version__,
         "seconds": round(time.time() - started, 1),
     }
+    if unique_names:
+        atomic_write_text(work_dir / UNIQUE_REPORT, json.dumps(
+            unique_report, indent=2, ensure_ascii=False) + "\n")
     atomic_write_text(work_dir / "input.json", json.dumps(summary, indent=2, ensure_ascii=False) + "\n")
     atomic_write_text(marker, "")
     log(json.dumps(summary, indent=2, ensure_ascii=False))
@@ -241,6 +307,8 @@ def main(argv=None) -> None:
     parser.add_argument("--collections", default=",".join(COLLECTIONS),
                         help="comma-separated collections to stack, in order")
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--unique-names", action="store_true",
+                        help="keep one reglamento/lineamiento per name (issue #259)")
     args = parser.parse_args(argv)
 
     prepare(
@@ -249,6 +317,7 @@ def main(argv=None) -> None:
         collections=tuple(c for c in args.collections.split(",") if c),
         cache_dir=args.cache_dir,
         force=args.force,
+        unique_names=args.unique_names,
     )
 
 

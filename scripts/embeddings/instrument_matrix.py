@@ -211,6 +211,7 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     import numpy as np
     import pandas as pd
     import pyarrow as pa
+    import pyarrow.parquet as pq
 
     from _atomic import atomic_write_npy, atomic_write_table, atomic_write_text
 
@@ -221,6 +222,15 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     timings: dict[str, float] = {}
     started = time.time()
     units = unit_rows(work_dir, collections=collections, cache_dir=cache_dir, log=log)
+    # `prepare_umap_input.py --unique-names` (issue #259) removes an instrument
+    # before its vectors are stacked; the join's inner merges must then have
+    # dropped its unit rows too. Anything else means `vector_ids.parquet` and
+    # `instruments.parquet` disagree, and every weight below would be wrong.
+    expected_rows = int(pq.read_table(work_dir / "instruments.parquet",
+                                      columns=["units"]).column("units").to_numpy().sum())
+    if len(units) != expected_rows:
+        raise SystemExit(f"{len(units)} unit rows joined, but instruments.parquet lists "
+                         f"{expected_rows}: rerun prepare_umap_input.py over this work directory")
     vectors = np.load(work_dir / "vectors.npy").astype(np.float32)
     timings["load"] = round(time.time() - started, 1)
     log(f"{len(units)} unit rows over {vectors.shape[0]} vectors "

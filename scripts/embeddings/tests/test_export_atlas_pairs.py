@@ -284,6 +284,12 @@ def test_the_manifest_sums_and_publish_plan(exported):
     assert "--clobber" in plan
     assert "--notes-file $REPO/.github/atlas-pairs.md" in plan
     assert plan.rstrip().endswith("(issue #115, Hallazgo C).")
+    # Issue #259: the existing release is replaced in place, and that block
+    # comes first, under the warning to do it before merging to `master`.
+    assert "gh release edit atlas-pairs --repo INGEOTEC/LegalIA --notes-file" in plan
+    assert plan.index("gh release upload") < plan.index("gh release create")
+    assert plan.index("before the pull request") < plan.index("gh release upload")
+    assert "merged to `master`" in plan
     assert (out_dir / ".done").exists()
 
 
@@ -381,6 +387,16 @@ def test_the_atlas_check_passes_on_its_own_export_and_fails_on_another(exported,
 def test_a_missing_matrix_is_refused_by_name(prepared, cache):
     with pytest.raises(SystemExit, match=r"instrument-matrix/\.done"):
         run(prepared, cache)
+
+
+def test_a_work_dir_prepared_without_unique_names_is_refused(labelled, cache):
+    record = labelled / "input.json"
+    data = json.loads(record.read_text(encoding="utf-8"))
+    data["unique_names"] = False
+    record.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(SystemExit, match="--unique-names"):
+        run(labelled, cache)
+    assert not (export_atlas_pairs.output_dir(labelled) / ".done").exists()
 
 
 def test_a_recorded_similarity_the_vectors_disagree_with_is_refused(labelled, cache):

@@ -123,12 +123,28 @@ def cache(tmp_path):
     return root
 
 
+def stub_corpus_reader(dates=None):
+    """`unique_instruments.first_publication_dates`' `reader` hook: every
+    instrument has one snapshot, dated `dates[clave]` (2000 by default), so no
+    tarball of the SCJN release is needed."""
+    dates = dates or {}
+
+    def reader(coleccion):
+        def read(clave, cache_dir=None):
+            return {"id_ordenamiento": clave,
+                    "snapshots": [{"fecha_publicacion": dates.get(clave, "01-01-2000")}]}
+        return read
+    return reader
+
+
 @pytest.fixture
 def prepared(tmp_path, cache):
     """`prepare_umap_input.py`'s own output over the toy corpus — the work
-    directory this issue reads."""
+    directory this issue reads, prepared the way the Atlas is (`--unique-names`,
+    issue #259; no toy instrument shares a name, so nothing is dropped)."""
     work_dir = tmp_path / "work"
     prepare_umap_input.prepare(work_dir, collections=COLLECTIONS, cache_dir=cache,
+                               unique_names=True, corpus_reader=stub_corpus_reader(),
                                log=lambda *a: None)
     return work_dir
 
@@ -702,3 +718,23 @@ def test_the_page_refuses_to_build_without_a_finished_matrix(tmp_path):
     with pytest.raises(SystemExit):
         build_instrument_umap_html.build(tmp_path / "work", tmp_path / "out.html",
                                          log=lambda *a: None)
+
+
+def test_unit_rows_equal_the_instruments_own_unit_counts(prepared, cache):
+    """Issue #259: whatever `prepare_umap_input.py --unique-names` removed, the
+    join's unit rows are exactly what `instruments.parquet` lists."""
+    summary = computed(prepared, cache)["summary"]
+    instruments = pq.read_table(prepared / "instruments.parquet").to_pandas()
+    assert summary["unit_rows"] == int(instruments["units"].sum())
+    assert summary["matrix_sum"] == pytest.approx(float(instruments["units"].sum()), abs=1e-3)
+
+
+def test_an_instruments_table_that_disagrees_with_the_join_is_refused(prepared, cache):
+    table = pq.read_table(prepared / "instruments.parquet")
+    units = table["units"].to_numpy().copy()
+    units[0] += 1
+    table = table.set_column(table.schema.get_field_index("units"), "units",
+                             pa.array(units, type=pa.int32()))
+    pq.write_table(table, prepared / "instruments.parquet")
+    with pytest.raises(SystemExit, match="instruments.parquet lists"):
+        computed(prepared, cache)

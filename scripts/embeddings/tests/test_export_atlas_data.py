@@ -54,7 +54,7 @@ def test_the_schema_is_meta_instruments_projections(exported):
     assert list(data) == ["meta", "instruments", "projections"]
     assert list(data["meta"]) == [
         "title", "generated", "commit", "model", "instruments", "provisions",
-        "distinct_texts", "collections", "n_neighbors", "default_n_neighbors", "umap",
+        "distinct_texts", "collections", "unique_names", "duplicates_dropped", "n_neighbors", "default_n_neighbors", "umap",
         "weighting", "top", "sources"]
     meta = data["meta"]
     assert meta["title"] == ("An Atlas of Mexican Federal Law: Laws, Regulations "
@@ -201,3 +201,55 @@ def test_a_matrix_of_the_wrong_shape_is_a_system_exit(with_matrix, stub_umap, tm
     np.save(path, np.load(path)[:5, :5])
     with pytest.raises(SystemExit, match="instrument_matrix.py"):
         export_atlas_data.export(with_matrix, tmp_path / "atlas.json", log=lambda *a: None)
+
+
+# -- unique instruments (issue #259) ---------------------------------------- #
+
+def test_meta_records_unique_names_and_what_was_dropped(exported):
+    meta = exported["data"]["meta"]
+    assert meta["unique_names"] is True
+    # The toy corpus has no duplicate: the id-keyed collection present reports 0.
+    assert meta["duplicates_dropped"] == {"lineamientos": 0}
+
+
+def test_meta_reports_the_dropped_counts_per_id_keyed_collection(with_matrix, stub_umap, tmp_path):
+    report = with_matrix / "unique-instruments.json"
+    data = json.loads(report.read_text(encoding="utf-8"))
+    data["lineamientos"]["dropped"] = 2
+    data["lineamientos"]["dropped_instruments"] = [
+        {"clave": "old-1", "nombre": "X", "first_publication": "01-01-1990", "replaced_by": "900"},
+        {"clave": "old-2", "nombre": "X", "first_publication": "01-01-1991", "replaced_by": "900"},
+    ]
+    report.write_text(json.dumps(data), encoding="utf-8")
+    atlas = export_atlas_data.atlas(with_matrix, now=NOW, log=lambda *a: None)
+    assert atlas["meta"]["duplicates_dropped"] == {"lineamientos": 2}
+
+
+def test_a_work_dir_prepared_without_unique_names_is_refused(with_matrix, stub_umap, tmp_path):
+    record = with_matrix / "input.json"
+    data = json.loads(record.read_text(encoding="utf-8"))
+    data["unique_names"] = False
+    record.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(SystemExit, match="--unique-names"):
+        export_atlas_data.export(with_matrix, tmp_path / "atlas.json", log=lambda *a: None)
+    assert not (tmp_path / "atlas.json").exists()
+
+
+def test_input_json_without_the_key_is_refused_too(with_matrix, stub_umap, tmp_path):
+    record = with_matrix / "input.json"
+    data = json.loads(record.read_text(encoding="utf-8"))
+    del data["unique_names"]
+    record.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(SystemExit, match="--unique-names"):
+        export_atlas_data.atlas(with_matrix, log=lambda *a: None)
+
+
+def test_a_dropped_instrument_still_in_instruments_parquet_is_refused(with_matrix, stub_umap):
+    report = with_matrix / "unique-instruments.json"
+    data = json.loads(report.read_text(encoding="utf-8"))
+    data["lineamientos"]["dropped_instruments"] = [
+        {"clave": "900", "nombre": "Lineamientos P", "first_publication": "01-01-1990",
+         "replaced_by": "901"}]
+    report.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(SystemExit, match="listed as dropped"):
+        export_atlas_data.atlas(with_matrix, log=lambda *a: None)

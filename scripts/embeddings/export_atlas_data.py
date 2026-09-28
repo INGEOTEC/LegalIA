@@ -1,8 +1,9 @@
 """Export the instrument map as one compact JSON for the website's Atlas.
 
-Issue #244: `build_instrument_umap_html.py` (issue #242) draws the 1,523
-federal instruments as a standalone Vega-Lite page under `output/`, from what
-lives in the gitignored `emb-run-umap/`. The website cannot read parquet or
+Issue #244: `build_instrument_umap_html.py` (issue #242) draws the federal
+instruments as a standalone Vega-Lite page under `output/`, from what lives in
+the gitignored work directory (`emb-run-atlas/`, prepared with `--unique-names`,
+issue #259). The website cannot read parquet or
 npy, and that page inlines a 1.4 MB dataset with redundant columns, so this
 script writes **one JSON** with exactly what the Atlas needs, into the
 website's own tree:
@@ -29,8 +30,11 @@ loudly when the matrix is missing, and is a no-op once `umap.parquet` exists
   weight is a sum of `1/m` fractions.
 * **`out`'s total is not exported**: under the `1/m` rule it equals `p` for
   every instrument (`matrix.json`'s `row_sums_equal_units`).
+* **Unique instruments only** (issue #259). A work directory prepared without
+  `prepare_umap_input.py --unique-names` is refused, and `meta` records
+  `unique_names` and `duplicates_dropped` per collection.
 * **Short keys** (`c`, `k`, `n`, `p`, `in`, `out`, `inc`) because there are
-  1,523 of each; `meta` spells everything out.
+  over a thousand of each; `meta` spells everything out.
 
 `meta.commit` is provenance for the file, and the page never displays it.
 Regenerating the committed file is this script, run by a human — never a
@@ -51,7 +55,8 @@ import instrument_matrix  # noqa: E402
 from build_instrument_umap_html import (  # noqa: E402
     DEFAULT_N_NEIGHBORS, DEFAULT_RADIO_VALUE, TOP_TARGETS, project, strongest_targets)
 from package_vectors import TAGS as VECTOR_TAGS  # noqa: E402
-from prepare_umap_input import DEFAULT_MODEL  # noqa: E402
+from prepare_umap_input import DEFAULT_MODEL, UNIQUE_REPORT  # noqa: E402
+from unique_instruments import GROUPED_COLLECTIONS  # noqa: E402
 
 DEFAULT_OUTPUT = Path("website/pages/atlas/atlas.json")
 DEFAULT_DECIMALS = 4
@@ -94,6 +99,38 @@ def model_name(work_dir: Path) -> str:
     return DEFAULT_MODEL
 
 
+def duplicates_dropped(work_dir: Path) -> dict:
+    """What `prepare_umap_input.py --unique-names` dropped, per id-keyed
+    collection (issue #259), after checking the work directory really was
+    prepared that way.
+
+    The Atlas draws unique laws, regulations and guidelines, so a work
+    directory prepared without `--unique-names` is refused here — with
+    `export_atlas_pairs.py` calling this too — rather than letting the website
+    be fed a map that counts a reissued regulation several times. Also refuses
+    an `instruments.parquet` that still lists an instrument the report says
+    was dropped.
+    """
+    import pyarrow.parquet as pq
+
+    work_dir = Path(work_dir)
+    record = work_dir / "input.json"
+    if not record.exists() or not json.loads(record.read_text(encoding="utf-8")).get("unique_names"):
+        raise SystemExit(f"{work_dir} was not prepared with `prepare_umap_input.py --unique-names` "
+                         "(input.json does not record unique_names: true): the Atlas draws "
+                         "unique instruments only, rerun the chain with that flag")
+    report = json.loads((work_dir / UNIQUE_REPORT).read_text(encoding="utf-8"))
+    table = pq.read_table(work_dir / "instruments.parquet").to_pandas()
+    present = set(zip(table["coleccion"], table["clave"].astype(str)))
+    for coleccion, entry in report.items():
+        for dropped in entry["dropped_instruments"]:
+            if (coleccion, str(dropped["clave"])) in present:
+                raise SystemExit(f"{coleccion} {dropped['clave']} is listed as dropped in "
+                                 f"{UNIQUE_REPORT} but is in instruments.parquet")
+    return {name: int(entry["dropped"]) for name, entry in report.items()
+            if name in GROUPED_COLLECTIONS}
+
+
 def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TARGETS,
           decimals: int = DEFAULT_DECIMALS, now=None, log=print) -> dict:
     """The whole export as one dict: `meta`, `instruments`, `projections`,
@@ -104,6 +141,7 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
     import pyarrow.parquet as pq
 
     work_dir = Path(work_dir)
+    dropped = duplicates_dropped(work_dir)
     n_neighbors = [int(k) for k in n_neighbors]
     # Only ever a check here: `umap.parquet` is on disk, so this refits nothing,
     # and a missing matrix is a `SystemExit` naming instrument_matrix.py.
@@ -172,6 +210,8 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
         "provisions": provisions,
         "distinct_texts": int(summary["vector_rows"]),
         "collections": collections,
+        "unique_names": True,
+        "duplicates_dropped": dropped,
         "n_neighbors": n_neighbors,
         "default_n_neighbors": (DEFAULT_RADIO_VALUE if DEFAULT_RADIO_VALUE in n_neighbors
                                 else n_neighbors[len(n_neighbors) // 2]),
