@@ -667,7 +667,7 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   every tied winner counts (1e-6 on float32 cosine, because identical texts
   across collections tie exactly); **a unit row distributes a total weight of
   1, `1/m` to each of the `m` instruments owning a winner**, so `A.sum()` is
-  the counted-row count (123,638 of 161,989 unit rows) and every row sums to that
+  the counted-row count (120,141 of 161,989 unit rows) and every row sums to that
   instrument's own counted rows — a boilerplate row credits each owner a
   fraction instead of hundreds of cells a whole 1, and `A` counts articles
   rather than article–instrument incidences; **a row whose winner is a
@@ -675,8 +675,14 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   (`m > 1`) is not counted** — it adds nothing to `A` and is not re-credited
   to a next-nearest text (`nearest.parquet` keeps it with `counted` false; an
   identical winner with `m == 1` still counts), and `matrix.json` records
-  `heading_rows_excluded`, `identical_shared_dropped` and `counted_rows`,
-  which `atlas.json`'s `meta` carries; per unit row, so a
+  **a transitorio (its `path` holds a `TRANSITORIOS…` label) whose best match
+  has similarity >= 0.99 (`TRANSITORIO_SIMILARITY`, `--transitorio-similarity`)
+  is not counted either**, whatever its `m`, since it repeats standard decree
+  wording — applied after the search, so transitorios stay candidates, and
+  only to transitorios; `nearest.parquet` marks each dropped row with a
+  `drop_reason`, and `matrix.json` records `heading_rows_excluded`,
+  `identical_shared_dropped`, `transitorio_near_identical_dropped` and
+  `counted_rows`, which `atlas.json`'s `meta` carries; per unit row, so a
   transitorio repeated *m* times counts *m*
   times; and only columns owned *exclusively* by the source are masked — a
   text it shares with another instrument is that unit's strongest foreign
@@ -833,7 +839,7 @@ see the #242 bullet above), #245 draws it.
   provisions behind the number, each beside the closest text the target has,
   both in full, with similarity and its `1` or `1/m`, 50 rows at a time.
   *Points here* stays plain. The data is one `pairs/<i>-<j>.json` per pair
-  (6,397, ~167 MB), written by `scripts/embeddings/export_atlas_pairs.py`
+  (6,372, ~165 MB), written by `scripts/embeddings/export_atlas_pairs.py`
   (#249) and never committed: a human publishes it as the `atlas-pairs`
   release (`PUBLICAR.md`, issue #115, Hallazgo C); `website.yml` downloads,
   verifies and unpacks that asset into `website/pages/atlas/pairs/` before

@@ -659,9 +659,9 @@ every unit of every federal law, reglamento and lineamiento:
 Weighing the answers gives a square matrix `A` (1,303 × 1,303, rows and
 columns in `instruments.parquet`'s `i` order): every *counted* unit row of
 instrument `I` hands out a total weight of **1**, `A[I, J] += 1/m` to each of
-the `m` instruments owning a winning text. Headings are not compared, and a
-word-for-word match shared by several instruments is not counted (see the
-rules below). An instrument is then represented by
+the `m` instruments owning a winning text. Headings are not compared, and
+neither are a word-for-word match shared by several instruments or a
+transitorio whose best match is a near-copy (see the rules below). An instrument is then represented by
 **where its articles' nearest foreign neighbours live** — a distribution over
 the other instruments — rather than by its own text, and two instruments land
 together when their articles point at the same places.
@@ -795,11 +795,30 @@ Each of these was a decision in issue #242, not a default:
   `nearest.parquet` keeps the row, with `counted` false. An identical winner
   owned by exactly one other instrument (`m == 1`) still counts a whole 1, as
   does a non-identical winner with `m > 1` (a tie within the tolerance).
+- **A transitorio whose best match is a near-copy is not counted.** A unit
+  inside a transitorios section — any element of its `path` equal to
+  `TRANSITORIOS` or starting with `TRANSITORIOS ` (`is_transitorio_path`;
+  `md2akn.units._container_label` emits that label *only* for a section marked
+  `refersTo="#transitorios"`, so `units.parquet` needs no `refers_to` column) —
+  whose best similarity is `>= TRANSITORIO_SIMILARITY` (0.99,
+  `--transitorio-similarity`, forwarded into the Slurm job and recorded in
+  `matrix.json`) is the standard decree wording ("El presente Decreto entrará
+  en vigor al día siguiente…") repeated in slightly different words across
+  dozens of instruments, and says nothing about how two instruments relate.
+  It holds whatever `m` is, adds nothing to `A`, and is **not** re-credited to a
+  next-nearest text. It is applied *after* the search, so transitorios stay
+  candidates for every other row, and only to transitorios: an article outside
+  them at 0.995 still counts. A row both this and the rule above catch is
+  dropped once, under `identical_shared`. `nearest.parquet` marks each dropped
+  row `counted` false with a `drop_reason` (`identical_shared` or
+  `transitorio_near_identical`).
 - **The identity.** Every row of `A` sums to that instrument's **counted**
-  unit rows (searched rows minus the identical, shared ones), and `A.sum()`
-  equals the counted rows; `matrix.json` records this as
+  unit rows (searched rows minus the ones the two rules above drop), and
+  `A.sum()` equals the counted rows; `matrix.json` records this as
   `row_sums_equal_counted_rows`, next to `unit_rows`, `heading_rows_excluded`,
-  `searched_rows`, `identical_shared_dropped` and `counted_rows`. An
+  `searched_rows`, `identical_shared_dropped`,
+  `transitorio_near_identical_dropped`, `transitorio_similarity` and
+  `counted_rows`. An
   instrument's `p` (circle size) stays its total provisions.
 - **Per unit row, not per distinct text.** A boilerplate transitorio repeated
   `m` times inside a code is `m` articles and counts `m` times — the same
@@ -912,7 +931,8 @@ One object, keys in this order:
 - `meta` — `title`, `generated` (ISO UTC), `commit` (provenance for the file,
   never displayed by the page), `model`, `instruments` (1,303), `provisions`
   (`matrix.json`'s `unit_rows`, 161,989), `heading_rows_excluded` (28,568),
-  `identical_shared_dropped` (9,783), `counted_rows` (123,638),
+  `identical_shared_dropped` (9,783), `transitorio_near_identical_dropped`
+  (3,497), `counted_rows` (120,141),
   `distinct_texts` (`vector_rows`, 145,788), `collections` (`{"leyes": 315, "reglamentos": 863,
   "lineamientos": 125}`, counted from the table), `unique_names` (`true`),
   `duplicates_dropped` (`{"reglamentos": 219, "lineamientos": 1}`, from
@@ -940,16 +960,16 @@ file. The exporter refuses (`SystemExit`) a work directory not prepared with
 provisions that do not add up to `matrix.json`'s `unit_rows`, and a `matrix.json` that
 lacks the counted-row totals or a `matrix.npy` that does not sum to `counted_rows`.
 
-Measured on 2026-09-29: **423.3 kB** (110.7 kB gzipped), under a second; the
-Universidad Autónoma Chapingo (`luach`) points at the UAM 11.0, Narro 7.0, Ley
+Measured on 2026-09-29: **422.7 kB** (110.1 kB gzipped), under a second; the
+Universidad Autónoma Chapingo (`luach`) points at the UAM 10.0, Narro 7.0, Ley
 Agraria 1.0, INAH 1.0 and the IPN 1.0 — all five — and `cpeum` has 1,328
-provisions, 892 of them counted. Every instrument has at least one instrument pointing at it, and
-every `out` is non-empty.
+provisions, 837 of them counted. One instrument (the reglamento `124138`, nothing
+points at it) has an empty `inc`; every `out` is non-empty.
 
 ### The pair explanations (issue #249)
 
-`atlas.json` says the Constitution is closest to the Código Penal Federal with
-a weight of 43.4 and nothing more. `export_atlas_pairs.py` writes the evidence
+`atlas.json` says the Constitution is closest to the *ESTATUTO de Gobierno del
+Distrito Federal* with a weight of 41.0 and nothing more. `export_atlas_pairs.py` writes the evidence
 behind every such number, one JSON per pair `(i, j)` the panel lists under
 *Closest instruments* — `j` among `strongest_targets(A, i, 5)`, taken from
 `export_atlas_data.weighted_targets` itself, so the files are exactly
@@ -1022,16 +1042,18 @@ Measured on 2026-09-29, on the login node:
 
 | | value |
 |---|---|
-| wall clock | 40 s |
-| pairs | 6,397 |
-| unit rows the pairs explain | 78,103 of 123,638 counted (weight 75,908.3) |
-| unit rows per pair | median 4, p90 28, p99 116, max 705 (`pairs/0-6.json`, *CÓDIGO Civil Federal* → *CÓDIGO Nacional de Procedimientos Civiles y Familiares*) |
-| JSON | 166.9 MB raw, 40.1 MB gzipped file by file; per file median 8.9 kB / 2.8 kB, p95 100.1 / 21.8 kB, max 1.19 MB / 214 kB |
-| `atlas-pairs.tar.gz` | 35.3 MB |
-| largest file | `pairs/1122-1059.json` (1.19 MB, 91 rows): the *REGLAMENTO INTERIOR DE LA SECRETARIA DE MEDIO AMBIENTE Y RECURSOS NATURALES* → the same title with a final period, one of the four punctuation-only pairs above |
-| Constitution → Código Penal Federal (`pairs/8-9.json`) | 64 unit rows, 60 distinct texts, weight 43.4; 27 rows with `m > 1` (`m` up to 101, the boilerplate transitorio "**ÚNICO.-** El presente Decreto iniciará su vigencia al día siguiente…", in slightly different wordings, so not word-for-word); 62 transitory rows add 41.4, the other two (articles 23 and 38) add 1 each |
+| wall clock | 51 s |
+| pairs | 6,372 |
+| unit rows the pairs explain | 75,756 of 120,141 counted (weight 73,645.7) |
+| unit rows per pair | median 4, p90 27, p99 112, max 705 (`pairs/0-6.json`, *CÓDIGO Civil Federal* → *CÓDIGO Nacional de Procedimientos Civiles y Familiares*) |
+| JSON | 165.2 MB raw, 39.8 MB gzipped file by file; per file median 8.8 kB / 2.8 kB, p95 99.3 / 21.7 kB, max 1.19 MB / 214 kB |
+| `atlas-pairs.tar.gz` | 35.0 MB |
+| largest file | `pairs/1122-1059.json` (1.19 MB, 84 rows): the *REGLAMENTO INTERIOR DE LA SECRETARIA DE MEDIO AMBIENTE Y RECURSOS NATURALES* → the same title with a final period, one of the four punctuation-only pairs above |
+| Constitution → *ESTATUTO de Gobierno del Distrito Federal* (`pairs/8-10.json`) | 41 unit rows, 41 distinct texts, weight 41.0, every row a whole 1 (`m == 1`): 38 transitory rows (each below 0.99, the highest 0.906) and three articles (44, 61 and 101) |
+| Constitution → *CÓDIGO Penal Federal* (`pairs/8-9.json`) | 55 unit rows, weight 34.4, third of the Constitution's five; 53 of them transitory |
 
-No pair file holds a heading row, or a row with similarity 1 and `m > 1`.
+No pair file holds a heading row, a row with similarity 1 and `m > 1`, or a
+transitory row at 0.99 or more.
 Every file's `weight` equals its `atlas.json` `out` weight, every text key
 resolves, every file is sorted, and `Σ 1/m` is within 0.05 of `weight` except
 for float noise on exact halves.
@@ -1074,8 +1096,8 @@ pair file, so the prose and the data cannot drift.
 **The explanation dialog (issue #250).** Each weight under *Closest
 instruments* is a `button.atlas-why` that opens a native `<dialog>` over the
 pair file #249 exports: a heading naming both instruments, one sentence
-("64 provisions of … have their closest text outside it in …; they add up to
-43.4 of its 1,328 provisions."), and a table — number, the source provision
+("41 provisions of … have their closest text outside it in …; they add up to
+41.0 of its 1,328 provisions."), and a table — number, the source provision
 (label, breadcrumb, full text), the closest text in the target (the same, plus
 "also N other provisions … carry this text" when several do), similarity to
 three decimals, and the weight as `1` or `1/m` with "this text is shared by
@@ -1119,7 +1141,7 @@ by both scripts into a temporary `website/pages/` look-alike with the real
 against the panel, `1/m`, paging, the three ways to close, focus, no request
 before the click and one per pair, both messages, bold-only rendering, and a
 390 px phone. With the real pairs installed, one more test opens the
-Constitution's heaviest pair (Código Penal Federal, 64 rows, 43.4, `1/101`)
+Constitution's heaviest pair (the ESTATUTO, 41 rows, 41.0, every row a whole 1)
 and saves `output/atlas-explain-cpeum.png`; without them it skips. A
 rendered-site test checks Quarto's `h2` rule does not reach the dialog.
 
@@ -1142,6 +1164,12 @@ article (it must never win), one carries an article's text (that text is
 owned by the article's instrument alone), one repeats a transitorio (it is
 not a source row). An identical text owned by exactly one other instrument
 still adds 1, and a non-identical tie over two instruments still gives ½ each.
+A second toy corpus (with a `path` column) pins the transitorio rule: one at
+0.995 with a single owner is dropped, one at 0.98 counts, an article at 0.995
+counts, a transitorio text stays a candidate for an article, a row both rules
+catch is counted once under `identical_shared`, and the path predicate is read
+on `TRANSITORIOS`, `TRANSITORIOS 18 DE MARZO DE 1980`, a nested path and a
+label that only contains the word.
 The identity (`A.sum(axis=1)` = each instrument's counted rows, `A.sum()` =
 `counted_rows`) is asserted on the toy matrix, as are `float32` and `weight ==
 1/m`. Blocking is asserted invisible (`--block-rows 1` against the default), the
@@ -1172,36 +1200,37 @@ first, the rerun/`--force`/`--install` rules and the refusals.
 ### Measured, 2026-09-29
 
 Prepared on the login node in 156.6 s (315 + 863 + 125 instruments, 145,788
-distinct texts). The matrix, one job (42206) on `geoint1` (62 threads,
+distinct texts). The matrix, one job (42240) on `geoint1` (62 threads,
 `--exclude=geoint0`):
 
 | phase | seconds |
 |---|---|
-| load (the join + `vectors.npy`) | 1.2 |
+| load (the join + `vectors.npy`) | 1.5 |
 | normalise (145,788 rows, in place) | 0.3 |
-| sweep (133,421 searched rows against 145,788 texts, blocked) | 117.4 |
+| sweep (133,421 searched rows against 145,788 texts, blocked) | 117.3 |
 | write | 0.2 |
-| **total** | **119.5 s** |
+| **total** | **119.7 s** |
 
-Peak RSS **1.99 GB** of the ~245 GB a node has — a 1,024-row block and one
+Peak RSS **2.02 GB** of the ~245 GB a node has — a 1,024-row block and one
 normalised copy of the matrix is all that is ever live.
 
 | what | value |
 |---|---|
 | unit rows | 161,989 |
 | heading rows excluded | 28,568 |
-| searched rows | 133,421 |
+| searched rows | 133,421 (21,344 of them transitorios) |
 | identical winners shared by several instruments, not counted | 9,783 |
-| **counted rows** | **123,638** |
+| transitorios at similarity 0.99 or more, not counted | 3,497 (3,357 `article`, 140 `loose`; 3,217 with `m == 1`) |
+| **counted rows** | **120,141** (9,786 of them transitorios) |
 | vector rows | 145,788 (3,370 owned by more than one instrument once headings are set aside) |
 | instruments | 1,303 |
-| `A.sum()` | **123,638.0** — one counted unit row, one unit of weight |
+| `A.sum()` | **120,141.0** — one counted unit row, one unit of weight |
 | every row sums to that instrument's counted rows | yes (`row_sums_equal_counted_rows`) |
-| non-zero cells | 39,921 of 1,697,809 (2.4 %) |
+| non-zero cells | 38,073 of 1,697,809 (2.2 %) |
 | searched rows with a tie | 1,947 (all two-way) |
 | largest `m` | 157 |
-| mean similarity of the winner | 0.806 (0.791 over the counted rows) |
-| searched rows whose winner is an identical text (cosine 1) | 14,455 (10.8 %): 4,672 with `m == 1`, which count, and 9,783 shared, which do not |
+| mean similarity of the winner | 0.806 (0.785 over the counted rows) |
+| searched rows whose winner is an identical text (cosine 1) | 14,455 (10.8 %): 4,672 with `m == 1`, which count unless they are transitorios, and 9,783 shared, which do not |
 
 The `m` histogram over the searched rows — how many instruments a row's
 answer is split over:
@@ -1212,13 +1241,13 @@ answer is split over:
 
 90 % of searched rows have a single answer and are credited a whole 1; a
 row answered by many instruments adds one between them unless its winner is a
-word-for-word text, in which case it adds nothing.
+word-for-word text or a near-copy transitorio, in which case it adds nothing.
 
 The four fits, on the login node, `random_state=0`:
 
 | `n_neighbors` | 4 | 8 | 16 | 32 | total |
 |---|---|---|---|---|---|
-| seconds | 13.9 | 5.4 | 6.2 | 7.0 | **32.5** |
+| seconds | 14.3 | 5.7 | 6.5 | 7.4 | **33.9** |
 
 The research page: **1.2 MB** for 1,303 instruments, with the footer present
 exactly once.
