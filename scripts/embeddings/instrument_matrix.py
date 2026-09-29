@@ -1,13 +1,13 @@
 """Count, per instrument, where its units' nearest *foreign* neighbours live.
 
-Issue #242. Issue #241 drew the picture of 381,349 texts; this draws the
-picture of the 1,523 instruments that own them, by asking one question of
+Issue #242. Issue #241 drew the picture of the texts; this draws the
+picture of the unique instruments that own them (1,303 in the Atlas), by asking one question of
 every unit of every federal law, reglamento and lineamiento:
 
     which instrument owns the text closest to this one, among all the texts
     that are not exclusively mine?
 
-The answer is a square weight matrix `A` (1,523 x 1,523, rows and columns in
+The answer is a square weight matrix `A` (instruments x instruments, rows and columns in
 `instruments.parquet`'s own `i` order): every unit row of instrument `I`
 distributes a total weight of **1** over the `m` instruments owning a winning
 text, `A[I, J] += 1/m` for each of them. The diagonal is zero by construction,
@@ -24,8 +24,12 @@ into a page.
 The rules, all of them decided in issue #242 and none of them defaults worth
 changing quietly:
 
-* **All six `unit_type`s count**, not only `article`: the question is about
-  what makes up a document.
+* **Headings are out** (`EXCLUDED_UNIT_TYPES`). A `heading` unit is neither a
+  source row nor a candidate: a reform-date heading such as `**D.O.F. 14 DE
+  ENERO DE 1985.**` matches another instrument's identical heading and says
+  nothing about how two instruments relate. Every other `unit_type` counts.
+  A text owned by a heading and by an article stays a candidate, owned only
+  by the article's instrument; a text only headings own is never a winner.
 * **Ties count, every one of them.** The winners of a row are every column
   within `--tolerance` (1e-6 on float32 cosine) of its best, because identical
   texts across collections are *exact* ties and picking the lowest column
@@ -33,11 +37,29 @@ changing quietly:
 * **`1/m` to each of the `m` instruments owning a winning text.** A text two
   instruments share is evidence about both, so both are credited — but a unit
   row is one article and weighs one, however many instruments answer for it.
-  The first pass added +1 to each instead, and a single winning column can be
-  owned by hundreds of instruments (the worst row: 847), because boilerplate
-  ("Se deroga.", a standard transitorio) is one vector row shared across a
-  whole collection; `A` then counted article-instrument incidences rather
-  than articles. Row sums now equal the instrument's unit-row count exactly.
+  A single winning column can be owned by hundreds of instruments (the worst
+  row: 650), because boilerplate ("Se deroga.", a standard transitorio) is one
+  vector row shared across a whole collection; a `1/m` split keeps `A` from
+  counting article-instrument incidences rather than articles.
+* **A word-for-word match shared by several instruments is not counted.** A
+  row whose best similarity is `>= 1 - tolerance` and whose `m > 1` is
+  boilerplate owned by many instruments: it cannot tell a pair apart from any
+  other. It adds nothing to `A` and is *not* re-credited to its next-nearest
+  text. An identical winner owned by exactly one other instrument (`m == 1`)
+  still counts a whole 1, as does a non-identical winner with `m > 1`.
+* **A transitorio whose best match is a near-copy is not counted.** A unit row
+  inside a transitorios section (`is_transitorio_path`) whose best similarity is
+  `>= TRANSITORIO_SIMILARITY` (0.99), whatever its `m`, is the standard decree
+  wording ("El presente Decreto entrará en vigor al día siguiente…") repeated in
+  slightly different words across dozens of instruments. It adds nothing to `A`
+  and is not re-credited, exactly like the rule above. It applies after the
+  search, so transitorios stay candidates for every other row, and only to
+  transitorios: an article outside them at 0.995 still counts. A row caught by
+  both rules is dropped once, under `identical_shared`.
+* **The identity**: every row of `A` sums to that instrument's **counted**
+  unit rows (searched rows, minus the ones dropped by the two rules above), and
+  `A.sum()` equals the counted rows (`matrix.json`'s
+  `row_sums_equal_counted_rows`).
 * **Per unit row, not per distinct text**: a boilerplate transitorio repeated
   `m` times inside a code is `m` articles, and counts `m` times — the same
   choice #241's centroids already made.
@@ -52,16 +74,23 @@ changing quietly:
 Outputs, under `--work-dir/instrument-matrix/`, written atomically with
 `.done` last:
 
-* `matrix.npy` — `(1523, 1523)` `float32` (`float64` while accumulating), row
+* `matrix.npy` — `(instruments, instruments)` `float32` (`float64` while accumulating), row
   `i` the source instrument.
-* `nearest.parquet` — one row per **unit row** (408,804): `i`, `coleccion`,
+* `nearest.parquet` — one row per **searched unit row** (every unit row but the
+  headings): `i`, `coleccion`,
   `clave`, `unit_type`, `eId`, `row` (vector row), `similarity`, `n_winners`
   (how many vector *rows* tied — a different number from `m`, since one row
   can have several owners and two tied rows can share one), `targets` (the
-  instruments credited), `m` (how many of them) and `weight` (`1/m`).
-* `matrix.json` — the weighting rule and the row-sum identity it implies,
-  seconds per phase, the tie and `m` histograms, `shared_rows`, the
-  tolerance, peak RSS, threads, host.
+  instruments answering), `m` (how many of them), `weight` (`1/m`),
+  `transitorio` (the row lies in a transitorios section), `counted` (whether
+  the row entered `A`) and `drop_reason` (null, `identical_shared` or
+  `transitorio_near_identical`).
+* `matrix.json` — the weighting rule, `excluded_unit_types`, `unit_rows`,
+  `heading_rows_excluded`, `identical_shared_dropped`,
+  `transitorio_near_identical_dropped`, `transitorio_similarity` and
+  `counted_rows`, the
+  row-sum identity, seconds per phase, the tie and `m` histograms,
+  `shared_rows`, the tolerance, peak RSS, threads, host.
 * `job.json`, `slurm-<jobid>.out` when it ran through Slurm.
 
 `.done` makes a rerun a no-op; `--force` recomputes.
@@ -115,14 +144,46 @@ TIME_LIMIT = "2:00:00"
 
 JOB_JSON = "job.json"
 
+#: Unit types that are neither a source row nor a candidate (see the module
+#: docstring). `md2akn` marks every heading `unit_type == "heading"`.
+EXCLUDED_UNIT_TYPES = ("heading",)
+
+#: A transitorio unit whose best match is at least this similar to another
+#: instrument's text is not counted (see the module docstring). 0.99 is the
+#: user's decision (issue #259, review fix-2), not a measured optimum.
+TRANSITORIO_SIMILARITY = 0.99
+
+
+def is_transitorio_path(path) -> bool:
+    """Whether a unit's `path` (the list of container labels `md2akn` builds
+    for it) puts it inside a transitorios section.
+
+    `md2akn.units._container_label` emits a label that starts with
+    `TRANSITORIOS` *only* for a section marked `refersTo="#transitorios"`
+    (`md2akn.model.REFERS_TO_TRANSITORIOS`), and `units.parquet` carries no
+    `refers_to` column, so this reads the mark through `path`: any element equal
+    to `TRANSITORIOS` or starting with `TRANSITORIOS ` (`TRANSITORIOS 18 DE
+    MARZO DE 1980`). A label that merely contains the word elsewhere
+    (`DISPOSICIONES TRANSITORIOS`) is not one, and a missing path is not either.
+    """
+    if path is None:
+        return False
+    try:
+        labels = list(path)
+    except TypeError:
+        return False
+    return any(isinstance(label, str)
+               and (label == "TRANSITORIOS" or label.startswith("TRANSITORIOS "))
+               for label in labels)
+
 
 def output_dir(work_dir: Path) -> Path:
     return Path(work_dir) / SUBDIR
 
 
 def unit_rows(work_dir: Path, *, collections=None, cache_dir=None, log=print):
-    """Every unit row of the three corpora, with the vector row and the
-    instrument it belongs to.
+    """Every unit row of the three corpora, with the vector row, the
+    instrument it belongs to and whether it lies in a transitorios section.
 
     This is `build_umap_html.load_frames`' own join — `units.parquet` ->
     `vector_ids.parquet` on `(coleccion, text_sha1)` -> `instruments.parquet`
@@ -140,7 +201,7 @@ def unit_rows(work_dir: Path, *, collections=None, cache_dir=None, log=print):
     if collections is None:
         collections = tuple(html.COLLECTION_CODES)
     points, _ = html.load_frames(work_dir, [], neighbors=0, collections=collections,
-                                 cache_dir=cache_dir, log=log)
+                                 cache_dir=cache_dir, extra_columns=("path",), log=log)
     instruments = pq.read_table(Path(work_dir) / "instruments.parquet").to_pandas()
     collections = {code: name for name, code in html.COLLECTION_CODES.items()}
     units = pd.DataFrame({
@@ -149,9 +210,12 @@ def unit_rows(work_dir: Path, *, collections=None, cache_dir=None, log=print):
         "unit_type": points["u"].map(dict(enumerate(html.UNIT_TYPES))),
         "eId": points["e"],
         "row": points["v"].astype("int32"),
+        # `path` comes through `load_frames`' own join (no second one); a units
+        # table without it (the toy corpora) has no transitorio.
+        "transitorio": [is_transitorio_path(path) for path in points["path"]],
     })
     units = units.merge(instruments[["i", "clave"]], on="i", how="left")
-    return units[["i", "coleccion", "clave", "unit_type", "eId", "row"]]
+    return units[["i", "coleccion", "clave", "unit_type", "eId", "row", "transitorio"]]
 
 
 def owners_of_rows(units, vector_rows: int) -> list[list[int]]:
@@ -186,8 +250,7 @@ def _m_histogram(counts) -> dict:
     """`m` bucketed the way `matrix.json` reports it.
 
     Wider buckets than `_winner_histogram`'s: `m` is what the `1/m` rule
-    divides by, and the boilerplate rows this pass is about sit in the last
-    two buckets (the worst row of the first run had `m = 847`), where
+    divides by, and the boilerplate rows sit in the last two buckets, where
     `n_winners` never leaves the first.
     """
     import numpy as np
@@ -204,6 +267,7 @@ def _m_histogram(counts) -> dict:
 
 
 def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
+                 transitorio_similarity: float = TRANSITORIO_SIMILARITY,
                  block_rows: int = DEFAULT_BLOCK_ROWS, threads: int | None = None,
                  collections=None, cache_dir=None, log=print) -> dict:
     """Compute `A`, the per-unit-row table and `matrix.json`. Returns the
@@ -211,6 +275,7 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     import numpy as np
     import pandas as pd
     import pyarrow as pa
+    import pyarrow.parquet as pq
 
     from _atomic import atomic_write_npy, atomic_write_table, atomic_write_text
 
@@ -220,10 +285,24 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
 
     timings: dict[str, float] = {}
     started = time.time()
-    units = unit_rows(work_dir, collections=collections, cache_dir=cache_dir, log=log)
+    all_units = unit_rows(work_dir, collections=collections, cache_dir=cache_dir, log=log)
+    units = all_units
+    # `prepare_umap_input.py --unique-names` (issue #259) removes an instrument
+    # before its vectors are stacked; the join's inner merges must then have
+    # dropped its unit rows too. Anything else means `vector_ids.parquet` and
+    # `instruments.parquet` disagree, and every weight below would be wrong.
+    expected_rows = int(pq.read_table(work_dir / "instruments.parquet",
+                                      columns=["units"]).column("units").to_numpy().sum())
+    if len(all_units) != expected_rows:
+        raise SystemExit(f"{len(all_units)} unit rows joined, but instruments.parquet lists "
+                         f"{expected_rows}: rerun prepare_umap_input.py over this work directory")
+    # Headings are neither sources nor candidates: every step below, owners and
+    # exclusive-column masks included, sees only the searched rows.
+    units = all_units[~all_units["unit_type"].isin(EXCLUDED_UNIT_TYPES)].reset_index(drop=True)
+    heading_rows_excluded = len(all_units) - len(units)
     vectors = np.load(work_dir / "vectors.npy").astype(np.float32)
     timings["load"] = round(time.time() - started, 1)
-    log(f"{len(units)} unit rows over {vectors.shape[0]} vectors "
+    log(f"{len(all_units)} unit rows ({heading_rows_excluded} heading rows excluded) over {vectors.shape[0]} vectors "
         f"in {timings['load']}s")
 
     mark = time.time()
@@ -236,9 +315,12 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     n_vectors = vectors.shape[0]
     owners = owners_of_rows(units, n_vectors)
     shared_rows = sum(1 for group in owners if len(group) > 1)
-    instruments = int(units["i"].max()) + 1
-    # `float64` while accumulating: 408,804 additions of fractions as small as
-    # 1/847, summed to an identity the summary asserts at 1e-3. It is written
+    instruments = int(all_units["i"].max()) + 1
+    # A vector row only headings own has no owner among the searched rows, so
+    # it can never win: it is masked for every source, like an exclusive one.
+    unowned = np.array([c for c, group in enumerate(owners) if not group], dtype=np.int64)
+    # `float64` while accumulating: 162,000 additions of fractions as small as
+    # 1/650, summed to an identity the summary asserts at 1e-3. It is written
     # as `float32`, which halves a 9 MB file and verifies at that tolerance.
     matrix = np.zeros((instruments, instruments), dtype=np.float64)
 
@@ -256,17 +338,18 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         # only ever be its own text, and "nearest foreign neighbour" is not
         # about those. A column it shares stays, deliberately.
         exclusive = np.array([c for c in rows if len(owners[c]) == 1], dtype=np.int64)
+        masked = np.concatenate([exclusive, unowned])
         for start in range(0, len(rows), block_rows):
             block = rows[start:start + block_rows]
             similarity = vectors[block] @ vectors.T
-            if exclusive.size:
-                similarity[:, exclusive] = -np.inf
+            if masked.size:
+                similarity[:, masked] = -np.inf
             best = similarity.max(axis=1)
             for offset, row in enumerate(block):
                 winners = np.flatnonzero(similarity[offset] >= best[offset] - tolerance)
                 targets = sorted({j for c in winners.tolist() for j in owners[c]} - {i})
                 if not targets:
-                    # 1,522 candidate instruments are never all masked, so an
+                    # The other instruments' columns are never all masked, so an
                     # empty target set is a broken join or a broken mask, not a
                     # case with a sensible weight -- and `1/m` would divide by 0.
                     raise SystemExit(
@@ -309,18 +392,38 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     # count to far better than the 1e-3 the summary checks them at. Done from
     # the joined table rather than from `answers`, so a text repeated m times
     # inside one instrument really does count m times.
-    for source, targets in zip(nearest["i"].to_numpy(), nearest["targets"]):
+    #
+    # A row whose winner is a word-for-word match (`similarity >= 1 -
+    # tolerance`) owned by several instruments (`m > 1`) is boilerplate that
+    # cannot tell a pair apart from any other: it is not counted, and not
+    # re-credited to its next-nearest text either.
+    identical_shared = ((nearest["similarity"].to_numpy() >= 1.0 - tolerance)
+                        & (nearest["m"].to_numpy() > 1))
+    # A transitorio whose best match is a near-copy of standard decree wording:
+    # applied after the search (transitorios stay candidates), whatever `m` is,
+    # and counted once -- a row both rules catch keeps the first reason.
+    transitorio_near = (nearest["transitorio"].to_numpy().astype(bool)
+                        & (nearest["similarity"].to_numpy() >= transitorio_similarity)
+                        & ~identical_shared)
+    counted = ~(identical_shared | transitorio_near)
+    nearest["counted"] = counted
+    drop_reason = [("identical_shared" if shared else
+                    "transitorio_near_identical" if near else None)
+                   for shared, near in zip(identical_shared, transitorio_near)]
+    for source, targets in zip(nearest["i"].to_numpy()[counted],
+                               nearest["targets"].to_numpy()[counted]):
         weight = 1.0 / len(targets)
         for target in targets:
             matrix[source, target] += weight
     matrix = matrix.astype(np.float32)
 
-    # The row-sum identity is the whole point of the `1/m` rule: every unit row
-    # weighs 1, so an instrument's row sums to how many unit rows it has.
-    units_per_instrument = (nearest.groupby("i").size()
-                            .reindex(range(instruments), fill_value=0).to_numpy())
-    row_sums_equal_units = bool(np.allclose(matrix.sum(axis=1), units_per_instrument,
-                                            atol=1e-3))
+    # The row-sum identity is the whole point of the `1/m` rule: every counted
+    # unit row weighs 1, so an instrument's row sums to its counted rows.
+    counted_per_instrument = (nearest[nearest["counted"]].groupby("i").size()
+                              .reindex(range(instruments), fill_value=0).to_numpy())
+    row_sums_equal_counted_rows = bool(np.allclose(matrix.sum(axis=1), counted_per_instrument,
+                                                   atol=1e-3))
+    counted_rows = int(counted.sum())
 
     mark = time.time()
     atomic_write_npy(out_dir / "matrix.npy", matrix)
@@ -336,17 +439,27 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         "targets": pa.array(list(nearest["targets"]), type=pa.list_(pa.int32())),
         "m": pa.array(nearest["m"].to_numpy(), type=pa.int32()),
         "weight": pa.array(nearest["weight"].to_numpy(), type=pa.float32()),
+        "transitorio": pa.array(nearest["transitorio"].to_numpy().astype(bool), type=pa.bool_()),
+        "counted": pa.array(nearest["counted"].to_numpy(), type=pa.bool_()),
+        "drop_reason": pa.array(drop_reason, type=pa.string()),
     }))
     timings["write"] = round(time.time() - mark, 1)
 
     summary = {
-        "unit_rows": int(len(nearest)),
+        "unit_rows": int(len(all_units)),
+        "excluded_unit_types": list(EXCLUDED_UNIT_TYPES),
+        "heading_rows_excluded": int(heading_rows_excluded),
+        "searched_rows": int(len(nearest)),
+        "identical_shared_dropped": int(identical_shared.sum()),
+        "transitorio_near_identical_dropped": int(transitorio_near.sum()),
+        "transitorio_similarity": transitorio_similarity,
+        "counted_rows": counted_rows,
         "vector_rows": int(n_vectors),
         "instruments": instruments,
         "weighting": "1/m",
         "matrix_dtype": str(matrix.dtype),
         "matrix_sum": round(float(matrix.sum()), 3),
-        "row_sums_equal_units": row_sums_equal_units,
+        "row_sums_equal_counted_rows": row_sums_equal_counted_rows,
         "nonzero_cells": int((matrix > 0).sum()),
         "tie_rows": int((nearest["n_winners"] > 1).sum()),
         "n_winners": _winner_histogram(nearest["n_winners"].to_numpy()),
@@ -371,6 +484,7 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
 
 def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
                    tolerance: float = DEFAULT_TOLERANCE,
+                   transitorio_similarity: float = TRANSITORIO_SIMILARITY,
                    block_rows: int = DEFAULT_BLOCK_ROWS,
                    force: bool = False) -> list[str]:
     """The one `sbatch` line this issue submits. Absolute paths throughout:
@@ -391,6 +505,7 @@ def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
     cmd += [str(SUBMIT_SH), str(THIS_SCRIPT),
             "--work-dir", str(work_dir),
             "--tolerance", repr(tolerance),
+            "--transitorio-similarity", repr(transitorio_similarity),
             "--block-rows", str(block_rows)]
     if force:
         cmd.append("--force")
@@ -398,7 +513,9 @@ def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
 
 
 def submit(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
-           tolerance: float = DEFAULT_TOLERANCE, block_rows: int = DEFAULT_BLOCK_ROWS,
+           tolerance: float = DEFAULT_TOLERANCE,
+           transitorio_similarity: float = TRANSITORIO_SIMILARITY,
+           block_rows: int = DEFAULT_BLOCK_ROWS,
            force: bool = False, dry_run: bool = False, log=print) -> dict:
     """Submit the sweep as one Slurm job and record `job.json`."""
     from _atomic import atomic_write_text
@@ -419,6 +536,7 @@ def submit(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
         log(f"{done} removed: --force means the finished run is being replaced")
 
     cmd = sbatch_command(work_dir, exclude=exclude, tolerance=tolerance,
+                         transitorio_similarity=transitorio_similarity,
                          block_rows=block_rows, force=force)
     log(" ".join(cmd))
     if dry_run:
@@ -500,7 +618,8 @@ def report(work_dir: Path, log=print) -> dict:
         log(f"  {name}: {'present' if path.exists() else 'MISSING'}"
             + (f" ({path.stat().st_size / 1e6:.1f} MB)" if path.exists() else ""))
     if summary:
-        log(f"  {summary['unit_rows']} unit rows, sum {summary['matrix_sum']}, "
+        log(f"  {summary['counted_rows']} counted of {summary['unit_rows']} unit rows, "
+            f"sum {summary['matrix_sum']}, "
             f"{summary['tie_rows']} tied, {summary['seconds_total']}s, "
             f"{summary['peak_rss_gb']} GB peak, node {summary['node']}")
     if not done:
@@ -514,6 +633,10 @@ def main(argv=None) -> int:
     parser.add_argument("--work-dir", type=Path, default=Path("emb-run-umap"))
     parser.add_argument("--tolerance", type=float, default=DEFAULT_TOLERANCE,
                         help="similarity slack that still counts as a tie")
+    parser.add_argument("--transitorio-similarity", type=float,
+                        default=TRANSITORIO_SIMILARITY,
+                        help="a transitorio whose best match is at least this similar "
+                             "is not counted")
     parser.add_argument("--block-rows", type=int, default=DEFAULT_BLOCK_ROWS,
                         help="rows of one instrument multiplied by the corpus at once")
     parser.add_argument("--threads", type=int, default=None)
@@ -542,6 +665,7 @@ def main(argv=None) -> int:
 
     if args.dry_run or args.submit:
         submit(args.work_dir, exclude=args.exclude, tolerance=args.tolerance,
+               transitorio_similarity=args.transitorio_similarity,
                block_rows=args.block_rows, force=args.force, dry_run=args.dry_run)
         if not args.wait:
             return 0
@@ -564,7 +688,9 @@ def main(argv=None) -> int:
     threads = thread_count(args.threads)
     set_thread_env(threads)
     print(f"threads={threads}")
-    build_matrix(args.work_dir, tolerance=args.tolerance, block_rows=args.block_rows,
+    build_matrix(args.work_dir, tolerance=args.tolerance,
+                 transitorio_similarity=args.transitorio_similarity,
+                 block_rows=args.block_rows,
                  threads=threads, cache_dir=args.cache_dir)
     return 0
 

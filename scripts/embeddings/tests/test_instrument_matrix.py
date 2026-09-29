@@ -17,6 +17,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
+import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
@@ -47,6 +48,12 @@ VECTORS = {
     # cosine against every other text here is 0 or negative and it never wins
     # anything it is not itself part of.
     "tb": [-1.0, 0.0, 0.0, 0.0],
+    # Issue #259's fix: a text only a *heading* carries. It is nearly `t2`
+    # (cosine 0.9999), so were headings candidates it would beat `t1` as `b`/t2's
+    # nearest foreign text, and `c` would be credited.
+    "th": [0.9, 0.11, 0.0, 0.0],
+    # `902`'s second unit: nearest to the shared `ts` (0.99), not identical.
+    "t6": [0.8, 0.6, 0.0, 0.0],
 }
 
 #: `(clave, nombre, unit_type, eId, text_sha1, text)`, the shape
@@ -66,6 +73,10 @@ UNITS = {
         ("a", "Ley A", "article", "art_3", "tb", "Se deroga."),
         ("b", "Ley B", "article", "art_3", "tb", "Se deroga."),
         ("c", "Ley C", "article", "art_2", "tb", "Se deroga."),
+        # Headings are out of the comparison (issue #259's fix): `c`'s carries a
+        # text nobody else has, `a`'s carries `b`'s own `t2`.
+        ("c", "Ley C", "heading", "cap_1", "th", "CAPITULO I"),
+        ("a", "Ley A", "heading", "cap_9", "t2", "texto t2"),
     ],
     "lineamientos": [
         ("900", "Lineamientos P", "article", "art_1", "t4", "texto t4"),
@@ -78,6 +89,7 @@ UNITS = {
         # winning row, `n_winners == 1`) and credits its three owners `1/3`
         # each.
         ("902", "Lineamientos R", "article", "art_1", "tb", "Se deroga."),
+        ("902", "Lineamientos R", "article", "art_2", "t6", "texto t6"),
     ],
 }
 
@@ -111,24 +123,40 @@ def cache(tmp_path):
     write_units(leyes, "leyes", UNITS["leyes"])
     write_vectors(leyes, f"vectors-a-{SLUG}-{K}.parquet", ["t1"])
     write_vectors(leyes, f"vectors-b-{SLUG}-{K}.parquet", ["t2"])
-    write_vectors(leyes, f"vectors-c-{SLUG}-{K}.parquet", ["t3"])
+    write_vectors(leyes, f"vectors-c-{SLUG}-{K}.parquet", ["t3", "th"])
     write_vectors(leyes, f"vectors-shared-{SLUG}-{K}.parquet", ["ts", "tb"])
 
     lineamientos = root / "scjn-lineamientos-vectors"
     write_units(lineamientos, "lineamientos", UNITS["lineamientos"])
     write_vectors(lineamientos, f"vectors-900-{SLUG}-{K}.parquet", ["t4", "t1"])
     write_vectors(lineamientos, f"vectors-901-{SLUG}-{K}.parquet", ["t5"])
-    write_vectors(lineamientos, f"vectors-902-{SLUG}-{K}.parquet", ["tb"])
+    write_vectors(lineamientos, f"vectors-902-{SLUG}-{K}.parquet", ["tb", "t6"])
     write_vectors(lineamientos, f"vectors-shared-{SLUG}-{K}.parquet", [])
     return root
+
+
+def stub_corpus_reader(dates=None):
+    """`unique_instruments.first_publication_dates`' `reader` hook: every
+    instrument has one snapshot, dated `dates[clave]` (2000 by default), so no
+    tarball of the SCJN release is needed."""
+    dates = dates or {}
+
+    def reader(coleccion):
+        def read(clave, cache_dir=None):
+            return {"id_ordenamiento": clave,
+                    "snapshots": [{"fecha_publicacion": dates.get(clave, "01-01-2000")}]}
+        return read
+    return reader
 
 
 @pytest.fixture
 def prepared(tmp_path, cache):
     """`prepare_umap_input.py`'s own output over the toy corpus — the work
-    directory this issue reads."""
+    directory this issue reads, prepared the way the Atlas is (`--unique-names`,
+    issue #259; no toy instrument shares a name, so nothing is dropped)."""
     work_dir = tmp_path / "work"
     prepare_umap_input.prepare(work_dir, collections=COLLECTIONS, cache_dir=cache,
+                               unique_names=True, corpus_reader=stub_corpus_reader(),
                                log=lambda *a: None)
     return work_dir
 
@@ -156,13 +184,16 @@ def computed(work_dir: Path, cache, **kwargs) -> dict:
 # -- the join and the owners ---------------------------------------------- #
 
 def test_the_join_is_build_umap_htmls_own(prepared, cache):
-    """Thirteen unit rows over seven distinct texts, with `coleccion`, `clave`
+    """Sixteen unit rows (headings included: `unit_rows` is the join, the
+    exclusion happens in `build_matrix`), with `coleccion`, `clave`
     and `unit_type` decoded back from the compact codes the shared join
     emits."""
     units = instrument_matrix.unit_rows(prepared, collections=COLLECTIONS,
                                         cache_dir=cache, log=lambda *a: None)
-    assert len(units) == 13
-    assert list(units.columns) == ["i", "coleccion", "clave", "unit_type", "eId", "row"]
+    assert len(units) == 16
+    assert list(units.columns) == ["i", "coleccion", "clave", "unit_type", "eId", "row",
+                                   "transitorio"]
+    assert not units["transitorio"].any()      # the toy table has no `path`
     assert sorted(units["coleccion"].unique()) == ["leyes", "lineamientos"]
     assert sorted(units["clave"].unique()) == ["900", "901", "902", "a", "b", "c"]
     assert sorted(units["unit_type"].unique()) == ["article", "heading"]
@@ -173,9 +204,15 @@ def test_the_join_is_build_umap_htmls_own(prepared, cache):
     assert len(shared) == 3
 
 
-def test_owners_are_the_instruments_that_carry_a_text(prepared, cache):
+def searched_units(prepared, cache):
+    """The unit rows `build_matrix` searches: everything but the headings."""
     units = instrument_matrix.unit_rows(prepared, collections=COLLECTIONS,
                                         cache_dir=cache, log=lambda *a: None)
+    return units[~units["unit_type"].isin(instrument_matrix.EXCLUDED_UNIT_TYPES)]
+
+
+def test_owners_are_the_instruments_that_carry_a_text(prepared, cache):
+    units = searched_units(prepared, cache)
     vectors = np.load(prepared / "vectors.npy")
     owners = instrument_matrix.owners_of_rows(units, vectors.shape[0])
     index = index_of(prepared)
@@ -191,59 +228,151 @@ def test_owners_are_the_instruments_that_carry_a_text(prepared, cache):
     assert sum(1 for group in owners if len(group) > 1) == 2
 
 
+def test_a_text_owned_by_a_heading_and_an_article_is_owned_by_the_article_only(
+        prepared, cache):
+    """`a` carries `t2` in a heading, `b` in an article: only `b` owns it."""
+    all_units = instrument_matrix.unit_rows(prepared, collections=COLLECTIONS,
+                                            cache_dir=cache, log=lambda *a: None)
+    vectors = np.load(prepared / "vectors.npy")
+    index = index_of(prepared)
+    row = int(all_units.loc[(all_units["clave"] == "b") & (all_units["eId"] == "art_1"),
+                            "row"].iloc[0])
+    with_headings = instrument_matrix.owners_of_rows(all_units, vectors.shape[0])
+    assert sorted(with_headings[row]) == sorted([index["a"], index["b"]])
+    owners = instrument_matrix.owners_of_rows(searched_units(prepared, cache),
+                                              vectors.shape[0])
+    assert owners[row] == [index["b"]]
+
+
+def test_a_text_only_headings_own_has_no_owner(prepared, cache):
+    all_units = instrument_matrix.unit_rows(prepared, collections=COLLECTIONS,
+                                            cache_dir=cache, log=lambda *a: None)
+    vectors = np.load(prepared / "vectors.npy")
+    row = int(all_units.loc[(all_units["clave"] == "c")
+                            & (all_units["unit_type"] == "heading"), "row"].iloc[0])
+    owners = instrument_matrix.owners_of_rows(searched_units(prepared, cache),
+                                              vectors.shape[0])
+    assert owners[row] == []
+
+
 # -- the matrix ------------------------------------------------------------ #
 
 def test_the_matrix_is_the_hand_computed_one(prepared, cache):
-    """Every weight below is derivable from `VECTORS` with a pen — each unit
-    row hands out a total of 1, split over the instruments it credits:
+    """Every weight below is derivable from `VECTORS` with a pen — each
+    *counted* unit row hands out a total of 1, split over the instruments it
+    credits. Sixteen unit rows: three headings are not searched, and four
+    word-for-word matches shared by several instruments are not counted.
 
-    * `a`/t1 -> the identical text in `900` (cosine 1, other collection): 1.
-    * `a`/ts -> the text it shares with `b` (cosine 1, same collection): 1.
-    * `a`/tb -> the boilerplate row (shared, so not masked) at cosine 1, and
-      `902`'s identical copy at cosine 1 too: `b`, `c` and `902`, 1/3 each.
-    * `b`/t2 -> t1, which exists twice at the same cosine: a tie, 1/2 to `a`
-      *and* 1/2 to `900`.
-    * `b`/ts twice -> `a`, twice, 1 each.
-    * `b`/tb, `c`/tb -> the same three-way split `a`/tb got.
+    * `a`/t1 -> the identical text in `900` (cosine 1, other collection,
+      `m == 1`): 1.
+    * `a`/ts -> the text it shares with `b` (cosine 1, `m == 1`): 1.
+    * `a`/tb, `b`/tb, `c`/tb, `902`/tb -> the boilerplate row, at cosine 1,
+      owned by three instruments (`m == 3`): **dropped**, adds nothing.
+    * `b`/t2 -> t1, which exists twice at the same cosine (0.994): a tie, 1/2 to
+      `a` *and* 1/2 to `900`. `c`'s heading text `th` (0.99998) would win if
+      headings were candidates; it is not one.
+    * `b`/ts (article) -> `a`: 1.
     * `c`/t3 -> the shared text, owned by `a` and `b`: 1/2 to each.
     * `900`/t4 -> t5 in `901` (0.282, above t1's 0.196); `900`/t1 -> the
-      identical t1 in `a`, at cosine 1.
-    * `901`/t5 -> t4 in `900`, the same 0.282 the other way round.
-    * `902`/tb -> the leyes' boilerplate row, one winning row owned by three
-      instruments: 1/3 to `a`, `b` and `c`.
+      identical t1 in `a`: 1.
+    * `901`/t5 -> t4 in `900`, the same 0.282 the other way round: 1.
+    * `902`/t6 -> the shared `ts` (0.99, not identical), owned by `a` and `b`:
+      1/2 to each.
     """
     result = computed(prepared, cache)
     index, matrix = result["index"], result["matrix"]
-    third = 1.0 / 3.0
     expected = np.zeros_like(matrix)
     expected[index["a"], index["900"]] = 1
-    expected[index["a"], index["b"]] = 1 + third
-    expected[index["a"], index["c"]] = third
-    expected[index["a"], index["902"]] = third
-    expected[index["b"], index["a"]] = 0.5 + 1 + 1 + third
+    expected[index["a"], index["b"]] = 1
+    expected[index["b"], index["a"]] = 0.5 + 1
     expected[index["b"], index["900"]] = 0.5
-    expected[index["b"], index["c"]] = third
-    expected[index["b"], index["902"]] = third
-    expected[index["c"], index["a"]] = 0.5 + third
-    expected[index["c"], index["b"]] = 0.5 + third
-    expected[index["c"], index["902"]] = third
+    expected[index["c"], index["a"]] = 0.5
+    expected[index["c"], index["b"]] = 0.5
     expected[index["900"], index["a"]] = 1
     expected[index["900"], index["901"]] = 1
     expected[index["901"], index["900"]] = 1
-    expected[index["902"], index["a"]] = third
-    expected[index["902"], index["b"]] = third
-    expected[index["902"], index["c"]] = third
+    expected[index["902"], index["a"]] = 0.5
+    expected[index["902"], index["b"]] = 0.5
     assert matrix.dtype == np.float32
     np.testing.assert_allclose(matrix, expected, atol=1e-6)
     assert np.trace(matrix) == 0
     assert (matrix >= 0).all()
-    # The identity the `1/m` rule exists for: one unit row, one unit of weight.
-    assert abs(matrix.sum() - len(result["nearest"])) < 1e-4
-    units_per_instrument = result["nearest"].groupby("i").size()
+    # The identity: one *counted* unit row, one unit of weight.
+    nearest = result["nearest"]
+    counted = nearest[nearest["counted"]]
+    assert abs(matrix.sum() - len(counted)) < 1e-4
     np.testing.assert_allclose(matrix.sum(axis=1),
-                               units_per_instrument.reindex(range(matrix.shape[0]),
-                                                            fill_value=0).to_numpy(),
+                               counted.groupby("i").size().reindex(
+                                   range(matrix.shape[0]), fill_value=0).to_numpy(),
                                atol=1e-3)
+
+
+def test_headings_are_neither_sources_nor_winners(prepared, cache):
+    result = computed(prepared, cache)
+    nearest, index, matrix = result["nearest"], result["index"], result["matrix"]
+    assert "heading" not in set(nearest["unit_type"])
+    assert len(nearest) == 13                      # 16 unit rows, 3 headings
+    # `th`, the text only `c`'s heading carries, is nearly `t2`: `b`/t2's
+    # winners are still the two copies of t1, and `c` is credited nothing by it.
+    tied = nearest[(nearest["clave"] == "b") & (nearest["eId"] == "art_1")].iloc[0]
+    assert sorted(tied["targets"]) == sorted([index["a"], index["900"]])
+    assert tied["similarity"] < 0.999
+    assert matrix[index["b"], index["c"]] == 0
+    summary = result["summary"]
+    assert summary["excluded_unit_types"] == ["heading"]
+    assert summary["heading_rows_excluded"] == 3
+    assert summary["unit_rows"] == 16
+    assert summary["searched_rows"] == 13
+
+
+def test_a_winner_owned_by_three_instruments_and_identical_is_dropped(prepared, cache):
+    """`902`/tb finds *one* winning vector row — no tie at all — which three
+    leyes own because they all carry "Se deroga.". It is a word-for-word match
+    (cosine 1) shared by several instruments (`m == 3`): it is kept in
+    `nearest.parquet` as evidence but adds nothing to `A`, and is not
+    re-credited to a next-nearest text."""
+    result = computed(prepared, cache)
+    nearest, index, matrix = result["nearest"], result["index"], result["matrix"]
+    boilerplate = nearest[(nearest["clave"] == "902") & (nearest["eId"] == "art_1")].iloc[0]
+    assert boilerplate["similarity"] == pytest.approx(1.0)
+    assert boilerplate["n_winners"] == 1          # one vector row ...
+    assert boilerplate["m"] == 3                  # ... owned by three instruments
+    assert boilerplate["weight"] == pytest.approx(1 / 3)
+    assert not boilerplate["counted"]
+    assert sorted(boilerplate["targets"]) == sorted([index["a"], index["b"], index["c"]])
+    for clave in ("a", "b", "c"):
+        assert matrix[index["902"], index[clave]] == pytest.approx(0.5 if clave != "c" else 0)
+    assert matrix[index["902"]].sum() == pytest.approx(1.0, abs=1e-6)   # only `t6`
+    dropped = nearest[~nearest["counted"]]
+    assert sorted(dropped["clave"]) == ["902", "a", "b", "c"]
+    assert (dropped["similarity"] >= 1 - 1e-6).all() and (dropped["m"] > 1).all()
+    summary = result["summary"]
+    assert summary["identical_shared_dropped"] == 4
+    assert summary["counted_rows"] == 9
+    assert summary["max_m"] == 3
+    assert summary["m"]["3-5"] == 4
+
+
+def test_an_identical_text_owned_by_one_other_instrument_still_counts(prepared, cache):
+    result = computed(prepared, cache)
+    nearest, index = result["nearest"], result["index"]
+    for clave, eid, target in (("a", "art_1", "900"), ("a", "art_2", "b"),
+                               ("900", "art_2", "a")):
+        row = nearest[(nearest["clave"] == clave) & (nearest["eId"] == eid)].iloc[0]
+        assert row["similarity"] == pytest.approx(1.0)
+        assert row["m"] == 1 and row["counted"]
+        assert list(row["targets"]) == [index[target]]
+        assert result["matrix"][index[clave], index[target]] >= 1
+
+
+def test_a_non_identical_tie_over_two_instruments_still_gives_half_each(prepared, cache):
+    result = computed(prepared, cache)
+    nearest, index, matrix = result["nearest"], result["index"], result["matrix"]
+    row = nearest[(nearest["clave"] == "902") & (nearest["eId"] == "art_2")].iloc[0]
+    assert row["similarity"] < 1.0 - 1e-3
+    assert row["m"] == 2 and row["counted"]
+    assert matrix[index["902"], index["a"]] == pytest.approx(0.5)
+    assert matrix[index["902"], index["b"]] == pytest.approx(0.5)
 
 
 def test_a_text_shared_inside_a_collection_is_its_own_nearest_foreign_neighbour(
@@ -256,14 +385,6 @@ def test_a_text_shared_inside_a_collection_is_its_own_nearest_foreign_neighbour(
     shared = nearest[(nearest["clave"] == "a") & (nearest["eId"] == "art_2")].iloc[0]
     assert shared["similarity"] == pytest.approx(1.0)
     assert list(shared["targets"]) == [index["b"]]
-
-
-def test_an_identical_text_in_the_other_collection_wins_at_cosine_one(prepared, cache):
-    result = computed(prepared, cache)
-    nearest, index = result["nearest"], result["index"]
-    own = nearest[(nearest["clave"] == "a") & (nearest["eId"] == "art_1")].iloc[0]
-    assert own["similarity"] == pytest.approx(1.0)
-    assert list(own["targets"]) == [index["900"]]
 
 
 def test_a_tie_credits_every_instrument_that_owns_a_winner_with_half_each(
@@ -284,29 +405,8 @@ def test_a_tie_credits_every_instrument_that_owns_a_winner_with_half_each(
     assert result["summary"]["tolerance"] == instrument_matrix.DEFAULT_TOLERANCE
 
 
-def test_a_winner_owned_by_three_instruments_gives_a_third_to_each(prepared, cache):
-    """The boilerplate case this second pass is about: `902`'s single unit
-    finds *one* winning vector row — no tie at all — which three leyes own
-    because they all carry "Se deroga.". Under the first pass's rule that row
-    added +1 to each of the three; now it adds 1/3, and the unit still weighs
-    exactly one."""
-    result = computed(prepared, cache)
-    nearest, index, matrix = result["nearest"], result["index"], result["matrix"]
-    boilerplate = nearest[nearest["clave"] == "902"].iloc[0]
-    assert boilerplate["similarity"] == pytest.approx(1.0)
-    assert boilerplate["n_winners"] == 1          # one vector row ...
-    assert boilerplate["m"] == 3                  # ... owned by three instruments
-    assert boilerplate["weight"] == pytest.approx(1 / 3)
-    assert sorted(boilerplate["targets"]) == sorted([index["a"], index["b"], index["c"]])
-    for clave in ("a", "b", "c"):
-        assert matrix[index["902"], index[clave]] == pytest.approx(1 / 3, abs=1e-6)
-    assert matrix[index["902"]].sum() == pytest.approx(1.0, abs=1e-6)
-    assert result["summary"]["max_m"] == 3
-    assert result["summary"]["m"]["3-5"] == 4     # `902`'s row and the three tb rows
-
-
 def test_every_unit_row_carries_its_own_weight(prepared, cache):
-    """`weight` is `1/m` on every row, and the rule is named in
+    """`weight` is `1/m` on every searched row, and the rule is named in
     `matrix.json`."""
     result = computed(prepared, cache)
     nearest, summary = result["nearest"], result["summary"]
@@ -315,26 +415,45 @@ def test_every_unit_row_carries_its_own_weight(prepared, cache):
                                1.0 / nearest["m"].to_numpy(), rtol=1e-6)
     assert summary["weighting"] == "1/m"
     assert summary["matrix_dtype"] == "float32"
-    assert summary["row_sums_equal_units"] is True
+    assert summary["row_sums_equal_counted_rows"] is True
+    assert "row_sums_equal_units" not in summary
     assert set(summary["m"]) == {"1", "2", "3-5", "6-20", "21-100", "101+"}
-    assert summary["matrix_sum"] == pytest.approx(summary["unit_rows"], abs=1e-3)
+    assert summary["matrix_sum"] == pytest.approx(summary["counted_rows"], abs=1e-3)
+    assert summary["counted_rows"] == summary["searched_rows"] - summary[
+        "identical_shared_dropped"]
 
 
 def test_a_text_repeated_inside_an_instrument_counts_once_per_unit_row(prepared, cache):
-    """`b` carries the shared transitorio twice (an `article` and a
-    `heading`): two unit rows, one vector row, two counts."""
+    """`b` carries the shared transitorio in two unit rows of the same text
+    (an `article` and a `heading`): only the article is searched, so it counts
+    once — the heading is out of the comparison altogether."""
     result = computed(prepared, cache)
     nearest, index = result["nearest"], result["index"]
     shared_row = int(nearest.loc[(nearest["clave"] == "a")
                                  & (nearest["eId"] == "art_2"), "row"].iloc[0])
     repeats = nearest[(nearest["clave"] == "b") & (nearest["row"] == shared_row)]
-    assert len(repeats) == 2
-    np.testing.assert_allclose(repeats["weight"].to_numpy(), 1.0)   # one target each
-    # 2 repeats at 1, the tie row at 1/2, the boilerplate row at 1/3.
-    assert result["matrix"][index["b"], index["a"]] == pytest.approx(2 + 0.5 + 1 / 3,
-                                                                    abs=1e-6)
-    assert result["summary"]["unit_rows"] == 13
+    assert len(repeats) == 1
+    np.testing.assert_allclose(repeats["weight"].to_numpy(), 1.0)   # one target
+    assert result["matrix"][index["b"], index["a"]] == pytest.approx(1 + 0.5, abs=1e-6)
+    assert result["summary"]["unit_rows"] == 16
     assert result["summary"]["shared_rows"] == 2
+
+
+def test_a_repeated_article_text_counts_once_per_unit_row(tmp_path, cache):
+    """The per-unit-row rule itself: give `b` a second *article* carrying `ts`."""
+    units = pq.read_table(cache / "scjn-leyes-vectors" / "units.parquet").to_pylist()
+    extra = dict(next(u for u in units if u["clave"] == "b" and u["eId"] == "art_2"),
+                 eId="art_9")
+    rows = [(u["clave"], u["nombre"], u["unit_type"], u["eId"], u["text_sha1"], u["text"])
+            for u in units + [extra]]
+    write_units(cache / "scjn-leyes-vectors", "leyes", rows)
+    work_dir = tmp_path / "work2"
+    prepare_umap_input.prepare(work_dir, collections=COLLECTIONS, cache_dir=cache,
+                               unique_names=True, corpus_reader=stub_corpus_reader(),
+                               log=lambda *a: None)
+    result = computed(work_dir, cache)
+    index = result["index"]
+    assert result["matrix"][index["b"], index["a"]] == pytest.approx(2 + 0.5, abs=1e-6)
 
 
 def test_the_source_instruments_own_texts_are_masked(prepared, cache):
@@ -360,12 +479,12 @@ def test_blocking_is_invisible(prepared, cache):
 def test_matrix_json_records_what_the_run_cost(prepared, cache):
     summary = computed(prepared, cache)["summary"]
     assert set(summary["seconds"]) == {"load", "normalise", "sweep", "write"}
-    # Seven distinct texts, but t1 and tb exist in both collections and dedup
-    # is inside a collection -- so nine vector rows.
-    assert summary["vector_rows"] == 9
+    # Nine distinct texts, but t1 and tb exist in both collections and dedup
+    # is inside a collection; `th` and `t6` are one more each -- eleven rows.
+    assert summary["vector_rows"] == 11
     assert summary["instruments"] == 6
-    assert summary["matrix_sum"] == pytest.approx(13.0, abs=1e-3)
-    assert summary["nonzero_cells"] == 17
+    assert summary["matrix_sum"] == pytest.approx(9.0, abs=1e-3)
+    assert summary["nonzero_cells"] == 11
     assert summary["peak_rss_gb"] > 0
     assert summary["block_rows"] == instrument_matrix.DEFAULT_BLOCK_ROWS
     assert set(summary["n_winners"]) == {"1", "2", "3-5", "6+"}
@@ -588,17 +707,17 @@ def test_the_point_table_carries_both_directions_and_the_targets(with_matrix, st
                                                           log=lambda *a: None)
     index = index_of(with_matrix)
     row = points[points["clave"] == "b"].iloc[0]
-    # `out` is the row sum, which under the `1/m` rule *is* the unit count:
-    # `b` has four unit rows, and they weigh 2 + 1/2 + 1/3 towards `a`, 1/2
-    # towards `900` and 1/3 each towards `c` and `902`.
-    assert row["out"] == pytest.approx(4.0, abs=0.05)
-    assert row["out"] == pytest.approx(float(row["units"]), abs=0.05)
-    # What points *at* `a`: `b`'s 2.833, `c`'s 0.833, `900`'s 1 and `902`'s
-    # 0.333.
-    assert points[points["clave"] == "a"].iloc[0]["in"] == pytest.approx(5.0, abs=0.05)
+    # `out` is the row sum, which under the `1/m` rule *is* the counted unit
+    # rows: `b` has four unit rows, one a heading and one an identical
+    # boilerplate shared by three instruments, so two count -- 1 + 1/2
+    # towards `a`, 1/2 towards `900`.
+    assert row["units"] == 4
+    assert row["out"] == pytest.approx(2.0, abs=0.05)
+    # What points *at* `a`: `b`'s 1.5, `c`'s 0.5, `900`'s 1 and `902`'s 0.5.
+    assert points[points["clave"] == "a"].iloc[0]["in"] == pytest.approx(3.5, abs=0.05)
     # One decimal, weight first, because a weight is a sum of fractions and
     # a long name must not push it out of the tooltip.
-    assert row["top1"] == "2.8  Ley A"
+    assert row["top1"] == "1.5  Ley A"
     assert str(index["a"]) in row["t"].split(",")
     assert "top" not in points.columns
 
@@ -638,10 +757,10 @@ def test_the_rings_are_exactly_the_tooltips_targets(with_matrix, stub_umap):
         # The placeholders only ever trail.
         assert all(row[c] == build_instrument_umap_html.NO_TARGET
                    for c in columns[len(named):])
-    # `b` points at four instruments, so its fifth row is the placeholder.
+    # `b` points at two instruments, so its other rows are the placeholder.
     b = points[points["clave"] == "b"].iloc[0]
-    assert len(b["t"].split(",")) == 4
-    assert b["top5"] == "\u2014"
+    assert len(b["t"].split(",")) == 2
+    assert b["top3"] == b["top5"] == "\u2014"
 
 
 def test_the_spec_carries_every_interaction(with_matrix, stub_umap):
@@ -702,3 +821,216 @@ def test_the_page_refuses_to_build_without_a_finished_matrix(tmp_path):
     with pytest.raises(SystemExit):
         build_instrument_umap_html.build(tmp_path / "work", tmp_path / "out.html",
                                          log=lambda *a: None)
+
+
+def test_unit_rows_equal_the_instruments_own_unit_counts(prepared, cache):
+    """Issue #259: whatever `prepare_umap_input.py --unique-names` removed, the
+    join's unit rows are exactly what `instruments.parquet` lists."""
+    summary = computed(prepared, cache)["summary"]
+    instruments = pq.read_table(prepared / "instruments.parquet").to_pandas()
+    assert summary["unit_rows"] == int(instruments["units"].sum())
+    assert summary["matrix_sum"] == pytest.approx(summary["counted_rows"], abs=1e-3)
+    assert summary["counted_rows"] < summary["unit_rows"]
+
+
+def test_an_instruments_table_that_disagrees_with_the_join_is_refused(prepared, cache):
+    table = pq.read_table(prepared / "instruments.parquet")
+    units = table["units"].to_numpy().copy()
+    units[0] += 1
+    table = table.set_column(table.schema.get_field_index("units"), "units",
+                             pa.array(units, type=pa.int32()))
+    pq.write_table(table, prepared / "instruments.parquet")
+    with pytest.raises(SystemExit, match="instruments.parquet lists"):
+        computed(prepared, cache)
+
+
+# -- transitorios that repeat standard wording (issue #259, review fix-2) ----- #
+
+TRANSITORIO = ["TRANSITORIOS"]
+
+#: `(clave, unit_type, eId, text_sha1, path)`; every unit is a `leyes` article.
+#: Unit-length vectors, so every cosine below is the dot product on paper.
+TRANSITORIO_VECTORS = {
+    "a1": [1.0, 0.0, 0.0, 0.0],
+    "a2": [0.0, 1.0, 0.0, 0.0],
+    "b1": [0.0, 0.995, 0.0998749, 0.0],        # cosine 0.995 to a2
+    "b2": [0.995, 0.0, 0.0, 0.0998749],        # cosine 0.995 to a1
+    "c1": [0.0, 0.0, 0.0, 1.0],
+    "c2": [0.0, 0.0, 0.19899749, 0.98],        # cosine 0.98 to c1
+    "d1": [-1.0, 0.0, 0.0, 0.0],
+    "d2": [-0.9, 0.0, 0.0, -0.43588989],       # cosine 0.9 to d1
+    "e1": [0.0, -1.0, 0.0, 0.0],               # the same wording in three instruments
+}
+TRANSITORIO_UNITS = [
+    ("w", "article", "art_1", "a1", []),
+    ("w", "article", "art_t", "a2", ["TRANSITORIOS 18 DE MARZO DE 1980"]),
+    ("x", "article", "art_t", "b1", TRANSITORIO),
+    ("x", "article", "art_1", "b2", []),
+    ("y", "article", "art_t", "c1", TRANSITORIO),
+    ("z", "article", "art_t", "c2", TRANSITORIO),
+    ("u", "article", "art_t", "d1", ["TITULO PRIMERO", "TRANSITORIOS"]),
+    ("v", "article", "art_1", "d2", []),
+    ("p", "article", "art_t", "e1", TRANSITORIO),
+    ("q", "article", "art_t", "e1", TRANSITORIO),
+    ("s", "article", "art_t", "e1", TRANSITORIO),
+]
+
+
+@pytest.fixture
+def transitorio_work(tmp_path):
+    """A `leyes`-only corpus with a `path` column, prepared and ready for
+    `build_matrix`; returns `(work_dir, cache)`."""
+    cache = tmp_path / "tcache"
+    leyes = cache / "scjn-leyes-vectors"
+    leyes.mkdir(parents=True)
+    pq.write_table(pa.table({
+        "coleccion": pa.array(["leyes"] * len(TRANSITORIO_UNITS), type=pa.string()),
+        "clave": pa.array([u[0] for u in TRANSITORIO_UNITS], type=pa.string()),
+        "nombre": pa.array([f"Ley {u[0].upper()}" for u in TRANSITORIO_UNITS], type=pa.string()),
+        "unit_type": pa.array([u[1] for u in TRANSITORIO_UNITS], type=pa.string()),
+        "eId": pa.array([u[2] for u in TRANSITORIO_UNITS], type=pa.string()),
+        "text_sha1": pa.array([u[3] for u in TRANSITORIO_UNITS], type=pa.string()),
+        "text": pa.array([f"texto {u[3]}" for u in TRANSITORIO_UNITS], type=pa.string()),
+        "path": pa.array([u[4] for u in TRANSITORIO_UNITS], type=pa.list_(pa.string())),
+    }), leyes / "units.parquet")
+
+    def write(name, hashes):
+        pq.write_table(pa.table({
+            "text_sha1": pa.array(hashes, type=pa.string()),
+            "vector": pa.array([TRANSITORIO_VECTORS[h] for h in hashes],
+                               type=pa.list_(pa.float32())),
+        }), leyes / name)
+
+    for clave in dict.fromkeys(u[0] for u in TRANSITORIO_UNITS):
+        write(f"vectors-{clave}-{SLUG}-{K}.parquet",
+              [u[3] for u in TRANSITORIO_UNITS if u[0] == clave and u[3] != "e1"])
+    write(f"vectors-shared-{SLUG}-{K}.parquet", ["e1"])
+    work_dir = tmp_path / "twork"
+    prepare_umap_input.prepare(work_dir, collections=("leyes",), cache_dir=cache,
+                               log=lambda *a: None)
+    return work_dir, cache
+
+
+def transitorio_result(transitorio_work, **kwargs):
+    work_dir, cache = transitorio_work
+    summary = instrument_matrix.build_matrix(
+        work_dir, collections=("leyes",), cache_dir=cache, log=lambda *a: None, **kwargs)
+    out = instrument_matrix.output_dir(work_dir)
+    nearest = pq.read_table(out / "nearest.parquet").to_pandas()
+    return {"summary": summary, "matrix": np.load(out / "matrix.npy"),
+            "nearest": nearest, "index": index_of(work_dir)}
+
+
+def row_of_unit(result, clave, eid):
+    nearest = result["nearest"]
+    return nearest[(nearest["clave"] == clave) & (nearest["eId"] == eid)].iloc[0]
+
+
+@pytest.mark.parametrize("path, expected", [
+    (["TRANSITORIOS"], True),
+    (["TRANSITORIOS 18 DE MARZO DE 1980"], True),
+    (["TITULO PRIMERO", "TRANSITORIOS"], True),                  # nested
+    (["TRANSITORIOS 18 DE MARZO DE 1980", "ARTICULO 3"], True),
+    (["DISPOSICIONES TRANSITORIOS"], False),                     # the word elsewhere
+    (["CAPITULO II", "Del régimen TRANSITORIOS de"], False),
+    (["TRANSITORIOSX"], False),
+    ([], False),
+    (None, False),
+    (np.array(["TRANSITORIOS 1"]), True),                        # as pandas hands it back
+    (float("nan"), False),
+])
+def test_the_transitorio_predicate_reads_the_path(path, expected):
+    assert instrument_matrix.is_transitorio_path(path) is expected
+
+
+def test_a_transitorio_at_0995_with_one_owner_is_dropped(transitorio_work):
+    result = transitorio_result(transitorio_work)
+    for clave in ("w", "x"):
+        row = row_of_unit(result, clave, "art_t")
+        assert row["transitorio"] and row["m"] == 1
+        assert row["similarity"] == pytest.approx(0.995, abs=1e-4)
+        assert not row["counted"]
+        assert row["drop_reason"] == "transitorio_near_identical"
+    # Not re-credited to a next-nearest text: each cell is the one counted
+    # article (`art_1`) and nothing else.
+    index, matrix = result["index"], result["matrix"]
+    assert matrix[index["w"], index["x"]] == pytest.approx(1.0)
+    assert matrix[index["x"], index["w"]] == pytest.approx(1.0)
+    assert matrix[index["w"]].sum() == matrix[index["x"]].sum() == pytest.approx(1.0)
+    assert result["summary"]["transitorio_near_identical_dropped"] == 2
+
+
+def test_a_transitorio_at_098_still_counts(transitorio_work):
+    result = transitorio_result(transitorio_work)
+    index, matrix = result["index"], result["matrix"]
+    for clave, target in (("y", "z"), ("z", "y")):
+        row = row_of_unit(result, clave, "art_t")
+        assert row["transitorio"] and row["counted"] and pd.isna(row["drop_reason"])
+        assert row["similarity"] == pytest.approx(0.98, abs=1e-4)
+        assert matrix[index[clave], index[target]] == pytest.approx(1.0)
+
+
+def test_a_non_transitorio_at_0995_still_counts(transitorio_work):
+    result = transitorio_result(transitorio_work)
+    index = result["index"]
+    for clave, target in (("w", "x"), ("x", "w")):
+        row = row_of_unit(result, clave, "art_1")
+        assert not row["transitorio"] and row["counted"]
+        assert row["similarity"] == pytest.approx(0.995, abs=1e-4)
+        assert result["matrix"][index[clave], index[target]] == pytest.approx(1.0)
+
+
+def test_a_transitorio_text_stays_a_candidate_for_a_non_transitorio_row(transitorio_work):
+    """`v`'s article is nearest to `u`'s transitorio (0.9), and is credited."""
+    result = transitorio_result(transitorio_work)
+    index = result["index"]
+    row = row_of_unit(result, "v", "art_1")
+    assert list(row["targets"]) == [index["u"]] and row["counted"]
+    assert result["matrix"][index["v"], index["u"]] == pytest.approx(1.0)
+
+
+def test_a_row_both_rules_catch_is_dropped_once_as_identical_shared(transitorio_work):
+    """`p`, `q` and `s` carry one transitorio text: each row's winner is that
+    text at cosine 1 with `m == 2`, and is also a transitorio at >= 0.99."""
+    result = transitorio_result(transitorio_work)
+    for clave in ("p", "q", "s"):
+        row = row_of_unit(result, clave, "art_t")
+        assert row["transitorio"] and row["m"] == 2
+        assert row["similarity"] == pytest.approx(1.0)
+        assert not row["counted"] and row["drop_reason"] == "identical_shared"
+    summary = result["summary"]
+    assert summary["identical_shared_dropped"] == 3
+    assert summary["transitorio_near_identical_dropped"] == 2      # not 5
+
+
+def test_the_counts_and_the_identity_with_both_rules(transitorio_work):
+    result = transitorio_result(transitorio_work)
+    summary, nearest, matrix = result["summary"], result["nearest"], result["matrix"]
+    assert summary["unit_rows"] == summary["searched_rows"] == 11
+    assert summary["heading_rows_excluded"] == 0
+    assert summary["counted_rows"] == 6
+    assert summary["transitorio_similarity"] == instrument_matrix.TRANSITORIO_SIMILARITY == 0.99
+    assert summary["row_sums_equal_counted_rows"] is True
+    assert matrix.sum() == pytest.approx(6.0)
+    assert int(nearest["counted"].sum()) == 6
+    assert set(nearest.loc[~nearest["counted"], "drop_reason"]) == {
+        "identical_shared", "transitorio_near_identical"}
+    assert nearest.loc[nearest["counted"], "drop_reason"].isna().all()
+    # No counted row is a transitorio at or above the threshold.
+    counted = nearest[nearest["counted"]]
+    assert not (counted["transitorio"] & (counted["similarity"] >= 0.99)).any()
+
+
+def test_the_threshold_is_a_parameter(transitorio_work):
+    """At 0.999 nothing at 0.995 is dropped any more, and the summary says so."""
+    result = transitorio_result(transitorio_work, transitorio_similarity=0.999)
+    assert result["summary"]["transitorio_near_identical_dropped"] == 0
+    assert result["summary"]["transitorio_similarity"] == 0.999
+    assert result["summary"]["counted_rows"] == 8
+
+
+def test_the_threshold_is_forwarded_into_the_slurm_job(tmp_path):
+    command = instrument_matrix.sbatch_command(tmp_path, transitorio_similarity=0.97)
+    assert command[command.index("--transitorio-similarity") + 1] == "0.97"
+    default = instrument_matrix.sbatch_command(tmp_path)
+    assert default[default.index("--transitorio-similarity") + 1] == "0.99"

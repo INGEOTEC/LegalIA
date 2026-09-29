@@ -1,10 +1,10 @@
 """Export the evidence behind every *Closest instruments* weight of the Atlas.
 
 Issue #249. The Atlas (`website/pages/atlas.qmd`, issues #244/#245) says the
-Constitution is closest to the *LEY General de Instituciones y Procedimientos
-Electorales* with a weight of 116.6, and nothing more. That number is a sum:
+Constitution is closest to the *ESTATUTO de Gobierno del Distrito Federal* with a weight of 41.0,
+and nothing more. That number is a sum:
 every provision (unit row) of the Constitution whose nearest text outside the
-Constitution belongs to the LGIPE adds `1/m` to it, `m` being how many
+Constitution belongs to the ESTATUTO adds `1/m` to it, `m` being how many
 instruments own that winning text (issue #242's rule, `instrument_matrix.py`).
 This script writes, for every pair the panel lists under **Closest
 instruments**, which provisions those are and what they matched, with the full
@@ -21,7 +21,7 @@ It is a pure read of #242's outputs — `instrument-matrix/matrix.npy`,
 and never touches any of them. No Slurm, no network, ~3 minutes.
 
 * **Which pairs.** `export_atlas_data.weighted_targets` over `matrix.npy`,
-  imported, so the files are exactly `atlas.json`'s `out` lists: 7,604 pairs,
+  imported, so the files are exactly `atlas.json`'s `out` lists: 6,372 pairs,
   file `pairs/<i>-<j>.json`, `i`/`j` being positions in `atlas.json`'s
   `instruments` array (= `instruments.parquet`'s `i`). `--atlas` checks an
   existing `atlas.json` against that, pair by pair and `clave` by `clave`.
@@ -47,7 +47,7 @@ fixed mtime/uid/gid, gzip mtime 0), `SHA256SUMS.txt` and `PUBLICAR.md`, with
 `--install DIR` then replaces `DIR` with a copy of `pairs/` (the site's own,
 gitignored `website/pages/atlas/pairs/`).
 
-**Nothing here publishes anything.** The files are ~264 MB, too much for
+**Nothing here publishes anything.** The files are ~165 MB, too much for
 `master`, and GitHub release assets carry no CORS header, so the page cannot
 read them from a release either: a human publishes the tarball as the release
 `atlas-pairs` by running `PUBLICAR.md`, and the website's publish workflow
@@ -72,7 +72,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_umap_html as html  # noqa: E402
 import instrument_matrix  # noqa: E402
 from build_instrument_umap_html import TOP_TARGETS  # noqa: E402
-from export_atlas_data import weighted_targets  # noqa: E402
+from export_atlas_data import duplicates_dropped, weighted_targets  # noqa: E402
 
 RELEASE = "atlas-pairs"
 ASSET = "atlas-pairs.tar.gz"
@@ -88,7 +88,7 @@ PATH_SEPARATOR = " › "
 TRANSITORY_SEPARATOR = " · "
 
 #: The per-pair sums are asserted at the same tolerance `matrix.json`'s
-#: `row_sums_equal_units` uses: `matrix.npy` is float32.
+#: `row_sums_equal_counted_rows` uses: `matrix.npy` is float32.
 SUM_TOLERANCE = 1e-3
 
 #: Every tarball member gets this mtime, so two exports of the same pairs are
@@ -195,6 +195,9 @@ def check_inputs(work_dir: Path) -> None:
             raise SystemExit(f"{path} is missing -- this export reads what "
                              "instrument_matrix.py (issue #242) and "
                              "prepare_umap_input.py (issue #241) wrote")
+    # The Atlas draws unique instruments only (issue #259): refuse a work
+    # directory prepared without `--unique-names`, as `export_atlas_data.py` does.
+    duplicates_dropped(work_dir)
 
 
 def pairs_of(matrix, top: int = TOP_TARGETS) -> list[tuple[int, int, float]]:
@@ -246,6 +249,14 @@ def load(work_dir: Path, *, cache_dir=None, log=print) -> dict:
                                         cache_dir=cache_dir, log=log)
     points, _ = html.load_frames(work_dir, [], neighbors=0, collections=collections,
                                  cache_dir=cache_dir, extra_columns=LABEL_COLUMNS, log=log)
+    # Headings are neither sources nor candidates (`EXCLUDED_UNIT_TYPES`), so
+    # `nearest.parquet` holds only the searched rows: the join is narrowed the
+    # same way, positionally, before anything is aligned.
+    if len(points) != len(units):
+        raise SystemExit("load_frames and unit_rows disagree about the unit rows")
+    searched = ~units["unit_type"].isin(instrument_matrix.EXCLUDED_UNIT_TYPES).to_numpy()
+    units = units[searched].reset_index(drop=True)
+    points = points[searched].reset_index(drop=True)
     if len(units) != len(nearest) or len(points) != len(units):
         raise SystemExit(f"nearest.parquet has {len(nearest)} rows, the join gives "
                          f"{len(units)}: the legalvec cache is not the one "
@@ -297,7 +308,10 @@ def build_pairs(data: dict, vectors, pairs, *, tolerance: float, log=print):
 
     wanted = {(i, j) for i, j, _ in pairs}
     by_pair: dict[tuple[int, int], list[int]] = {}
+    counted = nearest["counted"].to_numpy()
     for position, (i, targets) in enumerate(zip(source_i, nearest["targets"])):
+        if not counted[position]:
+            continue            # an identical text shared by several instruments
         for j in targets:
             key = (int(i), int(j))
             if key in wanted:
@@ -427,18 +441,12 @@ def publish_instructions(out_dir: Path, repo: str, manifest: dict) -> str:
         "",
         f"Release body: `.github/{RELEASE}.md` in the repository. The file *is* the body.",
         "",
-        "The first publication:",
+        f"**Replace the `{RELEASE}` release before the pull request that carries this",
+        "`atlas.json` is merged to `master`.** The website's publish workflow pairs the",
+        "committed `atlas.json` with whatever this release holds when it runs, and the pair",
+        "dialogs would show the page's \"different version of the map\" message.",
         "",
-        "```bash",
-        "REPO=$(git rev-parse --show-toplevel)",
-        f'cd "{_cd_target(out_dir)}"',
-        "sha256sum -c SHA256SUMS.txt",
-        f'gh release create {RELEASE} --repo {repo} --title "LegalIA — Atlas pair explanations" '
-        f"--notes-file $REPO/.github/{RELEASE}.md {assets}",
-        "```",
-        "",
-        "Every later regeneration replaces the assets of the same tag, which is the",
-        "one name the website's publish workflow downloads:",
+        "Replacing the assets of the existing release, in place (same tag):",
         "",
         "```bash",
         "REPO=$(git rev-parse --show-toplevel)",
@@ -446,6 +454,16 @@ def publish_instructions(out_dir: Path, repo: str, manifest: dict) -> str:
         "sha256sum -c SHA256SUMS.txt",
         f"gh release upload {RELEASE} --repo {repo} {assets} --clobber",
         f"gh release edit {RELEASE} --repo {repo} --notes-file $REPO/.github/{RELEASE}.md",
+        "```",
+        "",
+        "Only if the release does not exist yet:",
+        "",
+        "```bash",
+        "REPO=$(git rev-parse --show-toplevel)",
+        f'cd "{_cd_target(out_dir)}"',
+        "sha256sum -c SHA256SUMS.txt",
+        f'gh release create {RELEASE} --repo {repo} --title "LegalIA — Atlas pair explanations" '
+        f"--notes-file $REPO/.github/{RELEASE}.md {assets}",
         "```",
         "",
         "Read all of this before running it. Nothing here publishes itself "

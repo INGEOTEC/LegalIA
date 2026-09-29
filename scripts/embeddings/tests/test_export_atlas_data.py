@@ -54,8 +54,10 @@ def test_the_schema_is_meta_instruments_projections(exported):
     assert list(data) == ["meta", "instruments", "projections"]
     assert list(data["meta"]) == [
         "title", "generated", "commit", "model", "instruments", "provisions",
-        "distinct_texts", "collections", "n_neighbors", "default_n_neighbors", "umap",
-        "weighting", "top", "sources"]
+        "heading_rows_excluded", "identical_shared_dropped",
+        "transitorio_near_identical_dropped", "counted_rows",
+        "distinct_texts", "collections", "unique_names", "duplicates_dropped",
+        "n_neighbors", "default_n_neighbors", "umap", "weighting", "top", "sources"]
     meta = data["meta"]
     assert meta["title"] == ("An Atlas of Mexican Federal Law: Laws, Regulations "
                              "and Guidelines")
@@ -63,7 +65,7 @@ def test_the_schema_is_meta_instruments_projections(exported):
     assert meta["commit"]
     assert meta["model"] == "Qwen/Qwen3-Embedding-0.6B"
     assert meta["instruments"] == 6
-    assert meta["distinct_texts"] == 9
+    assert meta["distinct_texts"] == 11
     assert meta["n_neighbors"] == [4, 8, 16, 32]
     assert meta["default_n_neighbors"] == 16
     assert meta["umap"] == {"min_dist": 0.1, "metric": "cosine", "random_state": 0,
@@ -77,8 +79,12 @@ def test_the_schema_is_meta_instruments_projections(exported):
 def test_collections_and_provisions_come_from_the_table_and_the_matrix(exported):
     meta, matrix = exported["data"]["meta"], exported["matrix"]
     assert meta["collections"] == {"leyes": 3, "lineamientos": 3}
-    assert meta["provisions"] == 13
-    assert meta["provisions"] == pytest.approx(float(matrix.sum()), abs=1e-3)
+    assert meta["provisions"] == 16
+    # Three headings are not searched and four identical, shared matches are
+    # not counted: the matrix weighs the nine that remain.
+    assert (meta["heading_rows_excluded"], meta["identical_shared_dropped"],
+            meta["transitorio_near_identical_dropped"], meta["counted_rows"]) == (3, 4, 0, 9)
+    assert meta["counted_rows"] == pytest.approx(float(matrix.sum()), abs=1e-3)
     assert sum(entry["p"] for entry in exported["data"]["instruments"]) == meta["provisions"]
     assert meta["sources"] == ["scjn-leyes", "scjn-lineamientos",
                                "scjn-leyes-vectors", "scjn-lineamientos-vectors"]
@@ -89,13 +95,16 @@ def test_every_instrument_carries_its_provisions_and_both_directions(exported):
     table = pq.read_table(exported["work_dir"] / "instruments.parquet").to_pandas()
     assert len(data["instruments"]) == len(table) == matrix.shape[0]
     strongest = build_instrument_umap_html.strongest_targets
+    nearest = pq.read_table(instrument_matrix.output_dir(exported["work_dir"])
+                            / "nearest.parquet").to_pandas()
+    counted = nearest[nearest["counted"]].groupby("i").size()
     for i, entry in enumerate(data["instruments"]):
         assert entry["k"] == table["clave"].iloc[i]
         assert entry["c"] == table["coleccion"].iloc[i]
         assert entry["n"] == table["nombre"].iloc[i]
         assert entry["p"] == int(table["units"].iloc[i])
-        # The `1/m` rule: a row sums to the instrument's provisions.
-        assert float(matrix[i].sum()) == pytest.approx(entry["p"], abs=1e-3)
+        # The `1/m` rule: a row sums to the instrument's counted provisions.
+        assert float(matrix[i].sum()) == pytest.approx(int(counted.get(i, 0)), abs=1e-3)
         assert entry["in"] == round(float(matrix[:, i].sum()), 1)
         assert [j for j, _ in entry["out"]] == strongest(matrix, i)
         assert [w for _, w in entry["out"]] == [round(float(matrix[i, j]), 1)
@@ -110,16 +119,16 @@ def test_every_instrument_carries_its_provisions_and_both_directions(exported):
 
 
 def test_the_hand_computed_weights_survive_the_export(exported):
-    """`b` points at `a` with 2 + 1/2 + 1/3 (`test_instrument_matrix`'s own
-    derivation), and `a` receives 2.833 + 0.833 + 1 + 0.333 = 5."""
+    """`b` points at `a` with 1 + 1/2 (`test_instrument_matrix`'s own
+    derivation), and `a` receives 1.5 + 0.5 + 1 + 0.5 = 3.5."""
     data = exported["data"]
     index = index_of(exported["work_dir"])
     b = data["instruments"][index["b"]]
-    assert b["out"][0] == [index["a"], 2.8]
-    assert len(b["out"]) == 4
+    assert b["out"][0] == [index["a"], 1.5]
+    assert len(b["out"]) == 2
     a = data["instruments"][index["a"]]
-    assert a["in"] == 5.0
-    assert a["inc"][0] == [index["b"], 2.8]
+    assert a["in"] == 3.5
+    assert a["inc"][0] == [index["b"], 1.5]
 
 
 def test_projections_are_rounded_unit_square_pairs_keyed_by_n_neighbors(
@@ -201,3 +210,55 @@ def test_a_matrix_of_the_wrong_shape_is_a_system_exit(with_matrix, stub_umap, tm
     np.save(path, np.load(path)[:5, :5])
     with pytest.raises(SystemExit, match="instrument_matrix.py"):
         export_atlas_data.export(with_matrix, tmp_path / "atlas.json", log=lambda *a: None)
+
+
+# -- unique instruments (issue #259) ---------------------------------------- #
+
+def test_meta_records_unique_names_and_what_was_dropped(exported):
+    meta = exported["data"]["meta"]
+    assert meta["unique_names"] is True
+    # The toy corpus has no duplicate: the id-keyed collection present reports 0.
+    assert meta["duplicates_dropped"] == {"lineamientos": 0}
+
+
+def test_meta_reports_the_dropped_counts_per_id_keyed_collection(with_matrix, stub_umap, tmp_path):
+    report = with_matrix / "unique-instruments.json"
+    data = json.loads(report.read_text(encoding="utf-8"))
+    data["lineamientos"]["dropped"] = 2
+    data["lineamientos"]["dropped_instruments"] = [
+        {"clave": "old-1", "nombre": "X", "first_publication": "01-01-1990", "replaced_by": "900"},
+        {"clave": "old-2", "nombre": "X", "first_publication": "01-01-1991", "replaced_by": "900"},
+    ]
+    report.write_text(json.dumps(data), encoding="utf-8")
+    atlas = export_atlas_data.atlas(with_matrix, now=NOW, log=lambda *a: None)
+    assert atlas["meta"]["duplicates_dropped"] == {"lineamientos": 2}
+
+
+def test_a_work_dir_prepared_without_unique_names_is_refused(with_matrix, stub_umap, tmp_path):
+    record = with_matrix / "input.json"
+    data = json.loads(record.read_text(encoding="utf-8"))
+    data["unique_names"] = False
+    record.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(SystemExit, match="--unique-names"):
+        export_atlas_data.export(with_matrix, tmp_path / "atlas.json", log=lambda *a: None)
+    assert not (tmp_path / "atlas.json").exists()
+
+
+def test_input_json_without_the_key_is_refused_too(with_matrix, stub_umap, tmp_path):
+    record = with_matrix / "input.json"
+    data = json.loads(record.read_text(encoding="utf-8"))
+    del data["unique_names"]
+    record.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(SystemExit, match="--unique-names"):
+        export_atlas_data.atlas(with_matrix, log=lambda *a: None)
+
+
+def test_a_dropped_instrument_still_in_instruments_parquet_is_refused(with_matrix, stub_umap):
+    report = with_matrix / "unique-instruments.json"
+    data = json.loads(report.read_text(encoding="utf-8"))
+    data["lineamientos"]["dropped_instruments"] = [
+        {"clave": "900", "nombre": "Lineamientos P", "first_publication": "01-01-1990",
+         "replaced_by": "901"}]
+    report.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(SystemExit, match="listed as dropped"):
+        export_atlas_data.atlas(with_matrix, log=lambda *a: None)

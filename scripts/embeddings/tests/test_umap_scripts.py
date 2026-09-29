@@ -50,7 +50,7 @@ UNITS = {
 }
 #: Every vector is a constant row, so a centroid is a number a test can
 #: predict by hand.
-VALUES = {"shaA1": 1.0, "shaB1": 3.0, "shaS": 9.0}
+VALUES = {"shaA1": 1.0, "shaB1": 3.0, "shaS": 9.0, "shaX": 27.0, "shaD": 81.0}
 
 
 def write_vectors(directory: Path, name: str, hashes) -> None:
@@ -154,6 +154,97 @@ def test_prepare_raises_asset_not_cached_for_a_missing_vector_file(tmp_path, cac
     with pytest.raises(legalvec.AssetNotCached):
         prepare_umap_input.prepare(tmp_path / "work", collections=COLLECTIONS,
                                    cache_dir=cache, log=lambda *a: None)
+
+
+# -- prepare_umap_input --unique-names (issue #259) ------------------------ #
+
+@pytest.fixture
+def duplicated_cache(cache):
+    """The tiny corpus plus a second "Lineamientos Z", `901`, that the SCJN
+    issued earlier than `900`. Its own text is `shaX`; `shaD` sits only in the
+    collection's shared file and is carried by `901` alone -- the row
+    `load_vectors(..., "900")` would still hand back, since it always unions
+    the whole shared file."""
+    lineamientos = cache / "scjn-lineamientos-vectors"
+    rows = UNITS["lineamientos"] + [
+        ("901", "LINEAMIENTOS  Z", "article", "art_1", "shaX", "texto propio"),
+        ("901", "LINEAMIENTOS  Z", "article", "art_2", "shaD", "texto compartido"),
+        ("901", "LINEAMIENTOS  Z", "article", "art_3", "shaS", "transitorio compartido"),
+    ]
+    write_units(lineamientos, "lineamientos", rows)
+    write_vectors(lineamientos, f"vectors-901-{SLUG}-{K}.parquet", ["shaX"])
+    write_vectors(lineamientos, f"vectors-shared-{SLUG}-{K}.parquet", ["shaD"])
+    return cache
+
+
+def dated_reader(dates):
+    def reader(coleccion):
+        def read(clave, cache_dir=None):
+            return {"snapshots": [{"fecha_publicacion": d} for d in dates[clave]]}
+        return read
+    return reader
+
+
+DUPLICATE_DATES = {"900": ["30-08-2004", "02-04-2014"], "901": ["01-01-1999"]}
+
+
+def test_unique_names_drops_the_older_duplicate_before_stacking(tmp_path, duplicated_cache):
+    work_dir = tmp_path / "work"
+    summary = prepare_umap_input.prepare(
+        work_dir, collections=COLLECTIONS, cache_dir=duplicated_cache, unique_names=True,
+        corpus_reader=dated_reader(DUPLICATE_DATES), log=lambda *a: None)
+
+    instruments = pq.read_table(work_dir / "instruments.parquet").to_pydict()
+    assert instruments["clave"] == ["a", "b", "900"]
+    # Neither `shaX` (only 901's own file) nor `shaD` (only 901 owns it, but it
+    # is in the shared file every reader unions in) gets a row.
+    ids = pq.read_table(work_dir / "vector_ids.parquet").to_pydict()
+    assert list(zip(ids["coleccion"], ids["text_sha1"])) == [
+        ("leyes", "shaA1"), ("leyes", "shaS"), ("leyes", "shaB1"),
+        ("lineamientos", "shaS"),
+    ]
+    assert np.load(work_dir / "vectors.npy").shape == (4, K)
+    assert summary["unique_names"] is True
+    assert summary["collections"]["lineamientos"]["instruments"] == 1
+    assert summary["collections"]["lineamientos"]["unit_rows"] == 1
+
+    report = json.loads((work_dir / "unique-instruments.json").read_text(encoding="utf-8"))
+    assert report["leyes"] == {"before": 2, "kept": 2, "dropped": 0, "dropped_instruments": []}
+    assert report["lineamientos"] == {
+        "before": 2, "kept": 1, "dropped": 1,
+        "dropped_instruments": [{"clave": "901", "nombre": "LINEAMIENTOS  Z",
+                                 "first_publication": "01-01-1999", "replaced_by": "900"}],
+    }
+    record = json.loads((work_dir / "input.json").read_text(encoding="utf-8"))
+    assert record["unique_names"] is True
+    assert record["instruments"] == 3
+
+
+def test_the_default_keeps_every_instrument_and_writes_no_report(tmp_path, duplicated_cache):
+    work_dir = tmp_path / "work"
+    summary = prepare_umap_input.prepare(
+        work_dir, collections=COLLECTIONS, cache_dir=duplicated_cache, log=lambda *a: None)
+
+    instruments = pq.read_table(work_dir / "instruments.parquet").to_pydict()
+    assert instruments["clave"] == ["a", "b", "900", "901"]
+    assert summary["unique_names"] is False
+    assert not (work_dir / "unique-instruments.json").exists()
+    ids = pq.read_table(work_dir / "vector_ids.parquet").to_pydict()
+    assert {sha for sha in ids["text_sha1"]} >= {"shaX", "shaD"}
+
+
+def test_unique_names_reports_a_missing_scjn_tarball(tmp_path, duplicated_cache):
+    import scjn
+
+    def missing(coleccion):
+        def read(clave, cache_dir=None):
+            raise scjn.AssetNotCached(f"{clave}.tgz", tmp_path, coleccion=coleccion)
+        return read
+
+    with pytest.raises(scjn.AssetNotCached, match="scjn download --coleccion lineamientos"):
+        prepare_umap_input.prepare(
+            tmp_path / "work", collections=COLLECTIONS, cache_dir=duplicated_cache,
+            unique_names=True, corpus_reader=missing, log=lambda *a: None)
 
 
 # -- project_umap --------------------------------------------------------- #
