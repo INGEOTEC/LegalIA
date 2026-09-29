@@ -2,7 +2,7 @@
 
 Issue #242, the second half: `instrument_matrix.py` asked, for every unit of
 every instrument, which *other* instrument owns the nearest text, and gave
-each unit row one unit of weight to split (`1/m` over its `m` answers); this
+each counted unit row one unit of weight to split (`1/m` over its `m` answers); this
 embeds the rows of that matrix (1,303 in the Atlas) and draws them. The weights are
 fractional, which is why the page's counts carry a decimal.
 

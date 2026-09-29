@@ -1,7 +1,7 @@
 """Export the evidence behind every *Closest instruments* weight of the Atlas.
 
 Issue #249. The Atlas (`website/pages/atlas.qmd`, issues #244/#245) says the
-Constitution is closest to the *CÓDIGO Penal Federal* with a weight of 70.5,
+Constitution is closest to the *CÓDIGO Penal Federal* with a weight of 43.4,
 and nothing more. That number is a sum:
 every provision (unit row) of the Constitution whose nearest text outside the
 Constitution belongs to the Código Penal Federal adds `1/m` to it, `m` being how many
@@ -21,7 +21,7 @@ It is a pure read of #242's outputs — `instrument-matrix/matrix.npy`,
 and never touches any of them. No Slurm, no network, ~3 minutes.
 
 * **Which pairs.** `export_atlas_data.weighted_targets` over `matrix.npy`,
-  imported, so the files are exactly `atlas.json`'s `out` lists: 6,501 pairs,
+  imported, so the files are exactly `atlas.json`'s `out` lists: 6,397 pairs,
   file `pairs/<i>-<j>.json`, `i`/`j` being positions in `atlas.json`'s
   `instruments` array (= `instruments.parquet`'s `i`). `--atlas` checks an
   existing `atlas.json` against that, pair by pair and `clave` by `clave`.
@@ -47,7 +47,7 @@ fixed mtime/uid/gid, gzip mtime 0), `SHA256SUMS.txt` and `PUBLICAR.md`, with
 `--install DIR` then replaces `DIR` with a copy of `pairs/` (the site's own,
 gitignored `website/pages/atlas/pairs/`).
 
-**Nothing here publishes anything.** The files are ~183 MB, too much for
+**Nothing here publishes anything.** The files are ~167 MB, too much for
 `master`, and GitHub release assets carry no CORS header, so the page cannot
 read them from a release either: a human publishes the tarball as the release
 `atlas-pairs` by running `PUBLICAR.md`, and the website's publish workflow
@@ -88,7 +88,7 @@ PATH_SEPARATOR = " › "
 TRANSITORY_SEPARATOR = " · "
 
 #: The per-pair sums are asserted at the same tolerance `matrix.json`'s
-#: `row_sums_equal_units` uses: `matrix.npy` is float32.
+#: `row_sums_equal_counted_rows` uses: `matrix.npy` is float32.
 SUM_TOLERANCE = 1e-3
 
 #: Every tarball member gets this mtime, so two exports of the same pairs are

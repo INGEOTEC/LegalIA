@@ -657,9 +657,11 @@ every unit of every federal law, reglamento and lineamiento:
 > that are not exclusively mine?
 
 Weighing the answers gives a square matrix `A` (1,303 × 1,303, rows and
-columns in `instruments.parquet`'s `i` order): every unit row of instrument
-`I` hands out a total weight of **1**, `A[I, J] += 1/m` to each of the `m`
-instruments owning a winning text. An instrument is then represented by
+columns in `instruments.parquet`'s `i` order): every *counted* unit row of
+instrument `I` hands out a total weight of **1**, `A[I, J] += 1/m` to each of
+the `m` instruments owning a winning text. Headings are not compared, and a
+word-for-word match shared by several instruments is not counted (see the
+rules below). An instrument is then represented by
 **where its articles' nearest foreign neighbours live** — a distribution over
 the other instruments — rather than by its own text, and two instruments land
 together when their articles point at the same places.
@@ -766,9 +768,14 @@ regulation several times.
 
 Each of these was a decision in issue #242, not a default:
 
-- **All six `unit_type`s count**, not only `article`: the question is about
-  everything that makes up a document. There is no `--unit-types` flag —
-  narrowing it is a later experiment, not a knob.
+- **Headings are out of the comparison entirely** (`EXCLUDED_UNIT_TYPES`).
+  A unit with `unit_type == "heading"` is neither a source row nor a
+  candidate. `md2akn` marks every heading, and the reform-date ones (`**D.O.F.
+  14 DE ENERO DE 1985.**`) match another instrument's identical heading, which
+  says nothing about how two instruments relate. A text owned by a heading
+  *and* by a non-heading unit stays a candidate, owned only by the
+  non-heading unit's instrument; a text only headings own is never a winner.
+  Every other `unit_type` counts, and there is no `--unit-types` flag.
 - **Ties count, every one of them.** A row's winners are every column within
   `--tolerance` (1e-6) of its best. Identical texts across collections are
   *exact* ties in float32, and breaking them by column index would silently
@@ -776,11 +783,24 @@ Each of these was a decision in issue #242, not a default:
 - **`1/m` to each of the `m` instruments owning a winning text.** A text two
   instruments share is evidence about both, so both are credited — but a unit
   row is one article and weighs one, however many instruments answer for it.
-  Row sums therefore equal the instrument's unit-row count exactly, which
-  `matrix.json` records as `row_sums_equal_units`. Without it a single
-  boilerplate winner ("Se deroga.", a standard transitorio) owned by hundreds
-  of instruments would credit hundreds of cells at once, and `A` would count
-  article–instrument incidences rather than articles.
+  Without it a single boilerplate winner ("Se deroga.", a standard
+  transitorio) owned by hundreds of instruments would credit hundreds of cells
+  at once, and `A` would count article–instrument incidences rather than
+  articles.
+- **A word-for-word match shared by several instruments is not counted.** A
+  row whose best similarity is `>= 1 - tolerance` (1e-6) *and* whose `m > 1`
+  is boilerplate owned by many instruments — it cannot tell one pair apart
+  from any other and says nothing distinctive about its source. It adds
+  nothing to `A`, and it is **not** re-credited to its next-nearest text.
+  `nearest.parquet` keeps the row, with `counted` false. An identical winner
+  owned by exactly one other instrument (`m == 1`) still counts a whole 1, as
+  does a non-identical winner with `m > 1` (a tie within the tolerance).
+- **The identity.** Every row of `A` sums to that instrument's **counted**
+  unit rows (searched rows minus the identical, shared ones), and `A.sum()`
+  equals the counted rows; `matrix.json` records this as
+  `row_sums_equal_counted_rows`, next to `unit_rows`, `heading_rows_excluded`,
+  `searched_rows`, `identical_shared_dropped` and `counted_rows`. An
+  instrument's `p` (circle size) stays its total provisions.
 - **Per unit row, not per distinct text.** A boilerplate transitorio repeated
   `m` times inside a code is `m` articles and counts `m` times — the same
   choice #241's centroids made.
@@ -804,9 +824,10 @@ The unit → instrument → vector row join is **`build_umap_html.load_frames`
 itself**, imported and called with no projection, rather than a second copy:
 the two scripts must never disagree about which vector row a unit got.
 
-`nearest.parquet` keeps the evidence, one row per unit row: `similarity`,
-`n_winners` (how many vector rows tied), `targets` (the instruments
-credited), `m` (how many of them) and `weight` (`1/m`), next to `clave`,
+`nearest.parquet` keeps the evidence, one row per *searched* unit row (every
+row but the headings): `similarity`, `n_winners` (how many vector rows tied),
+`targets` (the instruments answering), `m` (how many of them), `weight`
+(`1/m`) and `counted` (whether the row entered `A`), next to `clave`,
 `unit_type` and `eId`. `n_winners` and `m` are different numbers: one winning
 row can have several owners, and two tied rows can share one.
 
@@ -845,9 +866,9 @@ comma-separated-string trick #241 validated, read back with Vega's `split`).
 `nearest` is **off**, for the reason #241 measured. The tooltip carries
 `nombre`, `clave`, `coleccion`, `units`, both directions of the matrix and
 the five strongest targets — all weights to **one decimal**, since a weight
-is a sum of fractions. `units pointing out` equals `units` for every
-instrument, which is the `1/m` rule visible on every tooltip; the column sum
-(`foreign units pointing here`) is the one that varies. The same provenance
+is a sum of fractions. `units pointing out` is the instrument's counted unit rows, at most its
+`units`, and the column sum (`foreign units pointing here`) is the one that
+varies. The same provenance
 footer and `usermeta.provenance` as #241's page, through the same helpers.
 
 **The five targets are five tooltip rows, and they are the five red rings.**
@@ -890,8 +911,9 @@ One object, keys in this order:
 
 - `meta` — `title`, `generated` (ISO UTC), `commit` (provenance for the file,
   never displayed by the page), `model`, `instruments` (1,303), `provisions`
-  (`matrix.json`'s `unit_rows`, 161,989), `distinct_texts` (`vector_rows`,
-  145,788), `collections` (`{"leyes": 315, "reglamentos": 863,
+  (`matrix.json`'s `unit_rows`, 161,989), `heading_rows_excluded` (28,568),
+  `identical_shared_dropped` (9,783), `counted_rows` (123,638),
+  `distinct_texts` (`vector_rows`, 145,788), `collections` (`{"leyes": 315, "reglamentos": 863,
   "lineamientos": 125}`, counted from the table), `unique_names` (`true`),
   `duplicates_dropped` (`{"reglamentos": 219, "lineamientos": 1}`, from
   `unique-instruments.json`), `n_neighbors`, `default_n_neighbors` (16), `umap`
@@ -904,7 +926,7 @@ One object, keys in this order:
   the same helper over `A.T` (who points *here* hardest): weight > 0 only,
   heaviest first, ties by ascending id, weights to one decimal — the ranking
   the research page uses, imported, so the two cannot disagree. `out`'s
-  total is not exported: it equals `p` by construction.
+  total is not exported: it equals the instrument's counted provisions.
 - `projections` — `{"4": [[x, y], …], "8": …, "16": …, "32": …}`, one pair
   per instrument in `i` order, rounded to `--decimals`, in `[0, 1]`.
 
@@ -915,18 +937,19 @@ side keeps `units`; the words `units` and `tooltip` appear nowhere in the
 file. The exporter refuses (`SystemExit`) a work directory not prepared with
 `--unique-names`, a matrix whose shape does not match the table, a requested
 `n_neighbors` missing from `umap.parquet`, an instrument with an empty `out`,
-and provisions that do not add up to `matrix.json`'s `unit_rows`.
+provisions that do not add up to `matrix.json`'s `unit_rows`, and a `matrix.json` that
+lacks the counted-row totals or a `matrix.npy` that does not sum to `counted_rows`.
 
-Measured on 2026-09-28: **426.7 kB** (114.9 kB gzipped), under a second; the
-Universidad Autónoma Chapingo (`luach`) points at the UAM 11.3, Narro 8.0, the
-IPN 1.3, Ley Agraria 1.0 and INFONACOT 1.0 — all five — and `cpeum` has 1,328
-provisions. Every instrument has at least one instrument pointing at it, and
+Measured on 2026-09-29: **423.3 kB** (110.7 kB gzipped), under a second; the
+Universidad Autónoma Chapingo (`luach`) points at the UAM 11.0, Narro 7.0, Ley
+Agraria 1.0, INAH 1.0 and the IPN 1.0 — all five — and `cpeum` has 1,328
+provisions, 892 of them counted. Every instrument has at least one instrument pointing at it, and
 every `out` is non-empty.
 
 ### The pair explanations (issue #249)
 
 `atlas.json` says the Constitution is closest to the Código Penal Federal with
-a weight of 70.5 and nothing more. `export_atlas_pairs.py` writes the evidence
+a weight of 43.4 and nothing more. `export_atlas_pairs.py` writes the evidence
 behind every such number, one JSON per pair `(i, j)` the panel lists under
 *Closest instruments* — `j` among `strongest_targets(A, i, 5)`, taken from
 `export_atlas_data.weighted_targets` itself, so the files are exactly
@@ -995,19 +1018,20 @@ once per file, as `md2akn` emits it.
   release holds when it runs, and the page's `k` check would answer every click
   with the "different version of the map" message.
 
-Measured on 2026-09-28, on the login node:
+Measured on 2026-09-29, on the login node:
 
 | | value |
 |---|---|
-| wall clock | 46 s |
-| pairs | 6,501 |
-| unit rows the pairs explain | 115,055 of 161,989 (weight 90,688.1) |
-| unit rows per pair | median 7, p90 41, p99 157, max 732 (`pairs/0-6.json`, *CÓDIGO Civil Federal* → *CÓDIGO Nacional de Procedimientos Civiles y Familiares*) |
-| JSON | 183.3 MB raw, 42.2 MB gzipped file by file; per file median 10.3 kB / 2.9 kB, p95 104.9 / 22.4 kB, max 1.19 MB / 219 kB |
-| `atlas-pairs.tar.gz` | 37.2 MB |
-| largest file | `pairs/1122-1059.json` (1.19 MB, 102 rows): the *REGLAMENTO INTERIOR DE LA SECRETARIA DE MEDIO AMBIENTE Y RECURSOS NATURALES* → the same title with a final period, one of the four punctuation-only pairs above |
-| Constitution → Código Penal Federal (`pairs/8-9.json`) | 185 unit rows, 108 distinct texts, weight 70.5; 128 rows with `m > 1` (`m` up to 157, the boilerplate transitorio "**Primero.** El presente Decreto entrará en vigor el día siguiente…"); 152 transitory rows add 44.8, the other 33 (31 headings, two articles) add 25.7 |
+| wall clock | 40 s |
+| pairs | 6,397 |
+| unit rows the pairs explain | 78,103 of 123,638 counted (weight 75,908.3) |
+| unit rows per pair | median 4, p90 28, p99 116, max 705 (`pairs/0-6.json`, *CÓDIGO Civil Federal* → *CÓDIGO Nacional de Procedimientos Civiles y Familiares*) |
+| JSON | 166.9 MB raw, 40.1 MB gzipped file by file; per file median 8.9 kB / 2.8 kB, p95 100.1 / 21.8 kB, max 1.19 MB / 214 kB |
+| `atlas-pairs.tar.gz` | 35.3 MB |
+| largest file | `pairs/1122-1059.json` (1.19 MB, 91 rows): the *REGLAMENTO INTERIOR DE LA SECRETARIA DE MEDIO AMBIENTE Y RECURSOS NATURALES* → the same title with a final period, one of the four punctuation-only pairs above |
+| Constitution → Código Penal Federal (`pairs/8-9.json`) | 64 unit rows, 60 distinct texts, weight 43.4; 27 rows with `m > 1` (`m` up to 101, the boilerplate transitorio "**ÚNICO.-** El presente Decreto iniciará su vigencia al día siguiente…", in slightly different wordings, so not word-for-word); 62 transitory rows add 41.4, the other two (articles 23 and 38) add 1 each |
 
+No pair file holds a heading row, or a row with similarity 1 and `m > 1`.
 Every file's `weight` equals its `atlas.json` `out` weight, every text key
 resolves, every file is sorted, and `Σ 1/m` is within 0.05 of `weight` except
 for float noise on exact halves.
@@ -1050,13 +1074,13 @@ pair file, so the prose and the data cannot drift.
 **The explanation dialog (issue #250).** Each weight under *Closest
 instruments* is a `button.atlas-why` that opens a native `<dialog>` over the
 pair file #249 exports: a heading naming both instruments, one sentence
-("185 provisions of … have their closest text outside it in …; they add up to
-70.5 of its 1,328 provisions."), and a table — number, the source provision
+("64 provisions of … have their closest text outside it in …; they add up to
+43.4 of its 1,328 provisions."), and a table — number, the source provision
 (label, breadcrumb, full text), the closest text in the target (the same, plus
 "also N other provisions … carry this text" when several do), similarity to
 three decimals, and the weight as `1` or `1/m` with "this text is shared by
-*m* instruments". Rows keep the file's order and arrive 50 at a time ("Show 50
-more (135 left)"); the mount's `data-page-size` changes that number, and
+*m* instruments". Rows keep the file's order and arrive 50 at a time ("Show 14
+more (14 left)" for the last batch of the pair above); the mount's `data-page-size` changes that number, and
 exists for the tests. Text is Markdown rendered bold-only, paragraphs on blank
 lines, never shortened, never parsed as HTML. The file is fetched on the first
 click only (a `Map` per page load), from the mount's `data-pairs`
@@ -1095,7 +1119,7 @@ by both scripts into a temporary `website/pages/` look-alike with the real
 against the panel, `1/m`, paging, the three ways to close, focus, no request
 before the click and one per pair, both messages, bold-only rendering, and a
 390 px phone. With the real pairs installed, one more test opens the
-Constitution's heaviest pair (Código Penal Federal, 185 rows, 70.5, `1/157`)
+Constitution's heaviest pair (Código Penal Federal, 64 rows, 43.4, `1/101`)
 and saves `output/atlas-explain-cpeum.png`; without them it skips. A
 rendered-site test checks Quarto's `h2` rule does not reach the dialog.
 
@@ -1110,16 +1134,20 @@ collections whose vectors are written by hand, so every weight in the
 expected matrix is derivable with a pen: a text shared inside a collection
 wins at cosine 1, a text identical across collections wins at cosine 1 from
 the other side, one row ties across two foreign instruments and gives ½ to
-each, one text repeated twice inside an instrument counts twice, an
-instrument's own exclusive texts are masked, and a boilerplate line carried
-by three leyes at once ("Se deroga.") is won outright — one winning row,
-three owners — by a lineamiento whose unit hands them ⅓ each. The row-sum
-identity (`A.sum(axis=1)` = each instrument's unit count, `A.sum()` = the unit
-rows, both equal to `instruments.parquet`'s `units`) is asserted on the toy
-matrix, as are `float32` and `weight == 1/m`. Blocking is asserted invisible
-(`--block-rows 1` against the default), the Slurm plumbing is driven through
-a fake `squeue` in its three states (plus `--force` forwarded into the job
-and the previous `.done` dropped), and the page is built with a stub reducer.
+each, an instrument's own exclusive texts are masked, and a boilerplate line
+carried by three leyes at once ("Se deroga.") wins at cosine 1 with `m = 3`
+and is **dropped** rather than credited. Three headings stand in the corpus:
+one carries a text nobody else has and is nearly another instrument's
+article (it must never win), one carries an article's text (that text is
+owned by the article's instrument alone), one repeats a transitorio (it is
+not a source row). An identical text owned by exactly one other instrument
+still adds 1, and a non-identical tie over two instruments still gives ½ each.
+The identity (`A.sum(axis=1)` = each instrument's counted rows, `A.sum()` =
+`counted_rows`) is asserted on the toy matrix, as are `float32` and `weight ==
+1/m`. Blocking is asserted invisible (`--block-rows 1` against the default), the
+Slurm plumbing is driven through a fake `squeue` in its three states (plus
+`--force` forwarded into the job and the previous `.done` dropped), and the
+page is built with a stub reducer.
 `tests/test_unique_instruments.py` covers the selection on toy records — the
 newest original date, a three-member group, accent/double-space folding, a
 date tie resolved by the larger id, `DD-MM-YYYY` parsing, leyes and cross-
@@ -1141,50 +1169,56 @@ text of the toy corpus, `unit_label` on every type, the manifest, the sums,
 the reproducible tarball, a `PUBLICAR.md` that replaces the existing release
 first, the rerun/`--force`/`--install` rules and the refusals.
 
-### Measured, 2026-09-28
+### Measured, 2026-09-29
 
 Prepared on the login node in 156.6 s (315 + 863 + 125 instruments, 145,788
-distinct texts). The matrix, one job (42202) on `geoint1` (62 threads,
+distinct texts). The matrix, one job (42206) on `geoint1` (62 threads,
 `--exclude=geoint0`):
 
 | phase | seconds |
 |---|---|
-| load (the join + `vectors.npy`) | 4.2 |
+| load (the join + `vectors.npy`) | 1.2 |
 | normalise (145,788 rows, in place) | 0.3 |
-| sweep (145,788 × 145,788 cosines, blocked) | 109.8 |
-| write | 0.3 |
-| **total** | **115.1 s** |
+| sweep (133,421 searched rows against 145,788 texts, blocked) | 117.4 |
+| write | 0.2 |
+| **total** | **119.5 s** |
 
-Peak RSS **2.11 GB** of the ~245 GB a node has — a 1,024-row block and one
+Peak RSS **1.99 GB** of the ~245 GB a node has — a 1,024-row block and one
 normalised copy of the matrix is all that is ever live.
 
 | what | value |
 |---|---|
-| unit rows answered | 161,989 |
-| vector rows | 145,788 (4,853 owned by more than one instrument) |
+| unit rows | 161,989 |
+| heading rows excluded | 28,568 |
+| searched rows | 133,421 |
+| identical winners shared by several instruments, not counted | 9,783 |
+| **counted rows** | **123,638** |
+| vector rows | 145,788 (3,370 owned by more than one instrument once headings are set aside) |
 | instruments | 1,303 |
-| `A.sum()` | **161,989.0** — one unit row, one unit of weight |
-| every row sums to that instrument's unit count | yes (`row_sums_equal_units`) |
-| non-zero cells | 556,384 of 1,697,809 (33 %) |
-| unit rows with a tie | 2,556 (2,510 two-way, 46 three-to-five-way) |
-| largest `m` | 650 |
-| mean similarity of the winner | 0.813 |
-| unit rows whose winner is an identical text (cosine 1) | 21,852 (13.5 %) |
+| `A.sum()` | **123,638.0** — one counted unit row, one unit of weight |
+| every row sums to that instrument's counted rows | yes (`row_sums_equal_counted_rows`) |
+| non-zero cells | 39,921 of 1,697,809 (2.4 %) |
+| searched rows with a tie | 1,947 (all two-way) |
+| largest `m` | 157 |
+| mean similarity of the winner | 0.806 (0.791 over the counted rows) |
+| searched rows whose winner is an identical text (cosine 1) | 14,455 (10.8 %): 4,672 with `m == 1`, which count, and 9,783 shared, which do not |
 
-The `m` histogram — how many instruments a unit row's answer is split over:
+The `m` histogram over the searched rows — how many instruments a row's
+answer is split over:
 
 | `m` | 1 | 2 | 3–5 | 6–20 | 21–100 | 101+ |
 |---|---|---|---|---|---|---|
-| unit rows | 141,294 | 5,630 | 5,758 | 4,124 | 3,554 | 1,629 |
+| unit rows | 119,840 | 3,848 | 4,095 | 2,472 | 2,510 | 656 |
 
-87 % of unit rows have a single answer and are credited a whole 1; the 1,629
-with `m ≥ 101` are the boilerplate ones, which add one between them.
+90 % of searched rows have a single answer and are credited a whole 1; a
+row answered by many instruments adds one between them unless its winner is a
+word-for-word text, in which case it adds nothing.
 
 The four fits, on the login node, `random_state=0`:
 
 | `n_neighbors` | 4 | 8 | 16 | 32 | total |
 |---|---|---|---|---|---|
-| seconds | 14.0 | 5.2 | 6.0 | 6.9 | **32.1** |
+| seconds | 13.9 | 5.4 | 6.2 | 7.0 | **32.5** |
 
 The research page: **1.2 MB** for 1,303 instruments, with the footer present
 exactly once.

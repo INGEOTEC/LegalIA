@@ -6,7 +6,7 @@ text they matched on the other side, and how much each one adds to the weight.
 
 | Asset | Contents |
 |---|---|
-| `atlas-pairs.tar.gz` | `pairs/<i>-<j>.json`, one file per pair (6,501 files, 183 MB of JSON, 37 MB compressed), plus `manifest.json` |
+| `atlas-pairs.tar.gz` | `pairs/<i>-<j>.json`, one file per pair (6,397 files, 167 MB of JSON, 35 MB compressed), plus `manifest.json` |
 | `manifest.json` | What produced the files: commit, matrix summary, tolerance, counts, sizes |
 | `SHA256SUMS.txt` | The digest of the two assets above |
 
