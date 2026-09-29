@@ -964,7 +964,8 @@ def test_the_constitution_explains_its_heaviest_weight(page):
     rows = page.locator(".atlas-explain-table tbody tr")
     assert rows.count() == 50
     more = page.locator(".atlas-explain-more")
-    assert more.inner_text() == f"Show 50 more ({total - 50} left)"
+    assert total > 50            # the paging is what this test is about
+    assert more.inner_text() == f"Show {min(50, total - 50)} more ({total - 50} left)"
     for shown in [*range(100, total, 50), total]:
         more.click()
         assert rows.count() == shown
