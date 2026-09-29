@@ -24,8 +24,12 @@ into a page.
 The rules, all of them decided in issue #242 and none of them defaults worth
 changing quietly:
 
-* **All six `unit_type`s count**, not only `article`: the question is about
-  what makes up a document.
+* **Headings are out** (`EXCLUDED_UNIT_TYPES`). A `heading` unit is neither a
+  source row nor a candidate: a reform-date heading such as `**D.O.F. 14 DE
+  ENERO DE 1985.**` matches another instrument's identical heading and says
+  nothing about how two instruments relate. Every other `unit_type` counts.
+  A text owned by a heading and by an article stays a candidate, owned only
+  by the article's instrument; a text only headings own is never a winner.
 * **Ties count, every one of them.** The winners of a row are every column
   within `--tolerance` (1e-6 on float32 cosine) of its best, because identical
   texts across collections are *exact* ties and picking the lowest column
@@ -33,11 +37,20 @@ changing quietly:
 * **`1/m` to each of the `m` instruments owning a winning text.** A text two
   instruments share is evidence about both, so both are credited — but a unit
   row is one article and weighs one, however many instruments answer for it.
-  The first pass added +1 to each instead, and a single winning column can be
-  owned by hundreds of instruments (the worst row: 847), because boilerplate
-  ("Se deroga.", a standard transitorio) is one vector row shared across a
-  whole collection; `A` then counted article-instrument incidences rather
-  than articles. Row sums now equal the instrument's unit-row count exactly.
+  A single winning column can be owned by hundreds of instruments (the worst
+  row: 650), because boilerplate ("Se deroga.", a standard transitorio) is one
+  vector row shared across a whole collection; a `1/m` split keeps `A` from
+  counting article-instrument incidences rather than articles.
+* **A word-for-word match shared by several instruments is not counted.** A
+  row whose best similarity is `>= 1 - tolerance` and whose `m > 1` is
+  boilerplate owned by many instruments: it cannot tell a pair apart from any
+  other. It adds nothing to `A` and is *not* re-credited to its next-nearest
+  text. An identical winner owned by exactly one other instrument (`m == 1`)
+  still counts a whole 1, as does a non-identical winner with `m > 1`.
+* **The identity**: every row of `A` sums to that instrument's **counted**
+  unit rows (searched rows, minus the identical-and-shared ones), and
+  `A.sum()` equals the counted rows (`matrix.json`'s
+  `row_sums_equal_counted_rows`).
 * **Per unit row, not per distinct text**: a boilerplate transitorio repeated
   `m` times inside a code is `m` articles, and counts `m` times — the same
   choice #241's centroids already made.
@@ -54,14 +67,18 @@ Outputs, under `--work-dir/instrument-matrix/`, written atomically with
 
 * `matrix.npy` — `(instruments, instruments)` `float32` (`float64` while accumulating), row
   `i` the source instrument.
-* `nearest.parquet` — one row per **unit row** (161,989 in the Atlas): `i`, `coleccion`,
+* `nearest.parquet` — one row per **searched unit row** (every unit row but the
+  headings): `i`, `coleccion`,
   `clave`, `unit_type`, `eId`, `row` (vector row), `similarity`, `n_winners`
   (how many vector *rows* tied — a different number from `m`, since one row
   can have several owners and two tied rows can share one), `targets` (the
-  instruments credited), `m` (how many of them) and `weight` (`1/m`).
-* `matrix.json` — the weighting rule and the row-sum identity it implies,
-  seconds per phase, the tie and `m` histograms, `shared_rows`, the
-  tolerance, peak RSS, threads, host.
+  instruments answering), `m` (how many of them), `weight` (`1/m`) and
+  `counted` (whether the row entered `A`: false for an identical winner shared
+  by several instruments).
+* `matrix.json` — the weighting rule, `excluded_unit_types`, `unit_rows`,
+  `heading_rows_excluded`, `identical_shared_dropped` and `counted_rows`, the
+  row-sum identity, seconds per phase, the tie and `m` histograms,
+  `shared_rows`, the tolerance, peak RSS, threads, host.
 * `job.json`, `slurm-<jobid>.out` when it ran through Slurm.
 
 `.done` makes a rerun a no-op; `--force` recomputes.
@@ -114,6 +131,10 @@ DEFAULT_EXCLUDE = "geoint0"
 TIME_LIMIT = "2:00:00"
 
 JOB_JSON = "job.json"
+
+#: Unit types that are neither a source row nor a candidate (see the module
+#: docstring). `md2akn` marks every heading `unit_type == "heading"`.
+EXCLUDED_UNIT_TYPES = ("heading",)
 
 
 def output_dir(work_dir: Path) -> Path:
@@ -186,8 +207,7 @@ def _m_histogram(counts) -> dict:
     """`m` bucketed the way `matrix.json` reports it.
 
     Wider buckets than `_winner_histogram`'s: `m` is what the `1/m` rule
-    divides by, and the boilerplate rows this pass is about sit in the last
-    two buckets (the worst row of the first run had `m = 847`), where
+    divides by, and the boilerplate rows sit in the last two buckets, where
     `n_winners` never leaves the first.
     """
     import numpy as np
@@ -221,19 +241,24 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
 
     timings: dict[str, float] = {}
     started = time.time()
-    units = unit_rows(work_dir, collections=collections, cache_dir=cache_dir, log=log)
+    all_units = unit_rows(work_dir, collections=collections, cache_dir=cache_dir, log=log)
+    units = all_units
     # `prepare_umap_input.py --unique-names` (issue #259) removes an instrument
     # before its vectors are stacked; the join's inner merges must then have
     # dropped its unit rows too. Anything else means `vector_ids.parquet` and
     # `instruments.parquet` disagree, and every weight below would be wrong.
     expected_rows = int(pq.read_table(work_dir / "instruments.parquet",
                                       columns=["units"]).column("units").to_numpy().sum())
-    if len(units) != expected_rows:
-        raise SystemExit(f"{len(units)} unit rows joined, but instruments.parquet lists "
+    if len(all_units) != expected_rows:
+        raise SystemExit(f"{len(all_units)} unit rows joined, but instruments.parquet lists "
                          f"{expected_rows}: rerun prepare_umap_input.py over this work directory")
+    # Headings are neither sources nor candidates: every step below, owners and
+    # exclusive-column masks included, sees only the searched rows.
+    units = all_units[~all_units["unit_type"].isin(EXCLUDED_UNIT_TYPES)].reset_index(drop=True)
+    heading_rows_excluded = len(all_units) - len(units)
     vectors = np.load(work_dir / "vectors.npy").astype(np.float32)
     timings["load"] = round(time.time() - started, 1)
-    log(f"{len(units)} unit rows over {vectors.shape[0]} vectors "
+    log(f"{len(all_units)} unit rows ({heading_rows_excluded} heading rows excluded) over {vectors.shape[0]} vectors "
         f"in {timings['load']}s")
 
     mark = time.time()
@@ -246,9 +271,12 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     n_vectors = vectors.shape[0]
     owners = owners_of_rows(units, n_vectors)
     shared_rows = sum(1 for group in owners if len(group) > 1)
-    instruments = int(units["i"].max()) + 1
+    instruments = int(all_units["i"].max()) + 1
+    # A vector row only headings own has no owner among the searched rows, so
+    # it can never win: it is masked for every source, like an exclusive one.
+    unowned = np.array([c for c, group in enumerate(owners) if not group], dtype=np.int64)
     # `float64` while accumulating: 162,000 additions of fractions as small as
-    # 1/847, summed to an identity the summary asserts at 1e-3. It is written
+    # 1/650, summed to an identity the summary asserts at 1e-3. It is written
     # as `float32`, which halves a 9 MB file and verifies at that tolerance.
     matrix = np.zeros((instruments, instruments), dtype=np.float64)
 
@@ -266,17 +294,18 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         # only ever be its own text, and "nearest foreign neighbour" is not
         # about those. A column it shares stays, deliberately.
         exclusive = np.array([c for c in rows if len(owners[c]) == 1], dtype=np.int64)
+        masked = np.concatenate([exclusive, unowned])
         for start in range(0, len(rows), block_rows):
             block = rows[start:start + block_rows]
             similarity = vectors[block] @ vectors.T
-            if exclusive.size:
-                similarity[:, exclusive] = -np.inf
+            if masked.size:
+                similarity[:, masked] = -np.inf
             best = similarity.max(axis=1)
             for offset, row in enumerate(block):
                 winners = np.flatnonzero(similarity[offset] >= best[offset] - tolerance)
                 targets = sorted({j for c in winners.tolist() for j in owners[c]} - {i})
                 if not targets:
-                    # 1,522 candidate instruments are never all masked, so an
+                    # The other instruments' columns are never all masked, so an
                     # empty target set is a broken join or a broken mask, not a
                     # case with a sensible weight -- and `1/m` would divide by 0.
                     raise SystemExit(
@@ -319,18 +348,29 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     # count to far better than the 1e-3 the summary checks them at. Done from
     # the joined table rather than from `answers`, so a text repeated m times
     # inside one instrument really does count m times.
-    for source, targets in zip(nearest["i"].to_numpy(), nearest["targets"]):
+    #
+    # A row whose winner is a word-for-word match (`similarity >= 1 -
+    # tolerance`) owned by several instruments (`m > 1`) is boilerplate that
+    # cannot tell a pair apart from any other: it is not counted, and not
+    # re-credited to its next-nearest text either.
+    identical_shared = ((nearest["similarity"].to_numpy() >= 1.0 - tolerance)
+                        & (nearest["m"].to_numpy() > 1))
+    counted = ~identical_shared
+    nearest["counted"] = counted
+    for source, targets in zip(nearest["i"].to_numpy()[counted],
+                               nearest["targets"].to_numpy()[counted]):
         weight = 1.0 / len(targets)
         for target in targets:
             matrix[source, target] += weight
     matrix = matrix.astype(np.float32)
 
-    # The row-sum identity is the whole point of the `1/m` rule: every unit row
-    # weighs 1, so an instrument's row sums to how many unit rows it has.
-    units_per_instrument = (nearest.groupby("i").size()
-                            .reindex(range(instruments), fill_value=0).to_numpy())
-    row_sums_equal_units = bool(np.allclose(matrix.sum(axis=1), units_per_instrument,
-                                            atol=1e-3))
+    # The row-sum identity is the whole point of the `1/m` rule: every counted
+    # unit row weighs 1, so an instrument's row sums to its counted rows.
+    counted_per_instrument = (nearest[nearest["counted"]].groupby("i").size()
+                              .reindex(range(instruments), fill_value=0).to_numpy())
+    row_sums_equal_counted_rows = bool(np.allclose(matrix.sum(axis=1), counted_per_instrument,
+                                                   atol=1e-3))
+    counted_rows = int(counted.sum())
 
     mark = time.time()
     atomic_write_npy(out_dir / "matrix.npy", matrix)
@@ -346,17 +386,23 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         "targets": pa.array(list(nearest["targets"]), type=pa.list_(pa.int32())),
         "m": pa.array(nearest["m"].to_numpy(), type=pa.int32()),
         "weight": pa.array(nearest["weight"].to_numpy(), type=pa.float32()),
+        "counted": pa.array(nearest["counted"].to_numpy(), type=pa.bool_()),
     }))
     timings["write"] = round(time.time() - mark, 1)
 
     summary = {
-        "unit_rows": int(len(nearest)),
+        "unit_rows": int(len(all_units)),
+        "excluded_unit_types": list(EXCLUDED_UNIT_TYPES),
+        "heading_rows_excluded": int(heading_rows_excluded),
+        "searched_rows": int(len(nearest)),
+        "identical_shared_dropped": int(identical_shared.sum()),
+        "counted_rows": counted_rows,
         "vector_rows": int(n_vectors),
         "instruments": instruments,
         "weighting": "1/m",
         "matrix_dtype": str(matrix.dtype),
         "matrix_sum": round(float(matrix.sum()), 3),
-        "row_sums_equal_units": row_sums_equal_units,
+        "row_sums_equal_counted_rows": row_sums_equal_counted_rows,
         "nonzero_cells": int((matrix > 0).sum()),
         "tie_rows": int((nearest["n_winners"] > 1).sum()),
         "n_winners": _winner_histogram(nearest["n_winners"].to_numpy()),
@@ -510,7 +556,8 @@ def report(work_dir: Path, log=print) -> dict:
         log(f"  {name}: {'present' if path.exists() else 'MISSING'}"
             + (f" ({path.stat().st_size / 1e6:.1f} MB)" if path.exists() else ""))
     if summary:
-        log(f"  {summary['unit_rows']} unit rows, sum {summary['matrix_sum']}, "
+        log(f"  {summary['counted_rows']} counted of {summary['unit_rows']} unit rows, "
+            f"sum {summary['matrix_sum']}, "
             f"{summary['tie_rows']} tied, {summary['seconds_total']}s, "
             f"{summary['peak_rss_gb']} GB peak, node {summary['node']}")
     if not done:

@@ -249,6 +249,14 @@ def load(work_dir: Path, *, cache_dir=None, log=print) -> dict:
                                         cache_dir=cache_dir, log=log)
     points, _ = html.load_frames(work_dir, [], neighbors=0, collections=collections,
                                  cache_dir=cache_dir, extra_columns=LABEL_COLUMNS, log=log)
+    # Headings are neither sources nor candidates (`EXCLUDED_UNIT_TYPES`), so
+    # `nearest.parquet` holds only the searched rows: the join is narrowed the
+    # same way, positionally, before anything is aligned.
+    if len(points) != len(units):
+        raise SystemExit("load_frames and unit_rows disagree about the unit rows")
+    searched = ~units["unit_type"].isin(instrument_matrix.EXCLUDED_UNIT_TYPES).to_numpy()
+    units = units[searched].reset_index(drop=True)
+    points = points[searched].reset_index(drop=True)
     if len(units) != len(nearest) or len(points) != len(units):
         raise SystemExit(f"nearest.parquet has {len(nearest)} rows, the join gives "
                          f"{len(units)}: the legalvec cache is not the one "
@@ -300,7 +308,10 @@ def build_pairs(data: dict, vectors, pairs, *, tolerance: float, log=print):
 
     wanted = {(i, j) for i, j, _ in pairs}
     by_pair: dict[tuple[int, int], list[int]] = {}
+    counted = nearest["counted"].to_numpy()
     for position, (i, targets) in enumerate(zip(source_i, nearest["targets"])):
+        if not counted[position]:
+            continue            # an identical text shared by several instruments
         for j in targets:
             key = (int(i), int(j))
             if key in wanted:

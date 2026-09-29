@@ -127,7 +127,7 @@ def test_labels_survive_a_units_table_without_num_or_path(with_matrix, cache):
     out_dir = export_atlas_pairs.output_dir(with_matrix)
     labels = {row["label"] for path in (out_dir / "pairs").iterdir()
               for row in json.loads(path.read_text(encoding="utf-8"))["rows"]}
-    assert labels == {"Article", "Heading transitorio compartido"}
+    assert labels == {"Article"}
 
 
 # -- which pairs, which rows ------------------------------------------------- #
@@ -140,10 +140,11 @@ def test_one_file_per_strongest_target_and_none_for_a_zero_weight(exported):
     assert set(exported["files"]) == expected
     assert all(matrix[int(name.split("-")[0]), int(name.split("-")[1][:-5])] > 0
                for name in exported["files"])
-    # `b` points at four instruments, `900` at two.
+    # `b` points at two instruments, `902` at two, `901` at one.
     index = exported["index"]
-    assert sum(name.startswith(f"{index['b']}-") for name in exported["files"]) == 4
-    assert exported["manifest"]["pairs"] == len(expected) == 17
+    assert sum(name.startswith(f"{index['b']}-") for name in exported["files"]) == 2
+    assert sum(name.startswith(f"{index['901']}-") for name in exported["files"]) == 1
+    assert exported["manifest"]["pairs"] == len(expected) == 11
 
 
 def test_each_file_is_the_matrix_cell_it_explains(exported):
@@ -160,8 +161,8 @@ def test_each_file_is_the_matrix_cell_it_explains(exported):
         assert sum(1 / row["m"] for row in document["rows"]) \
             == pytest.approx(float(matrix[i, j]), abs=1e-6)
         assert document["provisions"] == len(document["rows"])
-        # Exactly nearest.parquet's rows of `i` whose targets hold `j`.
-        expected = nearest[(nearest["i"] == i)
+        # Exactly nearest.parquet's counted rows of `i` whose targets hold `j`.
+        expected = nearest[(nearest["i"] == i) & nearest["counted"]
                            & nearest["targets"].apply(lambda targets: j in targets)]
         assert sorted((row["text"], row["m"]) for row in document["rows"]) \
             == sorted(zip(expected["row"].astype(int), expected["m"].astype(int)))
@@ -208,41 +209,52 @@ def test_a_tie_lists_the_winner_in_each_instrument(exported):
         assert document["texts"][str(tied[0]["targets"][0]["text"])] == "texto t1"
 
 
-def test_a_text_repeated_inside_the_source_is_one_row_per_unit_and_one_text(exported):
-    """`b` carries the shared transitorio twice (an article and a heading):
-    two rows of `b -> a`, two labels, one entry in `texts`."""
+def test_a_heading_is_never_a_row_and_a_repeated_text_is_one_row_per_searched_unit(exported):
+    """`b` carries the shared transitorio in an article and in a heading: the
+    heading is not searched, so `b -> a` lists one row for it, one entry in
+    `texts`, next to the `t2` tie."""
     index = exported["index"]
     document = exported["files"][f"{index['b']}-{index['a']}.json"]
     shared = [row for row in document["rows"]
               if document["texts"][str(row["text"])] == "transitorio compartido"]
-    assert len(shared) == 2
-    assert len({row["text"] for row in shared}) == 1
-    assert {row["label"] for row in shared} == {"Transitory provisions · Único",
-                                               "Heading I"}
+    assert len(shared) == 1
+    assert shared[0]["label"] == "Transitory provisions · Único"
     assert list(document["texts"].values()).count("transitorio compartido") == 1
-    # Both point at `a`'s own transitorio, labelled by its block and dated.
-    for row in shared:
-        assert [t["label"] for t in row["targets"]] \
-            == ["Transitory provisions, 29 DE AGOSTO DE 2008 · Primero"]
-        assert [t["path"] for t in row["targets"]] == ["TRANSITORIOS 29 DE AGOSTO DE 2008"]
-        assert row["similarity"] == 1.0 and row["m"] == 1
-    # 2 + 1/2 + 1/3, the cell `test_instrument_matrix.py` derives by hand.
-    assert document["weight"] == 2.8
-    assert document["provisions"] == 4
-    # Similarity first, then the heavier weight (smaller `m`): the two m == 1
-    # copies at 1.0, the boilerplate at 1.0 with m == 3, then the tie.
-    assert [(row["similarity"], row["m"]) for row in document["rows"]][:3] \
-        == [(1.0, 1), (1.0, 1), (1.0, 3)]
+    # It points at `a`'s own transitorio, labelled by its block and dated.
+    assert [t["label"] for t in shared[0]["targets"]] \
+        == ["Transitory provisions, 29 DE AGOSTO DE 2008 · Primero"]
+    assert [t["path"] for t in shared[0]["targets"]] == ["TRANSITORIOS 29 DE AGOSTO DE 2008"]
+    assert shared[0]["similarity"] == 1.0 and shared[0]["m"] == 1
+    # 1 + 1/2, the cell `test_instrument_matrix.py` derives by hand.
+    assert document["weight"] == 1.5
+    assert document["provisions"] == 2
+    # Similarity first: the identical text, then the tie.
+    assert [(row["similarity"], row["m"]) for row in document["rows"]] \
+        == [(1.0, 1), (0.9939, 2)]
+    for document in exported["files"].values():
+        assert all(row["unit_type"] != "heading" for row in document["rows"])
+        assert not any(row["similarity"] == 1.0 and row["m"] > 1 for row in document["rows"])
+        # Nor is a heading a target: no target label names one.
+        assert not any(target["label"].startswith("Heading")
+                       for row in document["rows"] for target in row["targets"])
 
 
-def test_a_boilerplate_winner_carried_by_three_instruments(exported):
+def test_the_dropped_boilerplate_has_no_row_and_a_non_identical_tie_does(exported):
+    """`902`'s "Se deroga." wins at cosine 1 with `m == 3`: not counted, so in
+    no file. Its other unit ties over `a` and `b` at 1/2, and is the only row
+    of both files."""
     index = exported["index"]
-    document = exported["files"][f"{index['902']}-{index['a']}.json"]
-    assert document["provisions"] == 1
-    (row,) = document["rows"]
-    assert row["m"] == 3
-    assert document["texts"][str(row["text"])] == "Se deroga."
-    assert document["weight"] == 0.3
+    for target in ("a", "b"):
+        document = exported["files"][f"{index['902']}-{index[target]}.json"]
+        assert document["provisions"] == 1
+        (row,) = document["rows"]
+        assert row["m"] == 2
+        assert document["texts"][str(row["text"])] == "texto t6"
+        assert document["weight"] == 0.5
+    assert f"{index['902']}-{index['c']}.json" not in exported["files"]
+    for document in exported["files"].values():
+        assert "Se deroga." not in [document["texts"][str(row["text"])]
+                                    for row in document["rows"]]
 
 
 # -- the package ------------------------------------------------------------- #
@@ -257,12 +269,13 @@ def test_the_manifest_sums_and_publish_plan(exported):
     assert manifest["generated"] == "2026-09-23T12:00:00+00:00"
     assert manifest["top"] == 5
     assert manifest["tolerance"] == instrument_matrix.DEFAULT_TOLERANCE
-    assert manifest["matrix"]["unit_rows"] == 13
+    assert manifest["matrix"]["unit_rows"] == 16
+    assert manifest["matrix"]["counted_rows"] == 9
     assert manifest["provisions"] == sum(d["provisions"] for d in exported["files"].values())
-    # Every unit row of the toy corpus credits some instrument among the
-    # closest five (no instrument has more than four targets), so the pairs
+    # Every counted unit row of the toy corpus credits some instrument among
+    # the closest five (no instrument has more than two targets), so the pairs
     # explain the whole matrix.
-    assert manifest["weight"] == pytest.approx(13.0, abs=0.05)
+    assert manifest["weight"] == pytest.approx(9.0, abs=0.05)
     sizes = {name: (out_dir / "pairs" / name).stat().st_size for name in exported["files"]}
     assert manifest["bytes"] == sum(sizes.values())
     assert manifest["largest"]["bytes"] == max(sizes.values())

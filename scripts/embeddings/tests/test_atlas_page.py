@@ -763,31 +763,31 @@ def weights_in_table(page):
 
 
 def test_toy_weight_opens_the_provisions_behind_it(toy):
-    """`b -> a` (2.8): four unit rows — the shared transitorio twice, the tie
-    and the three-owner boilerplate — whose weights add up to the panel's
-    number."""
+    """`b -> a` (1.5): two counted unit rows — the shared transitorio and the
+    tie — whose weights add up to the panel's number. `b`'s heading and its
+    three-owner boilerplate are not among them."""
     toy.select("b", "Ley B")
     panel_weight = toy.why("a").inner_text()
-    assert panel_weight == "2.8"
+    assert panel_weight == "1.5"
     toy.open("a")
     page = toy.page
     assert page.locator("#atlas-explain-title").inner_text() == "Why Ley B is close to Ley A"
     pair = toy.pair("b", "a")
     rows = page.locator(".atlas-explain-table tbody tr")
-    assert rows.count() == pair["provisions"] == 4
+    assert rows.count() == pair["provisions"] == 2
     lead = page.locator(".atlas-explain-lead").inner_text()
-    assert lead == ("4 provisions of Ley B have their closest text outside it in Ley A; "
-                    "they add up to 2.8 of its 4 provisions.")
+    assert lead == ("2 provisions of Ley B have their closest text outside it in Ley A; "
+                    "they add up to 1.5 of its 4 provisions.")
     assert weights_in_table(page) == pytest.approx(float(panel_weight), abs=0.05)
     fractions = page.locator(".atlas-explain-fraction").all_inner_texts()
-    assert fractions.count("1") == 2 and "1/2" in fractions and "1/3" in fractions
-    assert "this text is shared by 3 instruments" in page.locator(".atlas-explain-table").inner_text()
+    assert fractions.count("1") == 1 and "1/2" in fractions and "1/3" not in fractions
+    assert "this text is shared by 2 instruments" in page.locator(".atlas-explain-table").inner_text()
     assert page.locator(".atlas-explain-similarity").nth(1).inner_text() == "1.000"
     # Both sides, in full.
     first = page.locator(".atlas-explain-table tbody tr").first
     assert "transitorio compartido" in first.locator(".atlas-explain-source").inner_text()
     assert "transitorio compartido" in first.locator(".atlas-explain-target").inner_text()
-    assert page.locator(".atlas-explain-count").inner_text() == "Showing 4 of 4"
+    assert page.locator(".atlas-explain-count").inner_text() == "Showing 2 of 2"
     assert not page.locator(".atlas-explain-more").is_visible()
     assert toy.errors == []
 
@@ -831,7 +831,7 @@ def test_toy_points_here_weights_are_plain_numbers(toy):
     assert toy.pair_requests() == []
     # Every closest instrument's weight is a button.
     assert page.locator(".atlas-out .atlas-why").count() == \
-        page.locator(".atlas-out .atlas-target").count() == 4
+        page.locator(".atlas-out .atlas-target").count() == 2
 
 
 def test_toy_fetches_on_click_only_and_once_per_pair(toy):
@@ -875,21 +875,21 @@ def test_toy_pair_built_for_another_map_says_so(toy):
 
 
 def test_toy_table_pages_by_the_mounts_page_size(browser, toy_site):
-    toy = Toy(browser, toy_site, page_size=3)
+    toy = Toy(browser, toy_site, page_size=1)
     try:
         toy.select("b", "Ley B")
         toy.open("a")
         page = toy.page
         rows = page.locator(".atlas-explain-table tbody tr")
-        assert rows.count() == 3
-        assert page.locator(".atlas-explain-count").inner_text() == "Showing 3 of 4"
+        assert rows.count() == 1
+        assert page.locator(".atlas-explain-count").inner_text() == "Showing 1 of 2"
         more = page.locator(".atlas-explain-more")
         assert more.inner_text() == "Show 1 more (1 left)"
         more.click()
-        assert rows.count() == 4
-        assert page.locator(".atlas-explain-count").inner_text() == "Showing 4 of 4"
+        assert rows.count() == 2
+        assert page.locator(".atlas-explain-count").inner_text() == "Showing 2 of 2"
         assert not more.is_visible()
-        assert rows.locator(".atlas-explain-n").all_inner_texts() == ["1", "2", "3", "4"]
+        assert rows.locator(".atlas-explain-n").all_inner_texts() == ["1", "2"]
     finally:
         toy.close()
 

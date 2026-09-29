@@ -54,8 +54,9 @@ def test_the_schema_is_meta_instruments_projections(exported):
     assert list(data) == ["meta", "instruments", "projections"]
     assert list(data["meta"]) == [
         "title", "generated", "commit", "model", "instruments", "provisions",
-        "distinct_texts", "collections", "unique_names", "duplicates_dropped", "n_neighbors", "default_n_neighbors", "umap",
-        "weighting", "top", "sources"]
+        "heading_rows_excluded", "identical_shared_dropped", "counted_rows",
+        "distinct_texts", "collections", "unique_names", "duplicates_dropped",
+        "n_neighbors", "default_n_neighbors", "umap", "weighting", "top", "sources"]
     meta = data["meta"]
     assert meta["title"] == ("An Atlas of Mexican Federal Law: Laws, Regulations "
                              "and Guidelines")
@@ -63,7 +64,7 @@ def test_the_schema_is_meta_instruments_projections(exported):
     assert meta["commit"]
     assert meta["model"] == "Qwen/Qwen3-Embedding-0.6B"
     assert meta["instruments"] == 6
-    assert meta["distinct_texts"] == 9
+    assert meta["distinct_texts"] == 11
     assert meta["n_neighbors"] == [4, 8, 16, 32]
     assert meta["default_n_neighbors"] == 16
     assert meta["umap"] == {"min_dist": 0.1, "metric": "cosine", "random_state": 0,
@@ -77,8 +78,12 @@ def test_the_schema_is_meta_instruments_projections(exported):
 def test_collections_and_provisions_come_from_the_table_and_the_matrix(exported):
     meta, matrix = exported["data"]["meta"], exported["matrix"]
     assert meta["collections"] == {"leyes": 3, "lineamientos": 3}
-    assert meta["provisions"] == 13
-    assert meta["provisions"] == pytest.approx(float(matrix.sum()), abs=1e-3)
+    assert meta["provisions"] == 16
+    # Three headings are not searched and four identical, shared matches are
+    # not counted: the matrix weighs the nine that remain.
+    assert (meta["heading_rows_excluded"], meta["identical_shared_dropped"],
+            meta["counted_rows"]) == (3, 4, 9)
+    assert meta["counted_rows"] == pytest.approx(float(matrix.sum()), abs=1e-3)
     assert sum(entry["p"] for entry in exported["data"]["instruments"]) == meta["provisions"]
     assert meta["sources"] == ["scjn-leyes", "scjn-lineamientos",
                                "scjn-leyes-vectors", "scjn-lineamientos-vectors"]
@@ -89,13 +94,16 @@ def test_every_instrument_carries_its_provisions_and_both_directions(exported):
     table = pq.read_table(exported["work_dir"] / "instruments.parquet").to_pandas()
     assert len(data["instruments"]) == len(table) == matrix.shape[0]
     strongest = build_instrument_umap_html.strongest_targets
+    nearest = pq.read_table(instrument_matrix.output_dir(exported["work_dir"])
+                            / "nearest.parquet").to_pandas()
+    counted = nearest[nearest["counted"]].groupby("i").size()
     for i, entry in enumerate(data["instruments"]):
         assert entry["k"] == table["clave"].iloc[i]
         assert entry["c"] == table["coleccion"].iloc[i]
         assert entry["n"] == table["nombre"].iloc[i]
         assert entry["p"] == int(table["units"].iloc[i])
-        # The `1/m` rule: a row sums to the instrument's provisions.
-        assert float(matrix[i].sum()) == pytest.approx(entry["p"], abs=1e-3)
+        # The `1/m` rule: a row sums to the instrument's counted provisions.
+        assert float(matrix[i].sum()) == pytest.approx(int(counted.get(i, 0)), abs=1e-3)
         assert entry["in"] == round(float(matrix[:, i].sum()), 1)
         assert [j for j, _ in entry["out"]] == strongest(matrix, i)
         assert [w for _, w in entry["out"]] == [round(float(matrix[i, j]), 1)
@@ -110,16 +118,16 @@ def test_every_instrument_carries_its_provisions_and_both_directions(exported):
 
 
 def test_the_hand_computed_weights_survive_the_export(exported):
-    """`b` points at `a` with 2 + 1/2 + 1/3 (`test_instrument_matrix`'s own
-    derivation), and `a` receives 2.833 + 0.833 + 1 + 0.333 = 5."""
+    """`b` points at `a` with 1 + 1/2 (`test_instrument_matrix`'s own
+    derivation), and `a` receives 1.5 + 0.5 + 1 + 0.5 = 3.5."""
     data = exported["data"]
     index = index_of(exported["work_dir"])
     b = data["instruments"][index["b"]]
-    assert b["out"][0] == [index["a"], 2.8]
-    assert len(b["out"]) == 4
+    assert b["out"][0] == [index["a"], 1.5]
+    assert len(b["out"]) == 2
     a = data["instruments"][index["a"]]
-    assert a["in"] == 5.0
-    assert a["inc"][0] == [index["b"], 2.8]
+    assert a["in"] == 3.5
+    assert a["inc"][0] == [index["b"], 1.5]
 
 
 def test_projections_are_rounded_unit_square_pairs_keyed_by_n_neighbors(
