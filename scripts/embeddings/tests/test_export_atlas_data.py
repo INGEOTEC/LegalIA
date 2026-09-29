@@ -54,7 +54,8 @@ def test_the_schema_is_meta_instruments_projections(exported):
     assert list(data) == ["meta", "instruments", "projections"]
     assert list(data["meta"]) == [
         "title", "generated", "commit", "model", "instruments", "provisions",
-        "heading_rows_excluded", "identical_shared_dropped", "counted_rows",
+        "heading_rows_excluded", "identical_shared_dropped",
+        "transitorio_near_identical_dropped", "counted_rows",
         "distinct_texts", "collections", "unique_names", "duplicates_dropped",
         "n_neighbors", "default_n_neighbors", "umap", "weighting", "top", "sources"]
     meta = data["meta"]
@@ -82,7 +83,7 @@ def test_collections_and_provisions_come_from_the_table_and_the_matrix(exported)
     # Three headings are not searched and four identical, shared matches are
     # not counted: the matrix weighs the nine that remain.
     assert (meta["heading_rows_excluded"], meta["identical_shared_dropped"],
-            meta["counted_rows"]) == (3, 4, 9)
+            meta["transitorio_near_identical_dropped"], meta["counted_rows"]) == (3, 4, 0, 9)
     assert meta["counted_rows"] == pytest.approx(float(matrix.sum()), abs=1e-3)
     assert sum(entry["p"] for entry in exported["data"]["instruments"]) == meta["provisions"]
     assert meta["sources"] == ["scjn-leyes", "scjn-lineamientos",

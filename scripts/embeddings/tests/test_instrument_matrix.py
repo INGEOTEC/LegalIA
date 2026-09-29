@@ -17,6 +17,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
+import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
@@ -190,7 +191,9 @@ def test_the_join_is_build_umap_htmls_own(prepared, cache):
     units = instrument_matrix.unit_rows(prepared, collections=COLLECTIONS,
                                         cache_dir=cache, log=lambda *a: None)
     assert len(units) == 16
-    assert list(units.columns) == ["i", "coleccion", "clave", "unit_type", "eId", "row"]
+    assert list(units.columns) == ["i", "coleccion", "clave", "unit_type", "eId", "row",
+                                   "transitorio"]
+    assert not units["transitorio"].any()      # the toy table has no `path`
     assert sorted(units["coleccion"].unique()) == ["leyes", "lineamientos"]
     assert sorted(units["clave"].unique()) == ["900", "901", "902", "a", "b", "c"]
     assert sorted(units["unit_type"].unique()) == ["article", "heading"]
@@ -839,3 +842,195 @@ def test_an_instruments_table_that_disagrees_with_the_join_is_refused(prepared, 
     pq.write_table(table, prepared / "instruments.parquet")
     with pytest.raises(SystemExit, match="instruments.parquet lists"):
         computed(prepared, cache)
+
+
+# -- transitorios that repeat standard wording (issue #259, review fix-2) ----- #
+
+TRANSITORIO = ["TRANSITORIOS"]
+
+#: `(clave, unit_type, eId, text_sha1, path)`; every unit is a `leyes` article.
+#: Unit-length vectors, so every cosine below is the dot product on paper.
+TRANSITORIO_VECTORS = {
+    "a1": [1.0, 0.0, 0.0, 0.0],
+    "a2": [0.0, 1.0, 0.0, 0.0],
+    "b1": [0.0, 0.995, 0.0998749, 0.0],        # cosine 0.995 to a2
+    "b2": [0.995, 0.0, 0.0, 0.0998749],        # cosine 0.995 to a1
+    "c1": [0.0, 0.0, 0.0, 1.0],
+    "c2": [0.0, 0.0, 0.19899749, 0.98],        # cosine 0.98 to c1
+    "d1": [-1.0, 0.0, 0.0, 0.0],
+    "d2": [-0.9, 0.0, 0.0, -0.43588989],       # cosine 0.9 to d1
+    "e1": [0.0, -1.0, 0.0, 0.0],               # the same wording in three instruments
+}
+TRANSITORIO_UNITS = [
+    ("w", "article", "art_1", "a1", []),
+    ("w", "article", "art_t", "a2", ["TRANSITORIOS 18 DE MARZO DE 1980"]),
+    ("x", "article", "art_t", "b1", TRANSITORIO),
+    ("x", "article", "art_1", "b2", []),
+    ("y", "article", "art_t", "c1", TRANSITORIO),
+    ("z", "article", "art_t", "c2", TRANSITORIO),
+    ("u", "article", "art_t", "d1", ["TITULO PRIMERO", "TRANSITORIOS"]),
+    ("v", "article", "art_1", "d2", []),
+    ("p", "article", "art_t", "e1", TRANSITORIO),
+    ("q", "article", "art_t", "e1", TRANSITORIO),
+    ("s", "article", "art_t", "e1", TRANSITORIO),
+]
+
+
+@pytest.fixture
+def transitorio_work(tmp_path):
+    """A `leyes`-only corpus with a `path` column, prepared and ready for
+    `build_matrix`; returns `(work_dir, cache)`."""
+    cache = tmp_path / "tcache"
+    leyes = cache / "scjn-leyes-vectors"
+    leyes.mkdir(parents=True)
+    pq.write_table(pa.table({
+        "coleccion": pa.array(["leyes"] * len(TRANSITORIO_UNITS), type=pa.string()),
+        "clave": pa.array([u[0] for u in TRANSITORIO_UNITS], type=pa.string()),
+        "nombre": pa.array([f"Ley {u[0].upper()}" for u in TRANSITORIO_UNITS], type=pa.string()),
+        "unit_type": pa.array([u[1] for u in TRANSITORIO_UNITS], type=pa.string()),
+        "eId": pa.array([u[2] for u in TRANSITORIO_UNITS], type=pa.string()),
+        "text_sha1": pa.array([u[3] for u in TRANSITORIO_UNITS], type=pa.string()),
+        "text": pa.array([f"texto {u[3]}" for u in TRANSITORIO_UNITS], type=pa.string()),
+        "path": pa.array([u[4] for u in TRANSITORIO_UNITS], type=pa.list_(pa.string())),
+    }), leyes / "units.parquet")
+
+    def write(name, hashes):
+        pq.write_table(pa.table({
+            "text_sha1": pa.array(hashes, type=pa.string()),
+            "vector": pa.array([TRANSITORIO_VECTORS[h] for h in hashes],
+                               type=pa.list_(pa.float32())),
+        }), leyes / name)
+
+    for clave in dict.fromkeys(u[0] for u in TRANSITORIO_UNITS):
+        write(f"vectors-{clave}-{SLUG}-{K}.parquet",
+              [u[3] for u in TRANSITORIO_UNITS if u[0] == clave and u[3] != "e1"])
+    write(f"vectors-shared-{SLUG}-{K}.parquet", ["e1"])
+    work_dir = tmp_path / "twork"
+    prepare_umap_input.prepare(work_dir, collections=("leyes",), cache_dir=cache,
+                               log=lambda *a: None)
+    return work_dir, cache
+
+
+def transitorio_result(transitorio_work, **kwargs):
+    work_dir, cache = transitorio_work
+    summary = instrument_matrix.build_matrix(
+        work_dir, collections=("leyes",), cache_dir=cache, log=lambda *a: None, **kwargs)
+    out = instrument_matrix.output_dir(work_dir)
+    nearest = pq.read_table(out / "nearest.parquet").to_pandas()
+    return {"summary": summary, "matrix": np.load(out / "matrix.npy"),
+            "nearest": nearest, "index": index_of(work_dir)}
+
+
+def row_of_unit(result, clave, eid):
+    nearest = result["nearest"]
+    return nearest[(nearest["clave"] == clave) & (nearest["eId"] == eid)].iloc[0]
+
+
+@pytest.mark.parametrize("path, expected", [
+    (["TRANSITORIOS"], True),
+    (["TRANSITORIOS 18 DE MARZO DE 1980"], True),
+    (["TITULO PRIMERO", "TRANSITORIOS"], True),                  # nested
+    (["TRANSITORIOS 18 DE MARZO DE 1980", "ARTICULO 3"], True),
+    (["DISPOSICIONES TRANSITORIOS"], False),                     # the word elsewhere
+    (["CAPITULO II", "Del régimen TRANSITORIOS de"], False),
+    (["TRANSITORIOSX"], False),
+    ([], False),
+    (None, False),
+    (np.array(["TRANSITORIOS 1"]), True),                        # as pandas hands it back
+    (float("nan"), False),
+])
+def test_the_transitorio_predicate_reads_the_path(path, expected):
+    assert instrument_matrix.is_transitorio_path(path) is expected
+
+
+def test_a_transitorio_at_0995_with_one_owner_is_dropped(transitorio_work):
+    result = transitorio_result(transitorio_work)
+    for clave in ("w", "x"):
+        row = row_of_unit(result, clave, "art_t")
+        assert row["transitorio"] and row["m"] == 1
+        assert row["similarity"] == pytest.approx(0.995, abs=1e-4)
+        assert not row["counted"]
+        assert row["drop_reason"] == "transitorio_near_identical"
+    # Not re-credited to a next-nearest text: each cell is the one counted
+    # article (`art_1`) and nothing else.
+    index, matrix = result["index"], result["matrix"]
+    assert matrix[index["w"], index["x"]] == pytest.approx(1.0)
+    assert matrix[index["x"], index["w"]] == pytest.approx(1.0)
+    assert matrix[index["w"]].sum() == matrix[index["x"]].sum() == pytest.approx(1.0)
+    assert result["summary"]["transitorio_near_identical_dropped"] == 2
+
+
+def test_a_transitorio_at_098_still_counts(transitorio_work):
+    result = transitorio_result(transitorio_work)
+    index, matrix = result["index"], result["matrix"]
+    for clave, target in (("y", "z"), ("z", "y")):
+        row = row_of_unit(result, clave, "art_t")
+        assert row["transitorio"] and row["counted"] and pd.isna(row["drop_reason"])
+        assert row["similarity"] == pytest.approx(0.98, abs=1e-4)
+        assert matrix[index[clave], index[target]] == pytest.approx(1.0)
+
+
+def test_a_non_transitorio_at_0995_still_counts(transitorio_work):
+    result = transitorio_result(transitorio_work)
+    index = result["index"]
+    for clave, target in (("w", "x"), ("x", "w")):
+        row = row_of_unit(result, clave, "art_1")
+        assert not row["transitorio"] and row["counted"]
+        assert row["similarity"] == pytest.approx(0.995, abs=1e-4)
+        assert result["matrix"][index[clave], index[target]] == pytest.approx(1.0)
+
+
+def test_a_transitorio_text_stays_a_candidate_for_a_non_transitorio_row(transitorio_work):
+    """`v`'s article is nearest to `u`'s transitorio (0.9), and is credited."""
+    result = transitorio_result(transitorio_work)
+    index = result["index"]
+    row = row_of_unit(result, "v", "art_1")
+    assert list(row["targets"]) == [index["u"]] and row["counted"]
+    assert result["matrix"][index["v"], index["u"]] == pytest.approx(1.0)
+
+
+def test_a_row_both_rules_catch_is_dropped_once_as_identical_shared(transitorio_work):
+    """`p`, `q` and `s` carry one transitorio text: each row's winner is that
+    text at cosine 1 with `m == 2`, and is also a transitorio at >= 0.99."""
+    result = transitorio_result(transitorio_work)
+    for clave in ("p", "q", "s"):
+        row = row_of_unit(result, clave, "art_t")
+        assert row["transitorio"] and row["m"] == 2
+        assert row["similarity"] == pytest.approx(1.0)
+        assert not row["counted"] and row["drop_reason"] == "identical_shared"
+    summary = result["summary"]
+    assert summary["identical_shared_dropped"] == 3
+    assert summary["transitorio_near_identical_dropped"] == 2      # not 5
+
+
+def test_the_counts_and_the_identity_with_both_rules(transitorio_work):
+    result = transitorio_result(transitorio_work)
+    summary, nearest, matrix = result["summary"], result["nearest"], result["matrix"]
+    assert summary["unit_rows"] == summary["searched_rows"] == 11
+    assert summary["heading_rows_excluded"] == 0
+    assert summary["counted_rows"] == 6
+    assert summary["transitorio_similarity"] == instrument_matrix.TRANSITORIO_SIMILARITY == 0.99
+    assert summary["row_sums_equal_counted_rows"] is True
+    assert matrix.sum() == pytest.approx(6.0)
+    assert int(nearest["counted"].sum()) == 6
+    assert set(nearest.loc[~nearest["counted"], "drop_reason"]) == {
+        "identical_shared", "transitorio_near_identical"}
+    assert nearest.loc[nearest["counted"], "drop_reason"].isna().all()
+    # No counted row is a transitorio at or above the threshold.
+    counted = nearest[nearest["counted"]]
+    assert not (counted["transitorio"] & (counted["similarity"] >= 0.99)).any()
+
+
+def test_the_threshold_is_a_parameter(transitorio_work):
+    """At 0.999 nothing at 0.995 is dropped any more, and the summary says so."""
+    result = transitorio_result(transitorio_work, transitorio_similarity=0.999)
+    assert result["summary"]["transitorio_near_identical_dropped"] == 0
+    assert result["summary"]["transitorio_similarity"] == 0.999
+    assert result["summary"]["counted_rows"] == 8
+
+
+def test_the_threshold_is_forwarded_into_the_slurm_job(tmp_path):
+    command = instrument_matrix.sbatch_command(tmp_path, transitorio_similarity=0.97)
+    assert command[command.index("--transitorio-similarity") + 1] == "0.97"
+    default = instrument_matrix.sbatch_command(tmp_path)
+    assert default[default.index("--transitorio-similarity") + 1] == "0.99"
