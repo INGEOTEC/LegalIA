@@ -46,10 +46,11 @@ federal law borrows from and repeats itself.
 
 Each provision was matched to the single closest text outside its own
 instrument, over 145,788 distinct texts. A match shared by *m* instruments
-gives 1/*m* to each, so every provision that counts adds up to one. Headings
-are not compared, and neither are word-for-word texts shared by several
-instruments, such as a decree's standard closing article: of the 161,989
-provisions, 123,638 count. Where several regulations or guidelines share a name, only the most recently
+gives 1/*m* to each, so every provision that counts adds up to one. Three
+kinds of provision are not counted: headings, which are not compared at all;
+word-for-word texts shared by several instruments; and transitory provisions
+whose closest text is a near-copy of the same standard decree wording
+(similarity 0.99 or more). Of the 161,989 provisions, 120,141 count. Where several regulations or guidelines share a name, only the most recently
 issued one is shown: the Supreme Court reissues a regulation under a new
 identifier rather than reforming it.
 :::
@@ -72,22 +73,22 @@ instruments, as the standard closing articles of a reform decree often are.
 
 ## An example
 
-The *LEY que crea la Universidad Autónoma Chapingo* has 28 provisions, 23 of
-which count. For 11 of them, the closest text outside the law belongs to the
+The *LEY que crea la Universidad Autónoma Chapingo* has 28 provisions, 22 of
+which count. For 10 of them, the closest text outside the law belongs to the
 *LEY Orgánica de la Universidad Autónoma Metropolitana*; for 7, to the *LEY
 Orgánica de la Universidad Autónoma Agraria Antonio Narro*; and one each goes
 to the *LEY Agraria*, the *LEY Orgánica del Instituto Nacional de Antropología
 e Historia* and the *LEY Orgánica del Instituto Politécnico Nacional*. The
 remaining 2 are spread over other instruments, and on the map the law sits
 among the organic laws of the UNAM, Antonio Narro, the UAM and the IPN. The
-relation is directed: 23 provisions of other instruments have their closest
-text in Chapingo's law, 9 of them in Antonio Narro's and 8 in the UAM's.
+relation is directed: 22 provisions of other instruments have their closest
+text in Chapingo's law, 9 of them in Antonio Narro's and 7 in the UAM's.
 
-The Constitution's closest instrument is the *CÓDIGO Penal Federal*, at 43.4.
-Its table lists 64 provisions: 62 are transitory articles of reform decrees —
-mostly the standard "the present decree enters into force…" in slightly
-different wordings, shared by up to 101 instruments — which together add 41.4,
-while two articles (23 and 38) add a whole 1 each.
+The Constitution's closest instrument is the *ESTATUTO de Gobierno del
+Distrito Federal*, at 41.0. Its table lists 41 provisions: 38 are transitory
+articles of reform decrees, each matched to a transitory article of the
+statute that is similar but not a near-copy, and three are articles (44, 61
+and 101) — a whole 1 each.
 
 ## The neighbourhood size
 
