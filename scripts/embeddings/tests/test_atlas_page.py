@@ -56,9 +56,11 @@ QMD = PAGES / "atlas.qmd"
 APP_JS = PAGES / "atlas" / "atlas.js"
 APP_CSS = PAGES / "atlas" / "atlas.css"
 DATA = PAGES / "atlas" / "atlas.json"
+DATA_4B = PAGES / "atlas" / "atlas-qwen3-4b.json"
 SCREENSHOT = REPO / "output" / "atlas-chapingo.png"
 SITE = WEBSITE / "_site"
 PAIRS = PAGES / "atlas" / "pairs"
+PAIRS_4B = PAGES / "atlas" / "pairs-qwen3-4b"
 WORKFLOW = REPO / ".github" / "workflows" / "website.yml"
 EXPLAIN_SCREENSHOT = REPO / "output" / "atlas-explain-cpeum.png"
 NOT_AVAILABLE = "The explanation for this pair is not available."
@@ -201,6 +203,68 @@ def test_the_installed_pairs_are_never_committed():
     tracked = subprocess.run(["git", "-C", str(REPO), "ls-files", "website/pages/atlas/pairs"],
                              capture_output=True, text=True, check=True).stdout
     assert tracked == ""
+
+
+def test_the_publish_workflow_fetches_the_4b_pair_explanations_before_publishing():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    publish = text.index("quarto-dev/quarto-actions/publish")
+    step = text.index("name: Fetch the Atlas pair explanations of the 4B model")
+    assert text.index("name: Fetch the Atlas pair explanations\n") < step < publish
+    body = text[step:publish]
+    assert "gh release download atlas-pairs" in body
+    assert "--pattern 'atlas-pairs-qwen3-4b.tar.gz'" in body
+    assert "--pattern 'SHA256SUMS-qwen3-4b.txt'" in body
+    assert "sha256sum -c --ignore-missing SHA256SUMS-qwen3-4b.txt" in body
+    assert "set -euo pipefail" in body                 # a missing asset fails the job
+    assert "test -s" in body and 'test "$count" -gt 0' in body
+    assert "website/pages/atlas/pairs-qwen3-4b" in body
+    assert "GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in body
+    # The 0.6B step neither loses nor gains a byte of its own set.
+    first = text[text.index("name: Fetch the Atlas pair explanations\n"):step]
+    assert "qwen3-4b" not in first
+
+
+def test_the_4b_pairs_are_never_committed():
+    lines = (REPO / ".gitignore").read_text(encoding="utf-8").splitlines()
+    assert "/website/pages/atlas/pairs-qwen3-4b/" in lines
+    tracked = subprocess.run(["git", "-C", str(REPO), "ls-files",
+                              "website/pages/atlas/pairs-qwen3-4b"],
+                             capture_output=True, text=True, check=True).stdout
+    assert tracked == ""
+
+
+def test_the_4b_data_lists_the_same_instruments_as_the_default():
+    default, second = atlas_data(), json.loads(DATA_4B.read_text(encoding="utf-8"))
+    assert second["meta"]["model"] == "Qwen/Qwen3-Embedding-4B"
+    assert default["meta"]["model"] == "Qwen/Qwen3-Embedding-0.6B"
+    assert second["meta"]["unique_names"] is True
+    assert list(second["projections"]) == ["4", "8", "16", "32"]
+    assert list(second) == list(default) and list(second["meta"]) == list(default["meta"])
+    assert len(second["instruments"]) == len(default["instruments"]) == 1303
+    for position, (mine, theirs) in enumerate(zip(second["instruments"],
+                                                  default["instruments"])):
+        assert all(mine[key] == theirs[key] for key in ("c", "k", "n", "p")), position
+        assert list(mine) == list(theirs)
+    for key in ("instruments", "provisions", "heading_rows_excluded", "distinct_texts",
+                "collections", "duplicates_dropped", "n_neighbors"):
+        assert second["meta"][key] == default["meta"][key], key
+    for layout, points in second["projections"].items():
+        assert len(points) == 1303 and layout in default["projections"]
+
+
+@pytest.mark.skipif(not PAIRS_4B.is_dir(), reason="website/pages/atlas/pairs-qwen3-4b/ "
+                    "is not installed (export_atlas_pairs.py --install)")
+def test_the_installed_4b_pairs_match_the_4b_data():
+    data = json.loads(DATA_4B.read_text(encoding="utf-8"))
+    checked = 0
+    for i, entry in enumerate(data["instruments"]):
+        for j, _ in entry["out"]:
+            document = json.loads((PAIRS_4B / f"{i}-{j}.json").read_text(encoding="utf-8"))
+            assert document["source"]["k"] == entry["k"] == data["instruments"][i]["k"]
+            assert document["target"]["k"] == data["instruments"][j]["k"]
+            checked += 1
+    assert checked == sum(len(entry["out"]) for entry in data["instruments"])
+    assert len(list(PAIRS_4B.glob("*-*.json"))) == checked
 
 
 def test_the_qmd_describes_the_explanation_and_its_example():

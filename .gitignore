@@ -59,3 +59,5 @@ slurm-*.out
 # The Atlas pair explanations (issue #249): installed from the atlas-pairs
 # release (or export_atlas_pairs.py --install), ~264 MB, never committed.
 /website/pages/atlas/pairs/
+# The Qwen3-Embedding-4B set (issue #261): same release, suffixed assets.
+/website/pages/atlas/pairs-qwen3-4b/

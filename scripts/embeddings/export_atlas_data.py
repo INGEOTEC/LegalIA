@@ -11,6 +11,9 @@ website's own tree:
     uv run --group viz python scripts/embeddings/export_atlas_data.py
     uv run --group viz python scripts/embeddings/export_atlas_data.py \\
         --output /tmp/atlas.json --n-neighbors 8,16 --decimals 3
+    uv run --group viz python scripts/embeddings/export_atlas_data.py \\
+        --work-dir emb-run-atlas-4b --output website/pages/atlas/atlas-qwen3-4b.json \\
+        --instruments-as website/pages/atlas/atlas.json
 
 It is a pure read of #242's outputs — `instruments.parquet`,
 `instrument-matrix/matrix.npy`, `matrix.json`, `umap.parquet` and
@@ -40,6 +43,11 @@ loudly when the matrix is missing, and is a no-op once `umap.parquet` exists
   `unique_names` and `duplicates_dropped` per collection.
 * **Short keys** (`c`, `k`, `n`, `p`, `in`, `out`, `inc`) because there are
   over a thousand of each; `meta` spells everything out.
+
+* **A second model's file (issue #261).** `--instruments-as` refuses, with a
+  `SystemExit` naming the first differing position, an export whose `c`/`k`/`n`/`p`
+  differ from an existing `atlas.json`'s, because the page swaps the two files
+  keeping its selection.
 
 `meta.commit` is provenance for the file, and the page never displays it.
 Regenerating the committed file is this script, run by a human — never a
@@ -134,6 +142,36 @@ def duplicates_dropped(work_dir: Path) -> dict:
                                  f"{UNIQUE_REPORT} but is in instruments.parquet")
     return {name: int(entry["dropped"]) for name, entry in report.items()
             if name in GROUPED_COLLECTIONS}
+
+
+#: The instrument fields whose position-by-position agreement between two
+#: model's exports the page relies on: `i` must mean the same instrument in both.
+INSTRUMENT_TABLE_KEYS = ("c", "k", "n", "p")
+
+
+def check_same_instruments(data: dict, reference_path: Path) -> None:
+    """Refuse `data` unless its instruments are the ones `reference_path` (an
+    existing `atlas.json`) lists, position by position (issue #261).
+
+    The Atlas page fetches a second model's file on demand and keeps its
+    selection across the swap, which only makes sense when instrument `i` is
+    the same instrument in both files: `c`, `k`, `n` and `p` must all match, and
+    the count. A `SystemExit` naming the first position that differs otherwise.
+    """
+    reference = json.loads(Path(reference_path).read_text(encoding="utf-8"))["instruments"]
+    entries = data["instruments"]
+    for position, (mine, theirs) in enumerate(zip(entries, reference)):
+        for key in INSTRUMENT_TABLE_KEYS:
+            if mine[key] != theirs[key]:
+                raise SystemExit(
+                    f"instrument {position} differs from {reference_path}: `{key}` is "
+                    f"{mine[key]!r} here, {theirs[key]!r} there -- the two exports do not "
+                    "list the same instruments in the same positions")
+    if len(entries) != len(reference):
+        raise SystemExit(
+            f"{len(entries)} instruments here, {len(reference)} in {reference_path}: they "
+            f"differ from position {min(len(entries), len(reference))} on -- the two exports "
+            "do not list the same instruments in the same positions")
 
 
 def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TARGETS,
@@ -243,12 +281,19 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
     return {"meta": meta, "instruments": instruments, "projections": projections}
 
 
-def export(work_dir: Path, output: Path, **kwargs) -> dict:
-    """Write `atlas()` to `output` atomically and return what was measured."""
+def export(work_dir: Path, output: Path, instruments_as: Path | None = None, **kwargs) -> dict:
+    """Write `atlas()` to `output` atomically and return what was measured.
+
+    `instruments_as` is an existing `atlas.json` whose instrument table this
+    export must repeat exactly (`check_same_instruments`), checked before
+    anything is written."""
     from _atomic import atomic_write_text
 
     log = kwargs.get("log", print)
     data = atlas(work_dir, **kwargs)
+    if instruments_as is not None:
+        check_same_instruments(data, instruments_as)
+        log(f"{instruments_as}: the same {len(data['instruments'])} instruments, in order")
     text = json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n"
     output = Path(output)
     atomic_write_text(output, text)
@@ -277,9 +322,13 @@ def main(argv=None) -> None:
                         help="targets per direction and instrument")
     parser.add_argument("--decimals", type=int, default=DEFAULT_DECIMALS,
                         help="decimals kept on every coordinate")
+    parser.add_argument("--instruments-as", type=Path, default=None, metavar="ATLAS_JSON",
+                        help="an existing atlas.json (e.g. website/pages/atlas/atlas.json) "
+                             "whose instruments -- c, k, n, p at every position -- this "
+                             "export must list too; refuse otherwise")
     args = parser.parse_args(argv)
 
-    export(args.work_dir, args.output,
+    export(args.work_dir, args.output, instruments_as=args.instruments_as,
            n_neighbors=tuple(int(k) for k in args.n_neighbors.split(",") if k),
            top=args.top, decimals=args.decimals)
 

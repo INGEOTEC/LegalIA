@@ -262,3 +262,55 @@ def test_a_dropped_instrument_still_in_instruments_parquet_is_refused(with_matri
     report.write_text(json.dumps(data), encoding="utf-8")
     with pytest.raises(SystemExit, match="listed as dropped"):
         export_atlas_data.atlas(with_matrix, log=lambda *a: None)
+
+
+# -- a second model's file must repeat the instrument table (issue #261) ----- #
+
+@pytest.fixture
+def reference(exported, tmp_path):
+    """The toy export, copied as the `atlas.json` a second model must match."""
+    path = tmp_path / "reference" / "atlas.json"
+    path.parent.mkdir()
+    path.write_text(json.dumps(exported["data"]), encoding="utf-8")
+    return path
+
+
+def rewritten(reference, edit):
+    data = json.loads(reference.read_text(encoding="utf-8"))
+    edit(data["instruments"])
+    reference.write_text(json.dumps(data), encoding="utf-8")
+
+
+def test_instruments_as_accepts_an_identical_table(exported, reference, tmp_path):
+    output = tmp_path / "second" / "atlas-other.json"
+    export_atlas_data.export(exported["work_dir"], output, instruments_as=reference,
+                             now=NOW, log=lambda *a: None)
+    assert json.loads(output.read_text(encoding="utf-8")) == exported["data"]
+
+
+@pytest.mark.parametrize("key,value", [("k", "zzz"), ("p", 99999), ("c", "tratados"),
+                                       ("n", "Another name")])
+def test_instruments_as_refuses_a_differing_field_naming_the_position(
+        exported, reference, tmp_path, key, value):
+    rewritten(reference, lambda entries: entries[2].__setitem__(key, value))
+    output = tmp_path / "second.json"
+    with pytest.raises(SystemExit, match=rf"instrument 2 differs.*`{key}`"):
+        export_atlas_data.export(exported["work_dir"], output, instruments_as=reference,
+                                 now=NOW, log=lambda *a: None)
+    assert not output.exists()
+
+
+@pytest.mark.parametrize("edit", [lambda entries: entries.pop(),
+                                  lambda entries: entries.append(dict(entries[0]))])
+def test_instruments_as_refuses_a_different_count(exported, reference, tmp_path, edit):
+    rewritten(reference, edit)
+    with pytest.raises(SystemExit, match="6 instruments here"):
+        export_atlas_data.export(exported["work_dir"], tmp_path / "second.json",
+                                 instruments_as=reference, now=NOW, log=lambda *a: None)
+
+
+def test_instruments_as_ignores_the_targets_and_the_layout(exported, reference, tmp_path):
+    """Only `c`/`k`/`n`/`p` must agree: a second model's relations differ."""
+    rewritten(reference, lambda entries: entries[0].update(out=[], inc=[], **{"in": 0.0}))
+    export_atlas_data.export(exported["work_dir"], tmp_path / "second.json",
+                             instruments_as=reference, now=NOW, log=lambda *a: None)

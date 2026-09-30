@@ -43,7 +43,9 @@ and never touches any of them. No Slurm, no network, ~3 minutes.
 Outputs, under `--out-dir` (default `<work-dir>/atlas-pairs`, gitignored):
 `pairs/`, `manifest.json`, `atlas-pairs.tar.gz` (reproducible: sorted members,
 fixed mtime/uid/gid, gzip mtime 0), `SHA256SUMS.txt` and `PUBLICAR.md`, with
-`.done` last; a rerun with `.done` present exports nothing unless `--force`.
+`.done` last (a non-default model's three assets carry its `legalvec.model_slug`,
+`atlas-pairs-qwen3-4b.tar.gz` / `manifest-qwen3-4b.json` /
+`SHA256SUMS-qwen3-4b.txt`, added to the same release — issue #261); a rerun with `.done` present exports nothing unless `--force`.
 `--install DIR` then replaces `DIR` with a copy of `pairs/` (the site's own,
 gitignored `website/pages/atlas/pairs/`).
 
@@ -67,15 +69,20 @@ import tarfile
 import time
 from pathlib import Path
 
+import legalvec
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_umap_html as html  # noqa: E402
 import instrument_matrix  # noqa: E402
 from build_instrument_umap_html import TOP_TARGETS  # noqa: E402
-from export_atlas_data import duplicates_dropped, weighted_targets  # noqa: E402
+from export_atlas_data import duplicates_dropped, model_name, weighted_targets  # noqa: E402
+from prepare_umap_input import DEFAULT_MODEL  # noqa: E402
 
 RELEASE = "atlas-pairs"
 ASSET = "atlas-pairs.tar.gz"
+MANIFEST = "manifest.json"
+SUMS = "SHA256SUMS.txt"
 DEFAULT_REPO = "INGEOTEC/LegalIA"
 SUBDIR = "atlas-pairs"
 PAIRS = "pairs"
@@ -117,6 +124,24 @@ _BOLD = re.compile(r"\*\*")
 
 def output_dir(work_dir: Path) -> Path:
     return Path(work_dir) / SUBDIR
+
+
+def asset_names(model: str) -> dict:
+    """The three release assets of one model's pair set (issue #261).
+
+    The default model (the 0.6B) keeps the names the published `atlas-pairs`
+    release already carries, so nothing already published moves; any other model
+    adds `-<slug>` (`legalvec.model_slug`, the slug naming its vector files) to
+    each, because a second `SHA256SUMS.txt` uploaded with `--clobber` would
+    overwrite the first. They all live in the same release. Inside the tarball
+    the layout is `pairs/` + `manifest.json` whatever the model.
+    """
+    if model == DEFAULT_MODEL:
+        return {"model_slug": legalvec.model_slug(model), "asset": ASSET,
+                "manifest": MANIFEST, "sums": SUMS}
+    slug = legalvec.model_slug(model)
+    return {"model_slug": slug, "asset": f"{RELEASE}-{slug}.tar.gz",
+            "manifest": f"manifest-{slug}.json", "sums": f"SHA256SUMS-{slug}.txt"}
 
 
 def _present(value) -> bool:
@@ -390,15 +415,19 @@ def encode(document: dict) -> bytes:
         .encode("utf-8")
 
 
-def tarball(out_dir: Path) -> bytes:
-    """`pairs/` and `manifest.json` as one reproducible `.tar.gz`: members
-    sorted, mtime/uid/gid fixed, gzip header without a timestamp or name."""
-    members = [out_dir / "manifest.json", out_dir / PAIRS]
+def tarball(out_dir: Path, manifest_name: str = MANIFEST) -> bytes:
+    """`pairs/` and the manifest as one reproducible `.tar.gz`: members
+    sorted, mtime/uid/gid fixed, gzip header without a timestamp or name. The
+    manifest is a member named `manifest.json` whatever file it is on disk
+    (`manifest-<slug>.json` for a non-default model), so the workflow unpacks
+    every model's tarball the same way."""
+    members = [out_dir / manifest_name, out_dir / PAIRS]
     members += sorted((out_dir / PAIRS).iterdir(), key=lambda p: p.name)
     buffer = io.BytesIO()
     with tarfile.open(fileobj=buffer, mode="w", format=tarfile.USTAR_FORMAT) as archive:
         for path in members:
-            info = archive.gettarinfo(str(path), arcname=str(path.relative_to(out_dir)))
+            arcname = MANIFEST if path.name == manifest_name else str(path.relative_to(out_dir))
+            info = archive.gettarinfo(str(path), arcname=arcname)
             info.mtime = TAR_MTIME
             info.uid = info.gid = 0
             info.uname = info.gname = ""
@@ -427,31 +456,51 @@ def _cd_target(out_dir: Path) -> str:
 
 def publish_instructions(out_dir: Path, repo: str, manifest: dict) -> str:
     """`PUBLICAR.md`: the exact `gh` lines for a human to run, generated the
-    way `package_vectors.genera_publicar` generates a vector release's."""
-    assets = f"{ASSET} manifest.json SHA256SUMS.txt"
+    way `package_vectors.genera_publicar` generates a vector release's.
+
+    The default model's assets replace the release's original three; any other
+    model's are *added* to the same release beside them (issue #261)."""
+    asset, manifest_name, sums = manifest["asset"], manifest["manifest"], manifest["sums"]
+    assets = f"{asset} {manifest_name} {sums}"
+    added = manifest["model"] != DEFAULT_MODEL
+    atlas_file = "atlas.json" if not added else f"atlas-{manifest['model_slug']}.json"
     lines = [
         f"# Publish `{RELEASE}` — generated commands, run by hand",
         "",
         "Issue #115, Hallazgo C: no GitHub Action publishes data derived from the",
-        "SCJN, and neither does this script. Read `manifest.json` first: it names the",
+        f"SCJN, and neither does this script. Read `{manifest_name}` first: it names the",
         "commit, the matrix and the tolerance these explanations were built from.",
         "",
+        f"Built from `{manifest['model']}` (`{manifest['model_slug']}`).",
         f"{manifest['pairs']:,} pairs, {manifest['provisions']:,} provisions, "
         f"{manifest['bytes'] / 1e6:.1f} MB of JSON before compression.",
         "",
         f"Release body: `.github/{RELEASE}.md` in the repository. The file *is* the body.",
         "",
-        f"**Replace the `{RELEASE}` release before the pull request that carries this",
-        "`atlas.json` is merged to `master`.** The website's publish workflow pairs the",
-        "committed `atlas.json` with whatever this release holds when it runs, and the pair",
+    ]
+    if added:
+        lines += [
+            f"These three assets ({', '.join(f'`{a}`' for a in assets.split())}) are **added** to",
+            f"the existing `{RELEASE}`",
+            "release, beside the default model's `atlas-pairs.tar.gz`, `manifest.json` and",
+            "`SHA256SUMS.txt`, which are not touched: their names carry the model's slug.",
+            "`--clobber` only replaces these same three on a rerun.",
+            "",
+        ]
+    lines += [
+        f"**{'Update' if added else 'Replace'} the `{RELEASE}` release before the pull request "
+        f"that carries this",
+        f"`{atlas_file}` is merged to `master`.** The website's publish workflow pairs the",
+        "committed file with whatever this release holds when it runs, and the pair",
         "dialogs would show the page's \"different version of the map\" message.",
         "",
-        "Replacing the assets of the existing release, in place (same tag):",
+        ("Adding the assets to the existing release (same tag):" if added
+         else "Replacing the assets of the existing release, in place (same tag):"),
         "",
         "```bash",
         "REPO=$(git rev-parse --show-toplevel)",
         f'cd "{_cd_target(out_dir)}"',
-        "sha256sum -c SHA256SUMS.txt",
+        f"sha256sum -c {sums}",
         f"gh release upload {RELEASE} --repo {repo} {assets} --clobber",
         f"gh release edit {RELEASE} --repo {repo} --notes-file $REPO/.github/{RELEASE}.md",
         "```",
@@ -461,7 +510,7 @@ def publish_instructions(out_dir: Path, repo: str, manifest: dict) -> str:
         "```bash",
         "REPO=$(git rev-parse --show-toplevel)",
         f'cd "{_cd_target(out_dir)}"',
-        "sha256sum -c SHA256SUMS.txt",
+        f"sha256sum -c {sums}",
         f'gh release create {RELEASE} --repo {repo} --title "LegalIA — Atlas pair explanations" '
         f"--notes-file $REPO/.github/{RELEASE}.md {assets}",
         "```",
@@ -489,6 +538,8 @@ def export(work_dir: Path, *, out_dir: Path | None = None, cache_dir=None,
     work_dir = Path(work_dir)
     out_dir = Path(out_dir) if out_dir is not None else output_dir(work_dir)
     check_inputs(work_dir)
+    model = model_name(work_dir)
+    names = asset_names(model)
     started = time.time()
 
     done = out_dir / ".done"
@@ -540,20 +591,25 @@ def export(work_dir: Path, *, out_dir: Path | None = None, cache_dir=None,
         "bytes": total_bytes,
         "largest": largest,
         "release": RELEASE,
-        "asset": ASSET,
+        "model": model,
+        "model_slug": names["model_slug"],
+        "asset": names["asset"],
+        "manifest": names["manifest"],
+        "sums": names["sums"],
     }
-    atomic_write_text(out_dir / "manifest.json",
+    atomic_write_text(out_dir / names["manifest"],
                       json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
-    atomic_write_bytes(out_dir / ASSET, tarball(out_dir))
-    sums = sorted(f"{sha256(out_dir / name)}  {name}" for name in (ASSET, "manifest.json"))
-    atomic_write_text(out_dir / "SHA256SUMS.txt", "\n".join(sums) + "\n")
+    atomic_write_bytes(out_dir / names["asset"], tarball(out_dir, names["manifest"]))
+    sums = sorted(f"{sha256(out_dir / name)}  {name}"
+                  for name in (names["asset"], names["manifest"]))
+    atomic_write_text(out_dir / names["sums"], "\n".join(sums) + "\n")
     atomic_write_text(out_dir / "PUBLICAR.md", publish_instructions(out_dir, repo, manifest))
     atomic_write_text(done, "")
 
     log(json.dumps({key: manifest[key] for key in ("pairs", "provisions", "weight",
                                                   "bytes", "largest")},
                    ensure_ascii=False))
-    log(f"{out_dir / ASSET}: {(out_dir / ASSET).stat().st_size / 1e6:.1f} MB, "
+    log(f"{out_dir / names['asset']}: {(out_dir / names['asset']).stat().st_size / 1e6:.1f} MB, "
         f"{time.time() - started:.0f}s. Nothing was published: read "
         f"{out_dir / 'PUBLICAR.md'} (issue #115, Hallazgo C).")
     return manifest

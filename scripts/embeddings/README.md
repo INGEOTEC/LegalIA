@@ -680,6 +680,7 @@ The vectors are the whole-article ones (`split_articles: false`, `md2akn`
 | The research page | `scripts/embeddings/build_instrument_umap_html.py` → `output/umap-instruments-qwen3-0.6b.html` (+ `.vl.json`) |
 | The website's data (issue #244) | `scripts/embeddings/export_atlas_data.py` → `website/pages/atlas/atlas.json` (committed) |
 | The pair explanations (issue #249) | `scripts/embeddings/export_atlas_pairs.py` → `emb-run-atlas/atlas-pairs/` (`pairs/`, `manifest.json`, `atlas-pairs.tar.gz`, `SHA256SUMS.txt`, `PUBLICAR.md`, `.done`), installed into `website/pages/atlas/pairs/` (gitignored); published by hand as the release `atlas-pairs`, body `.github/atlas-pairs.md` |
+| The 4B data set (issue #261) | the same chain over `emb-run-atlas-4b/` → `website/pages/atlas/atlas-qwen3-4b.json` (committed), pair files in `website/pages/atlas/pairs-qwen3-4b/` (gitignored), assets `atlas-pairs-qwen3-4b.tar.gz` / `manifest-qwen3-4b.json` / `SHA256SUMS-qwen3-4b.txt` |
 | Everything derived | `emb-run-atlas/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
 Nothing here is committed except `atlas.json`. Every command takes
@@ -706,6 +707,56 @@ false`, and refresh with `uv run legalvec download --collection all` if not.
 The unique-name selection also reads the SCJN corpus for the two id-keyed
 collections' snapshot dates; a missing tarball raises `scjn.AssetNotCached`,
 whose message names the `scjn download --coleccion ...` command that fixes it.
+
+### A second model: the 4B (issue #261)
+
+The same chain, over the **Qwen/Qwen3-Embedding-4B** vectors (K = 2560,
+`legalvec.model_slug` → `qwen3-4b`) that the three `scjn-*-vectors` releases
+carry beside the 0.6B, so the page can offer the comparison between instruments
+under either model. A second work directory, never `emb-run-atlas/` with a flag:
+the 0.6B outputs stay untouched and reproducible, and `--work-dir` is already
+the switch. Both models' vectors must be in the `legalvec` cache
+(`uv run legalvec status`).
+
+```bash
+uv run --group viz python scripts/embeddings/prepare_umap_input.py \
+    --work-dir emb-run-atlas-4b --unique-names --model Qwen/Qwen3-Embedding-4B
+uv run --group viz python scripts/embeddings/instrument_matrix.py --work-dir emb-run-atlas-4b --submit
+uv run --group viz python scripts/embeddings/instrument_matrix.py --work-dir emb-run-atlas-4b \
+    --wait --max-wait-minutes 9
+uv run --group viz python scripts/embeddings/build_instrument_umap_html.py \
+    --work-dir emb-run-atlas-4b --output output/umap-instruments-qwen3-4b.html
+uv run --group viz python scripts/embeddings/export_atlas_data.py --work-dir emb-run-atlas-4b \
+    --output website/pages/atlas/atlas-qwen3-4b.json \
+    --instruments-as website/pages/atlas/atlas.json
+uv run --group viz python scripts/embeddings/export_atlas_pairs.py --work-dir emb-run-atlas-4b \
+    --atlas website/pages/atlas/atlas-qwen3-4b.json --install website/pages/atlas/pairs-qwen3-4b
+```
+
+* **`--instruments-as`** makes `export_atlas_data.py` refuse, with a `SystemExit`
+  naming the first differing position, an export whose `c`/`k`/`n`/`p` differ from
+  an existing `atlas.json` — or whose instrument count does. The units and the
+  unique-name selection do not depend on the model, so the two files must list the
+  same instruments in the same positions (the page swaps them keeping its
+  selection); `instruments.parquet` and `vector_ids.parquet` of the two work
+  directories are byte-comparable (`pyarrow`'s `Table.equals`), and were checked.
+  Only `c`/`k`/`n`/`p` must agree: the relations (`in`, `out`, `inc`) and the
+  layouts are what a model changes.
+* **Asset names carry the model.** `export_atlas_pairs.py` reads the model from
+  `input.json`. The default model (the 0.6B) keeps `atlas-pairs.tar.gz`,
+  `manifest.json` and `SHA256SUMS.txt`, so nothing already published moves; any
+  other model writes `atlas-pairs-<slug>.tar.gz`, `manifest-<slug>.json` and
+  `SHA256SUMS-<slug>.txt` (a second `SHA256SUMS.txt` uploaded with `--clobber`
+  would overwrite the first), to be **added** to the same `atlas-pairs` release.
+  Inside the tarball the layout is `pairs/` + `manifest.json` either way, so the
+  publish workflow unpacks every model the same way; the manifest gains `model`,
+  `model_slug`, `asset`, `manifest` and `sums`.
+* **`meta` has no new key.** `meta.model` already names the model; the page names
+  each file on its mount.
+* **Never regenerated here:** `atlas.json`, `emb-run-atlas/` and the published
+  `atlas-pairs.tar.gz`. `PUBLICAR.md` (in `emb-run-atlas-4b/atlas-pairs/`) is the
+  only thing to run, by hand, before the pull request is merged: the workflow
+  fetches both asset sets and fails when either is missing.
 
 ### Unique instruments (issue #259)
 
@@ -1251,3 +1302,62 @@ The four fits, on the login node, `random_state=0`:
 
 The research page: **1.2 MB** for 1,303 instruments, with the footer present
 exactly once.
+
+### Measured, the 4B, 2026-09-30 (issue #261)
+
+`emb-run-atlas-4b/`, prepared on the login node in **369.8 s** (K = 2560; 315 +
+863 + 125 instruments, 145,788 distinct texts, `instruments.parquet` and
+`vector_ids.parquet` equal to `emb-run-atlas/`'s). The matrix, one job (42303)
+on `geoint1` (62 threads, `--exclude=geoint0`):
+
+| phase | 0.6B (seconds) | 4B (seconds) |
+|---|---|---|
+| load (the join + `vectors.npy`) | 1.5 | 8.9 |
+| normalise | 0.3 | 0.8 |
+| sweep | 117.3 | 183.3 |
+| write | 0.2 | 0.2 |
+| **total** | **119.7** | **193.5** |
+| peak RSS | 2.02 GB | **3.17 GB** |
+
+| what | 0.6B | 4B |
+|---|---|---|
+| unit rows | 161,989 | 161,989 |
+| heading rows excluded | 28,568 | 28,568 |
+| identical winners shared by several instruments, not counted | 9,783 | 9,783 |
+| transitorios at similarity 0.99 or more, not counted | 3,497 | 3,611 |
+| **counted rows** | **120,141** | **120,027** |
+| non-zero cells | 38,073 | 35,316 |
+| searched rows with a tie | 1,947 | 1,923 |
+| largest `m` | 157 | 157 |
+| mean similarity of the winner (searched rows) | 0.806 | 0.795 |
+| searched rows whose winner is an identical text | 14,455 | 14,455 |
+| `row_sums_equal_counted_rows` | yes | yes |
+
+The four fits took 13.9, 5.2, 6.3 and 6.9 s (`n_neighbors` 4/8/16/32, 32.3 s).
+The research page, `output/umap-instruments-qwen3-4b.html`, is 1.2 MB;
+`website/pages/atlas/atlas-qwen3-4b.json` is **422,998 bytes** (`atlas.json`:
+422,737).
+
+Pair explanations: **6,352 pairs** (the 0.6B has 6,372: fewer instruments have
+five distinct targets), 78,384 provisions, 176.4 MB of JSON, largest file
+`pairs/1122-1059.json` (86 rows, 1.19 MB), the tarball **37.5 MB**, 73 s.
+
+How much the model changes the picture: over the 1,303 instruments, the five
+closest instruments (`out`) of the two models share 3.4 of 5 on average (4
+instruments share none), and the closest one is the same for 1,069.
+
+The Constitution (`cpeum`) and the Chapingo law (`luach`), `out` under each
+model — weights first, then the instrument:
+
+| | 0.6B | 4B |
+|---|---|---|
+| `cpeum` | 41.0 ESTATUTO de Gobierno del Distrito Federal · 39.9 LEY General de Instituciones y Procedimientos Electorales · 34.4 CÓDIGO Penal Federal · 27.4 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 24.7 LEY Orgánica del Poder Judicial de la Federación | 42.0 ESTATUTO de Gobierno del Distrito Federal · 42.0 LEY General de Instituciones y Procedimientos Electorales · 36.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 26.2 CÓDIGO Penal Federal · 24.7 LEY Orgánica del Poder Judicial de la Federación |
+| `luach` | 10.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 7.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 LEY Agraria · 1.0 LEY Orgánica del Instituto Nacional de Antropología e Historia · 1.0 LEY Orgánica del Instituto Politécnico Nacional | 9.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 7.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 CONSTITUCIÓN Política de los Estados Unidos Mexicanos · 1.0 LEY General de Educación · 1.0 LEY de Organizaciones Ganaderas |
+
+(The names are the corpus' own spelling; the next issue's tests read the lists
+from the JSON, not from this table. The
+Constitution's total `in` weight — how hard everything else points at it — rises
+from 680.9 to 799.6 under the 4B.)
+
+The `PUBLICAR.md` this run wrote is `emb-run-atlas-4b/atlas-pairs/PUBLICAR.md`;
+nothing was uploaded.
