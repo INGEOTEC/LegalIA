@@ -33,11 +33,11 @@ loudly when the matrix is missing, and is a no-op once `umap.parquet` exists
   weight is a sum of `1/m` fractions.
 * **`out`'s total is not exported**: under the `1/m` rule it equals the
   instrument's *counted* provisions (`matrix.json`'s
-  `row_sums_equal_counted_rows`) — its `p` minus its headings, the
-  word-for-word matches several instruments share and the transitorios that
-  repeat standard decree wording, which are not counted. `meta` carries the
-  totals (`heading_rows_excluded`, `identical_shared_dropped`,
-  `transitorio_near_identical_dropped`, `counted_rows`).
+  `row_sums_equal_counted_rows`) — its `p` minus its headings, its
+  transitorios (neither is compared at all, issue #264) and the word-for-word
+  matches several instruments share, which are searched but not counted.
+  `meta` carries the totals (`heading_rows_excluded`,
+  `transitorio_rows_excluded`, `identical_shared_dropped`, `counted_rows`).
 * **Unique instruments only** (issue #259). A work directory prepared without
   `prepare_umap_input.py --unique-names` is refused, and `meta` records
   `unique_names` and `duplicates_dropped` per collection.
@@ -230,8 +230,8 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
         })
 
     provisions = int(summary["unit_rows"])
-    for key in ("heading_rows_excluded", "identical_shared_dropped",
-                "transitorio_near_identical_dropped", "counted_rows"):
+    for key in ("heading_rows_excluded", "transitorio_rows_excluded",
+                "identical_shared_dropped", "counted_rows"):
         if key not in summary:
             raise SystemExit(f"matrix.json has no `{key}`: it was written by an older "
                              "instrument_matrix.py, rerun it with --force")
@@ -262,8 +262,8 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
         "instruments": n,
         "provisions": provisions,
         "heading_rows_excluded": int(summary["heading_rows_excluded"]),
+        "transitorio_rows_excluded": int(summary["transitorio_rows_excluded"]),
         "identical_shared_dropped": int(summary["identical_shared_dropped"]),
-        "transitorio_near_identical_dropped": int(summary["transitorio_near_identical_dropped"]),
         "counted_rows": int(summary["counted_rows"]),
         "distinct_texts": int(summary["vector_rows"]),
         "collections": collections,

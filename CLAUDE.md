@@ -674,16 +674,18 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   word-for-word match (`similarity >= 1 - 1e-6`) owned by several instruments
   (`m > 1`) is not counted** — it adds nothing to `A` and is not re-credited
   to a next-nearest text (`nearest.parquet` keeps it with `counted` false; an
-  identical winner with `m == 1` still counts), and `matrix.json` records
-  **a transitorio (its `path` holds a `TRANSITORIOS…` label) whose best match
-  has similarity >= 0.99 (`TRANSITORIO_SIMILARITY`, `--transitorio-similarity`)
-  is not counted either**, whatever its `m`, since it repeats standard decree
-  wording — applied after the search, so transitorios stay candidates, and
-  only to transitorios; `nearest.parquet` marks each dropped row with a
-  `drop_reason`, and `matrix.json` records `heading_rows_excluded`,
-  `identical_shared_dropped`, `transitorio_near_identical_dropped` and
-  `counted_rows`, which `atlas.json`'s `meta` carries; per unit row, so a
-  transitorio repeated *m* times counts *m*
+  identical winner with `m == 1` still counts); **a heading and a transitorio (its `path` holds a `TRANSITORIOS…` label,
+  Akoma Ntoso's `refersTo="#transitorios"`) are neither sources nor candidates
+  since issue #264** (`instrument_matrix.searched_mask`, imported by
+  `export_atlas_pairs.load` rather than copied; it replaced #259's rule that
+  dropped only a transitorio whose best match was a near-copy, now deleted) —
+  a text a transitorio shares with an article stays a candidate, owned by the
+  article's instrument alone; `nearest.parquet` marks each dropped row with a
+  `drop_reason` (null or `identical_shared`), and `matrix.json` records
+  `heading_rows_excluded`, `transitorio_rows_excluded` (headings counted
+  first), `identical_shared_dropped` and
+  `counted_rows` (`matrix.json`), which `atlas.json`'s `meta` carries; per unit row, so a
+  boilerplate article repeated *m* times counts *m*
   times; and only columns owned *exclusively* by the source are masked — a
   text it shares with another instrument is that unit's strongest foreign
   neighbour, not something to hide. Exact cosine by blocked matmul, never

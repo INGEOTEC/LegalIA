@@ -274,12 +274,13 @@ def load(work_dir: Path, *, cache_dir=None, log=print) -> dict:
                                         cache_dir=cache_dir, log=log)
     points, _ = html.load_frames(work_dir, [], neighbors=0, collections=collections,
                                  cache_dir=cache_dir, extra_columns=LABEL_COLUMNS, log=log)
-    # Headings are neither sources nor candidates (`EXCLUDED_UNIT_TYPES`), so
+    # Headings and transitorios are neither sources nor candidates, so
     # `nearest.parquet` holds only the searched rows: the join is narrowed the
-    # same way, positionally, before anything is aligned.
+    # same way, positionally, through `instrument_matrix.searched_mask` (the one
+    # definition of a searched row) before anything is aligned.
     if len(points) != len(units):
         raise SystemExit("load_frames and unit_rows disagree about the unit rows")
-    searched = ~units["unit_type"].isin(instrument_matrix.EXCLUDED_UNIT_TYPES).to_numpy()
+    searched = instrument_matrix.searched_mask(units)
     units = units[searched].reset_index(drop=True)
     points = points[searched].reset_index(drop=True)
     if len(units) != len(nearest) or len(points) != len(units):
