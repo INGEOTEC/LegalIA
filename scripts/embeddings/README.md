@@ -505,6 +505,52 @@ is reloaded with Altair, and `tests/test_umap_scripts.py` asserts the `pick`,
 `pick_instrument`, `collections` and `proj` params, the neighbour filter, the
 legend binding and the canvas renderer are all in it.
 
+**The embedding model control (issue #262).** Beside *Neighbourhood size*, the
+toolbar has a second `.atlas-segmented` radiogroup, *Embedding model*, with
+`0.6B` (the default) and `4B`, and a caption saying the model is what measured
+how similar two texts are, so both the relations the panel lists and the layout
+change (the neighbourhood size changes the layout only). Both controls are
+built by one `radiogroup()` helper in `atlas.js` — same markup, `aria-checked`,
+roving `tabindex` and arrow keys — and sit side by side in `.atlas-controls`
+at desktop width and stacked at 390 px.
+
+* **The mount names the models.** `data-src`/`data-pairs` stay the default
+  model's paths; one more attribute, `data-models`, is a JSON list of
+  `{label, src, pairs}` (`0.6B` → `atlas/atlas.json` + `atlas/pairs/`, `4B` →
+  `atlas/atlas-qwen3-4b.json` + `atlas/pairs-qwen3-4b/`), relative like the
+  rest, whose first entry must agree with `data-src`/`data-pairs` (a test checks
+  it). A mount without it — or with a malformed one — builds the page with no
+  model control at all, which is how the toy site's older tests run.
+* **Load on switch.** The page opens on the 0.6B and fetches nothing else. The
+  first switch to the 4B fetches its file once (a failed fetch is not
+  remembered: choosing it again retries, and the status line under the control
+  says "The 4B map could not be loaded. Choose it again to retry."). The file is
+  refused — the status line says "The 4B map cannot be used: it lists different
+  instruments." or "…has no such layout.", and the radio stays on the model on
+  screen — unless its `instruments` have the same `k` at every position and its
+  `projections` has the current neighbourhood size.
+* **What a switch does.** `in`/`out`/`inc`/`p` are swapped into the instruments
+  the page already holds, every point animates to the new model's layout at the
+  *current* neighbourhood size (the same 700 ms transition as a size change,
+  one `moveTo()` serves both), the selection, its ring, its numbered lines and
+  the panel are redrawn for the new relations, the explanation dialog's pair
+  directory becomes the model's `pairs`, and the "Map data generated on" date
+  shows the model's `meta.generated`. The explanations cache is keyed
+  `<model>:<i>-<j>`, and a dialog request still on its way when the model
+  changes is dropped the way a closed dialog's is. No URL parameter and no
+  `localStorage`: neither control persists.
+* **Tests.** The harness tests count requests with Playwright's
+  `page.on("request")` (only `atlas.json` on load, the 4B file once however many
+  switches), read Chapingo's list for each model from the two JSON files, follow
+  the layouts by the correlation of circle positions with `projections[k]`,
+  route the 4B file through edited copies (swapped `k`, a missing layout, a
+  500) for the refusal and retry paths, and open a real pair under each model
+  when both `pairs/` and `pairs-qwen3-4b/` are installed. The toy site gets a
+  second model — the same instruments, a reversed relation for one, a mirrored
+  layout, its own pair directory — for the dialog's per-model directory, the
+  dropped stale answer and a differing table; the rendered-page tests check the
+  control after Quarto's CSS and the phone-width stacking.
+
 ### Tests
 
 ```bash

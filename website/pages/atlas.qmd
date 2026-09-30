@@ -8,7 +8,7 @@ number-sections: false
 
 <!-- atlas:app -->
 <link rel="stylesheet" href="atlas/atlas.css">
-<div id="atlas" class="atlas" data-src="atlas/atlas.json" data-pairs="atlas/pairs/"></div>
+<div id="atlas" class="atlas" data-src="atlas/atlas.json" data-pairs="atlas/pairs/" data-models='[{"label":"0.6B","src":"atlas/atlas.json","pairs":"atlas/pairs/"},{"label":"4B","src":"atlas/atlas-qwen3-4b.json","pairs":"atlas/pairs-qwen3-4b/"}]'></div>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="atlas/atlas.js"></script>
 <!-- /atlas:app -->
@@ -99,6 +99,18 @@ values keep the overall shape, such as how the laws, the regulations and the
 guidelines sit relative to one another. Switching it changes the layout, never
 the relations the panel lists.
 
+## The embedding model
+
+A model turns each provision into a list of numbers, and two provisions are
+close when their lists are. The map can be drawn from either of two models of
+the same family: the 0.6B, which is the one the map opens on and the one the
+examples above describe, and the 4B, a larger model of that family. Choosing
+the other model is not a change of view like the neighbourhood size: a
+different model finds different closest texts, so the instruments the panel
+lists, the weights and the lines change, and the layout is drawn again from them. The selected instrument stays selected, and the size of the neighbourhood
+stays where it was. The 4B map is fetched the first time it is chosen, and the
+table behind each weight is then read for that model.
+
 ::: {.atlas-data}
 **Data.** The texts are the three consolidated corpora this project publishes
 from the Supreme Court (SCJN) — [laws](leyes.ipynb)
@@ -107,8 +119,9 @@ regulations
 ([`scjn-reglamentos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos))
 and guidelines
 ([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos))
-— divided into provisions and embedded with `Qwen/Qwen3-Embedding-0.6B`. The
-map is a UMAP projection, cosine metric, of each instrument's matches. The
+— divided into provisions and embedded with `Qwen/Qwen3-Embedding-0.6B`, the
+map's default, and with `Qwen/Qwen3-Embedding-4B`, which the model control
+switches to. The map is a UMAP projection, cosine metric, of each instrument's matches. The
 Diario Oficial de la Federación remains the official source of legal text.
 Map data generated on <span data-atlas-generated>28 September 2026</span>.
 

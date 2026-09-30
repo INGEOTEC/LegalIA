@@ -760,7 +760,7 @@ byte-identical to before this issue.
 - **`md2akn` went to 0.4.0** — a new public keyword (`split_articles`) that
   changes what a *future* vector means, with no change to default output.
 
-## The Atlas page (issues #244, #245, #259, #261)
+## The Atlas page (issues #244, #245, #259, #261, #262)
 
 The website's **Atlas** (`website/pages/atlas.qmd`, navbar entry *Atlas*
 right after *Federal Laws*, titled *An Atlas of Mexican Federal Law: Laws,
@@ -872,6 +872,20 @@ see the #242 bullet above), #245 draws it.
   unpacks both sets before publishing and fails when either is missing, so a
   human must add the 4B assets to the release (its `PUBLICAR.md`) before the
   pull request is merged. No page change here: the model control is issue #262.
+- **An embedding-model control (issue #262).** A second `.atlas-segmented`
+  radiogroup, *Embedding model* (`0.6B` default, `4B`), beside *Neighbourhood
+  size*; one `radiogroup()` helper in `atlas.js` builds both. The mount keeps
+  `data-src`/`data-pairs` for the default model and adds `data-models`, a JSON
+  list of `{label, src, pairs}` whose first entry agrees with them — the script
+  hard-codes no path, and a mount without it has no control. The page opens on
+  the 0.6B and fetches the 4B file on the first switch only; it refuses (a
+  status line, the radio stays put) a file whose instruments' `k` differ at any
+  position or that lacks the current layout, and a failed fetch can be retried.
+  A switch swaps `in`/`out`/`inc`/`p`, animates to the model's layout at the
+  *current* neighbourhood size, keeps the selection, and points the pair dialog
+  at the model's directory (explanations cached per model). The worked examples
+  in the qmd describe the 0.6B and were not re-measured; there is no URL
+  parameter, no persisted choice and no comparison view.
 
 ## Tables in SCJN snapshots (issue #253, done)
 
