@@ -122,9 +122,30 @@
   border-radius: 50%;
 }
 
+/* The controls sit together on the toolbar's right: the neighbourhood size and,
+   when the mount lists models, the embedding model, side by side while they
+   fit and stacked when they do not. */
+.atlas-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.8rem 2rem;
+  min-width: 0;
+}
+
 .atlas-neighbourhood {
   flex: 0 1 360px;
   min-width: 0;
+}
+
+.atlas-model {
+  flex: 0 1 220px;
+  min-width: 0;
+}
+
+.atlas-model-status:not([hidden]) {
+  color: var(--atlas-ink);
+  font-weight: 600;
 }
 
 .atlas-control-label {
@@ -168,6 +189,15 @@
 }
 
 .atlas-segment:has(+ .atlas-end) {
+  border-radius: 0 999px 999px 0;
+}
+
+/* A control without end labels rounds its own first and last segment. */
+.atlas-segmented-plain .atlas-segment:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+.atlas-segmented-plain .atlas-segment:last-child {
   border-radius: 0 999px 999px 0;
 }
 
@@ -772,8 +802,16 @@
     max-height: none;
   }
 
-  .atlas-neighbourhood {
+  .atlas-controls {
     flex: 1 1 100%;
+  }
+
+  .atlas-neighbourhood {
+    flex: 1 1 260px;
+  }
+
+  .atlas-model {
+    flex: 1 1 160px;
   }
 }
 

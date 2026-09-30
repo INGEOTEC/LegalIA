@@ -1,0 +1,71 @@
+{
+  "generated": "2026-09-30T11:53:56+00:00",
+  "commit": "451ce31",
+  "work_dir": "emb-run-atlas-4b",
+  "matrix": {
+    "unit_rows": 161989,
+    "excluded_unit_types": [
+      "heading"
+    ],
+    "heading_rows_excluded": 28568,
+    "searched_rows": 133421,
+    "identical_shared_dropped": 9783,
+    "transitorio_near_identical_dropped": 3611,
+    "transitorio_similarity": 0.99,
+    "counted_rows": 120027,
+    "vector_rows": 145788,
+    "instruments": 1303,
+    "weighting": "1/m",
+    "matrix_dtype": "float32",
+    "matrix_sum": 120027.0,
+    "row_sums_equal_counted_rows": true,
+    "nonzero_cells": 35316,
+    "tie_rows": 1923,
+    "n_winners": {
+      "1": 131498,
+      "2": 1923,
+      "3-5": 0,
+      "6+": 0
+    },
+    "max_m": 157,
+    "m": {
+      "1": 120031,
+      "2": 3716,
+      "3-5": 4021,
+      "6-20": 2480,
+      "21-100": 2516,
+      "101+": 657
+    },
+    "shared_rows": 3370,
+    "tolerance": 1e-06,
+    "block_rows": 1024,
+    "threads": 62,
+    "node": "geoint1",
+    "slurm_job_id": "42303",
+    "seconds": {
+      "load": 8.9,
+      "normalise": 0.8,
+      "sweep": 183.3,
+      "write": 0.2
+    },
+    "seconds_total": 193.5,
+    "peak_rss_gb": 3.17
+  },
+  "top": 5,
+  "tolerance": 1e-06,
+  "pairs": 6352,
+  "provisions": 78384,
+  "weight": 76366.2,
+  "bytes": 176358262,
+  "largest": {
+    "file": "pairs/1122-1059.json",
+    "rows": 86,
+    "bytes": 1194863
+  },
+  "release": "atlas-pairs",
+  "model": "Qwen/Qwen3-Embedding-4B",
+  "model_slug": "qwen3-4b",
+  "asset": "atlas-pairs-qwen3-4b.tar.gz",
+  "manifest": "manifest-qwen3-4b.json",
+  "sums": "SHA256SUMS-qwen3-4b.txt"
+}
