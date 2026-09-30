@@ -657,7 +657,8 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   scripts in the same directory — `instrument_matrix.py` (one Slurm job,
   `--submit`/`--wait`/`--report`/`--dry-run` in `submit_umap.py`'s style,
   whose `queued_jobs` it imports) and `build_instrument_umap_html.py` —
-  answer, for **every unit row of every instrument but the headings**, "which
+  answer, for **every unit row of every instrument but the headings and the
+  transitorios** (since #264), "which
   *other* instrument owns the text nearest to this one?", and weigh the answers into
   a directed 1,303 × 1,303 matrix (`emb-run-atlas/instrument-matrix/`, gitignored;
   the instruments are the *unique* ones, see the Atlas page section below).
@@ -667,7 +668,9 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   every tied winner counts (1e-6 on float32 cosine, because identical texts
   across collections tie exactly); **a unit row distributes a total weight of
   1, `1/m` to each of the `m` instruments owning a winner**, so `A.sum()` is
-  the counted-row count (120,141 of 161,989 unit rows) and every row sums to that
+  the counted-row count (110,362 of 161,989 unit rows, after 28,568 headings,
+  21,344 transitorios and 1,715 shared word-for-word rows — the same in both
+  models) and every row sums to that
   instrument's own counted rows — a boilerplate row credits each owner a
   fraction instead of hundreds of cells a whole 1, and `A` counts articles
   rather than article–instrument incidences; **a row whose winner is a
@@ -841,7 +844,7 @@ see the #242 bullet above), #245 draws it.
   provisions behind the number, each beside the closest text the target has,
   both in full, with similarity and its `1` or `1/m`, 50 rows at a time.
   *Points here* stays plain. The data is one `pairs/<i>-<j>.json` per pair
-  (6,372, ~165 MB), written by `scripts/embeddings/export_atlas_pairs.py`
+  (6,288, ~159 MB), written by `scripts/embeddings/export_atlas_pairs.py`
   (#249) and never committed: a human publishes it as the `atlas-pairs`
   release (`PUBLICAR.md`, issue #115, Hallazgo C); `website.yml` downloads,
   verifies and unpacks that asset into `website/pages/atlas/pairs/` before
@@ -864,7 +867,7 @@ see the #242 bullet above), #245 draws it.
   `SystemExit` naming the first differing position, a file whose `c`/`k`/`n`/`p`
   differ at any position, because the page swaps the two files keeping its
   selection, so `i` must mean the same instrument in both. Its pair files
-  (6,352, ~176 MB) install into the gitignored
+  (6,265, ~169 MB) install into the gitignored
   `website/pages/atlas/pairs-qwen3-4b/` and travel as three **added** assets of
   the same `atlas-pairs` release, `atlas-pairs-qwen3-4b.tar.gz` /
   `manifest-qwen3-4b.json` / `SHA256SUMS-qwen3-4b.txt` (`export_atlas_pairs.py`
@@ -886,8 +889,22 @@ see the #242 bullet above), #245 draws it.
   A switch swaps `in`/`out`/`inc`/`p`, animates to the model's layout at the
   *current* neighbourhood size, keeps the selection, and points the pair dialog
   at the model's directory (explanations cached per model). The worked examples
-  in the qmd describe the 0.6B and were not re-measured; there is no URL
-  parameter, no persisted choice and no comparison view.
+  in the qmd describe the 0.6B; there is no URL parameter, no persisted choice
+  and no comparison view.
+- **Rebuilt without transitorios (issues #264, #265).** #264 made every
+  `TRANSITORIOS…` unit, like a heading, neither a source nor a candidate of the
+  matrix (see the #242 bullet above); #265 recomputed both work directories
+  (`emb-run-atlas/`, `emb-run-atlas-4b/`, not re-prepared — only the matrix
+  rule changed) and regenerated both `atlas*.json` and both pair sets:
+  `meta.transitorio_rows_excluded` (21,344) replaces
+  `transitorio_near_identical_dropped`, `counted_rows` fell from 120,141 /
+  120,027 to 110,362 in both models, and `atlas.qmd`'s rules sentence, counts
+  and both worked examples (Chapingo and the Constitution, whose old example was
+  made of transitory articles and was rewritten, not re-numbered) follow the new
+  data. The closest instrument is unchanged for 1,239 (0.6B) / 1,240 (4B) of the
+  1,303; the measured tables are in `scripts/embeddings/README.md`. As with
+  every regeneration, the two `PUBLICAR.md` hand-offs replace the `atlas-pairs`
+  release in place and must be run **before** the pull request merges.
 
 ## Tables in SCJN snapshots (issue #253, done)
 

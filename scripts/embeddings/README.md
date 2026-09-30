@@ -1409,3 +1409,104 @@ from 680.9 to 799.6 under the 4B.)
 
 The `PUBLICAR.md` this run wrote is `emb-run-atlas-4b/atlas-pairs/PUBLICAR.md`;
 nothing was uploaded.
+
+### Measured, both models, 2026-09-30 (issue #265)
+
+The rebuild under issue #264's rule — headings *and* transitorios are neither
+source rows nor candidates — over the two work directories issue #261 left
+(`emb-run-atlas/`, `emb-run-atlas-4b/`), **not** re-prepared: the units, the
+unique-name selection and the vectors did not change, only the matrix rule.
+The matrices are two jobs (42438 on `geoint1`, 42439 on `geoint2`, 62 threads,
+`--exclude=geoint0`), submitted together with `--force`:
+
+| phase | 0.6B (seconds) | 4B (seconds) |
+|---|---|---|
+| load (the join + `vectors.npy`) | 6.4 | 11.2 |
+| normalise | 0.3 | 0.8 |
+| sweep (112,077 searched rows against 145,788 texts, blocked) | 102.8 | 162.6 |
+| write | 0.2 | 0.2 |
+| **total** | **110.0** | **175.2** |
+| peak RSS | 1.98 GB | **3.19 GB** |
+
+| what | 0.6B | 4B |
+|---|---|---|
+| unit rows | 161,989 | 161,989 |
+| heading rows excluded | 28,568 | 28,568 |
+| **transitorio rows excluded** | **21,344** | **21,344** |
+| searched rows | 112,077 | 112,077 |
+| identical winners shared by several instruments, not counted | 1,715 | 1,715 |
+| **counted rows** | **110,362** | **110,362** |
+| vector rows | 145,788 (1,158 owned by more than one instrument, once headings and transitorios are set aside) | same |
+| instruments | 1,303 | 1,303 |
+| `A.sum()` | **110,362.0** | **110,362.0** |
+| every row sums to that instrument's counted rows | yes | yes |
+| non-zero cells | 32,539 (was 38,073) | 30,213 (was 35,316) |
+| searched rows with a tie | 864 (all two-way) | 842 (all two-way) |
+| largest `m` | 14 (was 157) | 14 |
+| mean similarity of the winner | 0.787 (0.783 over the counted rows) | 0.775 (0.771) |
+| searched rows whose winner is an identical text (cosine 1) | 3,802: 2,087 with `m == 1`, which count, and 1,715 shared, which do not | the same |
+
+The exclusion is independent of the model (the same 28,568 + 21,344 rows), and
+so are the 1,715 shared identical winners: an identical text is an exact tie
+under either. Counted rows fell by 9,779 for the 0.6B (120,141) and 9,665 for
+the 4B (120,027), and the two models now count the same 110,362. The `m`
+histogram over the searched rows:
+
+| `m` | 1 | 2 | 3–5 | 6–20 | 21–100 | 101+ |
+|---|---|---|---|---|---|---|
+| 0.6B unit rows | 108,533 | 1,692 | 1,611 | 241 | 0 | 0 |
+| 4B unit rows | 108,626 | 1,654 | 1,542 | 255 | 0 | 0 |
+
+97 % of searched rows have a single answer. The boilerplate that used to fill
+the last buckets (up to 157 owners) was the transitorios.
+
+The four fits took 17.6, 7.1, 7.3 and 8.3 s (0.6B, 40.3 s with the write) and
+16.3, 6.4, 7.4 and 8.5 s (4B, 38.6 s); the research pages are 1.2 MB each.
+`website/pages/atlas/atlas.json` is **421,007 bytes** and `atlas-qwen3-4b.json`
+**421,192**, both with `meta.transitorio_rows_excluded` 21,344 and no
+`transitorio_near_identical_dropped`; `--instruments-as` accepted the 4B export
+(the same 1,303 instruments in the same positions).
+
+Pair explanations, 0.6B / 4B:
+
+| | 0.6B | 4B |
+|---|---|---|
+| pairs | 6,288 | 6,265 |
+| provisions the pairs explain | 71,348 (weight 70,006.9) | 73,822 (weight 72,531.1) |
+| provisions per pair | median 4, p90 25, max 702 | median 4, p90 27, max 747 |
+| JSON | 159.0 MB | 169.0 MB |
+| tarball | 33.6 MB | 35.9 MB |
+| largest file by size | `pairs/1122-1059.json` (1.19 MB, 84 rows) | `pairs/1122-1059.json` (1.19 MB, 86 rows) |
+| export + install | 31 s + tarball 48 s | 49 s + tarball 65 s |
+
+How much the rule moved the picture, against the committed files of the
+previous build (`git show master:website/pages/atlas/atlas.json` and
+`atlas-qwen3-4b.json`; same instruments, same positions): the five closest
+instruments (`out`) share 4.37 of 5 on average for the 0.6B (4.41 for the 4B),
+one instrument shares none in either model, and the closest one is unchanged
+for **1,239** of the 1,303 (0.6B) and **1,240** (4B). The two models now agree
+on the closest instrument for 1,077 (they did on 1,069) and share 3.30 of 5 on
+average (3.4). The instruments' total incoming weight fell most where the
+transitorios had pointed: the Constitution's `in` went from 680.9 to 246.0
+(0.6B) and from 799.6 to 384.0 (4B).
+
+The Constitution (`cpeum`) and the Chapingo law (`luach`), `out` under each
+model — weights first, then the instrument:
+
+| | 0.6B | 4B |
+|---|---|---|
+| `cpeum` | 15.0 LEY General de Instituciones y Procedimientos Electorales · 9.0 LEY Orgánica del Poder Judicial de la Federación · 8.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 4.5 REGLAMENTO DEL SENADO DE LA REPUBLICA · 4.0 ESTATUTO de Gobierno del Distrito Federal | 16.0 LEY General de Instituciones y Procedimientos Electorales · 9.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 9.0 LEY Orgánica del Poder Judicial de la Federación · 6.0 ESTATUTO de Gobierno del Distrito Federal · 3.0 CÓDIGO Civil Federal |
+| `luach` | 10.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 7.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 LEY Orgánica del Instituto Politécnico Nacional | 9.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 6.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 LEY General de Educación · 1.0 LEY Monetaria de los Estados Unidos Mexicanos · 1.0 LEY Orgánica de la Universidad Nacional Autónoma de México |
+
+The Constitution has 1,328 provisions and 137 count (136 articles and the
+preamble); the pair behind its heaviest weight, `cpeum` → `lgipe`, lists 15
+provisions, each a whole 1, from article 96 at similarity 0.861 (to article
+494) down to article 125 at 0.606 (to article 11). The Chapingo law has 28
+provisions and 18 count, all answered by a single instrument each (`m == 1`):
+10 to the UAM, 7 to Antonio Narro, 1 to the IPN. The page's worked examples
+(`atlas.qmd`) were rewritten from these two files and the installed pair
+files; the Constitution's old example, 38 transitory articles matched to the
+statute's transitory articles, no longer exists under the rule.
+
+The hand-offs this run wrote are `emb-run-atlas/atlas-pairs/PUBLICAR.md` and
+`emb-run-atlas-4b/atlas-pairs/PUBLICAR.md`; nothing was uploaded.

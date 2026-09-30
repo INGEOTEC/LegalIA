@@ -6,7 +6,7 @@ text they matched on the other side, and how much each one adds to the weight.
 
 | Asset | Contents |
 |---|---|
-| `atlas-pairs.tar.gz` | The **Qwen/Qwen3-Embedding-0.6B** set: `pairs/<i>-<j>.json`, one file per pair (6,372 files, 165 MB of JSON, 35 MB compressed), plus `manifest.json` |
+| `atlas-pairs.tar.gz` | The **Qwen/Qwen3-Embedding-0.6B** set: `pairs/<i>-<j>.json`, one file per pair (6,288 files, 159 MB of JSON, 34 MB compressed), plus `manifest.json` |
 | `manifest.json` | What produced the files: model, commit, matrix summary, tolerance, counts, sizes |
 | `SHA256SUMS.txt` | The digest of the two assets above |
 | `atlas-pairs-qwen3-4b.tar.gz` | The same, built from **Qwen/Qwen3-Embedding-4B** (K = 2560): `pairs/<i>-<j>.json` plus `manifest.json` |

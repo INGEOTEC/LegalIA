@@ -333,14 +333,16 @@ def test_the_qmd_describes_the_explanation_and_its_example():
     assert data["instruments"][j]["n"] in flat
     assert f"{weight:.1f}" in flat
     meta = data["meta"]
-    assert (f"Of the {meta['provisions']:,} provisions, {meta['counted_rows']:,} count"
-            in flat)
+    # Issue #264/#265: headings and transitory provisions are not compared at all.
+    assert (f"Of the {meta['provisions']:,} provisions, {meta['heading_rows_excluded']:,} "
+            f"are headings, {meta['transitorio_rows_excluded']:,} are transitory provisions "
+            f"and {meta['identical_shared_dropped']:,} are word-for-word texts shared by "
+            f"several instruments, so {meta['counted_rows']:,} count" in flat)
     if pair is not None:
-        transitory = [r for r in pair["rows"] if r["label"].startswith("Transitory")]
-        articles = [r for r in pair["rows"] if r["label"].startswith("Article")]
-        assert (f"lists {pair['provisions']} provisions: {len(transitory)} are transitory"
-                in flat)
-        assert f"{len(articles)} are articles" in flat.replace("three", str(len(articles)))
+        assert f"lists {pair['provisions']} provisions" in flat
+        # No transitory provision is compared, so none is in the table.
+        assert not [r for r in pair["rows"] if r["label"].startswith("Transitory")]
+        assert all(r["m"] == 1 for r in pair["rows"]) and "every one a whole 1" in flat
 
 
 def test_the_application_carries_the_dialog_and_its_two_messages():
@@ -524,10 +526,13 @@ def test_search_folds_accents_and_case_and_reads_the_abbreviation(page):
         assert CONSTITUTION in search(page, query).first.inner_text(), query
 
 
-def test_chapingo_shows_all_five_closest_instruments_and_five_lines(page):
+def test_chapingo_shows_its_closest_instruments_and_a_line_to_each(page):
+    # Under the rule of issue #264 Chapingo points at three instruments, not five.
+    count = len(targets_of(atlas_data(), "luach"))
+    assert 0 < count <= 5
     select_by_search(page, "chapingo", CHAPINGO)
     rows = page.locator(".atlas-out .atlas-target")
-    assert rows.count() == 5
+    assert rows.count() == count
     weights = rows.locator(".atlas-weight").all_inner_texts()
     names = rows.locator(".atlas-target-name").all_inner_texts()
     assert list(zip(weights, names)) == targets_of(atlas_data(), "luach")
@@ -537,12 +542,25 @@ def test_chapingo_shows_all_five_closest_instruments_and_five_lines(page):
     assert f"{luach['p']} provisions" in panel
     assert "abbreviation luach" in panel
     assert f"{round(luach['in'])} provisions of other instruments" in panel
-    assert page.locator("line.atlas-link").count() == 5
+    assert page.locator("line.atlas-link").count() == count
     badges = page.locator("g.atlas-badge text").all_text_contents()
-    assert sorted(badges) == ["1", "2", "3", "4", "5"]
+    assert sorted(badges) == [str(n) for n in range(1, count + 1)]
     # Nothing clipped: every row is fully rendered.
-    for n in range(5):
+    for n in range(count):
         assert rows.nth(n).is_visible()
+
+
+def test_the_constitution_shows_five_closest_instruments_and_five_lines(page):
+    select_by_search(page, "cpeum", CONSTITUTION)
+    rows = page.locator(".atlas-out .atlas-target")
+    assert rows.count() == 5
+    weights = rows.locator(".atlas-weight").all_inner_texts()
+    names = rows.locator(".atlas-target-name").all_inner_texts()
+    assert list(zip(weights, names)) == targets_of(atlas_data(), "cpeum")
+    assert page.locator(".atlas-inc .atlas-target").count() == 5
+    assert page.locator("line.atlas-link").count() == 5
+    assert sorted(page.locator("g.atlas-badge text").all_text_contents()) == \
+        ["1", "2", "3", "4", "5"]
 
 
 def test_a_name_in_the_panel_selects_that_instrument(page):
@@ -589,7 +607,7 @@ def test_the_neighbourhood_control_moves_the_points_and_keeps_the_selection(page
     # ... and the selection survives the new layout.
     assert panel_title(page) == CHAPINGO
     assert page.locator("circle.atlas-ring").count() == 1
-    assert page.locator("line.atlas-link").count() == 5
+    assert page.locator("line.atlas-link").count() == len(targets_of(atlas_data(), "luach"))
 
 
 def test_a_collection_button_dims_the_other_two(page):
@@ -769,7 +787,7 @@ def test_the_4b_replaces_the_relations_and_the_layout_and_keeps_the_selection(br
         assert len([url for url in requests if url.endswith(FOUR_B_FILE)]) == 1
         assert panel_title(page) == CHAPINGO                       # the selection stays
         assert page.locator("circle.atlas-ring").count() == 1
-        assert page.locator("line.atlas-link").count() == 5
+        assert page.locator("line.atlas-link").count() == len(targets_of(other, "luach"))
         assert out_list(page) == targets_of(other, "luach")
         assert out_list(page) != targets_of(default, "luach")
         assert inc_list(page) == [(f"{w:.1f}", other["instruments"][j]["n"])
@@ -1089,12 +1107,13 @@ def test_rendered_selection_draws_five_lines(rendered_page):
     rendered_page.wait_for_function(
         "name => document.querySelector('.atlas-panel h2')?.textContent === name",
         arg=CHAPINGO)
-    assert rendered_page.locator(".atlas-out .atlas-target").count() == 5
+    count = len(targets_of(atlas_data(), "luach"))      # three since issue #264
+    assert rendered_page.locator(".atlas-out .atlas-target").count() == count
     rendered_page.wait_for_timeout(900)
     box = rendered_svg_box(rendered_page)
     lines = rendered_page.locator("line.atlas-link")
-    assert lines.count() == 5
-    for n in range(5):
+    assert lines.count() == count
+    for n in range(count):
         line = lines.nth(n).bounding_box()
         assert line is not None
         assert box["x"] - 1 <= line["x"] and line["x"] + line["width"] <= box["x"] + box["width"] + 1
@@ -1592,7 +1611,10 @@ def test_rendered_model_control_switches_after_quartos_css(rendered_page):
     assert out_list(page) == targets_of(default, "luach")
     choose_model(page, "4B")
     assert out_list(page) == targets_of(other, "luach")
-    assert page.locator("[data-atlas-generated]").inner_text() != generated
+    # The page shows the date of the map on screen: it changes with the model
+    # when the two files were generated on different days, and only then.
+    days = {data["meta"]["generated"][:10] for data in (default, other)}
+    assert (page.locator("[data-atlas-generated]").inner_text() != generated) == (len(days) == 2)
     assert panel_title(page) == CHAPINGO
     assert forbidden_in(page.locator("#atlas").inner_text()) == []
     choose_model(page, "0.6B")
