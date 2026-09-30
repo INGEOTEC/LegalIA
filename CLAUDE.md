@@ -760,7 +760,7 @@ byte-identical to before this issue.
 - **`md2akn` went to 0.4.0** — a new public keyword (`split_articles`) that
   changes what a *future* vector means, with no change to default output.
 
-## The Atlas page (issues #244, #245, #259)
+## The Atlas page (issues #244, #245, #259, #261, #262)
 
 The website's **Atlas** (`website/pages/atlas.qmd`, navbar entry *Atlas*
 right after *Federal Laws*, titled *An Atlas of Mexican Federal Law: Laws,
@@ -852,6 +852,40 @@ see the #242 bullet above), #245 draws it.
   fetches a file on the first click only, and shows a "not available" or
   "different version of the map" message (checked by both instruments' `k`)
   rather than failing.
+- **A second data set, from the 4B (issue #261).** The same chain over the
+  Qwen/Qwen3-Embedding-4B vectors (`qwen3-4b`, K = 2560) in its own gitignored
+  work directory, `emb-run-atlas-4b/` — never `emb-run-atlas/` with a flag, which
+  stays the 0.6B's and is untouched — gives the committed
+  `website/pages/atlas/atlas-qwen3-4b.json` (`meta.model` names the model; no
+  new key). `atlas.json` keeps its name and content: the 0.6B stays the default
+  everywhere. `export_atlas_data.py --instruments-as atlas.json` refuses, with a
+  `SystemExit` naming the first differing position, a file whose `c`/`k`/`n`/`p`
+  differ at any position, because the page swaps the two files keeping its
+  selection, so `i` must mean the same instrument in both. Its pair files
+  (6,352, ~176 MB) install into the gitignored
+  `website/pages/atlas/pairs-qwen3-4b/` and travel as three **added** assets of
+  the same `atlas-pairs` release, `atlas-pairs-qwen3-4b.tar.gz` /
+  `manifest-qwen3-4b.json` / `SHA256SUMS-qwen3-4b.txt` (`export_atlas_pairs.py`
+  suffixes every asset of a non-default model with `legalvec.model_slug`; the
+  0.6B's unsuffixed names are unchanged, and inside a tarball the layout is
+  `pairs/` + `manifest.json` either way). `website.yml` fetches, verifies and
+  unpacks both sets before publishing and fails when either is missing, so a
+  human must add the 4B assets to the release (its `PUBLICAR.md`) before the
+  pull request is merged. No page change here: the model control is issue #262.
+- **An embedding-model control (issue #262).** A second `.atlas-segmented`
+  radiogroup, *Embedding model* (`0.6B` default, `4B`), beside *Neighbourhood
+  size*; one `radiogroup()` helper in `atlas.js` builds both. The mount keeps
+  `data-src`/`data-pairs` for the default model and adds `data-models`, a JSON
+  list of `{label, src, pairs}` whose first entry agrees with them — the script
+  hard-codes no path, and a mount without it has no control. The page opens on
+  the 0.6B and fetches the 4B file on the first switch only; it refuses (a
+  status line, the radio stays put) a file whose instruments' `k` differ at any
+  position or that lacks the current layout, and a failed fetch can be retried.
+  A switch swaps `in`/`out`/`inc`/`p`, animates to the model's layout at the
+  *current* neighbourhood size, keeps the selection, and points the pair dialog
+  at the model's directory (explanations cached per model). The worked examples
+  in the qmd describe the 0.6B and were not re-measured; there is no URL
+  parameter, no persisted choice and no comparison view.
 
 ## Tables in SCJN snapshots (issue #253, done)
 

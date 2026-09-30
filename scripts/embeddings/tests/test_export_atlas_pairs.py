@@ -265,7 +265,8 @@ def test_the_manifest_sums_and_publish_plan(exported):
     assert on_disk == manifest
     assert list(manifest) == ["generated", "commit", "work_dir", "matrix", "top",
                               "tolerance", "pairs", "provisions", "weight", "bytes",
-                              "largest", "release", "asset"]
+                              "largest", "release", "model", "model_slug", "asset", "manifest",
+                               "sums"]
     assert manifest["generated"] == "2026-09-23T12:00:00+00:00"
     assert manifest["top"] == 5
     assert manifest["tolerance"] == instrument_matrix.DEFAULT_TOLERANCE
@@ -422,3 +423,108 @@ def test_a_recorded_similarity_the_vectors_disagree_with_is_refused(labelled, ca
     pq.write_table(table, path)
     with pytest.raises(SystemExit, match="nearest.parquet recorded"):
         run(labelled, cache)
+
+
+# -- one asset set per model (issue #261) ------------------------------------- #
+
+FOUR_B = "Qwen/Qwen3-Embedding-4B"
+
+
+def as_model(work_dir, model):
+    record = work_dir / "input.json"
+    data = json.loads(record.read_text(encoding="utf-8"))
+    data["model"] = model
+    record.write_text(json.dumps(data), encoding="utf-8")
+
+
+def test_the_default_model_keeps_the_published_asset_names():
+    names = export_atlas_pairs.asset_names("Qwen/Qwen3-Embedding-0.6B")
+    assert names == {"model_slug": "qwen3-0.6b", "asset": "atlas-pairs.tar.gz",
+                     "manifest": "manifest.json", "sums": "SHA256SUMS.txt"}
+
+
+def test_any_other_model_adds_its_slug_to_every_name():
+    assert export_atlas_pairs.asset_names(FOUR_B) == {
+        "model_slug": "qwen3-4b", "asset": "atlas-pairs-qwen3-4b.tar.gz",
+        "manifest": "manifest-qwen3-4b.json", "sums": "SHA256SUMS-qwen3-4b.txt"}
+
+
+def test_a_default_model_manifest_records_the_model_and_the_unsuffixed_names(exported):
+    manifest = exported["manifest"]
+    assert manifest["model"] == "Qwen/Qwen3-Embedding-0.6B"
+    assert manifest["model_slug"] == "qwen3-0.6b"
+    assert (manifest["asset"], manifest["manifest"], manifest["sums"]) \
+        == ("atlas-pairs.tar.gz", "manifest.json", "SHA256SUMS.txt")
+    assert json.loads((exported["out_dir"] / "manifest.json").read_text()) == manifest
+
+
+@pytest.fixture
+def exported_4b(labelled, cache):
+    as_model(labelled, FOUR_B)
+    manifest = run(labelled, cache)
+    return {"work_dir": labelled, "out_dir": export_atlas_pairs.output_dir(labelled),
+            "manifest": manifest}
+
+
+def test_a_4b_export_writes_the_suffixed_assets_and_only_those(exported_4b):
+    out_dir, manifest = exported_4b["out_dir"], exported_4b["manifest"]
+    assert manifest["model"] == FOUR_B and manifest["model_slug"] == "qwen3-4b"
+    assert manifest["release"] == "atlas-pairs"
+    assert manifest["asset"] == "atlas-pairs-qwen3-4b.tar.gz"
+    assert manifest["manifest"] == "manifest-qwen3-4b.json"
+    assert manifest["sums"] == "SHA256SUMS-qwen3-4b.txt"
+    names = {path.name for path in out_dir.iterdir()}
+    assert {"atlas-pairs-qwen3-4b.tar.gz", "manifest-qwen3-4b.json",
+            "SHA256SUMS-qwen3-4b.txt", "PUBLICAR.md", "pairs", ".done"} <= names
+    assert not names & {"atlas-pairs.tar.gz", "manifest.json", "SHA256SUMS.txt"}
+    assert json.loads((out_dir / "manifest-qwen3-4b.json").read_text()) == manifest
+
+    sums = (out_dir / "SHA256SUMS-qwen3-4b.txt").read_text().splitlines()
+    assert sorted(line.split("  ")[1] for line in sums) \
+        == ["atlas-pairs-qwen3-4b.tar.gz", "manifest-qwen3-4b.json"]
+    for line in sums:
+        digest, name = line.split("  ")
+        assert hashlib.sha256((out_dir / name).read_bytes()).hexdigest() == digest
+
+
+def test_a_4b_tarball_keeps_the_layout_the_workflow_unpacks(exported_4b):
+    out_dir = exported_4b["out_dir"]
+    with tarfile.open(out_dir / "atlas-pairs-qwen3-4b.tar.gz", mode="r:gz") as archive:
+        names = archive.getnames()
+        assert names[0] == "manifest.json"
+        assert "manifest-qwen3-4b.json" not in names
+        assert "pairs" in names
+        assert json.load(archive.extractfile("manifest.json")) \
+            == json.loads((out_dir / "manifest-qwen3-4b.json").read_text())
+
+
+def test_a_4b_publicar_adds_the_three_assets_to_the_existing_release(exported_4b):
+    plan = (exported_4b["out_dir"] / "PUBLICAR.md").read_text(encoding="utf-8")
+    assets = "atlas-pairs-qwen3-4b.tar.gz manifest-qwen3-4b.json SHA256SUMS-qwen3-4b.txt"
+    assert f"gh release upload atlas-pairs --repo INGEOTEC/LegalIA {assets} --clobber" in plan
+    assert "sha256sum -c SHA256SUMS-qwen3-4b.txt" in plan
+    assert "**added**" in plan
+    assert "Qwen/Qwen3-Embedding-4B" in plan
+    assert "atlas-qwen3-4b.json" in plan and "before the pull request" in plan
+    assert plan.index("before the pull request") < plan.index("gh release upload")
+    assert plan.rstrip().endswith("(issue #115, Hallazgo C).")
+    # The default model's assets are never named in an upload line.
+    upload = next(line for line in plan.splitlines() if line.startswith("gh release upload"))
+    assert " atlas-pairs.tar.gz" not in upload and " manifest.json" not in upload
+
+
+def test_the_default_publicar_still_replaces_the_release_in_place(exported):
+    plan = (exported["out_dir"] / "PUBLICAR.md").read_text(encoding="utf-8")
+    assert "**added**" not in plan
+    assert "Replace the `atlas-pairs` release before the pull request" in plan
+    assert "`atlas.json` is merged" in plan
+
+
+def test_install_into_an_arbitrary_directory_for_a_4b_export(exported_4b, cache, tmp_path):
+    target = tmp_path / "site" / "pairs-qwen3-4b"
+    argv = ["--work-dir", str(exported_4b["work_dir"]), "--cache-dir", str(cache),
+            "--install", str(target)]
+    assert export_atlas_pairs.main(argv) == 0
+    installed = sorted(p.name for p in target.iterdir())
+    assert installed == sorted(p.name for p in (exported_4b["out_dir"] / "pairs").iterdir())
+    assert installed and all(name.endswith(".json") for name in installed)

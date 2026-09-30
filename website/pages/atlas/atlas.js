@@ -18,6 +18,14 @@
 // once per page load, and checked against this map by both instruments'
 // `k`. The mount's `data-page-size` (default 50) is how many rows the table
 // shows at a time; it exists so the page's own tests can page a small table.
+//
+// Two embedding models (issue #262). The mount's `data-src`/`data-pairs` name
+// the default model's files, and `data-models` (a JSON list of `{label, src,
+// pairs}`, the first entry being that same default) names every model the
+// visitor can switch to. The other model's file is fetched on the first
+// switch only, and refused unless it lists the same instruments at the same
+// positions (`k`) and has the current layout; a mount without `data-models`
+// gets no model control at all.
 (function () {
   "use strict";
 
@@ -44,6 +52,10 @@
   const EMPTY =
     "Search for an instrument or click a point to see which laws, " +
     "regulations and guidelines its provisions are closest to.";
+  const MODEL_CAPTION =
+    "The embedding model measured how similar two texts are. Switching it " +
+    "changes which instruments are closest, so both the relations the panel " +
+    "lists and the layout change; the neighbourhood size changes the layout only.";
   const PAGE_SIZE = 50;
   const NOT_AVAILABLE = "The explanation for this pair is not available.";
   const OTHER_VERSION = "The explanation was built for a different version of the map.";
@@ -76,6 +88,69 @@
     return node;
   }
 
+  // A segmented control: one `role="radiogroup"` of `role="radio"` buttons
+  // with a roving tabindex and arrow-key handling, shared by the
+  // neighbourhood size and the embedding model. `onSelect(value)` receives
+  // the option's string value on a click or an arrow key; the caller decides
+  // when the choice really is made and then calls `check(value)`, so a model
+  // that fails to load never looks selected. `ends` names the two italic end
+  // labels of a scale ("local" ... "global"); a control without them has
+  // plain rounded ends.
+  function radiogroup({ labelId, options, checked, onSelect, ends }) {
+    const node = element("div", {
+      className: ends ? "atlas-segmented" : "atlas-segmented atlas-segmented-plain",
+      role: "radiogroup",
+      "aria-labelledby": labelId,
+    });
+    const buttons = options.map(({ value, text }) =>
+      element("button", {
+        type: "button",
+        role: "radio",
+        className: "atlas-segment",
+        "data-value": value,
+        "aria-checked": String(value === checked),
+        tabindex: value === checked ? "0" : "-1",
+        text,
+      })
+    );
+    const end = (text) => element("span", { className: "atlas-end", text, "aria-hidden": "true" });
+    node.append(...(ends ? [end(ends[0])] : []), ...buttons, ...(ends ? [end(ends[1])] : []));
+    buttons.forEach((button, n) => {
+      button.addEventListener("click", () => onSelect(button.dataset.value));
+      button.addEventListener("keydown", (event) => {
+        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+        if (!step) return;
+        event.preventDefault();
+        const next = buttons[(n + step + buttons.length) % buttons.length];
+        next.focus();
+        onSelect(next.dataset.value);
+      });
+    });
+    function check(value) {
+      buttons.forEach((button) => {
+        const on = button.dataset.value === value;
+        button.setAttribute("aria-checked", String(on));
+        button.tabIndex = on ? 0 : -1;
+      });
+    }
+    return { node, check };
+  }
+
+  // The models the mount offers, or [] when it offers a single one. Anything
+  // malformed is ignored rather than half-built: the page then behaves as it
+  // did before the control existed.
+  function readModels() {
+    if (!mount.dataset.models) return [];
+    try {
+      const models = JSON.parse(mount.dataset.models);
+      const ok = Array.isArray(models) && models.length > 1 &&
+        models.every((m) => m && m.label && m.src && m.pairs);
+      return ok ? models : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
   function build(data) {
     const items = data.instruments.map((entry, i) => ({
       i,
@@ -89,6 +164,10 @@
       folded: fold(entry.n),
       foldedKey: fold(entry.k),
     }));
+    // The data of the model on screen; `data` stays the default model's.
+    let current = data;
+    const models = readModels();
+    let modelIndex = 0;
     const layouts = Object.keys(data.projections).map(Number).sort((a, b) => a - b);
     let layout = layouts.includes(DEFAULT_NEIGHBOURHOOD)
       ? DEFAULT_NEIGHBOURHOOD
@@ -131,37 +210,55 @@
     });
     const search = element("div", { className: "atlas-search" }, [input, suggestions]);
 
-    const segmented = element("div", {
-      className: "atlas-segmented",
-      role: "radiogroup",
-      "aria-labelledby": "atlas-neighbourhood-label",
+    const neighbourhoodGroup = radiogroup({
+      labelId: "atlas-neighbourhood-label",
+      options: layouts.map((value) => ({ value: String(value), text: String(value) })),
+      checked: String(layout),
+      ends: ["local", "global"],
+      onSelect: (value) => setLayout(Number(value)),
     });
-    const segments = layouts.map((value) =>
-      element("button", {
-        type: "button",
-        role: "radio",
-        className: "atlas-segment",
-        "data-value": String(value),
-        "aria-checked": String(value === layout),
-        tabindex: value === layout ? "0" : "-1",
-        text: String(value),
-      })
-    );
-    segmented.append(
-      element("span", { className: "atlas-end", text: "local", "aria-hidden": "true" }),
-      ...segments,
-      element("span", { className: "atlas-end", text: "global", "aria-hidden": "true" })
-    );
     const neighbourhood = element("div", { className: "atlas-neighbourhood" }, [
       element("span", {
         id: "atlas-neighbourhood-label",
         className: "atlas-control-label",
         text: "Neighbourhood size",
       }),
-      segmented,
+      neighbourhoodGroup.node,
       element("p", { className: "atlas-caption", text: CAPTION }),
     ]);
-    const toolbar = element("div", { className: "atlas-toolbar" }, [search, neighbourhood]);
+    // The embedding model control exists only when the mount lists models.
+    const modelStatus = element("p", {
+      className: "atlas-caption atlas-model-status",
+      role: "status",
+      "aria-live": "polite",
+      hidden: "",
+    });
+    const modelGroup = models.length
+      ? radiogroup({
+          labelId: "atlas-model-label",
+          options: models.map((model, n) => ({ value: String(n), text: model.label })),
+          checked: "0",
+          onSelect: (value) => setModel(Number(value)),
+        })
+      : null;
+    const modelControl = modelGroup
+      ? element("div", { className: "atlas-model" }, [
+          element("span", {
+            id: "atlas-model-label",
+            className: "atlas-control-label",
+            text: "Embedding model",
+          }),
+          modelGroup.node,
+          element("p", { className: "atlas-caption", text: MODEL_CAPTION }),
+          modelStatus,
+        ])
+      : null;
+    const controls = element(
+      "div",
+      { className: "atlas-controls" },
+      modelControl ? [neighbourhood, modelControl] : [neighbourhood]
+    );
+    const toolbar = element("div", { className: "atlas-toolbar" }, [search, controls]);
 
     const svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svgNode.setAttribute("class", "atlas-map");
@@ -498,9 +595,11 @@
     }
 
     // -- the explanation dialog ------------------------------------------------ //
-    const pairsBase = new URL(mount.dataset.pairs || "atlas/pairs/", document.baseURI);
+    const pairsOf = (n) =>
+      new URL(n === 0 ? mount.dataset.pairs || "atlas/pairs/" : models[n].pairs, document.baseURI);
+    let pairsBase = pairsOf(0);
     const pageSize = Math.max(1, parseInt(mount.dataset.pageSize, 10) || PAGE_SIZE);
-    const explanations = new Map(); // "<i>-<j>" -> the promise of its file
+    const explanations = new Map(); // "<model>:<i>-<j>" -> the promise of its file
     let opener = null;
     let showing = 0; // which request the dialog is waiting for
 
@@ -529,9 +628,10 @@
     }
 
     function loadPair(i, j) {
-      const key = `${i}-${j}`;
+      const file = `${i}-${j}`;
+      const key = `${modelIndex}:${file}`;
       if (!explanations.has(key)) {
-        const request = fetch(new URL(`${key}.json`, pairsBase)).then((response) => {
+        const request = fetch(new URL(`${file}.json`, pairsBase)).then((response) => {
           if (!response.ok) throw new Error(`${response.status}`);
           return response.json();
         });
@@ -793,20 +893,14 @@
       legendSvg.attr("width", Math.ceil(offset)).attr("height", tall);
     }
 
-    // -- the neighbourhood control -------------------------------------------- //
-    function setLayout(value) {
-      if (value === layout) return;
-      layout = value;
-      segments.forEach((button) => {
-        const on = Number(button.dataset.value) === value;
-        button.setAttribute("aria-checked", String(on));
-        button.tabIndex = on ? 0 : -1;
-      });
-      const next = data.projections[String(value)];
+    // -- the neighbourhood control and the embedding model ---------------------- //
+    // Every point moves from where it is to `positions[i]` over one
+    // transition; a layout switch and a model switch use the same one.
+    function moveTo(positions) {
       items.forEach((d) => {
         d.fromX = d.bx;
         d.fromY = d.by;
-        [d.toX, d.toY] = next[d.i];
+        [d.toX, d.toY] = positions[d.i];
       });
       hideLabel();
       d3.select(mount)
@@ -822,17 +916,104 @@
         });
     }
 
-    segments.forEach((button, n) => {
-      button.addEventListener("click", () => setLayout(Number(button.dataset.value)));
-      button.addEventListener("keydown", (event) => {
-        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
-        if (!step) return;
-        event.preventDefault();
-        const next = segments[(n + step + segments.length) % segments.length];
-        next.focus();
-        setLayout(Number(next.dataset.value));
+    function setLayout(value) {
+      if (value === layout) return;
+      layout = value;
+      neighbourhoodGroup.check(String(value));
+      moveTo(current.projections[String(value)]);
+    }
+
+    const modelFiles = new Map([[0, data]]); // model index -> its parsed file
+    const modelRequests = new Map(); // model index -> the promise of its file
+    let switching = 0; // which model switch is current; older ones are dropped
+
+    function loadModel(n) {
+      if (modelFiles.has(n)) return Promise.resolve(modelFiles.get(n));
+      if (!modelRequests.has(n)) {
+        const request = fetch(new URL(models[n].src, document.baseURI))
+          .then((response) => {
+            if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+            return response.json();
+          })
+          .then((file) => {
+            modelFiles.set(n, file);
+            return file;
+          });
+        // A failure is not remembered: choosing the model again retries.
+        request.catch(() => modelRequests.delete(n));
+        modelRequests.set(n, request);
+      }
+      return modelRequests.get(n);
+    }
+
+    // Why a file cannot replace the map on screen, or null: `i` is positional
+    // in the file, in the layouts and in every pair file, so the instruments
+    // must be the same ones in the same order.
+    function incompatibility(file) {
+      const entries = file && file.instruments;
+      const same = Array.isArray(entries) && entries.length === items.length &&
+        items.every((d) => entries[d.i] && entries[d.i].k === d.k);
+      if (!same) return "lists different instruments";
+      if (!file.projections || !file.projections[String(layout)]) return "has no such layout";
+      return null;
+    }
+
+    function setModelStatus(text) {
+      modelStatus.textContent = text;
+      modelStatus.hidden = !text;
+    }
+
+    function applyModel(n, file) {
+      current = file;
+      modelIndex = n;
+      pairsBase = pairsOf(n);
+      showing += 1; // an answer still on its way belongs to the old model
+      items.forEach((d) => {
+        const entry = file.instruments[d.i];
+        d.p = entry.p;
+        d.in = entry.in;
+        d.out = entry.out;
+        d.inc = entry.inc;
       });
-    });
+      resize();
+      restyle();
+      drawSelection();
+      fillPanel();
+      moveTo(file.projections[String(layout)]);
+      showGenerated();
+    }
+
+    function setModel(n) {
+      const request = ++switching;
+      if (n === modelIndex) {
+        // Back to the model on screen: whatever was still loading is dropped.
+        setModelStatus("");
+        modelGroup.node.removeAttribute("aria-busy");
+        return Promise.resolve();
+      }
+      const name = models[n].label;
+      setModelStatus(`Loading the ${name} map\u2026`);
+      modelGroup.node.setAttribute("aria-busy", "true");
+      return loadModel(n)
+        .then((file) => {
+          if (request !== switching) return;
+          const reason = incompatibility(file);
+          if (reason) {
+            setModelStatus(`The ${name} map cannot be used: it ${reason}.`);
+            return;
+          }
+          modelGroup.check(String(n));
+          setModelStatus("");
+          applyModel(n, file);
+        })
+        .catch(() => {
+          if (request !== switching) return;
+          setModelStatus(`The ${name} map could not be loaded. Choose it again to retry.`);
+        })
+        .finally(() => {
+          if (request === switching) modelGroup.node.removeAttribute("aria-busy");
+        });
+    }
 
     // -- search ---------------------------------------------------------------- //
     let matches = [];
@@ -968,6 +1149,16 @@
       if (event.key === "Escape" && event.target !== input && !dialog.open) clear();
     });
 
+    // The date the map on screen was generated, wherever the page shows it.
+    function showGenerated() {
+      document.querySelectorAll("[data-atlas-generated]").forEach((node) => {
+        const date = new Date(current.meta.generated);
+        node.textContent = Number.isNaN(date.getTime())
+          ? current.meta.generated
+          : date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+      });
+    }
+
     // -- start ----------------------------------------------------------------- //
     resize();
     restyle();
@@ -984,12 +1175,7 @@
       window.addEventListener("resize", resize);
     }
 
-    document.querySelectorAll("[data-atlas-generated]").forEach((node) => {
-      const date = new Date(data.meta.generated);
-      node.textContent = Number.isNaN(date.getTime())
-        ? data.meta.generated
-        : date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-    });
+    showGenerated();
     mount.dataset.ready = "true";
   }
 
