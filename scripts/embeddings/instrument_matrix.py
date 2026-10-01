@@ -271,6 +271,100 @@ def _m_histogram(counts) -> dict:
     }
 
 
+def own_rows_of(units) -> dict:
+    """Per instrument, the vector rows of all its searched unit rows: what
+    `sweep_answers` masks when it is given only a sample of them."""
+    pairs = units[["i", "row"]].drop_duplicates().sort_values(["i", "row"])
+    return {i: group["row"].to_numpy() for i, group in pairs.groupby("i")}
+
+
+def sweep_answers(scorer, owners, unowned, pairs, *, tolerance: float = DEFAULT_TOLERANCE,
+                  block_rows: int = DEFAULT_BLOCK_ROWS, own_rows=None, log=print):
+    """The per-`(instrument, vector row)` answers of the comparison: for each
+    pair of `pairs` (a frame with columns `i` and `row`), the best foreign score,
+    how many vector rows tied for it, the instruments owning those winners
+    (`targets`), their count `m`, `weight` (`1/m`) and whether the winner is a
+    word-for-word match (`identical`).
+
+    `build_matrix` sweeps every searched pair; the BM25 tuning
+    (`tune_bm25.py`, issue #267's review fix) sweeps a sample of them with the
+    very same code, so a sample's answers and a full run's are the same kind of
+    table. `owners` and `unowned` come from `owners_of_rows` over the searched
+    unit rows.
+
+    Which columns an instrument masks (the texts it owns alone) are those of
+    *all* its searched unit rows, not just the ones in `pairs`: `own_rows`
+    (`own_rows_of`) says so when `pairs` is a sample, and defaults to `pairs`'
+    own rows, which for a full sweep is the same thing.
+    """
+    import numpy as np
+    import pandas as pd
+
+    pairs = pairs.drop_duplicates().sort_values(["i", "row"])
+    by_instrument = {i: group["row"].to_numpy() for i, group in pairs.groupby("i")}
+    if own_rows is None:
+        own_rows = by_instrument
+
+    mark = time.time()
+    result_i, result_row, result_sim, result_winners, result_targets = [], [], [], [], []
+    result_identical = []
+    for position, (i, rows) in enumerate(sorted(by_instrument.items())):
+        # Mask what this instrument owns alone: a column no one else owns can
+        # only ever be its own text, and "nearest foreign neighbour" is not
+        # about those. A column it shares stays, deliberately.
+        exclusive = np.array([c for c in own_rows[i] if len(owners[c]) == 1], dtype=np.int64)
+        masked = np.concatenate([exclusive, unowned])
+        for start in range(0, len(rows), block_rows):
+            block = rows[start:start + block_rows]
+            similarity = scorer.scores(block)
+            if masked.size:
+                similarity[:, masked] = -np.inf
+            best = similarity.max(axis=1)
+            tied = scoring.tie_mask(similarity, best, tolerance, scorer.relative)
+            for offset, row in enumerate(block):
+                winners = np.flatnonzero(tied[offset])
+                targets = sorted({j for c in winners.tolist() for j in owners[c]} - {i})
+                if not targets and not scorer.may_have_no_match:
+                    # The other instruments' columns are never all masked, so an
+                    # empty target set is a broken join or a broken mask, not a
+                    # case with a sensible weight -- and `1/m` would divide by 0.
+                    raise SystemExit(
+                        f"instrument {i}, vector row {int(row)}: no foreign "
+                        "target at all, which cannot happen (only the source's "
+                        "exclusively owned columns are masked)")
+                result_i.append(i)
+                result_row.append(int(row))
+                # A lexical score can find no foreign match at all (best 0):
+                # no winner, no target, recorded as such and never counted.
+                result_sim.append(float(best[offset]) if targets else 0.0)
+                result_winners.append(int(winners.size) if targets else 0)
+                result_targets.append(targets)
+                result_identical.append(
+                    bool(targets) and scorer.identical(int(row), float(best[offset]),
+                                                       winners, tolerance))
+            del similarity, tied
+        if position % 50 == 0:
+            log(f"{position + 1}/{len(by_instrument)} instruments, "
+                f"{time.time() - mark:.0f}s elapsed")
+
+    # `m` counts *instruments*, not tied vector rows: an instrument owning two
+    # tied winners is one target (`targets` is a set), so no instrument is
+    # favoured for repeating a text.
+    result_m = np.array([len(targets) for targets in result_targets], dtype="int32")
+    return pd.DataFrame({
+        "i": np.array(result_i, dtype="int32"),
+        "row": np.array(result_row, dtype="int32"),
+        "similarity": np.array(result_sim, dtype="float32"),
+        "n_winners": np.array(result_winners, dtype="int32"),
+        "targets": result_targets,
+        "m": result_m,
+        # A row with no foreign match (lexical scorers only) has `m == 0` and
+        # weighs nothing.
+        "weight": np.where(result_m > 0, 1.0 / np.maximum(result_m, 1), 0.0).astype("float32"),
+        "identical": np.array(result_identical, dtype=bool),
+    })
+
+
 def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
                  block_rows: int = DEFAULT_BLOCK_ROWS, threads: int | None = None,
                  collections=None, cache_dir=None, log=print) -> dict:
@@ -335,69 +429,14 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     # the same text has the same answer, and multiplying it back afterwards is
     # what makes "a text repeated m times counts m times" a merge rather than
     # m matrix products.
-    pairs = units[["i", "row"]].drop_duplicates().sort_values(["i", "row"])
-    by_instrument = {i: group["row"].to_numpy() for i, group in pairs.groupby("i")}
+    pairs = units[["i", "row"]]
 
     mark = time.time()
-    result_i, result_row, result_sim, result_winners, result_targets = [], [], [], [], []
-    result_identical = []
-    for position, (i, rows) in enumerate(sorted(by_instrument.items())):
-        # Mask what this instrument owns alone: a column no one else owns can
-        # only ever be its own text, and "nearest foreign neighbour" is not
-        # about those. A column it shares stays, deliberately.
-        exclusive = np.array([c for c in rows if len(owners[c]) == 1], dtype=np.int64)
-        masked = np.concatenate([exclusive, unowned])
-        for start in range(0, len(rows), block_rows):
-            block = rows[start:start + block_rows]
-            similarity = scorer.scores(block)
-            if masked.size:
-                similarity[:, masked] = -np.inf
-            best = similarity.max(axis=1)
-            tied = scoring.tie_mask(similarity, best, tolerance, scorer.relative)
-            for offset, row in enumerate(block):
-                winners = np.flatnonzero(tied[offset])
-                targets = sorted({j for c in winners.tolist() for j in owners[c]} - {i})
-                if not targets and not scorer.may_have_no_match:
-                    # The other instruments' columns are never all masked, so an
-                    # empty target set is a broken join or a broken mask, not a
-                    # case with a sensible weight -- and `1/m` would divide by 0.
-                    raise SystemExit(
-                        f"instrument {i}, vector row {int(row)}: no foreign "
-                        "target at all, which cannot happen (only the source's "
-                        "exclusively owned columns are masked)")
-                result_i.append(i)
-                result_row.append(int(row))
-                # A lexical score can find no foreign match at all (best 0):
-                # no winner, no target, recorded as such and never counted.
-                result_sim.append(float(best[offset]) if targets else 0.0)
-                result_winners.append(int(winners.size) if targets else 0)
-                result_targets.append(targets)
-                result_identical.append(
-                    bool(targets) and scorer.identical(int(row), float(best[offset]),
-                                                       winners, tolerance))
-            del similarity, tied
-        if position % 50 == 0:
-            log(f"{position + 1}/{len(by_instrument)} instruments, "
-                f"{time.time() - mark:.0f}s elapsed")
+    answers = sweep_answers(scorer, owners, unowned, pairs, tolerance=tolerance,
+                            block_rows=block_rows, log=log)
     timings["sweep"] = round(time.time() - mark, 1)
     log(f"sweep in {timings['sweep']}s")
 
-    # `m` counts *instruments*, not tied vector rows: an instrument owning two
-    # tied winners is one target (`targets` is a set), so no instrument is
-    # favoured for repeating a text.
-    result_m = np.array([len(targets) for targets in result_targets], dtype="int32")
-    answers = pd.DataFrame({
-        "i": np.array(result_i, dtype="int32"),
-        "row": np.array(result_row, dtype="int32"),
-        "similarity": np.array(result_sim, dtype="float32"),
-        "n_winners": np.array(result_winners, dtype="int32"),
-        "targets": result_targets,
-        "m": result_m,
-        # A row with no foreign match (lexical scorers only) has `m == 0` and
-        # weighs nothing.
-        "weight": np.where(result_m > 0, 1.0 / np.maximum(result_m, 1), 0.0).astype("float32"),
-        "identical": np.array(result_identical, dtype=bool),
-    })
     nearest = units.merge(answers, on=["i", "row"], how="left")
     if len(nearest) != len(units):
         raise SystemExit("the per-(instrument, text) answers did not join back "

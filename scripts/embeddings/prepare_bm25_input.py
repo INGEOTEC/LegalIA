@@ -29,8 +29,10 @@ every script uses.
   Unicode-aware pattern `(?u)\\b\\w\\w+\\b`. Accents are kept; the Markdown `**`
   markers fall out of the pattern, so the `text` column is tokenised as is. The
   IDF makes `de`/`la`/`el` nearly weightless anyway.
-* **Index parameters** are bm25s' defaults — `method="lucene"`, `k1=1.5`,
-  `b=0.75` — recorded in `input.json` so a later sweep changes them knowingly.
+* **Index parameters** are the module constants `METHOD`/`K1`/`B`/`DELTA` and
+  the query weighting `QUERY` (`--method --k1 --b --delta --weighting` override
+  them for a tuning run, `tune_bm25.py`), recorded in `input.json`'s `bm25` block,
+  which is what `scoring.Bm25Scorer` reads back.
 
 Outputs, under `--work-dir` (`emb-run-atlas-bm25/`, gitignored):
 
@@ -69,10 +71,17 @@ COPIED = ("vector_ids.parquet", "instruments.parquet", "unique-instruments.json"
 
 DONE_MARKER = "prepare.done"
 
-#: bm25s' own defaults (Lucene), spelled out so `input.json` records them.
+#: The configuration the published BM25 data set is built with, spelled out so
+#: `input.json` records it: bm25s' own defaults (Lucene, binary queries) until
+#: the tuning of issue #267's review fix (`tune_bm25.py`, README "BM25 tuning")
+#: says otherwise. `Bm25Scorer` reads whatever `input.json` records, so changing
+#: these four constants and re-preparing is the whole change.
+METHOD = "lucene"
 K1 = 1.5
 B = 0.75
-METHOD = "lucene"
+DELTA = 0.5          # only used by bm25l and bm25+
+QUERY = "binary"     # scoring.QUERY_WEIGHTINGS
+DEFAULT_CONFIG = scoring.Bm25Config(method=METHOD, k1=K1, b=B, delta=DELTA, weighting=QUERY)
 
 TOKENISER = {
     "lower": True,
@@ -132,7 +141,7 @@ def candidate_texts(work_dir: Path, *, collections, cache_dir=None, log=print):
 
 
 def prepare(work_dir: Path, source: Path, *, cache_dir=None, force: bool = False,
-            log=print) -> dict:
+            config: scoring.Bm25Config = DEFAULT_CONFIG, log=print) -> dict:
     """Copy the row tables, tokenise and index the candidate texts, save the
     index and the token ids, write `input.json`, then `prepare.done`."""
     import bm25s
@@ -173,7 +182,8 @@ def prepare(work_dir: Path, source: Path, *, cache_dir=None, force: bool = False
         f"{vocabulary} terms, {without_terms} documents without any")
 
     mark = time.time()
-    retriever = bm25s.BM25(method=METHOD, k1=K1, b=B)
+    retriever = bm25s.BM25(method=config.method, k1=config.k1, b=config.b,
+                           delta=config.delta)
     retriever.index(tokenized, show_progress=False)
     seconds_index = round(time.time() - mark, 1)
 
@@ -208,10 +218,7 @@ def prepare(work_dir: Path, source: Path, *, cache_dir=None, force: bool = False
         "bm25": {
             "library": "bm25s",
             "library_version": bm25s.__version__,
-            "method": METHOD,
-            "k1": K1,
-            "b": B,
-            "query": "binary over distinct terms",
+            **config.record(),
         },
         "tokeniser": TOKENISER,
         "vocabulary": vocabulary,
@@ -238,8 +245,17 @@ def main(argv=None) -> None:
     parser.add_argument("--cache-dir", type=Path, default=None,
                         help="legalvec cache to read (default: $LEGALVEC_CACHE_DIR)")
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--method", choices=scoring.BM25_METHODS, default=METHOD)
+    parser.add_argument("--k1", type=float, default=K1)
+    parser.add_argument("--b", type=float, default=B)
+    parser.add_argument("--delta", type=float, default=DELTA)
+    parser.add_argument("--weighting", choices=scoring.QUERY_WEIGHTINGS, default=QUERY,
+                        help="how a query term counts (see scoring.Bm25Config)")
     args = parser.parse_args(argv)
-    prepare(args.work_dir, args.source, cache_dir=args.cache_dir, force=args.force)
+    config = scoring.Bm25Config(method=args.method, k1=args.k1, b=args.b, delta=args.delta,
+                                weighting=args.weighting)
+    prepare(args.work_dir, args.source, cache_dir=args.cache_dir, force=args.force,
+            config=config)
 
 
 if __name__ == "__main__":
