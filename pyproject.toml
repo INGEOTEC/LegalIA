@@ -57,4 +57,10 @@ viz = [
     # one-time `uv run --group viz playwright install chromium`; without the
     # browser those tests skip and the static checks still run.
     "playwright",
+    # The Atlas' lexical baseline (issue #267): `bm25s` builds the BM25 index
+    # as a sparse score matrix and `scipy` multiplies against it. Cluster-side
+    # research tooling like UMAP, so not in `dev`; `PyStemmer` is deliberately
+    # absent (no stemming).
+    "bm25s>=0.3.11",
+    "scipy",
 ]

@@ -77,6 +77,31 @@ jobs:
           test "$count" -gt 0
           echo "atlas-pairs-qwen3-4b: $count pair files in website/pages/atlas/pairs-qwen3-4b"
 
+      # The lexical baseline's pair explanations (issue #267): BM25, not an
+      # embedding, but the same release and the same three-asset shape named
+      # with the "model" slug. Same rule as above -- copied, never built here,
+      # and a missing asset fails the job.
+      - name: Fetch the Atlas pair explanations of the BM25 set
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          download=/tmp/atlas-pairs-bm25
+          mkdir -p "$download/unpacked"
+          gh release download atlas-pairs --repo "$GITHUB_REPOSITORY" \
+            --pattern 'atlas-pairs-bm25.tar.gz' --pattern 'SHA256SUMS-bm25.txt' \
+            --dir "$download"
+          test -s "$download/atlas-pairs-bm25.tar.gz"
+          grep -q '  atlas-pairs-bm25.tar.gz$' "$download/SHA256SUMS-bm25.txt"
+          (cd "$download" && sha256sum -c --ignore-missing SHA256SUMS-bm25.txt)
+          tar -xzf "$download/atlas-pairs-bm25.tar.gz" -C "$download/unpacked"
+          rm -rf website/pages/atlas/pairs-bm25
+          mv "$download/unpacked/pairs" website/pages/atlas/pairs-bm25
+          mv "$download/unpacked/manifest.json" website/pages/atlas/pairs-bm25/manifest.json
+          count=$(find website/pages/atlas/pairs-bm25 -name '*-*.json' | wc -l)
+          test "$count" -gt 0
+          echo "atlas-pairs-bm25: $count pair files in website/pages/atlas/pairs-bm25"
+
       # Execution results are frozen (website/_freeze, with `freeze: true` —
       # see _quarto.yml), so rendering needs neither Python nor the local
       # notas-archivo/ raw data. Any re-execution here is a failure, not a

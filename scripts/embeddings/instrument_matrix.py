@@ -105,6 +105,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import scoring  # noqa: E402
 from project_umap import peak_rss_gb, set_thread_env, thread_count  # noqa: E402
 from submit_umap import EXIT_STILL_RUNNING, queued_jobs  # noqa: E402
 
@@ -308,20 +309,16 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     units = all_units[searched].reset_index(drop=True)
     heading_rows_excluded = int(is_heading.sum())
     transitorio_rows_excluded = len(all_units) - len(units) - heading_rows_excluded
-    vectors = np.load(work_dir / "vectors.npy").astype(np.float32)
+    # The text-to-text score is the work directory's own (issue #267): the exact
+    # cosine over `vectors.npy` unless `input.json` says `bm25`.
+    scorer = scoring.scorer_for(work_dir)
+    n_vectors = scorer.n_rows
     timings["load"] = round(time.time() - started, 1)
+    timings.update({key: value for key, value in scorer.timings.items() if key != "load"})
     log(f"{len(all_units)} unit rows ({heading_rows_excluded} heading and "
         f"{transitorio_rows_excluded} transitorio rows excluded) over "
-        f"{vectors.shape[0]} vectors in {timings['load']}s")
+        f"{n_vectors} vectors ({scorer.method}) in {timings['load']}s")
 
-    mark = time.time()
-    # The published vectors are not normalised (their norms run 92 to 121), so
-    # a dot product is not a cosine until this happens. Once, in place.
-    norms = np.linalg.norm(vectors, axis=1, keepdims=True)
-    np.divide(vectors, np.where(norms > 0, norms, 1.0), out=vectors)
-    timings["normalise"] = round(time.time() - mark, 1)
-
-    n_vectors = vectors.shape[0]
     owners = owners_of_rows(units, n_vectors)
     shared_rows = sum(1 for group in owners if len(group) > 1)
     instruments = int(all_units["i"].max()) + 1
@@ -343,6 +340,7 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
 
     mark = time.time()
     result_i, result_row, result_sim, result_winners, result_targets = [], [], [], [], []
+    result_identical = []
     for position, (i, rows) in enumerate(sorted(by_instrument.items())):
         # Mask what this instrument owns alone: a column no one else owns can
         # only ever be its own text, and "nearest foreign neighbour" is not
@@ -351,14 +349,15 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         masked = np.concatenate([exclusive, unowned])
         for start in range(0, len(rows), block_rows):
             block = rows[start:start + block_rows]
-            similarity = vectors[block] @ vectors.T
+            similarity = scorer.scores(block)
             if masked.size:
                 similarity[:, masked] = -np.inf
             best = similarity.max(axis=1)
+            tied = scoring.tie_mask(similarity, best, tolerance, scorer.relative)
             for offset, row in enumerate(block):
-                winners = np.flatnonzero(similarity[offset] >= best[offset] - tolerance)
+                winners = np.flatnonzero(tied[offset])
                 targets = sorted({j for c in winners.tolist() for j in owners[c]} - {i})
-                if not targets:
+                if not targets and not scorer.may_have_no_match:
                     # The other instruments' columns are never all masked, so an
                     # empty target set is a broken join or a broken mask, not a
                     # case with a sensible weight -- and `1/m` would divide by 0.
@@ -368,10 +367,15 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
                         "exclusively owned columns are masked)")
                 result_i.append(i)
                 result_row.append(int(row))
-                result_sim.append(float(best[offset]))
-                result_winners.append(int(winners.size))
+                # A lexical score can find no foreign match at all (best 0):
+                # no winner, no target, recorded as such and never counted.
+                result_sim.append(float(best[offset]) if targets else 0.0)
+                result_winners.append(int(winners.size) if targets else 0)
                 result_targets.append(targets)
-            del similarity
+                result_identical.append(
+                    bool(targets) and scorer.identical(int(row), float(best[offset]),
+                                                       winners, tolerance))
+            del similarity, tied
         if position % 50 == 0:
             log(f"{position + 1}/{len(by_instrument)} instruments, "
                 f"{time.time() - mark:.0f}s elapsed")
@@ -389,7 +393,10 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         "n_winners": np.array(result_winners, dtype="int32"),
         "targets": result_targets,
         "m": result_m,
-        "weight": (1.0 / result_m).astype("float32"),
+        # A row with no foreign match (lexical scorers only) has `m == 0` and
+        # weighs nothing.
+        "weight": np.where(result_m > 0, 1.0 / np.maximum(result_m, 1), 0.0).astype("float32"),
+        "identical": np.array(result_identical, dtype=bool),
     })
     nearest = units.merge(answers, on=["i", "row"], how="left")
     if len(nearest) != len(units):
@@ -403,15 +410,18 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     # the joined table rather than from `answers`, so a text repeated m times
     # inside one instrument really does count m times.
     #
-    # A row whose winner is a word-for-word match (`similarity >= 1 -
-    # tolerance`) owned by several instruments (`m > 1`) is boilerplate that
+    # A row whose winner is a word-for-word match (`scorer.identical`: a cosine
+    # of at least `1 - tolerance`, or a winner with the source's own
+    # `text_sha1`) owned by several instruments (`m > 1`) is boilerplate that
     # cannot tell a pair apart from any other: it is not counted, and not
-    # re-credited to its next-nearest text either.
-    identical_shared = ((nearest["similarity"].to_numpy() >= 1.0 - tolerance)
-                        & (nearest["m"].to_numpy() > 1))
-    counted = ~identical_shared
+    # re-credited to its next-nearest text either. A row with no foreign match
+    # at all (`m == 0`, lexical scorers only) is not counted either.
+    identical_shared = nearest["identical"].to_numpy() & (nearest["m"].to_numpy() > 1)
+    no_match = nearest["m"].to_numpy() == 0
+    counted = ~identical_shared & ~no_match
     nearest["counted"] = counted
-    drop_reason = ["identical_shared" if shared else None for shared in identical_shared]
+    drop_reason = ["identical_shared" if shared else "no_match" if missing else None
+                   for shared, missing in zip(identical_shared, no_match)]
     for source, targets in zip(nearest["i"].to_numpy()[counted],
                                nearest["targets"].to_numpy()[counted]):
         weight = 1.0 / len(targets)
@@ -454,6 +464,7 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         "transitorio_rows_excluded": int(transitorio_rows_excluded),
         "searched_rows": int(len(nearest)),
         "identical_shared_dropped": int(identical_shared.sum()),
+        "no_match_rows": int(no_match.sum()),
         "counted_rows": counted_rows,
         "vector_rows": int(n_vectors),
         "instruments": instruments,
@@ -468,6 +479,7 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         "m": _m_histogram(nearest["m"].to_numpy()),
         "shared_rows": shared_rows,
         "tolerance": tolerance,
+        **scorer.describe(),
         "block_rows": block_rows,
         "threads": thread_count(threads),
         "node": platform.node(),
