@@ -895,6 +895,13 @@ see the #242 bullet above), #245 draws it.
   `SHA256SUMS-bm25.txt`) that `website.yml` fetches and fails without. A human
   adds them (`PUBLICAR.md`) before the pull request merges. No page change here:
   the control is the follow-up.
+  Its parameters were tuned against once (review fix-1, `scripts/embeddings/tune_bm25.py`:
+  300 configurations of method × `k1` × `b` × query weighting on a 10 % stratified
+  sample, then the top three and the defaults in full, objective row-level winner
+  agreement with the 4B) and **the defaults were kept**: the best configuration
+  raised the closest-instrument agreement with the 4B from 933 to 944 of 1,303
+  (+11, under the +26 bar set beforehand), so no data set was regenerated; the
+  table is in `scripts/embeddings/README.md` ("Measured, BM25 tuning").
 - **An embedding-model control (issue #262).** A second `.atlas-segmented`
   radiogroup, *Embedding model* (`0.6B` default, `4B`), beside *Neighbourhood
   size*; one `radiogroup()` helper in `atlas.js` builds both. The mount keeps

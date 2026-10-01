@@ -915,6 +915,32 @@ before `--submit`.
   `emb-run-atlas-bm25/atlas-pairs/PUBLICAR.md` is the only thing to run, by
   hand, before the pull request is merged.
 
+* **The defaults were tuned against, and kept (issue #267's review fix).** The
+  index parameters (`lucene`, `k1` 1.5, `b` 0.75, binary queries) were bm25s'
+  own and had never been measured. `tune_bm25.py` searches 300 configurations
+  for the one whose per-row winners agree most with the 4B's -- the
+  "Measured, BM25 tuning" block below has the table and the decision: the best
+  configuration lifts the closest-instrument agreement with the 4B by 11 of
+  1,303 instruments, short of the 26 (2 percentage points) that would have
+  justified regenerating the data set, so nothing was.
+
+```bash
+# The grid on a 10 % sample, two Slurm jobs (geoint), then the top 3 + the defaults in full.
+uv run --group viz python scripts/embeddings/tune_bm25.py --dry-run          # the grid, nothing computed
+uv run --group viz python scripts/embeddings/tune_bm25.py --submit
+uv run --group viz python scripts/embeddings/tune_bm25.py --wait --max-wait-minutes 9   # repeat while it exits 75
+uv run --group viz python scripts/embeddings/tune_bm25.py --stage confirm --submit
+uv run --group viz python scripts/embeddings/tune_bm25.py --stage confirm --wait --max-wait-minutes 9
+uv run --group viz python scripts/embeddings/tune_bm25.py --report            # offline
+```
+
+Everything lands under `emb-run-atlas-bm25/tune/` (gitignored): `sample.parquet`,
+`grid/<configuration>.json`, `full/<configuration>/` (a normal work directory
+each), `results.parquet` and `results.json`. To adopt a winner, pass its values
+to `prepare_bm25_input.py` (`--method --k1 --b --weighting`) or change that
+script's `METHOD`/`K1`/`B`/`QUERY` constants, re-prepare and rerun the chain;
+`Bm25Scorer` reads them back from `input.json`.
+
 ### Unique instruments (issue #259)
 
 The SCJN does not reform a reglamento or a lineamiento into a new version: it
@@ -1412,6 +1438,9 @@ three-document corpus whose Lucene scores are worked out in the file's comments,
 against `bm25s.BM25.get_scores` row by row, the exact tie of equal token
 multisets, a document with no term, `tie_mask` under both rules, `scorer_for`
 choosing dense when `input.json` has no `method`) and
+`tests/test_tune_bm25.py` (the grid, the metrics over hand-built tables, weights recomputed
+from token counts against every bm25s method's own index, a sample that still masks a
+source's unsampled texts, `--dry-run` computing nothing) and
 `tests/test_prepare_bm25_input.py` (the copied tables are byte-equal, no vectors,
 headings and transitorios are not documents, `input.json`, the refusals,
 `.done`/`--force`). `test_instrument_matrix.py` keeps its dense suite unchanged —
@@ -1699,3 +1728,81 @@ score — weights first, then the instrument:
 
 The hand-off this run wrote is `emb-run-atlas-bm25/atlas-pairs/PUBLICAR.md`;
 nothing was uploaded.
+
+### Measured, BM25 tuning, 2026-10-01 (issue #267, review fix)
+
+Question: does a better BM25 configuration move the lexical baseline toward the
+Qwen3-Embedding-4B's result? **Objective** (decided before running, and the only
+thing optimised): *row-level winner agreement* with the 4B -- a searched row is
+a **hit** when the set of instruments owning BM25's tied winners intersects the
+set the 4B's `nearest.parquet` records for that row; `hit_rate` is hits over the
+rows the 4B counted (a row with no BM25 match is a miss). Reported beside it:
+`jaccard` (mean Jaccard of the two owner sets), `closest` (instruments, of 1,303,
+whose closest instrument is the 4B's), `top5` (mean size of the intersection of
+the two top-five lists), `tie_rows`, `id_shared` (`identical_shared_dropped`),
+`no_match`, `mean_m`. **Space**: `k1` {0.5, 0.9, 1.2, 1.5, 2.0, 3.0} x `b` {0,
+0.25, 0.5, 0.75, 1.0} x method {lucene, robertson, atire, bm25l, bm25+} x query
+{binary, tf-saturated} = 300; not the tokeniser, tie tolerance, identity rule,
+mask or `1/m`. **Cost**: the grid on a stratified (by collection) 10 % sample --
+11,208 of the 112,077 searched unit rows, seed 0 -- in two `geoint` jobs
+(42494, 42495; 28 processes each, ~6 minutes in all, median 61 s per
+configuration, weights recomputed from `tokens.parquet` with no re-tokenising and
+no index rebuild); then the top 3 by sample `hit_rate` plus the defaults as the
+control, **full sweeps**, one job each (42496-42499, ~7 minutes each).
+
+Checks the numbers rest on: recomputed weights equal bm25s' saved index for all
+five methods (a test); a sweep over a sample gives the rows the full run gives
+(identical targets for all 11,208 sampled rows of the defaults); the control's
+full `matrix.npy` is byte-equal to the committed data set's (`instrument-matrix/`
+of 2026-10-01), so the 933 below is the same 933 as before. A first draft of the
+sample sweep masked only the *sampled* rows of a source's own texts, so its own
+unsampled texts won against it (40 % `no_match`); the mask now covers all of the
+source's searched rows (`own_rows`), and a test pins it.
+
+Sample grid, best ten of 300 (the defaults are 86th, 0.4635):
+
+| method | k1 | b | query | hit_rate | jaccard | tie_rows | no_match |
+|---|---|---|---|---|---|---|---|
+| robertson | 0.9 | 1 | tf-saturated | 0.4773 | 0.4602 | 589 | 5 |
+| robertson | 1.2 | 1 | tf-saturated | 0.4762 | 0.4590 | 607 | 5 |
+| lucene | 0.9 | 1 | tf-saturated | 0.4760 | 0.4614 | 549 | 0 |
+| atire | 0.9 | 1 | tf-saturated | 0.4760 | 0.4614 | 549 | 0 |
+| bm25+ | 0.9 | 1 | tf-saturated | 0.4760 | 0.4614 | 549 | 0 |
+| lucene | 1.2 | 1 | tf-saturated | 0.4758 | 0.4610 | 564 | 0 |
+| atire | 1.2 | 1 | tf-saturated | 0.4758 | 0.4610 | 565 | 0 |
+| bm25+ | 1.2 | 1 | tf-saturated | 0.4758 | 0.4610 | 565 | 0 |
+| robertson | 2 | 0.75 | tf-saturated | 0.4757 | 0.4620 | 481 | 5 |
+| bm25l | 2 | 0.75 | tf-saturated | 0.4752 | 0.4633 | 461 | 0 |
+
+What the grid says: the best configuration of every method is within 0.002 of
+the others (robertson 0.4773, lucene/atire/bm25+ 0.4760, bm25l 0.4752); `b` is
+what matters (best `hit_rate` 0.248 at `b` 0, 0.397 at 0.25, 0.452 at 0.5, 0.476
+at 0.75, 0.477 at 1), `k1` hardly (0.473 to 0.477 across all six values); the
+best binary configuration (robertson, `k1` 0.9, `b` 1) reaches 0.4713, the
+saturated query adds about 0.006. `lucene`, `atire` and `bm25+` coincide where
+they should (the constant `bm25+` adds to a query term is dropped, and does not
+change a ranking).
+
+Full sweeps (112,077 rows, 109,000+ counted), the four configurations measured
+against the 4B:
+
+| method | k1 | b | query | hit_rate | jaccard | closest | top5 | tie_rows | id_shared | no_match |
+|---|---|---|---|---|---|---|---|---|---|---|
+| robertson | 1.2 | 1 | tf-saturated | 0.4760 | 0.4575 | **944** | 2.764 | 6,314 | 2,769 | 39 |
+| robertson | 0.9 | 1 | tf-saturated | 0.4748 | 0.4565 | 939 | 2.759 | 6,117 | 2,769 | 39 |
+| lucene | 0.9 | 1 | tf-saturated | 0.4730 | 0.4576 | 933 | 2.754 | 5,646 | 2,764 | 0 |
+| lucene | 1.5 | 0.75 | binary (**defaults**) | 0.4593 | 0.4470 | **933** | 2.708 | 4,487 | 2,077 | 0 |
+
+**Decision: the defaults stay.** The row-level `hit_rate` does rise, by 1.7
+points (0.4593 to 0.4760), but the quantity the Atlas shows -- the closest
+instrument of each of the 1,303 -- agrees with the 4B for 944 instruments at
+best against the defaults' 933: **+11, 0.8 percentage points**, under the
+materiality bar fixed beforehand (+2 points, 26 instruments). Two of the three
+winners do not move it at all or by 6. The mean top-five overlap with the 4B
+moves from 2.708 to 2.764 of 5. The better row-level scores also tie more (6,314
+rows against 4,487) and drop more shared word-for-word rows (2,769 against
+2,077): part of the hit rate is bought by ties, where a row names several
+instruments and one of them agrees. So `atlas-bm25.json`, the pair files, the
+`atlas.qmd` prose and the `PUBLICAR.md` hand-off (`emb-run-atlas-bm25/atlas-pairs/`)
+are exactly what #267/#268 produced, and nothing was regenerated or uploaded.
+
