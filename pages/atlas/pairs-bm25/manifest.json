@@ -1,0 +1,86 @@
+{
+  "generated": "2026-10-01T12:08:15+00:00",
+  "commit": "547528d7",
+  "work_dir": "emb-run-atlas-bm25",
+  "matrix": {
+    "unit_rows": 161989,
+    "excluded_unit_types": [
+      "heading"
+    ],
+    "excluded_transitorios": true,
+    "heading_rows_excluded": 28568,
+    "transitorio_rows_excluded": 21344,
+    "searched_rows": 112077,
+    "identical_shared_dropped": 2077,
+    "no_match_rows": 0,
+    "counted_rows": 110000,
+    "vector_rows": 145788,
+    "instruments": 1303,
+    "weighting": "1/m",
+    "matrix_dtype": "float32",
+    "matrix_sum": 110000.0,
+    "row_sums_equal_counted_rows": true,
+    "nonzero_cells": 33199,
+    "tie_rows": 4487,
+    "n_winners": {
+      "1": 107590,
+      "2": 2790,
+      "3-5": 1241,
+      "6+": 456
+    },
+    "max_m": 16,
+    "m": {
+      "1": 106933,
+      "2": 2513,
+      "3-5": 1978,
+      "6-20": 653,
+      "21-100": 0,
+      "101+": 0
+    },
+    "shared_rows": 1158,
+    "tolerance": 1e-06,
+    "method": "bm25",
+    "tolerance_relative": true,
+    "bm25": {
+      "library": "bm25s",
+      "library_version": "0.3.11",
+      "method": "lucene",
+      "k1": 1.5,
+      "b": 0.75,
+      "query": "binary over distinct terms",
+      "identical": "text_sha1",
+      "vocabulary": 63694,
+      "documents": 110185
+    },
+    "block_rows": 1024,
+    "threads": 62,
+    "node": "geoint1",
+    "slurm_job_id": "42489",
+    "seconds": {
+      "load": 5.3,
+      "sweep": 419.9,
+      "write": 0.2
+    },
+    "seconds_total": 425.7,
+    "peak_rss_gb": 2.4
+  },
+  "top": 5,
+  "tolerance": 1e-06,
+  "method": "bm25",
+  "tolerance_relative": true,
+  "pairs": 6289,
+  "provisions": 72931,
+  "weight": 69839.8,
+  "bytes": 173489803,
+  "largest": {
+    "file": "pairs/1122-1059.json",
+    "rows": 92,
+    "bytes": 1265482
+  },
+  "release": "atlas-pairs",
+  "model": "bm25",
+  "model_slug": "bm25",
+  "asset": "atlas-pairs-bm25.tar.gz",
+  "manifest": "manifest-bm25.json",
+  "sums": "SHA256SUMS-bm25.txt"
+}

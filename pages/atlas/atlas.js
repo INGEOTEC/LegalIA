@@ -19,11 +19,13 @@
 // `k`. The mount's `data-page-size` (default 50) is how many rows the table
 // shows at a time; it exists so the page's own tests can page a small table.
 //
-// Two embedding models (issue #262). The mount's `data-src`/`data-pairs` name
-// the default model's files, and `data-models` (a JSON list of `{label, src,
-// pairs}`, the first entry being that same default) names every model the
-// visitor can switch to. The other model's file is fetched on the first
-// switch only, and refused unless it lists the same instruments at the same
+// Several ways of measuring similarity (issues #262, #268). The mount's
+// `data-src`/`data-pairs` name the default model's files, and `data-models` (a
+// JSON list of `{label, src, pairs}`, the first entry being that same default)
+// names every data set the visitor can switch to: two embedding models and a
+// BM25 baseline. The pair table's column reads "Score" (one decimal) when the
+// set on screen says `meta.method` is `bm25`, "Similarity" (three) otherwise. The other
+// files are fetched on the first switch only, and refused unless it lists the same instruments at the same
 // positions (`k`) and has the current layout; a mount without `data-models`
 // gets no model control at all.
 (function () {
@@ -53,9 +55,10 @@
     "Search for an instrument or click a point to see which laws, " +
     "regulations and guidelines its provisions are closest to.";
   const MODEL_CAPTION =
-    "The embedding model measured how similar two texts are. Switching it " +
-    "changes which instruments are closest, so both the relations the panel " +
-    "lists and the layout change; the neighbourhood size changes the layout only.";
+    "The method that measured how similar two texts are; the 0.6B is the " +
+    "default. Switching it changes which instruments are closest, so both the " +
+    "relations the panel lists and the layout change; the neighbourhood size " +
+    "changes the layout only.";
   const PAGE_SIZE = 50;
   const NOT_AVAILABLE = "The explanation for this pair is not available.";
   const OTHER_VERSION = "The explanation was built for a different version of the map.";
@@ -246,7 +249,7 @@
           element("span", {
             id: "atlas-model-label",
             className: "atlas-control-label",
-            text: "Embedding model",
+            text: "Similarity",
           }),
           modelGroup.node,
           element("p", { className: "atlas-caption", text: MODEL_CAPTION }),
@@ -662,6 +665,18 @@
       return cell;
     }
 
+    // What the pair file's `similarity` is depends on how the data set on screen
+    // scored its texts, which the file itself says (`meta.method`): a lexical
+    // BM25 score is unbounded, a cosine of two embeddings lies in 0..1. A file
+    // with no `method` predates the field and is an embedding.
+    function scoreLabel() {
+      return current.meta && current.meta.method === "bm25" ? "Score" : "Similarity";
+    }
+
+    function formatScore(value) {
+      return Number(value).toFixed(scoreLabel() === "Score" ? 1 : 3);
+    }
+
     function explanationRow(pair, row, n, target) {
       const texts = pair.texts || {};
       const targets = row.targets || [];
@@ -699,8 +714,8 @@
           closest),
         element("td", {
           className: "atlas-explain-similarity",
-          "data-column": "Similarity",
-          text: Number(row.similarity).toFixed(3),
+          "data-column": scoreLabel(),
+          text: formatScore(row.similarity),
         }),
         element("td", { className: "atlas-explain-weight", "data-column": "Weight" }, weight),
       ]);
@@ -733,7 +748,7 @@
             element("th", { className: "atlas-explain-n", scope: "col", text: "#" }),
             element("th", { scope: "col", text: `Provision of ${source.n}` }),
             element("th", { scope: "col", text: `Closest text in ${target.n}` }),
-            element("th", { className: "atlas-explain-similarity", scope: "col", text: "Similarity" }),
+            element("th", { className: "atlas-explain-similarity", scope: "col", text: scoreLabel() }),
             element("th", { className: "atlas-explain-weight", scope: "col", text: "Weight" }),
           ]),
         ]),
