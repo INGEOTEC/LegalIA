@@ -705,9 +705,9 @@ every unit of every federal law, reglamento and lineamiento:
 Weighing the answers gives a square matrix `A` (1,303 × 1,303, rows and
 columns in `instruments.parquet`'s `i` order): every *counted* unit row of
 instrument `I` hands out a total weight of **1**, `A[I, J] += 1/m` to each of
-the `m` instruments owning a winning text. Headings are not compared, and
-neither are a word-for-word match shared by several instruments or a
-transitorio whose best match is a near-copy (see the rules below). An instrument is then represented by
+the `m` instruments owning a winning text. Headings and transitorios
+are not compared at all (issue #264), and a word-for-word match shared by
+several instruments is searched but not counted (see the rules below). An instrument is then represented by
 **where its articles' nearest foreign neighbours live** — a distribution over
 the other instruments — rather than by its own text, and two instruments land
 together when their articles point at the same places.
@@ -865,14 +865,29 @@ regulation several times.
 
 Each of these was a decision in issue #242, not a default:
 
-- **Headings are out of the comparison entirely** (`EXCLUDED_UNIT_TYPES`).
-  A unit with `unit_type == "heading"` is neither a source row nor a
-  candidate. `md2akn` marks every heading, and the reform-date ones (`**D.O.F.
-  14 DE ENERO DE 1985.**`) match another instrument's identical heading, which
-  says nothing about how two instruments relate. A text owned by a heading
-  *and* by a non-heading unit stays a candidate, owned only by the
-  non-heading unit's instrument; a text only headings own is never a winner.
-  Every other `unit_type` counts, and there is no `--unit-types` flag.
+- **Headings and transitorios are out of the comparison entirely**
+  (`searched_mask`, which `instrument_matrix.py` and `export_atlas_pairs.py`
+  both use, so they cannot disagree about which rows were searched). A unit with
+  `unit_type == "heading"` (`EXCLUDED_UNIT_TYPES`), or inside a transitorios
+  section, is neither a source row nor a candidate and owns no vector row. The
+  transitorios section is Akoma Ntoso's own label — any element of the unit's
+  `path` equal to `TRANSITORIOS` or starting with `TRANSITORIOS `
+  (`is_transitorio_path`; `md2akn.units._container_label` emits that label
+  *only* for a section marked `refersTo="#transitorios"`, so `units.parquet`
+  needs no `refers_to` column). `md2akn` marks every heading, and the
+  reform-date ones (`**D.O.F. 14 DE ENERO DE 1985.**`) match another
+  instrument's identical heading; transitorios repeat the standard wording of a
+  decree ("El presente Decreto entrará en vigor al día siguiente…") across
+  dozens of instruments. Neither says anything about how two instruments
+  relate. A text owned by a heading or a transitorio *and* by an article stays a
+  candidate, owned only by the article's instrument; a text only headings and
+  transitorios own is never a winner. Headings are counted first, so a heading
+  inside a transitorios section is one excluded row, and `searched_rows +
+  heading_rows_excluded + transitorio_rows_excluded == unit_rows`. Every other
+  `unit_type` counts, and there is no `--unit-types` flag. This replaced issue
+  #259's narrower rule (a transitorio whose best match was a near-copy was
+  searched, but not counted), which is gone — the 2026-09-29/30 measurements
+  below were made under it.
 - **Ties count, every one of them.** A row's winners are every column within
   `--tolerance` (1e-6) of its best. Identical texts across collections are
   *exact* ties in float32, and breaking them by column index would silently
@@ -880,8 +895,7 @@ Each of these was a decision in issue #242, not a default:
 - **`1/m` to each of the `m` instruments owning a winning text.** A text two
   instruments share is evidence about both, so both are credited — but a unit
   row is one article and weighs one, however many instruments answer for it.
-  Without it a single boilerplate winner ("Se deroga.", a standard
-  transitorio) owned by hundreds of instruments would credit hundreds of cells
+  Without it a single boilerplate winner ("Se deroga.") owned by hundreds of instruments would credit hundreds of cells
   at once, and `A` would count article–instrument incidences rather than
   articles.
 - **A word-for-word match shared by several instruments is not counted.** A
@@ -892,32 +906,14 @@ Each of these was a decision in issue #242, not a default:
   `nearest.parquet` keeps the row, with `counted` false. An identical winner
   owned by exactly one other instrument (`m == 1`) still counts a whole 1, as
   does a non-identical winner with `m > 1` (a tie within the tolerance).
-- **A transitorio whose best match is a near-copy is not counted.** A unit
-  inside a transitorios section — any element of its `path` equal to
-  `TRANSITORIOS` or starting with `TRANSITORIOS ` (`is_transitorio_path`;
-  `md2akn.units._container_label` emits that label *only* for a section marked
-  `refersTo="#transitorios"`, so `units.parquet` needs no `refers_to` column) —
-  whose best similarity is `>= TRANSITORIO_SIMILARITY` (0.99,
-  `--transitorio-similarity`, forwarded into the Slurm job and recorded in
-  `matrix.json`) is the standard decree wording ("El presente Decreto entrará
-  en vigor al día siguiente…") repeated in slightly different words across
-  dozens of instruments, and says nothing about how two instruments relate.
-  It holds whatever `m` is, adds nothing to `A`, and is **not** re-credited to a
-  next-nearest text. It is applied *after* the search, so transitorios stay
-  candidates for every other row, and only to transitorios: an article outside
-  them at 0.995 still counts. A row both this and the rule above catch is
-  dropped once, under `identical_shared`. `nearest.parquet` marks each dropped
-  row `counted` false with a `drop_reason` (`identical_shared` or
-  `transitorio_near_identical`).
 - **The identity.** Every row of `A` sums to that instrument's **counted**
-  unit rows (searched rows minus the ones the two rules above drop), and
+  unit rows (searched rows minus the ones the rule above drops), and
   `A.sum()` equals the counted rows; `matrix.json` records this as
   `row_sums_equal_counted_rows`, next to `unit_rows`, `heading_rows_excluded`,
-  `searched_rows`, `identical_shared_dropped`,
-  `transitorio_near_identical_dropped`, `transitorio_similarity` and
-  `counted_rows`. An
+  `transitorio_rows_excluded`, `excluded_transitorios`, `searched_rows`,
+  `identical_shared_dropped` and `counted_rows`. An
   instrument's `p` (circle size) stays its total provisions.
-- **Per unit row, not per distinct text.** A boilerplate transitorio repeated
+- **Per unit row, not per distinct text.** A boilerplate article repeated
   `m` times inside a code is `m` articles and counts `m` times — the same
   choice #241's centroids made.
 - **Only columns owned *exclusively* by the source are masked.** A text `I`
@@ -941,11 +937,12 @@ itself**, imported and called with no projection, rather than a second copy:
 the two scripts must never disagree about which vector row a unit got.
 
 `nearest.parquet` keeps the evidence, one row per *searched* unit row (every
-row but the headings): `similarity`, `n_winners` (how many vector rows tied),
+row but the headings and the transitorios): `similarity`, `n_winners` (how many vector rows tied),
 `targets` (the instruments answering), `m` (how many of them), `weight`
 (`1/m`) and `counted` (whether the row entered `A`), next to `clave`,
-`unit_type` and `eId`. `n_winners` and `m` are different numbers: one winning
-row can have several owners, and two tied rows can share one.
+`unit_type` and `eId`, and a `drop_reason` (null or `identical_shared`).
+`n_winners` and `m` are different numbers: one winning row can have several
+owners, and two tied rows can share one.
 
 ### The Slurm plumbing
 
@@ -1028,8 +1025,9 @@ One object, keys in this order:
 - `meta` — `title`, `generated` (ISO UTC), `commit` (provenance for the file,
   never displayed by the page), `model`, `instruments` (1,303), `provisions`
   (`matrix.json`'s `unit_rows`, 161,989), `heading_rows_excluded` (28,568),
-  `identical_shared_dropped` (9,783), `transitorio_near_identical_dropped`
-  (3,497), `counted_rows` (120,141),
+  `transitorio_rows_excluded`, `identical_shared_dropped`, `counted_rows`
+  (in that order; the counts of the current files are in the newest
+  "Measured" section below),
   `distinct_texts` (`vector_rows`, 145,788), `collections` (`{"leyes": 315, "reglamentos": 863,
   "lineamientos": 125}`, counted from the table), `unique_names` (`true`),
   `duplicates_dropped` (`{"reglamentos": 219, "lineamientos": 1}`, from
@@ -1261,11 +1259,15 @@ article (it must never win), one carries an article's text (that text is
 owned by the article's instrument alone), one repeats a transitorio (it is
 not a source row). An identical text owned by exactly one other instrument
 still adds 1, and a non-identical tie over two instruments still gives ½ each.
-A second toy corpus (with a `path` column) pins the transitorio rule: one at
-0.995 with a single owner is dropped, one at 0.98 counts, an article at 0.995
-counts, a transitorio text stays a candidate for an article, a row both rules
-catch is counted once under `identical_shared`, and the path predicate is read
-on `TRANSITORIOS`, `TRANSITORIOS 18 DE MARZO DE 1980`, a nested path and a
+A second toy corpus (with a `path` column) pins the transitorio rule (issue
+#264): a transitorio has no row in `nearest.parquet` whatever its similarity
+(0.995, 0.98, cosine 1 with `m == 2`), an article at 0.995 still counts, a
+transitorio text is not a candidate (a row that used to point at one goes to its
+next-nearest text), a text a transitorio shares with an article is owned by the
+article's instrument alone, a text only transitorios own never wins, a heading
+inside a transitorios section is counted once as a heading, the near-copy
+rule's flag, parameter and keys are gone, `export_atlas_pairs.load` accepts the
+directory, and the path predicate is read on `TRANSITORIOS`, `TRANSITORIOS 18 DE MARZO DE 1980`, a nested path and a
 label that only contains the word.
 The identity (`A.sum(axis=1)` = each instrument's counted rows, `A.sum()` =
 `counted_rows`) is asserted on the toy matrix, as are `float32` and `weight ==
@@ -1407,3 +1409,104 @@ from 680.9 to 799.6 under the 4B.)
 
 The `PUBLICAR.md` this run wrote is `emb-run-atlas-4b/atlas-pairs/PUBLICAR.md`;
 nothing was uploaded.
+
+### Measured, both models, 2026-09-30 (issue #265)
+
+The rebuild under issue #264's rule — headings *and* transitorios are neither
+source rows nor candidates — over the two work directories issue #261 left
+(`emb-run-atlas/`, `emb-run-atlas-4b/`), **not** re-prepared: the units, the
+unique-name selection and the vectors did not change, only the matrix rule.
+The matrices are two jobs (42438 on `geoint1`, 42439 on `geoint2`, 62 threads,
+`--exclude=geoint0`), submitted together with `--force`:
+
+| phase | 0.6B (seconds) | 4B (seconds) |
+|---|---|---|
+| load (the join + `vectors.npy`) | 6.4 | 11.2 |
+| normalise | 0.3 | 0.8 |
+| sweep (112,077 searched rows against 145,788 texts, blocked) | 102.8 | 162.6 |
+| write | 0.2 | 0.2 |
+| **total** | **110.0** | **175.2** |
+| peak RSS | 1.98 GB | **3.19 GB** |
+
+| what | 0.6B | 4B |
+|---|---|---|
+| unit rows | 161,989 | 161,989 |
+| heading rows excluded | 28,568 | 28,568 |
+| **transitorio rows excluded** | **21,344** | **21,344** |
+| searched rows | 112,077 | 112,077 |
+| identical winners shared by several instruments, not counted | 1,715 | 1,715 |
+| **counted rows** | **110,362** | **110,362** |
+| vector rows | 145,788 (1,158 owned by more than one instrument, once headings and transitorios are set aside) | same |
+| instruments | 1,303 | 1,303 |
+| `A.sum()` | **110,362.0** | **110,362.0** |
+| every row sums to that instrument's counted rows | yes | yes |
+| non-zero cells | 32,539 (was 38,073) | 30,213 (was 35,316) |
+| searched rows with a tie | 864 (all two-way) | 842 (all two-way) |
+| largest `m` | 14 (was 157) | 14 |
+| mean similarity of the winner | 0.787 (0.783 over the counted rows) | 0.775 (0.771) |
+| searched rows whose winner is an identical text (cosine 1) | 3,802: 2,087 with `m == 1`, which count, and 1,715 shared, which do not | the same |
+
+The exclusion is independent of the model (the same 28,568 + 21,344 rows), and
+so are the 1,715 shared identical winners: an identical text is an exact tie
+under either. Counted rows fell by 9,779 for the 0.6B (120,141) and 9,665 for
+the 4B (120,027), and the two models now count the same 110,362. The `m`
+histogram over the searched rows:
+
+| `m` | 1 | 2 | 3–5 | 6–20 | 21–100 | 101+ |
+|---|---|---|---|---|---|---|
+| 0.6B unit rows | 108,533 | 1,692 | 1,611 | 241 | 0 | 0 |
+| 4B unit rows | 108,626 | 1,654 | 1,542 | 255 | 0 | 0 |
+
+97 % of searched rows have a single answer. The boilerplate that used to fill
+the last buckets (up to 157 owners) was the transitorios.
+
+The four fits took 17.6, 7.1, 7.3 and 8.3 s (0.6B, 40.3 s with the write) and
+16.3, 6.4, 7.4 and 8.5 s (4B, 38.6 s); the research pages are 1.2 MB each.
+`website/pages/atlas/atlas.json` is **421,007 bytes** and `atlas-qwen3-4b.json`
+**421,192**, both with `meta.transitorio_rows_excluded` 21,344 and no
+`transitorio_near_identical_dropped`; `--instruments-as` accepted the 4B export
+(the same 1,303 instruments in the same positions).
+
+Pair explanations, 0.6B / 4B:
+
+| | 0.6B | 4B |
+|---|---|---|
+| pairs | 6,288 | 6,265 |
+| provisions the pairs explain | 71,348 (weight 70,006.9) | 73,822 (weight 72,531.1) |
+| provisions per pair | median 4, p90 25, max 702 | median 4, p90 27, max 747 |
+| JSON | 159.0 MB | 169.0 MB |
+| tarball | 33.6 MB | 35.9 MB |
+| largest file by size | `pairs/1122-1059.json` (1.19 MB, 84 rows) | `pairs/1122-1059.json` (1.19 MB, 86 rows) |
+| export + install | 31 s + tarball 48 s | 49 s + tarball 65 s |
+
+How much the rule moved the picture, against the committed files of the
+previous build (`git show master:website/pages/atlas/atlas.json` and
+`atlas-qwen3-4b.json`; same instruments, same positions): the five closest
+instruments (`out`) share 4.37 of 5 on average for the 0.6B (4.41 for the 4B),
+one instrument shares none in either model, and the closest one is unchanged
+for **1,239** of the 1,303 (0.6B) and **1,240** (4B). The two models now agree
+on the closest instrument for 1,077 (they did on 1,069) and share 3.30 of 5 on
+average (3.4). The instruments' total incoming weight fell most where the
+transitorios had pointed: the Constitution's `in` went from 680.9 to 246.0
+(0.6B) and from 799.6 to 384.0 (4B).
+
+The Constitution (`cpeum`) and the Chapingo law (`luach`), `out` under each
+model — weights first, then the instrument:
+
+| | 0.6B | 4B |
+|---|---|---|
+| `cpeum` | 15.0 LEY General de Instituciones y Procedimientos Electorales · 9.0 LEY Orgánica del Poder Judicial de la Federación · 8.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 4.5 REGLAMENTO DEL SENADO DE LA REPUBLICA · 4.0 ESTATUTO de Gobierno del Distrito Federal | 16.0 LEY General de Instituciones y Procedimientos Electorales · 9.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 9.0 LEY Orgánica del Poder Judicial de la Federación · 6.0 ESTATUTO de Gobierno del Distrito Federal · 3.0 CÓDIGO Civil Federal |
+| `luach` | 10.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 7.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 LEY Orgánica del Instituto Politécnico Nacional | 9.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 6.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 LEY General de Educación · 1.0 LEY Monetaria de los Estados Unidos Mexicanos · 1.0 LEY Orgánica de la Universidad Nacional Autónoma de México |
+
+The Constitution has 1,328 provisions and 137 count (136 articles and the
+preamble); the pair behind its heaviest weight, `cpeum` → `lgipe`, lists 15
+provisions, each a whole 1, from article 96 at similarity 0.861 (to article
+494) down to article 125 at 0.606 (to article 11). The Chapingo law has 28
+provisions and 18 count, all answered by a single instrument each (`m == 1`):
+10 to the UAM, 7 to Antonio Narro, 1 to the IPN. The page's worked examples
+(`atlas.qmd`) were rewritten from these two files and the installed pair
+files; the Constitution's old example, 38 transitory articles matched to the
+statute's transitory articles, no longer exists under the rule.
+
+The hand-offs this run wrote are `emb-run-atlas/atlas-pairs/PUBLICAR.md` and
+`emb-run-atlas-4b/atlas-pairs/PUBLICAR.md`; nothing was uploaded.

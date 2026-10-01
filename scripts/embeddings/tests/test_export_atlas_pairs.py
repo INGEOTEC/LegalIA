@@ -30,16 +30,16 @@ import build_instrument_umap_html  # noqa: E402
 import export_atlas_pairs  # noqa: E402
 import instrument_matrix  # noqa: E402
 from test_instrument_matrix import (  # noqa: E402,F401
-    COLLECTIONS, cache, index_of, prepared, with_matrix)
+    COLLECTIONS, cache, index_of, prepared, transitorio_work, with_matrix)
 
 NOW = datetime(2026, 9, 23, 12, 0, tzinfo=timezone.utc)
 
 #: `(clave, eId)` -> `(num, path, piece)` for the toy units that get one.
 LABELS = {
     ("a", "art_1"): ("1", ["TÍTULO PRIMERO Disposiciones generales"], 0),
-    ("a", "art_2"): ("Primero", ["TRANSITORIOS 29 DE AGOSTO DE 2008"], 0),
+    ("a", "art_2"): ("Primero", ["TÍTULO SEGUNDO"], 0),
     ("b", "art_1"): ("1", ["CAPÍTULO I"], 0),
-    ("b", "art_2"): ("Único", ["TRANSITORIOS"], 0),
+    ("b", "art_2"): ("Único", ["CAPÍTULO II"], 0),
     ("b", "cap_1"): ("I", [], 0),
     ("c", "art_1"): ("27", [], 0),
     ("900", "art_1"): ("PRIMERO", [], 0),
@@ -210,7 +210,7 @@ def test_a_tie_lists_the_winner_in_each_instrument(exported):
 
 
 def test_a_heading_is_never_a_row_and_a_repeated_text_is_one_row_per_searched_unit(exported):
-    """`b` carries the shared transitorio in an article and in a heading: the
+    """`b` carries the shared text in an article and in a heading: the
     heading is not searched, so `b -> a` lists one row for it, one entry in
     `texts`, next to the `t2` tie."""
     index = exported["index"]
@@ -218,12 +218,13 @@ def test_a_heading_is_never_a_row_and_a_repeated_text_is_one_row_per_searched_un
     shared = [row for row in document["rows"]
               if document["texts"][str(row["text"])] == "transitorio compartido"]
     assert len(shared) == 1
-    assert shared[0]["label"] == "Transitory provisions · Único"
+    assert shared[0]["label"] == "Article Único"
     assert list(document["texts"].values()).count("transitorio compartido") == 1
-    # It points at `a`'s own transitorio, labelled by its block and dated.
-    assert [t["label"] for t in shared[0]["targets"]] \
-        == ["Transitory provisions, 29 DE AGOSTO DE 2008 · Primero"]
-    assert [t["path"] for t in shared[0]["targets"]] == ["TRANSITORIOS 29 DE AGOSTO DE 2008"]
+    # It points at `a`'s own copy, labelled by its number, with its breadcrumb.
+    # (A transitorio is not searched any more, so no pair file carries one; the
+    # "Transitory provisions" label is covered by the `unit_label` tests.)
+    assert [t["label"] for t in shared[0]["targets"]] == ["Article Primero"]
+    assert [t["path"] for t in shared[0]["targets"]] == ["TÍTULO SEGUNDO"]
     assert shared[0]["similarity"] == 1.0 and shared[0]["m"] == 1
     # 1 + 1/2, the cell `test_instrument_matrix.py` derives by hand.
     assert document["weight"] == 1.5
@@ -528,3 +529,19 @@ def test_install_into_an_arbitrary_directory_for_a_4b_export(exported_4b, cache,
     installed = sorted(p.name for p in target.iterdir())
     assert installed == sorted(p.name for p in (exported_4b["out_dir"] / "pairs").iterdir())
     assert installed and all(name.endswith(".json") for name in installed)
+
+
+# -- transitorios are not searched (issue #264) ------------------------------- #
+
+def test_load_narrows_the_join_like_the_matrix_when_transitorios_exist(transitorio_work):
+    """`load` asserts `nearest.parquet` lines up with the join narrowed by
+    `instrument_matrix.searched_mask`; over a corpus with transitorios (and a
+    heading inside one) that only holds if both use the same predicate."""
+    work_dir, cache = transitorio_work
+    instrument_matrix.build_matrix(work_dir, collections=("leyes",), cache_dir=cache,
+                                   log=quiet)
+    data = export_atlas_pairs.load(work_dir, cache_dir=cache, log=quiet)
+    assert len(data["nearest"]) == len(data["points"]) == 8
+    assert not data["nearest"]["unit_type"].eq("heading").any()
+    assert data["summary"]["transitorio_rows_excluded"] == 8
+    assert export_atlas_pairs.instrument_matrix.searched_mask is instrument_matrix.searched_mask
