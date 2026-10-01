@@ -727,6 +727,7 @@ The vectors are the whole-article ones (`split_articles: false`, `md2akn`
 | The website's data (issue #244) | `scripts/embeddings/export_atlas_data.py` → `website/pages/atlas/atlas.json` (committed) |
 | The pair explanations (issue #249) | `scripts/embeddings/export_atlas_pairs.py` → `emb-run-atlas/atlas-pairs/` (`pairs/`, `manifest.json`, `atlas-pairs.tar.gz`, `SHA256SUMS.txt`, `PUBLICAR.md`, `.done`), installed into `website/pages/atlas/pairs/` (gitignored); published by hand as the release `atlas-pairs`, body `.github/atlas-pairs.md` |
 | The 4B data set (issue #261) | the same chain over `emb-run-atlas-4b/` → `website/pages/atlas/atlas-qwen3-4b.json` (committed), pair files in `website/pages/atlas/pairs-qwen3-4b/` (gitignored), assets `atlas-pairs-qwen3-4b.tar.gz` / `manifest-qwen3-4b.json` / `SHA256SUMS-qwen3-4b.txt` |
+| The BM25 data set (issue #267) | `scripts/embeddings/prepare_bm25_input.py` → `emb-run-atlas-bm25/` (no vectors; `bm25-index/`, `tokens.parquet`), then the same chain → `website/pages/atlas/atlas-bm25.json` (committed), pair files in `website/pages/atlas/pairs-bm25/` (gitignored), assets `atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` / `SHA256SUMS-bm25.txt`; the scorer is `scripts/embeddings/scoring.py` |
 | Everything derived | `emb-run-atlas/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
 Nothing here is committed except `atlas.json`. Every command takes
@@ -803,6 +804,105 @@ uv run --group viz python scripts/embeddings/export_atlas_pairs.py --work-dir em
   `atlas-pairs.tar.gz`. `PUBLICAR.md` (in `emb-run-atlas-4b/atlas-pairs/`) is the
   only thing to run, by hand, before the pull request is merged: the workflow
   fetches both asset sets and fails when either is missing.
+
+### A lexical baseline: BM25 (issue #267)
+
+A third data set over **exactly the same comparison**: same unit rows, same
+exclusions (headings and transitorios), same masking of a source's exclusively
+owned texts, same ties, same `1/m` weighting, same identical-shared rule, same
+UMAP of the matrix rows, same exports, same `atlas-pairs` release. Only *how two
+texts are scored* changes: a classical bag-of-words ranking whose vocabulary and
+inverse document frequencies come from the compared texts themselves, nothing
+external. It is a baseline to read the embeddings against, not a claim about
+which is better (that evaluation is issue #217's).
+
+```bash
+uv run --group viz python scripts/embeddings/prepare_bm25_input.py \
+    --work-dir emb-run-atlas-bm25 --from emb-run-atlas
+uv run --group viz python scripts/embeddings/instrument_matrix.py --work-dir emb-run-atlas-bm25 --submit
+uv run --group viz python scripts/embeddings/instrument_matrix.py --work-dir emb-run-atlas-bm25 \
+    --wait --max-wait-minutes 9
+uv run --group viz python scripts/embeddings/build_instrument_umap_html.py \
+    --work-dir emb-run-atlas-bm25 --output output/umap-instruments-bm25.html
+uv run --group viz python scripts/embeddings/export_atlas_data.py --work-dir emb-run-atlas-bm25 \
+    --output website/pages/atlas/atlas-bm25.json --instruments-as website/pages/atlas/atlas.json
+uv run --group viz python scripts/embeddings/export_atlas_pairs.py --work-dir emb-run-atlas-bm25 \
+    --atlas website/pages/atlas/atlas-bm25.json --install website/pages/atlas/pairs-bm25
+```
+
+`bm25s` and `scipy` are in the root `viz` group (not `dev`), and the Slurm job
+runs this repository's own `.venv`, so `uv sync --group viz` must have run
+before `--submit`.
+
+* **A pluggable scorer.** `scoring.py` is the one place a text-to-text score is
+  computed. `scorer_for(work_dir)` reads `input.json`'s `method` (`dense` when
+  the key is absent, so `emb-run-atlas/` and `emb-run-atlas-4b/` keep working
+  untouched) and returns a `DenseScorer` (the cosine code that used to be inline,
+  moved) or a `Bm25Scorer`; both answer `scores(rows)` (a `float32` block, row
+  `r` the score of every text against source `rows[r]`) and
+  `scores_against(rows, candidates)` (the pair export's per-pair recomputation).
+  `instrument_matrix.py` and `export_atlas_pairs.py` call it and nothing else; the
+  dense output is **byte-for-byte** the one it was (checked on the real 0.6B
+  directory in a scratch copy: `matrix.npy`, every column of `nearest.parquet`
+  and all 6,288 pair files equal; the toy-corpus suite is unchanged).
+* **The tokeniser** is `bm25s.tokenize(lower=True, stopwords=None, stemmer=None)`
+  with its default Unicode-aware pattern `(?u)\b\w\w+\b`: lowercase words of
+  two or more characters and nothing else. Accents are kept, the Markdown `**`
+  markers fall out of the pattern, and a one-character word or a single digit is
+  not a token. No stopwords (the IDF makes `de`/`la`/`el` nearly weightless) and
+  no stemming (`PyStemmer` is deliberately not installed).
+* **The index is the candidate set.** One document per vector row carried by at
+  least one *searched* unit (`instrument_matrix.searched_mask`), so a heading or a
+  transitorio shapes neither the vocabulary nor the IDF: 110,185 documents, of
+  145,788 vector rows. `bm25s`' defaults — `method="lucene"`, `k1=1.5`, `b=0.75`
+  — are recorded in `input.json` and `matrix.json` so a later sweep changes them
+  knowingly. The **query side is binary over distinct terms** (Lucene's and
+  `bm25s`' own convention): a term repeated in a text counts once. A test pins
+  the sparse product against `bm25s.BM25.get_scores` row by row.
+* **`prepare_bm25_input.py`** copies `vector_ids.parquet`, `instruments.parquet`
+  and `unique-instruments.json` verbatim from `--from` (so a vector `row` and an
+  instrument `i` mean the same thing in all three work directories and
+  `--instruments-as` holds by construction), reads the texts through
+  `build_umap_html.load_frames`, indexes them, and writes `bm25-index/`
+  (`bm25s`' own files), `tokens.parquet` (each document's vector `row` and token
+  ids, so the query side is rebuilt without tokenising again) and `input.json`
+  with `method: "bm25"`, `model: "bm25"`, `model_slug: "bm25"`, `k: null`. It
+  writes **no `vectors.npy` and no `centroid_input.npy`**: nothing BM25 produces
+  is a vector per text. It refuses a source without `prepare.done` or without
+  `unique_names: true`.
+* **Ties are relative, identity is `text_sha1`.** BM25 scores are unbounded, so
+  an absolute 1e-6 means nothing on them: a tie is `score >= best * (1 - 1e-6)`
+  (`scoring.tie_mask`), and a word-for-word match is a winner carrying the
+  source's own `text_sha1` (in any collection) — what a cosine of 1 means for the
+  embeddings. Identical texts tie *exactly* under either scorer: the same token
+  multiset gives identical columns of the sparse score matrix, and the product
+  accumulates a row's terms in one order for every document. The dense path keeps
+  its absolute tolerance and its `>= 1 - tolerance` identity.
+* **A row can have no foreign match.** A lexical score of 0 against everything
+  would otherwise tie every column, so a source whose best foreign score is not
+  positive (no term, or every term lies only in texts the source owns alone) has
+  no winner: `nearest.parquet` records it with `m` 0, `weight` 0 and
+  `drop_reason == "no_match"`, it is not counted, and `matrix.json` reports
+  `no_match_rows`. The 112,077 searched rows had none; the dense path still
+  raises when a row finds no target.
+* **`similarity` keeps its name and holds the raw BM25 score** (one number per
+  row, whatever the scale; the pair files round it to four decimals). There is no
+  normalisation: a shorter document can out-score the query's own self-score, so
+  a self-score ratio does not stay in [0, 1].
+* **`meta` and the footer say which method.** `atlas-bm25.json`'s `meta.method`
+  is `"bm25"` and `meta.model` `"bm25"`, with the index parameters, tokeniser,
+  vocabulary size and documents indexed; `matrix.json` and the pair manifest
+  carry `method` and `tolerance_relative`; the research page's footer names the
+  method. `export_atlas_data.py` refuses a `matrix.json` computed by another
+  method than `input.json` records. The two committed embedding files predate
+  `meta.method` and are not regenerated: a reader treats a missing `method` as
+  `"dense"`.
+* **Asset names** follow the per-model rule with no special case:
+  `legalvec.model_slug("bm25")` is `"bm25"`, so the three added assets are
+  `atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` / `SHA256SUMS-bm25.txt`
+  (`website.yml` fetches and verifies them, and fails when they are missing).
+  `emb-run-atlas-bm25/atlas-pairs/PUBLICAR.md` is the only thing to run, by
+  hand, before the pull request is merged.
 
 ### Unique instruments (issue #259)
 
@@ -1295,6 +1395,23 @@ re-checked with numpy, the tie, the three-owner boilerplate and the repeated
 text of the toy corpus, `unit_label` on every type, the manifest, the sums,
 the reproducible tarball, a `PUBLICAR.md` that replaces the existing release
 first, the rerun/`--force`/`--install` rules and the refusals.
+The lexical baseline (issue #267) adds `tests/test_scoring.py` (the dense
+scorer against the normalised product by hand; the BM25 scorer against a
+three-document corpus whose Lucene scores are worked out in the file's comments,
+against `bm25s.BM25.get_scores` row by row, the exact tie of equal token
+multisets, a document with no term, `tie_mask` under both rules, `scorer_for`
+choosing dense when `input.json` has no `method`) and
+`tests/test_prepare_bm25_input.py` (the copied tables are byte-equal, no vectors,
+headings and transitorios are not documents, `input.json`, the refusals,
+`.done`/`--force`). `test_instrument_matrix.py` keeps its dense suite unchanged —
+the byte-for-byte guard of the refactor — and adds a BM25 run over the same toy
+corpus whose matrix is derived on paper (a six-way relative tie giving ⅕ to each
+of five instruments, an identical-shared drop decided by `text_sha1`, a row with
+no foreign match), `test_export_atlas_pairs.py` a BM25 export (`-bm25` assets
+only, `asset_names("bm25")`, the per-pair recomputation) and
+`test_export_atlas_data.py` the file's `meta.method` and `--instruments-as`.
+`test_atlas_page.py` pins the workflow step and the gitignore line for the BM25
+set and that `atlas-bm25.json` lists the same instruments as the default.
 
 ### Measured, 2026-09-29
 
@@ -1510,3 +1627,64 @@ statute's transitory articles, no longer exists under the rule.
 
 The hand-offs this run wrote are `emb-run-atlas/atlas-pairs/PUBLICAR.md` and
 `emb-run-atlas-4b/atlas-pairs/PUBLICAR.md`; nothing was uploaded.
+
+### Measured, BM25, 2026-10-01 (issue #267)
+
+`emb-run-atlas-bm25/`, prepared from `emb-run-atlas/` on the login node in
+**16.3 s** (tokenising 110,185 texts 7.2 s, building the index 5.4 s; 1.6 GB
+peak; `bm25-index/` 59 MB, `tokens.parquet` 21 MB): 63,694 terms, **0 documents
+without a term**. The matrix, one job (42489) on `geoint1` (62 threads,
+`--exclude=geoint0`), beside the 0.6B's (issue #265):
+
+| phase | 0.6B (seconds) | BM25 (seconds) |
+|---|---|---|
+| load (the join + the scorer) | 6.4 | 5.3 |
+| normalise | 0.3 | — |
+| sweep (112,077 searched rows against 145,788 texts, blocked) | 102.8 | 419.9 |
+| write | 0.2 | 0.2 |
+| **total** | **110.0** | **425.7** |
+| peak RSS | 1.98 GB | 2.4 GB |
+
+| what | 0.6B | BM25 |
+|---|---|---|
+| unit rows | 161,989 | 161,989 |
+| heading rows excluded | 28,568 | 28,568 |
+| transitorio rows excluded | 21,344 | 21,344 |
+| searched rows | 112,077 | 112,077 |
+| identical winners shared by several instruments, not counted | 1,715 | 2,077 |
+| rows with no foreign match (`no_match`) | — | 0 |
+| **counted rows** | **110,362** | **110,000** |
+| non-zero cells | 32,539 | 33,199 |
+| searched rows with a tie | 864 | 4,487 (2,790 two-way, 1,241 three to five, 456 six or more) |
+| largest `m` | 14 | 16 |
+| `m == 1` | 108,533 | 106,933 |
+| `row_sums_equal_counted_rows` | yes | yes |
+
+BM25 ties far more often than the embeddings (4,487 rows against 864): a short
+text made of a few common words has many equally scoring neighbours, where a
+dense vector almost never does. The four UMAP fits took 14.2, 5.4, 6.2 and 7.0 s
+(32.8 s in all); `output/umap-instruments-bm25.html` is 1.2 MB and its footer
+says `method bm25`. `website/pages/atlas/atlas-bm25.json` is **421,725 bytes**
+(`atlas.json`: 421,007), accepted by `--instruments-as` (the same 1,303
+instruments in the same positions).
+
+Pair explanations: **6,289 pairs** (the 0.6B has 6,288), 72,931 provisions,
+173.5 MB of JSON, largest file `pairs/1122-1059.json` (92 rows, 1.27 MB), the
+tarball `atlas-pairs-bm25.tar.gz` **36.3 MB**, 29 s; every file's `sum(1/m)`
+equals `matrix[i, j]` to 1e-3 (the export asserts it).
+
+How much the score changes the picture, over the 1,303 instruments: the closest
+instrument is the same as the 0.6B's for **906** and as the 4B's for 933; the
+five closest share 2.64 of 5 with the 0.6B on average, and 32 instruments share
+none. The Constitution's total incoming weight (`in`) is 346.0 (0.6B: 246.0).
+
+The Constitution (`cpeum`) and the Chapingo law (`luach`), `out` under each
+score — weights first, then the instrument:
+
+| | 0.6B | BM25 |
+|---|---|---|
+| `cpeum` | 15.0 LEY General de Instituciones y Procedimientos Electorales · 9.0 LEY Orgánica del Poder Judicial de la Federación · 8.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 4.5 REGLAMENTO DEL SENADO DE LA REPUBLICA · 4.0 ESTATUTO de Gobierno del Distrito Federal | 17.0 ESTATUTO de Gobierno del Distrito Federal · 12.0 LEY General de Instituciones y Procedimientos Electorales · 8.0 LEY Orgánica del Poder Judicial de la Federación · 6.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 4.0 LEY Federal de Responsabilidades de los Servidores Públicos |
+| `luach` | 10.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 7.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 LEY Orgánica del Instituto Politécnico Nacional | 12.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 2.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 2.0 REGLAMENTO INTERIOR DEL COLEGIO DE POSTGRADUADOS · 1.0 LEY Orgánica del Instituto Politécnico Nacional · 1.0 REGLAMENTO DE FUNCIONAMIENTO DE LOS CONCURSOS PROTOUCH INICIAL DE PRONOSTICOS PARA LA ASISTENCIA PUBLICA |
+
+The hand-off this run wrote is `emb-run-atlas-bm25/atlas-pairs/PUBLICAR.md`;
+nothing was uploaded.

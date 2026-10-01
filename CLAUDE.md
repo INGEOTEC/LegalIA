@@ -765,7 +765,7 @@ byte-identical to before this issue.
 - **`md2akn` went to 0.4.0** — a new public keyword (`split_articles`) that
   changes what a *future* vector means, with no change to default output.
 
-## The Atlas page (issues #244, #245, #259, #261, #262)
+## The Atlas page (issues #244, #245, #259, #261, #262, #267)
 
 The website's **Atlas** (`website/pages/atlas.qmd`, navbar entry *Atlas*
 right after *Federal Laws*, titled *An Atlas of Mexican Federal Law: Laws,
@@ -877,6 +877,24 @@ see the #242 bullet above), #245 draws it.
   unpacks both sets before publishing and fails when either is missing, so a
   human must add the 4B assets to the release (its `PUBLICAR.md`) before the
   pull request is merged. No page change here: the model control is issue #262.
+- **A lexical baseline, BM25 (issue #267).** A third data set over exactly the
+  same comparison — same unit rows, exclusions, masking, ties, `1/m` weighting
+  and exports — scored by BM25 instead of an embedding: `scripts/embeddings/scoring.py`
+  is now the one place a text-to-text score is computed (`scorer_for(work_dir)`
+  reads `input.json`'s `method`, `dense` when absent, so the two embedding work
+  directories reproduce byte for byte), `prepare_bm25_input.py` builds
+  `emb-run-atlas-bm25/` from `emb-run-atlas/` (row tables copied verbatim, no
+  vectors; `bm25s` 0.3.11 with `scipy`, in the root `viz` group; lowercase words
+  of two or more characters, no stopwords, no stemming; Lucene `k1` 1.5, `b`
+  0.75; the index is the searched candidate set; ties are relative and identity
+  is `text_sha1`), and the same chain gives the committed
+  `website/pages/atlas/atlas-bm25.json` (`meta.method` and `meta.model` are
+  `"bm25"`; `similarity` is the raw score) and the pair set installed into the
+  gitignored `website/pages/atlas/pairs-bm25/`, three **added** assets of the same
+  `atlas-pairs` release (`atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` /
+  `SHA256SUMS-bm25.txt`) that `website.yml` fetches and fails without. A human
+  adds them (`PUBLICAR.md`) before the pull request merges. No page change here:
+  the control is the follow-up.
 - **An embedding-model control (issue #262).** A second `.atlas-segmented`
   radiogroup, *Embedding model* (`0.6B` default, `4B`), beside *Neighbourhood
   size*; one `radiogroup()` helper in `atlas.js` builds both. The mount keeps
