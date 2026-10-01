@@ -173,40 +173,48 @@ def mount_attributes() -> dict:
     return found
 
 
-def test_the_mount_lists_both_models_and_the_first_is_the_default():
+def test_the_mount_lists_three_models_and_the_first_is_the_default():
     attributes = mount_attributes()
     models = json.loads(attributes["data-models"])
     assert models == [
         {"label": "0.6B", "src": "atlas/atlas.json", "pairs": "atlas/pairs/"},
-        {"label": "4B", "src": "atlas/atlas-qwen3-4b.json", "pairs": "atlas/pairs-qwen3-4b/"}]
+        {"label": "4B", "src": "atlas/atlas-qwen3-4b.json", "pairs": "atlas/pairs-qwen3-4b/"},
+        {"label": "BM25", "src": "atlas/atlas-bm25.json", "pairs": "atlas/pairs-bm25/"}]
     # The default model's paths stay where every existing mount and test looks.
     assert (models[0]["src"], models[0]["pairs"]) == (attributes["data-src"],
                                                       attributes["data-pairs"])
     # Relative, so the page works from `_site/pages/atlas.html` and a local server alike.
     assert not any(value.startswith(("/", "http")) for model in models
                    for value in (model["src"], model["pairs"]))
-    assert (PAGES / models[1]["src"]).exists()
+    assert all((PAGES / model["src"]).exists() for model in models[1:])
 
 
-def test_the_qmd_explains_the_embedding_model_and_names_both_models():
+def test_the_qmd_explains_the_similarity_and_names_all_three_options():
     text = QMD.read_text(encoding="utf-8")
-    assert text.index("## The neighbourhood size") < text.index("## The embedding model")
-    section = text[text.index("## The embedding model"):text.index("::: {.atlas-data}")]
+    assert "## The embedding model" not in text
+    assert text.index("## The neighbourhood size") < text.index("## The similarity")
+    section = text[text.index("## The similarity"):text.index("::: {.atlas-data}")]
     flat = " ".join(section.split())
-    assert "0.6B" in flat and "4B" in flat
-    assert "different model finds different closest texts" in flat
+    assert "0.6B" in flat and "4B" in flat and "BM25" in flat
+    assert "lexical baseline" in flat and "words they share" in flat
+    assert "the examples above describe" in flat           # the examples stay the 0.6B's
+    assert "scores and shows one decimal" in flat
+    assert "different method finds different closest texts" in flat
     assert "the layout is drawn again" in flat
     assert "selected instrument stays selected" in flat.replace("The selected", "selected")
     data_block = text[text.index("::: {.atlas-data}"):]
     assert "Qwen/Qwen3-Embedding-0.6B" in data_block and "Qwen/Qwen3-Embedding-4B" in data_block
+    assert "BM25" in data_block
     assert forbidden_in(section) == []
 
 
 def test_the_application_carries_the_model_control_and_its_messages():
     js = APP_JS.read_text(encoding="utf-8")
-    for needle in ("mount.dataset.models", "Embedding model", "atlas-model-label",
-                   "cannot be used", "could not be loaded", "function radiogroup"):
+    for needle in ("mount.dataset.models", 'text: "Similarity"', "atlas-model-label",
+                   "cannot be used", "could not be loaded", "function radiogroup",
+                   '"Score"', "meta.method"):
         assert needle in js, needle
+    assert "Embedding model" not in js
     assert js.count('role: "radiogroup"') == 1        # one helper builds both controls
     css = APP_CSS.read_text(encoding="utf-8")
     assert ".atlas-controls" in css and ".atlas-model" in css
@@ -530,6 +538,7 @@ def page(browser, server):
 NEIGHBOURHOOD = '[role="radiogroup"][aria-labelledby="atlas-neighbourhood-label"]'
 MODEL = '[role="radiogroup"][aria-labelledby="atlas-model-label"]'
 FOUR_B_FILE = "atlas-qwen3-4b.json"
+BM25_FILE = "atlas-bm25.json"
 
 
 def search(page, query):
@@ -752,6 +761,10 @@ def data_4b() -> dict:
     return json.loads(DATA_4B.read_text(encoding="utf-8"))
 
 
+def data_bm25() -> dict:
+    return json.loads(DATA_BM25.read_text(encoding="utf-8"))
+
+
 def open_counting(browser, server, width=1280, height=900, before=None):
     """`open_page`, with every request recorded from the first one. `before`
     may register routes on the page before it navigates."""
@@ -819,14 +832,15 @@ def test_the_model_control_starts_on_the_default_and_fetches_only_that_file(brow
     page, requests, _ = open_counting(browser, server)
     try:
         group = page.locator(MODEL)
-        assert page.locator("#atlas-model-label").inner_text().lower() == "embedding model"
-        assert group.locator('[role="radio"]').all_inner_texts() == ["0.6B", "4B"]
+        assert page.locator("#atlas-model-label").inner_text().lower() == "similarity"
+        assert group.locator('[role="radio"]').all_inner_texts() == ["0.6B", "4B", "BM25"]
         assert checked_model(page) == "0.6B"
         assert group.locator('[role="radio"]').evaluate_all(
-            "nodes => nodes.map(n => n.tabIndex)") == [0, -1]
+            "nodes => nodes.map(n => n.tabIndex)") == [0, -1, -1]
         assert page.locator(".atlas-neighbourhood, .atlas-model").count() == 2
         text = page.locator(".atlas").inner_text()
-        assert "The embedding model measured how similar two texts are." in text
+        assert "The method that measured how similar two texts are; the 0.6B is the default." in text
+        assert "embedding model" not in text.lower()
         assert "the neighbourhood size changes the layout only" in text
         assert [url.rsplit("/", 1)[1] for url in requests if url.endswith(".json")] \
             == ["atlas.json"]
@@ -887,7 +901,12 @@ def test_the_model_control_moves_with_the_arrow_keys(browser, server):
         wait_for_model(page, "4B")
         assert page.evaluate("() => document.activeElement.textContent") == "4B"
         assert page.locator(MODEL).locator('[role="radio"]').evaluate_all(
-            "nodes => nodes.map(n => n.tabIndex)") == [-1, 0]
+            "nodes => nodes.map(n => n.tabIndex)") == [-1, 0, -1]
+        page.keyboard.press("ArrowRight")
+        wait_for_model(page, "BM25")
+        assert page.evaluate("() => document.activeElement.textContent") == "BM25"
+        page.keyboard.press("ArrowLeft")
+        wait_for_model(page, "4B")
         page.keyboard.press("ArrowLeft")
         wait_for_model(page, "0.6B")
         assert page.evaluate("() => document.activeElement.textContent") == "0.6B"
@@ -1017,6 +1036,134 @@ def test_the_dialog_reads_the_pairs_of_the_model_on_screen(browser, server):
             page.wait_for_function("() => !document.querySelector('dialog.atlas-explain').open")
         # One file per model and pair: back on the 0.6B the pair is cached.
         assert len([url for url in requests if "/atlas/pairs" in url]) == 2
+    finally:
+        page.close()
+
+
+# -- BM25 on the same control (issue #268) ------------------------------------ #
+
+def test_bm25_replaces_the_relations_and_the_layout_and_keeps_the_selection(browser, server):
+    default, lexical = atlas_data(), data_bm25()
+    page, requests, errors = open_counting(browser, server)
+    try:
+        select_by_search(page, "chapingo", CHAPINGO)
+        page.wait_for_timeout(900)
+        assert out_list(page) == targets_of(default, "luach")
+        before = circle_xs(page)
+        page.locator(NEIGHBOURHOOD).locator('[data-value="8"]').click()
+        page.wait_for_timeout(900)
+
+        choose_model(page, "BM25")
+        assert checked_model(page) == "BM25"
+        assert len([url for url in requests if url.endswith(BM25_FILE)]) == 1
+        assert not [url for url in requests if url.endswith(FOUR_B_FILE)]
+        assert panel_title(page) == CHAPINGO                       # the selection stays
+        assert page.locator("circle.atlas-ring").count() == 1
+        assert out_list(page) == targets_of(lexical, "luach")
+        assert inc_list(page) == [(f"{w:.1f}", lexical["instruments"][j]["n"])
+                                  for j, w in instrument(lexical, "luach")["inc"]]
+        # The neighbourhood size stays at 8, now drawn from the BM25 layout.
+        assert page.locator(NEIGHBOURHOOD).locator('[aria-checked="true"]').inner_text() == "8"
+        assert layout_fit(page, lexical, 8) > 0.999999
+        assert layout_fit(page, default, 8) < 0.999999
+
+        choose_model(page, "0.6B")
+        assert out_list(page) == targets_of(default, "luach")
+        assert layout_fit(page, default, 8) > 0.999999
+        choose_model(page, "BM25")
+        assert out_list(page) == targets_of(lexical, "luach")
+        assert len([url for url in requests if url.endswith(BM25_FILE)]) == 1
+        assert errors == []
+    finally:
+        page.close()
+
+
+def serve_bm25(page, edit=None, status=200):
+    """Answer the BM25 file from disk (optionally edited), or with `status`."""
+    def handler(route):
+        if status != 200:
+            route.fulfill(status=status, body="broken")
+            return
+        data = data_bm25()
+        if edit:
+            edit(data)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data))
+    page.route(f"**/{BM25_FILE}", handler)
+
+
+@pytest.mark.parametrize("edit,reason", [(swap_two_keys, "lists different instruments"),
+                                         (drop_the_layout, "has no such layout")])
+def test_a_bm25_file_that_does_not_fit_is_refused_and_the_page_stays_put(
+        browser, server, edit, reason):
+    default = atlas_data()
+    page, requests, errors = open_counting(browser, server, before=lambda p: serve_bm25(p, edit))
+    try:
+        select_by_search(page, "chapingo", CHAPINGO)
+        page.wait_for_timeout(900)
+        before = circle_xs(page)
+        choose_model(page, "BM25", checked=False)
+        status = page.locator(".atlas-model-status")
+        status.wait_for(state="visible")
+        page.wait_for_function(
+            "() => document.querySelector('.atlas-model-status').textContent !== 'Loading the BM25 map\u2026'")
+        assert status.inner_text() == f"The BM25 map cannot be used: it {reason}."
+        assert checked_model(page) == "0.6B"
+        assert out_list(page) == targets_of(default, "luach")
+        page.wait_for_timeout(900)
+        assert circle_xs(page) == before
+        assert errors == []
+    finally:
+        page.close()
+
+
+def test_a_failed_bm25_fetch_says_so_and_can_be_retried(browser, server):
+    lexical = data_bm25()
+    page, requests, errors = open_counting(browser, server,
+                                           before=lambda p: serve_bm25(p, status=500))
+    try:
+        choose_model(page, "BM25", checked=False)
+        page.wait_for_function(
+            "() => /could not be loaded/.test(document.querySelector('.atlas-model-status').textContent)")
+        assert page.locator(".atlas-model-status").inner_text() \
+            == "The BM25 map could not be loaded. Choose it again to retry."
+        assert checked_model(page) == "0.6B"
+        page.unroute(f"**/{BM25_FILE}")
+        choose_model(page, "BM25")
+        assert checked_model(page) == "BM25"
+        select_by_search(page, "chapingo", CHAPINGO)
+        assert out_list(page) == targets_of(lexical, "luach")
+        assert errors == []
+    finally:
+        page.close()
+
+
+def test_the_dialog_reads_the_bm25_pairs_and_labels_a_score(browser, server):
+    if not (PAIRS.is_dir() and PAIRS_BM25.is_dir()):
+        pytest.skip(f"{PAIRS} and {PAIRS_BM25} are not both installed: run "
+                    "export_atlas_pairs.py --install for each work directory")
+    default, lexical = atlas_data(), data_bm25()
+    page, requests, _ = open_counting(browser, server)
+    try:
+        select_by_search(page, "chapingo", CHAPINGO)
+        i = default["instruments"].index(instrument(default, "luach"))
+        for label, data, directory, header, decimals in (
+                ("0.6B", default, "/atlas/pairs/", "Similarity", 3),
+                ("BM25", lexical, "/atlas/pairs-bm25/", "Score", 1),
+                ("0.6B", default, None, "Similarity", 3)):
+            choose_model(page, label)
+            j, weight = instrument(data, "luach")["out"][0]
+            page.locator(".atlas-out .atlas-why").first.click()
+            page.wait_for_selector(".atlas-explain-table tbody tr")
+            assert page.locator("th.atlas-explain-similarity").text_content() == header
+            cells = page.locator("td.atlas-explain-similarity")
+            assert cells.first.get_attribute("data-column") == header
+            first = cells.first.inner_text()
+            assert len(first.split(".")[1]) == decimals, (label, first)
+            assert weights_in_table(page) == pytest.approx(weight, abs=0.05)
+            if directory is not None:
+                assert requests[-1].endswith(f"{directory}{i}-{j}.json"), (label, requests[-1])
+            page.keyboard.press("Escape")
+            page.wait_for_function("() => !document.querySelector('dialog.atlas-explain').open")
     finally:
         page.close()
 
@@ -1461,13 +1608,16 @@ def test_toy_dialog_fills_a_phone_and_stacks_its_rows(browser, toy_site):
         toy.close()
 
 
-# -- a second model over the toy site (issue #262) ---------------------------- #
+# -- more data sets over the toy site (issues #262, #268) ---------------------- #
 
 @pytest.fixture
 def toy_two_models(toy_site):
     """The toy site with a second model: the same instruments (`k` at every
     position), a different relation for `b` and a different layout, and its
-    own pair directory whose `b -> a` file says which model it belongs to."""
+    own pair directory whose `b -> a` file says which model it belongs to.
+    A third set (issue #268) is a BM25 one: `meta.method` says so, its pair
+    directory `pairs-bm25/` holds raw scores, and its relation for `b` differs
+    again."""
     site = toy_site["site"]
     index = toy_site["index"]
     second = json.loads((site / "atlas" / "atlas.json").read_text(encoding="utf-8"))
@@ -1483,7 +1633,24 @@ def toy_two_models(toy_site):
     pair = json.loads(path.read_text(encoding="utf-8"))
     pair["texts"][str(pair["rows"][0]["text"])] = "texto del segundo modelo"
     path.write_text(json.dumps(pair, ensure_ascii=False), encoding="utf-8")
-    return {**toy_site, "second": second, "second_file": site / "atlas" / FOUR_B_FILE}
+
+    third = json.loads((site / "atlas" / "atlas.json").read_text(encoding="utf-8"))
+    third["meta"]["model"] = "bm25"
+    third["meta"]["method"] = "bm25"
+    b = third["instruments"][index["b"]]
+    b["out"] = [[j, weight + 2.0] for j, weight in b["out"]]
+    for layout, points in third["projections"].items():
+        third["projections"][layout] = [[x, 1 - y] for x, y in points]
+    (site / "atlas" / BM25_FILE).write_text(json.dumps(third), encoding="utf-8")
+    shutil.copytree(site / "atlas" / "pairs", site / "atlas" / "pairs-bm25")
+    path = site / "atlas" / "pairs-bm25" / f"{index['b']}-{index['a']}.json"
+    pair = json.loads(path.read_text(encoding="utf-8"))
+    pair["texts"][str(pair["rows"][0]["text"])] = "texto del baseline lexico"
+    for n, row in enumerate(pair["rows"]):
+        row["similarity"] = 12.3456 + n          # a raw BM25 score, not a cosine
+    path.write_text(json.dumps(pair, ensure_ascii=False), encoding="utf-8")
+    return {**toy_site, "second": second, "second_file": site / "atlas" / FOUR_B_FILE,
+            "third": third, "third_file": site / "atlas" / BM25_FILE}
 
 
 def toy_out(page):
@@ -1531,6 +1698,63 @@ def test_toy_dialog_reads_the_pair_directory_of_the_model_on_screen(browser, toy
         toy.open("a")
         assert "texto del segundo modelo" not in page.locator(".atlas-explain-table").inner_text()
         assert len(toy.pair_requests()) == 1 and len(toy.second_pair_requests()) == 1
+        assert toy.errors == []
+    finally:
+        toy.close()
+
+
+def test_toy_the_dialog_header_and_decimals_follow_the_set_on_screen(browser, toy_two_models):
+    """`meta.method` drives the column, not the option's label: a cosine reads
+    "Similarity" with three decimals, a BM25 score "Score" with one."""
+    toy = Toy(browser, toy_two_models, models=True)
+    try:
+        page = toy.page
+        header = lambda: page.locator("th.atlas-explain-similarity").text_content()
+        column = lambda: page.locator("td.atlas-explain-similarity").first.get_attribute(
+            "data-column")
+        toy.select("b", "Ley B")
+        for label, expected, first_cell in (("0.6B", "Similarity", "1.000"),
+                                            ("BM25", "Score", "12.3"),
+                                            ("4B", "Similarity", "1.000"),
+                                            ("BM25", "Score", "12.3"),
+                                            ("0.6B", "Similarity", "1.000")):
+            choose_model(page, label)
+            toy.open("a")
+            assert header() == expected, label
+            assert column() == expected
+            cells = page.locator("td.atlas-explain-similarity").all_inner_texts()
+            assert cells[0] == first_cell, (label, cells)
+            if expected == "Score":
+                assert cells == ["12.3", "13.3"]
+                assert "texto del baseline lexico" in page.locator(".atlas-explain-table").inner_text()
+            page.keyboard.press("Escape")
+            page.wait_for_function("() => !document.querySelector('dialog.atlas-explain').open")
+        assert [url.rsplit("/", 1)[1] for url in toy.requests if url.endswith(BM25_FILE)] \
+            == [BM25_FILE]
+        assert len([url for url in toy.requests if "/atlas/pairs-bm25/" in url]) == 1
+        assert toy.errors == []
+    finally:
+        toy.close()
+
+
+def test_toy_a_bm25_file_with_another_instrument_table_is_refused(browser, toy_two_models):
+    third = toy_two_models["third"]
+    third["instruments"][0]["k"] = "zzz"
+    toy_two_models["third_file"].write_text(json.dumps(third), encoding="utf-8")
+    toy = Toy(browser, toy_two_models, models=True)
+    try:
+        page = toy.page
+        toy.select("b", "Ley B")
+        before = toy_out(page)
+        choose_model(page, "BM25", checked=False)
+        page.wait_for_function(
+            "() => /cannot be used/.test(document.querySelector('.atlas-model-status').textContent)")
+        assert page.locator(".atlas-model-status").inner_text() \
+            == "The BM25 map cannot be used: it lists different instruments."
+        assert checked_model(page) == "0.6B"
+        assert toy_out(page) == before
+        toy.open("a")
+        assert page.locator("th.atlas-explain-similarity").text_content() == "Similarity"
         assert toy.errors == []
     finally:
         toy.close()
@@ -1668,7 +1892,8 @@ def test_rendered_dialog_heading_has_no_quarto_rule(rendered_page):
 def test_rendered_model_control_switches_after_quartos_css(rendered_page):
     default, other = atlas_data(), data_4b()
     page = rendered_page
-    assert page.locator(MODEL).locator('[role="radio"]').all_inner_texts() == ["0.6B", "4B"]
+    assert page.locator(MODEL).locator('[role="radio"]').all_inner_texts() == ["0.6B", "4B", "BM25"]
+    assert page.locator("#atlas-model-label").inner_text().lower() == "similarity"
     assert page.eval_on_selector(
         "#atlas-model-label", "n => getComputedStyle(n).textTransform") == "uppercase"
     generated = page.locator("[data-atlas-generated]").inner_text()
@@ -1680,6 +1905,10 @@ def test_rendered_model_control_switches_after_quartos_css(rendered_page):
     # when the two files were generated on different days, and only then.
     days = {data["meta"]["generated"][:10] for data in (default, other)}
     assert (page.locator("[data-atlas-generated]").inner_text() != generated) == (len(days) == 2)
+    assert panel_title(page) == CHAPINGO
+    assert forbidden_in(page.locator("#atlas").inner_text()) == []
+    choose_model(page, "BM25")
+    assert out_list(page) == targets_of(data_bm25(), "luach")
     assert panel_title(page) == CHAPINGO
     assert forbidden_in(page.locator("#atlas").inner_text()) == []
     choose_model(page, "0.6B")

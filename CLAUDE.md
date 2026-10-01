@@ -765,7 +765,7 @@ byte-identical to before this issue.
 - **`md2akn` went to 0.4.0** — a new public keyword (`split_articles`) that
   changes what a *future* vector means, with no change to default output.
 
-## The Atlas page (issues #244, #245, #259, #261, #262, #267)
+## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 
 The website's **Atlas** (`website/pages/atlas.qmd`, navbar entry *Atlas*
 right after *Federal Laws*, titled *An Atlas of Mexican Federal Law: Laws,
@@ -909,6 +909,18 @@ see the #242 bullet above), #245 draws it.
   at the model's directory (explanations cached per model). The worked examples
   in the qmd describe the 0.6B; there is no URL parameter, no persisted choice
   and no comparison view.
+- **BM25 on the same control (issue #268).** The *Embedding model* control is
+  retitled **Similarity** and gains a third option, `BM25`
+  (`data-models` lists `0.6B`, `4B`, `BM25` in that order; the 0.6B stays the
+  default and `data-src`/`data-pairs` stay its paths), with a caption true of
+  all three. The explanation dialog's column reads **Score** with one decimal
+  when the data set on screen says `meta.method` is `"bm25"` (never the label —
+  the script still hard-codes no path and no label semantics) and
+  **Similarity** with three decimals otherwise. `atlas.qmd` gained a
+  paragraph on what BM25 is (a lexical baseline, not a model); the worked
+  examples still describe the 0.6B and were not re-measured. No data, script,
+  release or workflow changed: #267 did those, and the `atlas-pairs` release
+  must hold the three `-bm25` assets before this reaches `master`.
 - **Rebuilt without transitorios (issues #264, #265).** #264 made every
   `TRANSITORIOS…` unit, like a heading, neither a source nor a candidate of the
   matrix (see the #242 bullet above); #265 recomputed both work directories

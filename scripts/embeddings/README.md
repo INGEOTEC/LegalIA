@@ -505,11 +505,12 @@ is reloaded with Altair, and `tests/test_umap_scripts.py` asserts the `pick`,
 `pick_instrument`, `collections` and `proj` params, the neighbour filter, the
 legend binding and the canvas renderer are all in it.
 
-**The embedding model control (issue #262).** Beside *Neighbourhood size*, the
-toolbar has a second `.atlas-segmented` radiogroup, *Embedding model*, with
-`0.6B` (the default) and `4B`, and a caption saying the model is what measured
-how similar two texts are, so both the relations the panel lists and the layout
-change (the neighbourhood size changes the layout only). Both controls are
+**The similarity control (issues #262, #268).** Beside *Neighbourhood size*, the
+toolbar has a second `.atlas-segmented` radiogroup, *Similarity* (titled
+*Embedding model* until issue #268, when BM25 joined it), with `0.6B` (the
+default), `4B` and `BM25`, and a caption saying the method is what measured how
+similar two texts are (the 0.6B is the default), so both the relations the panel
+lists and the layout change (the neighbourhood size changes the layout only). Both controls are
 built by one `radiogroup()` helper in `atlas.js` — same markup, `aria-checked`,
 roving `tabindex` and arrow keys — and sit side by side in `.atlas-controls`
 at desktop width and stacked at 390 px.
@@ -517,7 +518,8 @@ at desktop width and stacked at 390 px.
 * **The mount names the models.** `data-src`/`data-pairs` stay the default
   model's paths; one more attribute, `data-models`, is a JSON list of
   `{label, src, pairs}` (`0.6B` → `atlas/atlas.json` + `atlas/pairs/`, `4B` →
-  `atlas/atlas-qwen3-4b.json` + `atlas/pairs-qwen3-4b/`), relative like the
+  `atlas/atlas-qwen3-4b.json` + `atlas/pairs-qwen3-4b/`, `BM25` →
+  `atlas/atlas-bm25.json` + `atlas/pairs-bm25/`), relative like the
   rest, whose first entry must agree with `data-src`/`data-pairs` (a test checks
   it). A mount without it — or with a malformed one — builds the page with no
   model control at all, which is how the toy site's older tests run.
@@ -539,6 +541,15 @@ at desktop width and stacked at 390 px.
   `<model>:<i>-<j>`, and a dialog request still on its way when the model
   changes is dropped the way a closed dialog's is. No URL parameter and no
   `localStorage`: neither control persists.
+* **A score is not a similarity (issue #268).** The explanation dialog's column
+  reads **Score** with one decimal when the data set on screen says
+  `meta.method` is `"bm25"` — a raw BM25 score is unbounded, three decimals on a
+  number in the hundreds is noise — and **Similarity** with three decimals
+  otherwise (a file with no `method`, like the two embedding files committed
+  before #267, is an embedding). It is the file's `meta.method` that decides,
+  never the option's label, and `data-column` follows for the phone layout; the
+  rest of a switch (fetch once, the refusal rules, the status messages naming
+  the option, the dialog directory) is #262's, unchanged with three entries.
 * **Tests.** The harness tests count requests with Playwright's
   `page.on("request")` (only `atlas.json` on load, the 4B file once however many
   switches), read Chapingo's list for each model from the two JSON files, follow
