@@ -44,6 +44,11 @@ loudly when the matrix is missing, and is a no-op once `umap.parquet` exists
 * **Short keys** (`c`, `k`, `n`, `p`, `in`, `out`, `inc`) because there are
   over a thousand of each; `meta` spells everything out.
 
+* **`meta.method` (issue #267).** `"dense"` for the two embedding models, `"bm25"`
+  for the lexical baseline, whose `model` is `"bm25"` and whose `meta` also
+  carries the index parameters, the tokeniser, the vocabulary size and the
+  documents indexed; the weights in `out`/`inc` are the same `1/m` sums either way.
+
 * **A second model's file (issue #261).** `--instruments-as` refuses, with a
   `SystemExit` naming the first differing position, an export whose `c`/`k`/`n`/`p`
   differ from an existing `atlas.json`'s, because the page swaps the two files
@@ -65,6 +70,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_umap_html as html  # noqa: E402
 import instrument_matrix  # noqa: E402
+import scoring  # noqa: E402
 from build_instrument_umap_html import (  # noqa: E402
     DEFAULT_N_NEIGHBORS, DEFAULT_RADIO_VALUE, TOP_TARGETS, project, strongest_targets)
 from package_vectors import TAGS as VECTOR_TAGS  # noqa: E402
@@ -110,6 +116,12 @@ def model_name(work_dir: Path) -> str:
     if record.exists():
         return json.loads(record.read_text(encoding="utf-8")).get("model", DEFAULT_MODEL)
     return DEFAULT_MODEL
+
+
+def input_record(work_dir: Path) -> dict:
+    """`input.json` as the preparing script wrote it, `{}` when absent."""
+    record = Path(work_dir) / "input.json"
+    return json.loads(record.read_text(encoding="utf-8")) if record.exists() else {}
 
 
 def duplicates_dropped(work_dir: Path) -> dict:
@@ -252,6 +264,10 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
         projections[str(k)] = [[round(float(x), decimals), round(float(y), decimals)]
                                for x, y in zip(xs, ys)]
 
+    if summary.get("method", scoring.DENSE) != scoring.method_of(work_dir):
+        raise SystemExit(f"matrix.json was computed with method "
+                         f"{summary.get('method', scoring.DENSE)!r}, input.json says "
+                         f"{scoring.method_of(work_dir)!r}: rerun instrument_matrix.py --force")
     collections = collection_counts(table["coleccion"])
     fit = fits["fits"][0]
     meta = {
@@ -259,6 +275,7 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
         "generated": (now or datetime.now(timezone.utc)).isoformat(timespec="seconds"),
         "commit": html.repository_commit(),
         "model": model_name(work_dir),
+        "method": summary.get("method", scoring.DENSE),
         "instruments": n,
         "provisions": provisions,
         "heading_rows_excluded": int(summary["heading_rows_excluded"]),
@@ -278,6 +295,14 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
         "top": top,
         "sources": release_names(collections),
     }
+    if meta["method"] == scoring.BM25:
+        # What the lexical baseline was built with (issue #267), from the
+        # preparing script's own record.
+        record = input_record(work_dir)
+        meta["bm25"] = record["bm25"]
+        meta["tokeniser"] = record["tokeniser"]
+        meta["vocabulary"] = record["vocabulary"]
+        meta["documents"] = record["documents"]
     return {"meta": meta, "instruments": instruments, "projections": projections}
 
 

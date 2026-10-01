@@ -36,7 +36,10 @@ count, a radio for `n_neighbors`, and a click that rings the picked
 instrument in black and its five strongest targets in red — the same five
 the tooltip names, one row each — the smallest interaction that makes a
 *relation* visible. It carries the same provenance footer #241's page does,
-through the same helpers.
+through the same helpers, plus the text-to-text method behind the matrix
+(`method dense` or `method bm25`, issue #267) -- the page reads only
+`matrix.npy`, so `--output output/umap-instruments-bm25.html` over the BM25
+work directory is the whole of what the lexical baseline needs here.
 
 The session that writes this file cannot click: what is verified here is the
 spec (`chart.to_dict()` against the Vega-Lite schema, plus
@@ -56,6 +59,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_umap_html as html  # noqa: E402
 import instrument_matrix  # noqa: E402
+import scoring  # noqa: E402
 from project_umap import apply_scale, scale_to_unit  # noqa: E402
 
 #: The four neighbourhood sizes issue #242 asks for, smallest first (the
@@ -379,6 +383,9 @@ def provenance_record(work_dir: Path, n_neighbors, *, argv=None, now=None) -> di
         "argv": " ".join(argv),
         "n_neighbors": list(n_neighbors),
         "projections": [f"n_neighbors={k}" for k in n_neighbors],
+        # The text-to-text score behind the matrix (issue #267): the footer
+        # names it, so a page built from BM25 is never mistaken for a dense one.
+        "method": scoring.method_of(work_dir),
     }
 
 

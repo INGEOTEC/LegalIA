@@ -260,16 +260,19 @@ most are duplicates of an adjacent, same-page note:
 ``dofjson.titulos`` — the notas-archivo release and the titles stream
 ------------------------------------------------------------------------------
 
-The ``notas-archivo`` release (117 assets as of this writing, ~59 MB total —
+The ``notas-archivo`` release (118 assets as of this writing, ~59 MB total —
 small enough to fetch in full) publishes one ``.tgz`` per year (and, for the
 current year, one per month so far), each holding every day's raw notes
-index. :py:func:`~dofjson.download_dof_assets` downloads the whole release
-into an on-disk cache — the same cache directory :py:func:`~dofjson.get_nota`
-and :py:func:`~dofjson.get_notas` read from first, before ever asking SIDOF:
+index. The count moves every month — one asset is added for each month of
+the current year, and they fold into a single yearly one in January — so the
+example below checks the order of magnitude rather than a literal.
+:py:func:`~dofjson.download_dof_assets` downloads the whole release into an
+on-disk cache — the same cache directory :py:func:`~dofjson.get_nota` and
+:py:func:`~dofjson.get_notas` read from first, before ever asking SIDOF:
 
 >>> assets = dofjson.download_dof_assets(log=lambda *a: None)
->>> len(assets)
-117
+>>> len(assets) > 100
+True
 >>> assets[0].name
 'notas-1917.tgz'
 
