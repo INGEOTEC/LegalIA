@@ -953,6 +953,14 @@ see the #242 bullet above), #245 draws it.
   higher. Outputs stay in `emb-run-atlas/gold-links/` (gitignored); method and
   tables are in `scripts/embeddings/README.md` ("Comparing the three data sets
   against strong links").
+- **The same question one unit row at a time, issue #273.** Signal C of
+  `gold_links.py` (`citations.parquet`: "artículo N de la Ley X") and
+  `scripts/embeddings/evaluate_citations.py` re-score each work directory with its
+  own scorer under the matrix's own mask and rank the cited law among the 1,302
+  foreign instruments, over 2,003 single-law citing rows. Result: **the 4B is
+  better** (recall@5 0.273 against 0.253 and 0.241, median rank 21 against 29),
+  while the 0.6B and BM25 tie; see "Row level: explicit citations" in the same
+  README. Law level only, local, gitignored outputs.
 
 ## Tables in SCJN snapshots (issue #253, done)
 

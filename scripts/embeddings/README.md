@@ -740,6 +740,7 @@ The vectors are the whole-article ones (`split_articles: false`, `md2akn`
 | The 4B data set (issue #261) | the same chain over `emb-run-atlas-4b/` → `website/pages/atlas/atlas-qwen3-4b.json` (committed), pair files in `website/pages/atlas/pairs-qwen3-4b/` (gitignored), assets `atlas-pairs-qwen3-4b.tar.gz` / `manifest-qwen3-4b.json` / `SHA256SUMS-qwen3-4b.txt` |
 | The BM25 data set (issue #267) | `scripts/embeddings/prepare_bm25_input.py` → `emb-run-atlas-bm25/` (no vectors; `bm25-index/`, `tokens.parquet`), then the same chain → `website/pages/atlas/atlas-bm25.json` (committed), pair files in `website/pages/atlas/pairs-bm25/` (gitignored), assets `atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` / `SHA256SUMS-bm25.txt`; the scorer is `scripts/embeddings/scoring.py` |
 | The strong-link gold and the three-way evaluation (issue #272) | `scripts/embeddings/gold_links.py` → `emb-run-atlas/gold-links/` (`gold.json`, `gold.md`), then `scripts/embeddings/evaluate_links.py` → `emb-run-atlas/gold-links/` (`evaluation.json`, `evaluation.md`); gitignored, nothing uploaded |
+| The row-level evaluation against citations (issue #273) | `scripts/embeddings/gold_links.py` also writes `emb-run-atlas/gold-links/citations.parquet`, then `scripts/embeddings/evaluate_citations.py` → `emb-run-atlas/gold-links/` (`evaluation-rows.json`, `evaluation-rows.md`); gitignored, nothing uploaded |
 | Everything derived | `emb-run-atlas/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
 Nothing here is committed except `atlas.json`. Every command takes
@@ -1951,3 +1952,119 @@ is also the model BM25 was tuned toward, and is the one with the *fewest* gold
 laws first: agreement with it was never evidence of quality. A lexical baseline
 with no learned model is as good as either embedding at finding the law a
 reglamento develops, which is what the page's BM25 option already suggested.
+
+### Row level: explicit citations (issue #273)
+
+#272 asks, per instrument, whether the law a reglamento develops is its closest
+instrument. A unit row that cites "artículo 123 de la Ley Federal del Trabajo"
+names the law it is about, so the same three data sets can be asked where that law
+ranks among the 1,302 foreign instruments *for that one row*. `nearest.parquet`
+keeps only a row's winner, which is why the answer needs the row's whole score
+vector, and therefore a re-scoring pass.
+
+**Signal C** (`gold_links.py`, `citations.parquet`). Over every unit row of a
+reglamento or lineamiento that is neither a heading nor in a transitorios section,
+on folded text (an ordinal's full stop, `1o.`, removed): `articulo(s) N[ bis|ter|...]`,
+at most 80 characters with no `.` or `;` between, then `de la`, `del` or `de el` and
+a law name (the same longest-first alternation as signal A). A gap that says
+`reglamento` is a citation of the regulation behind the law, not of the law
+("artículo 3 del Reglamento de la Ley Federal del Trabajo"), and is skipped;
+a name two laws share resolves to nothing. One row of the table per `(source i,
+text_sha1, cited law)`, with the first article and matched span as evidence,
+`hits` and `single_law` (the text cites exactly one distinct law). Law level
+only: the cited *article* is not resolved (renumbering, `Bis` articles and ranges
+are a project of their own).
+
+**Scoring** (`evaluate_citations.py` -- a script of its own rather than
+`evaluate_links.py --level row`, which would have had to carry a scorer, a mask and
+a row join the instrument level never needs; it imports that script's bootstrap,
+McNemar test and instrument check). For each model's work directory: its own
+scorer (`scoring.scorer_for`: the exact cosine or BM25), the unit-row join, and
+exactly the mask the matrix used -- the citing instrument's *exclusively owned*
+texts and the texts no searched row owns removed (`instrument_matrix.owners_of_rows`
+and `own_rows_of`, imported). Each instrument's score is the best over the vector
+rows it owns, and the cited law's **competition rank** is 1 + the foreign
+instruments scoring strictly more (tolerance 1e-6, relative for BM25). A text the
+row shares word for word with the cited law is a column the mask keeps, so it ranks
+the law first -- the matrix's own rule, kept, and counted (`law_owns_text`; zero in
+this run: no citing text is also a text of the law it cites). A law with no score
+at all has no rank (reciprocal rank 0, never recalled, `n_foreign + 1` for the
+median). Two checks keep it an evaluation of the published data sets rather than of
+a fourth method: the best foreign score recomputed here equals `nearest.parquet`'s
+`similarity` for **every** citing row (a `SystemExit` otherwise; the largest
+difference was 4.8e-7 for the 0.6B, 3.6e-7 for the 4B and 0 for BM25), and a row is
+scored only if the matrix *counted* it in every model, so the models are compared on
+the same rows (the `identical_shared` and `no_match` rules remove the rest, and the
+report says how many).
+
+**Metrics**: recall@1, recall@5, recall@10, MRR and the median rank, per model; per
+collection; without the Constitution; and for the ten most cited laws. Significance
+is #272's rule, fixed beforehand: paired bootstrap over rows (seed 0, 10,000
+resamples), 95 % percentile interval of the mean (median) difference, McNemar's
+exact test for recall@k, real only if the interval excludes 0 and p < 0.05,
+otherwise a tie.
+
+```bash
+uv run --group viz python scripts/embeddings/gold_links.py --work-dir emb-run-atlas
+#   writes citations.parquet next to gold.json (about 25 s)
+uv run --group viz python scripts/embeddings/evaluate_citations.py
+#   re-scores the three work directories: about two minutes, no Slurm, no network
+uv run --group viz python scripts/embeddings/evaluate_citations.py --report     # offline
+```
+
+It refuses a work directory that is not the gold's instruments, a missing
+`nearest.parquet` (naming the path), a missing scorer input, a citing text with no
+vector row, and any disagreement with `nearest.parquet`; it rebuilds none of them.
+Tests: `tests/test_evaluate_citations.py` (an independent oracle over the toy corpus
+for every `(source, text, cited instrument)`, the mask, a shared text, both scorers)
+and the signal-C cases of `tests/test_gold_links.py`.
+
+### Measured, row-level citations, 2026-10-05 (issue #273)
+
+Signal C (commit `82ec9f4e`): **3,647 citations**, **2,537 distinct citing unit rows**
+(`(source, text)`) from **832 instruments** citing **179 laws**; 3,104 rows of
+`citations.parquet`; **2,010 cite exactly one law** (527 cite several: counted, not
+scored). The planning figures with a looser regex were 3,575 / 2,566 / 822 / 172 /
+2,107; the difference is `del` before a `Código`, the ordinal full stop and the
+`reglamento` guard. Seven citing rows are `identical_shared` rows (the same seven
+for the 0.6B, the 4B and BM25) and are removed, leaving **2,003 scored rows**
+(1,831 in reglamentos, 172 in lineamientos); 1,444 without the Constitution, which
+alone is 559 of them (28 %) because every kind of regulation cites it.
+
+| metric | 0.6B | 4B | BM25 |
+|---|---|---|---|
+| recall@1 | 191 (0.095) | 207 (0.103) | 182 (0.091) |
+| recall@5 | 507 (0.253) | 546 (0.273) | 483 (0.241) |
+| recall@10 | 701 (0.350) | 761 (0.380) | 694 (0.346) |
+| MRR | 0.180 | 0.194 | 0.173 |
+| median rank (of 1,302) | 29 | 21 | 29 |
+| *without the Constitution (1,444)* recall@5 | 486 (0.337) | 522 (0.361) | 467 (0.323) |
+| *without the Constitution* MRR | 0.238 | 0.252 | 0.231 |
+| *without the Constitution* median rank | 13 | 11 | 13 |
+
+Verdicts (first minus second; intervals and p-values in `evaluation-rows.md`):
+
+| pair | recall@1 | recall@5 | recall@10 | MRR | median rank |
+|---|---|---|---|---|---|
+| 0.6B vs 4B | tie | **4B better** (p 0.001) | **4B better** (p < 0.0001) | **4B better** | **4B better** (29 vs 21) |
+| 0.6B vs BM25 | tie | tie | tie | tie | tie |
+| 4B vs BM25 | tie (p 0.054) | **4B better** (p 0.0003) | **4B better** (p 0.0004) | **4B better** | **4B better** (21 vs 29) |
+
+**Reading.** Unlike the instrument level, where the three are tied on what the
+page shows, **the 4B is better at this question**: the cited law is in its five
+closest instruments for 27.3 % of the rows against 25.3 % (0.6B) and 24.1 %
+(BM25), and its median rank is 21 against 29. The two 4B differences are small
+(two to three points of recall) but not noise; the 0.6B and BM25 are
+indistinguishable, and nobody separates on recall@1, which is under 11 % for all
+three. The absolute level is low: a row that cites an article of a law is
+usually not about that law's *other* texts, and the Constitution alone (559
+rows, recall@5 of 3 to 4 % in every model) drags it down, which is why the
+without-Constitution rows are also reported; the order is the same without it.
+The split by law is where the lexical baseline is not beaten: of the ten most cited
+laws BM25's recall@5 is far higher for the *Código Fiscal de la Federación*
+(0.684 against 0.439 for the 4B and 0.351 for the 0.6B) and lower for the *Ley
+Orgánica del Poder Judicial de la Federación* (0.195 against 0.439 and 0.488), and
+the three are within a few rows on the others. Per collection, the order holds in
+reglamentos (1,831 rows); in lineamientos (172) the 4B leads and BM25 is last
+(recall@10 0.523 / 0.500 / 0.390), without a test. Law level only: this says
+nothing about whether the right *article* ranks first.

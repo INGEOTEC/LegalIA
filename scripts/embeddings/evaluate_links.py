@@ -98,14 +98,13 @@ def gold_sets(gold: dict, signal_set: str) -> dict[int, list[int]]:
     return {int(e["i"]): list(e[key]) for e in gold["entries"] if e[key]}
 
 
-def load_matrix(label: str, work_dir: Path, gold: dict) -> np.ndarray:
-    """The matrix of `work_dir`, refused unless the work directory lists the
-    gold's instruments (`export_atlas_data.check_same_instruments`' idea, on the
-    parquet: `coleccion` and `clave` at every `i`) and the shape fits."""
+def check_instruments(label: str, work_dir: Path, gold: dict) -> None:
+    """Refuse `work_dir` unless it lists the gold's instruments
+    (`export_atlas_data.check_same_instruments`' idea, on the parquet:
+    `coleccion` and `clave` at every `i`)."""
     import pyarrow.parquet as pq
 
-    work_dir = Path(work_dir)
-    table_path = work_dir / "instruments.parquet"
+    table_path = Path(work_dir) / "instruments.parquet"
     if not table_path.is_file():
         raise SystemExit(f"{label}: {table_path} does not exist")
     instruments = pq.read_table(table_path).to_pandas().sort_values("i")
@@ -119,14 +118,22 @@ def load_matrix(label: str, work_dir: Path, gold: dict) -> np.ndarray:
             raise SystemExit(f"{label}: instrument {position} is {a} in {table_path} but {b} "
                              "in the gold -- the two do not list the same instruments in the "
                              "same positions")
+
+
+def load_matrix(label: str, work_dir: Path, gold: dict) -> np.ndarray:
+    """The matrix of `work_dir`, refused unless the work directory lists the
+    gold's instruments (`check_instruments`) and the shape fits."""
+    work_dir = Path(work_dir)
+    check_instruments(label, work_dir, gold)
+    size = len(gold["instruments"])
     matrix_path = work_dir / MATRIX_SUBDIR / "matrix.npy"
     if not matrix_path.is_file():
         raise SystemExit(f"{label}: {matrix_path} does not exist (this script never rebuilds "
                          "it: run instrument_matrix.py)")
     matrix = np.load(matrix_path)
-    if matrix.shape != (len(mine), len(mine)):
+    if matrix.shape != (size, size):
         raise SystemExit(f"{label}: {matrix_path} has shape {matrix.shape}, expected "
-                         f"{(len(mine), len(mine))}")
+                         f"{(size, size)}")
     return matrix
 
 

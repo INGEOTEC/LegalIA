@@ -24,6 +24,17 @@ offline, over the unique instruments of the Atlas (`<work-dir>/instruments.parqu
   keeps "sin perjuicio de lo dispuesto en la Ley X" clauses elsewhere in the
   article out. The evidence is the unit's `eId` and the sentence.
 
+* **C -- explicit citations (issue #273), row level.** A unit that cites
+  "artículo 123 de la Ley Federal del Trabajo" names the law it is about.
+  Over every unit row of a reglamento or lineamiento that is neither a heading nor
+  in a transitorios section, `CITATION` finds `articulo(s) N[ bis|ter|...]`, at
+  most 80 characters without `.`/`;` and without the word `reglamento`, then
+  `de la|del|de el` and a law name (the same longest-first alternation as A).
+  `citations.parquet` has one row per `(source i, text_sha1, cited law)` with the
+  first cited article and matched span as evidence, `hits` (how many times that
+  row cites that law) and `single_law` (the row cites exactly one distinct law:
+  the only rows `evaluate_citations.py` scores).
+
 Only `reglamentos` and `lineamientos` are sources and only `leyes` are targets:
 `A` is directed by design and the reverse (law -> reglamento) is not a strong
 link. The gold of an instrument is A union B; `laws_A` keeps A alone, which
@@ -34,7 +45,7 @@ link. The gold of an instrument is A union B; `laws_A` keeps A alone, which
 
 Outputs, under `<work-dir>/gold-links/` (gitignored with the rest of `emb-run-*`):
 `gold.json` and `gold.md` (a readable table of the B-only links, the ones a human
-may want to spot-check). The gold is model-independent, so it lives in the 0.6B's
+may want to spot-check) and `citations.parquet` (signal C). The gold is model-independent, so it lives in the 0.6B's
 directory by convention. Nothing here needs the network or Slurm.
 """
 
@@ -51,7 +62,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _atomic import atomic_write_text  # noqa: E402
+from _atomic import atomic_write_table, atomic_write_text  # noqa: E402
 from instrument_matrix import EXCLUDED_UNIT_TYPES, is_transitorio_path  # noqa: E402
 from unique_instruments import name_key  # noqa: E402
 
@@ -59,6 +70,7 @@ DEFAULT_WORK_DIR = Path("emb-run-atlas")
 SUBDIR = "gold-links"
 GOLD_JSON = "gold.json"
 GOLD_MD = "gold.md"
+CITATIONS = "citations.parquet"
 
 TARGET_COLLECTION = "leyes"
 SOURCE_COLLECTIONS = ("reglamentos", "lineamientos")
@@ -105,6 +117,18 @@ MAX_EVIDENCE = 3
 MD_SENTENCE_CHARS = 300
 
 
+#: Ordinal suffix with its full stop in folded text (`1o.`): the stop would end the
+#: `[^.;]` gap of `CITATION`, so `find_citations` drops it first.
+ORDINAL_STOP = re.compile(r"(?<=\d)o\.")
+
+#: The cited article's number as written, with its `bis`/`ter`/... suffix.
+ARTICLE_NUMBER = (r"\d+[a-z]?(?:\s+(?:bis|ter|quater|quinquies|sexies|septies|octies|nonies|"
+                  r"decies))?")
+
+#: Longest stretch between an article number and the law name (`CITATION`).
+CITATION_REACH = 80
+
+
 def fold(text) -> str:
     """`text` as the matching sees it: `name_key`'s fold with the Markdown
     emphasis marks (`*`, `\\`) a unit's text carries removed first."""
@@ -133,6 +157,19 @@ class LawMatcher:
         self.pattern = (re.compile(r"(?<!\w)(?:" + "|".join(re.escape(n) for n in names) + r")(?!\w)")
                         if names else None)
 
+    @property
+    def citation_pattern(self):
+        """`articulo(s) N ... de la|del|de el <law>` over folded text, or `None`
+        without laws. Named groups: `article`, `gap`, `law`."""
+        if self.pattern is None:
+            return None
+        if not hasattr(self, "_citation"):
+            names = self.pattern.pattern[len("(?<!\\w)(?:"):-len(")(?!\\w)")]
+            self._citation = re.compile(
+                r"(?<!\w)articulos?\s+(?P<article>%s)(?P<gap>[^.;]{0,%d}?)\s+"
+                r"(?:de la|del|de el)\s+(?P<law>%s)(?!\w)" % (ARTICLE_NUMBER, CITATION_REACH, names))
+        return self._citation
+
     def find(self, folded: str) -> list[tuple[str, list[int]]]:
         """`(folded name, [law i])` of every law named in `folded` (already
         folded), in order of appearance; `[law i]` has several entries when
@@ -157,6 +194,25 @@ def signal_a(matcher: LawMatcher, nombre: str) -> dict:
             ambiguous.append({"name": name, "laws": candidates})
     unresolved = not laws and not ambiguous and bool(LAW_WORD.search(folded))
     return {"laws": laws, "ambiguous": ambiguous, "unresolved": unresolved}
+
+
+def find_citations(matcher: LawMatcher, text) -> list[dict]:
+    """Signal C over one unit's text: `[{"law": i, "article", "span"}]`, one per
+    citation of a law the matcher resolves, in order of appearance. A gap that
+    says `reglamento` is a citation of the regulation, not of the law behind it,
+    and a name two laws share resolves to none."""
+    pattern = matcher.citation_pattern
+    if pattern is None:
+        return []
+    folded = ORDINAL_STOP.sub("o", fold(text))
+    found = []
+    for match in pattern.finditer(folded):
+        candidates = matcher.by_name[match.group("law")]
+        if len(candidates) != 1 or "reglamento" in match.group("gap"):
+            continue
+        found.append({"law": candidates[0], "article": match.group("article"),
+                      "span": match.group(0)})
+    return found
 
 
 def sentences_of(text: str) -> list[str]:
@@ -219,25 +275,71 @@ def manifest_hashes(cache_dir, collections) -> dict:
 
 
 def source_units(coleccion: str, keys: set, cache_dir) -> dict[str, list[tuple]]:
-    """`{clave: [(eId, text), ...]}` of the `SOURCE_UNIT_TYPES` unit rows not in
-    a transitorios section of the Atlas instruments `keys` of one
-    collection, read from `legalvec`'s cached `units.parquet`."""
+    """`{clave: [(eId, unit_type, text, text_sha1), ...]}` of the unit rows that
+    are neither a heading nor in a transitorios section (`instrument_matrix`'s own
+    rule) of the Atlas instruments `keys` of one collection, read from
+    `legalvec`'s cached `units.parquet`."""
     import legalvec
 
     table = legalvec.load_units(coleccion, cache_dir=cache_dir)
-    columns = ["clave", "unit_type", "eId", "text"]
+    columns = ["clave", "unit_type", "eId", "text", "text_sha1"]
     if "path" in table.column_names:
         columns.append("path")
     frame = table.select(columns).to_pandas()
     frame = frame[frame["clave"].astype(str).isin(keys)
-                  & frame["unit_type"].isin(SOURCE_UNIT_TYPES)
                   & ~frame["unit_type"].isin(EXCLUDED_UNIT_TYPES)]
     if "path" in frame.columns:
         frame = frame[[not is_transitorio_path(path) for path in frame["path"]]]
     units: dict[str, list[tuple]] = {}
-    for clave, e_id, text in zip(frame["clave"].astype(str), frame["eId"], frame["text"]):
-        units.setdefault(clave, []).append((e_id, text))
+    for clave, e_id, unit_type, text, sha1 in zip(frame["clave"].astype(str), frame["eId"],
+                                                  frame["unit_type"], frame["text"],
+                                                  frame["text_sha1"]):
+        units.setdefault(clave, []).append((e_id, unit_type, text, sha1))
     return units
+
+
+#: Cheap test before folding a text for signal C: it must mention a law at all.
+LAW_MENTION = re.compile(r"ley|c[oó]digo|constituci", re.IGNORECASE)
+
+
+def citations_of(matcher: LawMatcher, row: dict, units) -> tuple[list[dict], int]:
+    """Signal C over one instrument's unit rows `(eId, unit_type, text, text_sha1)`:
+    `(rows, hits)`, one row per `(text_sha1, cited law)` (the first citation is the
+    evidence, `hits` counts the row's citations of that law), and the number of
+    citations found before that grouping."""
+    grouped: dict[tuple, dict] = {}
+    hits = 0
+    for e_id, unit_type, text, sha1 in units:
+        lowered = str(text or "")
+        if "culo" not in lowered.lower() or not LAW_MENTION.search(lowered):
+            continue
+        for found in find_citations(matcher, lowered):
+            hits += 1
+            key = (sha1, found["law"])
+            if key in grouped:
+                grouped[key]["hits"] += 1
+                continue
+            grouped[key] = {"i": int(row["i"]), "coleccion": row["coleccion"],
+                            "clave": row["clave"], "text_sha1": sha1,
+                            "eId": None if e_id is None else str(e_id), "unit_type": unit_type,
+                            "article": found["article"], "law": int(found["law"]),
+                            "span": found["span"], "hits": 1}
+    rows = list(grouped.values())
+    laws_per_text: dict[str, set] = {}
+    for item in rows:
+        laws_per_text.setdefault(item["text_sha1"], set()).add(item["law"])
+    for item in rows:
+        item["single_law"] = len(laws_per_text[item["text_sha1"]]) == 1
+    return rows, hits
+
+
+def citation_summary(rows: list[dict], hits: int) -> dict:
+    """The counts the README records for signal C."""
+    texts = {(r["i"], r["text_sha1"]) for r in rows}
+    return {"hits": hits, "distinct_rows": len(texts),
+            "instruments": len({r["i"] for r in rows}), "laws": len({r["law"] for r in rows}),
+            "single_law_rows": len({(r["i"], r["text_sha1"]) for r in rows if r["single_law"]}),
+            "links": len(rows)}
 
 
 def build(work_dir: Path, *, cache_dir=None, log=print) -> dict:
@@ -261,6 +363,8 @@ def build(work_dir: Path, *, cache_dir=None, log=print) -> dict:
     entries: dict[int, dict] = {}
     unresolved: list[dict] = []
     ambiguous: list[dict] = []
+    citation_rows: list[dict] = []
+    citation_hits = 0
 
     for _, row in sources.iterrows():
         a = signal_a(matcher, row["nombre"])
@@ -284,7 +388,11 @@ def build(work_dir: Path, *, cache_dir=None, log=print) -> dict:
         log(f"{coleccion}: {sum(len(v) for v in units.values())} searchable unit rows, "
             f"{len(by_clave)} instruments")
         for clave, rows in units.items():
-            found = signal_b(matcher, rows, skip=b_skip)
+            cited, found_hits = citations_of(matcher, by_clave[clave], rows)
+            citation_rows += cited
+            citation_hits += found_hits
+            found = signal_b(matcher, [(e, t) for e, u, t, _ in rows if u in SOURCE_UNIT_TYPES],
+                             skip=b_skip)
             if not found:
                 continue
             row = by_clave[clave]
@@ -302,8 +410,12 @@ def build(work_dir: Path, *, cache_dir=None, log=print) -> dict:
         entry["signals"] = [s for s, key in (("A", "laws_A"), ("B", "laws_B")) if entry[key]]
         gold.append(entry)
 
+    summary = summarise(gold, unresolved, ambiguous, sources)
+    summary["citations"] = citation_summary(citation_rows, citation_hits)
+    log(f"signal C: {summary['citations']}")
     return {
-        "summary": summarise(gold, unresolved, ambiguous, sources),
+        "summary": summary,
+        "citations": citation_rows,
         "provenance": {
             "commit": commit_of(),
             "instruments": int(len(instruments)),
@@ -371,9 +483,23 @@ def render_markdown(record: dict) -> str:
 
 def write(work_dir: Path, record: dict) -> Path:
     out = Path(work_dir) / SUBDIR
-    atomic_write_text(out / GOLD_JSON, json.dumps(record, ensure_ascii=False, indent=1) + "\n")
+    gold = {key: value for key, value in record.items() if key != "citations"}
+    atomic_write_text(out / GOLD_JSON, json.dumps(gold, ensure_ascii=False, indent=1) + "\n")
     atomic_write_text(out / GOLD_MD, render_markdown(record))
+    atomic_write_table(out / CITATIONS, citations_table(record["citations"]))
     return out
+
+
+def citations_table(rows: list[dict]):
+    """`citations.parquet`'s table: one row per `(i, text_sha1, law)`."""
+    import pyarrow as pa
+
+    types = {"i": pa.int32(), "coleccion": pa.string(), "clave": pa.string(),
+             "text_sha1": pa.string(), "eId": pa.string(), "unit_type": pa.string(),
+             "article": pa.string(), "law": pa.int32(), "span": pa.string(),
+             "hits": pa.int32(), "single_law": pa.bool_()}
+    return pa.table({name: pa.array([r[name] for r in rows], type=kind)
+                     for name, kind in types.items()})
 
 
 def report(work_dir: Path, log=print) -> dict:
@@ -388,6 +514,7 @@ def report(work_dir: Path, log=print) -> dict:
     for name in ("A", "B", "A_or_B", "A_and_B", "B_only", "B_naming_several_laws"):
         log(f"  {name:<22}{summary[name]['instruments']:>5}  {summary[name]['by_collection']}")
     log(f"links: {summary['links']}")
+    log(f"signal C (citations): {summary['citations']}")
     log(f"unresolved names (abrogated laws): {summary['unresolved']}; "
         f"ambiguous: {summary['ambiguous']}; "
         f"B links without evidence: {summary['B_links_without_evidence']}")

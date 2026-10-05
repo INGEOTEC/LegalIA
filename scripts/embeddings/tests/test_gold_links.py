@@ -7,6 +7,7 @@ vectors, no network. `gold_links.build` only reads `instruments.parquet` and
 `legalvec`'s cached `units.parquet`, so those are the only two files made.
 """
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -60,6 +61,13 @@ UNITS = {
         unit("10", "art_1", "El presente Reglamento tiene por objeto reglamentar la Ley Federal "
                             "del Trabajo y la Constitución Política de los Estados Unidos "
                             "Mexicanos."),
+        # Signal C: one law (single), two laws (not single), a reglamento's own
+        # article (not the law), and a law that is not in the corpus.
+        unit("10", "art_2", "Se pagará conforme al artículo 123 de la Ley Federal del Trabajo."),
+        unit("10", "art_3", "Los artículos 5 y 7 Bis de la Ley General de Salud, y el artículo "
+                            "1o. de la Ley Federal del Trabajo, aplican; no el artículo 3 del "
+                            "Reglamento de la Ley Federal del Trabajo."),
+        unit("10", "art_4", "Conforme al artículo 9 de la Ley Forestal."),
     ],
     "lineamientos": [
         unit("20", "art_1", "Los presentes Lineamientos tienen por objeto establecer las reglas "
@@ -77,6 +85,8 @@ def write_units(directory: Path, coleccion: str, rows) -> None:
         "eId": pa.array([r[2] for r in rows], type=pa.string()),
         "path": pa.array([r[3] for r in rows], type=pa.list_(pa.string())),
         "text": pa.array([r[4] for r in rows], type=pa.string()),
+        "text_sha1": pa.array([hashlib.sha1(r[4].encode()).hexdigest() for r in rows],
+                              type=pa.string()),
     }), directory / "units.parquet")
 
 
@@ -230,3 +240,90 @@ def test_a_missing_work_directory_is_a_system_exit_naming_the_file(tmp_path):
 def test_report_without_a_gold_is_a_system_exit(tmp_path):
     with pytest.raises(SystemExit, match="gold.json"):
         gold_links.report(tmp_path)
+
+
+# -- signal C: explicit citations (issue #273) -------------------------------------- #
+
+@pytest.fixture
+def matcher():
+    return gold_links.LawMatcher([(0, "LEY Federal del Trabajo"), (1, "LEY General de Salud"),
+                                  (3, "CONSTITUCIÓN Política de los Estados Unidos Mexicanos"),
+                                  (7, "CÓDIGO Fiscal de la Federación")])
+
+
+def cited(matcher, text):
+    return [(c["law"], c["article"]) for c in gold_links.find_citations(matcher, text)]
+
+
+def test_an_article_of_a_named_law_is_a_citation(matcher):
+    assert cited(matcher, "Conforme al artículo 123 de la Ley Federal del Trabajo.") == [(0, "123")]
+    assert cited(matcher, "El Artículo 5o. de la LEY GENERAL DE SALUD aplica.") == [(1, "5o")]
+
+
+def test_del_before_a_codigo_and_the_constitution_count(matcher):
+    assert cited(matcher, "el artículo 27 del Código Fiscal de la Federación") == [(7, "27")]
+    assert cited(matcher, "el artículo 123, apartado B, de la Constitución Política de los "
+                          "Estados Unidos Mexicanos") == [(3, "123")]
+
+
+def test_bis_ranges_and_lists_keep_the_first_number(matcher):
+    assert cited(matcher, "los artículos 5 y 7 Bis de la Ley General de Salud") == [(1, "5")]
+    assert cited(matcher, "el artículo 44 bis de la Ley General de Salud") == [(1, "44 bis")]
+
+
+def test_a_gap_that_says_reglamento_is_not_a_citation_of_the_law(matcher):
+    assert cited(matcher, "el artículo 3 del Reglamento de la Ley Federal del Trabajo") == []
+
+
+def test_a_full_stop_or_a_semicolon_ends_the_reach(matcher):
+    assert cited(matcher, "el artículo 5. Se aplicará de la Ley Federal del Trabajo") == []
+    assert cited(matcher, "el artículo 5; y de la Ley Federal del Trabajo") == []
+    far = "el artículo 5 " + "x" * 90 + " de la Ley Federal del Trabajo"
+    assert cited(matcher, far) == []
+
+
+def test_a_law_that_is_not_in_the_corpus_is_no_citation(matcher):
+    assert cited(matcher, "el artículo 9 de la Ley Forestal") == []
+
+
+def test_a_sentence_naming_two_laws_gives_two_citations(matcher):
+    text = "el artículo 2 de la Ley General de Salud y el artículo 3 de la Ley Federal del Trabajo"
+    assert cited(matcher, text) == [(1, "2"), (0, "3")]
+
+
+def test_the_citations_table_groups_by_text_and_law(record):
+    rows = {(r["eId"], r["law"]): r for r in record["citations"]}
+    assert set(rows) == {("art_2", 0), ("art_3", 1), ("art_3", 0)}
+    assert rows[("art_2", 0)]["single_law"] is True and rows[("art_2", 0)]["article"] == "123"
+    assert rows[("art_3", 1)]["single_law"] is False and rows[("art_3", 0)]["single_law"] is False
+    assert rows[("art_3", 0)]["article"] == "1o"
+    assert all(r["clave"] == "10" and r["coleccion"] == "reglamentos" for r in rows.values())
+
+
+def test_the_citation_summary(record):
+    assert record["summary"]["citations"] == {
+        "hits": 3, "distinct_rows": 2, "instruments": 1, "laws": 2, "single_law_rows": 1,
+        "links": 3}
+
+
+def test_headings_and_transitorios_are_not_read_for_citations(world):
+    work_dir, cache = world
+    write_units(cache / "scjn-reglamentos-vectors", "reglamentos",
+                UNITS["reglamentos"] + [
+                    unit("10", "cap_9", "artículo 8 de la Ley General de Salud", "heading"),
+                    unit("10", "t_9", "artículo 8 de la Ley General de Salud",
+                         path=["TRANSITORIOS 1 DE ENERO DE 2000"])])
+    record = gold_links.build(work_dir, cache_dir=cache, log=lambda *a: None)
+    assert {(r["eId"], r["law"]) for r in record["citations"]} == {
+        ("art_2", 0), ("art_3", 1), ("art_3", 0)}
+
+
+def test_write_puts_citations_in_a_parquet_not_in_gold_json(world):
+    work_dir, cache = world
+    record = gold_links.build(work_dir, cache_dir=cache, log=lambda *a: None)
+    out = gold_links.write(work_dir, record)
+    assert "citations" not in json.loads((out / "gold.json").read_text(encoding="utf-8"))
+    table = pq.read_table(out / gold_links.CITATIONS).to_pandas()
+    assert len(table) == 3 and set(table["law"]) == {0, 1}
+    assert set(table.columns) == {"i", "coleccion", "clave", "text_sha1", "eId", "unit_type",
+                                  "article", "law", "span", "hits", "single_law"}
