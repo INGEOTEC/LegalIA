@@ -1051,7 +1051,7 @@ Each of these was a decision in issue #242, not a default:
   `row_sums_equal_counted_rows`, next to `unit_rows`, `heading_rows_excluded`,
   `transitorio_rows_excluded`, `excluded_transitorios`, `searched_rows`,
   `identical_shared_dropped` and `counted_rows`. An
-  instrument's `p` (circle size) stays its total provisions.
+  instrument's `p` stays its total excerpts and its `pc` (circle size, issue #271) is the row sum, its counted excerpts.
 - **Per unit row, not per distinct text.** A boilerplate article repeated
   `m` times inside a code is `m` articles and counts `m` times — the same
   choice #241's centroids made.
@@ -1173,31 +1173,44 @@ One object, keys in this order:
   `unique-instruments.json`), `n_neighbors`, `default_n_neighbors` (16), `umap`
   (`min_dist`, `metric`, `random_state`, `umap_version` of the first fit),
   `weighting` (`"1/m"`), `top` (5), `sources` (the three corpus releases, then
-  the three `scjn-*-vectors`).
+  the three `scjn-*-vectors`). `provisions` keeps its old name as a JSON key
+  though it counts excerpts (issue #271): keys are code, and the pair files'
+  `provisions` lives in a release.
 - `instruments` — a list whose index is `i`, each `{"c": coleccion, "k":
-  clave, "n": nombre, "p": provisions, "in": incoming weight, "out": [[j, w],
-  …], "inc": [[j, w], …]}`. `out` is `strongest_targets(A, i, top)` and `inc`
+  clave, "n": nombre, "p": total excerpts, "pc": counted excerpts, "in":
+  incoming weight, "out": [[j, w], …], "inc": [[j, w], …]}`. `out` is `strongest_targets(A, i, top)` and `inc`
   the same helper over `A.T` (who points *here* hardest): weight > 0 only,
   heaviest first, ties by ascending id, weights to one decimal — the ranking
-  the research page uses, imported, so the two cannot disagree. `out`'s
-  total is not exported: it equals the instrument's counted provisions.
+  the research page uses, imported, so the two cannot disagree. `pc`
+  (issue #271) is `out`'s total: the matrix row sum, the instrument's counted
+  excerpts, an integer `>= 1` (the exporter refuses a row sum more than 1e-3
+  from an integer) whose sum over the instruments is `meta.counted_rows`. It
+  is a per-model fact — BM25 differs from the two embedding models in 197
+  instruments — so, unlike `p`, it is **not** among the keys `--instruments-as`
+  compares (`c`, `k`, `n`, `p`). The page shows `pc` only; `p` stays for
+  integrity and identity checks.
 - `projections` — `{"4": [[x, y], …], "8": …, "16": …, "32": …}`, one pair
   per instrument in `i` order, rounded to `--decimals`, in `[0, 1]`.
 
-**Provisions, not units**, in everything the export carries: a unit is an
-article, a transitory article or another indivisible text unit
-(`md2akn.text_units`), which a general reader calls a provision. The Python
-side keeps `units`; the words `units` and `tooltip` appear nowhere in the
+**Excerpts, not units, not provisions** (issue #271), in everything the export
+carries and the page says: an *excerpt* is a block of text cut from an
+instrument whatever its legal role (an article, a transitory article, a
+heading, a preamble) — the word of the LegalIA paper, after Colombo et al.
+2025 — where *provision* would suggest a normative rule a heading is not, and
+*legal provision* already means a DOF note in this project. So: *excerpt* is
+the reader's word, *unit* the Python side's (`md2akn.text_units`), *legal
+provision* a DOF note. The article of a transitorios block is a *transitory
+article* on the page. The Python side keeps `units`; the words `units` and `tooltip` appear nowhere in the
 file. The exporter refuses (`SystemExit`) a work directory not prepared with
 `--unique-names`, a matrix whose shape does not match the table, a requested
 `n_neighbors` missing from `umap.parquet`, an instrument with an empty `out`,
-provisions that do not add up to `matrix.json`'s `unit_rows`, and a `matrix.json` that
+excerpts that do not add up to `matrix.json`'s `unit_rows`, counted excerpts that do not add up to `counted_rows`, and a `matrix.json` that
 lacks the counted-row totals or a `matrix.npy` that does not sum to `counted_rows`.
 
 Measured on 2026-09-29: **422.7 kB** (110.1 kB gzipped), under a second; the
 Universidad Autónoma Chapingo (`luach`) points at the UAM 10.0, Narro 7.0, Ley
 Agraria 1.0, INAH 1.0 and the IPN 1.0 — all five — and `cpeum` has 1,328
-provisions, 837 of them counted. One instrument (the reglamento `124138`, nothing
+excerpts, 837 of them counted. One instrument (the reglamento `124138`, nothing
 points at it) has an empty `inc`; every `out` is non-empty.
 
 ### The pair explanations (issue #249)
@@ -1229,7 +1242,7 @@ pair by pair, weight by weight and `clave` by `clave`. Other flags:
 `instruments`, holds, keys in this order: `source` and `target` (`i`, `k`
 clave, `c` collection, `n` name — `k` lets the page notice a tarball built
 against another instrument table), `weight` (`round(A[i, j], 1)`, the panel's
-number), `provisions` (rows listed), `rows` and `texts`. A row is one **unit
+number), `provisions` (rows listed, the key kept as published), `rows` and `texts`. A row is one **unit
 row** of `nearest.parquet` whose `targets` hold `j` — a text repeated inside
 the source is one row per repetition, as in the matrix, so `Σ 1/m` over the
 rows is `A[i, j]` (asserted to 1e-3 per pair) — with `label`, `path` (the
@@ -1298,7 +1311,7 @@ The file above is what the website's **Atlas** reads
 (`website/pages/atlas.qmd`, navbar *Atlas*, issue #245): a hand-written D3 v7
 application in `website/pages/atlas/atlas.js` and `atlas.css`, the public
 successor of the research page. It draws circle **area**
-proportional to provisions (a square-root radius, 2.5 px floor) in the site's
+proportional to counted excerpts, `pc` (a square-root radius, 2.5 px floor) in the site's
 palette (laws `#2a78d6`, regulations `#008300`, guidelines `#e87ba4`), lists
 all five closest instruments and the five that point here in a detail panel
 instead of a tooltip, joins the selection to its five targets with numbered
@@ -1324,16 +1337,17 @@ Quarto's `aside` rule collapse the map to 0 px — leaving
 skip only when no Quarto is found on `PATH` or under
 `~/.local/opt/quarto-*/bin/quarto`. Every number the tests compare with the
 page (the subtitle's counts, Chapingo's five targets, the Constitution's
-provisions, the pair dialog's rows) is read off `atlas.json` and the installed
+counted excerpts, the pair dialog's rows) is read off `atlas.json` and the installed
 pair file, so the prose and the data cannot drift.
 
 **The explanation dialog (issue #250).** Each weight under *Closest
 instruments* is a `button.atlas-why` that opens a native `<dialog>` over the
 pair file #249 exports: a heading naming both instruments, one sentence
-("41 provisions of … have their closest text outside it in …; they add up to
-41.0 of its 1,328 provisions."), and a table — number, the source provision
+("15 excerpts of … have their closest text outside it in …; they add up to
+15.0 of its 137 counted excerpts."), and a table —
+number, the source excerpt
 (label, breadcrumb, full text), the closest text in the target (the same, plus
-"also N other provisions … carry this text" when several do), similarity to
+"also N other excerpts … carry this text" when several do), similarity to
 three decimals, and the weight as `1` or `1/m` with "this text is shared by
 *m* instruments". Rows keep the file's order and arrive 50 at a time ("Show 14
 more (14 left)" for the last batch of the pair above); the mount's `data-page-size` changes that number, and
@@ -1546,7 +1560,7 @@ The research page, `output/umap-instruments-qwen3-4b.html`, is 1.2 MB;
 422,737).
 
 Pair explanations: **6,352 pairs** (the 0.6B has 6,372: fewer instruments have
-five distinct targets), 78,384 provisions, 176.4 MB of JSON, largest file
+five distinct targets), 78,384 excerpts, 176.4 MB of JSON, largest file
 `pairs/1122-1059.json` (86 rows, 1.19 MB), the tarball **37.5 MB**, 73 s.
 
 How much the model changes the picture: over the 1,303 instruments, the five
@@ -1631,8 +1645,8 @@ Pair explanations, 0.6B / 4B:
 | | 0.6B | 4B |
 |---|---|---|
 | pairs | 6,288 | 6,265 |
-| provisions the pairs explain | 71,348 (weight 70,006.9) | 73,822 (weight 72,531.1) |
-| provisions per pair | median 4, p90 25, max 702 | median 4, p90 27, max 747 |
+| excerpts the pairs explain | 71,348 (weight 70,006.9) | 73,822 (weight 72,531.1) |
+| excerpts per pair | median 4, p90 25, max 702 | median 4, p90 27, max 747 |
 | JSON | 159.0 MB | 169.0 MB |
 | tarball | 33.6 MB | 35.9 MB |
 | largest file by size | `pairs/1122-1059.json` (1.19 MB, 84 rows) | `pairs/1122-1059.json` (1.19 MB, 86 rows) |
@@ -1657,15 +1671,29 @@ model — weights first, then the instrument:
 | `cpeum` | 15.0 LEY General de Instituciones y Procedimientos Electorales · 9.0 LEY Orgánica del Poder Judicial de la Federación · 8.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 4.5 REGLAMENTO DEL SENADO DE LA REPUBLICA · 4.0 ESTATUTO de Gobierno del Distrito Federal | 16.0 LEY General de Instituciones y Procedimientos Electorales · 9.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 9.0 LEY Orgánica del Poder Judicial de la Federación · 6.0 ESTATUTO de Gobierno del Distrito Federal · 3.0 CÓDIGO Civil Federal |
 | `luach` | 10.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 7.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 LEY Orgánica del Instituto Politécnico Nacional | 9.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 6.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 LEY General de Educación · 1.0 LEY Monetaria de los Estados Unidos Mexicanos · 1.0 LEY Orgánica de la Universidad Nacional Autónoma de México |
 
-The Constitution has 1,328 provisions and 137 count (136 articles and the
+The Constitution has 1,328 excerpts and 137 count (136 articles and the
 preamble); the pair behind its heaviest weight, `cpeum` → `lgipe`, lists 15
-provisions, each a whole 1, from article 96 at similarity 0.861 (to article
+excerpts, each a whole 1, from article 96 at similarity 0.861 (to article
 494) down to article 125 at 0.606 (to article 11). The Chapingo law has 28
-provisions and 18 count, all answered by a single instrument each (`m == 1`):
+excerpts and 18 count, all answered by a single instrument each (`m == 1`):
 10 to the UAM, 7 to Antonio Narro, 1 to the IPN. The page's worked examples
 (`atlas.qmd`) were rewritten from these two files and the installed pair
 files; the Constitution's old example, 38 transitory articles matched to the
 statute's transitory articles, no longer exists under the rule.
+
+#### Counted excerpts on the page (issue #271, measured 2026-10-05)
+
+The three committed files were regenerated from the three local work
+directories with the commands above (a pure read: no refit, pair files and
+`atlas-pairs` release untouched, so no publish step) and gained `pc`:
+`sum(pc)` is 110,362 (0.6B), 110,362 (4B) and 110,000 (BM25), `cpeum` is 137 in
+all three, the smallest `pc` is 1, the median 48 and the largest 3,063 against
+a largest `p` of 3,589. `c`/`k`/`n`/`p`, `in`/`out`/`inc` and the projections
+are byte-identical to before; only `pc`, `meta.generated`, `meta.commit` and —
+for the two embedding files, committed before #267 — `meta.method` changed. A
+circle's area is now proportional to `pc`, so the Constitution (137 of 1,328)
+is a small circle and more than half of the instruments sit on the 2.5 px
+floor; switching to BM25 resizes the 197 circles whose `pc` differs.
 
 The hand-offs this run wrote are `emb-run-atlas/atlas-pairs/PUBLICAR.md` and
 `emb-run-atlas-4b/atlas-pairs/PUBLICAR.md`; nothing was uploaded.
@@ -1710,7 +1738,7 @@ says `method bm25`. `website/pages/atlas/atlas-bm25.json` is **421,725 bytes**
 (`atlas.json`: 421,007), accepted by `--instruments-as` (the same 1,303
 instruments in the same positions).
 
-Pair explanations: **6,289 pairs** (the 0.6B has 6,288), 72,931 provisions,
+Pair explanations: **6,289 pairs** (the 0.6B has 6,288), 72,931 excerpts,
 173.5 MB of JSON, largest file `pairs/1122-1059.json` (92 rows, 1.27 MB), the
 tarball `atlas-pairs-bm25.tar.gz` **36.3 MB**, 29 s; every file's `sum(1/m)`
 equals `matrix[i, j]` to 1e-3 (the export asserts it).

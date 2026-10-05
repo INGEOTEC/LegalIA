@@ -21,27 +21,34 @@ It is a pure read of #242's outputs — `instruments.parquet`,
 loudly when the matrix is missing, and is a no-op once `umap.parquet` exists
 (there is no `--force` here on purpose). No Slurm, no network, seconds.
 
-* **`provisions`, not `units`.** A unit (`md2akn.text_units`) is an article,
-  a transitory article or another indivisible piece of an instrument; a
-  general reader knows that as a *provision*. The Python side keeps `units`;
-  the export never says it.
+* **`excerpts`, not `units`** (issue #271). A unit (`md2akn.text_units`) is an
+  article, a transitory article or another block of text cut from an
+  instrument, whatever its legal role; the reader's word for that is *excerpt*
+  (not *provision*, which would suggest a normative rule a heading is not, and
+  which already means a DOF note in this project). The Python side keeps
+  `units`; the export never says it. The JSON keys keep their old name
+  (`meta.provisions`, the pair files' `provisions`): they are code, and the pair
+  files live in a release.
 * **Targets as `[id, weight]` pairs.** `out` is `strongest_targets` over the
-  instrument's row (who its provisions point at hardest), `inc` the same
+  instrument's row (who its excerpts point at hardest), `inc` the same
   helper over its column (who points *here* hardest) — the ranking the #242
   page used, imported rather than reimplemented, so the research page and the
   Atlas cannot disagree about who the five are. Weights keep one decimal: a
   weight is a sum of `1/m` fractions.
-* **`out`'s total is not exported**: under the `1/m` rule it equals the
-  instrument's *counted* provisions (`matrix.json`'s
+* **`out`'s total is `pc`** (issue #271): under the `1/m` rule the row sum
+  equals the instrument's *counted* excerpts (`matrix.json`'s
   `row_sums_equal_counted_rows`) — its `p` minus its headings, its
   transitorios (neither is compared at all, issue #264) and the word-for-word
-  matches several instruments share, which are searched but not counted.
-  `meta` carries the totals (`heading_rows_excluded`,
+  matches several instruments share, which are searched but not counted. It is
+  exported as the integer `pc`, refused unless the row sum is within 1e-3 of an
+  integer, at least 1, and the `pc` add up to `meta.counted_rows`. `pc` is per
+  model (BM25 differs from the embeddings in 197 instruments), so unlike `p` it
+  is **not** part of the `--instruments-as` comparison. `meta` carries the totals (`heading_rows_excluded`,
   `transitorio_rows_excluded`, `identical_shared_dropped`, `counted_rows`).
 * **Unique instruments only** (issue #259). A work directory prepared without
   `prepare_umap_input.py --unique-names` is refused, and `meta` records
   `unique_names` and `duplicates_dropped` per collection.
-* **Short keys** (`c`, `k`, `n`, `p`, `in`, `out`, `inc`) because there are
+* **Short keys** (`c`, `k`, `n`, `p`, `pc`, `in`, `out`, `inc`) because there are
   over a thousand of each; `meta` spells everything out.
 
 * **`meta.method` (issue #267).** `"dense"` for the two embedding models, `"bm25"`
@@ -91,6 +98,24 @@ def weighted_targets(matrix, index: int, limit: int) -> list[list]:
     """
     row = matrix[index]
     return [[j, round(float(row[j]), 1)] for j in strongest_targets(matrix, index, limit)]
+
+
+def counted_excerpts(row_sum: float, index: int, clave: str) -> int:
+    """An instrument's counted excerpts: its matrix row sum as an integer.
+
+    Under the `1/m` rule a row sums to a whole number of counted unit rows
+    (`row_sums_equal_counted_rows`); a sum further than 1e-3 from an integer, or
+    below 1, means `matrix.npy` is not the one `instrument_matrix.py` writes.
+    """
+    value = float(row_sum)
+    if abs(value - round(value)) > 1e-3:
+        raise SystemExit(f"instrument {index} ({clave}) has a matrix row sum of {value:.4f}, "
+                         "not a whole number of counted excerpts: matrix.npy is not the one "
+                         "instrument_matrix.py writes")
+    if round(value) < 1:
+        raise SystemExit(f"instrument {index} ({clave}) has no counted excerpt (row sum "
+                         f"{value:.4f}): matrix.npy is not the one instrument_matrix.py writes")
+    return int(round(value))
 
 
 def collection_counts(collections) -> dict:
@@ -224,6 +249,7 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
         raise SystemExit("umap.parquet does not cover every instrument")
 
     incoming = matrix.sum(axis=0)
+    counted = matrix.sum(axis=1)
     transposed = matrix.T
     instruments = []
     for i, row in enumerate(table.itertuples(index=False)):
@@ -236,6 +262,7 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
             "k": row.clave,
             "n": row.nombre,
             "p": int(row.units),
+            "pc": counted_excerpts(counted[i], i, row.clave),
             "in": round(float(incoming[i]), 1),
             "out": out,
             "inc": weighted_targets(transposed, i, top),
@@ -252,8 +279,12 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
     if abs(float(matrix.sum()) - summary["counted_rows"]) > 1e-3:
         raise SystemExit(f"matrix.npy sums to {float(matrix.sum()):.3f}, matrix.json counted "
                          f"{summary['counted_rows']} rows")
+    if sum(entry["pc"] for entry in instruments) != int(summary["counted_rows"]):
+        raise SystemExit(f"the instruments' counted excerpts add up to "
+                         f"{sum(entry['pc'] for entry in instruments)}, matrix.json says "
+                         f"{summary['counted_rows']}")
     if sum(entry["p"] for entry in instruments) != provisions:
-        raise SystemExit(f"the instruments' provisions add up to "
+        raise SystemExit(f"the instruments' excerpts add up to "
                          f"{sum(entry['p'] for entry in instruments)}, matrix.json says "
                          f"{provisions}")
 
@@ -332,7 +363,7 @@ def export(work_dir: Path, output: Path, instruments_as: Path | None = None, **k
     }
     log(json.dumps(measured, ensure_ascii=False))
     log(f"{output}: {measured['bytes'] / 1e3:.1f} kB, {measured['instruments']} instruments, "
-        f"{measured['provisions']} provisions")
+        f"{measured['provisions']} excerpts")
     return measured
 
 

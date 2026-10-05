@@ -74,7 +74,7 @@ def test_the_schema_is_meta_instruments_projections(exported):
     assert meta["weighting"] == "1/m"
     assert meta["top"] == 5
     for entry in data["instruments"]:
-        assert list(entry) == ["c", "k", "n", "p", "in", "out", "inc"]
+        assert list(entry) == ["c", "k", "n", "p", "pc", "in", "out", "inc"]
 
 
 def test_collections_and_provisions_come_from_the_table_and_the_matrix(exported):
@@ -90,6 +90,40 @@ def test_collections_and_provisions_come_from_the_table_and_the_matrix(exported)
     assert sum(entry["p"] for entry in exported["data"]["instruments"]) == meta["provisions"]
     assert meta["sources"] == ["scjn-leyes", "scjn-lineamientos",
                                "scjn-leyes-vectors", "scjn-lineamientos-vectors"]
+
+
+def test_pc_is_the_row_sum_and_adds_up_to_the_counted_rows(exported):
+    """Issue #271: `pc` is the instrument's counted excerpts, the matrix row sum."""
+    entries, matrix = exported["data"]["instruments"], exported["matrix"]
+    for i, entry in enumerate(entries):
+        assert isinstance(entry["pc"], int) and entry["pc"] >= 1
+        assert entry["pc"] == round(float(matrix[i].sum()))
+        assert entry["pc"] <= entry["p"]
+    assert sum(entry["pc"] for entry in entries) == exported["data"]["meta"]["counted_rows"] == 9
+    assert any(entry["pc"] < entry["p"] for entry in entries)
+
+
+def test_a_row_sum_that_is_not_a_whole_number_is_a_system_exit(with_matrix, stub_umap,
+                                                              tmp_path):
+    build_instrument_umap_html.project(with_matrix, log=lambda *a: None)
+    path = instrument_matrix.output_dir(with_matrix) / "matrix.npy"
+    matrix = np.load(path)
+    matrix[1] *= 0.7
+    np.save(path, matrix)
+    with pytest.raises(SystemExit, match="whole number of counted excerpts"):
+        export_atlas_data.export(with_matrix, tmp_path / "atlas.json", log=lambda *a: None)
+    assert not (tmp_path / "atlas.json").exists()
+
+
+def test_a_total_that_differs_from_matrix_json_is_a_system_exit(with_matrix, stub_umap,
+                                                               tmp_path):
+    build_instrument_umap_html.project(with_matrix, log=lambda *a: None)
+    path = instrument_matrix.output_dir(with_matrix) / "matrix.json"
+    summary = json.loads(path.read_text(encoding="utf-8"))
+    summary["counted_rows"] += 1
+    path.write_text(json.dumps(summary), encoding="utf-8")
+    with pytest.raises(SystemExit, match="counted"):
+        export_atlas_data.export(with_matrix, tmp_path / "atlas.json", log=lambda *a: None)
 
 
 def test_every_instrument_carries_its_provisions_and_both_directions(exported):
@@ -312,8 +346,10 @@ def test_instruments_as_refuses_a_different_count(exported, reference, tmp_path,
 
 
 def test_instruments_as_ignores_the_targets_and_the_layout(exported, reference, tmp_path):
-    """Only `c`/`k`/`n`/`p` must agree: a second model's relations differ."""
-    rewritten(reference, lambda entries: entries[0].update(out=[], inc=[], **{"in": 0.0}))
+    """Only `c`/`k`/`n`/`p` must agree: a second model's relations differ, and so
+    do its counted excerpts (`pc`, issue #271)."""
+    rewritten(reference, lambda entries: entries[0].update(out=[], inc=[], pc=999,
+                                                           **{"in": 0.0}))
     export_atlas_data.export(exported["work_dir"], tmp_path / "second.json",
                              instruments_as=reference, now=NOW, log=lambda *a: None)
 
