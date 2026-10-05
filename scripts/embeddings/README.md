@@ -739,6 +739,7 @@ The vectors are the whole-article ones (`split_articles: false`, `md2akn`
 | The pair explanations (issue #249) | `scripts/embeddings/export_atlas_pairs.py` → `emb-run-atlas/atlas-pairs/` (`pairs/`, `manifest.json`, `atlas-pairs.tar.gz`, `SHA256SUMS.txt`, `PUBLICAR.md`, `.done`), installed into `website/pages/atlas/pairs/` (gitignored); published by hand as the release `atlas-pairs`, body `.github/atlas-pairs.md` |
 | The 4B data set (issue #261) | the same chain over `emb-run-atlas-4b/` → `website/pages/atlas/atlas-qwen3-4b.json` (committed), pair files in `website/pages/atlas/pairs-qwen3-4b/` (gitignored), assets `atlas-pairs-qwen3-4b.tar.gz` / `manifest-qwen3-4b.json` / `SHA256SUMS-qwen3-4b.txt` |
 | The BM25 data set (issue #267) | `scripts/embeddings/prepare_bm25_input.py` → `emb-run-atlas-bm25/` (no vectors; `bm25-index/`, `tokens.parquet`), then the same chain → `website/pages/atlas/atlas-bm25.json` (committed), pair files in `website/pages/atlas/pairs-bm25/` (gitignored), assets `atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` / `SHA256SUMS-bm25.txt`; the scorer is `scripts/embeddings/scoring.py` |
+| The strong-link gold and the three-way evaluation (issue #272) | `scripts/embeddings/gold_links.py` → `emb-run-atlas/gold-links/` (`gold.json`, `gold.md`), then `scripts/embeddings/evaluate_links.py` → `emb-run-atlas/gold-links/` (`evaluation.json`, `evaluation.md`); gitignored, nothing uploaded |
 | Everything derived | `emb-run-atlas/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
 Nothing here is committed except `atlas.json`. Every command takes
@@ -1806,3 +1807,147 @@ instruments and one of them agrees. So `atlas-bm25.json`, the pair files, the
 `atlas.qmd` prose and the `PUBLICAR.md` hand-off (`emb-run-atlas-bm25/atlas-pairs/`)
 are exactly what #267/#268 produced, and nothing was regenerated or uploaded.
 
+
+### Comparing the three data sets against strong links (issue #272)
+
+Until here the only comparison between the 0.6B, the 4B and BM25 was
+*agreement* (the closest instrument coincides for 1,077 of 1,303 between the two
+embeddings, 933 and 906 for BM25), and `tune_bm25.py` even optimised BM25 toward
+the 4B. Agreement measures consensus, not quality. This adds a gold standard
+external to all three: a federal *reglamento* (and a few *lineamientos*) exists
+to develop one specific law, and says so itself. A **strong link** is an
+instrument (the *source*, a reglamento or lineamiento) -> a law (the *target*,
+one of the 315 `leyes`), found by two offline signals over the 1,303 unique
+instruments of `emb-run-atlas/instruments.parquet`:
+
+* **A -- the name.** `REGLAMENTO DE LA LEY FEDERAL DEL TRABAJO` contains the
+  name of a law. Names are folded (NFKD, accents, case, whitespace; punctuation
+  kept), the 315 folded law names form one alternation, longest first, and a
+  match nested inside a longer matched law name is dropped. A folded name two
+  laws share (`LEY de Amnistía`: `lamn`, `lamni`) is *ambiguous* and gives no
+  link (none of the 1,303 names hit it). A name that says `ley` or `codigo` and
+  resolves to no law is `unresolved`: the law is not among the 315 (abrogated:
+  *Ley Federal de Turismo*, *Ley Forestal*, ...). Unresolved names are counted
+  and reported, never gold and never a negative -- no model can be right or
+  wrong about a law that is not in the corpus. A law with a long name
+  (`LEY de Amparo, Reglamentaria de los artículos 103 y 107 ...`) is found only
+  by its full name; a reglamento that spells it shorter in its title is a miss
+  of signal A (it can still be found by B).
+* **B -- the "objeto" sentence.** "El presente Reglamento tiene por objeto
+  reglamentar la Ley ...". Over the instrument's `article` and `loose` unit
+  rows that are not in a transitorios section, the sentences (split on `.`
+  followed by whitespace) in which an instrument word (`presente`/`este`/...
+  `reglamento`/`ordenamiento`/`lineamientos`/...) is followed, within 120
+  characters, by `tiene(n) por objeto` or `objeto reglamentar|regular|
+  establecer|desarrollar`. The gold laws are the ones named **in that same
+  sentence**, not anywhere in the unit. The evidence kept is the unit's `eId`
+  and the sentence. **Tightened after reading `gold.md`:** the first version
+  (the phrase anywhere in a non-heading, non-transitorio unit) gave 263
+  instruments and its B-only links were full of false positives: a preamble's
+  "con fundamento en los artículos ... de la Constitución" clause, the objeto of
+  a *chapter* of a larger reglamento, a commission's own objeto ("la Comisión
+  tiene por objeto"), and definitions articles whose one run-on sentence held the
+  phrase far from any subject. It is why the subject is now required, why only
+  `article` and `loose` units are read, and why the Constitution is never a
+  signal-B target (about thirty regulations name it as the *basis* of an organ's
+  powers; it stays a valid target of A). `gold.json` is never edited by hand.
+
+Direction is source -> target only: `A` is directed by design and a law points
+at many things, so the reverse is not a strong link. The gold of an instrument is
+A union B; `laws_A` keeps A alone, which is the high-precision control. B agrees
+with A where both speak: of the 80 instruments with both signals, B names the
+law A names in all 80.
+
+**Four metrics at the instrument level**, per gold instrument `i` with gold laws
+`G` and row `A[i]` (`evaluate_links.py`): *closest* (a gold law is rank 1),
+*top-5* (a gold law has rank <= 5), *reciprocal rank* of the best-ranked gold
+law (0 when every gold law has weight 0), and *weight share*,
+`sum(A[i, G]) / A[i].sum()`. Rank is the **competition rank** (1 + the instruments
+with a strictly greater weight, tolerance 1e-6): equal weights are frequent in
+BM25's rows and `argmax` would break them toward the lowest column, which is
+always a law, so the optimistic rank is stated and used for every model, and the
+table reports how many "closest" were a tie with a non-gold instrument. An
+instrument whose row sums to 0 in any model is skipped in all (none was).
+
+**Significance, fixed before the numbers were read.** For every pair of models and
+every metric, a paired bootstrap over the gold instruments (seed 0, 10,000
+resamples) gives the 95 % percentile interval of the mean difference; for
+closest and top-5, McNemar's exact test (binomial on the discordant pairs,
+`scipy.stats.binomtest`) is added. A difference is **real only if the interval
+excludes 0 and, for a binary metric, McNemar's p < 0.05**; otherwise it is a tie.
+
+```bash
+uv run --group viz python scripts/embeddings/gold_links.py --work-dir emb-run-atlas
+#   ~6 s: the unit texts come from legalvec's cache; writes emb-run-atlas/gold-links/gold.json, gold.md
+uv run --group viz python scripts/embeddings/gold_links.py --report            # offline
+uv run --group viz python scripts/embeddings/evaluate_links.py
+#   the three default work directories (0.6B, 4B, BM25); writes evaluation.json, evaluation.md
+uv run --group viz python scripts/embeddings/evaluate_links.py --report        # offline
+```
+
+`evaluate_links.py` refuses a work directory whose `instruments.parquet` is not
+the gold's (`coleccion`, `clave` at every `i`) or whose `matrix.npy` is missing
+or of the wrong shape, naming the path; it never rebuilds either. Nothing here
+uses Slurm or the network, and `emb-run-atlas/gold-links/` is covered by the
+`/emb-run*/` ignore rule. The gold is model-independent, so it lives in the
+0.6B's directory by convention. Tests: `tests/test_gold_links.py`,
+`tests/test_evaluate_links.py`.
+
+### Measured, strong links, 2026-10-05 (issue #272)
+
+Gold (`gold_links.py`, commit `7546baf2`): of the 988 reglamentos (863) and
+lineamientos (125) of the Atlas, **132 instruments by name (A)** (131 reglamentos,
+1 lineamiento), **160 by the objeto sentence (B)** (153 + 7), **212 in A union B**
+(204 + 8), 80 in both, 80 by B only; 227 instrument -> law links (132 by A, 175
+by B, 95 of them B-only), 12 instruments whose B names more than one law, 9 with
+two gold laws and 3 with three. **55 unresolved names** (50 say `DE LA LEY`, 3 more name an abrogated law
+otherwise, 2 name the *Código Federal de Instituciones y Procedimientos
+Electorales*; 3 of the 55 are lineamientos), 0 ambiguous. Every B link carries an
+`eId` and a sentence. The issue counted 53 unresolved names while planning, over
+names saying `DE LA LEY ...`; the rule here (`ley` or `codigo` in the name, no
+resolved law) is wider and gives 55. A loose first version of B had 263 instruments; reading ten B-only links
+by eye is what tightened it (above).
+
+Metrics, count (share) of the instruments scored, none skipped:
+
+| gold | metric | 0.6B | 4B | BM25 |
+|---|---|---|---|---|
+| A (132) | closest is a gold law | 100 (0.758) | 96 (0.727) | 101 (0.765) |
+| A (132) | a gold law among the five closest | 123 (0.932) | 122 (0.924) | 126 (0.955) |
+| A (132) | mean reciprocal rank | 0.836 | 0.819 | 0.845 |
+| A (132) | weight share on gold laws | 0.373 | 0.400 | 0.367 |
+| A union B (212) | closest is a gold law | 126 (0.594) | 122 (0.575) | 126 (0.594) |
+| A union B (212) | a gold law among the five closest | 180 (0.849) | 177 (0.835) | 181 (0.854) |
+| A union B (212) | mean reciprocal rank | 0.701 | 0.690 | 0.700 |
+| A union B (212) | weight share on gold laws | 0.283 | 0.303 | 0.279 |
+
+"Closest" ties with a non-gold instrument: 2 / 0 / 0 (A) and 3 / 1 / 3 (A union
+B) for 0.6B / 4B / BM25, so the competition rank gave BM25 and the 0.6B at most
+three instruments each.
+
+Verdicts under the rule above (difference of the first minus the second; the
+full intervals and McNemar p-values are in `evaluation.md`):
+
+| pair | closest | top-5 | MRR | weight share |
+|---|---|---|---|---|
+| 0.6B vs 4B, A | tie (+0.030) | tie (+0.008) | tie (+0.016) | **4B better** (-0.027) |
+| 0.6B vs BM25, A | tie | tie | tie | tie |
+| 4B vs BM25, A | tie | tie | **BM25 better** (-0.026) | **4B better** (+0.033) |
+| 0.6B vs 4B, A union B | tie | tie | tie | **4B better** (-0.021) |
+| 0.6B vs BM25, A union B | tie | tie | tie | tie |
+| 4B vs BM25, A union B | tie | tie | tie | **4B better** (+0.024) |
+
+**Reading.** On what the page shows -- the closest instrument and the five
+closest -- **the three are indistinguishable**: all differences are a handful of
+instruments (at most 5 of 132 on A, 4 of 212 on A union B), no McNemar test comes
+near 0.05 (smallest 0.125), and the control (A alone) and the wider gold (A union
+B) say the same thing. Three differences are real: the **4B puts a larger share
+of each row's weight on the gold law** (0.400 against 0.373 and 0.367 on A; 0.303
+against 0.283 and 0.279 on A union B), against both the 0.6B and BM25 -- the link
+is more concentrated in the 4B, even though it is not more often first -- and,
+on A alone, BM25's reciprocal rank is better than the 4B's (+0.026, interval
+[0.002, 0.054], a small effect that does not survive on the wider gold). The 4B
+is also the model BM25 was tuned toward, and is the one with the *fewest* gold
+laws first: agreement with it was never evidence of quality. A lexical baseline
+with no learned model is as good as either embedding at finding the law a
+reglamento develops, which is what the page's BM25 option already suggested.

@@ -942,6 +942,17 @@ see the #242 bullet above), #245 draws it.
   1,303; the measured tables are in `scripts/embeddings/README.md`. As with
   every regeneration, the two `PUBLICAR.md` hand-offs replace the `atlas-pairs`
   release in place and must be run **before** the pull request merges.
+- **Which data set is right? Strong links, issue #272.** Agreement between the
+  three data sets measures consensus, not quality, so
+  `scripts/embeddings/gold_links.py` builds an external gold (a reglamento or
+  lineamiento whose own name or "objeto" sentence names the law it develops;
+  212 instruments) and `evaluate_links.py` scores the three `matrix.npy`
+  against it under a bootstrap + McNemar rule fixed beforehand. Result: the
+  0.6B, the 4B and BM25 are statistically indistinguishable on the closest and
+  the five closest instruments; only the 4B's weight share on the gold law is
+  higher. Outputs stay in `emb-run-atlas/gold-links/` (gitignored); method and
+  tables are in `scripts/embeddings/README.md` ("Comparing the three data sets
+  against strong links").
 
 ## Tables in SCJN snapshots (issue #253, done)
 
