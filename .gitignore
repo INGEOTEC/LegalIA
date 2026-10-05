@@ -61,5 +61,5 @@ slurm-*.out
 /website/pages/atlas/pairs/
 # The Qwen3-Embedding-4B set (issue #261): same release, suffixed assets.
 /website/pages/atlas/pairs-qwen3-4b/
-# The BM25 lexical baseline (issue #267): same release, suffixed assets.
+# A BM25 pair set, local scratch of the same shape, never committed.
 /website/pages/atlas/pairs-bm25/
