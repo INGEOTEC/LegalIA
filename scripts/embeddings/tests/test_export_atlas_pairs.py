@@ -265,7 +265,8 @@ def test_the_manifest_sums_and_publish_plan(exported):
     on_disk = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
     assert on_disk == manifest
     assert list(manifest) == ["generated", "commit", "work_dir", "matrix", "top",
-                              "tolerance", "pairs", "provisions", "weight", "bytes",
+                              "tolerance", "method", "tolerance_relative", "pairs",
+                              "provisions", "weight", "bytes",
                               "largest", "release", "model", "model_slug", "asset", "manifest",
                                "sums"]
     assert manifest["generated"] == "2026-09-23T12:00:00+00:00"
@@ -529,6 +530,112 @@ def test_install_into_an_arbitrary_directory_for_a_4b_export(exported_4b, cache,
     installed = sorted(p.name for p in target.iterdir())
     assert installed == sorted(p.name for p in (exported_4b["out_dir"] / "pairs").iterdir())
     assert installed and all(name.endswith(".json") for name in installed)
+
+
+# -- the lexical baseline's asset set (issue #267) ---------------------------- #
+
+def test_the_bm25_model_adds_its_own_slug_to_every_name():
+    import legalvec
+
+    assert legalvec.model_slug("bm25") == "bm25"
+    assert export_atlas_pairs.asset_names("bm25") == {
+        "model_slug": "bm25", "asset": "atlas-pairs-bm25.tar.gz",
+        "manifest": "manifest-bm25.json", "sums": "SHA256SUMS-bm25.txt"}
+
+
+@pytest.fixture
+def exported_bm25(labelled, cache, tmp_path):
+    import prepare_bm25_input
+
+    work_dir = tmp_path / "bm25"
+    prepare_bm25_input.prepare(work_dir, labelled, cache_dir=cache, log=quiet)
+    instrument_matrix.build_matrix(work_dir, collections=COLLECTIONS, cache_dir=cache,
+                                   log=quiet)
+    manifest = run(work_dir, cache)
+    out_dir = export_atlas_pairs.output_dir(work_dir)
+    matrix = np.load(instrument_matrix.output_dir(work_dir) / "matrix.npy")
+    nearest = pq.read_table(instrument_matrix.output_dir(work_dir)
+                            / "nearest.parquet").to_pandas()
+    files = {path.name: json.loads(path.read_text(encoding="utf-8"))
+             for path in sorted((out_dir / "pairs").iterdir())}
+    return {"work_dir": work_dir, "out_dir": out_dir, "manifest": manifest, "matrix": matrix,
+            "nearest": nearest, "files": files, "index": index_of(work_dir)}
+
+
+def test_a_bm25_export_needs_no_vectors_and_writes_only_the_bm25_assets(exported_bm25):
+    out_dir, manifest = exported_bm25["out_dir"], exported_bm25["manifest"]
+    assert not (exported_bm25["work_dir"] / "vectors.npy").exists()
+    assert manifest["model"] == "bm25" and manifest["model_slug"] == "bm25"
+    assert manifest["method"] == "bm25" and manifest["tolerance_relative"] is True
+    assert manifest["release"] == "atlas-pairs"
+    assert (manifest["asset"], manifest["manifest"], manifest["sums"]) \
+        == ("atlas-pairs-bm25.tar.gz", "manifest-bm25.json", "SHA256SUMS-bm25.txt")
+    names = {path.name for path in out_dir.iterdir()}
+    assert {"atlas-pairs-bm25.tar.gz", "manifest-bm25.json", "SHA256SUMS-bm25.txt",
+            "PUBLICAR.md", "pairs", ".done"} <= names
+    assert not names & {"atlas-pairs.tar.gz", "manifest.json", "SHA256SUMS.txt"}
+    assert json.loads((out_dir / "manifest-bm25.json").read_text()) == manifest
+    sums = (out_dir / "SHA256SUMS-bm25.txt").read_text().splitlines()
+    for line in sums:
+        digest, name = line.split("  ")
+        assert hashlib.sha256((out_dir / name).read_bytes()).hexdigest() == digest
+    with tarfile.open(out_dir / "atlas-pairs-bm25.tar.gz", mode="r:gz") as archive:
+        assert archive.getnames()[0] == "manifest.json"
+
+
+def test_every_bm25_pair_adds_up_to_its_cell(exported_bm25):
+    """The toy BM25 matrix has `b -> a` = 1.2 (a whole `ts` plus a fifth of `t2`)."""
+    matrix, index = exported_bm25["matrix"], exported_bm25["index"]
+    files = exported_bm25["files"]
+    assert files
+    for name, document in files.items():
+        i, j = (int(part) for part in name[:-len(".json")].split("-"))
+        total = sum(1.0 / row["m"] for row in document["rows"])
+        assert total == pytest.approx(float(matrix[i, j]), abs=1e-3)
+        assert document["provisions"] == len(document["rows"])
+    document = files[f"{index['b']}-{index['a']}.json"]
+    assert document["weight"] == pytest.approx(1.2, abs=0.05)
+    assert sorted(row["m"] for row in document["rows"]) == [1, 5]
+
+
+def test_a_bm25_pair_names_the_tied_target_texts_with_the_raw_score(exported_bm25):
+    index = exported_bm25["index"]
+    document = exported_bm25["files"][f"{index['b']}-{index['a']}.json"]
+    tied = next(row for row in document["rows"] if row["m"] == 5)
+    assert tied["similarity"] == pytest.approx(0.1532, abs=1e-4)
+    # `a` owns exactly one of the six tied texts: its `t1`.
+    assert len(tied["targets"]) == 1
+    assert document["texts"][str(tied["targets"][0]["text"])] == "texto t1"
+    identical = next(row for row in document["rows"] if row["m"] == 1)
+    assert document["texts"][str(identical["targets"][0]["text"])] == "transitorio compartido"
+
+
+def test_a_bm25_publicar_adds_the_three_assets_and_says_it_is_not_an_embedding(exported_bm25):
+    plan = (exported_bm25["out_dir"] / "PUBLICAR.md").read_text(encoding="utf-8")
+    assets = "atlas-pairs-bm25.tar.gz manifest-bm25.json SHA256SUMS-bm25.txt"
+    assert f"gh release upload atlas-pairs --repo INGEOTEC/LegalIA {assets} --clobber" in plan
+    assert "sha256sum -c SHA256SUMS-bm25.txt" in plan
+    assert "**added**" in plan and "atlas-bm25.json" in plan
+    assert "BM25" in plan and "not an embedding" in plan
+    assert plan.index("before the pull request") < plan.index("gh release upload")
+
+
+def test_a_bm25_recomputation_that_disagrees_with_the_matrix_is_refused(exported_bm25, cache):
+    out = instrument_matrix.output_dir(exported_bm25["work_dir"]) / "nearest.parquet"
+    table = pq.read_table(out)
+    column = table.schema.get_field_index("similarity")
+    values = table.column("similarity").to_pylist()
+    values = [value * 1.5 for value in values]
+    table = table.set_column(column, "similarity", pa.array(values, type=pa.float32()))
+    pq.write_table(table, out)
+    with pytest.raises(SystemExit, match="nearest.parquet recorded"):
+        run(exported_bm25["work_dir"], cache)
+
+
+def test_a_bm25_export_without_its_index_is_a_system_exit(exported_bm25, cache):
+    (exported_bm25["work_dir"] / "tokens.parquet").unlink()
+    with pytest.raises(SystemExit, match="tokens.parquet"):
+        run(exported_bm25["work_dir"], cache)
 
 
 # -- transitorios are not searched (issue #264) ------------------------------- #

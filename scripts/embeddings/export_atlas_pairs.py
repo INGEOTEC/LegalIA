@@ -16,8 +16,9 @@ text of both sides:
         --atlas website/pages/atlas/atlas.json --force
 
 It is a pure read of #242's outputs — `instrument-matrix/matrix.npy`,
-`nearest.parquet`, `matrix.json`, plus #241's `vectors.npy`,
-`vector_ids.parquet` and `instruments.parquet` and the `legalvec` cache —
+`nearest.parquet`, `matrix.json`, plus #241's `vector_ids.parquet` and
+`instruments.parquet`, whatever the work directory's scorer reads (`vectors.npy`,
+or the BM25 index) and the `legalvec` cache —
 and never touches any of them. No Slurm, no network, ~3 minutes.
 
 * **Which pairs.** `export_atlas_data.weighted_targets` over `matrix.npy`,
@@ -32,11 +33,14 @@ and never touches any of them. No Slurm, no network, ~3 minutes.
   `matrix[i, j]`, which is asserted to 1e-3 for every pair.
 * **Which target texts won.** `nearest.parquet` does not record the winning
   vector rows, and recording them would mean rerunning #242's Slurm job. So
-  they are recomputed here, per pair, by the same exact cosine
-  `instrument_matrix.py` used, over `j`'s own rows only: every `j` row within
-  `--tolerance` of the recorded best wins. Since `j` owns a global winner, its
-  own best *is* the global best — asserted for every row, a `SystemExit`
-  naming `i`, `j` and the vector row otherwise.
+  they are recomputed here, per pair, by the same scorer `instrument_matrix.py`
+  used (`scoring.scorer_for`: the exact cosine, or BM25 for a work directory
+  prepared by `prepare_bm25_input.py`, issue #267), over `j`'s own rows only:
+  every `j` row within `--tolerance` of the recorded best wins (absolute for a
+  cosine, relative for BM25 -- `scoring.tie_mask`). Since `j` owns a global
+  winner, its own best *is* the global best — asserted for every row, a
+  `SystemExit` naming `i`, `j` and the vector row otherwise. Under BM25 the
+  pair file's `similarity` is the raw BM25 score, rounded to 4 decimals.
 * **Labels** are English for the type word and the corpus' own spelling for
   everything else (`unit_label`); the breadcrumb (`path`) is exported beside
   the label, never merged into it.
@@ -46,7 +50,9 @@ Outputs, under `--out-dir` (default `<work-dir>/atlas-pairs`, gitignored):
 fixed mtime/uid/gid, gzip mtime 0), `SHA256SUMS.txt` and `PUBLICAR.md`, with
 `.done` last (a non-default model's three assets carry its `legalvec.model_slug`,
 `atlas-pairs-qwen3-4b.tar.gz` / `manifest-qwen3-4b.json` /
-`SHA256SUMS-qwen3-4b.txt`, added to the same release — issue #261); a rerun with `.done` present exports nothing unless `--force`.
+`SHA256SUMS-qwen3-4b.txt`, added to the same release — issue #261; the BM25
+baseline's are `atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` /
+`SHA256SUMS-bm25.txt`, `legalvec.model_slug("bm25")` being `"bm25"`, issue #267); a rerun with `.done` present exports nothing unless `--force`.
 `--install DIR` then replaces `DIR` with a copy of `pairs/` (the site's own,
 gitignored `website/pages/atlas/pairs/`).
 
@@ -76,6 +82,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_umap_html as html  # noqa: E402
 import instrument_matrix  # noqa: E402
+import scoring  # noqa: E402
 from build_instrument_umap_html import TOP_TARGETS  # noqa: E402
 from export_atlas_data import duplicates_dropped, model_name, weighted_targets  # noqa: E402
 from prepare_umap_input import DEFAULT_MODEL  # noqa: E402
@@ -107,12 +114,13 @@ TAR_MTIME = 0
 #: through `build_umap_html.load_frames` — the one join — never re-joined here.
 LABEL_COLUMNS = ("num", "path", "piece", "text")
 
-#: What the export needs on disk, relative to the work directory.
+#: What the export needs on disk, relative to the work directory, besides what
+#: the work directory's scorer reads (`scoring.check_inputs`: `vectors.npy` for
+#: the dense methods, the BM25 index and token ids for `bm25`).
 REQUIRED = (
     f"{instrument_matrix.SUBDIR}/.done",
     f"{instrument_matrix.SUBDIR}/matrix.npy",
     f"{instrument_matrix.SUBDIR}/nearest.parquet",
-    "vectors.npy",
     "vector_ids.parquet",
     "instruments.parquet",
 )
@@ -221,6 +229,7 @@ def check_inputs(work_dir: Path) -> None:
             raise SystemExit(f"{path} is missing -- this export reads what "
                              "instrument_matrix.py (issue #242) and "
                              "prepare_umap_input.py (issue #241) wrote")
+    scoring.check_inputs(work_dir)
     # The Atlas draws unique instruments only (issue #259): refuse a work
     # directory prepared without `--unique-names`, as `export_atlas_data.py` does.
     duplicates_dropped(work_dir)
@@ -301,21 +310,13 @@ def load(work_dir: Path, *, cache_dir=None, log=print) -> dict:
             "instruments": instruments, "points": points}
 
 
-def _normalised(vectors, rows):
-    import numpy as np
-
-    block = np.asarray(vectors[rows], dtype=np.float32)
-    norms = np.linalg.norm(block, axis=1, keepdims=True)
-    return block / np.where(norms > 0, norms, 1.0)
-
-
 def _instrument_entry(instruments, i: int) -> dict:
     row = instruments.iloc[i]
     return {"i": int(i), "k": str(row["clave"]), "c": str(row["coleccion"]),
             "n": str(row["nombre"])}
 
 
-def build_pairs(data: dict, vectors, pairs, *, tolerance: float, log=print):
+def build_pairs(data: dict, scorer, pairs, *, tolerance: float, log=print):
     """Yield `(name, document)` for every pair: the rows, their winning target
     units and the texts both sides carry, as issue #249 lays the file out."""
     import numpy as np
@@ -360,19 +361,21 @@ def build_pairs(data: dict, vectors, pairs, *, tolerance: float, log=print):
 
         source_rows = sorted({int(vector_row[p]) for p in positions})
         target_rows = sorted(carriers[j])
-        scores = _normalised(vectors, source_rows) @ _normalised(vectors, target_rows).T
+        scores = scorer.scores_against(source_rows, target_rows)
         recorded = {}
         for p in positions:
             recorded.setdefault(int(vector_row[p]), float(similarity[p]))
         winners: dict[int, list[int]] = {}
         for offset, row in enumerate(source_rows):
             best = float(scores[offset].max())
-            if abs(best - recorded[row]) > tolerance:
+            if not scoring.agrees(best, recorded[row], tolerance, scorer.relative):
                 raise SystemExit(f"pair {i}-{j}, vector row {row}: {j}'s best text is at "
                                  f"{best:.7f}, nearest.parquet recorded "
                                  f"{recorded[row]:.7f} (tolerance {tolerance})")
-            threshold = min(best, recorded[row]) - tolerance
-            won = np.flatnonzero(scores[offset] >= threshold)
+            tied = scoring.tie_mask(scores[offset:offset + 1],
+                                    np.array([min(best, recorded[row])]),
+                                    tolerance, scorer.relative)
+            won = np.flatnonzero(tied[0])
             order = sorted(won.tolist(), key=lambda c: (-float(scores[offset, c]),
                                                         target_rows[c]))
             winners[row] = [target_rows[c] for c in order]
@@ -473,7 +476,9 @@ def publish_instructions(out_dir: Path, repo: str, manifest: dict) -> str:
         f"SCJN, and neither does this script. Read `{manifest_name}` first: it names the",
         "commit, the matrix and the tolerance these explanations were built from.",
         "",
-        f"Built from `{manifest['model']}` (`{manifest['model_slug']}`).",
+        f"Built from `{manifest['model']}` (`{manifest['model_slug']}`)"
+        + (", scored by BM25 -- a lexical baseline, not an embedding."
+           if manifest.get("method") == scoring.BM25 else "."),
         f"{manifest['pairs']:,} pairs, {manifest['provisions']:,} provisions, "
         f"{manifest['bytes'] / 1e6:.1f} MB of JSON before compression.",
         "",
@@ -532,8 +537,6 @@ def export(work_dir: Path, *, out_dir: Path | None = None, cache_dir=None,
     `PUBLICAR.md`, then `.done`. Returns the manifest."""
     from datetime import datetime, timezone
 
-    import numpy as np
-
     from _atomic import atomic_write_bytes, atomic_write_text
     from package_vectors import sha256
 
@@ -552,9 +555,9 @@ def export(work_dir: Path, *, out_dir: Path | None = None, cache_dir=None,
     if atlas_path is not None:
         check_atlas(atlas_path, pairs, data["instruments"])
         log(f"{atlas_path}: the same {len(pairs)} pairs")
-    vectors = np.load(work_dir / "vectors.npy", mmap_mode="r")
+    scorer = scoring.scorer_for(work_dir, full=False)
     log(f"{len(pairs)} pairs over {len(data['nearest'])} unit rows, "
-        f"{vectors.shape[0]} vectors")
+        f"{scorer.n_rows} texts ({scorer.method})")
 
     # A fresh directory, renamed into place once complete: a stale pair file
     # from an earlier run can never survive, and a half-written `pairs/` can
@@ -565,7 +568,7 @@ def export(work_dir: Path, *, out_dir: Path | None = None, cache_dir=None,
     staging.mkdir(parents=True)
     provisions, weight, total_bytes = 0, 0.0, 0
     largest = {"file": None, "rows": 0, "bytes": 0}
-    for name, document, pair_weight in build_pairs(data, vectors, pairs,
+    for name, document, pair_weight in build_pairs(data, scorer, pairs,
                                                    tolerance=tolerance, log=log):
         payload = encode(document)
         atomic_write_bytes(staging / name, payload)
@@ -587,6 +590,8 @@ def export(work_dir: Path, *, out_dir: Path | None = None, cache_dir=None,
         "matrix": data["summary"],
         "top": top,
         "tolerance": tolerance,
+        "method": scorer.method,
+        "tolerance_relative": scorer.relative,
         "pairs": len(pairs),
         "provisions": provisions,
         "weight": round(weight, 1),

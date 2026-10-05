@@ -53,7 +53,7 @@ def test_the_schema_is_meta_instruments_projections(exported):
     data = exported["data"]
     assert list(data) == ["meta", "instruments", "projections"]
     assert list(data["meta"]) == [
-        "title", "generated", "commit", "model", "instruments", "provisions",
+        "title", "generated", "commit", "model", "method", "instruments", "provisions",
         "heading_rows_excluded", "transitorio_rows_excluded",
         "identical_shared_dropped", "counted_rows",
         "distinct_texts", "collections", "unique_names", "duplicates_dropped",
@@ -64,6 +64,7 @@ def test_the_schema_is_meta_instruments_projections(exported):
     assert meta["generated"] == "2026-09-22T12:00:00+00:00"
     assert meta["commit"]
     assert meta["model"] == "Qwen/Qwen3-Embedding-0.6B"
+    assert meta["method"] == "dense"
     assert meta["instruments"] == 6
     assert meta["distinct_texts"] == 11
     assert meta["n_neighbors"] == [4, 8, 16, 32]
@@ -315,3 +316,57 @@ def test_instruments_as_ignores_the_targets_and_the_layout(exported, reference, 
     rewritten(reference, lambda entries: entries[0].update(out=[], inc=[], **{"in": 0.0}))
     export_atlas_data.export(exported["work_dir"], tmp_path / "second.json",
                              instruments_as=reference, now=NOW, log=lambda *a: None)
+
+
+# -- the lexical baseline's file (issue #267) --------------------------------- #
+
+@pytest.fixture
+def exported_bm25(prepared, cache, stub_umap, tmp_path, reference):
+    import prepare_bm25_input
+
+    work_dir = tmp_path / "bm25"
+    prepare_bm25_input.prepare(work_dir, prepared, cache_dir=cache, log=lambda *a: None)
+    instrument_matrix.build_matrix(work_dir, collections=("leyes", "lineamientos"),
+                                   cache_dir=cache, log=lambda *a: None)
+    output = tmp_path / "site" / "atlas" / "atlas-bm25.json"
+    export_atlas_data.export(work_dir, output, instruments_as=reference, now=NOW,
+                             log=lambda *a: None)
+    return {"work_dir": work_dir, "output": output,
+            "data": json.loads(output.read_text(encoding="utf-8"))}
+
+
+def test_a_bm25_file_says_which_method_scored_it(exported_bm25):
+    meta = exported_bm25["data"]["meta"]
+    assert meta["method"] == "bm25" and meta["model"] == "bm25"
+    assert meta["bm25"]["k1"] == 1.5 and meta["bm25"]["b"] == 0.75
+    assert meta["bm25"]["method"] == "lucene"
+    assert meta["tokeniser"]["token_pattern"] == r"(?u)\b\w\w+\b"
+    assert meta["vocabulary"] == 11 and meta["documents"] == 10
+    assert meta["counted_rows"] == 9 and meta["provisions"] == 16
+    assert meta["unique_names"] is True
+    # The texts still come from the corpus and vector releases.
+    assert "scjn-leyes" in meta["sources"] and "scjn-leyes-vectors" in meta["sources"]
+
+
+def test_a_bm25_file_lists_the_same_instruments_as_the_dense_one(exported, exported_bm25):
+    """`--instruments-as` already passed inside the fixture; this pins the
+    columns it guards, and that the targets are BM25's own (`b` points at five
+    instruments a fifth each, where the cosine split it between two)."""
+    dense, lexical = exported["data"]["instruments"], exported_bm25["data"]["instruments"]
+    for mine, theirs in zip(lexical, dense):
+        assert [mine[k] for k in "ckn"] == [theirs[k] for k in "ckn"]
+        assert mine["p"] == theirs["p"]
+    by_clave = {entry["k"]: entry for entry in lexical}
+    assert [weight for _, weight in by_clave["b"]["out"]][:1] == [1.2]
+    assert len(by_clave["b"]["out"]) == 5
+    assert lexical != dense
+
+
+def test_a_dense_file_with_a_mismatched_matrix_method_is_refused(exported, stub_umap, tmp_path):
+    out = instrument_matrix.output_dir(exported["work_dir"]) / "matrix.json"
+    summary = json.loads(out.read_text(encoding="utf-8"))
+    summary["method"] = "bm25"
+    out.write_text(json.dumps(summary), encoding="utf-8")
+    with pytest.raises(SystemExit, match="rerun instrument_matrix.py --force"):
+        export_atlas_data.export(exported["work_dir"], tmp_path / "x.json", now=NOW,
+                                 log=lambda *a: None)

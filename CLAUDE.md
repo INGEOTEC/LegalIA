@@ -765,7 +765,7 @@ byte-identical to before this issue.
 - **`md2akn` went to 0.4.0** — a new public keyword (`split_articles`) that
   changes what a *future* vector means, with no change to default output.
 
-## The Atlas page (issues #244, #245, #259, #261, #262)
+## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 
 The website's **Atlas** (`website/pages/atlas.qmd`, navbar entry *Atlas*
 right after *Federal Laws*, titled *An Atlas of Mexican Federal Law: Laws,
@@ -877,6 +877,31 @@ see the #242 bullet above), #245 draws it.
   unpacks both sets before publishing and fails when either is missing, so a
   human must add the 4B assets to the release (its `PUBLICAR.md`) before the
   pull request is merged. No page change here: the model control is issue #262.
+- **A lexical baseline, BM25 (issue #267).** A third data set over exactly the
+  same comparison — same unit rows, exclusions, masking, ties, `1/m` weighting
+  and exports — scored by BM25 instead of an embedding: `scripts/embeddings/scoring.py`
+  is now the one place a text-to-text score is computed (`scorer_for(work_dir)`
+  reads `input.json`'s `method`, `dense` when absent, so the two embedding work
+  directories reproduce byte for byte), `prepare_bm25_input.py` builds
+  `emb-run-atlas-bm25/` from `emb-run-atlas/` (row tables copied verbatim, no
+  vectors; `bm25s` 0.3.11 with `scipy`, in the root `viz` group; lowercase words
+  of two or more characters, no stopwords, no stemming; Lucene `k1` 1.5, `b`
+  0.75; the index is the searched candidate set; ties are relative and identity
+  is `text_sha1`), and the same chain gives the committed
+  `website/pages/atlas/atlas-bm25.json` (`meta.method` and `meta.model` are
+  `"bm25"`; `similarity` is the raw score) and the pair set installed into the
+  gitignored `website/pages/atlas/pairs-bm25/`, three **added** assets of the same
+  `atlas-pairs` release (`atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` /
+  `SHA256SUMS-bm25.txt`) that `website.yml` fetches and fails without. A human
+  adds them (`PUBLICAR.md`) before the pull request merges. No page change here:
+  the control is the follow-up.
+  Its parameters were tuned against once (review fix-1, `scripts/embeddings/tune_bm25.py`:
+  300 configurations of method × `k1` × `b` × query weighting on a 10 % stratified
+  sample, then the top three and the defaults in full, objective row-level winner
+  agreement with the 4B) and **the defaults were kept**: the best configuration
+  raised the closest-instrument agreement with the 4B from 933 to 944 of 1,303
+  (+11, under the +26 bar set beforehand), so no data set was regenerated; the
+  table is in `scripts/embeddings/README.md` ("Measured, BM25 tuning").
 - **An embedding-model control (issue #262).** A second `.atlas-segmented`
   radiogroup, *Embedding model* (`0.6B` default, `4B`), beside *Neighbourhood
   size*; one `radiogroup()` helper in `atlas.js` builds both. The mount keeps
@@ -891,6 +916,18 @@ see the #242 bullet above), #245 draws it.
   at the model's directory (explanations cached per model). The worked examples
   in the qmd describe the 0.6B; there is no URL parameter, no persisted choice
   and no comparison view.
+- **BM25 on the same control (issue #268).** The *Embedding model* control is
+  retitled **Similarity** and gains a third option, `BM25`
+  (`data-models` lists `0.6B`, `4B`, `BM25` in that order; the 0.6B stays the
+  default and `data-src`/`data-pairs` stay its paths), with a caption true of
+  all three. The explanation dialog's column reads **Score** with one decimal
+  when the data set on screen says `meta.method` is `"bm25"` (never the label —
+  the script still hard-codes no path and no label semantics) and
+  **Similarity** with three decimals otherwise. `atlas.qmd` gained a
+  paragraph on what BM25 is (a lexical baseline, not a model); the worked
+  examples still describe the 0.6B and were not re-measured. No data, script,
+  release or workflow changed: #267 did those, and the `atlas-pairs` release
+  must hold the three `-bm25` assets before this reaches `master`.
 - **Rebuilt without transitorios (issues #264, #265).** #264 made every
   `TRANSITORIOS…` unit, like a heading, neither a source nor a candidate of the
   matrix (see the #242 bullet above); #265 recomputed both work directories

@@ -814,6 +814,23 @@ def test_the_written_page_says_what_produced_it(with_matrix, stub_umap, tmp_path
     assert provenance["script"] == "scripts/embeddings/build_instrument_umap_html.py"
     assert provenance["n_neighbors"] == [4, 8, 16, 32]
     assert measured["provenance"] == provenance
+    assert provenance["method"] == "dense"
+    assert "method dense" in html
+
+
+def test_the_page_footer_names_the_bm25_method(tmp_path, prepared, cache, stub_umap):
+    import prepare_bm25_input
+
+    work_dir = tmp_path / "bm25"
+    prepare_bm25_input.prepare(work_dir, prepared, cache_dir=cache, log=lambda *a: None)
+    computed(work_dir, cache)
+    output = tmp_path / "out" / "umap-instruments-bm25.html"
+    build_instrument_umap_html.build(work_dir, output, argv=["build_instrument_umap_html.py"],
+                                     log=lambda *a: None)
+    html = output.read_text(encoding="utf-8")
+    assert "method bm25" in html
+    spec = json.loads(output.with_suffix(".vl.json").read_text(encoding="utf-8"))
+    assert spec["usermeta"]["provenance"]["method"] == "bm25"
 
 
 def test_the_page_refuses_to_build_without_a_finished_matrix(tmp_path):
@@ -1077,3 +1094,129 @@ def test_searched_mask_is_the_one_definition_of_a_searched_row(transitorio_work)
     assert (units.loc[mask, "unit_type"] != "heading").all()
     # Nine rows lie in a transitorios section: the eight articles and a heading.
     assert units["transitorio"].sum() == 9 and not mask[units["transitorio"]].any()
+
+
+# -- the BM25 scorer (issue #267) ------------------------------------------- #
+
+def bm25_computed(tmp_path, prepared, cache, **kwargs) -> dict:
+    """The same toy corpus scored by BM25: `prepare_bm25_input.py` over the dense
+    work directory, then the very same `build_matrix`."""
+    import prepare_bm25_input
+
+    work_dir = tmp_path / "bm25"
+    prepare_bm25_input.prepare(work_dir, prepared, cache_dir=cache, log=lambda *a: None)
+    return computed(work_dir, cache, **kwargs)
+
+
+def test_the_dense_summary_says_so(prepared, cache):
+    summary = computed(prepared, cache)["summary"]
+    assert summary["method"] == "dense"
+    assert summary["tolerance_relative"] is False
+    assert summary["no_match_rows"] == 0
+    assert "bm25" not in summary
+
+
+def test_the_bm25_matrix_is_the_hand_computed_one(tmp_path, prepared, cache):
+    """Ten searched documents, all two tokens long (so every present term weighs
+    `idf * 1/2.5`): `texto` (df 7) 0.1532, `t1` (df 2) and `se`/`deroga` (df 2)
+    0.5926, every other term (df 1) 0.7970. Then, per source row:
+
+    * `a`/t1 -> `{texto, t1}`: the lineamiento's identical `t1` scores 0.7458, the
+      rest 0.1532 -> `900`, whole weight 1 (identical, `m == 1`).
+    * `a`/ts and `b`/ts -> their shared transitorio, itself (a candidate, since
+      the other owner shares it): `b` and `a`, weight 1 each.
+    * `a`/tb, `b`/tb, `c`/tb, `902`/tb -> "Se deroga." wins at 1.1853 against the
+      leyes' copy (owned by `a`, `b`, `c`) and the lineamientos' (`902`): the
+      text_sha1 is the source's own and `m > 1`, so all four are dropped.
+    * `b`/t2, `c`/t3, `900`/t4, `901`/t5, `902`/t6 -> `texto` is all they share
+      with anything, every other `texto` text ties at 0.1532 (six winning rows,
+      five instruments): `1/5` to each of the others.
+    * `900`/t1 -> the leyes' `t1`: `a`, weight 1.
+    """
+    result = bm25_computed(tmp_path, prepared, cache)
+    index, matrix = result["index"], result["matrix"]
+    claves = ("a", "b", "c", "900", "901", "902")
+    expected = np.zeros_like(matrix)
+    for source in ("b", "c", "900", "901", "902"):
+        for target in claves:
+            if target != source:
+                expected[index[source], index[target]] = 0.2
+    expected[index["a"], index["900"]] = 1
+    expected[index["a"], index["b"]] = 1
+    expected[index["b"], index["a"]] += 1
+    expected[index["900"], index["a"]] += 1
+    np.testing.assert_allclose(matrix, expected, atol=1e-6)
+    assert np.trace(matrix) == 0
+    summary, nearest = result["summary"], result["nearest"]
+    assert summary["method"] == "bm25"
+    assert summary["tolerance_relative"] is True
+    assert summary["bm25"]["k1"] == 1.5 and summary["bm25"]["b"] == 0.75
+    assert summary["bm25"]["identical"] == "text_sha1"
+    assert summary["searched_rows"] == 13 and summary["unit_rows"] == 16
+    assert summary["identical_shared_dropped"] == 4
+    assert summary["no_match_rows"] == 0
+    assert summary["counted_rows"] == 9
+    assert summary["row_sums_equal_counted_rows"] is True
+    assert summary["tie_rows"] == 8
+    assert abs(matrix.sum() - 9) < 1e-4
+    np.testing.assert_allclose(
+        matrix.sum(axis=1),
+        nearest[nearest["counted"]].groupby("i").size().reindex(
+            range(matrix.shape[0]), fill_value=0).to_numpy(), atol=1e-3)
+
+
+def test_bm25_ties_are_relative_and_the_similarity_is_the_raw_score(tmp_path, prepared, cache):
+    result = bm25_computed(tmp_path, prepared, cache)
+    nearest, index = result["nearest"], result["index"]
+    tied = nearest[(nearest["clave"] == "b") & (nearest["eId"] == "art_1")].iloc[0]
+    assert tied["n_winners"] == 6 and tied["m"] == 5
+    assert sorted(tied["targets"]) == sorted(index[c] for c in ("a", "c", "900", "901", "902"))
+    assert tied["weight"] == pytest.approx(0.2)
+    assert tied["counted"] and tied["similarity"] == pytest.approx(0.1532, abs=1e-4)
+    # The raw score, not a cosine: the identical text scores more than 1/2 of
+    # anything a lone term can, and the column keeps its name.
+    identical = nearest[(nearest["clave"] == "a") & (nearest["eId"] == "art_1")].iloc[0]
+    assert identical["similarity"] == pytest.approx(0.7458, abs=1e-4)
+    assert list(identical["targets"]) == [index["900"]]
+
+
+def test_bm25_identity_is_decided_by_text_sha1(tmp_path, prepared, cache):
+    result = bm25_computed(tmp_path, prepared, cache)
+    nearest, index = result["nearest"], result["index"]
+    dropped = nearest[~nearest["counted"]]
+    assert sorted(dropped["clave"]) == ["902", "a", "b", "c"]
+    assert set(dropped["drop_reason"]) == {"identical_shared"}
+    assert (dropped["m"] > 1).all()
+    # The same winner with one owner still counts: `a`'s `t1` is `900`'s alone.
+    one = nearest[(nearest["clave"] == "900") & (nearest["eId"] == "art_2")].iloc[0]
+    assert one["counted"] and list(one["targets"]) == [index["a"]]
+    assert nearest["drop_reason"].isna().sum() == 9
+
+
+def test_a_row_with_no_foreign_match_is_recorded_and_not_counted(tmp_path, prepared, cache):
+    """`c`'s article now shares no word with anything but itself: its best foreign
+    score is 0, so it has no winner, `m == 0`, and `drop_reason == "no_match"`."""
+    for release in ("scjn-leyes-vectors",):
+        path = cache / release / "units.parquet"
+        table = pq.read_table(path).to_pandas()
+        mask = (table["clave"] == "c") & (table["eId"] == "art_1")
+        table.loc[mask, "text"] = "zzzz yyyy"
+        pq.write_table(pa.Table.from_pandas(table, preserve_index=False), path)
+    result = bm25_computed(tmp_path, prepared, cache)
+    nearest, index, matrix = result["nearest"], result["index"], result["matrix"]
+    row = nearest[(nearest["clave"] == "c") & (nearest["eId"] == "art_1")].iloc[0]
+    assert row["drop_reason"] == "no_match"
+    assert not row["counted"] and row["m"] == 0 and row["weight"] == 0
+    assert row["n_winners"] == 0 and list(row["targets"]) == [] and row["similarity"] == 0
+    assert matrix[index["c"]].sum() == 0 and matrix[:, index["c"]].sum() == 0
+    summary = result["summary"]
+    assert summary["no_match_rows"] == 1
+    assert summary["counted_rows"] == 8
+    assert summary["row_sums_equal_counted_rows"] is True
+
+
+def test_blocking_is_invisible_under_bm25(tmp_path, prepared, cache):
+    whole = bm25_computed(tmp_path, prepared, cache)
+    (tmp_path / "bm25" / "instrument-matrix" / ".done").unlink()
+    blocked = computed(tmp_path / "bm25", cache, block_rows=1)
+    np.testing.assert_array_equal(whole["matrix"], blocked["matrix"])
