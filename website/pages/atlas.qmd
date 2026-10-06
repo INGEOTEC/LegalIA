@@ -1,6 +1,6 @@
 ---
 title: "An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines"
-subtitle: "315 laws, 863 regulations and 125 guidelines, placed by where their provisions' closest texts live"
+subtitle: "315 laws, 863 regulations and 125 guidelines, placed by where their excerpts' closest texts live"
 page-layout: full
 toc: false
 number-sections: false
@@ -18,7 +18,7 @@ number-sections: false
 ::: {.atlas-lead}
 Every federal law, regulation and guideline the Supreme Court publishes in
 consolidated form is one point on this map. Two instruments sit close together
-when the texts nearest to their provisions live in the same places — the
+when the texts nearest to their excerpts live in the same places — the
 organic laws of the public universities, for instance, land beside one
 another, whatever words they happen to use.
 :::
@@ -29,38 +29,39 @@ another, whatever words they happen to use.
 ::: {.front}
 ### A point
 
-One law, regulation or guideline. Its area is proportional to its provisions
-(articles, transitory articles and the other pieces it is divided into), and
-its colour is its collection: blue for laws, green for regulations, magenta
+One law, regulation or guideline. Its area is proportional to its counted
+excerpts: the articles and other pieces of text it is divided into that are
+compared (its headings and transitory articles are not). Its colour is its
+collection: blue for laws, green for regulations, magenta
 for guidelines.
 :::
 ::: {.front}
 ### Distance
 
-Two instruments sit together when their provisions' closest texts live in the
+Two instruments sit together when their excerpts' closest texts live in the
 same places, not when they use the same words. The map is a picture of where
 federal law borrows from and repeats itself.
 :::
 ::: {.front}
 ### The numbers
 
-Each provision was matched to the single closest text outside its own
-instrument. A match shared by *m* instruments gives 1/*m* to each, so every
-provision that counts adds up to one. Two kinds of provision are not compared
-at all, neither as the provision being matched nor as the text it is matched
-to: headings, and transitory provisions, which repeat the standard wording of
-a decree. A third kind is matched but not counted: a word-for-word text shared
-by several instruments. Of the 161,989 provisions, 28,568 are headings, 21,344
-are transitory provisions and 1,715 are word-for-word texts shared by several
-instruments, so 110,362 count. Where several regulations or guidelines share a
+Each excerpt, a block of text cut from an instrument whatever its role, was
+matched to the single closest text outside its own instrument. A match shared
+by *m* instruments gives 1/*m* to each, so every excerpt that counts adds up to
+one. Two kinds of excerpt are not compared at all, neither as the excerpt being
+matched nor as the text it is matched to: headings, and transitory articles,
+which repeat the standard wording of a decree. A third kind is matched but not
+counted: a word-for-word text shared by several instruments. Of the 161,989
+excerpts, 28,568 are headings, 21,344 are transitory articles and 1,715 are
+word-for-word texts shared by several instruments, so 110,362 count. Where several regulations or guidelines share a
 name, only the most recently issued one is shown: the Supreme Court reissues a
 regulation under a new identifier rather than reforming it.
 :::
 :::
 
 Search for an instrument or click a point: the panel lists the five
-instruments its provisions are closest to, with how many of its provisions
-went to each, and the five instruments whose provisions point at it hardest.
+instruments its excerpts are closest to, with how many of its counted excerpts
+went to each, and the five instruments whose excerpts point at it hardest.
 Lines on the map join it to its five closest instruments, numbered as in the
 panel; a name in the panel selects that instrument, so the relations can be
 followed from one instrument to the next. Scroll or pinch to zoom, drag to
@@ -68,28 +69,28 @@ pan, and press Escape or click an empty spot to clear the selection. The
 collection buttons under the map show one collection at a time.
 
 A weight under *Closest instruments* is itself a button: it opens a table of
-the provisions behind that number, each beside the closest text the other
+the excerpts behind that number, each beside the closest text the other
 instrument has, both in full, with how similar the two are and how much the
 match adds to the weight — 1, or 1/*m* when the matching text is shared by *m*
 instruments.
 
 ## An example
 
-The *LEY que crea la Universidad Autónoma Chapingo* has 28 provisions, 18 of
-which count; the other ten are headings and transitory provisions, which are
+The *LEY que crea la Universidad Autónoma Chapingo* has 28 excerpts, 18 of
+which count; the other ten are headings and transitory articles, which are
 not compared. For 10 of them, the closest text outside the law belongs to the
 *LEY Orgánica de la Universidad Autónoma Metropolitana*; for 7, to the *LEY
 Orgánica de la Universidad Autónoma Agraria Antonio Narro*; and the last one
 goes to the *LEY Orgánica del Instituto Politécnico Nacional*. On the map the
 law sits among the organic laws of the UNAM, Antonio Narro, the UAM and the
-IPN. The relation is directed: 24 provisions of other instruments have their
+IPN. The relation is directed: 24 excerpts of other instruments have their
 closest text in Chapingo's law, 9 of them in Antonio Narro's and 7 in the
 UAM's.
 
-The Constitution has 1,328 provisions, but only its 136 articles and its
+The Constitution has 1,328 excerpts, but only its 136 articles and its
 preamble are compared, so 137 count. Its closest instrument is the *LEY
 General de Instituciones y Procedimientos Electorales*, at 15.0: the table
-lists 15 provisions, every one a whole 1, among them articles 41, 51 to 56,
+lists 15 excerpts, every one a whole 1, among them articles 41, 51 to 56,
 58 to 60 and 63 on elections and Congress. The closest of them, article 96,
 is matched to article 494 of that law at a similarity of 0.86, and the
 weakest, article 125, to its article 11 at 0.61. The next are the *LEY
@@ -107,14 +108,14 @@ the relations the panel lists.
 
 ## The similarity
 
-Two provisions are close when the method that compares them says so, and the
+Two excerpts are close when the method that compares them says so, and the
 map can be drawn from any of three. Two are embedding models of the same
-family, which turn each provision into a list of numbers: the 0.6B, which is
+family, which turn each excerpt into a list of numbers: the 0.6B, which is
 the one the map opens on and the one the examples above describe, and the 4B, a
 larger model of that family. The third, BM25, is a lexical baseline and not a
 model at all: it ranks texts by the words they share, weighting each word by
-how rare it is among the provisions being compared, so it knows nothing beyond
-the corpus itself and does not match a provision with a differently worded one
+how rare it is among the excerpts being compared, so it knows nothing beyond
+the corpus itself and does not match an excerpt with a differently worded one
 that means the same. Its scores are not on a scale from 0 to 1, so the table
 behind each weight calls them scores and shows one decimal.
 
@@ -133,14 +134,14 @@ regulations
 ([`scjn-reglamentos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos))
 and guidelines
 ([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos))
-— divided into provisions and embedded with `Qwen/Qwen3-Embedding-0.6B`, the
+— divided into excerpts and embedded with `Qwen/Qwen3-Embedding-0.6B`, the
 map's default, and with `Qwen/Qwen3-Embedding-4B`, which the similarity
 control switches to, as it does to BM25, a lexical baseline computed from the
-same provisions. The map is a UMAP projection, cosine metric, of each instrument's matches. The
+same excerpts. The map is a UMAP projection, cosine metric, of each instrument's matches. The
 Diario Oficial de la Federación remains the official source of legal text.
-Map data generated on <span data-atlas-generated>30 September 2026</span>.
+Map data generated on <span data-atlas-generated>5 October 2026</span>.
 
-*Read more:* how instruments are divided into provisions
+*Read more:* how instruments are divided into excerpts
 ([`md2akn`](https://legalia.readthedocs.io/en/latest/md2akn_api.html)) and
 how the vectors are read back
 ([`legalvec`](https://legalia.readthedocs.io/en/latest/legalvec_api.html)).

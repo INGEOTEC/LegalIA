@@ -739,6 +739,8 @@ The vectors are the whole-article ones (`split_articles: false`, `md2akn`
 | The pair explanations (issue #249) | `scripts/embeddings/export_atlas_pairs.py` → `emb-run-atlas/atlas-pairs/` (`pairs/`, `manifest.json`, `atlas-pairs.tar.gz`, `SHA256SUMS.txt`, `PUBLICAR.md`, `.done`), installed into `website/pages/atlas/pairs/` (gitignored); published by hand as the release `atlas-pairs`, body `.github/atlas-pairs.md` |
 | The 4B data set (issue #261) | the same chain over `emb-run-atlas-4b/` → `website/pages/atlas/atlas-qwen3-4b.json` (committed), pair files in `website/pages/atlas/pairs-qwen3-4b/` (gitignored), assets `atlas-pairs-qwen3-4b.tar.gz` / `manifest-qwen3-4b.json` / `SHA256SUMS-qwen3-4b.txt` |
 | The BM25 data set (issue #267) | `scripts/embeddings/prepare_bm25_input.py` → `emb-run-atlas-bm25/` (no vectors; `bm25-index/`, `tokens.parquet`), then the same chain → `website/pages/atlas/atlas-bm25.json` (committed), pair files in `website/pages/atlas/pairs-bm25/` (gitignored), assets `atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` / `SHA256SUMS-bm25.txt`; the scorer is `scripts/embeddings/scoring.py` |
+| The strong-link gold and the three-way evaluation (issue #272) | `scripts/embeddings/gold_links.py` → `emb-run-atlas/gold-links/` (`gold.json`, `gold.md`), then `scripts/embeddings/evaluate_links.py` → `emb-run-atlas/gold-links/` (`evaluation.json`, `evaluation.md`); gitignored, nothing uploaded |
+| The row-level evaluation against citations (issue #273) | `scripts/embeddings/gold_links.py` also writes `emb-run-atlas/gold-links/citations.parquet`, then `scripts/embeddings/evaluate_citations.py` → `emb-run-atlas/gold-links/` (`evaluation-rows.json`, `evaluation-rows.md`); gitignored, nothing uploaded |
 | Everything derived | `emb-run-atlas/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
 Nothing here is committed except `atlas.json`. Every command takes
@@ -1049,7 +1051,7 @@ Each of these was a decision in issue #242, not a default:
   `row_sums_equal_counted_rows`, next to `unit_rows`, `heading_rows_excluded`,
   `transitorio_rows_excluded`, `excluded_transitorios`, `searched_rows`,
   `identical_shared_dropped` and `counted_rows`. An
-  instrument's `p` (circle size) stays its total provisions.
+  instrument's `p` stays its total excerpts and its `pc` (circle size, issue #271) is the row sum, its counted excerpts.
 - **Per unit row, not per distinct text.** A boilerplate article repeated
   `m` times inside a code is `m` articles and counts `m` times — the same
   choice #241's centroids made.
@@ -1171,31 +1173,44 @@ One object, keys in this order:
   `unique-instruments.json`), `n_neighbors`, `default_n_neighbors` (16), `umap`
   (`min_dist`, `metric`, `random_state`, `umap_version` of the first fit),
   `weighting` (`"1/m"`), `top` (5), `sources` (the three corpus releases, then
-  the three `scjn-*-vectors`).
+  the three `scjn-*-vectors`). `provisions` keeps its old name as a JSON key
+  though it counts excerpts (issue #271): keys are code, and the pair files'
+  `provisions` lives in a release.
 - `instruments` — a list whose index is `i`, each `{"c": coleccion, "k":
-  clave, "n": nombre, "p": provisions, "in": incoming weight, "out": [[j, w],
-  …], "inc": [[j, w], …]}`. `out` is `strongest_targets(A, i, top)` and `inc`
+  clave, "n": nombre, "p": total excerpts, "pc": counted excerpts, "in":
+  incoming weight, "out": [[j, w], …], "inc": [[j, w], …]}`. `out` is `strongest_targets(A, i, top)` and `inc`
   the same helper over `A.T` (who points *here* hardest): weight > 0 only,
   heaviest first, ties by ascending id, weights to one decimal — the ranking
-  the research page uses, imported, so the two cannot disagree. `out`'s
-  total is not exported: it equals the instrument's counted provisions.
+  the research page uses, imported, so the two cannot disagree. `pc`
+  (issue #271) is `out`'s total: the matrix row sum, the instrument's counted
+  excerpts, an integer `>= 1` (the exporter refuses a row sum more than 1e-3
+  from an integer) whose sum over the instruments is `meta.counted_rows`. It
+  is a per-model fact — BM25 differs from the two embedding models in 197
+  instruments — so, unlike `p`, it is **not** among the keys `--instruments-as`
+  compares (`c`, `k`, `n`, `p`). The page shows `pc` only; `p` stays for
+  integrity and identity checks.
 - `projections` — `{"4": [[x, y], …], "8": …, "16": …, "32": …}`, one pair
   per instrument in `i` order, rounded to `--decimals`, in `[0, 1]`.
 
-**Provisions, not units**, in everything the export carries: a unit is an
-article, a transitory article or another indivisible text unit
-(`md2akn.text_units`), which a general reader calls a provision. The Python
-side keeps `units`; the words `units` and `tooltip` appear nowhere in the
+**Excerpts, not units, not provisions** (issue #271), in everything the export
+carries and the page says: an *excerpt* is a block of text cut from an
+instrument whatever its legal role (an article, a transitory article, a
+heading, a preamble) — the word of the LegalIA paper, after Colombo et al.
+2025 — where *provision* would suggest a normative rule a heading is not, and
+*legal provision* already means a DOF note in this project. So: *excerpt* is
+the reader's word, *unit* the Python side's (`md2akn.text_units`), *legal
+provision* a DOF note. The article of a transitorios block is a *transitory
+article* on the page. The Python side keeps `units`; the words `units` and `tooltip` appear nowhere in the
 file. The exporter refuses (`SystemExit`) a work directory not prepared with
 `--unique-names`, a matrix whose shape does not match the table, a requested
 `n_neighbors` missing from `umap.parquet`, an instrument with an empty `out`,
-provisions that do not add up to `matrix.json`'s `unit_rows`, and a `matrix.json` that
+excerpts that do not add up to `matrix.json`'s `unit_rows`, counted excerpts that do not add up to `counted_rows`, and a `matrix.json` that
 lacks the counted-row totals or a `matrix.npy` that does not sum to `counted_rows`.
 
 Measured on 2026-09-29: **422.7 kB** (110.1 kB gzipped), under a second; the
 Universidad Autónoma Chapingo (`luach`) points at the UAM 10.0, Narro 7.0, Ley
 Agraria 1.0, INAH 1.0 and the IPN 1.0 — all five — and `cpeum` has 1,328
-provisions, 837 of them counted. One instrument (the reglamento `124138`, nothing
+excerpts, 837 of them counted. One instrument (the reglamento `124138`, nothing
 points at it) has an empty `inc`; every `out` is non-empty.
 
 ### The pair explanations (issue #249)
@@ -1227,7 +1242,7 @@ pair by pair, weight by weight and `clave` by `clave`. Other flags:
 `instruments`, holds, keys in this order: `source` and `target` (`i`, `k`
 clave, `c` collection, `n` name — `k` lets the page notice a tarball built
 against another instrument table), `weight` (`round(A[i, j], 1)`, the panel's
-number), `provisions` (rows listed), `rows` and `texts`. A row is one **unit
+number), `provisions` (rows listed, the key kept as published), `rows` and `texts`. A row is one **unit
 row** of `nearest.parquet` whose `targets` hold `j` — a text repeated inside
 the source is one row per repetition, as in the matrix, so `Σ 1/m` over the
 rows is `A[i, j]` (asserted to 1e-3 per pair) — with `label`, `path` (the
@@ -1296,7 +1311,7 @@ The file above is what the website's **Atlas** reads
 (`website/pages/atlas.qmd`, navbar *Atlas*, issue #245): a hand-written D3 v7
 application in `website/pages/atlas/atlas.js` and `atlas.css`, the public
 successor of the research page. It draws circle **area**
-proportional to provisions (a square-root radius, 2.5 px floor) in the site's
+proportional to counted excerpts, `pc` (a square-root radius, 2.5 px floor) in the site's
 palette (laws `#2a78d6`, regulations `#008300`, guidelines `#e87ba4`), lists
 all five closest instruments and the five that point here in a detail panel
 instead of a tooltip, joins the selection to its five targets with numbered
@@ -1322,16 +1337,17 @@ Quarto's `aside` rule collapse the map to 0 px — leaving
 skip only when no Quarto is found on `PATH` or under
 `~/.local/opt/quarto-*/bin/quarto`. Every number the tests compare with the
 page (the subtitle's counts, Chapingo's five targets, the Constitution's
-provisions, the pair dialog's rows) is read off `atlas.json` and the installed
+counted excerpts, the pair dialog's rows) is read off `atlas.json` and the installed
 pair file, so the prose and the data cannot drift.
 
 **The explanation dialog (issue #250).** Each weight under *Closest
 instruments* is a `button.atlas-why` that opens a native `<dialog>` over the
 pair file #249 exports: a heading naming both instruments, one sentence
-("41 provisions of … have their closest text outside it in …; they add up to
-41.0 of its 1,328 provisions."), and a table — number, the source provision
+("15 excerpts of … have their closest text outside it in …; they add up to
+15.0 of its 137 counted excerpts."), and a table —
+number, the source excerpt
 (label, breadcrumb, full text), the closest text in the target (the same, plus
-"also N other provisions … carry this text" when several do), similarity to
+"also N other excerpts … carry this text" when several do), similarity to
 three decimals, and the weight as `1` or `1/m` with "this text is shared by
 *m* instruments". Rows keep the file's order and arrive 50 at a time ("Show 14
 more (14 left)" for the last batch of the pair above); the mount's `data-page-size` changes that number, and
@@ -1544,7 +1560,7 @@ The research page, `output/umap-instruments-qwen3-4b.html`, is 1.2 MB;
 422,737).
 
 Pair explanations: **6,352 pairs** (the 0.6B has 6,372: fewer instruments have
-five distinct targets), 78,384 provisions, 176.4 MB of JSON, largest file
+five distinct targets), 78,384 excerpts, 176.4 MB of JSON, largest file
 `pairs/1122-1059.json` (86 rows, 1.19 MB), the tarball **37.5 MB**, 73 s.
 
 How much the model changes the picture: over the 1,303 instruments, the five
@@ -1629,8 +1645,8 @@ Pair explanations, 0.6B / 4B:
 | | 0.6B | 4B |
 |---|---|---|
 | pairs | 6,288 | 6,265 |
-| provisions the pairs explain | 71,348 (weight 70,006.9) | 73,822 (weight 72,531.1) |
-| provisions per pair | median 4, p90 25, max 702 | median 4, p90 27, max 747 |
+| excerpts the pairs explain | 71,348 (weight 70,006.9) | 73,822 (weight 72,531.1) |
+| excerpts per pair | median 4, p90 25, max 702 | median 4, p90 27, max 747 |
 | JSON | 159.0 MB | 169.0 MB |
 | tarball | 33.6 MB | 35.9 MB |
 | largest file by size | `pairs/1122-1059.json` (1.19 MB, 84 rows) | `pairs/1122-1059.json` (1.19 MB, 86 rows) |
@@ -1655,15 +1671,29 @@ model — weights first, then the instrument:
 | `cpeum` | 15.0 LEY General de Instituciones y Procedimientos Electorales · 9.0 LEY Orgánica del Poder Judicial de la Federación · 8.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 4.5 REGLAMENTO DEL SENADO DE LA REPUBLICA · 4.0 ESTATUTO de Gobierno del Distrito Federal | 16.0 LEY General de Instituciones y Procedimientos Electorales · 9.0 LEY Orgánica del Congreso General de los Estados Unidos Mexicanos · 9.0 LEY Orgánica del Poder Judicial de la Federación · 6.0 ESTATUTO de Gobierno del Distrito Federal · 3.0 CÓDIGO Civil Federal |
 | `luach` | 10.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 7.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 LEY Orgánica del Instituto Politécnico Nacional | 9.0 LEY Orgánica de la Universidad Autónoma Metropolitana · 6.0 LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro · 1.0 LEY General de Educación · 1.0 LEY Monetaria de los Estados Unidos Mexicanos · 1.0 LEY Orgánica de la Universidad Nacional Autónoma de México |
 
-The Constitution has 1,328 provisions and 137 count (136 articles and the
+The Constitution has 1,328 excerpts and 137 count (136 articles and the
 preamble); the pair behind its heaviest weight, `cpeum` → `lgipe`, lists 15
-provisions, each a whole 1, from article 96 at similarity 0.861 (to article
+excerpts, each a whole 1, from article 96 at similarity 0.861 (to article
 494) down to article 125 at 0.606 (to article 11). The Chapingo law has 28
-provisions and 18 count, all answered by a single instrument each (`m == 1`):
+excerpts and 18 count, all answered by a single instrument each (`m == 1`):
 10 to the UAM, 7 to Antonio Narro, 1 to the IPN. The page's worked examples
 (`atlas.qmd`) were rewritten from these two files and the installed pair
 files; the Constitution's old example, 38 transitory articles matched to the
 statute's transitory articles, no longer exists under the rule.
+
+#### Counted excerpts on the page (issue #271, measured 2026-10-05)
+
+The three committed files were regenerated from the three local work
+directories with the commands above (a pure read: no refit, pair files and
+`atlas-pairs` release untouched, so no publish step) and gained `pc`:
+`sum(pc)` is 110,362 (0.6B), 110,362 (4B) and 110,000 (BM25), `cpeum` is 137 in
+all three, the smallest `pc` is 1, the median 48 and the largest 3,063 against
+a largest `p` of 3,589. `c`/`k`/`n`/`p`, `in`/`out`/`inc` and the projections
+are byte-identical to before; only `pc`, `meta.generated`, `meta.commit` and —
+for the two embedding files, committed before #267 — `meta.method` changed. A
+circle's area is now proportional to `pc`, so the Constitution (137 of 1,328)
+is a small circle and more than half of the instruments sit on the 2.5 px
+floor; switching to BM25 resizes the 197 circles whose `pc` differs.
 
 The hand-offs this run wrote are `emb-run-atlas/atlas-pairs/PUBLICAR.md` and
 `emb-run-atlas-4b/atlas-pairs/PUBLICAR.md`; nothing was uploaded.
@@ -1708,7 +1738,7 @@ says `method bm25`. `website/pages/atlas/atlas-bm25.json` is **421,725 bytes**
 (`atlas.json`: 421,007), accepted by `--instruments-as` (the same 1,303
 instruments in the same positions).
 
-Pair explanations: **6,289 pairs** (the 0.6B has 6,288), 72,931 provisions,
+Pair explanations: **6,289 pairs** (the 0.6B has 6,288), 72,931 excerpts,
 173.5 MB of JSON, largest file `pairs/1122-1059.json` (92 rows, 1.27 MB), the
 tarball `atlas-pairs-bm25.tar.gz` **36.3 MB**, 29 s; every file's `sum(1/m)`
 equals `matrix[i, j]` to 1e-3 (the export asserts it).
@@ -1806,3 +1836,263 @@ instruments and one of them agrees. So `atlas-bm25.json`, the pair files, the
 `atlas.qmd` prose and the `PUBLICAR.md` hand-off (`emb-run-atlas-bm25/atlas-pairs/`)
 are exactly what #267/#268 produced, and nothing was regenerated or uploaded.
 
+
+### Comparing the three data sets against strong links (issue #272)
+
+Until here the only comparison between the 0.6B, the 4B and BM25 was
+*agreement* (the closest instrument coincides for 1,077 of 1,303 between the two
+embeddings, 933 and 906 for BM25), and `tune_bm25.py` even optimised BM25 toward
+the 4B. Agreement measures consensus, not quality. This adds a gold standard
+external to all three: a federal *reglamento* (and a few *lineamientos*) exists
+to develop one specific law, and says so itself. A **strong link** is an
+instrument (the *source*, a reglamento or lineamiento) -> a law (the *target*,
+one of the 315 `leyes`), found by two offline signals over the 1,303 unique
+instruments of `emb-run-atlas/instruments.parquet`:
+
+* **A -- the name.** `REGLAMENTO DE LA LEY FEDERAL DEL TRABAJO` contains the
+  name of a law. Names are folded (NFKD, accents, case, whitespace; punctuation
+  kept), the 315 folded law names form one alternation, longest first, and a
+  match nested inside a longer matched law name is dropped. A folded name two
+  laws share (`LEY de Amnistía`: `lamn`, `lamni`) is *ambiguous* and gives no
+  link (none of the 1,303 names hit it). A name that says `ley` or `codigo` and
+  resolves to no law is `unresolved`: the law is not among the 315 (abrogated:
+  *Ley Federal de Turismo*, *Ley Forestal*, ...). Unresolved names are counted
+  and reported, never gold and never a negative -- no model can be right or
+  wrong about a law that is not in the corpus. A law with a long name
+  (`LEY de Amparo, Reglamentaria de los artículos 103 y 107 ...`) is found only
+  by its full name; a reglamento that spells it shorter in its title is a miss
+  of signal A (it can still be found by B).
+* **B -- the "objeto" sentence.** "El presente Reglamento tiene por objeto
+  reglamentar la Ley ...". Over the instrument's `article` and `loose` unit
+  rows that are not in a transitorios section, the sentences (split on `.`
+  followed by whitespace) in which an instrument word (`presente`/`este`/...
+  `reglamento`/`ordenamiento`/`lineamientos`/...) is followed, within 120
+  characters, by `tiene(n) por objeto` or `objeto reglamentar|regular|
+  establecer|desarrollar`. The gold laws are the ones named **in that same
+  sentence**, not anywhere in the unit. The evidence kept is the unit's `eId`
+  and the sentence. **Tightened after reading `gold.md`:** the first version
+  (the phrase anywhere in a non-heading, non-transitorio unit) gave 263
+  instruments and its B-only links were full of false positives: a preamble's
+  "con fundamento en los artículos ... de la Constitución" clause, the objeto of
+  a *chapter* of a larger reglamento, a commission's own objeto ("la Comisión
+  tiene por objeto"), and definitions articles whose one run-on sentence held the
+  phrase far from any subject. It is why the subject is now required, why only
+  `article` and `loose` units are read, and why the Constitution is never a
+  signal-B target (about thirty regulations name it as the *basis* of an organ's
+  powers; it stays a valid target of A). `gold.json` is never edited by hand.
+
+Direction is source -> target only: `A` is directed by design and a law points
+at many things, so the reverse is not a strong link. The gold of an instrument is
+A union B; `laws_A` keeps A alone, which is the high-precision control. B agrees
+with A where both speak: of the 80 instruments with both signals, B names the
+law A names in all 80.
+
+**Four metrics at the instrument level**, per gold instrument `i` with gold laws
+`G` and row `A[i]` (`evaluate_links.py`): *closest* (a gold law is rank 1),
+*top-5* (a gold law has rank <= 5), *reciprocal rank* of the best-ranked gold
+law (0 when every gold law has weight 0), and *weight share*,
+`sum(A[i, G]) / A[i].sum()`. Rank is the **competition rank** (1 + the instruments
+with a strictly greater weight, tolerance 1e-6): equal weights are frequent in
+BM25's rows and `argmax` would break them toward the lowest column, which is
+always a law, so the optimistic rank is stated and used for every model, and the
+table reports how many "closest" were a tie with a non-gold instrument. An
+instrument whose row sums to 0 in any model is skipped in all (none was).
+
+**Significance, fixed before the numbers were read.** For every pair of models and
+every metric, a paired bootstrap over the gold instruments (seed 0, 10,000
+resamples) gives the 95 % percentile interval of the mean difference; for
+closest and top-5, McNemar's exact test (binomial on the discordant pairs,
+`scipy.stats.binomtest`) is added. A difference is **real only if the interval
+excludes 0 and, for a binary metric, McNemar's p < 0.05**; otherwise it is a tie.
+
+```bash
+uv run --group viz python scripts/embeddings/gold_links.py --work-dir emb-run-atlas
+#   ~6 s: the unit texts come from legalvec's cache; writes emb-run-atlas/gold-links/gold.json, gold.md
+uv run --group viz python scripts/embeddings/gold_links.py --report            # offline
+uv run --group viz python scripts/embeddings/evaluate_links.py
+#   the three default work directories (0.6B, 4B, BM25); writes evaluation.json, evaluation.md
+uv run --group viz python scripts/embeddings/evaluate_links.py --report        # offline
+```
+
+`evaluate_links.py` refuses a work directory whose `instruments.parquet` is not
+the gold's (`coleccion`, `clave` at every `i`) or whose `matrix.npy` is missing
+or of the wrong shape, naming the path; it never rebuilds either. Nothing here
+uses Slurm or the network, and `emb-run-atlas/gold-links/` is covered by the
+`/emb-run*/` ignore rule. The gold is model-independent, so it lives in the
+0.6B's directory by convention. Tests: `tests/test_gold_links.py`,
+`tests/test_evaluate_links.py`.
+
+### Measured, strong links, 2026-10-05 (issue #272)
+
+Gold (`gold_links.py`, commit `7546baf2`): of the 988 reglamentos (863) and
+lineamientos (125) of the Atlas, **132 instruments by name (A)** (131 reglamentos,
+1 lineamiento), **160 by the objeto sentence (B)** (153 + 7), **212 in A union B**
+(204 + 8), 80 in both, 80 by B only; 227 instrument -> law links (132 by A, 175
+by B, 95 of them B-only), 12 instruments whose B names more than one law, 9 with
+two gold laws and 3 with three. **55 unresolved names** (50 say `DE LA LEY`, 3 more name an abrogated law
+otherwise, 2 name the *Código Federal de Instituciones y Procedimientos
+Electorales*; 3 of the 55 are lineamientos), 0 ambiguous. Every B link carries an
+`eId` and a sentence. The issue counted 53 unresolved names while planning, over
+names saying `DE LA LEY ...`; the rule here (`ley` or `codigo` in the name, no
+resolved law) is wider and gives 55. A loose first version of B had 263 instruments; reading ten B-only links
+by eye is what tightened it (above).
+
+Metrics, count (share) of the instruments scored, none skipped:
+
+| gold | metric | 0.6B | 4B | BM25 |
+|---|---|---|---|---|
+| A (132) | closest is a gold law | 100 (0.758) | 96 (0.727) | 101 (0.765) |
+| A (132) | a gold law among the five closest | 123 (0.932) | 122 (0.924) | 126 (0.955) |
+| A (132) | mean reciprocal rank | 0.836 | 0.819 | 0.845 |
+| A (132) | weight share on gold laws | 0.373 | 0.400 | 0.367 |
+| A union B (212) | closest is a gold law | 126 (0.594) | 122 (0.575) | 126 (0.594) |
+| A union B (212) | a gold law among the five closest | 180 (0.849) | 177 (0.835) | 181 (0.854) |
+| A union B (212) | mean reciprocal rank | 0.701 | 0.690 | 0.700 |
+| A union B (212) | weight share on gold laws | 0.283 | 0.303 | 0.279 |
+
+"Closest" ties with a non-gold instrument: 2 / 0 / 0 (A) and 3 / 1 / 3 (A union
+B) for 0.6B / 4B / BM25, so the competition rank gave BM25 and the 0.6B at most
+three instruments each.
+
+Verdicts under the rule above (difference of the first minus the second; the
+full intervals and McNemar p-values are in `evaluation.md`):
+
+| pair | closest | top-5 | MRR | weight share |
+|---|---|---|---|---|
+| 0.6B vs 4B, A | tie (+0.030) | tie (+0.008) | tie (+0.016) | **4B better** (-0.027) |
+| 0.6B vs BM25, A | tie | tie | tie | tie |
+| 4B vs BM25, A | tie | tie | **BM25 better** (-0.026) | **4B better** (+0.033) |
+| 0.6B vs 4B, A union B | tie | tie | tie | **4B better** (-0.021) |
+| 0.6B vs BM25, A union B | tie | tie | tie | tie |
+| 4B vs BM25, A union B | tie | tie | tie | **4B better** (+0.024) |
+
+**Reading.** On what the page shows -- the closest instrument and the five
+closest -- **the three are indistinguishable**: all differences are a handful of
+instruments (at most 5 of 132 on A, 4 of 212 on A union B), no McNemar test comes
+near 0.05 (smallest 0.125), and the control (A alone) and the wider gold (A union
+B) say the same thing. Three differences are real: the **4B puts a larger share
+of each row's weight on the gold law** (0.400 against 0.373 and 0.367 on A; 0.303
+against 0.283 and 0.279 on A union B), against both the 0.6B and BM25 -- the link
+is more concentrated in the 4B, even though it is not more often first -- and,
+on A alone, BM25's reciprocal rank is better than the 4B's (+0.026, interval
+[0.002, 0.054], a small effect that does not survive on the wider gold). The 4B
+is also the model BM25 was tuned toward, and is the one with the *fewest* gold
+laws first: agreement with it was never evidence of quality. A lexical baseline
+with no learned model is as good as either embedding at finding the law a
+reglamento develops, which is what the page's BM25 option already suggested.
+
+### Row level: explicit citations (issue #273)
+
+#272 asks, per instrument, whether the law a reglamento develops is its closest
+instrument. A unit row that cites "artículo 123 de la Ley Federal del Trabajo"
+names the law it is about, so the same three data sets can be asked where that law
+ranks among the 1,302 foreign instruments *for that one row*. `nearest.parquet`
+keeps only a row's winner, which is why the answer needs the row's whole score
+vector, and therefore a re-scoring pass.
+
+**Signal C** (`gold_links.py`, `citations.parquet`). Over every unit row of a
+reglamento or lineamiento that is neither a heading nor in a transitorios section,
+on folded text (an ordinal's full stop, `1o.`, removed): `articulo(s) N[ bis|ter|...]`,
+at most 80 characters with no `.` or `;` between, then `de la`, `del` or `de el` and
+a law name (the same longest-first alternation as signal A). A gap that says
+`reglamento` is a citation of the regulation behind the law, not of the law
+("artículo 3 del Reglamento de la Ley Federal del Trabajo"), and is skipped;
+a name two laws share resolves to nothing. One row of the table per `(source i,
+text_sha1, cited law)`, with the first article and matched span as evidence,
+`hits` and `single_law` (the text cites exactly one distinct law). Law level
+only: the cited *article* is not resolved (renumbering, `Bis` articles and ranges
+are a project of their own).
+
+**Scoring** (`evaluate_citations.py` -- a script of its own rather than
+`evaluate_links.py --level row`, which would have had to carry a scorer, a mask and
+a row join the instrument level never needs; it imports that script's bootstrap,
+McNemar test and instrument check). For each model's work directory: its own
+scorer (`scoring.scorer_for`: the exact cosine or BM25), the unit-row join, and
+exactly the mask the matrix used -- the citing instrument's *exclusively owned*
+texts and the texts no searched row owns removed (`instrument_matrix.owners_of_rows`
+and `own_rows_of`, imported). Each instrument's score is the best over the vector
+rows it owns, and the cited law's **competition rank** is 1 + the foreign
+instruments scoring strictly more (tolerance 1e-6, relative for BM25). A text the
+row shares word for word with the cited law is a column the mask keeps, so it ranks
+the law first -- the matrix's own rule, kept, and counted (`law_owns_text`; zero in
+this run: no citing text is also a text of the law it cites). A law with no score
+at all has no rank (reciprocal rank 0, never recalled, `n_foreign + 1` for the
+median). Two checks keep it an evaluation of the published data sets rather than of
+a fourth method: the best foreign score recomputed here equals `nearest.parquet`'s
+`similarity` for **every** citing row (a `SystemExit` otherwise; the largest
+difference was 4.8e-7 for the 0.6B, 3.6e-7 for the 4B and 0 for BM25), and a row is
+scored only if the matrix *counted* it in every model, so the models are compared on
+the same rows (the `identical_shared` and `no_match` rules remove the rest, and the
+report says how many).
+
+**Metrics**: recall@1, recall@5, recall@10, MRR and the median rank, per model; per
+collection; without the Constitution; and for the ten most cited laws. Significance
+is #272's rule, fixed beforehand: paired bootstrap over rows (seed 0, 10,000
+resamples), 95 % percentile interval of the mean (median) difference, McNemar's
+exact test for recall@k, real only if the interval excludes 0 and p < 0.05,
+otherwise a tie.
+
+```bash
+uv run --group viz python scripts/embeddings/gold_links.py --work-dir emb-run-atlas
+#   writes citations.parquet next to gold.json (about 25 s)
+uv run --group viz python scripts/embeddings/evaluate_citations.py
+#   re-scores the three work directories: about two minutes, no Slurm, no network
+uv run --group viz python scripts/embeddings/evaluate_citations.py --report     # offline
+```
+
+It refuses a work directory that is not the gold's instruments, a missing
+`nearest.parquet` (naming the path), a missing scorer input, a citing text with no
+vector row, and any disagreement with `nearest.parquet`; it rebuilds none of them.
+Tests: `tests/test_evaluate_citations.py` (an independent oracle over the toy corpus
+for every `(source, text, cited instrument)`, the mask, a shared text, both scorers)
+and the signal-C cases of `tests/test_gold_links.py`.
+
+### Measured, row-level citations, 2026-10-05 (issue #273)
+
+Signal C (commit `82ec9f4e`): **3,647 citations**, **2,537 distinct citing unit rows**
+(`(source, text)`) from **832 instruments** citing **179 laws**; 3,104 rows of
+`citations.parquet`; **2,010 cite exactly one law** (527 cite several: counted, not
+scored). The planning figures with a looser regex were 3,575 / 2,566 / 822 / 172 /
+2,107; the difference is `del` before a `Código`, the ordinal full stop and the
+`reglamento` guard. Seven citing rows are `identical_shared` rows (the same seven
+for the 0.6B, the 4B and BM25) and are removed, leaving **2,003 scored rows**
+(1,831 in reglamentos, 172 in lineamientos); 1,444 without the Constitution, which
+alone is 559 of them (28 %) because every kind of regulation cites it.
+
+| metric | 0.6B | 4B | BM25 |
+|---|---|---|---|
+| recall@1 | 191 (0.095) | 207 (0.103) | 182 (0.091) |
+| recall@5 | 507 (0.253) | 546 (0.273) | 483 (0.241) |
+| recall@10 | 701 (0.350) | 761 (0.380) | 694 (0.346) |
+| MRR | 0.180 | 0.194 | 0.173 |
+| median rank (of 1,302) | 29 | 21 | 29 |
+| *without the Constitution (1,444)* recall@5 | 486 (0.337) | 522 (0.361) | 467 (0.323) |
+| *without the Constitution* MRR | 0.238 | 0.252 | 0.231 |
+| *without the Constitution* median rank | 13 | 11 | 13 |
+
+Verdicts (first minus second; intervals and p-values in `evaluation-rows.md`):
+
+| pair | recall@1 | recall@5 | recall@10 | MRR | median rank |
+|---|---|---|---|---|---|
+| 0.6B vs 4B | tie | **4B better** (p 0.001) | **4B better** (p < 0.0001) | **4B better** | **4B better** (29 vs 21) |
+| 0.6B vs BM25 | tie | tie | tie | tie | tie |
+| 4B vs BM25 | tie (p 0.054) | **4B better** (p 0.0003) | **4B better** (p 0.0004) | **4B better** | **4B better** (21 vs 29) |
+
+**Reading.** Unlike the instrument level, where the three are tied on what the
+page shows, **the 4B is better at this question**: the cited law is in its five
+closest instruments for 27.3 % of the rows against 25.3 % (0.6B) and 24.1 %
+(BM25), and its median rank is 21 against 29. The two 4B differences are small
+(two to three points of recall) but not noise; the 0.6B and BM25 are
+indistinguishable, and nobody separates on recall@1, which is under 11 % for all
+three. The absolute level is low: a row that cites an article of a law is
+usually not about that law's *other* texts, and the Constitution alone (559
+rows, recall@5 of 3 to 4 % in every model) drags it down, which is why the
+without-Constitution rows are also reported; the order is the same without it.
+The split by law is where the lexical baseline is not beaten: of the ten most cited
+laws BM25's recall@5 is far higher for the *Código Fiscal de la Federación*
+(0.684 against 0.439 for the 4B and 0.351 for the 0.6B) and lower for the *Ley
+Orgánica del Poder Judicial de la Federación* (0.195 against 0.439 and 0.488), and
+the three are within a few rows on the others. Per collection, the order holds in
+reglamentos (1,831 rows); in lineamientos (172) the 4B leads and BM25 is last
+(recall@10 0.523 / 0.500 / 0.390), without a test. Law level only: this says
+nothing about whether the right *article* ranks first.

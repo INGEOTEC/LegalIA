@@ -1,7 +1,7 @@
 The evidence behind every **Closest instruments** weight of the website's
 [Atlas](https://ingeotec.github.io/LegalIA/pages/atlas.html): for each of the
 1,303 unique federal laws, regulations and guidelines, and each of the (at most) five
-instruments it points at hardest, which of its provisions point there, the
+instruments it points at hardest, which of its excerpts point there, the
 text they matched on the other side, and how much each one adds to the weight.
 
 | Asset | Contents |
@@ -32,7 +32,7 @@ the 0.6B, `atlas-qwen3-4b.json` for the 4B, `atlas-bm25.json` for BM25; all list
 the same instruments in the same positions),
 and every file names both instruments' `clave` (`source.k`/`target.k`), so a
 tarball built against a different instrument table is detectable. A file's
-rows are one per provision of the source instrument whose nearest text outside
+rows are one per excerpt of the source instrument whose nearest text outside
 it belongs to the target; each adds `1/m`, `m` being how many instruments own
 that winning text, so the rows add up to the weight the Atlas shows (issue
 #242's rule). Texts are Markdown as `md2akn` emits it, each stored once per

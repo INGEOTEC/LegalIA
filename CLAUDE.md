@@ -704,9 +704,11 @@ workflow publishes them, and `legalvec` has no PyPI release either.
 - **The website's Atlas reads one committed file, since issue #244.**
   `scripts/embeddings/export_atlas_data.py` turns #242's outputs into
   `website/pages/atlas/atlas.json` (~0.4 MB): `meta`, one short-keyed entry
-  per instrument (`c`/`k`/`n`, `p` = its **provisions** — the export and the
-  page say *provisions*, never *units*, which a general reader does not
-  understand — `in`, and `out`/`inc` as `[id, weight]` pairs from
+  per instrument (`c`/`k`/`n`, `p` = its **excerpts**, `pc` = its counted
+  excerpts, the matrix row sum — the export and the page say *excerpts*,
+  never *units* (the Python side's word) and never *provisions* (a DOF note
+  is a *legal provision* in this project, and a heading is not a rule), see
+  issue #271 — `in`, and `out`/`inc` as `[id, weight]` pairs from
   `build_instrument_umap_html.strongest_targets` over the row and over the
   column), and the four projections as `[x, y]` pairs. It is a pure read —
   no refit, no `--force`, `matrix.npy`/`umap.parquet` untouched — and it is
@@ -804,14 +806,15 @@ see the #242 bullet above), #245 draws it.
   `project.resources: ["pages/atlas/**"]` is what copies the JSON, JS and CSS
   into `_site`, and every path is relative (`atlas/atlas.json`) so the page
   works from `_site/pages/atlas.html` and a local `http.server` alike.
-- **What it does**: circle *area* is proportional to provisions
-  (square-root radius, 2.5 px floor); a detail panel lists all five closest
+- **What it does**: circle *area* is proportional to counted excerpts
+  (`pc`; square-root radius, 2.5 px floor); a detail panel lists all five closest
   instruments and the five that point here, each name selecting that
   instrument; numbered lines join a selection to its five targets; a search box
   folds accents and case; a labelled *Neighbourhood size* segmented control
   with a caption switches between the four layouts; zoom keeps radii in
   screen pixels. The interface is
-  English and says **provisions**, never *units*, *tooltip* or
+  English and says **excerpts** (an article of a transitorios block is a
+  *transitory article*), never *units*, *provisions*, *tooltip* or
   *n_neighbors*; instrument names stay as the corpus spells them. No
   provenance footer, script name or commit on the page.
 - **The site's palette, not Vega's**: laws `#2a78d6`, regulations
@@ -841,7 +844,7 @@ see the #242 bullet above), #245 draws it.
   the development machine, outside `PATH`).
 - **A weight explains itself (issues #249, #250).** Each *Closest
   instruments* weight is a button that opens a native `<dialog>`: the
-  provisions behind the number, each beside the closest text the target has,
+  excerpts behind the number, each beside the closest text the target has,
   both in full, with similarity and its `1` or `1/m`, 50 rows at a time.
   *Points here* stays plain. The data is one `pairs/<i>-<j>.json` per pair
   (6,288, ~159 MB), written by `scripts/embeddings/export_atlas_pairs.py`
@@ -942,6 +945,38 @@ see the #242 bullet above), #245 draws it.
   1,303; the measured tables are in `scripts/embeddings/README.md`. As with
   every regeneration, the two `PUBLICAR.md` hand-offs replace the `atlas-pairs`
   release in place and must be run **before** the pull request merges.
+- **Counted excerpts, and the word *excerpt* (issue #271).** The page used to
+  size a circle and tell the reader `p`, an instrument's total unit rows,
+  although the matrix compares none of its headings or transitorios and does
+  not count a word-for-word text several instruments share. `atlas*.json` now
+  carry `pc`, the matrix row sum as an integer (`sum(pc)` is `meta.counted_rows`;
+  per model — BM25 differs in 197 instruments — so it is outside the
+  `--instruments-as` identity keys), and the page shows `pc` only (panel,
+  dialog lead "of its 137 counted excerpts", circle area, size legend); `p`
+  stays in the data. *Excerpt* (the paper's word) is the reader's word, *unit*
+  the Python side's, *legal provision* a DOF note; the JSON keys named
+  `provisions` keep their names. The three files were regenerated in one run
+  from the local work directories; pair files and the `atlas-pairs` release
+  are untouched, so there is no publish step.
+- **Which data set is right? Strong links, issue #272.** Agreement between the
+  three data sets measures consensus, not quality, so
+  `scripts/embeddings/gold_links.py` builds an external gold (a reglamento or
+  lineamiento whose own name or "objeto" sentence names the law it develops;
+  212 instruments) and `evaluate_links.py` scores the three `matrix.npy`
+  against it under a bootstrap + McNemar rule fixed beforehand. Result: the
+  0.6B, the 4B and BM25 are statistically indistinguishable on the closest and
+  the five closest instruments; only the 4B's weight share on the gold law is
+  higher. Outputs stay in `emb-run-atlas/gold-links/` (gitignored); method and
+  tables are in `scripts/embeddings/README.md` ("Comparing the three data sets
+  against strong links").
+- **The same question one unit row at a time, issue #273.** Signal C of
+  `gold_links.py` (`citations.parquet`: "artículo N de la Ley X") and
+  `scripts/embeddings/evaluate_citations.py` re-score each work directory with its
+  own scorer under the matrix's own mask and rank the cited law among the 1,302
+  foreign instruments, over 2,003 single-law citing rows. Result: **the 4B is
+  better** (recall@5 0.273 against 0.253 and 0.241, median rank 21 against 29),
+  while the 0.6B and BM25 tie; see "Row level: explicit citations" in the same
+  README. Law level only, local, gitignored outputs.
 
 ## Tables in SCJN snapshots (issue #253, done)
 
