@@ -2,8 +2,9 @@
 //
 // A hand-written D3 v7 application over one file, `atlas.json`, which
 // `scripts/embeddings/export_atlas_data.py` exports (issue #244): 1,303
-// instruments, each with its provisions (`p`), the weight other instruments'
-// provisions send it (`in`), its five closest instruments (`out`) and the five
+// instruments, each with its counted excerpts (`pc`, the model's row sum; `p`,
+// the total, stays in the data and is never shown), the weight other
+// instruments' excerpts send it (`in`), its five closest instruments (`out`) and the five
 // that point at it hardest (`inc`), as `[id, weight]` pairs, plus four
 // layouts of the same map keyed by neighbourhood size.
 //
@@ -12,7 +13,7 @@
 // the browser runs.
 //
 // A weight under *Closest instruments* is a button (issue #250): it opens a
-// native <dialog> listing the provisions behind that number, read from one
+// native <dialog> listing the excerpts behind that number, read from one
 // file per pair, `<data-pairs>/<i>-<j>.json` (issue #249; `data-pairs` on the
 // mount, default `atlas/pairs/`). A file is fetched on the first click only,
 // once per page load, and checked against this map by both instruments'
@@ -53,7 +54,7 @@
     "overall shape. The layout changes, the data does not.";
   const EMPTY =
     "Search for an instrument or click a point to see which laws, " +
-    "regulations and guidelines its provisions are closest to.";
+    "regulations and guidelines its excerpts are closest to.";
   const MODEL_CAPTION =
     "The method that measured how similar two texts are; the 0.6B is the " +
     "default. Switching it changes which instruments are closest, so both the " +
@@ -76,8 +77,14 @@
     return Number.isInteger(value) ? d3.format(",")(value) : d3.format(",.1f")(value);
   }
 
-  function provisions(value) {
-    return `${formatNumber(value)} provision${value === 1 ? "" : "s"}`;
+  function excerpts(value) {
+    return `${formatNumber(value)} excerpt${value === 1 ? "" : "s"}`;
+  }
+
+  // An instrument's `pc`: the excerpts the matrix counts, which is what a weight
+  // is a share of.
+  function countedExcerpts(value) {
+    return `${formatNumber(value)} counted excerpt${value === 1 ? "" : "s"}`;
   }
 
   function element(tag, attributes, children) {
@@ -160,7 +167,7 @@
       c: entry.c,
       k: entry.k,
       n: entry.n,
-      p: entry.p,
+      pc: entry.pc,
       in: entry.in,
       out: entry.out,
       inc: entry.inc,
@@ -278,7 +285,7 @@
     });
     const sizeLegend = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     sizeLegend.setAttribute("class", "atlas-sizes");
-    sizeLegend.setAttribute("aria-label", "Circle area is proportional to provisions");
+    sizeLegend.setAttribute("aria-label", "Circle area is proportional to counted excerpts");
     const legend = element("div", { className: "atlas-legend" }, [collectionLegend, sizeLegend]);
     const mapWrap = element("div", { className: "atlas-map-wrap" }, [svgNode, label]);
     // A <div role="complementary">, never an <aside>: Quarto's page CSS sends
@@ -294,7 +301,7 @@
       element("div", { className: "atlas-map-column" }, [mapWrap, legend]),
       panel,
     ]);
-    // One dialog, reused for every pair: the provisions behind a weight.
+    // One dialog, reused for every pair: the excerpts behind a weight.
     const closeButton = element("button", {
       type: "button",
       className: "atlas-explain-close",
@@ -318,7 +325,7 @@
 
     // Largest first, so a small instrument is drawn on top of a large one and
     // can still be clicked.
-    const drawOrder = items.slice().sort((a, b) => b.p - a.p || a.i - b.i);
+    const drawOrder = items.slice().sort((a, b) => b.pc - a.pc || a.i - b.i);
     const circles = pointLayer
       .selectAll("circle")
       .data(drawOrder, (d) => d.i)
@@ -347,16 +354,16 @@
       height = Math.max(360, Math.min(Math.round(tall * 0.7), Math.round(width * 1.1)));
       svg.attr("width", width).attr("height", height).attr("viewBox", `0 0 ${width} ${height}`);
       background.attr("width", width).attr("height", height);
-      // Area proportional to provisions: the radius is a square root, about
-      // 22 px for the largest instrument on an 1,100 px map, never under
-      // 2.5 px so a two-provision guideline stays clickable.
+      // Area proportional to counted excerpts: the radius is a square root,
+      // about 22 px for the largest instrument on an 1,100 px map, never under
+      // 2.5 px so a two-excerpt guideline stays clickable.
       const largest = Math.max(10, Math.min(28, (22 * width) / 1100));
-      radius = d3.scaleSqrt().domain([0, d3.max(items, (d) => d.p)]).range([0, largest]);
+      radius = d3.scaleSqrt().domain([0, d3.max(items, (d) => d.pc)]).range([0, largest]);
       const margin = largest + 8;
       x.range([margin, width - margin]);
       y.range([height - margin, margin]);
       zoom.extent([[0, 0], [width, height]]).translateExtent([[0, 0], [width, height]]);
-      circles.attr("r", (d) => Math.max(MIN_RADIUS, radius(d.p)));
+      circles.attr("r", (d) => Math.max(MIN_RADIUS, radius(d.pc)));
       drawSizeLegend();
       place();
     }
@@ -427,11 +434,11 @@
       }
       const source = items[selected];
       const [sx, sy] = screen(source);
-      const rs = Math.max(MIN_RADIUS, radius(source.p));
+      const rs = Math.max(MIN_RADIUS, radius(source.pc));
       const targets = source.out.map(([j, w], rank) => {
         const target = items[j];
         const [tx, ty] = screen(target);
-        const rt = Math.max(MIN_RADIUS, radius(target.p));
+        const rt = Math.max(MIN_RADIUS, radius(target.pc));
         const length = Math.hypot(tx - sx, ty - sy) || 1;
         const ux = (tx - sx) / length;
         const uy = (ty - sy) / length;
@@ -520,8 +527,8 @@
             className: "atlas-weight atlas-why",
             "data-i": String(j),
             "aria-haspopup": "dialog",
-            title: `Why these provisions are closest to ${target.n}`,
-            "aria-label": `${w.toFixed(1)}: why these provisions are closest to ${target.n}`,
+            title: `Why these excerpts are closest to ${target.n}`,
+            "aria-label": `${w.toFixed(1)}: why these excerpts are closest to ${target.n}`,
             text: w.toFixed(1),
           });
           weight.addEventListener("click", () => explain(from, j, weight));
@@ -569,21 +576,21 @@
           `${identifier} `,
           element("em", { text: d.k }),
           " · ",
-          element("strong", { text: provisions(d.p) }),
+          element("strong", { text: countedExcerpts(d.pc) }),
         ]),
         element("h3", { className: "atlas-panel-heading", text: "Closest instruments" }),
         element("p", {
           className: "atlas-note",
-          text: `where its ${provisions(d.p)}' nearest texts live`,
+          text: `where its ${countedExcerpts(d.pc)}' nearest texts live`,
         }),
-        targetList(d.out, d.p, "atlas-out", d.i),
+        targetList(d.out, d.pc, "atlas-out", d.i),
         element("h3", { className: "atlas-panel-heading", text: "Points here" })
       );
       if (d.inc.length) {
         panel.append(
           element("p", {
             className: "atlas-note",
-            text: `${provisions(d.in)} of other instruments have their closest text in this one`,
+            text: `${excerpts(d.in)} of other instruments have their closest text in this one`,
           }),
           targetList(d.inc, d.in, "atlas-inc")
         );
@@ -591,7 +598,7 @@
         panel.append(
           element("p", {
             className: "atlas-note",
-            text: "No provision of another instrument has its closest text in this one.",
+            text: "No excerpt of another instrument has its closest text in this one.",
           })
         );
       }
@@ -658,7 +665,7 @@
       return element("p", { className: "atlas-explain-status", text });
     }
 
-    function provisionCell(label, path, text) {
+    function excerptCell(label, path, text) {
       const cell = [element("span", { className: "atlas-explain-label", text: label })];
       if (path) cell.push(element("span", { className: "atlas-explain-path", text: path }));
       cell.push(renderText(text));
@@ -683,16 +690,16 @@
       const closest = [];
       if (targets.length) {
         const first = targets[0];
-        closest.push(...provisionCell(first.label, first.path, texts[first.text]));
+        closest.push(...excerptCell(first.label, first.path, texts[first.text]));
         const others = targets.length - 1;
         if (others > 0) {
           const same = targets.every((entry) => entry.text === first.text);
-          const provisionWord = others === 1 ? "provision" : "provisions";
+          const excerptWord = others === 1 ? "excerpt" : "excerpts";
           const verb = same ? (others === 1 ? "carries this text" : "carry this text")
             : (others === 1 ? "is as close" : "are as close");
           closest.push(element("span", {
             className: "atlas-explain-also",
-            text: `also ${others} other ${provisionWord} of ${target.n} ${verb}`,
+            text: `also ${others} other ${excerptWord} of ${target.n} ${verb}`,
           }));
         }
       }
@@ -708,8 +715,8 @@
       }
       return element("tr", {}, [
         element("td", { className: "atlas-explain-n", "data-column": "#", text: String(n + 1) }),
-        element("td", { className: "atlas-explain-source", "data-column": "Provision" },
-          provisionCell(row.label, row.path, texts[row.text])),
+        element("td", { className: "atlas-explain-source", "data-column": "Excerpt" },
+          excerptCell(row.label, row.path, texts[row.text])),
         element("td", { className: "atlas-explain-target", "data-column": "Closest text" },
           closest),
         element("td", {
@@ -746,7 +753,7 @@
         element("thead", {}, [
           element("tr", {}, [
             element("th", { className: "atlas-explain-n", scope: "col", text: "#" }),
-            element("th", { scope: "col", text: `Provision of ${source.n}` }),
+            element("th", { scope: "col", text: `Excerpt of ${source.n}` }),
             element("th", { scope: "col", text: `Closest text in ${target.n}` }),
             element("th", { className: "atlas-explain-similarity", scope: "col", text: scoreLabel() }),
             element("th", { className: "atlas-explain-weight", scope: "col", text: "Weight" }),
@@ -757,11 +764,12 @@
       explainBody.replaceChildren(
         explainTitle(source, target),
         element("p", { className: "atlas-explain-lead" }, [
-          `${provisions(pair.provisions)} of `,
+          // `pair.provisions` is the pair file's key, kept as published (issue #271).
+          `${excerpts(pair.provisions)} of `,
           element("em", { text: source.n }),
           " have their closest text outside it in ",
           element("em", { text: target.n }),
-          `; they add up to ${Number(pair.weight).toFixed(1)} of its ${provisions(source.p)}.`,
+          `; they add up to ${Number(pair.weight).toFixed(1)} of its ${countedExcerpts(source.pc)}.`,
         ]),
         count,
         table,
@@ -875,13 +883,13 @@
     });
 
     function drawSizeLegend() {
-      const radii = SIZE_LEGEND.map((p) => Math.max(MIN_RADIUS, radius(p)));
+      const radii = SIZE_LEGEND.map((value) => Math.max(MIN_RADIUS, radius(value)));
       const tall = Math.ceil(2 * radii[radii.length - 1]) + 4;
       const legendSvg = d3.select(sizeLegend);
       legendSvg.selectAll("*").remove();
       let offset = 2;
       const group = legendSvg.append("g");
-      SIZE_LEGEND.forEach((p, n) => {
+      SIZE_LEGEND.forEach((value, n) => {
         const r = radii[n];
         group
           .append("circle")
@@ -894,7 +902,7 @@
           .attr("x", offset + 2 * r + 5)
           .attr("y", tall / 2)
           .attr("dy", "0.35em")
-          .text(d3.format(",")(p));
+          .text(d3.format(",")(value));
         offset += 2 * r + 5 + text.node().getComputedTextLength() + 14;
       });
       const caption = group
@@ -903,7 +911,7 @@
         .attr("y", tall / 2)
         .attr("dy", "0.35em")
         .attr("class", "atlas-size-caption")
-        .text("provisions");
+        .text("counted excerpts");
       offset += caption.node().getComputedTextLength() + 2;
       legendSvg.attr("width", Math.ceil(offset)).attr("height", tall);
     }
@@ -985,7 +993,7 @@
       showing += 1; // an answer still on its way belongs to the old model
       items.forEach((d) => {
         const entry = file.instruments[d.i];
-        d.p = entry.p;
+        d.pc = entry.pc;
         d.in = entry.in;
         d.out = entry.out;
         d.inc = entry.inc;
@@ -1056,7 +1064,7 @@
         const rank = d.folded.startsWith(folded) || d.foldedKey === folded ? 0 : inName ? 1 : 2;
         found.push({ d, rank });
       }
-      found.sort((a, b) => a.rank - b.rank || b.d.p - a.d.p || a.d.i - b.d.i);
+      found.sort((a, b) => a.rank - b.rank || b.d.pc - a.d.pc || a.d.i - b.d.i);
       return found.slice(0, SUGGESTIONS).map((entry) => entry.d);
     }
 
