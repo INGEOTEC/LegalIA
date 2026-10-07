@@ -464,7 +464,13 @@ def test_the_qmd_opens_with_where_the_instruments_come_from():
     assert "Buscador" not in text
     for gone in ("315 are in the corpus", "315 of the 316", "dependency", "abbreviations unchanged"):
         assert gone not in flat, gone
-    assert "filters set to the federal scope and to the category REGLAMENTO or LINEAMIENTOS" in flat
+    # Review fix-8: the restriction is made in the request to the search service,
+    # not as a choice of the site's form.
+    assert "did not use the search form of the site but the search service behind it" in flat
+    assert "even where the form does not offer them as choices" in flat
+    assert "answers every instrument together with its category" in flat
+    assert "for the federal scope and for the category REGLAMENTO or LINEAMIENTOS" in flat
+    assert "filters" not in flat and "categoriaF" not in flat and "ambitoF" not in flat
     assert "every page was read to the end" in flat
     assert "CONSTITUCIÓN" not in section and "LEY, CÓDIGO" not in section
     assert "confirming each candidate" not in flat

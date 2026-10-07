@@ -49,10 +49,14 @@ The Court's search has no way of listing everything, so the 1,087 regulations
 ([`scjn-reglamentos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos))
 and the 163 guidelines
 ([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos))
-were found through a set of phrase searches. Each phrase was sent to the Court's
-search with its filters set to the federal scope and to the category REGLAMENTO
-or LINEAMIENTOS, the Court answered in pages, and every page was read to the end,
-so that the union of the results of the phrases is the list of candidates. The phrases
+were found through a set of phrase searches. These did not use the search form of
+the site but the search service behind it, which accepts the scope and the
+category of the instruments as part of each request even where the form does not
+offer them as choices, and which answers every instrument together with its
+category, as the listing of the site shows. Each phrase was sent to the service
+for the federal scope and for the category REGLAMENTO or LINEAMIENTOS, the
+service answered in pages, and every page was read to the end, so that the union
+of the results of the phrases is the list of candidates. The phrases
 for the regulations were `reglamento`, `de`, `a`, `la`, `y`, `para` and `el`, and
 those for the guidelines were `lineamientos`, `lineamiento`, `de`, `a`, `la`, `y`,
 `para` and `el`. Besides the word of the category, the short common words are
