@@ -424,7 +424,7 @@ def test_the_qmd_describes_the_explanation_and_its_example():
                    "identical_shared_dropped", "counted_rows"):
         assert f"{meta[number]:,}" in data_box, number
     cards = text[text.index("### The numbers"):text.index("Searching for an instrument")]
-    assert "Two kinds of excerpt" not in text
+    assert "Two kinds of excerpt" not in cards     # the cut third card (the topic has its own section)
     assert "161,989" not in cards and "unique" not in cards
     assert "only the most recently issued one is shown" in data_box
     if pair is not None:
@@ -432,6 +432,60 @@ def test_the_qmd_describes_the_explanation_and_its_example():
         # No transitory article is compared, so none is in the table.
         assert not [r for r in pair["rows"] if r["label"].startswith("Transitory")]
         assert all(r["m"] == 1 for r in pair["rows"]) and "every one a whole 1" in flat
+
+
+def test_the_qmd_explains_what_text_an_excerpt_is():
+    """Review fix-4: the page says what text represents an excerpt, with a real
+    example, that the three methods receive it unchanged, and what is not compared."""
+    text = QMD.read_text(encoding="utf-8")
+    assert text.index("## How to read the map") < text.index("## What is compared") \
+        < text.index("## An example")
+    section = text[text.index("## What is compared"):text.index("## An example")]
+    flat = " ".join(section.split())
+    assert forbidden_in(section) == []
+    assert "own text as it stands in the consolidated law" in flat
+    assert "neither the name of the law nor the heading of the chapter" in flat
+    article = ("**ARTICULO 1o.-** Se crea la Universidad Autónoma Chapingo como organismo "
+               "descentralizado del Estado, con personalidad jurídica, patrimonio propio y "
+               "sede de gobierno en Chapingo, Estado de México.")
+    quoted = " ".join(" ".join(line.removeprefix("> ") for line in section.splitlines()
+                               if line.startswith(">")).split())
+    assert quoted == article
+    assert "CAPITULO I** De su Naturaleza, Objetivos y Medios" in flat
+    for method in ("Qwen3-Embedding model", "1,024", "2,560", "cosine", "BM25",
+                   "lowercase words", "No instruction, title or law name is added"):
+        assert method in flat, method
+    for kind in ("Two kinds of excerpt are not compared at all", "the heading", "the transitory article",
+                 "**PRIMERO.-** Esta Ley entrará en vigor a los quince días de la fecha de su "
+                 'publicación en el "Diario Oficial" de la Federación.',
+                 "The preamble and the closing text, on the other hand, are compared",
+                 "matched but not counted", "**ARTICULO 56.-**", "CÓDIGO Civil Federal",
+                 "LEY Federal de Responsabilidades de los Servidores Públicos",
+                 "LEY General de Población", "LEY Orgánica de la Administración Pública Federal"):
+        assert kind in flat, kind
+    assert "28 excerpts, which are 16 numbered articles, 5 transitory articles, 5 headings" in flat
+    assert "remaining 18 count" in flat
+    # Against the vectors' own units, when they are cached on this machine.
+    pq = pytest.importorskip("pyarrow.parquet")
+    units_file = Path.home() / ".cache" / "legalvec" / "scjn-leyes-vectors" / "units.parquet"
+    if not units_file.is_file():
+        pytest.skip("the scjn-leyes-vectors cache is not on this machine")
+    units = pq.read_table(units_file, columns=["clave", "eId", "unit_type", "text"]).to_pylist()
+    chapingo = [u for u in units if u["clave"] == "luach"]
+    assert [u["text"] for u in chapingo if u["eId"] == "cap_I__art_1o"] == [article]
+    heading = [u["text"] for u in chapingo if u["eId"] == "cap_I"]
+    assert heading == ["**CAPITULO I** De su Naturaleza, Objetivos y Medios"]
+    first = [u["text"] for u in chapingo if u["eId"] == "sec_transitorios__art_PRIMERO"][0]
+    assert first.replace("**", "") in flat.replace("**", "")
+    kinds = {}
+    for u in chapingo:
+        transitory = u["eId"].startswith("sec_transitorios__")
+        kinds["transitory" if transitory and u["unit_type"] == "article" else u["unit_type"]] \
+            = kinds.get("transitory" if transitory and u["unit_type"] == "article"
+                        else u["unit_type"], 0) + 1
+    assert kinds == {"article": 16, "transitory": 5, "heading": 5, "preamble": 1, "conclusions": 1}
+    shared = [u["clave"] for u in units if u["text"] == "**ARTICULO 56.- **"]
+    assert sorted(shared) == ["ccf", "lfrsp", "lgp", "loapf"]
 
 
 def test_the_qmd_chapingo_example_matches_the_default_data():

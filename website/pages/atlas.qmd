@@ -69,6 +69,53 @@ instrument has, both in full, together with how similar the two are and how
 much the match adds to the weight, which is 1, or 1/*m* when the matching text
 is shared by *m* instruments.
 
+## What is compared
+
+An excerpt is a piece of an instrument's text that is set beside those of the
+other instruments, and it is an article, whatever its length, the preamble, the
+closing text, a heading or a block of loose text. The text that represents an
+article is its own text as it stands in the consolidated law, with its number
+label and nothing added, so that neither the name of the law nor the heading of
+the chapter in which the article sits becomes part of what is compared. Article
+1 of the *LEY que crea la Universidad Autónoma Chapingo* is therefore
+represented by
+
+> **ARTICULO 1o.-** Se crea la Universidad Autónoma Chapingo como organismo
+> descentralizado del Estado, con personalidad jurídica, patrimonio propio y sede
+> de gobierno en Chapingo, Estado de México.
+
+and not by the heading of the chapter above it, **CAPITULO I** De su
+Naturaleza, Objetivos y Medios, which is left out.
+
+Exactly this text is what the three methods receive. Each Qwen3-Embedding model
+reads it whole and turns it into a single vector, of 1,024 numbers for the 0.6B
+and of 2,560 for the 4B, and the similarity of two excerpts is the cosine of
+their vectors. BM25 reads the same text as the lowercase words it contains. No
+instruction, title or law name is added for any of the three, and an article
+longer than the window of a model, as happens to a handful of very long
+articles, is cut at that window.
+
+Two kinds of excerpt are not compared at all, neither as the excerpt being
+matched nor as the text it is matched to. The first is the heading, such as the
+chapter heading above, and the second is the transitory article, which repeats
+the standard wording of a decree, such as the first of the Chapingo law,
+**PRIMERO.-** Esta Ley entrará en vigor a los quince días de la fecha de su
+publicación en el "Diario Oficial" de la Federación. The preamble and the
+closing text, on the other hand, are compared. A third kind is matched but not
+counted, and it is a text that several instruments share word for word. Article
+56 of the *CÓDIGO Civil Federal* is of this kind, since its text, which reduces
+to the label **ARTICULO 56.-** of an article with no body, is exactly the text
+of article 56 of the *LEY Federal de Responsabilidades de los Servidores
+Públicos*, of the *LEY General de Población* and of the *LEY Orgánica de la
+Administración Pública Federal*, so that the match says nothing about any one of
+them.
+
+The Chapingo law accordingly has 28 excerpts, which are 16 numbered articles, 5
+transitory articles, 5 headings (its four chapters and the heading of the
+transitory articles), the preamble and the closing text. The 5 headings and the
+5 transitory articles are not compared, and the remaining 18 count, as the
+example below shows.
+
 ## An example
 
 The two examples below describe the map as it opens, which is drawn from the
