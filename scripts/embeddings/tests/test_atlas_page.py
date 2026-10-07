@@ -449,7 +449,21 @@ def test_the_qmd_opens_with_where_the_instruments_come_from():
     for tag in ("scjn-leyes", "scjn-reglamentos", "scjn-lineamientos"):
         assert f"https://github.com/INGEOTEC/LegalIA/releases/tag/{tag}" in section
     assert "(leyes.ipynb)" in section
-    assert "REGLAMENTO or LINEAMIENTOS" in flat and "LEY, CÓDIGO and CONSTITUCIÓN" in flat
+    assert "REGLAMENTO or LINEAMIENTOS" in flat
+    # Review fix-6: the laws were seeded from the Diputados catalogue, and the
+    # discovery of future laws is not how the corpus was built.
+    assert "Cámara de Diputados" in flat and "LeyesBiblio" in flat
+    assert "https://www.diputados.gob.mx/LeyesBiblio/" in section
+    assert "316 instruments" in flat and "315 are in the corpus" in flat
+    assert "CONSTITUCIÓN" not in section and "LEY, CÓDIGO" not in section
+    assert "confirming each candidate" not in flat
+    for phrase in ("reglamento", "de", "a", "la", "y", "para", "el"):
+        assert f"`{phrase}`" in flat, phrase
+    for phrase in ("lineamientos", "lineamiento", "de", "a", "la", "y", "para", "el"):
+        assert f"`{phrase}`" in flat, phrase
+    assert ("`reglamento`, `de`, `a`, `la`, `y`, `para` and `el`" in flat
+            and "`lineamientos`, `lineamiento`, `de`, `a`, `la`, `y`, `para` and `el`" in flat)
+    assert "`reglamento` for the regulations and `lineamientos` for the guidelines" in flat
     data = atlas_data()
     n = counts(data)
     dropped = data["meta"]["duplicates_dropped"]

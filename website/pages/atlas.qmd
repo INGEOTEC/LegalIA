@@ -36,23 +36,32 @@ are an editorial product.
 
 The 315 laws, which include the codes and the Constitution, are published as the
 [`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)
-corpus, and the [Federal Laws page](leyes.ipynb) describes it in full. Each law
-of a catalogue of the federal laws was searched by its name and resolved by the
-identifier the Court gives it, and never by the rank of the search, because the
-Court's search can return a wrong document for a name. Its whole reform table was
-then crawled, which gives one dated text for every reform, 3,707 texts in all. A
-new federal law is found by listing the Court's categories LEY, CÓDIGO and
-CONSTITUCIÓN and confirming each candidate against a title of the Diario Oficial,
-and it is added by a person.
+corpus, and the [Federal Laws page](leyes.ipynb) describes it in full. The list of
+federal laws was seeded from the catalogue of federal legislation that the Cámara
+de Diputados publishes ([LeyesBiblio](https://www.diputados.gob.mx/LeyesBiblio/),
+316 instruments), which gave each law its name and its abbreviation. Each law was
+then searched by its name in the Court's database and resolved by the identifier
+the Court gives it, and never by the rank of the search, because the Court's
+search can return a wrong document for a name. Its whole reform table was crawled,
+which gives one dated text for every reform, 3,707 texts in all. The dependency on
+the site of the Cámara de Diputados was later removed, and the catalogue is now
+carried by the corpus itself with the abbreviations unchanged. Of the 316
+instruments, 315 are in the corpus.
 
 The Court's search has no way of listing everything, so the 1,087 regulations
 ([`scjn-reglamentos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos))
 and the 163 guidelines
 ([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos))
 were found by paging the union of several phrase searches, restricted to the
-federal scope and to the Court's category REGLAMENTO or LINEAMIENTOS. To these
-were added the instruments that the Court files under another category but whose
-own reform table has a row of that category, which rescued 6 regulations and 4
+federal scope and to the Court's category REGLAMENTO or LINEAMIENTOS. The phrases
+for the regulations were `reglamento`, `de`, `a`, `la`, `y`, `para` and `el`, and
+those for the guidelines were `lineamientos`, `lineamiento`, `de`, `a`, `la`, `y`,
+`para` and `el`. Besides the word of the category, the short common words are
+there so that an instrument of the category whose title does not contain that word
+is still reached. To these were added the instruments that the Court files under
+another category but whose own reform table has a row of that category, which were
+looked for among the hits of one phrase, `reglamento` for the regulations and
+`lineamientos` for the guidelines, and which rescued 6 regulations and 4
 guidelines. Because the Court reissues a regulation under a new identifier
 instead of reforming it, these two corpora are keyed by that identifier and not
 by name. For 5 regulations and 37 guidelines the Court serves no text at all, so
