@@ -16,11 +16,11 @@ number-sections: false
 ::: {.atlas-prose}
 
 ::: {.atlas-lead}
-Every federal law, regulation and guideline the Supreme Court publishes in
+Every federal law, regulation and guideline that the Supreme Court publishes in
 consolidated form is one point on this map. Two instruments sit close together
-when the texts nearest to their excerpts live in the same places — the
+when the texts nearest to their excerpts live in the same places, so that the
 organic laws of the public universities, for instance, land beside one
-another, whatever words they happen to use.
+another whatever words they happen to use.
 :::
 
 ## How to read the map
@@ -29,122 +29,270 @@ another, whatever words they happen to use.
 ::: {.front}
 ### A point
 
-One law, regulation or guideline. Its area is proportional to its counted
-excerpts: the articles and other pieces of text it is divided into that are
-compared (its headings and transitory articles are not). Its colour is its
-collection: blue for laws, green for regulations, magenta
-for guidelines.
+A point is one law, regulation or guideline. Its area is proportional to its
+counted excerpts, that is, to the number of articles and other pieces of text
+into which it is divided and which are compared with those of other
+instruments (its headings and transitory articles are not). Its colour is its
+collection, blue for laws, green for regulations and magenta for guidelines.
 :::
 ::: {.front}
 ### Distance
 
-Two instruments sit together when their excerpts' closest texts live in the
-same places, not when they use the same words. The map is a picture of where
-federal law borrows from and repeats itself.
+Two instruments sit together when the closest texts of their excerpts live in
+the same places, and not when they use the same words. The map is therefore a
+picture of where federal law borrows from itself and repeats itself.
 :::
 ::: {.front}
 ### The numbers
 
 Each excerpt, a block of text cut from an instrument whatever its role, was
 matched to the single closest text outside its own instrument. A match shared
-by *m* instruments gives 1/*m* to each, so every excerpt that counts adds up to
-one. Two kinds of excerpt are not compared at all, neither as the excerpt being
-matched nor as the text it is matched to: headings, and transitory articles,
-which repeat the standard wording of a decree. A third kind is matched but not
-counted: a word-for-word text shared by several instruments. Of the 161,989
-excerpts, 28,568 are headings, 21,344 are transitory articles and 1,715 are
-word-for-word texts shared by several instruments, so 110,362 count. Where several regulations or guidelines share a
-name, only the most recently issued one is shown: the Supreme Court reissues a
-regulation under a new identifier rather than reforming it.
+by *m* instruments gives 1/*m* to each of them, so that every excerpt that
+counts adds up to one.
 :::
 :::
 
-Search for an instrument or click a point: the panel lists the five
-instruments its excerpts are closest to, with how many of its counted excerpts
-went to each, and the five instruments whose excerpts point at it hardest.
-Lines on the map join it to its five closest instruments, numbered as in the
-panel; a name in the panel selects that instrument, so the relations can be
-followed from one instrument to the next. Scroll or pinch to zoom, drag to
-pan, and press Escape or click an empty spot to clear the selection. The
-collection buttons under the map show one collection at a time.
+Searching for an instrument or clicking a point fills the panel with the five
+instruments to which its excerpts are closest, together with the number of its
+counted excerpts that went to each, and with the five instruments whose
+excerpts point at it most often. Lines on the map join the selected instrument
+to its five closest instruments and are numbered as in the panel, and a name in
+the panel selects that instrument, so that the relations can be followed from
+one instrument to the next. The map can be zoomed by scrolling or pinching and
+moved by dragging, and the selection is cleared by pressing Escape or by
+clicking an empty spot. The collection buttons under the map show one
+collection at a time.
 
-A weight under *Closest instruments* is itself a button: it opens a table of
-the excerpts behind that number, each beside the closest text the other
-instrument has, both in full, with how similar the two are and how much the
-match adds to the weight — 1, or 1/*m* when the matching text is shared by *m*
-instruments.
+Each weight under *Closest instruments* is itself a button. It opens a table
+of the excerpts behind that number, each beside the closest text the other
+instrument has, both in full, together with how similar the two are and how
+much the match adds to the weight, which is 1, or 1/*m* when the matching text
+is shared by *m* instruments.
 
 ## An example
 
-The *LEY que crea la Universidad Autónoma Chapingo* has 28 excerpts, 18 of
-which count; the other ten are headings and transitory articles, which are
-not compared. For 10 of them, the closest text outside the law belongs to the
-*LEY Orgánica de la Universidad Autónoma Metropolitana*; for 7, to the *LEY
-Orgánica de la Universidad Autónoma Agraria Antonio Narro*; and the last one
-goes to the *LEY Orgánica del Instituto Politécnico Nacional*. On the map the
-law sits among the organic laws of the UNAM, Antonio Narro, the UAM and the
-IPN. The relation is directed: 24 excerpts of other instruments have their
-closest text in Chapingo's law, 9 of them in Antonio Narro's and 7 in the
-UAM's.
+The two examples below describe the map as it opens, which is drawn from the
+0.6B model, so that a reader who has switched to the 4B or to BM25 may see
+slightly different numbers in the panel. The *LEY que crea la Universidad
+Autónoma Chapingo* has 28 excerpts, 18 of which count, the other ten being
+headings and transitory articles that are not compared. For 10 of them the
+closest text outside the law belongs to the *LEY Orgánica de la Universidad
+Autónoma Metropolitana*, for 7 to the *LEY Orgánica de la Universidad Autónoma
+Agraria Antonio Narro*, and the last one goes to the *LEY Orgánica del
+Instituto Politécnico Nacional*. On the map the law sits among the organic laws
+of the UNAM, Antonio Narro, the UAM and the IPN. The relation is directed, since
+24 excerpts of other instruments have their closest text in Chapingo's law, 9
+of them in Antonio Narro's and 7 in the UAM's.
 
 The Constitution has 1,328 excerpts, but only its 136 articles and its
-preamble are compared, so 137 count. Its closest instrument is the *LEY
-General de Instituciones y Procedimientos Electorales*, at 15.0: the table
-lists 15 excerpts, every one a whole 1, among them articles 41, 51 to 56,
-58 to 60 and 63 on elections and Congress. The closest of them, article 96,
-is matched to article 494 of that law at a similarity of 0.86, and the
-weakest, article 125, to its article 11 at 0.61. The next are the *LEY
-Orgánica del Poder Judicial de la Federación* at 9.0 and the *LEY Orgánica del
-Congreso General de los Estados Unidos Mexicanos* at 8.0.
+preamble are compared, so that 137 count. Its closest instrument is the *LEY
+General de Instituciones y Procedimientos Electorales*, at 15.0. The table
+behind that weight lists 15 excerpts, every one a whole 1, among them articles
+41, 51 to 56, 58 to 60 and 63 on elections and Congress. The closest of them,
+article 96, is matched to article 494 of that law at a similarity of 0.86, and
+the weakest, article 125, to its article 11 at 0.61. The next closest
+instruments are the *LEY Orgánica del Poder Judicial de la Federación* at 9.0
+and the *LEY Orgánica del Congreso General de los Estados Unidos Mexicanos* at
+8.0.
 
 ## The neighbourhood size
 
-The map is drawn four times from the same data. The neighbourhood size is how
-many neighbours each instrument is placed against when the map is drawn: small
-values keep tight local groups, such as the universities above, and large
-values keep the overall shape, such as how the laws, the regulations and the
-guidelines sit relative to one another. Switching it changes the layout, never
-the relations the panel lists.
+The map is drawn four times from the same data. Each layout is a
+two-dimensional UMAP (Uniform Manifold Approximation and Projection)
+embedding of every instrument's row of weights [@McInnes2018UMAP]. UMAP builds
+a graph that joins each point to its nearest neighbours and then lays that
+graph out in the plane so that neighbours stay close. The neighbourhood size is
+the number of neighbours in that graph, so that small values preserve tight
+local groups, such as the universities above, while large values preserve the
+overall shape, such as how the laws, the regulations and the guidelines sit
+relative to one another. Switching it changes the layout and never the
+relations listed in the panel.
 
 ## The similarity
 
-Two excerpts are close when the method that compares them says so, and the
-map can be drawn from any of three. Two are embedding models of the same
-family, which turn each excerpt into a list of numbers: the 0.6B, which is
-the one the map opens on and the one the examples above describe, and the 4B, a
-larger model of that family. The third, BM25, is a lexical baseline and not a
-model at all: it ranks texts by the words they share, weighting each word by
-how rare it is among the excerpts being compared, so it knows nothing beyond
-the corpus itself and does not match an excerpt with a differently worded one
-that means the same. Its scores are not on a scale from 0 to 1, so the table
-behind each weight calls them scores and shows one decimal.
+Two excerpts are close when the method that compares them says so, and the map
+can be drawn from any of three methods. Two of them are Qwen3-Embedding models
+[@Zhang2025Qwen3Embedding], which turn each excerpt into a list of numbers. The
+smaller, Qwen3-Embedding-0.6B (the 0.6B), is the one on which the map opens
+and the one that the examples above describe, and the larger,
+Qwen3-Embedding-4B (the 4B), is a model of the same family. The third, BM25
+[@Robertson2009BM25], is a lexical baseline and not a model at all. It ranks
+texts by the words they share, weighting each word by how rare it is among the
+excerpts being compared, so that it knows nothing beyond the corpus itself and
+does not match an excerpt with a differently worded one that means the same.
+Its scores are not on a scale from 0 to 1, and the table behind each weight
+therefore calls them scores and shows one decimal.
 
-Choosing another method is not a change of view like the neighbourhood size: a
-different method finds different closest texts, so the instruments the panel
-lists, the weights and the lines change, and the layout is drawn again from
-them. The selected instrument stays selected, and the size of the neighbourhood
+Choosing another method is not a change of view like the neighbourhood size.
+A different method finds different closest texts, so the instruments listed in
+the panel, the weights and the lines all change, and the layout is drawn again
+from them. The selected instrument stays selected and the neighbourhood size
 stays where it was. The map of the 4B or of BM25 is fetched the first time it
 is chosen, and the table behind each weight is then read for that method.
 
+## Checking the map against known links
+
+The three methods agree on the closest instrument for most instruments, but
+agreement is not correctness, and a method that all three share could be wrong
+in the same way. The corpus itself offers a way to check, because a federal
+regulation exists to develop one law and usually says so. Such a statement is a
+strong link between two instruments that no similarity method was used to
+find, and it can be used as a gold standard against which the three data sets
+are scored.
+
+### How the strong links are built
+
+The links come from three signals, each read from the text of the regulations
+and guidelines (988 instruments on the map). The first, A, is the name of the
+instrument. When the name of a regulation contains the name of a law, as in the
+*REGLAMENTO DE LA LEY FEDERAL DE CORREDURÍA PÚBLICA*, the law is the *Ley
+Federal de Correduría Pública*. This links 132 instruments, 131 regulations and
+one guideline. The second, B, is the sentence that states the purpose of the
+instrument, usually its first article, which often names the law it regulates.
+Article 1 of the *REGLAMENTO DE LA LEY DE AGUAS NACIONALES* reads "El
+presente ordenamiento tiene por objeto reglamentar la Ley de Aguas Nacionales",
+which confirms what its name already said. Article 1 of the *REGLAMENTO DE
+SISTEMAS DE COMERCIALIZACIÓN MEDIANTE LA INTEGRACIÓN DE GRUPOS DE CONSUMIDORES*
+reads "El presente ordenamiento tiene por objeto regular los sistemas de
+comercialización mediante la integración de grupos de consumidores, a que se
+refiere el artículo 63 de la Ley Federal de Protección al Consumidor", so that
+its law is found although its name never mentions it. Signal B links 160
+instruments, and the two signals together link 212 instruments to 227 laws.
+
+A name is not always enough. For 55 instruments the name points to a law that
+cannot be resolved among the 315 laws of the corpus, as with the *REGLAMENTO DE
+LA LEY FEDERAL DE TURISMO*, whose law has been abrogated, and these instruments
+are left out of the gold standard instead of being guessed.
+
+The third signal, C, works on single excerpts instead of whole instruments. An
+excerpt that cites "artículo 38 Bis de la Ley General del Equilibrio Ecológico
+y la Protección al Ambiente" names the law it is about, and the same
+three data sets can be asked where that law ranks for that one excerpt. The
+corpus holds 3,647 such citations, in 2,537 distinct excerpts of 832
+instruments that cite 179 different laws. Of those excerpts, 2,010 cite exactly
+one law. An excerpt that cites two or more laws is counted but not scored,
+because it has no single right answer, and seven more are removed because their
+text is word for word the text of several instruments. The 2,003 excerpts that
+remain are scored, and 559 of them cite the Constitution, which every kind of
+regulation cites.
+
+### What is measured
+
+At the level of the instrument, the question is whether a gold law is the
+closest instrument of the regulation, whether it is among the five closest,
+what its reciprocal rank is on average, and what share of the weights of the
+regulation it receives. At the level of the excerpt, the question is the rank
+that the cited law obtains among the 1,302 other instruments, summarised by the
+share of excerpts for which that rank is at most 1, 5 and 10, by the mean
+reciprocal rank and by the median rank. The weights and the masks are exactly
+those of the map, so that what is scored is the published data and not a fourth
+method. A difference between two methods is called real only if the 95 %
+interval of a paired bootstrap (10,000 resamples) excludes zero and, for the
+yes-or-no measures, McNemar's exact test gives a probability below 0.05, a rule
+fixed before the results were looked at. Otherwise the two methods are tied.
+
+### The instruments
+
+The measures below were taken on 5 October 2026, over the 132 instruments of
+signal A alone and over the 212 of signals A and B together.
+
+| Gold links | Measure | 0.6B | 4B | BM25 |
+|---|---|---|---|---|
+| A (132) | closest is a gold law | 100 | 96 | 101 |
+| A (132) | a gold law among the five closest | 123 | 122 | 126 |
+| A (132) | mean reciprocal rank | 0.836 | 0.819 | 0.845 |
+| A (132) | share of the weight on gold laws | 0.373 | 0.400 | 0.367 |
+| A and B (212) | closest is a gold law | 126 | 122 | 126 |
+| A and B (212) | a gold law among the five closest | 180 | 177 | 181 |
+| A and B (212) | mean reciprocal rank | 0.701 | 0.690 | 0.700 |
+| A and B (212) | share of the weight on gold laws | 0.283 | 0.303 | 0.279 |
+
+On what the map shows, which is the closest instrument and the five closest,
+the three methods cannot be told apart. They differ by a handful of
+instruments (at most 5 of 132 and 4 of 212) and no test comes near the
+threshold, the smallest probability being 0.125. Two differences are real. The
+4B puts a larger share of each regulation's weight on its gold law than either
+of the others, on both gold standards, so that the link is more concentrated
+in the 4B even though the law is not more often first. And on signal A alone
+the reciprocal rank of BM25 is higher than that of the 4B by 0.026, a small
+effect that does not survive on the wider gold standard.
+
+### The excerpts
+
+The same three data sets were then scored one excerpt at a time over the 2,003
+excerpts that cite exactly one law, and again over the 1,444 excerpts that
+remain once those citing the Constitution are set aside.
+
+| Measure | 0.6B | 4B | BM25 |
+|---|---|---|---|
+| cited law first | 0.095 | 0.103 | 0.091 |
+| among the five closest | 0.253 | 0.273 | 0.241 |
+| among the ten closest | 0.350 | 0.380 | 0.346 |
+| mean reciprocal rank | 0.180 | 0.194 | 0.173 |
+| median rank (of 1,302) | 29 | 21 | 29 |
+| among the five closest, without the Constitution | 0.337 | 0.361 | 0.323 |
+| mean reciprocal rank, without the Constitution | 0.238 | 0.252 | 0.231 |
+| median rank, without the Constitution | 13 | 11 | 13 |
+
+At this level the methods are no longer tied. The 4B is better than both of
+the others on the share of excerpts whose cited law is among the five and the
+ten closest, on the mean reciprocal rank and on the median rank, which falls
+from 29 to 21. The differences are small, two to three points of recall, but
+they are not noise. The 0.6B and BM25 are tied on every measure, and none of
+the three separates from the others on the share of excerpts whose cited law is
+first, which is under 11 % for all of them. The absolute level is low because
+an excerpt that cites an article of a law is usually about something other
+than the rest of that law, and the Constitution, which is cited by 559 of the
+excerpts, drags it down further. The order of the three is the same without
+the Constitution.
+
+### The reading
+
+On the question the map answers, which is what an instrument is closest to,
+the three methods are indistinguishable at finding the law that a regulation
+develops, and a lexical baseline that learns nothing is as good as either
+embedding model. The 4B concentrates more of the weight on that law and ranks
+a cited law higher for a single excerpt, and this is the one measured reason
+for switching to it. BM25 is not beaten everywhere. Among the ten most cited
+laws it is clearly the best on the *Código Fiscal de la Federación*, where the
+cited law is among the five closest for 68.4 % of the excerpts against 43.9 %
+for the 4B, and clearly the worst on the *Ley Orgánica del Poder Judicial de la
+Federación*, with 19.5 % against 43.9 %. These checks look at the law and not
+at the article, so they say nothing about whether the right article of that
+law ranks first.
+
 ::: {.atlas-data}
 **Data.** The texts are the three consolidated corpora this project publishes
-from the Supreme Court (SCJN) — [laws](leyes.ipynb)
+from the Supreme Court (SCJN), namely the [laws](leyes.ipynb)
 ([`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)),
-regulations
+the regulations
 ([`scjn-reglamentos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos))
-and guidelines
-([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos))
-— divided into excerpts and embedded with `Qwen/Qwen3-Embedding-0.6B`, the
-map's default, and with `Qwen/Qwen3-Embedding-4B`, which the similarity
-control switches to, as it does to BM25, a lexical baseline computed from the
-same excerpts. The map is a UMAP projection, cosine metric, of each instrument's matches. The
-Diario Oficial de la Federación remains the official source of legal text.
-Map data generated on <span data-atlas-generated>5 October 2026</span>.
+and the guidelines
+([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos)).
+They are divided into excerpts and embedded with `Qwen/Qwen3-Embedding-0.6B`,
+the default of the map, and with `Qwen/Qwen3-Embedding-4B`, to which the
+similarity control switches, as it does to BM25, a lexical baseline computed
+from the same excerpts. Of the 161,989 excerpts, 28,568 are headings and 21,344
+are transitory articles, neither of which is compared, and 1,715 are
+word-for-word texts shared by several instruments, which are matched but not
+counted, so that 110,362 count. Where several regulations or guidelines share
+a name only the most recently issued one is shown, because the Supreme Court
+reissues a regulation under a new identifier instead of reforming it. The map
+is a UMAP projection with the cosine metric of each instrument's matches. The
+Diario Oficial de la Federación remains the official source of legal text. Map
+data generated on <span data-atlas-generated>5 October 2026</span>.
 
-*Read more:* how instruments are divided into excerpts
-([`md2akn`](https://legalia.readthedocs.io/en/latest/md2akn_api.html)) and
-how the vectors are read back
-([`legalvec`](https://legalia.readthedocs.io/en/latest/legalvec_api.html)).
+*Read more.* The division of instruments into excerpts is described in
+[`md2akn`](https://legalia.readthedocs.io/en/latest/md2akn_api.html), the way
+the vectors are read back in
+[`legalvec`](https://legalia.readthedocs.io/en/latest/legalvec_api.html), and
+the full tables of the two evaluations in the
+[project's notes](https://github.com/INGEOTEC/LegalIA/blob/master/scripts/embeddings/README.md).
+:::
+
+## References
+
+::: {#refs}
 :::
 
 :::

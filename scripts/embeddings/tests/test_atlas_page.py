@@ -197,9 +197,11 @@ def test_the_qmd_explains_the_similarity_and_names_all_three_options():
     text = QMD.read_text(encoding="utf-8")
     assert "## The embedding model" not in text
     assert text.index("## The neighbourhood size") < text.index("## The similarity")
-    section = text[text.index("## The similarity"):text.index("::: {.atlas-data}")]
+    section = text[text.index("## The similarity"):text.index("## Checking the map")]
     flat = " ".join(section.split())
     assert "0.6B" in flat and "4B" in flat and "BM25" in flat
+    assert "Qwen3-Embedding-0.6B" in flat and "Qwen3-Embedding-4B" in flat
+    assert "[@Zhang2025Qwen3Embedding]" in flat and "[@Robertson2009BM25]" in flat
     assert "lexical baseline" in flat and "words they share" in flat
     assert "the examples above describe" in flat           # the examples stay the 0.6B's
     assert "scores and shows one decimal" in flat
@@ -227,7 +229,12 @@ def test_the_application_carries_the_model_control_and_its_messages():
 def test_the_qmd_prose_names_the_method_once_and_nothing_forbidden():
     text = QMD.read_text(encoding="utf-8")
     assert forbidden_in(text) == []
-    assert text.count("UMAP") == 1
+    # UMAP is described, and cited, in the neighbourhood-size section (issue #275).
+    size = text[text.index("## The neighbourhood size"):text.index("## The similarity")]
+    assert "UMAP" in size and "[@McInnes2018UMAP]" in size
+    assert "Uniform Manifold Approximation and Projection" in size
+    similarity = text[text.index("## The similarity"):text.index("## Checking the map")]
+    assert "[@Zhang2025Qwen3Embedding]" in similarity
     assert "Qwen/Qwen3-Embedding-0.6B" in text
 
 
@@ -400,7 +407,7 @@ def test_the_installed_bm25_pairs_match_the_bm25_data():
 
 def test_the_qmd_describes_the_explanation_and_its_example():
     text = QMD.read_text(encoding="utf-8")
-    assert "opens a table of\nthe excerpts behind that number" in text
+    assert "opens a table of the excerpts behind that number" in " ".join(text.split())
     data = atlas_data()
     constitution = instrument(data, "cpeum")
     j, weight = constitution["out"][0]
@@ -410,16 +417,91 @@ def test_the_qmd_describes_the_explanation_and_its_example():
     assert data["instruments"][j]["n"] in flat
     assert f"{weight:.1f}" in flat
     meta = data["meta"]
-    # Issue #264/#265: headings and transitory articles are not compared at all.
-    assert (f"Of the {meta['provisions']:,} excerpts, {meta['heading_rows_excluded']:,} "
-            f"are headings, {meta['transitorio_rows_excluded']:,} are transitory articles "
-            f"and {meta['identical_shared_dropped']:,} are word-for-word texts shared by "
-            f"several instruments, so {meta['counted_rows']:,} count" in flat)
+    # Issue #264/#265, moved into the Data box by issue #275: headings and
+    # transitory articles are not compared at all, and the counts are the data's.
+    data_box = " ".join(text[text.index("::: {.atlas-data}"):].split())
+    for number in ("provisions", "heading_rows_excluded", "transitorio_rows_excluded",
+                   "identical_shared_dropped", "counted_rows"):
+        assert f"{meta[number]:,}" in data_box, number
+    cards = text[text.index("### The numbers"):text.index("Searching for an instrument")]
+    assert "Two kinds of excerpt" not in text
+    assert "161,989" not in cards and "unique" not in cards
+    assert "only the most recently issued one is shown" in data_box
     if pair is not None:
         assert f"lists {pair['provisions']} excerpts" in flat
         # No transitory article is compared, so none is in the table.
         assert not [r for r in pair["rows"] if r["label"].startswith("Transitory")]
         assert all(r["m"] == 1 for r in pair["rows"]) and "every one a whole 1" in flat
+
+
+def test_the_qmd_chapingo_example_matches_the_default_data():
+    """The example describes the 0.6B map the page opens on; the 4B says 9 to the
+    UAM, which once read as an error (issue #275)."""
+    text = QMD.read_text(encoding="utf-8")
+    example = text[text.index("## An example"):text.index("## The neighbourhood size")]
+    flat = " ".join(example.replace("*", "").split())
+    assert "drawn from the 0.6B model" in flat
+    data = atlas_data()
+    law = instrument(data, "luach")
+    assert law["n"] == CHAPINGO
+    assert f"has {law['p']} excerpts, {law['pc']} of which count" in flat
+    first, second, last = law["out"]
+    assert data["instruments"][last[0]]["n"] in flat and last[1] == 1
+    assert (f"For {first[1]:.0f} of them the closest text outside the law belongs to the "
+            f"{data['instruments'][first[0]]['n']}") in flat
+    assert f"for {second[1]:.0f} to the {data['instruments'][second[0]]['n']}" in flat
+    assert f"{law['in']:.0f} excerpts of other instruments" in flat
+    (_, w1), (_, w2) = law["inc"][:2]
+    assert f"{w1:.0f} of them in Antonio Narro's and {w2:.0f} in the UAM's" in flat
+    # The 4B's reading of the same law differs, which is why the page says whose it is.
+    four = instrument(json.loads(DATA_4B.read_text(encoding="utf-8")), "luach")
+    assert four["out"][0][1] != law["out"][0][1]
+
+
+def test_the_qmd_has_the_evaluation_section_with_its_numbers():
+    text = QMD.read_text(encoding="utf-8")
+    assert text.index("## The similarity") < text.index("## Checking the map against known links") \
+        < text.index("::: {.atlas-data}")
+    section = text[text.index("## Checking the map against known links"):
+                   text.index("::: {.atlas-data}")]
+    flat = " ".join(section.split())
+    for heading in ("### How the strong links are built", "### What is measured",
+                    "### The instruments", "### The excerpts", "### The reading"):
+        assert heading in section, heading
+    assert "The first, A," in flat and "The second, B," in flat and "signal, C," in flat
+    for example in ("REGLAMENTO DE LA LEY FEDERAL DE CORREDURÍA PÚBLICA",
+                    "REGLAMENTO DE LA LEY DE AGUAS NACIONALES",
+                    "GRUPOS DE CONSUMIDORES", "REGLAMENTO DE LA LEY FEDERAL DE TURISMO",
+                    "artículo 38 Bis de la Ley General del Equilibrio Ecológico"):
+        assert example in flat, example
+    tables = [block for block in section.split("\n\n") if block.startswith("|")]
+    assert len(tables) == 2
+    for table in tables:
+        header = table.splitlines()[0]
+        assert "0.6B" in header and "4B" in header and "BM25" in header
+    for literal in ("132", "160", "212", "55", "3,647", "2,010", "2,003", "0.273",
+                    "0.253", "0.241", "21", "29", "5 October 2026"):
+        assert literal in flat, literal
+    assert "without the Constitution" in tables[1]
+    assert forbidden_in(section) == []
+
+
+def test_the_bib_has_the_atlas_citations():
+    bib = (WEBSITE / "references.bib").read_text(encoding="utf-8")
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+        assert re.search(r"@\w+\{" + key + ",", bib), key
+    # The references page lists only its own `nocite` keys.
+    assert "McInnes2018UMAP" not in (PAGES / "references.qmd").read_text(encoding="utf-8")
+
+
+def test_no_prose_sentence_is_a_lead_phrase_and_a_colon():
+    """The page's register is flowing prose (issue #275): outside the application
+    block, the tables and the code, no line has a short lead phrase ended by a colon
+    that then carries the real sentence."""
+    text = QMD.read_text(encoding="utf-8")
+    prose = text.replace(app_block(text), "").split("\n---\n", 1)[1]
+    flat = " ".join(line for line in prose.splitlines() if not line.startswith(("|", "---")))
+    assert not re.findall(r"[a-z)] ?: [A-Za-z]", re.sub(r"https?://\S+", "", flat))
 
 
 def test_the_application_carries_the_dialog_and_its_two_messages():
@@ -1323,6 +1405,21 @@ def test_rendered_panel_is_not_in_quartos_margin(rendered_page):
         ".atlas-panel h2", "n => getComputedStyle(n).borderBottomWidth") == "0px"
     assert "sans-serif" in rendered_page.eval_on_selector(
         ".atlas-panel h3", "n => getComputedStyle(n).fontFamily")
+
+
+def test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references(rendered_page):
+    box = lambda selector: rendered_page.locator(selector).bounding_box()
+    assert abs(box(".atlas-prose")["width"] - box("#atlas")["width"]) <= 2
+    fronts = rendered_page.eval_on_selector_all(
+        ".atlas-prose .front", "nodes => nodes.map(n => n.getBoundingClientRect().y)")
+    assert len(fronts) == 3 and max(fronts) - min(fronts) < 2     # side by side
+    html = rendered_page.content()
+    assert 'id="ref-McInnes2018UMAP"' in html and 'id="ref-Zhang2025Qwen3Embedding"' in html
+    assert 'id="ref-Robertson2009BM25"' in html
+    assert "[@" not in html                      # every citation key resolved
+    assert rendered_page.locator("#refs").count() == 1
+    heading = rendered_page.locator("#references > h2").bounding_box()
+    assert heading["y"] > box(".atlas-prose")["y"]
 
 
 def test_rendered_page_at_phone_width(browser, rendered_site):

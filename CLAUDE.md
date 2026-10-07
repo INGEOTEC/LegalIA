@@ -977,6 +977,20 @@ see the #242 bullet above), #245 draws it.
   better** (recall@5 0.273 against 0.253 and 0.241, median rank 21 against 29),
   while the 0.6B and BM25 tie; see "Row level: explicit citations" in the same
   README. Law level only, local, gitignored outputs.
+- **The page's prose, citations and evaluation (issue #275).** The prose under
+  the map is as wide as the map (`.atlas-prose` has no `max-width`; its tables
+  scroll and its reference addresses wrap, so a phone never widens), is written
+  as flowing academic English with no lead-phrase-and-colon sentence (pinned by
+  a test), and says its examples describe the 0.6B map the page opens on (the
+  4B gives Chapingo 9 to the UAM, the 0.6B 10; `atlas.json` is what a test pins
+  the example to). The excerpt counts and the unique-name rule live in the *Data*
+  box. UMAP, Qwen3 Embedding and BM25 are cited with Quarto citations
+  (`McInnes2018UMAP`, `Zhang2025Qwen3Embedding`, `Robertson2009BM25` in
+  `website/references.bib`, a *References* list on the page; `references.qmd`
+  is untouched), and a section carries the #272/#273 results (strong-link
+  signals A/B/C with examples, two tables) as literals copied from
+  `scripts/embeddings/README.md`'s dated *Measured* subsections, never
+  recomputed.
 
 ## Tables in SCJN snapshots (issue #253, done)
 
