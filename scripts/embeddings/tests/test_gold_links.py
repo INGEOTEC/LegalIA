@@ -232,6 +232,29 @@ def test_write_and_report(world, capsys):
     assert "unresolved" in capsys.readouterr().out
 
 
+def test_links_md_has_one_row_per_link_with_its_signal(world):
+    work_dir, cache = world
+    record = gold_links.build(work_dir, cache_dir=cache, log=lambda *a: None)
+    out = gold_links.write(work_dir, record)
+    lines = (out / "links.md").read_text(encoding="utf-8").splitlines()
+    assert lines[0].startswith("<!--") and lines[0].endswith("-->")
+    assert lines[2:4] == ["| Instrument | Law | Signal |", "|---|---|---|"]
+    rows = [tuple(cell.strip() for cell in line.strip("|").split("|")) for line in lines[4:]]
+    links = sum(len(e["laws"]) for e in record["entries"])
+    assert len(rows) == links == record["summary"]["links"]["A_or_B"]
+    assert rows == sorted(rows, key=lambda r: (r[0].casefold(), r[1].casefold(), r[2]))
+    # `10` names the Ley Federal del Trabajo (A) and says so in its objeto sentence (B);
+    # it also names the Constitution, which is never a signal B law.
+    assert ("REGLAMENTO de la Ley Federal del Trabajo", "LEY Federal del Trabajo",
+            "A and B") in rows
+    # `12` is a B-only instrument.
+    assert ("REGLAMENTO Interior de la Comisión X", "LEY General de Salud", "B") in rows
+    signals = {row[2] for row in rows}
+    assert signals <= {"A", "B", "A and B"} and "A" in signals
+    assert sum("A" in r[2] for r in rows) == record["summary"]["links"]["A"]
+    assert sum("B" in r[2] for r in rows) == record["summary"]["links"]["B"]
+
+
 def test_a_missing_work_directory_is_a_system_exit_naming_the_file(tmp_path):
     with pytest.raises(SystemExit, match="instruments.parquet"):
         gold_links.build(tmp_path / "nowhere", cache_dir=tmp_path)

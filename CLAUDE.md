@@ -992,7 +992,9 @@ see the #242 bullet above), #245 draws it.
   it does for the Home page), and a section carries the #272/#273 results (strong-link
   signals A/B/C with examples, two tables; each measure is named in bold in the
   explanation exactly as in the table, and the weight share is left to the
-  README as too hard to follow) as literals copied from
+  README as too hard to follow; one test per measure, a pairwise table under each
+  results table, and the 227 strong links in a collapsed callout fed by
+  `website/pages/atlas/_gold-links.md`, which `gold_links.py` writes as `links.md`) as literals copied from
   `scripts/embeddings/README.md`'s dated *Measured* subsections, never
   recomputed.
 

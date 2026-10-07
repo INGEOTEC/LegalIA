@@ -202,20 +202,20 @@ most 10. The **mean reciprocal rank** is the average of 1 divided by the rank,
 and the **median rank** is the middle value of the rank over all the excerpts,
 out of 1,302.
 
-The comparison keeps the rules of the map. Each method scores an excerpt against
-the texts of every other instrument with the same similarity the map used, an
-excerpt is never compared with a text that only its own instrument contains, a
-text shared word for word with another instrument stays a candidate, and the
-scores were checked to reproduce the closest texts that the map reports. This is
-what makes the comparison an evaluation of the published data and not of a
-fourth method. A difference between two methods is called real only if the 95 %
-interval of a paired bootstrap (10,000 resamples) excludes zero for the measure
-concerned and, for the measures that are answered yes or no, McNemar's exact
-test also gives a probability below 0.05, a rule fixed before the results were
-looked at. Those measures are **closest is a gold law** and **a gold law among
-the five closest** at the level of the instrument, and **cited law first**,
-**among the five closest** and **among the ten closest** at the level of the
-excerpt. Otherwise the two methods are tied.
+The scores behind these tables are computed by the same three methods and under
+the same rules as the map, so that the tables measure the map itself.
+
+Two methods are compared measure by measure, and a single test is used for each
+measure. For a measure answered yes or no for every instrument or excerpt, which
+are **closest is a gold law** and **a gold law among the five closest** at the
+level of the instrument, and **cited law first**, **among the five closest** and
+**among the ten closest** at the level of the excerpt, McNemar's exact test is
+applied to the cases on which the two methods disagree, and the difference is
+real when its p-value is below 0.05. For the **mean reciprocal rank** and the
+**median rank**, the difference between the two methods is given with the 95 %
+interval of a paired bootstrap, and it is real when the interval does not
+contain zero. This rule was fixed before the results were seen, and when it
+finds no real difference the two methods are tied.
 
 ### The instruments
 
@@ -231,12 +231,24 @@ signal A alone and over the 212 of signals A and B together.
 | A and B (212) | a gold law among the five closest | 180 | 177 | 181 |
 | A and B (212) | mean reciprocal rank | 0.701 | 0.690 | 0.700 |
 
-On what the map shows, which is the closest instrument and the five closest,
-the three methods cannot be told apart. They differ by a handful of
-instruments (at most 5 of 132 and 4 of 212) and no test comes near the
-threshold, the smallest probability being 0.125. The one real difference is that
-on signal A alone the mean reciprocal rank of BM25 is higher than that of the 4B
-by 0.026, a small effect that does not survive on the wider gold standard.
+The methods are then compared two at a time. Each difference is the first method
+minus the second, and each cell gives the verdict and, in parentheses, the
+p-value of McNemar's test for a measure answered yes or no or the 95 % interval
+of the bootstrap for the others.
+
+| Gold links | Pair | closest is a gold law | a gold law among the five closest | mean reciprocal rank |
+|---|---|---|---|---|
+| A (132) | 0.6B − 4B | tie (p = 0.29) | tie (p = 1.00) | tie ([−0.005, +0.039]) |
+| A (132) | 0.6B − BM25 | tie (p = 1.00) | tie (p = 0.38) | tie ([−0.037, +0.017]) |
+| A (132) | 4B − BM25 | tie (p = 0.18) | tie (p = 0.13) | BM25 better ([−0.054, −0.002]) |
+| A and B (212) | 0.6B − 4B | tie (p = 0.42) | tie (p = 0.55) | tie ([−0.009, +0.031]) |
+| A and B (212) | 0.6B − BM25 | tie (p = 1.00) | tie (p = 1.00) | tie ([−0.027, +0.028]) |
+| A and B (212) | 4B − BM25 | tie (p = 0.48) | tie (p = 0.42) | tie ([−0.038, +0.017]) |
+
+On what the map shows, which is the closest instrument and the five closest, the
+three methods cannot be told apart. The one real difference at this level is
+that on signal A alone BM25 has a higher mean reciprocal rank than the 4B, a
+small effect that does not survive on the wider gold standard.
 
 ### The excerpts
 
@@ -255,17 +267,24 @@ remain once those citing the Constitution are set aside.
 | mean reciprocal rank, without the Constitution | 0.238 | 0.252 | 0.231 |
 | median rank, without the Constitution | 13 | 11 | 13 |
 
-At this level the methods are no longer tied. The 4B is better than both of
-the others on the share of excerpts whose cited law is among the five and the
-ten closest, on the mean reciprocal rank and on the median rank, which falls
-from 29 to 21. The differences are small, two to three points of recall, but
-they are not noise. The 0.6B and BM25 are tied on every measure, and none of
-the three separates from the others on the share of excerpts whose cited law is
-first, which is under 11 % for all of them. The absolute level is low because
-an excerpt that cites an article of a law is usually about something other
-than the rest of that law, and the Constitution, which is cited by 559 of the
-excerpts, drags it down further. The order of the three is the same without
-the Constitution.
+The pairs are compared in the same way, the median rank being given with the
+interval of its difference in ranks.
+
+| Pair | cited law first | among the five closest | among the ten closest | mean reciprocal rank | median rank |
+|---|---|---|---|---|---|
+| 0.6B − 4B | tie (p = 0.14) | 4B better (p = 0.001) | 4B better (p < 0.001) | 4B better ([−0.020, −0.007]) | 4B better ([+5, +10]) |
+| 0.6B − BM25 | tie (p = 0.53) | tie (p = 0.19) | tie (p = 0.75) | tie ([−0.004, +0.017]) | tie ([−6, +5]) |
+| 4B − BM25 | tie (p = 0.054) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([+0.010, +0.030]) | 4B better ([−14, −3]) |
+
+At this level the methods are no longer tied. The 4B is better than both of the
+others on four of the five measures, the exception being the share of excerpts
+whose cited law is first, on which the three cannot be told apart, and the 0.6B
+and BM25 are tied on every measure. The differences are small, two to three
+points of recall, but they are not noise. The absolute level is low because an
+excerpt that cites an article of a law is usually about something other than the
+rest of that law, and the Constitution, which is cited by 559 of the excerpts,
+drags it down further. The order of the three is the same without the
+Constitution.
 
 ### The reading
 
@@ -308,6 +327,14 @@ the vectors are read back in
 [`legalvec`](https://legalia.readthedocs.io/en/latest/legalvec_api.html), and
 the full tables of the two evaluations in the
 [project's notes](https://github.com/INGEOTEC/LegalIA/blob/master/scripts/embeddings/README.md).
+:::
+
+::: {.callout-note collapse="true" title="The 227 strong links of the 212 instruments"}
+A link comes from signal A when the name of the instrument contains the name of
+the law and from signal B when the sentence that states the purpose of the
+instrument names it, and the full table of links is given below.
+
+{{< include atlas/_gold-links.md >}}
 :::
 
 :::

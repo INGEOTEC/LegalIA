@@ -475,15 +475,57 @@ def test_the_qmd_has_the_evaluation_section_with_its_numbers():
                     "artículo 38 Bis de la Ley General del Equilibrio Ecológico"):
         assert example in flat, example
     tables = [block for block in section.split("\n\n") if block.startswith("|")]
-    assert len(tables) == 2
-    for table in tables:
+    assert len(tables) == 4      # two results tables, each followed by its pairwise table
+    for table in (tables[0], tables[2]):
         header = table.splitlines()[0]
         assert "0.6B" in header and "4B" in header and "BM25" in header
     for literal in ("132", "160", "212", "55", "3,647", "2,010", "2,003", "0.273",
                     "0.253", "0.241", "21", "29", "5 October 2026"):
         assert literal in flat, literal
-    assert "without the Constitution" in tables[1]
+    assert "without the Constitution" in tables[2]
     assert forbidden_in(section) == []
+
+
+def test_the_qmd_compares_the_methods_with_one_test_per_measure():
+    """Review fix-3: the rules sentences nobody could follow are gone, one test is
+    named per measure, and each results table is followed by its pairwise table."""
+    text = QMD.read_text(encoding="utf-8")
+    flat = " ".join(text.split())
+    for gone in ("fourth method", "only its own instrument contains", "stays a candidate",
+                 "10,000", "reproduce the closest texts"):
+        assert gone not in flat, gone
+    assert "mask" not in flat.lower()
+    explained = flat[flat.index("### What is measured"):flat.index("### The instruments")]
+    assert explained.count("McNemar") == 1 and explained.count("bootstrap") == 1
+    assert "a single test is used for each measure" in explained
+    assert "The scores behind these tables are computed by the same three methods" in explained
+    section = text[text.index("## Checking the map against known links"):
+                   text.index("::: {.atlas-data}")]
+    tables = [block.splitlines() for block in section.split("\n\n") if block.startswith("|")]
+    instruments, pairs_instruments, excerpts, pairs_excerpts = tables
+    assert len(instruments) == 2 + 6 and len(excerpts) == 2 + 8
+    # Six rows (three pairs, two gold standards) by three measures.
+    assert len(pairs_instruments) == 2 + 6
+    assert [c.strip() for c in pairs_instruments[0].strip("|").split("|")] == [
+        "Gold links", "Pair", "closest is a gold law", "a gold law among the five closest",
+        "mean reciprocal rank"]
+    # Three rows by five measures.
+    assert len(pairs_excerpts) == 2 + 3
+    assert [c.strip() for c in pairs_excerpts[0].strip("|").split("|")] == [
+        "Pair", "cited law first", "among the five closest", "among the ten closest",
+        "mean reciprocal rank", "median rank"]
+    verdicts = re.compile(r"^(tie|0\.6B better|4B better|BM25 better) \((p [=<] [0-9.]+|"
+                          r"\[[−+0-9., ]+\])\)$")
+    for table, first in ((pairs_instruments, 2), (pairs_excerpts, 1)):
+        for row in table[2:]:
+            cells = [c.strip() for c in row.strip("|").split("|")]
+            assert all(verdicts.match(c) for c in cells[first:]), cells
+    # The yes-or-no measures carry a p-value, the others an interval.
+    body = pairs_excerpts[2].strip("|").split("|")
+    assert "p = " in body[1] and "[" in body[4] and "[" in body[5]
+    # The verdicts the README reports, read off the two evaluation files (review fix-3).
+    assert "BM25 better ([−0.054, −0.002])" in flat
+    assert flat.count("4B better") == 8      # four measures in two pairs
 
 
 def test_the_bib_has_the_atlas_citations():
@@ -536,8 +578,50 @@ def test_every_bold_measure_is_a_cell_of_a_table_and_the_weight_share_is_gone():
     rows = [line for line in section.splitlines() if line.startswith("|") and "---" not in line]
     cells = {cell.strip() for row in rows for cell in row.strip("|").split("|")}
     assert bold <= cells, bold - cells
-    instrument_table = [r for r in rows if r.startswith("| A")]
+    instrument_table = [r for r in rows if r.startswith("| A") and "better" not in r
+                        and "tie" not in r]
     assert len(instrument_table) == 6
+
+
+LINKS = PAGES / "atlas" / "_gold-links.md"
+
+
+def link_rows() -> list[tuple[str, str, str]]:
+    """`(instrument, law, signal)` per row of the included table of strong links."""
+    lines = LINKS.read_text(encoding="utf-8").splitlines()
+    assert lines[0].startswith("<!--") and lines[0].endswith("-->")
+    assert lines[2:4] == ["| Instrument | Law | Signal |", "|---|---|---|"]
+    rows = []
+    for line in lines[4:]:
+        cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", line.strip())[1:-1]]
+        assert len(cells) == 3, line
+        rows.append(tuple(cells))
+    return rows
+
+
+def test_the_links_table_is_the_gold_of_the_evaluation_section():
+    """Review fix-3: the 227 strong links of the 212 instruments, with the signal
+    that found each, included at the end of the page."""
+    rows = link_rows()
+    assert len(rows) == 227
+    assert {signal for _, _, signal in rows} == {"A", "B", "A and B"}
+    instruments = {name for name, _, _ in rows}
+    assert len(instruments) == 212
+    assert len({name for name, _, signal in rows if "A" in signal}) == 132
+    assert len({name for name, _, signal in rows if "B" in signal}) == 160
+    assert sum("A" in signal for _, _, signal in rows) == 132       # one law each by name
+    assert sum("B" in signal for _, _, signal in rows) == 175
+    assert rows == sorted(rows, key=lambda r: (r[0].casefold(), r[1].casefold(), r[2]))
+    assert ("REGLAMENTO DE LA LEY FEDERAL DE CORREDURIA PUBLICA", "LEY Federal de Correduría Pública",
+            "A") in rows
+    assert forbidden_in(LINKS.read_text(encoding="utf-8")) == []
+    text = QMD.read_text(encoding="utf-8")
+    assert text.count("{{< include atlas/_gold-links.md >}}") == 1
+    callout = text[text.index('::: {.callout-note collapse="true"'):]
+    assert 'title="The 227 strong links of the 212 instruments"' in callout
+    assert text.index("::: {.atlas-data}") < text.index('::: {.callout-note collapse="true"')
+    assert callout.rstrip().endswith(":::\n\n:::") or callout.rstrip().endswith(":::")
+    assert "gold_links" not in text and "gold_links" not in LINKS.read_text(encoding="utf-8")
 
 
 def test_no_prose_sentence_is_a_lead_phrase_and_a_colon():
@@ -1462,6 +1546,17 @@ def test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references(rendered_
     fronts = rendered_page.eval_on_selector_all(
         ".atlas-prose .front", "nodes => nodes.map(n => n.getBoundingClientRect().y)")
     assert len(fronts) == 3 and max(fronts) - min(fronts) < 2     # side by side
+    # The links of the gold sit in a collapsed callout at the end of the prose (review fix-3).
+    callout = rendered_page.locator(".atlas-prose .callout-note").last
+    assert callout.locator(".callout-header").get_attribute("class").count("collapsed") == 1
+    assert callout.locator("table tbody tr").count() == 227
+    assert not callout.locator(".callout-body-container").is_visible()
+    callout.locator(".callout-header").click()
+    rendered_page.wait_for_timeout(500)
+    assert callout.locator(".callout-body-container").is_visible()
+    assert forbidden_in(callout.inner_text()) == []
+    assert rendered_page.evaluate(
+        "() => document.documentElement.scrollWidth") <= rendered_page.viewport_size["width"]
     # The citations are listed on the References page, not on this one (review fix-1).
     html = rendered_page.content()
     assert "[@" not in html                      # every citation key resolved
