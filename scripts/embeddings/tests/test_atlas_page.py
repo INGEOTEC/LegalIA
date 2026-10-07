@@ -490,8 +490,33 @@ def test_the_bib_has_the_atlas_citations():
     bib = (WEBSITE / "references.bib").read_text(encoding="utf-8")
     for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
         assert re.search(r"@\w+\{" + key + ",", bib), key
-    # The references page lists only its own `nocite` keys.
-    assert "McInnes2018UMAP" not in (PAGES / "references.qmd").read_text(encoding="utf-8")
+    # The References page lists them through its `nocite` field (review fix-1).
+    nocite = (PAGES / "references.qmd").read_text(encoding="utf-8")
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+        assert f"@{key}" in nocite, key
+
+
+def test_the_qmd_cites_but_does_not_list_its_references():
+    """The list lives on the References page, whose `nocite` carries the keys;
+    a hook retargets the Atlas page's links there (review fix-1)."""
+    text = QMD.read_text(encoding="utf-8")
+    assert "## References" not in text and "#refs" not in text
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+        assert f"[@{key}]" in text
+    assert "scripts/fix_citation_links.py" in (WEBSITE / "_quarto.yml").read_text(encoding="utf-8")
+    assert "pages/atlas.html" in (WEBSITE / "scripts" / "fix_citation_links.py").read_text(encoding="utf-8")
+
+
+def test_the_qmd_explains_its_measures_in_plain_words():
+    text = QMD.read_text(encoding="utf-8")
+    section = text[text.index("### What is measured"):text.index("### The instruments")]
+    flat = " ".join(section.split())
+    assert "mask" not in flat.lower()
+    assert "1 divided by the position" in flat and "mean reciprocal rank" in flat
+    assert "divided by the regulation's total" in flat
+    assert "ordered by that score" in flat and "median rank" in flat
+    assert "answered yes or no" in flat and "McNemar" in flat
+    assert forbidden_in(section) == []
 
 
 def test_no_prose_sentence_is_a_lead_phrase_and_a_colon():
@@ -1337,8 +1362,11 @@ def rendered_site():
     if quarto is None:
         pytest.skip("Quarto not found: put it on PATH or install it under "
                     "~/.local/opt/quarto-<version>/bin/quarto (CI uses 1.9.38)")
-    subprocess.run([quarto, "render", "pages/atlas.qmd"], cwd=WEBSITE, check=True,
-                   capture_output=True, timeout=300)
+    # The References page too (review fix-1): the Atlas cites, and the project's
+    # post-render hook points those links at it.
+    for source in ("pages/atlas.qmd", "pages/references.qmd"):
+        subprocess.run([quarto, "render", source], cwd=WEBSITE, check=True,
+                       capture_output=True, timeout=300)
     assert (SITE / "pages" / "atlas.html").exists()
     assert (SITE / "pages" / "atlas" / "atlas.js").read_text(encoding="utf-8") \
         == APP_JS.read_text(encoding="utf-8")
@@ -1413,13 +1441,20 @@ def test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references(rendered_
     fronts = rendered_page.eval_on_selector_all(
         ".atlas-prose .front", "nodes => nodes.map(n => n.getBoundingClientRect().y)")
     assert len(fronts) == 3 and max(fronts) - min(fronts) < 2     # side by side
+    # The citations are listed on the References page, not on this one (review fix-1).
     html = rendered_page.content()
-    assert 'id="ref-McInnes2018UMAP"' in html and 'id="ref-Zhang2025Qwen3Embedding"' in html
-    assert 'id="ref-Robertson2009BM25"' in html
     assert "[@" not in html                      # every citation key resolved
-    assert rendered_page.locator("#refs").count() == 1
-    heading = rendered_page.locator("#references > h2").bounding_box()
-    assert heading["y"] > box(".atlas-prose")["y"]
+    assert 'id="refs"' not in html and "quarto-appendix" not in html
+    assert 'id="ref-' not in html
+    keys = ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25")
+    # What Quarto and the hook wrote (the DOM would resolve the addresses).
+    source = (SITE / "pages" / "atlas.html").read_text(encoding="utf-8")
+    links = re.findall(r'href="([^"]*#ref-[^"]*)"', source)
+    assert sorted(links) == sorted(f"references.html#ref-{key}" for key in keys)
+    assert all(rendered_page.locator(f"a[href$='#ref-{key}']").count() == 1 for key in keys)
+    references = (SITE / "pages" / "references.html").read_text(encoding="utf-8")
+    for key in keys:
+        assert f'id="ref-{key}"' in references, key
 
 
 def test_rendered_page_at_phone_width(browser, rendered_site):

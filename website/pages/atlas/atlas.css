@@ -854,8 +854,3 @@
   max-width: 100%;
   overflow-x: auto;
 }
-
-/* A reference's address is one long word; it wraps instead of widening the page. */
-.atlas-prose #refs {
-  overflow-wrap: anywhere;
-}

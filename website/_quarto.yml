@@ -6,7 +6,7 @@ project:
   resources:
     - "pages/atlas/**"
   post-render:
-    - scripts/fix_home_citations.py
+    - scripts/fix_citation_links.py
 
 lang: en
 

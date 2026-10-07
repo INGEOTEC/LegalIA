@@ -41,7 +41,7 @@ prints them at the end.
 
 Naming pages on the command line renders only those, which is what you want
 while iterating on one of them — but quarto skips the project's post-render
-hook (scripts/fix_home_citations.py) for a single-page render, so _site/ is
+hook (scripts/fix_citation_links.py) for a single-page render, so _site/ is
 not fully assembled that way. That only matters for eyeballing the output
 locally: CI always renders the whole project. Do a full run before trusting
 _site/.

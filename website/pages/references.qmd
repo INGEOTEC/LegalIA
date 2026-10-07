@@ -7,14 +7,16 @@ nocite: |
   @Graff2026IALegal, @LlamasCovarrubias2022Enfoques, @Tellez2026Fundamentos,
   @Tellez2018AnOptimization, @Tellez2017ATwitter, @Tellez2017AAnalysis,
   @Graff2020EvoMSA:Analysis, @Graff2022AData, @Graff2025BoW,
-  @Tellez2023Regionalized
+  @Tellez2023Regionalized, @McInnes2018UMAP, @Zhang2025Qwen3Embedding,
+  @Robertson2009BM25
 ---
 
 The following publications by the members of the research team inform the
 project's design and support its feasibility: they cover natural language
 processing techniques for Spanish, the construction of specialized language
 resources, and the regulatory dimension of artificial intelligence in the
-legal domain.
+legal domain. The page also lists the methods on which the Atlas of Mexican
+Federal Law builds, namely UMAP, Qwen3 Embedding and BM25.
 
 ::: {#refs}
 :::

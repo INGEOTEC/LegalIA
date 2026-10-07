@@ -178,18 +178,44 @@ regulation cites.
 
 ### What is measured
 
-At the level of the instrument, the question is whether a gold law is the
-closest instrument of the regulation, whether it is among the five closest,
-what its reciprocal rank is on average, and what share of the weights of the
-regulation it receives. At the level of the excerpt, the question is the rank
-that the cited law obtains among the 1,302 other instruments, summarised by the
-share of excerpts for which that rank is at most 1, 5 and 10, by the mean
-reciprocal rank and by the median rank. The weights and the masks are exactly
-those of the map, so that what is scored is the published data and not a fourth
-method. A difference between two methods is called real only if the 95 %
-interval of a paired bootstrap (10,000 resamples) excludes zero and, for the
-yes-or-no measures, McNemar's exact test gives a probability below 0.05, a rule
-fixed before the results were looked at. Otherwise the two methods are tied.
+At the level of the instrument, each regulation is scored against its gold
+law, or its gold laws when it has several. The panel orders the other
+instruments by the weight they receive from the regulation, which is the
+number printed under *Closest instruments*. The first two measures ask whether
+the gold law is the instrument at the top of that order and whether it is among
+the first five. The reciprocal rank of a regulation is 1 divided by the
+position of its best-placed gold law in the order, so that it is 1 when the law
+is first, 1/2 when it is second and 0 when the law receives no weight at all,
+and the mean reciprocal rank in the tables is the average of that value over
+all the regulations scored. The share of the weight is the weight that the gold
+law receives divided by the regulation's total, which is its number of counted
+excerpts, and it is therefore the fraction of the regulation's excerpts whose
+closest text lies in that law, a text shared by *m* instruments contributing
+its 1/*m*.
+
+At the level of the excerpt, each citing excerpt is compared with the texts of
+the 1,302 instruments other than its own. Every one of those instruments is
+scored by the similarity of its closest text to the excerpt, and the
+instruments are ordered by that score. The rank of the cited law is its
+position in that order, an instrument whose score only equals the law's not
+being placed ahead of it. The summaries are the share of excerpts whose cited law is first, the
+share for which it is among the first five and among the first ten, the mean of
+the reciprocal ranks, and the median rank over all the excerpts.
+
+The comparison keeps the rules of the map. Each method scores an excerpt against
+the texts of every other instrument with the same similarity the map used, an
+excerpt is never compared with a text that only its own instrument contains, a
+text shared word for word with another instrument stays a candidate, and the
+scores were checked to reproduce the closest texts that the map reports. This is
+what makes the comparison an evaluation of the published data and not of a
+fourth method. A difference between two methods is called real only if the 95 %
+interval of a paired bootstrap (10,000 resamples) excludes zero for the measure
+concerned and, for the measures that are answered yes or no, McNemar's exact
+test also gives a probability below 0.05, a rule fixed before the results were
+looked at. Those measures are whether the gold law is the closest instrument and
+whether it is among the five closest, at the level of the instrument, and
+whether the cited law is first, among the five or among the ten, at the level of
+the excerpt. Otherwise the two methods are tied.
 
 ### The instruments
 
@@ -288,11 +314,6 @@ the vectors are read back in
 [`legalvec`](https://legalia.readthedocs.io/en/latest/legalvec_api.html), and
 the full tables of the two evaluations in the
 [project's notes](https://github.com/INGEOTEC/LegalIA/blob/master/scripts/embeddings/README.md).
-:::
-
-## References
-
-::: {#refs}
 :::
 
 :::
