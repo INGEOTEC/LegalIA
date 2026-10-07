@@ -197,9 +197,11 @@ def test_the_qmd_explains_the_similarity_and_names_all_three_options():
     text = QMD.read_text(encoding="utf-8")
     assert "## The embedding model" not in text
     assert text.index("## The neighbourhood size") < text.index("## The similarity")
-    section = text[text.index("## The similarity"):text.index("::: {.atlas-data}")]
+    section = text[text.index("## The similarity"):text.index("## Checking the map")]
     flat = " ".join(section.split())
     assert "0.6B" in flat and "4B" in flat and "BM25" in flat
+    assert "Qwen3-Embedding-0.6B" in flat and "Qwen3-Embedding-4B" in flat
+    assert "[@Zhang2025Qwen3Embedding]" in flat and "[@Robertson2009BM25]" in flat
     assert "lexical baseline" in flat and "words they share" in flat
     assert "the examples above describe" in flat           # the examples stay the 0.6B's
     assert "scores and shows one decimal" in flat
@@ -227,7 +229,12 @@ def test_the_application_carries_the_model_control_and_its_messages():
 def test_the_qmd_prose_names_the_method_once_and_nothing_forbidden():
     text = QMD.read_text(encoding="utf-8")
     assert forbidden_in(text) == []
-    assert text.count("UMAP") == 1
+    # UMAP is described, and cited, in the neighbourhood-size section (issue #275).
+    size = text[text.index("## The neighbourhood size"):text.index("## The similarity")]
+    assert "UMAP" in size and "[@McInnes2018UMAP]" in size
+    assert "Uniform Manifold Approximation and Projection" in size
+    similarity = text[text.index("## The similarity"):text.index("## Checking the map")]
+    assert "[@Zhang2025Qwen3Embedding]" in similarity
     assert "Qwen/Qwen3-Embedding-0.6B" in text
 
 
@@ -400,7 +407,7 @@ def test_the_installed_bm25_pairs_match_the_bm25_data():
 
 def test_the_qmd_describes_the_explanation_and_its_example():
     text = QMD.read_text(encoding="utf-8")
-    assert "opens a table of\nthe excerpts behind that number" in text
+    assert "opens a table of the excerpts behind that number" in " ".join(text.split())
     data = atlas_data()
     constitution = instrument(data, "cpeum")
     j, weight = constitution["out"][0]
@@ -410,16 +417,337 @@ def test_the_qmd_describes_the_explanation_and_its_example():
     assert data["instruments"][j]["n"] in flat
     assert f"{weight:.1f}" in flat
     meta = data["meta"]
-    # Issue #264/#265: headings and transitory articles are not compared at all.
-    assert (f"Of the {meta['provisions']:,} excerpts, {meta['heading_rows_excluded']:,} "
-            f"are headings, {meta['transitorio_rows_excluded']:,} are transitory articles "
-            f"and {meta['identical_shared_dropped']:,} are word-for-word texts shared by "
-            f"several instruments, so {meta['counted_rows']:,} count" in flat)
+    # Issue #264/#265, moved into the Data box by issue #275: headings and
+    # transitory articles are not compared at all, and the counts are the data's.
+    data_box = " ".join(text[text.index("::: {.atlas-data}"):].split())
+    for number in ("provisions", "heading_rows_excluded", "transitorio_rows_excluded",
+                   "identical_shared_dropped", "counted_rows"):
+        assert f"{meta[number]:,}" in data_box, number
+    cards = text[text.index("### The numbers"):text.index("Searching for an instrument")]
+    assert "Two kinds of excerpt" not in cards     # the cut third card (the topic has its own section)
+    assert "161,989" not in cards and "unique" not in cards
+    assert "only the most recently issued one is shown" not in data_box    # fix-5: its own section
+    assert "only the most recently issued of them" in " ".join(text.split())
     if pair is not None:
         assert f"lists {pair['provisions']} excerpts" in flat
         # No transitory article is compared, so none is in the table.
         assert not [r for r in pair["rows"] if r["label"].startswith("Transitory")]
         assert all(r["m"] == 1 for r in pair["rows"]) and "every one a whole 1" in flat
+
+
+def test_the_qmd_opens_with_where_the_instruments_come_from():
+    """Review fix-5: the page begins by saying how the three corpora were found,
+    which text of each the map uses and how the 1,303 instruments were selected."""
+    text = QMD.read_text(encoding="utf-8")
+    lead_end = text.index(":::", text.index("::: {.atlas-lead}") + 5)
+    assert text[lead_end:].lstrip(": \n").startswith("## Where the instruments come from")
+    assert text.index("## Where the instruments come from") < text.index("## How to read the map")
+    section = text[text.index("## Where the instruments come from"):text.index("## How to read the map")]
+    flat = " ".join(section.replace("*", "").split())
+    assert forbidden_in(section) == []
+    assert "legislacion.scjn.gob.mx" in flat and "Diario Oficial de la Federación remains the official source" in flat
+    for tag in ("scjn-leyes", "scjn-reglamentos", "scjn-lineamientos"):
+        assert f"https://github.com/INGEOTEC/LegalIA/releases/tag/{tag}" in section
+    assert "(leyes.ipynb)" in section
+    assert "REGLAMENTO or LINEAMIENTOS" in flat
+    # Review fix-6: the laws were seeded from the Diputados catalogue, and the
+    # discovery of future laws is not how the corpus was built.
+    assert "Cámara de Diputados" in flat and "LeyesBiblio" in flat
+    assert "https://www.diputados.gob.mx/LeyesBiblio/" in section
+    assert "316 instruments" in flat
+    # Review fix-7: the link is the Court's consultation site, the removal of the
+    # Diputados dependency is not told, and the search filters are described.
+    assert "(https://legislacion.scjn.gob.mx/consulta/home)" in section
+    # A <wbr> lets the link break on a phone, where its text would overflow 390 px.
+    assert "[legislacion.scjn.gob.mx<wbr>/consulta]" in section
+    assert "legislacion.scjn.gob.mx/consulta" in flat.replace("<wbr>", "")
+    assert "Buscador" not in text
+    for gone in ("315 are in the corpus", "315 of the 316", "dependency", "abbreviations unchanged"):
+        assert gone not in flat, gone
+    # Review fix-8: the restriction is made in the request to the search service,
+    # not as a choice of the site's form.
+    assert "did not use the search form of the site but the search service behind it" in flat
+    assert "even where the form does not offer them as choices" in flat
+    assert "answers every instrument together with its category" in flat
+    assert "for the federal scope and for the category REGLAMENTO or LINEAMIENTOS" in flat
+    assert "filters" not in flat and "categoriaF" not in flat and "ambitoF" not in flat
+    assert "every page was read to the end" in flat
+    assert "CONSTITUCIÓN" not in section and "LEY, CÓDIGO" not in section
+    assert "confirming each candidate" not in flat
+    for phrase in ("reglamento", "de", "a", "la", "y", "para", "el"):
+        assert f"`{phrase}`" in flat, phrase
+    for phrase in ("lineamientos", "lineamiento", "de", "a", "la", "y", "para", "el"):
+        assert f"`{phrase}`" in flat, phrase
+    assert ("`reglamento`, `de`, `a`, `la`, `y`, `para` and `el`" in flat
+            and "`lineamientos`, `lineamiento`, `de`, `a`, `la`, `y`, `para` and `el`" in flat)
+    assert "`reglamento` for the regulations and `lineamientos` for the guidelines" in flat
+    data = atlas_data()
+    n = counts(data)
+    dropped = data["meta"]["duplicates_dropped"]
+    assert f"{n['leyes']} laws, {n['reglamentos']} regulations and {n['lineamientos']} guidelines" in flat
+    assert f"{data['meta']['instruments']:,} instruments once {sum(dropped.values())} have been dropped" in flat
+    assert f"({dropped['reglamentos']} regulations and {dropped['lineamientos']} guideline)" in flat
+    for literal in ("3,707", "1,087", "163", "5 regulations and 37 guidelines",
+                    "6 regulations and 4 guidelines"):
+        assert literal in flat, literal
+    assert "divided into excerpts" in flat
+    # The Data box no longer tells the narrative.
+    data_box = text[text.index("::: {.atlas-data}"):]
+    assert "reissues" not in data_box and "Qwen/Qwen3-Embedding-0.6B" in data_box
+
+
+def test_the_qmd_explains_what_text_an_excerpt_is():
+    """Review fix-4: the page says what text represents an excerpt, with a real
+    example, that the three methods receive it unchanged, and what is not compared."""
+    text = QMD.read_text(encoding="utf-8")
+    assert text.index("## How to read the map") < text.index("## What is compared") \
+        < text.index("## An example")
+    section = text[text.index("## What is compared"):text.index("## An example")]
+    flat = " ".join(section.split())
+    assert forbidden_in(section) == []
+    assert "own text as it stands in the consolidated law" in flat
+    assert "neither the name of the law nor the heading of the chapter" in flat
+    article = ("**ARTICULO 1o.-** Se crea la Universidad Autónoma Chapingo como organismo "
+               "descentralizado del Estado, con personalidad jurídica, patrimonio propio y "
+               "sede de gobierno en Chapingo, Estado de México.")
+    quoted = " ".join(" ".join(line.removeprefix("> ") for line in section.splitlines()
+                               if line.startswith(">")).split())
+    assert quoted == article
+    assert "CAPITULO I** De su Naturaleza, Objetivos y Medios" in flat
+    for method in ("Qwen3-Embedding model", "1,024", "2,560", "cosine", "BM25",
+                   "lowercase words", "No instruction, title or law name is added"):
+        assert method in flat, method
+    for kind in ("Two kinds of excerpt are not compared at all", "the heading", "the transitory article",
+                 "**PRIMERO.-** Esta Ley entrará en vigor a los quince días de la fecha de su "
+                 'publicación en el "Diario Oficial" de la Federación.',
+                 "The preamble and the closing text, on the other hand, are compared",
+                 "matched but not counted", "**ARTICULO 56.-**", "CÓDIGO Civil Federal",
+                 "LEY Federal de Responsabilidades de los Servidores Públicos",
+                 "LEY General de Población", "LEY Orgánica de la Administración Pública Federal"):
+        assert kind in flat, kind
+    assert "28 excerpts, which are 16 numbered articles, 5 transitory articles, 5 headings" in flat
+    assert "remaining 18 count" in flat
+    # Against the vectors' own units, when they are cached on this machine.
+    pq = pytest.importorskip("pyarrow.parquet")
+    units_file = Path.home() / ".cache" / "legalvec" / "scjn-leyes-vectors" / "units.parquet"
+    if not units_file.is_file():
+        pytest.skip("the scjn-leyes-vectors cache is not on this machine")
+    units = pq.read_table(units_file, columns=["clave", "eId", "unit_type", "text"]).to_pylist()
+    chapingo = [u for u in units if u["clave"] == "luach"]
+    assert [u["text"] for u in chapingo if u["eId"] == "cap_I__art_1o"] == [article]
+    heading = [u["text"] for u in chapingo if u["eId"] == "cap_I"]
+    assert heading == ["**CAPITULO I** De su Naturaleza, Objetivos y Medios"]
+    first = [u["text"] for u in chapingo if u["eId"] == "sec_transitorios__art_PRIMERO"][0]
+    assert first.replace("**", "") in flat.replace("**", "")
+    kinds = {}
+    for u in chapingo:
+        transitory = u["eId"].startswith("sec_transitorios__")
+        kinds["transitory" if transitory and u["unit_type"] == "article" else u["unit_type"]] \
+            = kinds.get("transitory" if transitory and u["unit_type"] == "article"
+                        else u["unit_type"], 0) + 1
+    assert kinds == {"article": 16, "transitory": 5, "heading": 5, "preamble": 1, "conclusions": 1}
+    shared = [u["clave"] for u in units if u["text"] == "**ARTICULO 56.- **"]
+    assert sorted(shared) == ["ccf", "lfrsp", "lgp", "loapf"]
+
+
+def test_the_qmd_chapingo_example_matches_the_default_data():
+    """The example describes the 0.6B map the page opens on; the 4B says 9 to the
+    UAM, which once read as an error (issue #275)."""
+    text = QMD.read_text(encoding="utf-8")
+    example = text[text.index("## An example"):text.index("## The neighbourhood size")]
+    flat = " ".join(example.replace("*", "").split())
+    assert "drawn from the 0.6B model" in flat
+    data = atlas_data()
+    law = instrument(data, "luach")
+    assert law["n"] == CHAPINGO
+    assert f"has {law['p']} excerpts, {law['pc']} of which count" in flat
+    first, second, last = law["out"]
+    assert data["instruments"][last[0]]["n"] in flat and last[1] == 1
+    assert (f"For {first[1]:.0f} of them the closest text outside the law belongs to the "
+            f"{data['instruments'][first[0]]['n']}") in flat
+    assert f"for {second[1]:.0f} to the {data['instruments'][second[0]]['n']}" in flat
+    assert f"{law['in']:.0f} excerpts of other instruments" in flat
+    (_, w1), (_, w2) = law["inc"][:2]
+    assert f"{w1:.0f} of them in Antonio Narro's and {w2:.0f} in the UAM's" in flat
+    # The 4B's reading of the same law differs, which is why the page says whose it is.
+    four = instrument(json.loads(DATA_4B.read_text(encoding="utf-8")), "luach")
+    assert four["out"][0][1] != law["out"][0][1]
+
+
+def test_the_qmd_has_the_evaluation_section_with_its_numbers():
+    text = QMD.read_text(encoding="utf-8")
+    assert text.index("## The similarity") < text.index("## Checking the map against known links") \
+        < text.index("::: {.atlas-data}")
+    section = text[text.index("## Checking the map against known links"):
+                   text.index("::: {.atlas-data}")]
+    flat = " ".join(section.split())
+    for heading in ("### How the strong links are built", "### What is measured",
+                    "### The instruments", "### The excerpts", "### The reading"):
+        assert heading in section, heading
+    assert "The first, A," in flat and "The second, B," in flat and "signal, C," in flat
+    for example in ("REGLAMENTO DE LA LEY FEDERAL DE CORREDURÍA PÚBLICA",
+                    "REGLAMENTO DE LA LEY DE AGUAS NACIONALES",
+                    "GRUPOS DE CONSUMIDORES", "REGLAMENTO DE LA LEY FEDERAL DE TURISMO",
+                    "artículo 38 Bis de la Ley General del Equilibrio Ecológico"):
+        assert example in flat, example
+    tables = [block for block in section.split("\n\n") if block.startswith("|")]
+    assert len(tables) == 4      # two results tables, each followed by its pairwise table
+    for table in (tables[0], tables[2]):
+        header = table.splitlines()[0]
+        assert "0.6B" in header and "4B" in header and "BM25" in header
+    for literal in ("132", "160", "212", "55", "3,647", "2,010", "2,003", "0.273",
+                    "0.253", "0.241", "21", "29", "5 October 2026"):
+        assert literal in flat, literal
+    assert "without the Constitution" in tables[2]
+    assert forbidden_in(section) == []
+
+
+def test_the_qmd_compares_the_methods_with_one_test_per_measure():
+    """Review fix-3: the rules sentences nobody could follow are gone, one test is
+    named per measure, and each results table is followed by its pairwise table."""
+    text = QMD.read_text(encoding="utf-8")
+    flat = " ".join(text.split())
+    for gone in ("fourth method", "only its own instrument contains", "stays a candidate",
+                 "10,000", "reproduce the closest texts"):
+        assert gone not in flat, gone
+    assert "mask" not in flat.lower()
+    explained = flat[flat.index("### What is measured"):flat.index("### The instruments")]
+    assert explained.count("McNemar") == 1 and explained.count("bootstrap") == 1
+    assert "a single test is used for each measure" in explained
+    assert "The scores behind these tables are computed by the same three methods" in explained
+    section = text[text.index("## Checking the map against known links"):
+                   text.index("::: {.atlas-data}")]
+    tables = [block.splitlines() for block in section.split("\n\n") if block.startswith("|")]
+    instruments, pairs_instruments, excerpts, pairs_excerpts = tables
+    assert len(instruments) == 2 + 6 and len(excerpts) == 2 + 8
+    # Six rows (three pairs, two gold standards) by three measures.
+    assert len(pairs_instruments) == 2 + 6
+    assert [c.strip() for c in pairs_instruments[0].strip("|").split("|")] == [
+        "Gold links", "Pair", "closest is a gold law", "a gold law among the five closest",
+        "mean reciprocal rank"]
+    # Three rows by five measures.
+    assert len(pairs_excerpts) == 2 + 3
+    assert [c.strip() for c in pairs_excerpts[0].strip("|").split("|")] == [
+        "Pair", "cited law first", "among the five closest", "among the ten closest",
+        "mean reciprocal rank", "median rank"]
+    verdicts = re.compile(r"^(tie|0\.6B better|4B better|BM25 better) \((p [=<] [0-9.]+|"
+                          r"\[[−+0-9., ]+\])\)$")
+    for table, first in ((pairs_instruments, 2), (pairs_excerpts, 1)):
+        for row in table[2:]:
+            cells = [c.strip() for c in row.strip("|").split("|")]
+            assert all(verdicts.match(c) for c in cells[first:]), cells
+    # The yes-or-no measures carry a p-value, the others an interval.
+    body = pairs_excerpts[2].strip("|").split("|")
+    assert "p = " in body[1] and "[" in body[4] and "[" in body[5]
+    # The verdicts the README reports, read off the two evaluation files (review fix-3).
+    assert "BM25 better ([−0.054, −0.002])" in flat
+    assert flat.count("4B better") == 8      # four measures in two pairs
+
+
+def test_the_bib_has_the_atlas_citations():
+    bib = (WEBSITE / "references.bib").read_text(encoding="utf-8")
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+        assert re.search(r"@\w+\{" + key + ",", bib), key
+    # The References page lists them through its `nocite` field (review fix-1).
+    nocite = (PAGES / "references.qmd").read_text(encoding="utf-8")
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+        assert f"@{key}" in nocite, key
+
+
+def test_the_qmd_cites_but_does_not_list_its_references():
+    """The list lives on the References page, whose `nocite` carries the keys;
+    a hook retargets the Atlas page's links there (review fix-1)."""
+    text = QMD.read_text(encoding="utf-8")
+    assert "## References" not in text and "#refs" not in text
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+        assert f"[@{key}]" in text
+    assert "scripts/fix_citation_links.py" in (WEBSITE / "_quarto.yml").read_text(encoding="utf-8")
+    assert "pages/atlas.html" in (WEBSITE / "scripts" / "fix_citation_links.py").read_text(encoding="utf-8")
+
+
+def test_the_qmd_explains_its_measures_in_plain_words():
+    text = QMD.read_text(encoding="utf-8")
+    section = text[text.index("### What is measured"):text.index("### The instruments")]
+    flat = " ".join(section.split())
+    assert "mask" not in flat.lower()
+    assert "1 divided by its position" in flat and "mean reciprocal rank" in flat
+    assert "ordered by that score" in flat and "median rank" in flat
+    assert "answered yes or no" in flat and "McNemar" in flat
+    assert forbidden_in(section) == []
+
+
+def test_every_bold_measure_is_a_cell_of_a_table_and_the_weight_share_is_gone():
+    """The explanation names each measure as the table does (review fix-2), and
+    the weight share, too hard to follow, is not on the page."""
+    text = QMD.read_text(encoding="utf-8")
+    flat = " ".join(text.split())
+    assert "share of the weight" not in flat and "weight share" not in flat
+    for literal in ("0.373", "0.400", "0.367", "0.283", "0.303", "0.279"):
+        assert literal not in text, literal
+    section = text[text.index("## Checking the map against known links"):
+                   text.index("::: {.atlas-data}")]
+    explained = text[text.index("### What is measured"):text.index("### The instruments")]
+    bold = set(re.findall(r"\*\*(.+?)\*\*", " ".join(explained.split())))
+    assert bold == {"closest is a gold law", "a gold law among the five closest",
+                    "mean reciprocal rank", "cited law first", "among the five closest",
+                    "among the ten closest", "median rank"}
+    rows = [line for line in section.splitlines() if line.startswith("|") and "---" not in line]
+    cells = {cell.strip() for row in rows for cell in row.strip("|").split("|")}
+    assert bold <= cells, bold - cells
+    instrument_table = [r for r in rows if r.startswith("| A") and "better" not in r
+                        and "tie" not in r]
+    assert len(instrument_table) == 6
+
+
+LINKS = PAGES / "atlas" / "_gold-links.md"
+
+
+def link_rows() -> list[tuple[str, str, str]]:
+    """`(instrument, law, signal)` per row of the included table of strong links."""
+    lines = LINKS.read_text(encoding="utf-8").splitlines()
+    assert lines[0].startswith("<!--") and lines[0].endswith("-->")
+    assert lines[2:4] == ["| Instrument | Law | Signal |", "|---|---|---|"]
+    rows = []
+    for line in lines[4:]:
+        cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", line.strip())[1:-1]]
+        assert len(cells) == 3, line
+        rows.append(tuple(cells))
+    return rows
+
+
+def test_the_links_table_is_the_gold_of_the_evaluation_section():
+    """Review fix-3: the 227 strong links of the 212 instruments, with the signal
+    that found each, included at the end of the page."""
+    rows = link_rows()
+    assert len(rows) == 227
+    assert {signal for _, _, signal in rows} == {"A", "B", "A and B"}
+    instruments = {name for name, _, _ in rows}
+    assert len(instruments) == 212
+    assert len({name for name, _, signal in rows if "A" in signal}) == 132
+    assert len({name for name, _, signal in rows if "B" in signal}) == 160
+    assert sum("A" in signal for _, _, signal in rows) == 132       # one law each by name
+    assert sum("B" in signal for _, _, signal in rows) == 175
+    assert rows == sorted(rows, key=lambda r: (r[0].casefold(), r[1].casefold(), r[2]))
+    assert ("REGLAMENTO DE LA LEY FEDERAL DE CORREDURIA PUBLICA", "LEY Federal de Correduría Pública",
+            "A") in rows
+    assert forbidden_in(LINKS.read_text(encoding="utf-8")) == []
+    text = QMD.read_text(encoding="utf-8")
+    assert text.count("{{< include atlas/_gold-links.md >}}") == 1
+    callout = text[text.index('::: {.callout-note collapse="true"'):]
+    assert 'title="The 227 strong links of the 212 instruments"' in callout
+    assert text.index("::: {.atlas-data}") < text.index('::: {.callout-note collapse="true"')
+    assert callout.rstrip().endswith(":::\n\n:::") or callout.rstrip().endswith(":::")
+    assert "gold_links" not in text and "gold_links" not in LINKS.read_text(encoding="utf-8")
+
+
+def test_no_prose_sentence_is_a_lead_phrase_and_a_colon():
+    """The page's register is flowing prose (issue #275): outside the application
+    block, the tables and the code, no line has a short lead phrase ended by a colon
+    that then carries the real sentence."""
+    text = QMD.read_text(encoding="utf-8")
+    prose = text.replace(app_block(text), "").split("\n---\n", 1)[1]
+    flat = " ".join(line for line in prose.splitlines() if not line.startswith(("|", "---")))
+    assert not re.findall(r"[a-z)] ?: [A-Za-z]", re.sub(r"https?://\S+", "", flat))
 
 
 def test_the_application_carries_the_dialog_and_its_two_messages():
@@ -1255,8 +1583,11 @@ def rendered_site():
     if quarto is None:
         pytest.skip("Quarto not found: put it on PATH or install it under "
                     "~/.local/opt/quarto-<version>/bin/quarto (CI uses 1.9.38)")
-    subprocess.run([quarto, "render", "pages/atlas.qmd"], cwd=WEBSITE, check=True,
-                   capture_output=True, timeout=300)
+    # The References page too (review fix-1): the Atlas cites, and the project's
+    # post-render hook points those links at it.
+    for source in ("pages/atlas.qmd", "pages/references.qmd"):
+        subprocess.run([quarto, "render", source], cwd=WEBSITE, check=True,
+                       capture_output=True, timeout=300)
     assert (SITE / "pages" / "atlas.html").exists()
     assert (SITE / "pages" / "atlas" / "atlas.js").read_text(encoding="utf-8") \
         == APP_JS.read_text(encoding="utf-8")
@@ -1323,6 +1654,39 @@ def test_rendered_panel_is_not_in_quartos_margin(rendered_page):
         ".atlas-panel h2", "n => getComputedStyle(n).borderBottomWidth") == "0px"
     assert "sans-serif" in rendered_page.eval_on_selector(
         ".atlas-panel h3", "n => getComputedStyle(n).fontFamily")
+
+
+def test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references(rendered_page):
+    box = lambda selector: rendered_page.locator(selector).bounding_box()
+    assert abs(box(".atlas-prose")["width"] - box("#atlas")["width"]) <= 2
+    fronts = rendered_page.eval_on_selector_all(
+        ".atlas-prose .front", "nodes => nodes.map(n => n.getBoundingClientRect().y)")
+    assert len(fronts) == 3 and max(fronts) - min(fronts) < 2     # side by side
+    # The links of the gold sit in a collapsed callout at the end of the prose (review fix-3).
+    callout = rendered_page.locator(".atlas-prose .callout-note").last
+    assert callout.locator(".callout-header").get_attribute("class").count("collapsed") == 1
+    assert callout.locator("table tbody tr").count() == 227
+    assert not callout.locator(".callout-body-container").is_visible()
+    callout.locator(".callout-header").click()
+    rendered_page.wait_for_timeout(500)
+    assert callout.locator(".callout-body-container").is_visible()
+    assert forbidden_in(callout.inner_text()) == []
+    assert rendered_page.evaluate(
+        "() => document.documentElement.scrollWidth") <= rendered_page.viewport_size["width"]
+    # The citations are listed on the References page, not on this one (review fix-1).
+    html = rendered_page.content()
+    assert "[@" not in html                      # every citation key resolved
+    assert 'id="refs"' not in html and "quarto-appendix" not in html
+    assert 'id="ref-' not in html
+    keys = ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25")
+    # What Quarto and the hook wrote (the DOM would resolve the addresses).
+    source = (SITE / "pages" / "atlas.html").read_text(encoding="utf-8")
+    links = re.findall(r'href="([^"]*#ref-[^"]*)"', source)
+    assert sorted(links) == sorted(f"references.html#ref-{key}" for key in keys)
+    assert all(rendered_page.locator(f"a[href$='#ref-{key}']").count() == 1 for key in keys)
+    references = (SITE / "pages" / "references.html").read_text(encoding="utf-8")
+    for key in keys:
+        assert f'id="ref-{key}"' in references, key
 
 
 def test_rendered_page_at_phone_width(browser, rendered_site):

@@ -818,8 +818,7 @@
 /* -- the explanatory section below the application ------------------------ */
 
 .atlas-prose {
-  max-width: 760px;
-  margin: 0 auto 3rem;
+  margin: 0 0 3rem;
 }
 
 .atlas-prose .atlas-lead p {
@@ -846,4 +845,12 @@
 
 .atlas-prose .atlas-data ul {
   margin-bottom: 0.4rem;
+}
+
+/* The evaluation tables are wider than a phone: they scroll inside the page
+   instead of widening it (issue #275). */
+.atlas-prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
 }

@@ -44,8 +44,9 @@ link. The gold of an instrument is A union B; `laws_A` keeps A alone, which
     python gold_links.py --report             # the summary, offline
 
 Outputs, under `<work-dir>/gold-links/` (gitignored with the rest of `emb-run-*`):
-`gold.json` and `gold.md` (a readable table of the B-only links, the ones a human
-may want to spot-check) and `citations.parquet` (signal C). The gold is model-independent, so it lives in the 0.6B's
+`gold.json`, `gold.md` (a readable table of the B-only links, the ones a human
+may want to spot-check), `links.md` (every link of the gold with its signal, the
+table the website's Atlas page includes) and `citations.parquet` (signal C). The gold is model-independent, so it lives in the 0.6B's
 directory by convention. Nothing here needs the network or Slurm.
 """
 
@@ -70,6 +71,7 @@ DEFAULT_WORK_DIR = Path("emb-run-atlas")
 SUBDIR = "gold-links"
 GOLD_JSON = "gold.json"
 GOLD_MD = "gold.md"
+LINKS_MD = "links.md"
 CITATIONS = "citations.parquet"
 
 TARGET_COLLECTION = "leyes"
@@ -481,11 +483,33 @@ def render_markdown(record: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def link_signal(entry: dict, law: int) -> str:
+    """Which signal found the link `entry` -> `law`: `A`, `B` or `A and B`."""
+    return " and ".join(name for name, laws in (("A", entry["laws_A"]), ("B", entry["laws_B"]))
+                        if law in laws)
+
+
+def render_links(record: dict) -> str:
+    """`links.md`: every instrument -> law link of the gold, one row each, sorted
+    by instrument name then law name, with the signal that found it. A pipe
+    table with no heading, meant to be included in a page."""
+    names = {int(i): nombre for i, nombre in record["law_names"].items()}
+    rows = sorted(((entry["nombre"], names.get(law, str(law)), link_signal(entry, law))
+                   for entry in record["entries"] for law in entry["laws"]),
+                  key=lambda row: (row[0].casefold(), row[1].casefold(), row[2]))
+    lines = ["<!-- The strong links of the Atlas instruments (signals A and B), one row per "
+             "link. A generated file: regenerate it, do not edit it. -->",
+             "", "| Instrument | Law | Signal |", "|---|---|---|"]
+    lines += ["| " + " | ".join(cell.replace("|", "\\|") for cell in row) + " |" for row in rows]
+    return "\n".join(lines) + "\n"
+
+
 def write(work_dir: Path, record: dict) -> Path:
     out = Path(work_dir) / SUBDIR
     gold = {key: value for key, value in record.items() if key != "citations"}
     atomic_write_text(out / GOLD_JSON, json.dumps(gold, ensure_ascii=False, indent=1) + "\n")
     atomic_write_text(out / GOLD_MD, render_markdown(record))
+    atomic_write_text(out / LINKS_MD, render_links(record))
     atomic_write_table(out / CITATIONS, citations_table(record["citations"]))
     return out
 
@@ -536,7 +560,7 @@ def main(argv=None) -> int:
         return 0
     record = build(args.work_dir, cache_dir=args.cache_dir)
     out = write(args.work_dir, record)
-    print(f"wrote {out / GOLD_JSON} and {out / GOLD_MD}")
+    print(f"wrote {out / GOLD_JSON}, {out / GOLD_MD} and {out / LINKS_MD}")
     report(args.work_dir)
     return 0
 

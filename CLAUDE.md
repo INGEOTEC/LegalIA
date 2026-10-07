@@ -977,6 +977,33 @@ see the #242 bullet above), #245 draws it.
   better** (recall@5 0.273 against 0.253 and 0.241, median rank 21 against 29),
   while the 0.6B and BM25 tie; see "Row level: explicit citations" in the same
   README. Law level only, local, gitignored outputs.
+- **The page's prose, citations and evaluation (issue #275).** The prose under
+  the map is as wide as the map (`.atlas-prose` has no `max-width`; its tables
+  scroll, so a phone never widens), is written
+  as flowing academic English with no lead-phrase-and-colon sentence (pinned by
+  a test), opens with the provenance of the three corpora (the Court's database, how
+  each corpus was found — the laws seeded from the Cámara de Diputados' LeyesBiblio
+  catalogue, the regulations and guidelines from the named phrase unions of
+  `discover_federal_*.py`, never from the law discovery tool — which text the map
+  uses, the 1,303 unique instruments),
+  states what text represents an excerpt (the article's own text as in the
+  consolidated law, label included, no law name or heading; the same text goes to
+  the 0.6B, the 4B and BM25) and says its examples describe the 0.6B map the page opens on (the
+  4B gives Chapingo 9 to the UAM, the 0.6B 10; `atlas.json` is what a test pins
+  the example to). The excerpt counts and the unique-name rule live in the *Data*
+  box. UMAP, Qwen3 Embedding and BM25 are cited with Quarto citations
+  (`McInnes2018UMAP`, `Zhang2025Qwen3Embedding`, `Robertson2009BM25` in
+  `website/references.bib`; the page lists none of them: `references.qmd`'s
+  `nocite` carries the three keys and the post-render hook
+  `website/scripts/fix_citation_links.py` retargets the page's links to it, as
+  it does for the Home page), and a section carries the #272/#273 results (strong-link
+  signals A/B/C with examples, two tables; each measure is named in bold in the
+  explanation exactly as in the table, and the weight share is left to the
+  README as too hard to follow; one test per measure, a pairwise table under each
+  results table, and the 227 strong links in a collapsed callout fed by
+  `website/pages/atlas/_gold-links.md`, which `gold_links.py` writes as `links.md`) as literals copied from
+  `scripts/embeddings/README.md`'s dated *Measured* subsections, never
+  recomputed.
 
 ## Tables in SCJN snapshots (issue #253, done)
 
