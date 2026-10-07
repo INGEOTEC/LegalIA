@@ -981,7 +981,9 @@ see the #242 bullet above), #245 draws it.
   the map is as wide as the map (`.atlas-prose` has no `max-width`; its tables
   scroll, so a phone never widens), is written
   as flowing academic English with no lead-phrase-and-colon sentence (pinned by
-  a test), states what text represents an excerpt (the article's own text as in the
+  a test), opens with the provenance of the three corpora (the Court's database, how
+  each corpus was found, which text the map uses, the 1,303 unique instruments),
+  states what text represents an excerpt (the article's own text as in the
   consolidated law, label included, no law name or heading; the same text goes to
   the 0.6B, the 4B and BM25) and says its examples describe the 0.6B map the page opens on (the
   4B gives Chapingo 9 to the UAM, the 0.6B 10; `atlas.json` is what a test pins

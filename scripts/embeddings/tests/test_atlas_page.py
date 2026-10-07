@@ -426,12 +426,43 @@ def test_the_qmd_describes_the_explanation_and_its_example():
     cards = text[text.index("### The numbers"):text.index("Searching for an instrument")]
     assert "Two kinds of excerpt" not in cards     # the cut third card (the topic has its own section)
     assert "161,989" not in cards and "unique" not in cards
-    assert "only the most recently issued one is shown" in data_box
+    assert "only the most recently issued one is shown" not in data_box    # fix-5: its own section
+    assert "only the most recently issued of them" in " ".join(text.split())
     if pair is not None:
         assert f"lists {pair['provisions']} excerpts" in flat
         # No transitory article is compared, so none is in the table.
         assert not [r for r in pair["rows"] if r["label"].startswith("Transitory")]
         assert all(r["m"] == 1 for r in pair["rows"]) and "every one a whole 1" in flat
+
+
+def test_the_qmd_opens_with_where_the_instruments_come_from():
+    """Review fix-5: the page begins by saying how the three corpora were found,
+    which text of each the map uses and how the 1,303 instruments were selected."""
+    text = QMD.read_text(encoding="utf-8")
+    lead_end = text.index(":::", text.index("::: {.atlas-lead}") + 5)
+    assert text[lead_end:].lstrip(": \n").startswith("## Where the instruments come from")
+    assert text.index("## Where the instruments come from") < text.index("## How to read the map")
+    section = text[text.index("## Where the instruments come from"):text.index("## How to read the map")]
+    flat = " ".join(section.replace("*", "").split())
+    assert forbidden_in(section) == []
+    assert "legislacion.scjn.gob.mx" in flat and "Diario Oficial de la Federación remains the official source" in flat
+    for tag in ("scjn-leyes", "scjn-reglamentos", "scjn-lineamientos"):
+        assert f"https://github.com/INGEOTEC/LegalIA/releases/tag/{tag}" in section
+    assert "(leyes.ipynb)" in section
+    assert "REGLAMENTO or LINEAMIENTOS" in flat and "LEY, CÓDIGO and CONSTITUCIÓN" in flat
+    data = atlas_data()
+    n = counts(data)
+    dropped = data["meta"]["duplicates_dropped"]
+    assert f"{n['leyes']} laws, {n['reglamentos']} regulations and {n['lineamientos']} guidelines" in flat
+    assert f"{data['meta']['instruments']:,} instruments once {sum(dropped.values())} have been dropped" in flat
+    assert f"({dropped['reglamentos']} regulations and {dropped['lineamientos']} guideline)" in flat
+    for literal in ("3,707", "1,087", "163", "5 regulations and 37 guidelines",
+                    "6 regulations and 4 guidelines"):
+        assert literal in flat, literal
+    assert "divided into excerpts" in flat
+    # The Data box no longer tells the narrative.
+    data_box = text[text.index("::: {.atlas-data}"):]
+    assert "reissues" not in data_box and "Qwen/Qwen3-Embedding-0.6B" in data_box
 
 
 def test_the_qmd_explains_what_text_an_excerpt_is():

@@ -23,6 +23,50 @@ organic laws of the public universities, for instance, land beside one
 another whatever words they happen to use.
 :::
 
+## Where the instruments come from
+
+The texts come from the legislative database of the Supreme Court of Justice of
+the Nation ([legislacion.scjn.gob.mx](https://legislacion.scjn.gob.mx/Buscador/)),
+which keeps for every instrument a table of its reforms and serves the
+consolidated text of the instrument as it stood after each one. The project
+reads the database through the Court's own search service, which gives every
+instrument a stable identifier. The *Diario Oficial de la Federación* remains
+the official source of legal text, and the consolidated versions of the Court
+are an editorial product.
+
+The 315 laws, which include the codes and the Constitution, are published as the
+[`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)
+corpus, and the [Federal Laws page](leyes.ipynb) describes it in full. Each law
+of a catalogue of the federal laws was searched by its name and resolved by the
+identifier the Court gives it, and never by the rank of the search, because the
+Court's search can return a wrong document for a name. Its whole reform table was
+then crawled, which gives one dated text for every reform, 3,707 texts in all. A
+new federal law is found by listing the Court's categories LEY, CÓDIGO and
+CONSTITUCIÓN and confirming each candidate against a title of the Diario Oficial,
+and it is added by a person.
+
+The Court's search has no way of listing everything, so the 1,087 regulations
+([`scjn-reglamentos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos))
+and the 163 guidelines
+([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos))
+were found by paging the union of several phrase searches, restricted to the
+federal scope and to the Court's category REGLAMENTO or LINEAMIENTOS. To these
+were added the instruments that the Court files under another category but whose
+own reform table has a row of that category, which rescued 6 regulations and 4
+guidelines. Because the Court reissues a regulation under a new identifier
+instead of reforming it, these two corpora are keyed by that identifier and not
+by name. For 5 regulations and 37 guidelines the Court serves no text at all, so
+they belong to the corpora but cannot appear on the map.
+
+The map uses the newest consolidated text of every instrument, one per
+instrument. Since regulations are reissued, several regulations or guidelines
+share one name, and the map keeps only the most recently issued of them, names
+being compared after folding accents, case and whitespace and only within a
+collection, so that laws are never grouped. This leaves 315 laws, 863 regulations
+and 125 guidelines, which are 1,303 instruments once 220 have been dropped (219
+regulations and 1 guideline). The current text of each of them is then divided
+into excerpts, as the section on what is compared describes.
+
 ## How to read the map
 
 ::: {.fronts}
@@ -361,9 +405,7 @@ similarity control switches, as it does to BM25, a lexical baseline computed
 from the same excerpts. Of the 161,989 excerpts, 28,568 are headings and 21,344
 are transitory articles, neither of which is compared, and 1,715 are
 word-for-word texts shared by several instruments, which are matched but not
-counted, so that 110,362 count. Where several regulations or guidelines share
-a name only the most recently issued one is shown, because the Supreme Court
-reissues a regulation under a new identifier instead of reforming it. The map
+counted, so that 110,362 count. The map
 is a UMAP projection with the cosine metric of each instrument's matches. The
 Diario Oficial de la Federación remains the official source of legal text. Map
 data generated on <span data-atlas-generated>5 October 2026</span>.
