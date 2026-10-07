@@ -512,11 +512,32 @@ def test_the_qmd_explains_its_measures_in_plain_words():
     section = text[text.index("### What is measured"):text.index("### The instruments")]
     flat = " ".join(section.split())
     assert "mask" not in flat.lower()
-    assert "1 divided by the position" in flat and "mean reciprocal rank" in flat
-    assert "divided by the regulation's total" in flat
+    assert "1 divided by its position" in flat and "mean reciprocal rank" in flat
     assert "ordered by that score" in flat and "median rank" in flat
     assert "answered yes or no" in flat and "McNemar" in flat
     assert forbidden_in(section) == []
+
+
+def test_every_bold_measure_is_a_cell_of_a_table_and_the_weight_share_is_gone():
+    """The explanation names each measure as the table does (review fix-2), and
+    the weight share, too hard to follow, is not on the page."""
+    text = QMD.read_text(encoding="utf-8")
+    flat = " ".join(text.split())
+    assert "share of the weight" not in flat and "weight share" not in flat
+    for literal in ("0.373", "0.400", "0.367", "0.283", "0.303", "0.279"):
+        assert literal not in text, literal
+    section = text[text.index("## Checking the map against known links"):
+                   text.index("::: {.atlas-data}")]
+    explained = text[text.index("### What is measured"):text.index("### The instruments")]
+    bold = set(re.findall(r"\*\*(.+?)\*\*", " ".join(explained.split())))
+    assert bold == {"closest is a gold law", "a gold law among the five closest",
+                    "mean reciprocal rank", "cited law first", "among the five closest",
+                    "among the ten closest", "median rank"}
+    rows = [line for line in section.splitlines() if line.startswith("|") and "---" not in line]
+    cells = {cell.strip() for row in rows for cell in row.strip("|").split("|")}
+    assert bold <= cells, bold - cells
+    instrument_table = [r for r in rows if r.startswith("| A")]
+    assert len(instrument_table) == 6
 
 
 def test_no_prose_sentence_is_a_lead_phrase_and_a_colon():

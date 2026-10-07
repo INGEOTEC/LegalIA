@@ -990,7 +990,9 @@ see the #242 bullet above), #245 draws it.
   `nocite` carries the three keys and the post-render hook
   `website/scripts/fix_citation_links.py` retargets the page's links to it, as
   it does for the Home page), and a section carries the #272/#273 results (strong-link
-  signals A/B/C with examples, two tables) as literals copied from
+  signals A/B/C with examples, two tables; each measure is named in bold in the
+  explanation exactly as in the table, and the weight share is left to the
+  README as too hard to follow) as literals copied from
   `scripts/embeddings/README.md`'s dated *Measured* subsections, never
   recomputed.
 

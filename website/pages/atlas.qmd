@@ -181,26 +181,26 @@ regulation cites.
 At the level of the instrument, each regulation is scored against its gold
 law, or its gold laws when it has several. The panel orders the other
 instruments by the weight they receive from the regulation, which is the
-number printed under *Closest instruments*. The first two measures ask whether
-the gold law is the instrument at the top of that order and whether it is among
-the first five. The reciprocal rank of a regulation is 1 divided by the
-position of its best-placed gold law in the order, so that it is 1 when the law
-is first, 1/2 when it is second and 0 when the law receives no weight at all,
-and the mean reciprocal rank in the tables is the average of that value over
-all the regulations scored. The share of the weight is the weight that the gold
-law receives divided by the regulation's total, which is its number of counted
-excerpts, and it is therefore the fraction of the regulation's excerpts whose
-closest text lies in that law, a text shared by *m* instruments contributing
-its 1/*m*.
+number printed under *Closest instruments*. The measure **closest is a gold
+law** counts the regulations whose gold law is the instrument at the top of
+that order, and the measure **a gold law among the five closest** counts those
+for which a gold law is among the first five. The **mean reciprocal rank**
+averages, over all the regulations scored, the reciprocal rank of the
+best-placed gold law, which is 1 divided by its position in the order, so that
+it is 1 when the law is first, 1/2 when it is second and 0 when the law
+receives no weight at all.
 
 At the level of the excerpt, each citing excerpt is compared with the texts of
 the 1,302 instruments other than its own. Every one of those instruments is
 scored by the similarity of its closest text to the excerpt, and the
 instruments are ordered by that score. The rank of the cited law is its
 position in that order, an instrument whose score only equals the law's not
-being placed ahead of it. The summaries are the share of excerpts whose cited law is first, the
-share for which it is among the first five and among the first ten, the mean of
-the reciprocal ranks, and the median rank over all the excerpts.
+being placed ahead of it. The measure **cited law first** is the share of
+excerpts for which that rank is 1, and the measures **among the five closest**
+and **among the ten closest** are the shares for which it is at most 5 and at
+most 10. The **mean reciprocal rank** is the average of 1 divided by the rank,
+and the **median rank** is the middle value of the rank over all the excerpts,
+out of 1,302.
 
 The comparison keeps the rules of the map. Each method scores an excerpt against
 the texts of every other instrument with the same similarity the map used, an
@@ -212,10 +212,10 @@ fourth method. A difference between two methods is called real only if the 95 %
 interval of a paired bootstrap (10,000 resamples) excludes zero for the measure
 concerned and, for the measures that are answered yes or no, McNemar's exact
 test also gives a probability below 0.05, a rule fixed before the results were
-looked at. Those measures are whether the gold law is the closest instrument and
-whether it is among the five closest, at the level of the instrument, and
-whether the cited law is first, among the five or among the ten, at the level of
-the excerpt. Otherwise the two methods are tied.
+looked at. Those measures are **closest is a gold law** and **a gold law among
+the five closest** at the level of the instrument, and **cited law first**,
+**among the five closest** and **among the ten closest** at the level of the
+excerpt. Otherwise the two methods are tied.
 
 ### The instruments
 
@@ -227,21 +227,16 @@ signal A alone and over the 212 of signals A and B together.
 | A (132) | closest is a gold law | 100 | 96 | 101 |
 | A (132) | a gold law among the five closest | 123 | 122 | 126 |
 | A (132) | mean reciprocal rank | 0.836 | 0.819 | 0.845 |
-| A (132) | share of the weight on gold laws | 0.373 | 0.400 | 0.367 |
 | A and B (212) | closest is a gold law | 126 | 122 | 126 |
 | A and B (212) | a gold law among the five closest | 180 | 177 | 181 |
 | A and B (212) | mean reciprocal rank | 0.701 | 0.690 | 0.700 |
-| A and B (212) | share of the weight on gold laws | 0.283 | 0.303 | 0.279 |
 
 On what the map shows, which is the closest instrument and the five closest,
 the three methods cannot be told apart. They differ by a handful of
 instruments (at most 5 of 132 and 4 of 212) and no test comes near the
-threshold, the smallest probability being 0.125. Two differences are real. The
-4B puts a larger share of each regulation's weight on its gold law than either
-of the others, on both gold standards, so that the link is more concentrated
-in the 4B even though the law is not more often first. And on signal A alone
-the reciprocal rank of BM25 is higher than that of the 4B by 0.026, a small
-effect that does not survive on the wider gold standard.
+threshold, the smallest probability being 0.125. The one real difference is that
+on signal A alone the mean reciprocal rank of BM25 is higher than that of the 4B
+by 0.026, a small effect that does not survive on the wider gold standard.
 
 ### The excerpts
 
@@ -255,7 +250,7 @@ remain once those citing the Constitution are set aside.
 | among the five closest | 0.253 | 0.273 | 0.241 |
 | among the ten closest | 0.350 | 0.380 | 0.346 |
 | mean reciprocal rank | 0.180 | 0.194 | 0.173 |
-| median rank (of 1,302) | 29 | 21 | 29 |
+| median rank | 29 | 21 | 29 |
 | among the five closest, without the Constitution | 0.337 | 0.361 | 0.323 |
 | mean reciprocal rank, without the Constitution | 0.238 | 0.252 | 0.231 |
 | median rank, without the Constitution | 13 | 11 | 13 |
@@ -277,9 +272,8 @@ the Constitution.
 On the question the map answers, which is what an instrument is closest to,
 the three methods are indistinguishable at finding the law that a regulation
 develops, and a lexical baseline that learns nothing is as good as either
-embedding model. The 4B concentrates more of the weight on that law and ranks
-a cited law higher for a single excerpt, and this is the one measured reason
-for switching to it. BM25 is not beaten everywhere. Among the ten most cited
+embedding model. The 4B ranks a cited law higher for a single excerpt, and this
+is the one measured reason for switching to it. BM25 is not beaten everywhere. Among the ten most cited
 laws it is clearly the best on the *Código Fiscal de la Federación*, where the
 cited law is among the five closest for 68.4 % of the excerpts against 43.9 %
 for the 4B, and clearly the worst on the *Ley Orgánica del Poder Judicial de la
