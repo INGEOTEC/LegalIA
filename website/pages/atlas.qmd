@@ -26,7 +26,7 @@ another whatever words they happen to use.
 ## Where the instruments come from
 
 The texts come from the legislative database of the Supreme Court of Justice of
-the Nation ([legislacion.scjn.gob.mx](https://legislacion.scjn.gob.mx/Buscador/)),
+the Nation ([legislacion.scjn.gob.mx<wbr>/consulta](https://legislacion.scjn.gob.mx/consulta/home)),
 which keeps for every instrument a table of its reforms and serves the
 consolidated text of the instrument as it stood after each one. The project
 reads the database through the Court's own search service, which gives every
@@ -43,17 +43,16 @@ de Diputados publishes ([LeyesBiblio](https://www.diputados.gob.mx/LeyesBiblio/)
 then searched by its name in the Court's database and resolved by the identifier
 the Court gives it, and never by the rank of the search, because the Court's
 search can return a wrong document for a name. Its whole reform table was crawled,
-which gives one dated text for every reform, 3,707 texts in all. The dependency on
-the site of the Cámara de Diputados was later removed, and the catalogue is now
-carried by the corpus itself with the abbreviations unchanged. Of the 316
-instruments, 315 are in the corpus.
+which gives one dated text for every reform, 3,707 texts in all.
 
 The Court's search has no way of listing everything, so the 1,087 regulations
 ([`scjn-reglamentos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos))
 and the 163 guidelines
 ([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos))
-were found by paging the union of several phrase searches, restricted to the
-federal scope and to the Court's category REGLAMENTO or LINEAMIENTOS. The phrases
+were found through a set of phrase searches. Each phrase was sent to the Court's
+search with its filters set to the federal scope and to the category REGLAMENTO
+or LINEAMIENTOS, the Court answered in pages, and every page was read to the end,
+so that the union of the results of the phrases is the list of candidates. The phrases
 for the regulations were `reglamento`, `de`, `a`, `la`, `y`, `para` and `el`, and
 those for the guidelines were `lineamientos`, `lineamiento`, `de`, `a`, `la`, `y`,
 `para` and `el`. Besides the word of the category, the short common words are

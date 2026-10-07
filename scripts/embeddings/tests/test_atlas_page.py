@@ -454,7 +454,18 @@ def test_the_qmd_opens_with_where_the_instruments_come_from():
     # discovery of future laws is not how the corpus was built.
     assert "Cámara de Diputados" in flat and "LeyesBiblio" in flat
     assert "https://www.diputados.gob.mx/LeyesBiblio/" in section
-    assert "316 instruments" in flat and "315 are in the corpus" in flat
+    assert "316 instruments" in flat
+    # Review fix-7: the link is the Court's consultation site, the removal of the
+    # Diputados dependency is not told, and the search filters are described.
+    assert "(https://legislacion.scjn.gob.mx/consulta/home)" in section
+    # A <wbr> lets the link break on a phone, where its text would overflow 390 px.
+    assert "[legislacion.scjn.gob.mx<wbr>/consulta]" in section
+    assert "legislacion.scjn.gob.mx/consulta" in flat.replace("<wbr>", "")
+    assert "Buscador" not in text
+    for gone in ("315 are in the corpus", "315 of the 316", "dependency", "abbreviations unchanged"):
+        assert gone not in flat, gone
+    assert "filters set to the federal scope and to the category REGLAMENTO or LINEAMIENTOS" in flat
+    assert "every page was read to the end" in flat
     assert "CONSTITUCIÓN" not in section and "LEY, CÓDIGO" not in section
     assert "confirming each candidate" not in flat
     for phrase in ("reglamento", "de", "a", "la", "y", "para", "el"):
