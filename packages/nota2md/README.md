@@ -3,14 +3,18 @@
 [![Documentation Status](https://readthedocs.org/projects/legalia/badge/?version=latest)](https://legalia.readthedocs.io/en/latest/nota2md_api.html)
 
 > **v0.5.0 (still unreleased) also makes `nota2md download all` mean *all*
-> four releases** (issue #225): `federal-regulations`/`federal-guidelines`,
+> five releases** (issues #225, #277): `international-treaties`, a third such
+> subcommand, puts the `scjn-tratados` release (every international treaty
+> the SCJN serves) on disk the same way, and `all` downloads it too; its
+> `scjn>=` floor is now `0.5.0`, the first version to ship
+> `download_scjn_tratados_assets`. Before that (issue #225): `federal-regulations`/`federal-guidelines`,
 > two new subcommands, put the `scjn-reglamentos`/`scjn-lineamientos`
 > releases on disk (delegating to `scjn.release`'s own downloaders, keyed by
 > `--id` rather than `--slug` — neither collection has an `abrev`), and `all`
 > now downloads all four instead of two. `nota2md` still reads nothing from
 > either corpus itself — this only widens the convenience downloader. Its own
 > `scjn>=` floor moved to `0.2.0`, the first version to ship
-> `download_scjn_lineamientos_assets`.
+> `download_scjn_lineamientos_assets`, and `all` then downloaded four.
 >
 > **v0.5.0 (still unreleased) also carries the SCJN package split** (issues
 > #206-#212) alongside the default-source change below — a minor bump, not a
@@ -498,8 +502,9 @@ there, and no script has to be written first:
 nota2md download federal-laws         # the scjn-leyes release (~320 MB, 315 laws)
 nota2md download federal-regulations  # the scjn-reglamentos release (~76 MB, 1087 instruments)
 nota2md download federal-guidelines   # the scjn-lineamientos release (~1.4 MB, 163 instruments)
+nota2md download international-treaties  # the scjn-tratados release (~1,456 instruments)
 nota2md download gazette-metadata     # the notas-archivo release (~59 MB, 117 assets)
-nota2md download all                  # all four, each into its own cache (~457 MB total)
+nota2md download all                  # all five, each into its own cache
 ```
 
 `federal-laws` brings down the reverse index plus one tarball per law.
@@ -510,9 +515,9 @@ always comes along, since it is what resolves a `codNota` to a law:
 nota2md download federal-laws --slug lft --slug lfca
 ```
 
-`federal-regulations` and `federal-guidelines` are the same shape, but keyed
-by `id_ordenamiento` rather than slug — neither a reglamento nor a lineamiento
-has an `abrev` (the SCJN reissues one as a brand-new id rather than reforming
+`federal-regulations`, `federal-guidelines` and `international-treaties` are
+the same shape, but keyed by `id_ordenamiento` rather than slug — neither a
+reglamento, a lineamiento nor a treaty has an `abrev` (the SCJN reissues one as a brand-new id rather than reforming
 the previous one), so they take `--id` (repeatable), never `--slug`:
 
 ```bash
@@ -536,39 +541,40 @@ re-published under the same asset names reaches an already-populated cache.
 
 ### Where the data lands
 
-The four releases keep **two separate cache directories**, by package: they
+The five releases keep **two separate cache directories**, by package: they
 have different lifecycles, and clearing one must not clear the other.
-`nota2md download` does not merge them; `all` is a shorthand for four
+`nota2md download` does not merge them; `all` is a shorthand for five
 invocations, not a shared destination.
 
-| | `federal-laws` (`scjn-leyes`) | `federal-regulations` (`scjn-reglamentos`) | `federal-guidelines` (`scjn-lineamientos`) | `gazette-metadata` (`notas-archivo`) |
-|---|---|---|---|---|
-| Package | `scjn` | `scjn` | `scjn` | `dofjson` |
-| Linux | `~/.cache/scjn/scjn-leyes/` | `~/.cache/scjn/scjn-reglamentos/` | `~/.cache/scjn/scjn-lineamientos/` | `~/.cache/dofjson/` |
-| macOS | `~/Library/Caches/scjn/scjn-leyes/` | `~/Library/Caches/scjn/scjn-reglamentos/` | `~/Library/Caches/scjn/scjn-lineamientos/` | `~/Library/Caches/dofjson/` |
-| Windows | `%LOCALAPPDATA%\scjn\Cache\scjn-leyes\` | `%LOCALAPPDATA%\scjn\Cache\scjn-reglamentos\` | `%LOCALAPPDATA%\scjn\Cache\scjn-lineamientos\` | `%LOCALAPPDATA%\dofjson\Cache\` |
-| Override | `$SCJN_CACHE_DIR`, or `scjn.cache.CACHE_DIR` | `$SCJN_CACHE_DIR`, or `scjn.cache.CACHE_DIR` | `$SCJN_CACHE_DIR`, or `scjn.cache.CACHE_DIR` | `dofjson.titulos.CACHE_DIR` |
-| Per-run override | `--cache-dir DIR` | `--cache-dir DIR` | `--cache-dir DIR` | `--cache-dir DIR` |
+| | `federal-laws` (`scjn-leyes`) | `federal-regulations` (`scjn-reglamentos`) | `federal-guidelines` (`scjn-lineamientos`) | `international-treaties` (`scjn-tratados`) | `gazette-metadata` (`notas-archivo`) |
+|---|---|---|---|---|---|
+| Package | `scjn` | `scjn` | `scjn` | `scjn` | `dofjson` |
+| Linux | `~/.cache/scjn/scjn-leyes/` | `~/.cache/scjn/scjn-reglamentos/` | `~/.cache/scjn/scjn-lineamientos/` | `~/.cache/scjn/scjn-tratados/` | `~/.cache/dofjson/` |
+| macOS | `~/Library/Caches/scjn/scjn-leyes/` | `~/Library/Caches/scjn/scjn-reglamentos/` | `~/Library/Caches/scjn/scjn-lineamientos/` | `~/Library/Caches/scjn/scjn-tratados/` | `~/Library/Caches/dofjson/` |
+| Windows | `%LOCALAPPDATA%\scjn\Cache\scjn-leyes\` | `%LOCALAPPDATA%\scjn\Cache\scjn-reglamentos\` | `%LOCALAPPDATA%\scjn\Cache\scjn-lineamientos\` | `%LOCALAPPDATA%\scjn\Cache\scjn-tratados\` | `%LOCALAPPDATA%\dofjson\Cache\` |
+| Override | `$SCJN_CACHE_DIR`, or `scjn.cache.CACHE_DIR` | `$SCJN_CACHE_DIR`, or `scjn.cache.CACHE_DIR` | `$SCJN_CACHE_DIR`, or `scjn.cache.CACHE_DIR` | `$SCJN_CACHE_DIR`, or `scjn.cache.CACHE_DIR` | `dofjson.titulos.CACHE_DIR` |
+| Per-run override | `--cache-dir DIR` | `--cache-dir DIR` | `--cache-dir DIR` | `--cache-dir DIR` | `--cache-dir DIR` |
 
-The three SCJN releases share `scjn`'s own cache directory (a subdirectory
+The four SCJN releases share `scjn`'s own cache directory (a subdirectory
 each, issue #209 moved them out of `nota2md`'s own cache — not the
 `~/.cache/nota2md/scjn-leyes/` layout an earlier version of this table used
 to show), while `notas-archivo` keeps `dofjson`'s. `--cache-dir` therefore
 means a different thing depending on the subcommand — an `scjn` directory on
-the first three, a `dofjson` one on `gazette-metadata` — which each
+the first four, a `dofjson` one on `gazette-metadata` — which each
 subcommand's own `--help` says plainly. `--cache-dir none` (valid on
 `nota2md <codNota>`, where it means "skip the cache, download into memory")
 is rejected on every `download` subcommand: each one exists to write a
 release to disk, and "no cache" has nowhere to write.
 
-`nota2md` reads nothing from `scjn-reglamentos`/`scjn-lineamientos` itself —
-this verb is a convenience downloader for them, not a sign that `nota2md`'s
-own build path consumes them (see the `scjn` package for readers over those
-two corpora).
+`nota2md` reads nothing from `scjn-reglamentos`/`scjn-lineamientos`/
+`scjn-tratados` itself — this verb is a convenience downloader for them, not a
+sign that `nota2md`'s own build path consumes them (see the `scjn` package
+for readers over those corpora).
 
-From Python, the four downloads are `scjn.release.download_scjn_leyes_assets`,
+From Python, the five downloads are `scjn.release.download_scjn_leyes_assets`,
 `scjn.release.download_scjn_reglamentos_assets`,
-`scjn.release.download_scjn_lineamientos_assets` and
+`scjn.release.download_scjn_lineamientos_assets`,
+`scjn.release.download_scjn_tratados_assets` and
 `dofjson.download_dof_assets`.
 
 ## Installation

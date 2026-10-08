@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Package an id-keyed SCJN corpus (`reglamentos`, issue #220; `lineamientos`,
-issue #222) into one byte-reproducible tarball *per instrument with text*,
+issue #222; `tratados`, issue #277) into one byte-reproducible tarball *per instrument with text*,
 plus a human-readable manifest and a checksum file. Shared by both
 collections (issue #222's Fase 0, generalized out of the `reglamentos`-only
 `empaqueta_scjn_reglamentos.py`), without `indice.json`/`notas/` or a
@@ -98,6 +98,7 @@ from scjn.release import (  # noqa: E402
     _tag_de_parte,
     construye_indice_global_lineamientos,
     construye_indice_global_reglamentos,
+    construye_indice_global_tratados,
 )
 from scjn.state import lee_estado  # noqa: E402
 
@@ -107,6 +108,7 @@ from scjn.state import lee_estado  # noqa: E402
 _INDICES_POR_ID = {
     "reglamentos": construye_indice_global_reglamentos,
     "lineamientos": construye_indice_global_lineamientos,
+    "tratados": construye_indice_global_tratados,
 }
 
 #: GitHub's release-body cap (issue #223) -- `MANIFEST.md` grows with the
@@ -117,7 +119,8 @@ LIMITE_CUERPO_NOTAS = 125_000
 #: Part 1 alone also carries `MANIFEST.md`, `SHA256SUMS.txt` and
 #: `ASSET_INDICE_GLOBAL` (decision 5), so its own tarball budget is
 #: `LIMITE_ASSETS_POR_RELEASE` minus these three -- 997 today for
-#: `reglamentos`, plenty of headroom for `lineamientos`' ~126.
+#: `reglamentos`, plenty of headroom for `lineamientos`' ~126; `tratados`
+#: (~1,450) goes over it and is split into a numbered series (issue #277).
 _RESERVADOS_PARTE_1 = 3
 
 #: `partes.json`'s own file name, local to `--destino` -- never a published

@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-"""Turn a reviewed `discover_federal_reglamentos.py`/`discover_federal_lineamientos.py`
-list into ``<outdir>/<coleccion>/<idOrdenamiento>/estado.json`` -- Fase 2 of
+"""Turn a reviewed `discover_federal_reglamentos.py`/`discover_federal_lineamientos.py`/
+`discover_federal_tratados.py` list into ``<outdir>/<coleccion>/<idOrdenamiento>/estado.json`` -- Fase 2 of
 issue #220 (`reglamentos`) and #222 (`lineamientos`), the id-keyed sibling of
-hand-writing a law's `abrev`/`nombre` before its first crawl. Shared by both
-collections (issue #222's Fase 0) since the seed itself has always been
+hand-writing a law's `abrev`/`nombre` before its first crawl. Shared by every
+id-keyed collection (issue #222's Fase 0, `tratados` since #277) since the seed itself has always been
 `coleccion`-agnostic -- only the discovery list it reads from differs.
 
     ./scripts/discover_federal_reglamentos.py --json candidatos.json
     less candidatos.json   # review it -- this is the human decision point
     ./scripts/seed_federal_reglamentos.py --outdir scripts/scjn candidatos.json
-    # or, for the other id-keyed collection:
+    # or, for another id-keyed collection:
     ./scripts/seed_federal_reglamentos.py --outdir scripts/scjn --coleccion lineamientos candidatos.json
+    ./scripts/seed_federal_reglamentos.py --outdir scripts/scjn --coleccion tratados candidatos.json
 
 Unlike a law, no candidate selection is involved at all (issue #220's own
 "No candidate selection is involved" section): `id_ordenamiento` already
@@ -20,10 +21,11 @@ discovery list, not over each individual seed.
 
 Each entry becomes ``<outdir>/<coleccion>/<id_ordenamiento>/estado.json``
 with ``id_ordenamiento``, ``nombre``, ``categoria_ordenamiento``,
-``vigencia``, ``materia``, ``resumen`` (issue #220, Fase 2) --
+``ambito`` (issue #277: what a treaty is a member by), ``vigencia``,
+``materia``, ``resumen`` (issue #220, Fase 2) --
 ``clasificado`` (the date this seed was written) is set only the first
 time, same reasoning `escribe_estado`'s merge already gives every other
-field here. Neither id-keyed collection has an `abrev` or an `actualizado`
+field here. No id-keyed collection has an `abrev` or an `actualizado`
 at all (see CLAUDE.md's own sections on them): freshness is judged by row
 comparison against the SCJN's own reform table
 (`scjn.state.reformas_faltantes`), which needs nothing dated.
@@ -55,7 +57,7 @@ from scjn.state import escribe_estado, lee_estado  # noqa: E402
 #: `id_ordenamiento`/`nombre` unconditionally, the rest only when present
 #: (issue #220: `materia`/`resumen` are half-populated by the SCJN itself,
 #: and this corpus records what it gives, inferring nothing).
-CAMPOS_SEMILLA = ("id_ordenamiento", "nombre", "categoria_ordenamiento", "vigencia",
+CAMPOS_SEMILLA = ("id_ordenamiento", "nombre", "categoria_ordenamiento", "ambito", "vigencia",
                   "materia", "resumen")
 
 
@@ -66,7 +68,7 @@ def seed(outdir: Path, candidatos: list[dict], *, coleccion: str = "reglamentos"
     outright, printed apart -- never touched, crawled or not.
 
     `coleccion` is any name in `scjn.cache.COLECCIONES_POR_ID`
-    (`"reglamentos"`, `"lineamientos"`) -- both id-keyed collections share
+    (`"reglamentos"`, `"lineamientos"`, `"tratados"`) -- every id-keyed collection shares
     this exact seeding logic (issue #222's Fase 0)."""
     escritos = []
     saltados = []

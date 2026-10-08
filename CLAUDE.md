@@ -34,10 +34,11 @@ build on each other in this sequence.
   `nota2md`'s own modules (issue #206, done — see its own section below);
   depends on nothing else in this monorepo, and nothing here imports back
   from `nota2md`/`dofjson` (`packages/scjn/tests/test_boundary.py`'s own grep
-  enforces it). Two sibling id-keyed releases, `scjn-reglamentos` (issue
-  #220) and `scjn-lineamientos` (issue #222), share `scjn.release`'s own
-  generic core since #222's Fase 0 — see their own sections below for
-  `download_scjn_reglamentos_*`/`download_scjn_lineamientos_*` and
+  enforces it). Three sibling id-keyed releases, `scjn-reglamentos` (issue
+  #220), `scjn-lineamientos` (issue #222) and `scjn-tratados` (issue #277),
+  share `scjn.release`'s own generic core since #222's Fase 0 — see their own
+  sections below for `download_scjn_reglamentos_*`/
+  `download_scjn_lineamientos_*`/`download_scjn_tratados_*` and
   `SinTextoEnSCJN`.
   Eight entry points for `scjn-leyes` itself, re-exported off the package: `download_scjn_leyes_index`/
   `download_scjn_leyes_corpus`/`markdown_de_snapshot` (the release's readers,
@@ -88,14 +89,14 @@ build on each other in this sequence.
   `download_scjn_leyes_corpus`/`download_scjn_leyes_index`/
   `download_scjn_leyes_catalog`/`iter_current_federal_laws` (the `scjn`
   package's own readers, re-exported here unchanged for a caller — see
-  `scjn` above). Its own CLI's `download all` puts all four of the project's
-  GitHub releases on disk since issue #225 — `federal-laws`/
-  `federal-regulations`/`federal-guidelines` (the three SCJN releases, into
-  `scjn`'s own cache) plus `gazette-metadata` (`notas-archivo`, into
-  `dofjson`'s) — though `nota2md` still reads nothing from
-  `scjn-reglamentos`/`scjn-lineamientos` itself: `download` only widens as a
-  convenience downloader, it is not a new Python-level dependency on either
-  corpus. Depends on `scjn` for all of the above; `nota2md.linking` is
+  `scjn` above). Its own CLI's `download all` puts all five of the project's
+  GitHub releases on disk since issues #225 and #277 — `federal-laws`/
+  `federal-regulations`/`federal-guidelines`/`international-treaties` (the
+  four SCJN releases, into `scjn`'s own cache) plus `gazette-metadata`
+  (`notas-archivo`, into `dofjson`'s) — though `nota2md` still reads nothing
+  from `scjn-reglamentos`/`scjn-lineamientos`/`scjn-tratados` itself:
+  `download` only widens as a convenience downloader, it is not a new
+  Python-level dependency on any of those corpora. Depends on `scjn` for all of the above; `nota2md.linking` is
   the one SCJN-adjacent concern that stays here instead — matching a
   snapshot `scjn` reads back to the DOF `codNota` that produced it, and the
   reverse (a `codNota` to the snapshot it produced, for `legal_provisions`'
@@ -574,6 +575,104 @@ corpus next to its siblings:
   never `--slug`) delegates to `download_scjn_lineamientos_assets`, and
   `all` now includes it — `nota2md` itself still reads nothing from this
   corpus.
+
+## The `scjn-tratados` corpus (issue #277, done)
+
+**Every international treaty the SCJN serves** — 1,455 instruments at
+discovery (2026-10-08; the planning measurement an hour earlier said 1,456,
+the SCJN moves), keyed by `idOrdenamiento` — published as a fourth sibling
+GitHub release alongside `scjn-leyes`/`scjn-reglamentos`/`scjn-lineamientos`,
+on the id-keyed path the section above refactored: **one descriptor entry
+(`scjn.cache.TRATADOS`), four wrapper functions plus `iter_current_tratados`,
+one discovery wrapper script and its docs** — the promise #222 made, kept.
+
+- **Inclusion is by *ámbito*, not by category.** The SCJN does not classify
+  a treaty as a federal instrument: it carries `ambito == "TRATADOS
+  INTERNACIONALES"` (the `FEDERAL` hits of "tratado" are e.g. the *Ley sobre
+  la Celebración de Tratados*). A member is any instrument of that ámbito,
+  **any category** — CONVENIO, ACUERDO (S), CONVENCION, TRATADO, PROTOCOLO,
+  PROYECTO, ACTA, CODIGO, ESTATUTO, CONSTITUCION, ARREGLO, REGLAMENTO,
+  DECLARACION, CONGRESO, CARTA, PACTO, NOTA(S), MEMORANDUM, AVISO, REGLA (S),
+  DECRETO, BASES, MANDATO: 23 measured, every sampled oddity a genuine
+  international instrument (CODIGO = IMO safety codes, CONSTITUCION = of
+  international organisations, CONGRESO = Universal Postal Union decisions,
+  PROYECTO = ILO draft conventions). A category whitelist would have dropped
+  386 ACUERDO (S) and ~80 others. Confirmed with the repository owner.
+- **The search phrases only page, they never decide membership.**
+  `BusquedaFrase` has no "list everything" mode, so
+  `scripts/discover_federal_tratados.py` pages the ámbito with a union
+  (tratado, convenio, convencion, arreglo, carta, declaracion, pacto,
+  protocolo, **acuerdo**, de, a, la, y, para, el): "acuerdo" alone reaches 371
+  instruments nothing else does, "de" 49 more.
+- **No reform-category rescue and no coverage audit.** Both are predicates on
+  a reform row's category, and a reform row carries no ámbito, so neither can
+  say "international": `scjn.discovery.discover(..., categoria="",
+  ambito="TRATADOS INTERNACIONALES")` is the by-ámbito mode that skips both
+  (`auditoria_cobertura=True` with it is a `ValueError`; the script has no
+  `--auditoria-cobertura`). Instead `scjn.discovery.report_outside_ambito`
+  lets the script **report — under its own heading, never in the `--json` —
+  the instruments outside the ámbito whose own category is a treaty word**,
+  for a human: 119 at discovery (73 ESTATAL PROTOCOLO, 44 FEDERAL PROTOCOLO,
+  2 FEDERAL CONVENIO), every one a domestic protocol or inter-agency
+  agreement — none included. `discover`/`discover_by_category` gained an
+  `ambito: str = "FEDERAL"` keyword (every existing call is unchanged) and
+  every candidate carries `ambito`, recorded in `estado.json` through
+  `CAMPOS_SEMILLA`; the release index's `CAMPOS_METADATOS` does not gain it
+  (its own `coleccion` already says it), and **`Coleccion` gained no field**:
+  how membership is decided is a fact of the discovery script, not of the
+  reader.
+- **No `abrev`, no `actualizado`, no DOF linking, no `indice.json`** —
+  identical to the two siblings; `id_ordenamiento` is the key everywhere, an
+  instrument with no consolidated text is indexed with `snapshots: 0` and no
+  asset (decision 6), and the raise order is `AssetNotCached` for the index,
+  then `SinTextoEnSCJN`, then `AssetNotCached` for a listed tarball not on
+  disk (decision 10).
+- **A numbered series of release tags** (`scjn-tratados`, `scjn-tratados-2`,
+  ...), since ~1,450 tarballs are over GitHub's 1,000-asset cap — resolved by
+  `scjn.release._assets_de_partes` and planned by `empaqueta_scjn_coleccion.py`'s
+  `partes.json`, issue #223's machinery, unchanged.
+- **The pipeline was run in this issue; publishing was not.** Discover →
+  `seed_federal_reglamentos.py --coleccion tratados` → `fetch_scjn_legislacion.py
+  --coleccion tratados` (and `--plan`) → `empaqueta_scjn_coleccion.py
+  --coleccion tratados`, all into the gitignored `scripts/scjn/`, stopping at
+  `scripts/scjn/tratados-release/PUBLICAR.md`: a human runs it (issue #115,
+  Hallazgo C), so until then there is no `scjn-tratados` release on GitHub and
+  the docs page carries no live download example for it (same posture as
+  `scjn-lineamientos` before its own publication). The figures from the run
+  are in the issue's own comment, not here: they describe a day's crawl, not
+  the tree.
+- **`nota2md download international-treaties`** (`--id`, repeatable, never
+  `--slug`) delegates to `download_scjn_tratados_assets`, and `all` now
+  downloads **five** releases; `nota2md` still reads nothing from this
+  corpus. `scjn` went to 0.5.0 (new public names), `nota2md`'s unreleased
+  0.5.0 grew its README banner and its floor is now `scjn>=0.5.0`;
+  `find_scjn_table_instruments.py` takes its `--coleccion` choices from
+  `("leyes", *COLECCIONES_POR_ID)`.
+- **Out of scope, deliberately.** Vectors (`legalvec.cache.RELEASE_TAGS`,
+  `scripts/embeddings/build_units.py`'s `COLECCIONES`, a
+  `scjn-tratados-vectors` release), the Atlas, DOF linking (`codNota`,
+  `nota2md.linking`), `md2akn` rules for treaty structure (`ARTÍCULO I`
+  roman numerals, "FIRMA" blocks — a treaty that `text_units` mishandles is
+  a later issue's finding, not fixed here) and a website page.
+
+### The retired SCJN *Buscador*, audited (issue #277)
+
+The SCJN's current legislation site is `legislacion.scjn.gob.mx/consulta`
+(headed *"La clave de la Corte"*, `https://legislacion.scjn.gob.mx/consulta/home`),
+read through the SCOW JSON backend `scjn.api` talks to; the legacy WebForms
+*Buscador* was retired in issue #179. The audit found exactly one live link
+left — `website/pages/leyes.ipynb` and its frozen
+`website/_freeze/pages/leyes/execute-results/html.json`, both edited
+**textually**, never re-executed (`freeze: true`, see "Commands") — and
+`packages/scjn/tests/test_site_references.py` now fails on any occurrence of
+the retired site's URL anywhere in the tree except
+`.github/migracion-diputados.md` and `.github/historial-legislativo.md` (frozen
+history) and the gitignored scratch (`.git/`, `.venv/`, `website/_site/`,
+`emb-run*/`, `scripts/scjn/`, `output/`). It lives in `packages/scjn/tests/`
+because CI runs only `pytest packages/<pkg>`, and skips with a reason outside
+the monorepo. Historical narrative that says the WebForms crawler was
+"retired"/"replaced" (`scjn/api.py`'s docstring, `fetch_scjn_legislacion.py`'s
+header, the READMEs) stays as it is: it does not link the old site.
 
 ## A vector for every text of all three corpora (issue #227, done)
 

@@ -21,11 +21,15 @@ class FakeApi:
         self.resultados = resultados
         self.reformas = reformas
         self.llamadas_reformas: list[str] = []
+        self.busquedas: list[tuple] = []
 
     def search_ordenamiento(self, frase, *, tamanio_pagina, categoria, ambito, pagina):
         if pagina > 1:
             return []
-        return self.resultados.get((frase, categoria), [])
+        self.busquedas.append((frase, categoria, ambito))
+        # A `(frase, categoria, ambito)` key (issue #277) wins over the
+        # ambito-less `(frase, categoria)` one every earlier test uses.
+        return self.resultados.get((frase, categoria, ambito), self.resultados.get((frase, categoria), []))
 
     def reformas_of_ordenamiento(self, id_ordenamiento):
         self.llamadas_reformas.append(str(id_ordenamiento))
@@ -45,8 +49,11 @@ class PagedFakeApi:
         return []
 
 
-def _hit(id_ordenamiento, nombre, categoria="LINEAMIENTOS"):
-    return Ordenamiento(idOrdenamiento=id_ordenamiento, ordenamiento=nombre, categoriaOrdenamiento=categoria)
+def _hit(id_ordenamiento, nombre, categoria="LINEAMIENTOS", ambito=None):
+    return Ordenamiento(
+        idOrdenamiento=id_ordenamiento, ordenamiento=nombre,
+        categoriaOrdenamiento=categoria, ambito=ambito,
+    )
 
 
 class TestPaginaCategoria(unittest.TestCase):
@@ -203,6 +210,130 @@ class TestDiscover(unittest.TestCase):
                 frase_rescate="lineamientos", auditoria_cobertura=True,
                 log=lambda *_a, **_k: None,
             )
+
+
+AMBITO_TRATADOS = "TRATADOS INTERNACIONALES"
+
+
+class TestDiscoverPorAmbito(unittest.TestCase):
+    """`discover(..., categoria="", ambito=...)` (issue #277): `scjn-tratados`
+    is a member by ambito, any category -- the whole ambito is paged, and
+    neither the reform-category rescue nor the coverage audit runs."""
+
+    def _api(self):
+        return FakeApi(
+            resultados={
+                ("tratado", "", AMBITO_TRATADOS): [
+                    _hit("1", "CONVENIO A", categoria="CONVENIO", ambito=AMBITO_TRATADOS),
+                    _hit("2", "ACUERDO B", categoria="ACUERDO (S)", ambito=AMBITO_TRATADOS),
+                ],
+                ("de", "", AMBITO_TRATADOS): [
+                    _hit("2", "ACUERDO B", categoria="ACUERDO (S)", ambito=AMBITO_TRATADOS),
+                    _hit("3", "CODIGO C", categoria="CODIGO", ambito=AMBITO_TRATADOS),
+                ],
+            },
+            reformas={
+                "1": [Reforma(reformaId=1, fecha_publicacion="01-01-2020", tieneArticulos=True)],
+                "2": [
+                    Reforma(reformaId=2, fecha_publicacion="01-01-2020", tieneArticulos=False),
+                    Reforma(reformaId=3, fecha_publicacion="01-01-2021", tieneArticulos=True),
+                ],
+            },
+        )
+
+    def test_pagina_el_ambito_sin_filtro_de_categoria(self):
+        api = self._api()
+
+        candidatos = discovery.discover(
+            api, categoria="", ambito=AMBITO_TRATADOS, frases_union=("tratado", "de"),
+            log=lambda *_a, **_k: None,
+        )
+
+        self.assertEqual({c["id_ordenamiento"] for c in candidatos}, {"1", "2", "3"})
+        self.assertEqual(
+            api.busquedas, [("tratado", "", AMBITO_TRATADOS), ("de", "", AMBITO_TRATADOS)]
+        )
+
+    def test_cada_candidato_lleva_su_ambito_y_cualquier_categoria_entra(self):
+        candidatos = discovery.discover(
+            self._api(), categoria="", ambito=AMBITO_TRATADOS, frases_union=("tratado", "de"),
+            log=lambda *_a, **_k: None,
+        )
+
+        self.assertEqual({c["ambito"] for c in candidatos}, {AMBITO_TRATADOS})
+        self.assertEqual(
+            {c["categoria_ordenamiento"] for c in candidatos}, {"CONVENIO", "ACUERDO (S)", "CODIGO"}
+        )
+
+    def test_no_aplica_rescate_ni_auditoria_solo_cuenta_reformas_por_candidato(self):
+        api = self._api()
+
+        discovery.discover(
+            api, categoria="", ambito=AMBITO_TRATADOS, frases_union=("tratado", "de"),
+            log=lambda *_a, **_k: None,
+        )
+
+        # One `reformas_of_ordenamiento` per candidate (the reform count) and
+        # nothing else: no rescue table fetches, no sweep.
+        self.assertEqual(sorted(api.llamadas_reformas), ["1", "2", "3"])
+
+    def test_auditoria_de_cobertura_no_aplica_por_ambito(self):
+        with self.assertRaises(ValueError):
+            discovery.discover(
+                self._api(), categoria="", ambito=AMBITO_TRATADOS, frases_union=("tratado",),
+                auditoria_cobertura=True, frases_auditoria=(("ley", "LEY"),),
+                log=lambda *_a, **_k: None,
+            )
+
+    def test_el_default_federal_se_comporta_como_antes(self):
+        api = FakeApi(
+            resultados={("lineamientos", "LINEAMIENTOS"): [_hit("1", "A")], ("lineamientos", ""): []},
+            reformas={"1": []},
+        )
+
+        candidatos = discovery.discover(
+            api, categoria="LINEAMIENTOS", frases_union=("lineamientos",),
+            frase_rescate="lineamientos", log=lambda *_a, **_k: None,
+        )
+
+        self.assertEqual([c["id_ordenamiento"] for c in candidatos], ["1"])
+        self.assertIn(("lineamientos", "LINEAMIENTOS", "FEDERAL"), api.busquedas)
+
+
+class TestReportOutsideAmbito(unittest.TestCase):
+    def test_lista_solo_lo_de_fuera_con_categoria_de_tratado_y_ordenado(self):
+        api = FakeApi(
+            resultados={
+                ("tratado", "", ""): [
+                    _hit("1", "DENTRO", categoria="TRATADO", ambito=AMBITO_TRATADOS),
+                    _hit("2", "ZETA ESTATAL", categoria="TRATADO", ambito="ESTATAL"),
+                    _hit("3", "LEY SOBRE TRATADOS", categoria="LEY", ambito="FEDERAL"),
+                    _hit("4", "ALFA FEDERAL", categoria="convenio", ambito="FEDERAL"),
+                ],
+                ("convenio", "", ""): [
+                    _hit("2", "ZETA ESTATAL", categoria="TRATADO", ambito="ESTATAL"),
+                ],
+            },
+            reformas={},
+        )
+
+        fuera = discovery.report_outside_ambito(
+            api, AMBITO_TRATADOS, ("TRATADO", "CONVENIO"), ("tratado", "convenio")
+        )
+
+        self.assertEqual([h.idOrdenamiento for h in fuera], ["4", "2"])
+        # It pages across every ambito and category, never the collection's.
+        self.assertEqual({(c, a) for _, c, a in api.busquedas}, {("", "")})
+
+    def test_nunca_llama_a_la_tabla_de_reformas(self):
+        api = FakeApi(
+            resultados={("tratado", "", ""): [_hit("2", "X", categoria="TRATADO", ambito="ESTATAL")]},
+            reformas={},
+        )
+
+        discovery.report_outside_ambito(api, AMBITO_TRATADOS, ("TRATADO",), ("tratado",))
+
+        self.assertEqual(api.llamadas_reformas, [])
 
 
 if __name__ == "__main__":

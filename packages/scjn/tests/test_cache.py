@@ -5,6 +5,7 @@ network except `TestAssetEnCache`, where every download is a mocked
 `requests.get` -- which doubles as the assertion that a cache hit made no
 request at all."""
 
+import dataclasses
 import os
 import tempfile
 import unittest
@@ -16,6 +17,30 @@ from scjn import cache
 
 def _respuesta(contenido: bytes) -> Mock:
     return Mock(content=contenido, raise_for_status=Mock())
+
+
+class TestColeccionesPorId(unittest.TestCase):
+    """The id-keyed collections' descriptors (issues #222, #277)."""
+
+    def test_las_tres_colecciones_id_keyed(self):
+        self.assertEqual(
+            sorted(cache.COLECCIONES_POR_ID), ["lineamientos", "reglamentos", "tratados"]
+        )
+
+    def test_tratados_tag_y_subdirectorio_son_scjn_tratados(self):
+        tratados = cache.COLECCIONES_POR_ID["tratados"]
+        self.assertIs(tratados, cache.TRATADOS)
+        self.assertEqual(tratados.nombre, "tratados")
+        self.assertEqual(tratados.tag_base, "scjn-tratados")
+        self.assertEqual(tratados.subdirectorio, "scjn-tratados")
+
+    def test_el_descriptor_no_lleva_campos_de_comportamiento(self):
+        # Membership by ambito is the discovery script's business, never a
+        # field of `Coleccion` (issue #277's decision).
+        self.assertEqual(
+            [f.name for f in dataclasses.fields(cache.Coleccion)],
+            ["nombre", "tag_base", "subdirectorio"],
+        )
 
 
 class TestResuelveCacheDir(unittest.TestCase):

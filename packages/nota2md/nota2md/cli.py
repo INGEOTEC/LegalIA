@@ -6,8 +6,9 @@ Two verbs, one of them implicit:
     nota2md download federal-laws           put the scjn-leyes release on disk
     nota2md download federal-regulations    put the scjn-reglamentos release on disk
     nota2md download federal-guidelines     put the scjn-lineamientos release on disk
+    nota2md download international-treaties put the scjn-tratados release on disk
     nota2md download gazette-metadata       put the notas-archivo release on disk
-    nota2md download all                    all four of them
+    nota2md download all                    all five of them
 
 The build form is written without a verb on purpose: it is the command this
 CLI had before `download` existed (`nota2md 5793655 --outdir output`, as the
@@ -225,6 +226,32 @@ def _parser_completo():
         help="Re-download assets already present instead of keeping them",
     )
 
+    tratados = releases.add_parser(
+        "international-treaties",
+        help="The scjn-tratados release: every international treaty the SCJN has "
+        "(~1,456 instruments)",
+        description="Download the scjn-tratados release — the reverse index plus "
+        "one tarball per instrument, keyed by id_ordenamiento (same reason as "
+        "scjn-reglamentos: no abrev — issue #277) — delegating to the scjn package's "
+        "own downloader (`scjn download --coleccion tratados`), into scjn's own "
+        "cache directory. A numbered series of release tags (scjn-tratados, "
+        "scjn-tratados-2, ...), resolved by the downloader itself.",
+    )
+    tratados.add_argument(
+        "--id", action="append", default=None, metavar="ID", dest="ids",
+        help="Only this instrument's tarball, by id_ordenamiento (repeatable). Not "
+        "given: every instrument the release publishes. The index is always downloaded.",
+    )
+    tratados.add_argument(
+        "--cache-dir", default=None,
+        help="Directory to write into. Not given: scjn.cache.CACHE_DIR (the "
+        "OS-appropriate per-user cache, overridable with $SCJN_CACHE_DIR).",
+    )
+    tratados.add_argument(
+        "--refrescar", action="store_true",
+        help="Re-download assets already present instead of keeping them",
+    )
+
     gaceta = releases.add_parser(
         "gazette-metadata",
         help="The notas-archivo release: every legal provision ever published, "
@@ -250,22 +277,22 @@ def _parser_completo():
 
     todo = releases.add_parser(
         "all",
-        help="All four releases, each into its own cache directory",
-        description="Download all four releases this project reads: scjn-leyes, "
-        "scjn-reglamentos and scjn-lineamientos into the scjn package's own cache "
-        "(three subdirectories) and notas-archivo into dofjson's — ~1649 assets, "
-        "~457 MB total on a cold cache. Each keeps its own directory — this "
-        "shorthand saves four invocations, it does not merge the caches. --slug "
-        "narrows the scjn-leyes half only; scjn-reglamentos and scjn-lineamientos "
-        "have no --id equivalent here (they are keyed by id_ordenamiento, not slug, "
-        "and an --id could not say which of the two collections it names) — use "
-        "`download federal-regulations`/`federal-guidelines` directly to narrow "
-        "those.",
+        help="All five releases, each into its own cache directory",
+        description="Download all five releases this project reads: scjn-leyes, "
+        "scjn-reglamentos, scjn-lineamientos and scjn-tratados into the scjn "
+        "package's own cache (four subdirectories) and notas-archivo into dofjson's "
+        "— several thousand assets on a cold cache. Each keeps its own directory — "
+        "this shorthand saves five invocations, it does not merge the caches. --slug "
+        "narrows the scjn-leyes half only; the id-keyed collections have no --id "
+        "equivalent here (they are keyed by id_ordenamiento, not slug, and an --id "
+        "could not say which of the three collections it names) — use "
+        "`download federal-regulations`/`federal-guidelines`/`international-treaties` "
+        "directly to narrow those.",
     )
     todo.add_argument(
         "--slug", action="append", default=None, metavar="SLUG", dest="slugs",
         help="Limit the scjn-leyes half to these laws (repeatable); the other "
-        "three releases are downloaded whole either way",
+        "four releases are downloaded whole either way",
     )
     todo.add_argument(
         "--refrescar", action="store_true",
@@ -353,8 +380,8 @@ def _descarga_federal_laws(slugs, cache_dir, refrescar, log=print):
 
 
 def _resolver_cache_dir_por_id(valor: str | None, subcomando: str):
-    """--cache-dir for `federal-regulations`/`federal-guidelines`: unlike
-    `_resolver_cache_dir`, these two never touch `nota2md`'s own cache (there
+    """--cache-dir for `federal-regulations`/`federal-guidelines`/`international-treaties`: unlike
+    `_resolver_cache_dir`, these never touch `nota2md`'s own cache (there
     is no migration for them — issue #225's decision 7), so "not given"
     already means `None` outright — `scjn.release`'s own "use
     `scjn.cache.CACHE_DIR`". 'none' is rejected the same way it is for
@@ -370,9 +397,9 @@ def _resolver_cache_dir_por_id(valor: str | None, subcomando: str):
 
 
 def _descarga_coleccion_por_id(coleccion, ids, cache_dir, refrescar, log=print):
-    """`download federal-regulations`/`federal-guidelines`: delegates to
+    """`download federal-regulations`/`federal-guidelines`/`international-treaties`: delegates to
     `scjn.release`'s own downloader for the given id-keyed collection
-    (`"reglamentos"` or `"lineamientos"`) — one shared helper for both, the
+    (`"reglamentos"`, `"lineamientos"` or `"tratados"`) — one shared helper, the
     same one-entry-per-collection shape as `scjn.cli`'s own
     `_DESCARGAS_POR_ID` (issue #225's decision 5). No legacy-cache migration
     here: unlike scjn-leyes, these releases were published after #209's
@@ -382,11 +409,13 @@ def _descarga_coleccion_por_id(coleccion, ids, cache_dir, refrescar, log=print):
         _ULTIMO_NUMERO_DE_PARTES,
         download_scjn_lineamientos_assets,
         download_scjn_reglamentos_assets,
+        download_scjn_tratados_assets,
     )
 
     _DESCARGAS_POR_ID = {
         "reglamentos": download_scjn_reglamentos_assets,
         "lineamientos": download_scjn_lineamientos_assets,
+        "tratados": download_scjn_tratados_assets,
     }
     resultados = _DESCARGAS_POR_ID[coleccion](
         ids, cache_dir=cache_dir, refrescar=refrescar, log=log,
@@ -454,6 +483,16 @@ def _run_federal_guidelines(args, log):
     )
 
 
+def _run_international_treaties(args, log):
+    cache_dir = _resolver_cache_dir_por_id(
+        getattr(args, "cache_dir", None) if args.release == "international-treaties" else None,
+        "international-treaties",
+    )
+    _descarga_coleccion_por_id(
+        "tratados", getattr(args, "ids", None), cache_dir, args.refrescar, log=log,
+    )
+
+
 def _run_gazette_metadata(args, log):
     bruto = getattr(args, "cache_dir", None) if args.release == "gazette-metadata" else None
     _descarga_gazette_metadata(bruto, args.refrescar, log=log)
@@ -469,6 +508,7 @@ _RELEASES = {
     "federal-laws": _run_federal_laws,
     "federal-regulations": _run_federal_regulations,
     "federal-guidelines": _run_federal_guidelines,
+    "international-treaties": _run_international_treaties,
     "gazette-metadata": _run_gazette_metadata,
 }
 

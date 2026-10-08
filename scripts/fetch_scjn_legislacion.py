@@ -282,7 +282,8 @@ from scjn.state import (  # noqa: E402
 
 #: The one collection with the DOF-linked release/`--actualiza` chain
 #: described in the module docstring above (issue #189), a literal path
-#: segment. Since issue #220 (`reglamentos`) and #222 (`lineamientos`), every
+#: segment. Since issue #220 (`reglamentos`), #222 (`lineamientos`) and #277
+#: (`tratados`), every
 #: other collection is id-keyed and narrower: only `rastrea_por_id`/
 #: `planea_por_id` exist for them (the shared equivalents of
 #: `rastrea_coleccion`/`planea_coleccion`'s row comparison, parameterized by
@@ -1073,7 +1074,7 @@ def rastrea_coleccion(
     return fallidos
 
 
-# --- id-keyed collections (`reglamentos`, `lineamientos`): the narrow path,
+# --- id-keyed collections (`reglamentos`, `lineamientos`, `tratados`): the narrow path,
 # shared (issue #222's Fase 0) -----------------------------------------
 #
 # Only the two pieces any id-keyed collection actually needs exist here: a
@@ -1110,7 +1111,7 @@ def rastrea_coleccion(
 def _load_catalog_por_id(outdir: Path, coleccion: str) -> list[dict]:
     """Every instrument already seeded under ``<outdir>/<coleccion>/`` --
     one entry per subdirectory, each read straight off its own `estado.json`
-    (`seed_federal_reglamentos.py`/`seed_federal_lineamientos.py`'s own
+    (`seed_federal_reglamentos.py --coleccion <coleccion>`'s own
     output). Unlike `_load_catalog`, there is no fallback to a published
     index for `nombre`: neither id-keyed corpus has an `abrev` to resolve one
     by, and every directory is already keyed by `id_ordenamiento`
@@ -1123,7 +1124,7 @@ def _load_catalog_por_id(outdir: Path, coleccion: str) -> list[dict]:
     if not base.is_dir():
         raise SystemExit(
             f"{base} no existe -- corre discover_federal_{coleccion}.py y "
-            f"seed_federal_{coleccion}.py antes de rastrear esta coleccion"
+            f"seed_federal_reglamentos.py --coleccion {coleccion} antes de rastrear esta coleccion"
         )
     catalogo = []
     for directorio in sorted(p for p in base.iterdir() if p.is_dir()):
@@ -1131,7 +1132,8 @@ def _load_catalog_por_id(outdir: Path, coleccion: str) -> list[dict]:
         if not (estado.get("id_ordenamiento") and estado.get("nombre")):
             raise SystemExit(
                 f"{directorio}: sin 'id_ordenamiento'/'nombre' en su estado.json -- "
-                f"seedealo con scripts/seed_federal_{coleccion}.py antes de rastrearlo"
+                f"seedealo con scripts/seed_federal_reglamentos.py --coleccion {coleccion} "
+                "antes de rastrearlo"
             )
         catalogo.append({"id_ordenamiento": instrumento_key(estado), "nombre": estado["nombre"]})
     return catalogo
@@ -1181,7 +1183,7 @@ def rastrea_por_id(
         if faltantes:
             raise SystemExit(
                 f"{sorted(faltantes)} no esta(n) en {outdir / coleccion} -- "
-                f"seedealo primero con scripts/seed_federal_{coleccion}.py"
+                f"seedealo primero con scripts/seed_federal_reglamentos.py --coleccion {coleccion}"
             )
         print(
             f"  --instrumento: solo se rastrearan {sorted(instrumento)}; el resto se "
@@ -1349,8 +1351,8 @@ def main(argv=None) -> int:
         choices=COLECCIONES,
         default="leyes",
         help=(
-            "que coleccion rastrear (default: leyes). 'reglamentos' (issue #220) y "
-            "'lineamientos' (issue #222) solo admiten --plan/--instrumento/--reiniciar/un "
+            "que coleccion rastrear (default: leyes). 'reglamentos' (issue #220), "
+            "'lineamientos' (issue #222) y 'tratados' (issue #277) solo admiten --plan/--instrumento/--reiniciar/un "
             "rastreo liso -- --actualiza, --solo-fecha, --dof-only, --reintenta, "
             "--sin-refrescar-catalogo y --incluye-sin-actualizado son leyes-only, porque "
             "existen para alimentar el enlace a DOF que ningun id-keyed collection tiene"
@@ -1388,7 +1390,7 @@ def main(argv=None) -> int:
         metavar="SLUG",
         help=(
             "repetible; slug_instrumento (--coleccion leyes) o id_ordenamiento "
-            "(--coleccion reglamentos/lineamientos) a rastrear, sin tocar la SCJN para "
+            "(--coleccion reglamentos/lineamientos/tratados) a rastrear, sin tocar la SCJN para "
             "ningun otro (issue #148). A diferencia de --reintenta, no borra nada: los "
             "snapshots ya en disco se conservan y solo se bajan las reformas nuevas."
         ),

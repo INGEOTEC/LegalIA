@@ -56,6 +56,13 @@ _SCJN_REGLAMENTOS_RELEASE = "scjn-reglamentos"
 #: id-keyed collection (issue #222), sibling of `_SCJN_REGLAMENTOS_RELEASE`.
 _SCJN_LINEAMIENTOS_RELEASE = "scjn-lineamientos"
 
+#: The subdirectory every `scjn-tratados` asset lives under -- the fourth
+#: id-keyed collection (issue #277), every international treaty the SCJN
+#: serves. A numbered series of release tags (`scjn-tratados`,
+#: `scjn-tratados-2`, ...) over GitHub's 1000-asset cap, like
+#: `scjn-reglamentos` (issue #223).
+_SCJN_TRATADOS_RELEASE = "scjn-tratados"
+
 
 @dataclass(frozen=True)
 class Coleccion:
@@ -64,7 +71,8 @@ class Coleccion:
     release, not a parameter" -- two hand-duplicated collections were a
     defensible cost, three were not).
 
-    `nombre` is the collection's own name (`"reglamentos"`, `"lineamientos"`)
+    `nombre` is the collection's own name (`"reglamentos"`, `"lineamientos"`,
+    `"tratados"`)
     -- what a caller passes to `scjn download --coleccion` and what a
     published index's own `coleccion` field carries. `tag_base` is part 1 of
     its release-tag series (issue #223: `_tag_de_parte`/`_assets_de_partes`
@@ -82,7 +90,10 @@ class Coleccion:
     behaviour flag. `leyes` has its own `abrev`/`actualizado`/`indice.json`/
     `notas/`/codNota-reverse-index path and is not, and will not be,
     described by this class -- growing it to cover `leyes` too is the sign
-    this abstraction went too far.
+    this abstraction went too far. That includes *how membership is decided*:
+    `reglamentos`/`lineamientos` are members by the SCJN's own category,
+    `tratados` (issue #277) by its ámbito (`TRATADOS INTERNACIONALES`) --
+    a fact of that collection's discovery script, carried by no field here.
     """
 
     nombre: str
@@ -90,13 +101,16 @@ class Coleccion:
     subdirectorio: str
 
 
-#: The two id-keyed collections' own descriptors (issue #222) -- `leyes`
+#: The id-keyed collections' own descriptors (issues #222, #277) -- `leyes`
 #: stays on its own separate path, not covered by `Coleccion` at all.
 REGLAMENTOS = Coleccion(
     nombre="reglamentos", tag_base=_SCJN_REGLAMENTOS_RELEASE, subdirectorio=_SCJN_REGLAMENTOS_RELEASE
 )
 LINEAMIENTOS = Coleccion(
     nombre="lineamientos", tag_base=_SCJN_LINEAMIENTOS_RELEASE, subdirectorio=_SCJN_LINEAMIENTOS_RELEASE
+)
+TRATADOS = Coleccion(
+    nombre="tratados", tag_base=_SCJN_TRATADOS_RELEASE, subdirectorio=_SCJN_TRATADOS_RELEASE
 )
 
 #: Every id-keyed collection, by its own `nombre` -- read by `scjn.cli`/
@@ -108,6 +122,7 @@ LINEAMIENTOS = Coleccion(
 COLECCIONES_POR_ID: dict[str, Coleccion] = {
     REGLAMENTOS.nombre: REGLAMENTOS,
     LINEAMIENTOS.nombre: LINEAMIENTOS,
+    TRATADOS.nombre: TRATADOS,
 }
 
 #: Asset names `migrate_legacy_assets` moves verbatim -- everything except a

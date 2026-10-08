@@ -1,17 +1,18 @@
 """`scjn`'s command line: the one verb this package needs, putting a release
 on disk.
 
-    scjn download [--coleccion {leyes,reglamentos,lineamientos}]
+    scjn download [--coleccion {leyes,reglamentos,lineamientos,tratados}]
                   [--slug SLUG | --id ID] [--cache-dir DIR] [--refrescar]
 
 A downstream package's own `download` subcommands delegate to this same
 downloader (`scjn.release.download_scjn_leyes_assets`/
-`download_scjn_reglamentos_assets`/`download_scjn_lineamientos_assets`)
+`download_scjn_reglamentos_assets`/`download_scjn_lineamientos_assets`/
+`download_scjn_tratados_assets`)
 rather than reimplementing it.
 
-`--coleccion` (issue #220, #222) is dispatched through
-`scjn.cache.COLECCIONES_POR_ID` for the two id-keyed collections
-(`reglamentos`, `lineamientos`) -- both share the exact same download path
+`--coleccion` (issue #220, #222, #277) is dispatched through
+`scjn.cache.COLECCIONES_POR_ID` for the id-keyed collections
+(`reglamentos`, `lineamientos`, `tratados`) -- all share the exact same download path
 (issue #222's Fase 0), so adding one more id-keyed collection here means one
 more dict entry, not a new literal branch. `leyes` stays its own separate
 branch: it takes `--slug`, not `--id`, and has no `Coleccion` descriptor at
@@ -25,21 +26,23 @@ from scjn.release import (
     download_scjn_leyes_assets,
     download_scjn_lineamientos_assets,
     download_scjn_reglamentos_assets,
+    download_scjn_tratados_assets,
 )
 
 #: Each id-keyed collection's own downloader -- keyed by `Coleccion.nombre`,
-#: same as `COLECCIONES_POR_ID` itself. A third id-keyed collection adds one
+#: same as `COLECCIONES_POR_ID` itself. A further id-keyed collection adds one
 #: entry here, never a new `if`/`elif` branch.
 _DESCARGAS_POR_ID = {
     "reglamentos": download_scjn_reglamentos_assets,
     "lineamientos": download_scjn_lineamientos_assets,
+    "tratados": download_scjn_tratados_assets,
 }
 
 
 def _parser():
     parser = argparse.ArgumentParser(
         prog="scjn",
-        description="Download an scjn-leyes/scjn-reglamentos/scjn-lineamientos release "
+        description="Download an scjn-leyes/scjn-reglamentos/scjn-lineamientos/scjn-tratados release "
         "-- the index plus one tarball per instrument -- into this package's own "
         "per-user cache directory, so every reader in scjn.release finds it already there.",
     )
@@ -48,8 +51,8 @@ def _parser():
     descarga = sub.add_parser(
         "download",
         help="Download a release's assets",
-        description="Download the scjn-leyes (default), scjn-reglamentos or "
-        "scjn-lineamientos release's assets. Already-cached assets are matched by name "
+        description="Download the scjn-leyes (default), scjn-reglamentos, "
+        "scjn-lineamientos or scjn-tratados release's assets. Already-cached assets are matched by name "
         "and never revalidated, so a second run costs no download at all -- pass "
         "--refrescar to force one.",
     )
@@ -65,7 +68,7 @@ def _parser():
     descarga.add_argument(
         "--id", action="append", default=None, metavar="ID", dest="ids",
         help="Only this instrument's tarball, by id_ordenamiento (repeatable, "
-        "--coleccion reglamentos/lineamientos only). Not given: every instrument the "
+        "--coleccion reglamentos/lineamientos/tratados only). Not given: every instrument the "
         "release publishes. The index is always downloaded.",
     )
     descarga.add_argument(

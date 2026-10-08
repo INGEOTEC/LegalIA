@@ -62,9 +62,10 @@ _RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_RAIZ / "packages" / "scjn"))
 
 from scjn.api import ScjnApi, ScjnApiError  # noqa: E402
+from scjn.cache import COLECCIONES_POR_ID  # noqa: E402
 from scjn.state import lee_estado  # noqa: E402
 
-COLECCIONES = ("leyes", "reglamentos", "lineamientos")
+COLECCIONES = ("leyes", *COLECCIONES_POR_ID)
 
 
 def instrument_dirs(outdir: Path, coleccion: str, keys: list[str] | None) -> list[Path]:
