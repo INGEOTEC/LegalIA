@@ -1354,6 +1354,140 @@ class TestScjnLineamientos(unittest.TestCase):
         )
 
 
+class TestScjnTratados(unittest.TestCase):
+    """`scjn-tratados` (issue #277): the fourth id-keyed collection, thin
+    wrappers over the same generic core `scjn-reglamentos` already exercises
+    -- this class checks the wiring (right subdirectory, right `coleccion`
+    name, right exceptions and raise order)."""
+
+    def setUp(self):
+        self.tmp = Path(__import__("tempfile").mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
+        self.release_dir = self.tmp / "scjn-tratados"
+        self.release_dir.mkdir(parents=True)
+        release._MEMO_INDICE_POR_ID.clear()
+
+    def _publica_indice(self, instrumentos: dict):
+        payload = {"generado": "x", "coleccion": "tratados", "instrumentos": instrumentos}
+        (self.release_dir / release.ASSET_INDICE_GLOBAL).write_bytes(
+            gzip.compress(json.dumps(payload).encode("utf-8"))
+        )
+
+    def _publica_tgz(self, id_ordenamiento: str, **archivos):
+        (self.release_dir / f"{id_ordenamiento}.tgz").write_bytes(_hacer_tgz(archivos))
+
+    def test_construye_indice_global_tratados_no_lleva_codnota(self):
+        indice = release.construye_indice_global_tratados(
+            [{"id_ordenamiento": "1012", "nombre": "CONVENIO...", "snapshots": 1},
+             {"id_ordenamiento": "2", "nombre": "SIN TEXTO", "snapshots": 0}],
+            generado="x",
+        )
+        self.assertEqual(indice["coleccion"], "tratados")
+        self.assertNotIn("codNota", indice)
+        self.assertEqual(indice["instrumentos"]["1012"]["asset"], "1012.tgz")
+        self.assertNotIn("asset", indice["instrumentos"]["2"])
+
+    def test_download_index_lee_el_publicado(self):
+        self._publica_indice({"1012": {"nombre": "CONVENIO", "asset": "1012.tgz", "snapshots": 1}})
+
+        indice = release.download_scjn_tratados_index(cache_dir=self.tmp)
+
+        self.assertEqual(indice["coleccion"], "tratados")
+
+    def test_download_corpus_lee_snapshots_ordenados(self):
+        self._publica_indice({"1012": {"nombre": "C", "asset": "1012.tgz", "snapshots": 1}})
+        self._publica_tgz("1012", **{"1012/12-06-1951.md": "**ARTICULO I.**"})
+
+        resultado = release.download_scjn_tratados_corpus("1012", cache_dir=self.tmp)
+
+        self.assertEqual(resultado["id_ordenamiento"], "1012")
+        self.assertEqual(resultado["snapshots"][0]["markdown"], "**ARTICULO I.**")
+
+    def test_corpus_orden_de_excepciones(self):
+        # Cold cache: the *index* is what is missing first.
+        with self.assertRaises(release.AssetNotCached) as ctx:
+            release.download_scjn_tratados_corpus("7", cache_dir=self.tmp)
+        self.assertIn("indice-global.json.gz", str(ctx.exception))
+
+        self._publica_indice({
+            "7": {"nombre": "SIN TEXTO", "snapshots": 0},
+            "8": {"nombre": "LISTADO", "asset": "8.tgz", "snapshots": 1},
+        })
+        # Listed with no asset -> SinTextoEnSCJN, never AssetNotCached.
+        with self.assertRaises(release.SinTextoEnSCJN) as ctx:
+            release.download_scjn_tratados_corpus("7", cache_dir=self.tmp)
+        self.assertEqual(ctx.exception.coleccion, "tratados")
+        # Listed with an asset not on disk -> AssetNotCached for the tarball.
+        with self.assertRaises(release.AssetNotCached) as ctx:
+            release.download_scjn_tratados_corpus("8", cache_dir=self.tmp)
+        self.assertIn("8.tgz", str(ctx.exception))
+        self.assertNotIsInstance(ctx.exception, release.SinTextoEnSCJN)
+
+    def test_local_ids_lee_scjn_tratados_no_otra_coleccion(self):
+        (self.release_dir / "1012.tgz").write_bytes(b"x")
+        (self.tmp / "scjn-reglamentos").mkdir()
+        (self.tmp / "scjn-reglamentos" / "104906.tgz").write_bytes(b"x")
+
+        self.assertEqual(release.local_tratados_ids(self.tmp), ["1012"])
+
+    @patch("scjn.cache.descarga", return_value=b"bytes")
+    @patch("scjn.release._assets_scjn_tratados")
+    def test_download_assets_baja_al_subdirectorio_propio(self, mock_assets, mock_descarga):
+        mock_assets.return_value = {
+            "indice-global.json.gz": "https://x/indice-global.json.gz",
+            "1012.tgz": "https://x/1012.tgz",
+        }
+
+        resultados = release.download_scjn_tratados_assets(cache_dir=self.tmp)
+
+        self.assertEqual(
+            sorted(ruta.name for ruta, _ in resultados), ["1012.tgz", "indice-global.json.gz"]
+        )
+        self.assertTrue((self.tmp / "scjn-tratados" / "1012.tgz").is_file())
+
+    @patch("scjn.release._assets_de_partes", return_value={})
+    def test_assets_resuelve_la_serie_scjn_tratados(self, mock_partes):
+        release._assets_scjn_tratados()
+
+        self.assertEqual(mock_partes.call_args.args[0], "scjn-tratados")
+
+    def test_asset_not_cached_nombra_el_comando_de_tratados(self):
+        exc = release.AssetNotCached("1012.tgz", Path("/x"), coleccion="tratados")
+        self.assertEqual(
+            str(exc),
+            "'1012.tgz' is not cached under /x -- run "
+            "`scjn download --coleccion tratados --id 1012`",
+        )
+
+    def test_iter_current_tratados_lee_su_propio_subdirectorio(self):
+        self._publica_indice({
+            "1012": {"nombre": "CONVENIO", "asset": "1012.tgz", "snapshots": 2},
+            "7": {"nombre": "SIN TEXTO", "snapshots": 0},
+        })
+        self._publica_tgz(
+            "1012",
+            **{"1012/22-05-1998.md": "**VIEJO.**", "1012/05-01-1999.md": "**NUEVO.**"},
+        )
+
+        [tratado] = list(release.iter_current_tratados(cache_dir=self.tmp))
+
+        self.assertEqual(tratado["id_ordenamiento"], "1012")
+        self.assertEqual(tratado["markdown"], "**NUEVO.**")
+        self.assertEqual(tratado["nombre"], "CONVENIO")
+        self.assertNotIn("abrev", tratado)
+
+    def test_reexportados_desde_el_paquete(self):
+        import scjn
+
+        for nombre in (
+            "download_scjn_tratados_index", "download_scjn_tratados_corpus",
+            "download_scjn_tratados_assets", "local_tratados_ids", "iter_current_tratados",
+        ):
+            self.assertIn(nombre, scjn.__all__)
+            self.assertTrue(callable(getattr(scjn, nombre)))
+        self.assertEqual(scjn.__version__, "0.5.0")
+
+
 class TestIterCurrentPorId(ConCacheFixtureReglamentos):
     """`iter_current_reglamentos`/`iter_current_lineamientos` (issue #227's
     Fase 2) — `iter_current_federal_laws`' id-keyed sibling: the newest

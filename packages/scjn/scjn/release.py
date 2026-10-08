@@ -30,7 +30,7 @@ from pathlib import Path
 import requests
 
 from scjn import cache
-from scjn.cache import _SCJN_LEYES_RELEASE, LINEAMIENTOS, REGLAMENTOS, Coleccion
+from scjn.cache import _SCJN_LEYES_RELEASE, LINEAMIENTOS, REGLAMENTOS, TRATADOS, Coleccion
 from scjn.header import _fecha
 from scjn.state import ARCHIVO_ESTADO
 
@@ -728,7 +728,7 @@ def download_scjn_leyes_assets(
 # Two hand-duplicated collections were a defensible cost (#220's own decision
 # 4); three are not, so this generic core replaces what used to be a second,
 # independently-duplicated copy of index/corpus/local-ids/assets. Every
-# `Coleccion` (`scjn.cache.REGLAMENTOS`/`LINEAMIENTOS`) shares it; `leyes`
+# `Coleccion` (`scjn.cache.REGLAMENTOS`/`LINEAMIENTOS`/`TRATADOS`) shares it; `leyes`
 # keeps its own separate path above, untouched -- it has `abrev`,
 # `indice.json`, `notas/` and a `codNota` reverse index, none of which any
 # id-keyed collection has.
@@ -856,6 +856,25 @@ def construye_indice_global_lineamientos(instrumentos: list[dict], generado: str
     {'nombre': 'LINEAMIENTOS...', 'asset': '180528.tgz', 'snapshots': 1, 'vigencia': 'VIGENTE'}
     """
     return _indice_global_por_id("lineamientos", instrumentos, generado)
+
+
+def construye_indice_global_tratados(instrumentos: list[dict], generado: str) -> dict:
+    """The `scjn-tratados` release's own `indice-global.json.gz` payload —
+    the `tratados` sibling of `construye_indice_global_lineamientos` (issue
+    #277), same shape, `coleccion: "tratados"`::
+
+    >>> from scjn import release
+    >>> indice = release.construye_indice_global_tratados(
+    ...     [{"id_ordenamiento": "1012", "nombre": "CONVENIO...",
+    ...       "snapshots": 1, "vigencia": "VIGENTE"}],
+    ...     "2026-10-08",
+    ... )
+    >>> indice["coleccion"]
+    'tratados'
+    >>> indice["instrumentos"]["1012"]
+    {'nombre': 'CONVENIO...', 'asset': '1012.tgz', 'snapshots': 1, 'vigencia': 'VIGENTE'}
+    """
+    return _indice_global_por_id("tratados", instrumentos, generado)
 
 
 #: `_index_de_release`'s in-process memo, keyed by `(coleccion, cache_dir)` --
@@ -1139,6 +1158,55 @@ def download_scjn_lineamientos_assets(
     )
 
 
+# --- `scjn-tratados` (issue #277): public wrappers over the generic core ----
+
+def _assets_scjn_tratados(timeout: int = 30) -> dict[str, str]:
+    """Every asset of the `scjn-tratados` release, name -> download URL —
+    the `tratados` sibling of `_assets_scjn_lineamientos` (issue #277),
+    merged across every part of its series (this one is over GitHub's
+    1000-asset cap, like `scjn-reglamentos`). Network — used by the
+    downloader only, never by a reader."""
+    return _assets_de_partes(TRATADOS.tag_base, timeout)
+
+
+def download_scjn_tratados_index(*, cache_dir=None) -> dict:
+    """The `scjn-tratados` release's own `indice-global.json.gz`
+    (`construye_indice_global_tratados`'s payload) — a thin wrapper over
+    `_index_de_release` (issue #277)."""
+    return _index_de_release(TRATADOS, cache_dir=cache_dir)
+
+
+def download_scjn_tratados_corpus(id_ordenamiento: str | int, *, cache_dir=None) -> dict:
+    """One `tratados` instrument, by its own `id_ordenamiento` — a thin
+    wrapper over `_corpus_de_release` (issue #277); see its own docstring
+    for the payload shape and the `AssetNotCached`/`SinTextoEnSCJN` raise
+    order."""
+    return _corpus_de_release(TRATADOS, id_ordenamiento, cache_dir=cache_dir)
+
+
+def local_tratados_ids(cache_dir=None) -> list[str]:
+    """Every treaty with a `<id_ordenamiento>.tgz` already on disk under
+    `cache_dir` — a thin wrapper over `_local_ids_de_release` (issue #277)."""
+    return _local_ids_de_release(TRATADOS, cache_dir)
+
+
+def download_scjn_tratados_assets(
+    ids: list[str] | None = None,
+    *,
+    cache_dir=None,
+    refrescar: bool = False,
+    timeout: int = 60,
+    log=None,
+) -> list[tuple[Path, bool]]:
+    """Put the `scjn-tratados` release's assets on disk — a thin wrapper
+    over `_download_assets_de_release` (issue #277); see its own docstring
+    for the full contract."""
+    return _download_assets_de_release(
+        TRATADOS, _assets_scjn_tratados, ids,
+        cache_dir=cache_dir, refrescar=refrescar, timeout=timeout, log=log,
+    )
+
+
 # --- The current text of an id-keyed instrument (issue #227's Fase 2) -------
 
 def _iter_current_de_release(
@@ -1241,3 +1309,12 @@ def iter_current_lineamientos(
     `scjn-lineamientos` release publishes — the `lineamientos` sibling of
     `iter_current_reglamentos` (issue #227's Fase 2)."""
     return _iter_current_de_release(LINEAMIENTOS, ids, cache_dir=cache_dir)
+
+
+def iter_current_tratados(
+    ids: list[str] | None = None, *, cache_dir=None
+) -> Iterator[dict]:
+    """The current text of every international treaty the `scjn-tratados`
+    release publishes — the `tratados` sibling of `iter_current_reglamentos`
+    (issue #277)."""
+    return _iter_current_de_release(TRATADOS, ids, cache_dir=cache_dir)

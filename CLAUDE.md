@@ -34,10 +34,11 @@ build on each other in this sequence.
   `nota2md`'s own modules (issue #206, done — see its own section below);
   depends on nothing else in this monorepo, and nothing here imports back
   from `nota2md`/`dofjson` (`packages/scjn/tests/test_boundary.py`'s own grep
-  enforces it). Two sibling id-keyed releases, `scjn-reglamentos` (issue
-  #220) and `scjn-lineamientos` (issue #222), share `scjn.release`'s own
-  generic core since #222's Fase 0 — see their own sections below for
-  `download_scjn_reglamentos_*`/`download_scjn_lineamientos_*` and
+  enforces it). Three sibling id-keyed releases, `scjn-reglamentos` (issue
+  #220), `scjn-lineamientos` (issue #222) and `scjn-tratados` (issue #277),
+  share `scjn.release`'s own generic core since #222's Fase 0 — see their own
+  sections below for `download_scjn_reglamentos_*`/
+  `download_scjn_lineamientos_*`/`download_scjn_tratados_*` and
   `SinTextoEnSCJN`.
   Eight entry points for `scjn-leyes` itself, re-exported off the package: `download_scjn_leyes_index`/
   `download_scjn_leyes_corpus`/`markdown_de_snapshot` (the release's readers,
@@ -88,14 +89,14 @@ build on each other in this sequence.
   `download_scjn_leyes_corpus`/`download_scjn_leyes_index`/
   `download_scjn_leyes_catalog`/`iter_current_federal_laws` (the `scjn`
   package's own readers, re-exported here unchanged for a caller — see
-  `scjn` above). Its own CLI's `download all` puts all four of the project's
-  GitHub releases on disk since issue #225 — `federal-laws`/
-  `federal-regulations`/`federal-guidelines` (the three SCJN releases, into
-  `scjn`'s own cache) plus `gazette-metadata` (`notas-archivo`, into
-  `dofjson`'s) — though `nota2md` still reads nothing from
-  `scjn-reglamentos`/`scjn-lineamientos` itself: `download` only widens as a
-  convenience downloader, it is not a new Python-level dependency on either
-  corpus. Depends on `scjn` for all of the above; `nota2md.linking` is
+  `scjn` above). Its own CLI's `download all` puts all five of the project's
+  GitHub releases on disk since issues #225 and #277 — `federal-laws`/
+  `federal-regulations`/`federal-guidelines`/`international-treaties` (the
+  four SCJN releases, into `scjn`'s own cache) plus `gazette-metadata`
+  (`notas-archivo`, into `dofjson`'s) — though `nota2md` still reads nothing
+  from `scjn-reglamentos`/`scjn-lineamientos`/`scjn-tratados` itself:
+  `download` only widens as a convenience downloader, it is not a new
+  Python-level dependency on any of those corpora. Depends on `scjn` for all of the above; `nota2md.linking` is
   the one SCJN-adjacent concern that stays here instead — matching a
   snapshot `scjn` reads back to the DOF `codNota` that produced it, and the
   reverse (a `codNota` to the snapshot it produced, for `legal_provisions`'

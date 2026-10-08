@@ -132,6 +132,22 @@ def test_has_table_true_when_latest_version_carries_a_tab(tmp_path):
     assert output["100"]["has_table"] is True
 
 
+def test_tratados_is_an_accepted_collection(tmp_path):
+    # issue #277: the choices derive from `scjn.cache.COLECCIONES_POR_ID`.
+    assert fst.COLECCIONES == ("leyes", "reglamentos", "lineamientos", "tratados")
+    _seed_instrument(tmp_path, "tratados", "1012", id_ordenamiento="1012")
+    stub = StubApi(
+        reformas={"1012": [Reforma(reformaId=1, fecha_publicacion="01-01-1951", tieneArticulos=True)]},
+        articulos={("1012", "1"): [Articulo(1, 1, "ARTÍCULO I", "a\tb")]},
+    )
+
+    rc = fst.main(["--coleccion", "tratados", "--outdir", str(tmp_path)], api=stub)
+
+    assert rc == 0
+    output = json.loads((tmp_path / "tratados-table-instruments.json").read_text(encoding="utf-8"))
+    assert output["1012"]["has_table"] is True
+
+
 # -- resume ----------------------------------------------------------------
 
 

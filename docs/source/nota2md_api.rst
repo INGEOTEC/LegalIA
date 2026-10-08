@@ -320,12 +320,13 @@ pre-#209 ``~/.cache/nota2md/scjn-leyes/`` there automatically, once) —
    [2/2] lfca.tgz: downloaded
    scjn-leyes: 2 assets in /home/user/.cache/scjn/scjn-leyes (2 downloaded, 0 already cached)
 
-``download federal-regulations`` and ``download federal-guidelines`` are the
-same shape for the ``scjn-reglamentos``/``scjn-lineamientos`` releases (issue
-#225) — also into **the ``scjn`` package's own cache**, alongside
-``scjn-leyes``. Neither collection has an ``abrev`` (the SCJN reissues an
+``download federal-regulations``, ``download federal-guidelines`` and
+``download international-treaties`` are the same shape for the
+``scjn-reglamentos``/``scjn-lineamientos``/``scjn-tratados`` releases (issues
+#225, #277) — also into **the ``scjn`` package's own cache**, alongside
+``scjn-leyes``. No such collection has an ``abrev`` (the SCJN reissues an
 instrument as a brand-new id rather than reforming the previous one), so
-these two take ``--id`` (repeatable), never ``--slug``:
+these three take ``--id`` (repeatable), never ``--slug``:
 
 .. code-block:: console
 
@@ -333,6 +334,11 @@ these two take ``--id`` (repeatable), never ``--slug``:
    [1/2] indice-global.json.gz: downloaded
    [2/2] 4570340.tgz: downloaded
    scjn-reglamentos: 2 assets in /home/user/.cache/scjn/scjn-reglamentos (2 downloaded, 0 already cached)
+
+   $ nota2md download international-treaties --id 1012
+   [1/2] indice-global.json.gz: downloaded
+   [2/2] 1012.tgz: downloaded
+   scjn-tratados: 2 assets in /home/user/.cache/scjn/scjn-tratados (2 downloaded, 0 already cached)
 
 ``download gazette-metadata`` puts the ``notas-archivo`` release on disk —
 **into dofjson's own cache directory, not nota2md's** (the two releases
@@ -346,12 +352,12 @@ share no directory, on purpose; see ``nota2md.cache``'s module docstring):
    [117/117] notas-2026-08.tgz: downloaded
    notas-archivo: 117 assets in /home/user/.cache/dofjson (117 downloaded, 0 already cached)
 
-``download all`` runs all four, each into its own cache directory — a
-shorthand for the four invocations above, not a merge of the caches.
-``--slug`` narrows the ``scjn-leyes`` half only; the two id-keyed collections
-have no ``--id`` on ``all`` (an id could not say which of the two it names —
-use ``download federal-regulations``/``federal-guidelines`` directly to
-narrow those):
+``download all`` runs all five, each into its own cache directory — a
+shorthand for the five invocations above, not a merge of the caches.
+``--slug`` narrows the ``scjn-leyes`` half only; the three id-keyed collections
+have no ``--id`` on ``all`` (an id could not say which of the three it names —
+use ``download federal-regulations``/``federal-guidelines``/
+``international-treaties`` directly to narrow those):
 
 .. code-block:: console
 
@@ -367,6 +373,10 @@ narrow those):
    [...]
    [127/127] 4570340.tgz: already cached
    scjn-lineamientos: 127 assets in /home/user/.cache/scjn/scjn-lineamientos (0 downloaded, 127 already cached)
+   [1/1453] indice-global.json.gz: already cached
+   [...]
+   [1453/1453] 1012.tgz: already cached
+   scjn-tratados: 1453 assets in /home/user/.cache/scjn/scjn-tratados (0 downloaded, 1453 already cached) (2 partes)
    [1/117] notas-1917.tgz: already cached
    [...]
    [117/117] notas-2026-08.tgz: already cached

@@ -513,14 +513,46 @@ script never calls `gh`, and no workflow should ever call it and then
 publish on its own. Read `MANIFEST.md` in full before running the `gh
 release create`/`upload` command the script prints.
 
-### `empaqueta_scjn_coleccion.py --coleccion {reglamentos,lineamientos}`
+### `discover_federal_tratados.py` (issue #277)
 
-Both id-keyed collections (`reglamentos`, issue #220; `lineamientos`, issue
-#222) share this one script since #222's Fase 0 generalized the
+Reports every international treaty the SCJN serves and, like
+`discover_federal_laws.py`, stops without writing corpus state — a thin
+wrapper over `scjn.discovery`, the sibling of `discover_federal_reglamentos.py`
+and `discover_federal_lineamientos.py`, with one difference that matters:
+**membership is by *ámbito*, not by category**. The SCJN does not classify a
+treaty as a federal instrument; it carries `ambito == "TRATADOS
+INTERNACIONALES"`, any category (CONVENIO, ACUERDO (S), CONVENCION, TRATADO,
+...: 23 measured on 2026-10-08, 1,456 instruments, every one a genuine
+international instrument). `BusquedaFrase` has no "list everything" mode, so
+the ámbito is *paged* by a phrase union (the words only page, they never
+decide membership); there is no reform-category rescue and no coverage audit,
+and so no `--auditoria-cobertura` flag — a reform row carries no ámbito.
+Instead the script prints, under their own heading and never in the `--json`
+list, the instruments **outside** the ámbito whose own category is a treaty
+word, for a human to look at.
+
+```bash
+./scripts/discover_federal_tratados.py --json scripts/scjn/tratados-candidatos.json
+./scripts/seed_federal_reglamentos.py --outdir scripts/scjn --coleccion tratados \
+    scripts/scjn/tratados-candidatos.json
+./scripts/fetch_scjn_legislacion.py --coleccion tratados --outdir scripts/scjn
+./scripts/fetch_scjn_legislacion.py --coleccion tratados --outdir scripts/scjn --plan
+./scripts/empaqueta_scjn_coleccion.py --coleccion tratados --outdir scripts/scjn
+```
+
+`ambito` is recorded in each seeded `estado.json` (and in the discovery
+JSON); it is not in the release index. The crawl is ~1,456 instruments × (1
+`Reforma` + ~1 `Articulos` request) — plan for 45–90 minutes at `--espera 0.5`
+— and is resumable (`<outdir>/tratados/.progreso.json`).
+
+### `empaqueta_scjn_coleccion.py --coleccion {reglamentos,lineamientos,tratados}`
+
+Every id-keyed collection (`reglamentos`, issue #220; `lineamientos`, issue
+#222; `tratados`, issue #277) shares this one script since #222's Fase 0 generalized the
 `reglamentos`-only `empaqueta_scjn_reglamentos.py` into it — the sibling of
 `empaqueta_scjn_leyes.py` above, without `indice.json`/`notas/` or a
-`codNota` section: neither collection has DOF linking at all (issue #220's
-own Scope, unchanged by #222), so every `<id_ordenamiento>.tgz` ships only
+`codNota` section: no id-keyed collection has DOF linking at all (issue #220's
+own Scope, unchanged by #222 and #277), so every `<id_ordenamiento>.tgz` ships only
 that instrument's snapshots and its own `estado.json`. Keyed by
 `id_ordenamiento` (`scjn.catalog.instrumento_key`), never a title-derived
 slug: the SCJN reissues an instrument as a brand-new `idOrdenamiento` rather
@@ -544,7 +576,8 @@ assets, past GitHub's 1000-asset-per-release cap, and `MANIFEST.md`'s own
 cap. So this script *plans* a publish across a numbered series of release
 tags (`scjn-reglamentos`, `scjn-reglamentos-2`, ...) instead of printing one
 fixed `gh` recipe — the same machinery applies to `scjn-lineamientos`
-regardless of whether its own ~126 tarballs ever need a second part:
+regardless of whether its own ~126 tarballs ever need a second part, and to
+`scjn-tratados` (~1,450 tarballs, two parts):
 
 - **`partes.json`** (local to `--destino`, never a published asset) records
   which asset is in which part — an asset already recorded never moves, so a
@@ -606,6 +639,7 @@ reported and skipped rather than searched for by name (issue #115).
 ./scripts/find_scjn_table_instruments.py --coleccion leyes
 ./scripts/find_scjn_table_instruments.py --coleccion reglamentos
 ./scripts/find_scjn_table_instruments.py --coleccion lineamientos
+./scripts/find_scjn_table_instruments.py --coleccion tratados
 ```
 
 Writes `--output` (default `<outdir>/<coleccion>-table-instruments.json`)

@@ -1,7 +1,7 @@
 """Shared discovery machinery for the SCJN's id-keyed collections
-(`scjn-reglamentos`, `scjn-lineamientos`) -- issue #222's Fase 0, extracted
-out of `scripts/discover_federal_reglamentos.py` (issue #220) so a third
-collection's own discovery script is a thin argparse wrapper naming its
+(`scjn-reglamentos`, `scjn-lineamientos`, `scjn-tratados`) -- issue #222's
+Fase 0, extracted out of `scripts/discover_federal_reglamentos.py` (issue
+#220) so a further collection's own discovery script is a thin argparse wrapper naming its
 category and phrases, not another ~250-line copy of the same three passes.
 
 The shared shape, for any id-keyed collection's own target category (e.g.
@@ -62,15 +62,17 @@ def pagina_categoria(
 
 
 def discover_by_category(
-    api: ScjnApi, categoria: str, frases: tuple[str, ...], *, log=None
+    api: ScjnApi, categoria: str, frases: tuple[str, ...], *, ambito: str = "FEDERAL", log=None
 ) -> dict[str, Ordenamiento]:
-    """Every federal instrument the SCJN itself classifies `categoria`, keyed
-    by `idOrdenamiento` -- the union of `frases` paged over
-    `categoriaF=<categoria>`+`FEDERAL`."""
+    """Every instrument of `ambito` (federal by default) the SCJN itself
+    classifies `categoria`, keyed by `idOrdenamiento` -- the union of
+    `frases` paged over `categoriaF=<categoria>`+`ambitoF=<ambito>`.
+    `categoria=""` pages the whole ambito, every category (issue #277: the
+    treaties are members by ambito, not by category)."""
     hallados: dict[str, Ordenamiento] = {}
     for frase in frases:
         nuevos = 0
-        for hit in pagina_categoria(api, frase, categoria):
+        for hit in pagina_categoria(api, frase, categoria, ambito=ambito):
             if hit.idOrdenamiento not in hallados:
                 nuevos += 1
             hallados[hit.idOrdenamiento] = hit
@@ -236,12 +238,44 @@ def coverage_audit(
     return rescatados
 
 
+def report_outside_ambito(
+    api: ScjnApi,
+    ambito: str,
+    categorias: tuple[str, ...],
+    frases: tuple[str, ...],
+    *,
+    log=None,
+) -> list[Ordenamiento]:
+    """Every instrument *outside* `ambito` whose own `categoriaOrdenamiento`
+    is one of `categorias`, reached by paging `frases` over every ambito and
+    category (issue #277) -- sorted by `ordenamiento`, one entry per
+    `idOrdenamiento`.
+
+    Meant for a human to look at and **never** included in a collection:
+    the treaties are members by ambito, and a `TRATADO` classified `ESTATAL`
+    (say) is the SCJN's own call that it is not an international instrument.
+    A reform row has no ambito, so unlike reglamentos'/lineamientos'
+    rescue rule this cannot be turned into one."""
+    objetivo = {c.strip().upper() for c in categorias}
+    hallados: dict[str, Ordenamiento] = {}
+    for frase in frases:
+        for hit in pagina_categoria(api, frase, "", ambito=""):
+            if (hit.ambito or "").strip() == ambito:
+                continue
+            if (hit.categoriaOrdenamiento or "").strip().upper() in objetivo:
+                hallados[hit.idOrdenamiento] = hit
+        if log:
+            log(f"  q={frase!r}: {len(hallados)} fuera del ambito, hasta ahora")
+    return sorted(hallados.values(), key=lambda h: h.ordenamiento)
+
+
 def discover(
     api: ScjnApi,
     *,
     categoria: str,
     frases_union: tuple[str, ...],
-    frase_rescate: str,
+    frase_rescate: str = "",
+    ambito: str = "FEDERAL",
     auditoria_cobertura: bool = False,
     frases_auditoria: tuple[tuple[str, str], ...] | None = None,
     cache_dir=None,
@@ -250,7 +284,7 @@ def discover(
     """The whole discovery pipeline (issue #220's Fase 1, generalized in
     #222's Fase 0): every federal instrument of one id-keyed collection,
     each carrying its own `id_ordenamiento`, `nombre`, `categoria_ordenamiento`,
-    `vigencia`, `materia`, `resumen`, reform count and reform-with-text
+    `ambito`, `vigencia`, `materia`, `resumen`, reform count and reform-with-text
     count -- sorted by `nombre`, ready for a human to review before a
     seeding script turns it into `estado.json` files.
 
@@ -258,6 +292,14 @@ def discover(
     `"LINEAMIENTOS"`); `frases_union` the phrases `discover_by_category`
     pages that category with; `frase_rescate` the one phrase
     `candidates_outside_category` searches across every other category.
+
+    `ambito` (issue #277) is the SCJN ambito paged, `"FEDERAL"` by default.
+    `categoria=""` is the by-ambito mode (`scjn-tratados`: every instrument
+    of `ambito="TRATADOS INTERNACIONALES"`, any category): the whole ambito
+    is paged, and **neither the reform-category rescue nor the coverage
+    audit runs** -- both are predicates on a reform row's category, a reform
+    row carries no ambito, so neither can express "international".
+    `auditoria_cobertura=True` with `categoria=""` is a `ValueError`.
     `auditoria_cobertura=True` also runs the opt-in coverage audit (needs
     `frases_auditoria`); `cache_dir` is where it caches reform tables
     (see `coverage_audit`).
@@ -265,17 +307,28 @@ def discover(
     Never writes corpus state -- a discovery script wrapping this reports
     the result and stops; turning it into `estado.json` files is a
     collection's own seeding script."""
-    log(f"descubriendo por categoria {categoria}...")
-    por_categoria = discover_by_category(api, categoria, frases_union, log=log)
-    log(f"{len(por_categoria)} instrumento(s) clasificados {categoria} por la SCJN")
+    por_ambito = categoria == ""
+    if por_ambito and auditoria_cobertura:
+        raise ValueError("auditoria_cobertura no aplica por ambito (categoria='')")
 
-    log(f"buscando candidatos fuera de la categoria {categoria}...")
-    otros = candidates_outside_category(api, frase_rescate, por_categoria, log=log)
-    log(f"aplicando la regla de rescate a {len(otros)} candidato(s)...")
-    rescatados = rescue_by_reform_category(api, otros, categoria, log=log)
-    log(f"{len(rescatados)} rescatado(s) por categoria de reforma")
+    if por_ambito:
+        log(f"descubriendo por ambito {ambito} (cualquier categoria)...")
+        incluidos = discover_by_category(api, "", frases_union, ambito=ambito, log=log)
+        log(f"{len(incluidos)} instrumento(s) del ambito {ambito} segun la SCJN")
+    else:
+        log(f"descubriendo por categoria {categoria}...")
+        por_categoria = discover_by_category(
+            api, categoria, frases_union, ambito=ambito, log=log
+        )
+        log(f"{len(por_categoria)} instrumento(s) clasificados {categoria} por la SCJN")
 
-    incluidos = {**por_categoria, **rescatados}
+        log(f"buscando candidatos fuera de la categoria {categoria}...")
+        otros = candidates_outside_category(api, frase_rescate, por_categoria, log=log)
+        log(f"aplicando la regla de rescate a {len(otros)} candidato(s)...")
+        rescatados = rescue_by_reform_category(api, otros, categoria, log=log)
+        log(f"{len(rescatados)} rescatado(s) por categoria de reforma")
+
+        incluidos = {**por_categoria, **rescatados}
 
     if auditoria_cobertura:
         if not frases_auditoria:
@@ -297,6 +350,7 @@ def discover(
             "id_ordenamiento": id_ordenamiento,
             "nombre": hit.ordenamiento,
             "categoria_ordenamiento": hit.categoriaOrdenamiento,
+            "ambito": hit.ambito,
             "vigencia": hit.vigencia,
             "materia": hit.materia,
             "resumen": hit.resumen,

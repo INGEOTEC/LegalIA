@@ -42,6 +42,21 @@ whatever is not there yet.
 
 ## Changelog
 
+- **0.5.0** — the fourth id-keyed collection, `scjn-tratados` (issue #277):
+  every international treaty the SCJN serves (~1,456 instruments, members
+  by the SCJN's *ámbito* `TRATADOS INTERNACIONALES`, any category).
+  `download_scjn_tratados_index` / `_corpus` / `_assets`,
+  `local_tratados_ids` and `iter_current_tratados` are the same thin
+  wrappers over the generic core the reglamentos/lineamientos ones are
+  (same `AssetNotCached`/`SinTextoEnSCJN` raise order), `scjn.cache.TRATADOS`
+  joins `COLECCIONES_POR_ID`, `scjn download --coleccion tratados` fetches
+  it, and `scjn.release.construye_indice_global_tratados` is its index
+  builder. The release is a numbered series of tags (`scjn-tratados`,
+  `scjn-tratados-2`, ...). `scjn.discovery` gains an `ambito` keyword
+  (`discover`/`discover_by_category`, default `"FEDERAL"`, existing calls
+  unchanged), a by-ámbito mode (`categoria=""`: no reform-category rescue
+  and no coverage audit) and `report_outside_ambito`.
+
 - **0.4.0** — `articulos_a_markdown` recovers table rows from a
   blank-line-separated block of an article's `contenido` that carries a tab
   (issue #253): the SCJN's plain text uses a run of tabs as its only column
