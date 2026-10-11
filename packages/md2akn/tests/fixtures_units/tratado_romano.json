@@ -1,0 +1,231 @@
+{
+  "coverage": {
+    "total_chars": 1984,
+    "frontmatter_chars": 210,
+    "annotation_chars": 0,
+    "covered_chars": 1774,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**DECRETO por el que se aprueba el Convenio de Cooperacion.**",
+      "text_sha1": "d9c8e5396c00292f37eb14572106039a40ca241f"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_UNICO",
+      "piece": 1,
+      "piece_eId": "art_UNICO__p_1",
+      "akn_type": "article",
+      "num": "UNICO",
+      "path": [],
+      "text": "**ARTICULO UNICO.-** Se aprueba el Convenio de Cooperacion entre los Estados Unidos Mexicanos y la Republica de Ejemplo, firmado en la Ciudad de Mexico el doce de marzo de 1991.",
+      "text_sha1": "b717174875add3477c70f10723d8be7728461466"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_UNICO",
+      "piece": 2,
+      "piece_eId": "art_UNICO__p_2",
+      "akn_type": "article",
+      "num": "UNICO",
+      "path": [],
+      "text": "**CONVENIO DE COOPERACION ENTRE LOS ESTADOS UNIDOS MEXICANOS Y LA REPUBLICA DE EJEMPLO**",
+      "text_sha1": "b219c97275f2eec6242683a3cc11d73beaae9d49"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_UNICO",
+      "piece": 3,
+      "piece_eId": "art_UNICO__p_3",
+      "akn_type": "article",
+      "num": "UNICO",
+      "path": [],
+      "text": "El Gobierno de los Estados Unidos Mexicanos y el Gobierno de la Republica de Ejemplo, en adelante denominados las Partes,",
+      "text_sha1": "2bfa05a609ff4343787fc23d3b6b8ee8b4319aeb"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_UNICO",
+      "piece": 4,
+      "piece_eId": "art_UNICO__p_4",
+      "akn_type": "article",
+      "num": "UNICO",
+      "path": [],
+      "text": "Convencidos de la necesidad de cooperar en la prevencion del trafico ilicito, convienen lo siguiente:",
+      "text_sha1": "fb900a8cc4cc4b0f795f1212781893e812b728db"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_I",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "I",
+      "path": [],
+      "text": "**ARTICULO I** **Definiciones** Para los efectos del presente Convenio se entiende por trafico ilicito toda conducta tipificada por las leyes de cualquiera de las Partes.",
+      "text_sha1": "6e531d514256e453c2c34bd288a9c5d7d07815d8"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_II",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "II",
+      "path": [],
+      "text": "**ARTICULO II** Las Partes cooperaran estrechamente para prevenir y reprimir el trafico ilicito en sus respectivos territorios.",
+      "text_sha1": "5627c9c4360b0e2704f2720f153700e17db1f431"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_III",
+      "piece": 1,
+      "piece_eId": "art_III__p_1",
+      "akn_type": "article",
+      "num": "III",
+      "path": [],
+      "text": "**ARTICULO III**",
+      "text_sha1": "2eb8b954ba959a8b7412007099bd26587f5b31d3"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_III",
+      "piece": 2,
+      "piece_eId": "art_III__p_2",
+      "akn_type": "article",
+      "num": "III",
+      "path": [],
+      "text": "La cooperacion se desarrollara en los siguientes terminos:",
+      "text_sha1": "4ff96dfb36c0c01acc6197ca451db34665480e16"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_III",
+      "piece": 3,
+      "piece_eId": "art_III__p_3",
+      "akn_type": "article",
+      "num": "III",
+      "path": [],
+      "text": "1. Las Partes intercambiaran informacion sobre las rutas y los metodos empleados por las organizaciones delictivas.",
+      "text_sha1": "d5e051a1707c41256efd3a7ce17795b1eaabc920"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_III",
+      "piece": 4,
+      "piece_eId": "art_III__p_4",
+      "akn_type": "article",
+      "num": "III",
+      "path": [],
+      "text": "2. Las autoridades competentes designaran puntos de contacto permanentes para la transmision de dicha informacion.",
+      "text_sha1": "4db75b7620608a06357c746eda7c03514a4d0882"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_III",
+      "piece": 5,
+      "piece_eId": "art_III__p_5",
+      "akn_type": "article",
+      "num": "III",
+      "path": [],
+      "text": "3. Cada Parte sufragara los gastos que se deriven del cumplimiento de las obligaciones asumidas.",
+      "text_sha1": "7dcc281db8ee148c44e8b0e822f764a7933d777a"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_IV",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "IV",
+      "path": [],
+      "text": "**ARTICULO IV** El presente Convenio no afectara los derechos y obligaciones de las Partes derivados de otros tratados.",
+      "text_sha1": "df0cd11ade0608d286ada9d25ab3f46b44a35165"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_V",
+      "piece": 1,
+      "piece_eId": "art_V__p_1",
+      "akn_type": "article",
+      "num": "V",
+      "path": [],
+      "text": "**ARTICULO V**",
+      "text_sha1": "070fa952de1c6d24473291ef2c443f440b2b0eaa"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_V",
+      "piece": 2,
+      "piece_eId": "art_V__p_2",
+      "akn_type": "article",
+      "num": "V",
+      "path": [],
+      "text": "El presente Convenio entrara en vigor en la fecha de la ultima notificacion y permanecera vigente por tiempo indefinido.",
+      "text_sha1": "5dbe2dc1e92e035e2e49af1c7ff0c49a7cc9e063"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_V",
+      "piece": 3,
+      "piece_eId": "art_V__p_3",
+      "akn_type": "article",
+      "num": "V",
+      "path": [],
+      "text": "EN FE DE LO CUAL, los infrascritos, debidamente autorizados, firman el presente Convenio en dos ejemplares originales.",
+      "text_sha1": "c58f51db1b7681b1bfd3bd1a81520f1899edf661"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_V",
+      "piece": 4,
+      "piece_eId": "art_V__p_4",
+      "akn_type": "article",
+      "num": "V",
+      "path": [],
+      "text": "Hecho en la Ciudad de Mexico, el doce de marzo de mil novecientos noventa y uno.",
+      "text_sha1": "3fb5e1a24bfbceb16cdb2112991badb406ea50ea"
+    },
+    {
+      "unit_type": "conclusions",
+      "eId": "conclusions",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "conclusions",
+      "num": null,
+      "path": [],
+      "text": "Por el Gobierno de los Estados Unidos Mexicanos.- Rubrica.- Por el Gobierno de la Republica de Ejemplo.- Rubrica.",
+      "text_sha1": "6736b88777dc7f4d35fbb960d604556309a5c4a9"
+    },
+    {
+      "unit_type": "conclusions",
+      "eId": "conclusions",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "conclusions",
+      "num": null,
+      "path": [],
+      "text": "La presente es copia fiel y completa en español del Convenio, cuyo original se encuentra en los archivos de la Secretaria de Relaciones Exteriores.",
+      "text_sha1": "ecc9cd9239c80f5c65a9d2aad523da817710dc9f"
+    },
+    {
+      "unit_type": "conclusions",
+      "eId": "conclusions",
+      "piece": 3,
+      "piece_eId": null,
+      "akn_type": "conclusions",
+      "num": null,
+      "path": [],
+      "text": "Mexico, D.F., a veinte de marzo de mil novecientos noventa y uno.- El Director General de Asuntos Juridicos.- Rubrica.",
+      "text_sha1": "361b5bdb88a658dbc7b55bf619c24ac64b979676"
+    }
+  ]
+}
