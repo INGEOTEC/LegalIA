@@ -14,7 +14,7 @@ embedding per distinct text of every Mexican federal law, *reglamento* and
 *lineamiento*, where "a text" is a retrieval unit
 :py:func:`md2akn.text_units` produced — an article, a piece of a long one, a
 container epigraph, a preamble, a block of transitorios (issue #227, Fase 4;
-issue #218's Fase 3 widened to three corpora).
+issue #218's Fase 3 widened to three corpora and issue #280 to a fourth, the treaties).
 
 It is deliberately **not** part of :py:mod:`scjn`. ``scjn`` means "client for
 the Court", and these vectors are this project's own — derived on a GPU from
@@ -23,9 +23,10 @@ needs ``pyarrow`` and ``numpy``, which ``scjn`` has no other reason to take,
 and this package imports nothing else in the monorepo
 (``packages/legalvec/tests/test_boundary.py`` greps for that).
 
-Three releases, one per corpus — ``scjn-leyes-vectors``,
-``scjn-reglamentos-vectors``, ``scjn-lineamientos-vectors`` — mirroring the
-three corpus releases, because those are crawled, packaged and republished
+Four releases, one per corpus — ``scjn-leyes-vectors``,
+``scjn-reglamentos-vectors``, ``scjn-lineamientos-vectors`` and
+``scjn-tratados-vectors`` — mirroring the
+four corpus releases, because those are crawled, packaged and republished
 independently and a reader who wants only lineamientos should not resolve two
 thousand assets to find 254 (issue #227's decision 10). Each holds:
 
@@ -44,7 +45,7 @@ lineamiento (issue #227's decision 7), so a reader never branches on which
 collection it is reading — the same reason the corpus build writes that
 column at all.
 
-The three releases were published by hand — issue #115's Hallazgo C says a
+The first three releases were published by hand — issue #115's Hallazgo C says a
 human publishes anything derived from the SCJN, so issue #227 generated each
 release's upload plan (``scripts/embeddings/package_vectors.py``'s
 ``PUBLICAR.md``) and a person ran it. The reading examples below still build a
@@ -61,7 +62,7 @@ Everything is disk-first, the posture :py:mod:`scjn` took in issue #209:
 a reader raises :py:exc:`~legalvec.AssetNotCached` rather than reaching for
 the network. The cache is this package's own directory —
 ``$LEGALVEC_CACHE_DIR``, ``~/.cache/legalvec`` by default — separate from
-``scjn``'s and ``nota2md``'s, because these are three independently published
+``scjn``'s and ``nota2md``'s, because these are four independently published
 corpora of derived data.
 
 >>> import tempfile
@@ -190,13 +191,13 @@ API can never mean different things:
    scjn-lineamientos-vectors: 7 assets in /home/user/.cache/legalvec/scjn-lineamientos-vectors (7 downloaded, 0 already cached)
 
 ``--collection`` defaults to ``all``, so the bare ``legalvec download`` fetches
-all three releases for both models — ~2.08 GB across ~3,067 assets, which is
-what its ``--help`` says out loud. ``--key`` is one flag for all three
+all four releases for both models — ~2.08 GB across ~3,067 assets, which is
+what its ``--help`` says out loud. ``--key`` is one flag for all four
 collections (a law's slug, an ``id_ordenamiento`` otherwise), because
 ``units.parquet`` has had one uniform ``clave`` column since issue #227; it
 needs a single ``--collection``, since a clave belongs to one collection and
-applying it to three would silently download nothing but the metadata for the
-other two. ``--model`` takes either form of a model's name, exactly as
+applying it to four would silently download nothing but the metadata for the
+other three. ``--model`` takes either form of a model's name, exactly as
 :py:func:`~legalvec.model_slug` does. The flags are in English where
 :py:mod:`scjn`'s are in Spanish: this is new code, and CLAUDE.md's language
 policy is that new code is written in English while existing identifiers are
@@ -212,6 +213,7 @@ and makes no request at all:
      scjn-leyes-vectors         not downloaded
      scjn-reglamentos-vectors   not downloaded
      scjn-lineamientos-vectors  metadata 5/5; 1.8 MB; qwen3-0.6b: 1 instrument
+     scjn-tratados-vectors      not downloaded
 
 The per-model counts are read off the published file names rather than taken
 from :py:data:`~legalvec.MODELS`, so a release written at another revision — or

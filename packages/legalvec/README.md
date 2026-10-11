@@ -2,13 +2,14 @@
 
 A vector for every text of every Mexican federal instrument — the reader.
 
-This project embeds the *current* text of three SCJN corpora — every federal
-law, every federal *reglamento*, every federal *lineamiento*, segmented into
+This project embeds the *current* text of four SCJN corpora — every federal
+law, every federal *reglamento*, every federal *lineamiento*, every international
+treaty, segmented into
 retrieval units by [`md2akn`](../md2akn) — one vector per distinct text, and
-publishes the result as three GitHub releases: `scjn-leyes-vectors`,
-`scjn-reglamentos-vectors` and `scjn-lineamientos-vectors`. This package is
+publishes the result as four GitHub releases: `scjn-leyes-vectors`,
+`scjn-reglamentos-vectors`, `scjn-lineamientos-vectors` and `scjn-tratados-vectors`. This package is
 how they are read back (issue #227's Fase 4, which is #218's Fase 3 widened
-to three corpora).
+to three corpora, and to a fourth, the treaties, by #280).
 
 It is deliberately **not** part of [`scjn`](../scjn): `scjn` means "client
 for the Court", and these vectors are this project's own, derived on a GPU
@@ -57,6 +58,12 @@ synthetic on-disk release, and the downloader with its HTTP layer patched
 out.
 
 ## Changelog
+
+- **0.2.0** — a fourth collection, `tratados`: `RELEASE_TAGS["tratados"]` is
+  `scjn-tratados-vectors`, `legalvec download --collection tratados` and
+  `legalvec status` accept it, and the default `--collection all` now fetches
+  four releases (issue #280). Unpublished on PyPI, so no release-order rule
+  applies.
 
 - **0.1.0** — the package's first release: `download_vectors_assets`,
   `load_vectors`, `load_units`, `VectorSet`, `AssetNotCached`, `model_slug`

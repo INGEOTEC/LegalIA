@@ -1,7 +1,7 @@
 """On-disk cache for this project's own vector releases (issue #227's Fase 4).
 
 Its own directory, not `scjn`'s and not `nota2md`'s, for the same reason
-`scjn`'s is separate from `nota2md`'s: these are three independently
+`scjn`'s is separate from `nota2md`'s: these are four independently
 published corpora of derived data, and a package that reads one should not
 have to know where another one caches.
 
@@ -12,6 +12,7 @@ Layout on disk, one subdirectory per collection:
     <CACHE_DIR>/scjn-leyes-vectors/vectors-shared-<model>-<K>.parquet
     <CACHE_DIR>/scjn-reglamentos-vectors/...
     <CACHE_DIR>/scjn-lineamientos-vectors/...
+    <CACHE_DIR>/scjn-tratados-vectors/...
 
 `CACHE_DIR` defaults to the OS per-user cache directory (`~/.cache/legalvec`
 on Linux), overridable with `$LEGALVEC_CACHE_DIR` or by reassigning
@@ -37,19 +38,21 @@ _ENV_VAR = "LEGALVEC_CACHE_DIR"
 #: count as a cache hit.
 PARTIAL_SUFFIX = ".parcial"
 
-#: The three vector releases, by collection name: the base tag of each one's
+#: The four vector releases, by collection name: the base tag of each one's
 #: own release series, which is also its cache subdirectory. A collection
 #: over GitHub's 1,000-asset ceiling is published as `<tag>`, `<tag>-2`, ...
 #: (issue #223's scheme, unchanged here) — `scjn-reglamentos-vectors` needs
-#: three parts for 2,166 vector files — but every part shares one
+#: three parts for 2,166 vector files, and `scjn-tratados-vectors` does too —
+#: but every part shares one
 #: subdirectory, since an asset name is unique across the whole series.
 RELEASE_TAGS = {
     "leyes": "scjn-leyes-vectors",
     "reglamentos": "scjn-reglamentos-vectors",
     "lineamientos": "scjn-lineamientos-vectors",
+    "tratados": "scjn-tratados-vectors",
 }
 
-#: The repository the three releases live on.
+#: The repository the four releases live on.
 REPO = "INGEOTEC/LegalIA"
 
 #: How many parts a series walk probes before giving up — a publishing bug
