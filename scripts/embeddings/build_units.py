@@ -1,12 +1,13 @@
 """The corpus, as `units.parquet` + `leaves.parquet` + `corpus-manifest.json`
-(issue #218 Fase 2, widened to the three collections by #227 Fase 3).
+(issue #218 Fase 2, widened to the three collections by #227 Fase 3 and to
+a fourth, `tratados`, by #280).
 
 Walks the *current* text of every instrument of one collection — the cached
 `scjn-leyes` (315 laws), `scjn-reglamentos` (1,082 with text) or
-`scjn-lineamientos` (126) release — and calls `md2akn.text_units()` on each.
+`scjn-lineamientos` (126) or `scjn-tratados` (1,373 with text) release — and calls `md2akn.text_units()` on each.
 Nothing here talks to the SCJN or the DOF: the corpus is read off `scjn`'s
 own disk-first cache, populated ahead of time with ``nota2md download all``
-(all three releases since issue #225) or the `scjn download` CLI.
+(all of the releases since issue #225) or the `scjn download` CLI.
 
 One collection per work directory, and dedup stays inside a collection
 (#227's decision 8: cross-collection dedup was measured at 0.9 % of the
@@ -14,7 +15,7 @@ vectors and would force a shared file across three corpora that are crawled,
 packaged and republished on their own schedules).
 
 `clave` is the column that names the published file, so a reader never
-branches: a law's slug, and the `id_ordenamiento` for the other two —
+branches: a law's slug, and the `id_ordenamiento` for the other three —
 which is the only key the SCJN guarantees stable for them (#220's decision,
 `scjn.catalog.instrumento_key`). `slug` and `codNota` stay exactly what they
 were and are null for the id-keyed collections, which have no DOF link at
@@ -30,6 +31,8 @@ twice against an unchanged cache and every byte of `units.parquet` matches.
         --coleccion reglamentos
     python scripts/embeddings/build_units.py --work-dir emb-run-lineamientos \
         --coleccion lineamientos --id 31834
+    python scripts/embeddings/build_units.py --work-dir emb-run-tratados \
+        --coleccion tratados --no-split-articles
 """
 
 from __future__ import annotations
@@ -61,11 +64,13 @@ from scjn import (  # noqa: E402
     iter_current_federal_laws,
     iter_current_lineamientos,
     iter_current_reglamentos,
+    iter_current_tratados,
 )
 from scjn.release import (  # noqa: E402
     local_lineamientos_ids,
     local_reglamentos_ids,
     local_slugs,
+    local_tratados_ids,
 )
 
 from _atomic import atomic_write_bytes, atomic_write_text  # noqa: E402
@@ -84,6 +89,10 @@ COLECCIONES = {
     },
     "lineamientos": {
         "iter": iter_current_lineamientos, "local": local_lineamientos_ids,
+        "clave": "id_ordenamiento",
+    },
+    "tratados": {
+        "iter": iter_current_tratados, "local": local_tratados_ids,
         "clave": "id_ordenamiento",
     },
 }
@@ -238,11 +247,11 @@ def main(argv=None) -> None:
                               "(issue #227's decision 8).")
     parser.add_argument("--slug", nargs="+", default=None,
                          help="Build only these laws' units instead of every cached one. "
-                              "`leyes` only -- the other two collections are keyed by "
+                              "`leyes` only -- the other collections are keyed by "
                               "id_ordenamiento and have no slug at all (--id).")
     parser.add_argument("--id", nargs="+", default=None, dest="ids",
                          help="Build only these instruments' units, by id_ordenamiento. "
-                              "`reglamentos`/`lineamientos` only.")
+                              "The id-keyed collections only.")
     parser.add_argument("--cap", type=int, default=DEFAULT_SPLIT_CAP)
     parser.add_argument("--template", choices=("bare", "contextual"), default="bare")
     parser.add_argument("--no-split-over-cap", dest="split_over_cap", action="store_false",

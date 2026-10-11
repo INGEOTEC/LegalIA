@@ -11,7 +11,13 @@ combined.
 
 `--against runs/<model>/` is the incremental path: hashes already embedded
 (a `.done`-marked shard under that directory) are dropped before planning, so
-after a reform only the new units get shipped to the GPU at all.
+after a reform only the new units get shipped to the GPU at all. The new
+shards are numbered **after** the highest index any `shard-*` file already has
+under `--against` or under the work directory's own `runs/*/` (issue #280):
+a replan that numbered from 0 would find `shard-0000.done` already there,
+`submit_jobs.pending_shards` would call the new shard finished, and
+`merge_shards.py` would publish the old vectors without a word.
+`first_shard_index` in `shards.json` records where the numbering started.
 
     python scripts/embeddings/plan_shards.py --work-dir ~/emb-run
     python scripts/embeddings/plan_shards.py --work-dir ~/emb-run --num-shards 12
@@ -64,18 +70,41 @@ def already_embedded(run_dir: Path) -> set[str]:
     return done
 
 
-def balance_shards(texts: list[tuple[str, str]], num_shards: int) -> list[dict]:
+def highest_shard_index(*run_dirs: Path) -> int:
+    """The highest `N` of any `shard-NNNN.{done,parquet,failed}` directly
+    under one of `run_dirs`, or -1 when there is none -- an index an earlier
+    run already used, whatever state it ended in (issue #280)."""
+    highest = -1
+    for run_dir in run_dirs:
+        if not run_dir.is_dir():
+            continue
+        for path in run_dir.glob("shard-*"):
+            if path.suffix not in (".done", ".parquet", ".failed"):
+                continue
+            digits = path.stem.removeprefix("shard-")
+            if digits.isdigit():
+                highest = max(highest, int(digits))
+    return highest
+
+
+def balance_shards(
+    texts: list[tuple[str, str]], num_shards: int, first_index: int = 0
+) -> list[dict]:
     """`texts`, longest first, greedily assigned to whichever shard currently
     holds the fewest estimated tokens -- the longest-processing-time
     heuristic, which is what keeps a dozen shards each a couple of minutes of
-    GPU time instead of one holding every outlier."""
+    GPU time instead of one holding every outlier. Shards are numbered from
+    `first_index`."""
     sized = [
         (sha1, text, max(1, round(len(text) / CHARS_PER_TOKEN)))
         for sha1, text in texts
     ]
     sized.sort(key=lambda row: row[2], reverse=True)
 
-    shards: list[dict] = [{"index": i, "text_sha1": [], "tokens_estimate": 0} for i in range(num_shards)]
+    shards: list[dict] = [
+        {"index": first_index + i, "text_sha1": [], "tokens_estimate": 0}
+        for i in range(num_shards)
+    ]
     for sha1, _text, tokens in sized:
         target = min(shards, key=lambda s: s["tokens_estimate"])
         target["text_sha1"].append(sha1)
@@ -100,7 +129,13 @@ def main(argv=None) -> None:
         excluded = already_embedded(args.against)
         texts = [(sha1, text) for sha1, text in texts if sha1 not in excluded]
 
-    shards = balance_shards(texts, args.num_shards)
+    first_index = 0
+    if args.against is not None:
+        first_index = 1 + max(
+            highest_shard_index(args.against, *sorted((args.work_dir / "runs").glob("*/"))),
+            -1,
+        )
+    shards = balance_shards(texts, args.num_shards, first_index)
 
     units_hash = hashlib.sha256(units_parquet.read_bytes()).hexdigest()
     plan = {
@@ -109,6 +144,7 @@ def main(argv=None) -> None:
         "units_parquet_sha256": units_hash,
         "total_texts": len(texts),
         "excluded_already_embedded": len(excluded),
+        "first_shard_index": first_index,
         "shards": shards,
     }
     atomic_write_text(args.work_dir / "shards.json", json.dumps(plan, indent=2) + "\n")

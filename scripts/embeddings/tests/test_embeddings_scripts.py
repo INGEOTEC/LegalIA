@@ -30,6 +30,7 @@ import merge_shards  # noqa: E402
 import package_vectors  # noqa: E402
 import plan_shards  # noqa: E402
 import status  # noqa: E402
+import submit_jobs  # noqa: E402
 import upload_release_assets  # noqa: E402
 
 
@@ -99,6 +100,67 @@ def test_already_embedded_reads_done_marked_shards_only(tmp_path):
     # No .done for shard 1: its hashes must not count as already embedded.
     pq.write_table(pa.table({"text_sha1": ["c"]}), run_dir / "shard-0001.parquet")
     assert plan_shards.already_embedded(run_dir) == {"a", "b"}
+
+
+def _mark_done(run_dir, index, hashes):
+    pq.write_table(pa.table({"text_sha1": hashes}), run_dir / f"shard-{index:04d}.parquet")
+    (run_dir / f"shard-{index:04d}.done").write_text("{}")
+
+
+def test_balance_shards_numbers_from_the_first_index_given():
+    shards = plan_shards.balance_shards([("a", "x" * 9), ("b", "x" * 9)], 2, first_index=30)
+    assert sorted(s["index"] for s in shards) == [30, 31]
+
+
+def test_highest_shard_index_sees_done_parquet_and_failed(tmp_path):
+    run_dir = tmp_path / "runs" / "qwen3-0.6b"
+    run_dir.mkdir(parents=True)
+    assert plan_shards.highest_shard_index(run_dir) == -1
+    assert plan_shards.highest_shard_index(tmp_path / "missing") == -1
+    (run_dir / "shard-0003.done").write_text("{}")
+    (run_dir / "shard-0007.failed").write_text("boom")
+    (run_dir / "shard-0009.parquet").write_bytes(b"")
+    (run_dir / "jobs.json").write_text("{}")
+    (run_dir / "shard-0012.log").write_text("not a shard file")
+    assert plan_shards.highest_shard_index(run_dir) == 9
+
+
+def test_plan_against_numbers_new_shards_after_the_existing_ones(tmp_path):
+    # Issue #280: a replan numbered from 0 found `shard-0000.done` already
+    # there, so `pending_shards` called the new shard finished and the merge
+    # published the old vectors. Both models' runs hold indices 0 and 1; only
+    # the 0.6B is passed to --against, and the 4B's must be seen all the same.
+    for modelo in ("qwen3-0.6b", "qwen3-4b"):
+        run_dir = tmp_path / "runs" / modelo
+        run_dir.mkdir(parents=True)
+        _mark_done(run_dir, 0, ["a"])
+        _mark_done(run_dir, 1, ["b"])
+    (tmp_path / "runs" / "qwen3-4b" / "shard-0002.failed").write_text("boom")
+    _write_units_parquet(tmp_path / "units.parquet", [
+        {"text_sha1": "a", "text": "Uno"},
+        {"text_sha1": "b", "text": "Dos"},
+        {"text_sha1": "c", "text": "Tres nuevo"},
+    ])
+
+    plan_shards.main([
+        "--work-dir", str(tmp_path), "--num-shards", "1",
+        "--against", str(tmp_path / "runs" / "qwen3-0.6b"),
+    ])
+
+    plan = json.loads((tmp_path / "shards.json").read_text())
+    assert plan["first_shard_index"] == 3
+    assert [s["index"] for s in plan["shards"]] == [3]
+    assert plan["excluded_already_embedded"] == 2
+    for modelo in ("Qwen/Qwen3-Embedding-0.6B", "Qwen/Qwen3-Embedding-4B"):
+        assert submit_jobs.pending_shards(tmp_path, modelo) == [3]
+
+
+def test_plan_without_against_still_numbers_from_zero(tmp_path):
+    _write_units_parquet(tmp_path / "units.parquet", [{"text_sha1": "a", "text": "Uno"}])
+    plan_shards.main(["--work-dir", str(tmp_path), "--num-shards", "1"])
+    plan = json.loads((tmp_path / "shards.json").read_text())
+    assert plan["first_shard_index"] == 0
+    assert [s["index"] for s in plan["shards"]] == [0]
 
 
 # -- encode_shard: the shard file + done marker contract -------------------- #
@@ -372,6 +434,33 @@ def test_build_rows_keys_a_reglamento_by_id_with_no_slug_and_no_codnota(monkeypa
     assert {row["codNota"] for row in rows} == {None}
 
 
+def test_build_rows_keys_a_treaty_by_id_and_reads_its_roman_articles(monkeypatch):
+    # Issue #280: the fourth collection. A roman-numbered treaty gets article
+    # units (md2akn rule 10) and rule 8 stays off for it.
+    tratado = (
+        "**ARTÍCULO I**\n\nUno.\n\n1. Primero.\n\n2. Segundo.\n\n**ARTÍCULO II**\n\nDos.\n"
+    )
+    monkeypatch.setitem(
+        build_units.COLECCIONES["tratados"], "iter",
+        lambda claves, cache_dir=None: iter([_instrumento("id_ordenamiento", "11097", tratado)]),
+    )
+    rows, _leaves, stats = build_units.build_rows(
+        ["11097"], cap=2000, template="bare", split_articles=False, coleccion="tratados",
+    )
+    assert {row["coleccion"] for row in rows} == {"tratados"}
+    assert {row["clave"] for row in rows} == {"11097"}
+    assert {row["slug"] for row in rows} == {None}
+    assert {row["codNota"] for row in rows} == {None}
+    assert [row["unit_type"] for row in rows] == ["article", "article"]
+    assert stats["instruments_by_numbering"] == {"articulo": 1}
+
+
+def test_build_units_offers_tratados_and_rejects_slug_for_it():
+    assert "tratados" in build_units.COLECCIONES
+    with pytest.raises(SystemExit):
+        build_units.main(["--coleccion", "tratados", "--slug", "lft"])
+
+
 def test_build_rows_records_how_rule_8_read_each_instrument(monkeypatch):
     acuerdo = "**PRIMERO.-** Uno.\n\n**SEGUNDO.-** Dos.\n\n**TERCERO.-** Tres.\n"
     monkeypatch.setitem(
@@ -455,6 +544,18 @@ def test_package_vectors_splits_a_collection_over_githubs_asset_cap(tmp_path):
     ]
     assert len(partes[0]["assets"]) == 995
     assert len(partes[1]["assets"]) == 205
+
+
+def test_package_vectors_knows_the_tratados_series():
+    assert package_vectors.TAGS["tratados"] == "scjn-tratados-vectors"
+    # 1,373 instruments + 1 shared, both models, plus the five metadata assets:
+    # 2,753 assets, the shape of the three-part reglamentos series (#280).
+    vectores = [Path(f"vectors-{i}.parquet") for i in range(2748)]
+    partes = package_vectors.reparte("scjn-tratados-vectors", vectores)
+    assert [p["tag"] for p in partes] == [
+        "scjn-tratados-vectors", "scjn-tratados-vectors-2", "scjn-tratados-vectors-3",
+    ]
+    assert [len(p["assets"]) for p in partes] == [995, 1000, 753]
 
 
 def test_package_vectors_reports_a_missing_release_body(tmp_path, capsys):
