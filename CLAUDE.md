@@ -135,8 +135,9 @@ build on each other in this sequence.
 
 - **`legalvec`** — the disk-first reader for this project's *own* vector
   releases (issue #227's Fase 4, which is #218's Fase 3 widened to three
-  corpora): `scjn-leyes-vectors`, `scjn-reglamentos-vectors`,
-  `scjn-lineamientos-vectors`, one embedding per distinct text of each
+  corpora, and to a fourth by #280): `scjn-leyes-vectors`,
+  `scjn-reglamentos-vectors`, `scjn-lineamientos-vectors`,
+  `scjn-tratados-vectors`, one embedding per distinct text of each
   corpus. Deliberately not part of `scjn` — `scjn` means "client for the
   Court", and these vectors are this project's own, derived on a GPU from a
   specific model revision — and it imports nothing else in this monorepo
@@ -148,7 +149,7 @@ build on each other in this sequence.
   alone), `load_units`, `VectorSet`, `AssetNotCached`, `model_slug`, and its
   own `$LEGALVEC_CACHE_DIR`. Since issue #239 it also has a console script,
   `legalvec download` (an argparse front end over `download_vectors_assets`,
-  `--collection` defaulting to `all` — ~2.08 GB for the three releases, both
+  `--collection` defaulting to `all` — ~1.16 GB for the four releases, both
   models — and one `--key` for all three collections, since `units.parquet`
   has one uniform `clave` column) plus the strictly offline `legalvec
   status`; both helpers stay private in `legalvec.cli`, so the public
@@ -818,6 +819,45 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   `meta.commit` is provenance for the file and is never displayed;
   `meta.unique_names` and `meta.duplicates_dropped` record the selection
   below, and the exporter refuses a work directory prepared without it.
+
+## A vector for every treaty (issue #280, done)
+
+The `scjn-tratados` corpus (#277) got its own vector release, and
+`scjn-reglamentos-vectors` was regenerated for the one instrument #279's rule
+reaches. **Nothing was published**: the two `PUBLICAR.md` files are for a human
+(issue #115, Hallazgo C), and `legalvec download` (default `--collection all`)
+**fails until the `scjn-tratados-vectors` series exists**, so both publishes
+must happen before the pull request merges — the posture `atlas-pairs` already
+has. No "skip a missing release" softening was added, on purpose.
+
+- **Four collections now.** `build_units.py --coleccion tratados` (keyed by
+  `id_ordenamiento`, `slug`/`codNota` null), `package_vectors.TAGS["tratados"]`,
+  `legalvec.cache.RELEASE_TAGS["tratados"]`, `legalvec` **0.2.0** (unpublished
+  on PyPI), three Spanish release bodies `.github/scjn-tratados-vectors{,-2,-3}.md`.
+  The Atlas, `prepare_umap_input.py`'s `COLLECTIONS`, `unique_instruments.py`
+  and `atlas-pairs` stay three-corpus: a treaty on the map is its own issue.
+- **Measured (2026-10-11):** 1,373 treaties with text, 41,335 units, 39,668
+  distinct texts (701 shared), 6 shards per model on the three A100s, 0 failed,
+  10 articles truncated at each model's window (41,360 to 115,193 tokens), 65 MB
+  (0.6B) + 151 MB (4B), 2,753 assets in three parts (995 + 1,000 + 753 vector
+  files, plus 5 metadata). Rule 8 now reads 45 treaties as `numeral` (279
+  before rule 10), 4 as `ordinal`; 1,324 are ordinary. Tables in
+  `scripts/embeddings/README.md`.
+- **The shard-index bug, fixed with a test.** `plan_shards.py --against`
+  numbered new shards from 0, so `submit_jobs.pending_shards` saw the old
+  `shard-0000.done` and the merge would have silently published the old
+  vectors. New shards now start after the highest `shard-*` index under
+  `--against` or the work directory's own `runs/*/`; `shards.json` records
+  `first_shard_index`.
+- **Reglamentos, incrementally and confined.** The published
+  `emb-run-whole-reglamentos/` was copied (never touched; its `units.parquet`
+  sha256 still matches its `publish/SHA256SUMS.txt`), rebuilt under `md2akn`
+  0.5.0 and replanned: 30 new texts (182464's roman articles), one shard (30)
+  per model, `excluded_already_embedded` 100,852 for both. Of 1,083 files per
+  model only `vectors-182464-<model>-<K>.parquet` differs from the published
+  merge (`pyarrow.Table.equals`); no stale assets. The reglamentos release body
+  was also corrected to the whole-article numbers (it still carried the
+  pre-#256 ones).
 
 ## Articles embedded whole (issue #256, done)
 

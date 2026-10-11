@@ -65,17 +65,18 @@ promedia); cada texto truncado queda contado en `vectors-manifest.json`
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | 264 911 | 264 911 |
-| De los cuales compartidos | 7 238 | 7 238 |
-| Tamaño | 391 MB | 956 MB |
+| Vectores | 100 852 | 100 852 |
+| De los cuales compartidos | 4 235 | 4 235 |
+| Tamaño | 154 MB | 369 MB |
 
-Corpus: 1 082 reglamentos, 279 383 unidades, **264 911 textos distintos**,
-`cap` 2 000, plantilla `bare`, `md2akn` 0.3.0. Los otros 5 instrumentos del
+Corpus: 1 082 reglamentos, 110 670 unidades, **100 852 textos distintos**,
+`cap` 2 000, plantilla `bare`, `md2akn` 0.5.0 (los 30 artículos romanos del
+reglamento 182464 ya son unidades de artículo, issue #279). Los otros 5 instrumentos del
 release `scjn-reglamentos` no aparecen: la SCJN los clasifica pero no sirve
 texto consolidado de ninguno (`snapshots: 0`, issue #222, decisión 6).
 
 La deduplicación es **dentro** de la colección, no entre colecciones:
-deduplicar contra leyes y lineamientos ahorraba 3 307 vectores — 0.9 % —
+deduplicar contra leyes y lineamientos ahorraba menos del 1 % de los vectores
 a cambio de un archivo compartido que tres corpus que se rastrean, empaquetan
 y republican por separado tendrían que republicar juntos (issue #227,
 decisión 8).

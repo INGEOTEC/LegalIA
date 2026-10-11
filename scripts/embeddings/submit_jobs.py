@@ -6,8 +6,9 @@ Disk is rationed one model at a time on this cluster (`/home` is 795 GB,
 123 GB free) — the same reason `../Chimalli-overleaf/submit_jobs.py`
 downloads and deletes per model rather than keeping every model's weights
 around. `--keep-weights` is the one exception, and it exists because issue
-#227 made this a three-collection run: the same model then goes over
-`emb-run-leyes`, `emb-run-reglamentos` and `emb-run-lineamientos` back to
+#227 made this a multi-collection run (three, four since #280): the same model then goes over
+`emb-run-leyes`, `emb-run-reglamentos`, `emb-run-lineamientos` (and
+`emb-run-tratados`) back to
 back, and deleting the weights between them would re-download them twice
 (~8 GB each for the 4B). Pass it for every collection but the last. `cemieredes` has three A100s and each `sbatch` job asks for one GPU,
 so Slurm runs up to three shards in parallel by itself; nothing here manages

@@ -7,7 +7,7 @@ tests assert both were never called at all — the whole point of that verb is
 that it answers from the directory.
 
 Downloading a real collection is not something a test may do under any
-patch: the four releases are @@SIZE@@.
+patch: the four releases are ~1.16 GB across ~5,820 assets.
 """
 
 import json

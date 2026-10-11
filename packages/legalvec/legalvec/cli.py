@@ -15,7 +15,7 @@ no HTTP request whatsoever. Reading the vectors themselves stays the Python
 API's job (`load_vectors`, `load_units`); there is no search verb here.
 
 `--collection` defaults to `all`, so the bare `legalvec download` fetches all
-four releases for both models — ~2.08 GB across ~3,067 assets, which is what
+four releases for both models — ~1.16 GB across ~5,820 assets, which is what
 the flag's help says out loud. Naming one collection, one `--key` or one
 `--model` is how that gets smaller.
 
@@ -62,7 +62,7 @@ def _parser():
     download.add_argument(
         "--collection", choices=(*cache.RELEASE_TAGS, "all"), default="all",
         help="Which release to download (default: %(default)s -- all four, for both "
-        "models, ~2.08 GB across ~3,067 assets).",
+        "models, ~1.16 GB across ~5,820 assets).",
     )
     download.add_argument(
         "--key", action="append", default=None, metavar="KEY", dest="keys",

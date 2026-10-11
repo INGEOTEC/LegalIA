@@ -1,5 +1,5 @@
 Un vector por cada texto distinto del corpus de **tratados internacionales**: el
-texto vigente de los @@INSTR@@ tratados con texto que publica
+texto vigente de los 1 373 tratados con texto que publica
 [`scjn-tratados`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-tratados),
 segmentado en unidades de recuperación por
 [`md2akn`](https://pypi.org/project/md2akn/) y embebido con los dos modelos
@@ -10,8 +10,8 @@ Se lee con [`legalvec`](https://pypi.org/project/legalvec/):
 ```python
 import legalvec
 
-legalvec.download_vectors_assets("tratados", ["@@EJEMPLO@@"])
-conjunto = legalvec.load_vectors("tratados", "@@EJEMPLO@@", "Qwen/Qwen3-Embedding-0.6B")
+legalvec.download_vectors_assets("tratados", ["11097"])
+conjunto = legalvec.load_vectors("tratados", "11097", "Qwen/Qwen3-Embedding-0.6B")
 unidades = legalvec.load_units("tratados")
 ```
 
@@ -26,15 +26,15 @@ una versión anterior de `md2akn`.
 
 ## Publicado en tres partes
 
-Un release de GitHub admite a lo más 1 000 assets, y aquí hay @@ASSETS@@. Así que
+Un release de GitHub admite a lo más 1 000 assets, y aquí hay 2 753. Así que
 esta colección se publica como una serie numerada, igual que el corpus del
 que sale (issue #223):
 
 | Release | Assets |
 |---|---|
-| `scjn-tratados-vectors` | @@P1@@ vectores + `units.parquet`, `leaves.parquet`, `corpus-manifest.json`, `vectors-manifest.json`, `SHA256SUMS.txt` |
-| [`scjn-tratados-vectors-2`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-tratados-vectors-2) | @@P2@@ vectores |
-| [`scjn-tratados-vectors-3`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-tratados-vectors-3) | @@P3@@ vectores |
+| `scjn-tratados-vectors` | 995 vectores + `units.parquet`, `leaves.parquet`, `corpus-manifest.json`, `vectors-manifest.json`, `SHA256SUMS.txt` |
+| [`scjn-tratados-vectors-2`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-tratados-vectors-2) | 1 000 vectores |
+| [`scjn-tratados-vectors-3`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-tratados-vectors-3) | 753 vectores |
 
 `legalvec` resuelve la serie completa preguntándole a GitHub — prueba
 `-2`, `-3`, … hasta que una da 404 — así que un lector nunca necesita saber
@@ -49,7 +49,7 @@ cuántas partes hay, y nada publicado registra ese número.
 | `corpus-manifest.json` | Cómo se construyeron las unidades |
 | `vectors-manifest.json` | Cómo se construyeron los vectores |
 | `SHA256SUMS.txt` | Suma de cada asset de la serie completa |
-| `vectors-<id_ordenamiento>-<modelo>-<K>.parquet` | Los vectores propios de un tratado — @@INSTR@@, por modelo |
+| `vectors-<id_ordenamiento>-<modelo>-<K>.parquet` | Los vectores propios de un tratado — 1 373, por modelo |
 | `vectors-shared-<modelo>-<K>.parquet` | Los vectores del texto que varios comparten — uno por modelo |
 
 Los dos archivos de vectores se leen juntos, siempre: un texto que varios
@@ -61,19 +61,20 @@ Un artículo es siempre una unidad entera, sin importar su longitud
 para el epígrafe de un capítulo, el preámbulo, el contenido suelto y las
 firmas. Un artículo más largo que la ventana del modelo se **trunca** a esa
 ventana (nunca se parte ni se promedia); cada texto truncado queda contado en
-`vectors-manifest.json` (`texts_truncated`, `max_tokens_embedded`).
+`vectors-manifest.json` (`texts_truncated`, `max_tokens_embedded`): 10 textos en esta colección, todos
+más largos que la ventana de los dos modelos (de 41 360 a 115 193 tokens).
 
 ## Los números
 
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | @@VEC@@ | @@VEC@@ |
-| De los cuales compartidos | @@SHARED@@ | @@SHARED@@ |
-| Tamaño | @@S06@@ | @@S4@@ |
+| Vectores | 39 668 | 39 668 |
+| De los cuales compartidos | 701 | 701 |
+| Tamaño | 65 MB | 151 MB |
 
-Corpus: @@INSTR@@ tratados, @@UNITS@@ unidades, **@@VEC@@ textos distintos**,
-`cap` 2 000, plantilla `bare`, `md2akn` 0.5.0. Los otros @@SINTEXTO@@
+Corpus: 1 373 tratados, 41 335 unidades, **39 668 textos distintos**,
+`cap` 2 000, plantilla `bare`, `md2akn` 0.5.0. Los otros 82
 instrumentos del release `scjn-tratados` no aparecen: la SCJN los clasifica
 pero no sirve texto consolidado de ninguno (`snapshots: 0`, issue #222,
 decisión 6).
@@ -88,7 +89,7 @@ texto que un tratado comparte con una ley tiene un vector en cada release
   la SCJN; la oficial sigue siendo el DOF. Un vector no es citable.
 - **Texto vigente solamente**, sin historia y sin `codNota`: esta colección
   no está ligada al DOF (issue #277).
-- **@@NOSEGMENTADOS@@ tratados no tienen unidades de artículo**: son canjes de notas y
+- **53 tratados no tienen unidades de artículo**: son canjes de notas y
   protocolos en prosa, sin artículos romanos ni numerados que reconocer; su
   texto queda en unidades de preámbulo y contenido suelto.
 - **Nada de esto se publica solo** (issue #115, Hallazgo C).

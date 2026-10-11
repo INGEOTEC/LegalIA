@@ -45,13 +45,13 @@ lineamiento (issue #227's decision 7), so a reader never branches on which
 collection it is reading — the same reason the corpus build writes that
 column at all.
 
-The first three releases were published by hand — issue #115's Hallazgo C says a
+The first three releases were published by hand (the fourth, treaties, is generated the same way and published the same way) — issue #115's Hallazgo C says a
 human publishes anything derived from the SCJN, so issue #227 generated each
 release's upload plan (``scripts/embeddings/package_vectors.py``'s
 ``PUBLICAR.md``) and a person ran it. The reading examples below still build a
 tiny release on disk and read it back rather than downloading one, which is
-both what the package's own tests do and what keeps this page cheap: the three
-releases are ~2.08 GB together. The one example that does reach the network,
+both what the package's own tests do and what keeps this page cheap: the four
+releases are ~1.16 GB together. The one example that does reach the network,
 :py:func:`~legalvec.download_vectors_assets`, names a single lineamiento and a
 single model, which is under 2 MB.
 
@@ -191,7 +191,7 @@ API can never mean different things:
    scjn-lineamientos-vectors: 7 assets in /home/user/.cache/legalvec/scjn-lineamientos-vectors (7 downloaded, 0 already cached)
 
 ``--collection`` defaults to ``all``, so the bare ``legalvec download`` fetches
-all four releases for both models — ~2.08 GB across ~3,067 assets, which is
+all four releases for both models — ~1.16 GB across ~5,820 assets, which is
 what its ``--help`` says out loud. ``--key`` is one flag for all four
 collections (a law's slug, an ``id_ordenamiento`` otherwise), because
 ``units.parquet`` has had one uniform ``clave`` column since issue #227; it
