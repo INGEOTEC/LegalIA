@@ -121,7 +121,7 @@ build on each other in this sequence.
   Akoma Ntoso XML anywhere: only the vocabulary is borrowed, and the earlier
   XML converter that lived in `nota2md` was removed (issue #168).
   `text_units()` (issue #218) is the retrieval-unit view the embedding work
-  builds on, under **nine** rules since issue #227 added two: **rule 8**, an
+  builds on, under **ten** rules since issue #227 added two (and #279 a tenth, below): **rule 8**, an
   instrument that never writes `Artículo N` numbers its provisions
   `**PRIMERO.-**` or `1.` / `2.1` instead, decided once per *document*
   (`md2akn.structure.modo_sin_articulos`) and therefore incapable of changing
@@ -865,6 +865,48 @@ byte-identical to before this issue.
   Atlas page section below.
 - **`md2akn` went to 0.4.0** — a new public keyword (`split_articles`) that
   changes what a *future* vector means, with no change to default output.
+
+## Roman-numbered articles (issue #279, done)
+
+`md2akn.text_units` raised nothing on the `scjn-tratados` corpus (issue #277),
+but a treaty numbers its own articles `ARTÍCULO I`, `ARTÍCULO II`, … and none
+of those was an `article` unit: a treaty's body fell into `preamble`/`loose`
+blocks. **Rule 10** reads a roman-numbered opener as an article, and `md2akn`
+went to 0.5.0 (never published on PyPI) — the same reasoning as 0.3.0 and
+0.4.0, a new rule changes what a future vector means.
+
+- **Measured over the whole cached corpus (2026-10-11):** 1,373 treaties with
+  text, 0 exceptions, 0 `coverage()` failures, 0 `splittable`; 489 treaties
+  carry 6,646 roman openers; 229 treaties had no `article` unit before the
+  rule (176 of them roman-numbered) and **53 have none after it** — exchanges
+  of notes and prose protocols with no roman opener either, left as they are.
+  Rule 8 used to misfire on a roman-numbered treaty whose paragraphs read
+  `1.`/`2.` (ids 11097, 11103): the gate saw no article. It sees one now.
+- **Part of `NUM_ARTICULO`, unconditional.** `patterns.NUMERO_ROMANO` is a
+  third alternative of `NUM_ARTICULO`, so the builder, `clasifica` and
+  `modo_sin_articulos` all see it at once. A *valid*, upper-case roman numeral
+  (`ARTÍCULO MIL`/`CIVIL` are only roman letters) followed by what may follow
+  a digit number, so `ARTÍCULO VIGÉSIMO` stays an ordinal word; the Latin
+  suffix is admitted (`XV BIS`). `eId`s keep the number as written
+  (`art_I`, `art_1`): roman and arabic never collide. Rule 8's thresholds and
+  gate are untouched; no document-level gate was added for roman numerals.
+- **The plural `ARTICULOS I y II`** is read as article `I`, the way `ARTICULOS
+  1 y 2` always was; pinned in `test_roman_articles.py`, not designed.
+- **Its reach on the published corpora, proved and not argued:** the three
+  corpora's `units.parquet` regenerated with `build_units.py
+  --no-split-articles` reproduce the published ones as tables
+  (`pyarrow.Table.equals`; bytes differ by the writer-version footer) — leyes
+  (68,581 rows) and lineamientos (5,514) are equal, and reglamentos (110,670)
+  is equal except `clave == "182464"`, a Contrato Ley's pension reglamento
+  whose 30 `ARTÍCULO I.` … `ARTÍCULO XXX.` lines were `loose` and are now
+  `article` units (its 47 rows: 30 loose + 4 article before, 34 article after).
+  The repository owner chose to regenerate `scjn-reglamentos-vectors` for that
+  one instrument rather than leave it stale; that is the follow-up issue's
+  work, not this one's.
+- **The release sweep covers four corpora** (`test_tratados`,
+  `test_tratados_split_articles_false`, and a treaty test asserting that every
+  roman-opener treaty has a roman-numbered `article` unit and that at most 53
+  have none), ~17 minutes.
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 

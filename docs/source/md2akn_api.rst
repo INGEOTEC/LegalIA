@@ -472,6 +472,23 @@ counts what is left that way:
 >>> [(u.unit_type, u.piece, u.text) for u in md2akn.text_units(parrafos, cap=40)]
 [('preamble', 1, 'Párrafo número 1. Párrafo número 2.'), ('preamble', 2, 'Párrafo número 3. Párrafo número 4.')]
 
+Rule 10: the roman-numbered article
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Issue #279 added a tenth rule, for the fourth collection, ``scjn-tratados``.
+An international treaty numbers its own articles with roman numerals,
+``ARTÍCULO I``, ``ARTÍCULO II``, and rule 10 reads those as articles. It is
+unconditional — a roman alternative inside ``patterns.NUM_ARTICULO``, so the
+builder, the classifier and rule 8's gate all see it — and it only accepts a
+valid upper-case roman numeral, so an ordinal word such as ``ARTÍCULO
+VIGÉSIMO`` is still an ordinal word. Because the gate now sees an article, a
+roman-numbered treaty whose paragraphs are numbered ``1.``, ``2.`` is no
+longer read as an *acuerdo*:
+
+>>> tratado = "**ARTÍCULO I**\n\n1. Uno.\n\n2. Dos.\n\n**ARTÍCULO II**\n\nTres.\n"
+>>> [(u.unit_type, u.num) for u in md2akn.text_units(tratado, split_articles=False)]
+[('article', 'I'), ('article', 'II')]
+
 :py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
 where ``coverage()`` says nothing was lost, this says the units are usable.
 ``splittable == 0`` is the invariant a corpus build asserts; ``unsplittable``

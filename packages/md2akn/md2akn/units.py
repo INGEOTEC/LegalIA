@@ -693,8 +693,8 @@ def text_units(
     (`md2akn.parse_markdown`'s return), so a caller who parsed for another
     reason does not pay to parse twice.
 
-    The nine rules — seven from issue #218's Fase 1, two added by #227 and
-    numbered into the same list rather than replacing any of them:
+    The ten rules — seven from issue #218's Fase 1, two added by #227, one by
+    #279, numbered into the same list rather than replacing any of them:
 
     1. Frontmatter and reform annotations are metadata, never embedded.
     2. An article no longer than `cap` (normalized) is one unit, whole. With
@@ -727,6 +727,11 @@ def text_units(
        byte for byte. Never applied to an article when `split_articles=False`
        (see rule 2) — an over-cap article is then left whole, counted by
        `max_unit_chars`' own `articles_over_cap` rather than `over_cap`.
+    10. A roman-numbered article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`) is
+       an article — how an international treaty numbers its own articles
+       (issue #279). Unconditional: a roman alternative in
+       `patterns.NUM_ARTICULO`, so the gate of rule 8 sees it too and a
+       roman-numbered treaty is never read as an *acuerdo*.
 
     >>> import md2akn
     >>> text = (

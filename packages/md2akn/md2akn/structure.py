@@ -203,6 +203,12 @@ def modo_sin_articulos(bloques) -> str | None:
     (a roman-numeral outline, mostly), and they keep the behaviour they
     already had rather than being guessed at.
 
+    A roman-numbered article (`ARTÍCULO I`, issue #279's rule 10) is an
+    `ARTICULO` match, so a roman-numbered treaty whose paragraphs read `1.`,
+    `2.` returns `None` here instead of `MODO_NUMERAL`. The 3 lineamientos
+    above are unchanged by that rule (0 roman article openers measured in
+    the 126 lineamientos), so the sentence stays true.
+
     >>> from md2akn.segmenter import iter_blocks
     >>> from md2akn.structure import modo_sin_articulos
     >>> texto = "**PRIMERO.-** Uno.\\n\\n**SEGUNDO.-** Dos.\\n\\n**TERCERO.-** Tres."

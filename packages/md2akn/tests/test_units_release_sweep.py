@@ -3,7 +3,8 @@
 An integration test, not a unit test: it walks every instrument the three
 cached SCJN releases have on disk — `scjn-leyes` (315 laws, issue #218),
 `scjn-reglamentos` (1,082 with text) and `scjn-lineamientos` (126), the
-latter two added by issue #227 — parsing and segmenting each one and checking
+latter two added by issue #227, and `scjn-tratados` (1,373 with text, added
+by issue #279) — parsing and segmenting each one and checking
 both invariants at the corpus' real scale rather than on a handful of
 fixtures:
 
@@ -20,8 +21,12 @@ the 315 laws' `units.parquet` with rule 8 on and rule 9 off produced a file
 byte-identical to the pre-#227 one (one byte apart: the pyarrow writer
 version string in the Parquet footer).
 
+Over the treaties it also asserts rule 10's reach (issue #279): every treaty
+with a roman-numbered article opener has at least one roman-numbered
+`article` unit, so none of them is left as `preamble`/`loose` blocks.
+
 It makes no network request of its own — the releases have to already be
-cached (`nota2md download all` populates all three) — but at roughly 13
+cached (`nota2md download all` populates all four) — but at roughly 17
 minutes for the full sweep it is excluded from the routine run the same way
 `packages/nota2md/tests/test_leyes_44.py` and `packages/scjn`'s `_red` tests
 are, and for a related but distinct reason: not network, but wall-clock time
@@ -42,9 +47,11 @@ than failing collection for whoever installed `md2akn[test]` alone.
 """
 
 import importlib.util
+import re
 import unittest
 
 from md2akn import coverage, max_unit_chars, parse_markdown, text_units
+from md2akn.patterns import ARTICULO
 from md2akn.segmenter import iter_blocks, split_frontmatter
 from md2akn.structure import modo_sin_articulos
 
@@ -54,10 +61,28 @@ if _TIENE_SCJN:
         iter_current_federal_laws,
         iter_current_lineamientos,
         iter_current_reglamentos,
+        iter_current_tratados,
         local_lineamientos_ids,
         local_reglamentos_ids,
         local_slugs,
+        local_tratados_ids,
     )
+
+_ROMANO = re.compile(r"[IVXLCDM]+")
+# An article's eId is scoped under its containers (`cap_II__art_IV`).
+_EID_ARTICULO_ROMANO = re.compile(r"(?:.*__)?art_[IVXLCDM]+(?:_\d+)?")
+
+
+def _abre_con_articulo_romano(markdown: str) -> bool:
+    """Whether any block of `markdown` opens on a roman-numbered article
+    heading (rule 10, issue #279) — read with the same pattern the builder
+    uses, bold markers removed."""
+    _meta, fin_meta = split_frontmatter(markdown)
+    for bloque in iter_blocks(markdown, fin_meta):
+        m = ARTICULO.match(bloque.text.split("\n", 1)[0].replace("**", ""))
+        if m and _ROMANO.fullmatch(m.group("num").split()[0]):
+            return True
+    return False
 
 
 def _barre(instrumentos, clave, *, split_articles: bool = True):
@@ -133,6 +158,52 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
     )
     def test_lineamientos_split_articles_false(self):
         self._comprueba(iter_current_lineamientos(), "id_ordenamiento", split_articles=False)
+
+    # -- issue #279: scjn-tratados --------------------------------------- #
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_tratados_ids(), "no scjn-tratados release cached locally"
+    )
+    def test_tratados(self):
+        self._comprueba(iter_current_tratados(), "id_ordenamiento")
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_tratados_ids(), "no scjn-tratados release cached locally"
+    )
+    def test_tratados_split_articles_false(self):
+        self._comprueba(iter_current_tratados(), "id_ordenamiento", split_articles=False)
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_tratados_ids(), "no scjn-tratados release cached locally"
+    )
+    def test_todo_tratado_con_articulos_romanos_tiene_unidades_de_articulo(self):
+        """Rule 10's reach: a treaty that numbers its articles `ARTÍCULO I`..
+        has at least one roman-numbered `article` unit (before the rule, 176
+        of the 229 treaties with no `article` unit were exactly these), and
+        the treaties left with no article unit at all are the ones with no
+        roman opener either (53 measured, issue #279)."""
+        romanos = 0
+        sin_unidad_romana = []
+        sin_articulo = 0
+        for tratado in iter_current_tratados():
+            units = text_units(tratado["markdown"], split_articles=False)
+            if not any(u.unit_type == "article" for u in units):
+                sin_articulo += 1
+            if not _abre_con_articulo_romano(tratado["markdown"]):
+                continue
+            romanos += 1
+            if not any(
+                u.unit_type == "article" and _EID_ARTICULO_ROMANO.fullmatch(u.eId)
+                for u in units
+            ):
+                sin_unidad_romana.append((tratado["id_ordenamiento"], tratado["archivo"]))
+        self.assertGreater(romanos, 0)
+        self.assertEqual(
+            sin_unidad_romana, [],
+            f"{len(sin_unidad_romana)} of {romanos} roman-numbered treaties have no "
+            "roman-numbered article unit",
+        )
+        self.assertLessEqual(sin_articulo, 53)
 
     @unittest.skipUnless(_TIENE_SCJN and local_slugs(), "no scjn-leyes release cached locally")
     def test_la_regla_8_no_se_activa_en_ninguna_ley(self):
