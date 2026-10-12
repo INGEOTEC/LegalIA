@@ -69,7 +69,31 @@ SUFIJO_LATINO = (
     r"UNDECIES|DUODECIES|TERDECIES|QUATERDECIES"
 )
 
-#: An article's number, as written. Three shapes, in one alternation:
+#: A roman-numbered article's number (issue #279's rule 10): `ARTÍCULO I`,
+#: `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`. International treaties write their
+#: own articles this way -- over the 1,373 cached `scjn-tratados` with text,
+#: 489 carry 6,646 such openers (`**ARTÍCULO R**` 5,661, `ARTÍCULO R` 705,
+#: `ARTÍCULO R.` 137, `**ARTÍCULO R.**` 73, `ARTÍCULO R.-` 62, with `R` the
+#: roman number) and 229 had no `article` unit at all before this alternative.
+#: Across the three published corpora it reaches exactly one instrument, the
+#: reglamento 182464 (30 lines, `ARTÍCULO I.` .. `ARTÍCULO XXX.`); no law and
+#: no lineamiento carries one.
+#:
+#: Upper case only and a *valid* roman numeral (`M{0,3}(CM|CD|D?C{0,3})...`),
+#: not just a run of roman letters: `ARTÍCULO MIL...` and `ARTÍCULO CIVIL`
+#: are all roman letters and are not numbers. The lookahead admits only what
+#: may follow a digit number (a separator, whitespace, a closing `**`, the end
+#: of the line), so `ARTÍCULO VIGÉSIMO` is not read as `V` + `IGÉSIMO` and is
+#: left to `ORDINAL_PALABRA` below. The Latin suffix is admitted as after
+#: digits (`XV BIS`).
+NUMERO_ROMANO = (
+    r"(?=[IVXLCDM])"
+    r"M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})"
+    r"(?=[ \t]*(?:\.|\-|–)|\s|\*|$)"
+    rf"(?:[ \t]+(?i:{SUFIJO_LATINO})\b)*"
+)
+
+#: An article's number, as written. Four shapes, in one alternation:
 #:
 #: - digits, optionally ordinal-marked (`1o.`, `1°`, `1º`), optionally with a
 #:   letter suffix (`27-A`, seen as `**ARTICULO N-A.-`), optionally with one
@@ -78,6 +102,8 @@ SUFIJO_LATINO = (
 #:   Kept as a single `num` of `"30,31"` rather than split into two nodes:
 #:   the two articles share one heading and one body, and dividing that text
 #:   between them is not possible without guessing. #162's sweep counts them.
+#: - a roman numeral (`NUMERO_ROMANO`, issue #279), which is how treaties
+#:   number their articles;
 #: - an ordinal in words, which is how transitorio articles are numbered.
 NUM_ARTICULO = (
     r"(?:"
@@ -97,6 +123,7 @@ NUM_ARTICULO = (
     # word as a suffix.
     r"(?:[ \t]*[-–][ \t]*[A-Za-zÁÉÍÓÚÑ]\b|[ \t]+[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–]))?"
     r"(?:[ \t]*,[ \t]*\d+(?:[ \t]*[oº°])?)*"
+    rf"|{NUMERO_ROMANO}"
     rf"|{ORDINAL_PALABRA}"
     r")"
 )

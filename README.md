@@ -115,9 +115,9 @@ for titulo in legal_provisions_titles():
 
 ### `legalvec` — the vectors of every text, on disk
 
-`legalvec` reads back this project's three vector releases, and is disk-first:
+`legalvec` reads back this project's four vector releases, and is disk-first:
 putting them there is its own command line's job. `legalvec download` with no
-flags fetches all three, for both models (~2.08 GB); `--collection`, `--key`
+flags fetches all four, for both models (~1.16 GB); `--collection`, `--key`
 (a law's slug, an `id_ordenamiento` otherwise) and `--model` narrow that, and
 `legalvec status` says what the cache already holds without touching the
 network:

@@ -86,7 +86,9 @@ SCJN corpus, so the variation it covers is the variation that is there:
 `Artículo`/`ARTICULO`/`ARTÍCULO`/`Art.`, with and without bold (the oldest
 laws use none), ordinals (`1o.`, `1°`, `1º`), Latin suffixes in any case and
 joined by a space or a dash (`28 Bis`, `3° bis`, `103-Bis`, `3° Bis 1`),
-letter suffixes (`27-A`, and the CCF's `410 A`), two articles under one
+letter suffixes (`27-A`, and the CCF's `410 A`), roman numerals
+(`ARTÍCULO IV`, how a treaty numbers its articles — rule 10 of `text_units`),
+two articles under one
 heading (`Art. 30,31.` — kept as one node with `num="30,31"`, since dividing
 the shared text between them is not possible without guessing), and container
 headings with or without bold, with the epigraph in the *following* block.
@@ -340,11 +342,26 @@ pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_swee
 ```
 
 The excluded test sweeps the `coverage()` and `max_unit_chars()` invariants
-over the whole cached SCJN corpus — `scjn-leyes`, `scjn-reglamentos` and
-`scjn-lineamientos`, ~13 minutes and a ~380 MB local cache not every machine
-has — rather than over a handful of fixtures; see its own module docstring.
+over the whole cached SCJN corpus — `scjn-leyes`, `scjn-reglamentos`,
+`scjn-lineamientos` and `scjn-tratados`, ~17 minutes and a local cache not
+every machine has — rather than over a handful of fixtures; see its own module docstring.
 
 ## Changelog
+
+- **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
+  article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an
+  article, the way an international treaty numbers its own articles. It is a
+  roman alternative inside `patterns.NUM_ARTICULO` (a valid, upper-case roman
+  numeral followed by what may follow a digit number, so `ARTÍCULO VIGÉSIMO`
+  stays an ordinal word and `ARTÍCULO CIVIL` never matches), unconditional,
+  and seen at once by the builder, `clasifica` and rule 8's gate — which
+  therefore stops misreading a roman-numbered treaty's `1.`/`2.` paragraphs as
+  articles. Measured over the 1,373 cached `scjn-tratados` with text: 489
+  treaties carry 6,646 such openers; 229 treaties had no `article` unit before
+  the rule. Over the published corpora it reaches exactly one instrument, the
+  reglamento 182464 (30 openers); no law and no lineamiento carries one, and
+  their `units.parquet` is unchanged. Default output for every pre-existing
+  fixture is unchanged.
 
 - **0.4.0** — `text_units(source, split_articles=False)` (issue #256): every
   `article` node yields exactly one unit, `piece == 0`, whatever its length

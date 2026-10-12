@@ -7,7 +7,7 @@ tests assert both were never called at all — the whole point of that verb is
 that it answers from the directory.
 
 Downloading a real collection is not something a test may do under any
-patch: the three releases are ~2.08 GB across ~3,067 assets.
+patch: the four releases are ~1.16 GB across ~5,820 assets.
 """
 
 import json
@@ -61,14 +61,22 @@ class TestDownload(ConRedParchada):
         self.mock_descarga = self.descarga.start()
         self.addCleanup(self.descarga.stop)
 
-    def test_sin_flags_baja_las_tres_colecciones_con_los_dos_modelos(self):
+    def test_no_flags_downloads_all_four_collections_with_both_models(self):
         cli.main(["download", "--cache-dir", str(self.tmp)])
 
         colecciones = [c.args[0] for c in self.mock_descarga.call_args_list]
         self.assertEqual(colecciones, list(cache.RELEASE_TAGS))
+        self.assertEqual(
+            colecciones, ["leyes", "reglamentos", "lineamientos", "tratados"])
         for llamada in self.mock_descarga.call_args_list:
             self.assertEqual(llamada.kwargs["models"], release.MODELS)
             self.assertIsNone(llamada.args[1])
+
+    def test_tratados_is_a_collection_of_its_own(self):
+        cli.main(["download", "--collection", "tratados", "--cache-dir", str(self.tmp)])
+
+        self.mock_descarga.assert_called_once()
+        self.assertEqual(self.mock_descarga.call_args.args[0], "tratados")
 
     def test_una_coleccion_se_baja_sola(self):
         cli.main(["download", "--collection", "lineamientos", "--cache-dir", str(self.tmp)])
@@ -96,8 +104,8 @@ class TestDownload(ConRedParchada):
             self.mock_descarga.call_args.kwargs["models"], ("Qwen/Qwen3-Embedding-4B",))
 
     def test_key_sin_una_sola_coleccion_es_systemexit(self):
-        # Una clave pertenece a una coleccion: aplicarla a las tres bajaria
-        # nada mas los metadatos de las otras dos, en silencio.
+        # Una clave pertenece a una coleccion: aplicarla a las cuatro bajaria
+        # nada mas los metadatos de las otras tres, en silencio.
         with self.assertRaises(SystemExit) as ctx:
             cli.main(["download", "--key", "lft", "--cache-dir", str(self.tmp)])
 
@@ -154,7 +162,7 @@ class TestStatus(ConRedParchada):
             (directorio / nombre).write_bytes(b"x" * 1024)
         return directorio
 
-    def test_una_cache_vacia_reporta_las_tres_sin_bajar(self):
+    def test_an_empty_cache_reports_all_four_without_downloading(self):
         lineas = []
         cli._main_status(
             cli._parser().parse_args(["status", "--cache-dir", str(self.tmp)]),
@@ -162,7 +170,8 @@ class TestStatus(ConRedParchada):
         )
 
         self.assertEqual(
-            sum(1 for linea in lineas if "not downloaded" in linea), 3)
+            sum(1 for linea in lineas if "not downloaded" in linea), 4)
+        self.assertTrue(any("scjn-tratados-vectors" in linea for linea in lineas))
         self.assertIn(f"cache: {self.tmp}", lineas)
 
     def test_cuenta_los_archivos_por_slug_leido_del_nombre(self):

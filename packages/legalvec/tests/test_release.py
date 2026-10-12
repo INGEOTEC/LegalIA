@@ -144,11 +144,11 @@ class TestLoadUnits(ConReleaseSintetico):
 class TestColeccionDesconocida(unittest.TestCase):
     def test_load_units_rechaza_una_coleccion_que_no_existe(self):
         with self.assertRaises(ValueError):
-            legalvec.load_units("tratados")
+            legalvec.load_units("normas")
 
     def test_download_rechaza_una_coleccion_que_no_existe(self):
         with self.assertRaises(ValueError):
-            legalvec.download_vectors_assets("tratados")
+            legalvec.download_vectors_assets("normas")
 
 
 class TestDownloadVectorsAssets(unittest.TestCase):
@@ -214,6 +214,18 @@ class TestDownloadVectorsAssets(unittest.TestCase):
             )[:1]
 
         self.assertEqual(ruta.parent.name, "scjn-lineamientos-vectors")
+
+    def test_tratados_lands_in_its_own_subdirectory(self):
+        self.assertEqual(cache.release_dir("tratados", self.tmp).name, "scjn-tratados-vectors")
+        with patch.object(cache, "assets_of_series", return_value=self.assets) as series, \
+             patch.object(cache, "download", side_effect=self._descarga):
+            [(ruta, _)] = legalvec.download_vectors_assets(
+                "tratados", [], models=(), cache_dir=self.tmp,
+            )[:1]
+
+        series.assert_called_once()
+        self.assertEqual(series.call_args.args[0], "scjn-tratados-vectors")
+        self.assertEqual(ruta.parent.name, "scjn-tratados-vectors")
 
 
 class TestSerieDePartes(unittest.TestCase):

@@ -54,6 +54,7 @@ TAGS = {
     "leyes": "scjn-leyes-vectors",
     "reglamentos": "scjn-reglamentos-vectors",
     "lineamientos": "scjn-lineamientos-vectors",
+    "tratados": "scjn-tratados-vectors",
 }
 
 #: GitHub's release-body cap (issue #223): `scjn-reglamentos`' 1,082-row

@@ -1,9 +1,11 @@
 # `scripts/embeddings/` — a vector for every text of every federal instrument
 
 Fase 2 of issue #218 (the implementation plan for #217's research), widened
-to all three SCJN corpora by issue #227's Fase 3: the Slurm build that turns
+to all three SCJN corpora by issue #227's Fase 3 and to a fourth, the
+treaties, by issue #280: the Slurm build that turns
 `md2akn.text_units()`'s output into one vector per distinct text of the
-cached `scjn-leyes`, `scjn-reglamentos` and `scjn-lineamientos` releases.
+cached `scjn-leyes`, `scjn-reglamentos`, `scjn-lineamientos` and
+`scjn-tratados` releases.
 This is orchestration for one research run on one specific cluster
 (`headmaster` + `cemieredes`), not a package — it talks to Slurm, to Hugging
 Face Hub, and to this machine's own `/home` layout, none of which belongs
@@ -18,16 +20,17 @@ here, and a human runs the `PUBLICAR.md` the packaging step generates (issue
 
 ## One work directory per collection
 
-`--coleccion {leyes,reglamentos,lineamientos}` picks the corpus (default
-`leyes`, so the #218 command keeps working), and each gets its own work
-directory: `emb-run-leyes/`, `emb-run-reglamentos/`, `emb-run-lineamientos/`.
+`--coleccion {leyes,reglamentos,lineamientos,tratados}` picks the corpus
+(default `leyes`, so the #218 command keeps working), and each gets its own
+work directory: `emb-run-leyes/`, `emb-run-reglamentos/`,
+`emb-run-lineamientos/`, `emb-run-tratados/`.
 Dedup stays inside a collection — measured at 0.9 % of the vectors saved by
 deduplicating across them, against a shared file three independently
 crawled, packaged and republished corpora would all have to be published
 against (issue #227's decision 8).
 
 `units.parquet` carries `coleccion` and `clave`: `clave` is a law's slug and
-the `id_ordenamiento` of a reglamento or a lineamiento, and it is what names
+the `id_ordenamiento` of a reglamento, a lineamiento or a treaty, and it is what names
 every published file, so a reader never branches. `slug` and `codNota` are
 null for the id-keyed collections, which have no DOF link at all (#220).
 
@@ -68,6 +71,8 @@ python scripts/embeddings/build_units.py --work-dir emb-run-reglamentos \
     --coleccion reglamentos --no-split-articles
 python scripts/embeddings/build_units.py --work-dir emb-run-lineamientos \
     --coleccion lineamientos --no-split-articles
+python scripts/embeddings/build_units.py --work-dir emb-run-tratados \
+    --coleccion tratados --no-split-articles
 
 # 2. Dedup by text_sha1, sort by estimated token length, balance into shards.
 python scripts/embeddings/plan_shards.py --work-dir emb-run-leyes --num-shards 12
@@ -163,8 +168,9 @@ level apparently means "no accounting", not "use what's free"), so the job
 was waiting for the other one to vacate the whole node, not just a GPU.
 `--mem=32G` (comfortably more than one shard needs) fixed it immediately.
 
-Incremental re-embedding after a reform: replan against what a model already
-has, then resubmit — only the new units reach the GPU at all.
+Incremental re-embedding after a reform (or after a rule change, issue #280):
+replan against what a model already has, then resubmit — only the new units
+reach the GPU at all.
 
 ```bash
 python scripts/embeddings/build_units.py --work-dir emb-run-leyes
@@ -173,6 +179,25 @@ python scripts/embeddings/plan_shards.py --work-dir emb-run-leyes \
 python scripts/embeddings/submit_jobs.py --work-dir emb-run-leyes \
     --model Qwen/Qwen3-Embedding-0.6B
 ```
+
+The replan numbers its new shards **after** the highest `shard-NNNN.{done,
+parquet,failed}` index already under `--against` or under the work
+directory's own `runs/*/` (`first_shard_index` in `shards.json` records where
+it started). Before issue #280 it numbered from 0, `submit_jobs.pending_shards`
+found `shard-0000.done` already there and called the new shard finished, and
+`merge_shards.py` would have published the old vectors without a word. One
+plan serves every model whose run is complete: `excluded_already_embedded`
+must agree between the models' runs (`already_embedded()` over each) before
+submitting — issue #280 checked 100,852 against both.
+
+For a rule change that touches one instrument, **copy the published work
+directory first** (`cp -a emb-run-whole-reglamentos emb-run-whole-reglamentos-r10`,
+drop `shards.json`, `runs/*/manifest.json` and `publish/`), rebuild
+`units.parquet` into the copy, and replan with `--against` — never touch the
+directory that holds the published vectors (#256's rule). The new shard's
+vectors are merged with the old shards' (a hash no longer in `units.parquet`
+is simply never selected), so every per-instrument file comes out again and
+is compared against the published one with `pyarrow.Table.equals`.
 
 ## The shared cluster venv had drifted (found running issue #256)
 
@@ -1758,6 +1783,40 @@ score — weights first, then the instrument:
 
 The hand-off this run wrote is `emb-run-atlas-bm25/atlas-pairs/PUBLICAR.md`;
 nothing was uploaded.
+
+### Measured, `scjn-tratados`, 2026-10-11 (issue #280)
+
+The fourth collection, `md2akn` 0.5.0 (rule 10, issue #279), `--no-split-articles`,
+both models, `emb-run-tratados/` (gitignored), `--num-shards 6`:
+
+| | |
+|---|---|
+| Instruments with text | 1,373 (82 more have no text and no asset) |
+| Units | 41,335 — article 31,493 · loose 3,196 · preamble 2,781 · heading 2,604 · conclusions 1,261 |
+| Distinct texts | 39,668 (701 shared by several treaties) |
+| `instruments_by_numbering` | `articulo` 1,324 · `numeral` 45 · `ordinal` 4 (rule 8: `numeral` was 279 before rule 10 read the roman openers) |
+| Over-cap units | 1, unsplittable (the longest article is 407,348 characters) |
+| Shards | 6 per model, 0 failed |
+| Truncated texts | 10 in each model, 41,360 to 115,193 tokens; `max_tokens_embedded` 32,768 (0.6B) and 40,960 (4B) |
+| GPU time per shard | 54–63 s (0.6B), 150–164 s (4B); three A100 shards at a time, ~7 min (0.6B) and ~15 min (4B) wall with the queue |
+| Size | 65 MB (0.6B) + 151 MB (4B) of per-instrument and shared vectors, 12 MB of `units.parquet` |
+| Assets | 2,753 (2,748 vector files + 5 metadata) — 995 + 1,000 + 753 vector files as three parts, the shape of `scjn-reglamentos-vectors` |
+
+No vector has a non-finite value. Nothing was published: the generated
+`emb-run-tratados/publish/PUBLICAR.md` is for a human (issue #115, Hallazgo C).
+
+### Measured, reglamentos under rule 10, 2026-10-11 (issue #280)
+
+The published directory `emb-run-whole-reglamentos/` was copied to
+`emb-run-whole-reglamentos-r10/` and rebuilt with `md2akn` 0.5.0: 110,670 units
+and 100,852 distinct texts again, 30 of them new (the roman articles of
+`id_ordenamiento` 182464) — `plan_shards.py --against` excluded 100,852 for
+both models and numbered the single new shard 30. Compared with the published
+merge by `pyarrow.Table.equals`, across 1,083 files per model, **only
+`vectors-182464-qwen3-0.6b-1024.parquet` and `vectors-182464-qwen3-4b-2560.parquet`
+differ**; every other per-instrument file and both shared files are equal.
+`package_vectors.py` reports no stale asset (every instrument keeps its file
+name) and the same 995 + 1,000 + 171 partition.
 
 ### Measured, BM25 tuning, 2026-10-01 (issue #267, review fix)
 

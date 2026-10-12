@@ -121,7 +121,7 @@ build on each other in this sequence.
   Akoma Ntoso XML anywhere: only the vocabulary is borrowed, and the earlier
   XML converter that lived in `nota2md` was removed (issue #168).
   `text_units()` (issue #218) is the retrieval-unit view the embedding work
-  builds on, under **nine** rules since issue #227 added two: **rule 8**, an
+  builds on, under **ten** rules since issue #227 added two (and #279 a tenth, below): **rule 8**, an
   instrument that never writes `Artículo N` numbers its provisions
   `**PRIMERO.-**` or `1.` / `2.1` instead, decided once per *document*
   (`md2akn.structure.modo_sin_articulos`) and therefore incapable of changing
@@ -135,8 +135,9 @@ build on each other in this sequence.
 
 - **`legalvec`** — the disk-first reader for this project's *own* vector
   releases (issue #227's Fase 4, which is #218's Fase 3 widened to three
-  corpora): `scjn-leyes-vectors`, `scjn-reglamentos-vectors`,
-  `scjn-lineamientos-vectors`, one embedding per distinct text of each
+  corpora, and to a fourth by #280): `scjn-leyes-vectors`,
+  `scjn-reglamentos-vectors`, `scjn-lineamientos-vectors`,
+  `scjn-tratados-vectors`, one embedding per distinct text of each
   corpus. Deliberately not part of `scjn` — `scjn` means "client for the
   Court", and these vectors are this project's own, derived on a GPU from a
   specific model revision — and it imports nothing else in this monorepo
@@ -148,7 +149,7 @@ build on each other in this sequence.
   alone), `load_units`, `VectorSet`, `AssetNotCached`, `model_slug`, and its
   own `$LEGALVEC_CACHE_DIR`. Since issue #239 it also has a console script,
   `legalvec download` (an argparse front end over `download_vectors_assets`,
-  `--collection` defaulting to `all` — ~2.08 GB for the three releases, both
+  `--collection` defaulting to `all` — ~1.16 GB for the four releases, both
   models — and one `--key` for all three collections, since `units.parquet`
   has one uniform `clave` column) plus the strictly offline `legalvec
   status`; both helpers stay private in `legalvec.cli`, so the public
@@ -819,6 +820,45 @@ workflow publishes them, and `legalvec` has no PyPI release either.
   `meta.unique_names` and `meta.duplicates_dropped` record the selection
   below, and the exporter refuses a work directory prepared without it.
 
+## A vector for every treaty (issue #280, done)
+
+The `scjn-tratados` corpus (#277) got its own vector release, and
+`scjn-reglamentos-vectors` was regenerated for the one instrument #279's rule
+reaches. **Nothing was published**: the two `PUBLICAR.md` files are for a human
+(issue #115, Hallazgo C), and `legalvec download` (default `--collection all`)
+**fails until the `scjn-tratados-vectors` series exists**, so both publishes
+must happen before the pull request merges — the posture `atlas-pairs` already
+has. No "skip a missing release" softening was added, on purpose.
+
+- **Four collections now.** `build_units.py --coleccion tratados` (keyed by
+  `id_ordenamiento`, `slug`/`codNota` null), `package_vectors.TAGS["tratados"]`,
+  `legalvec.cache.RELEASE_TAGS["tratados"]`, `legalvec` **0.2.0** (unpublished
+  on PyPI), three Spanish release bodies `.github/scjn-tratados-vectors{,-2,-3}.md`.
+  The Atlas, `prepare_umap_input.py`'s `COLLECTIONS`, `unique_instruments.py`
+  and `atlas-pairs` stay three-corpus: a treaty on the map is its own issue.
+- **Measured (2026-10-11):** 1,373 treaties with text, 41,335 units, 39,668
+  distinct texts (701 shared), 6 shards per model on the three A100s, 0 failed,
+  10 articles truncated at each model's window (41,360 to 115,193 tokens), 65 MB
+  (0.6B) + 151 MB (4B), 2,753 assets in three parts (995 + 1,000 + 753 vector
+  files, plus 5 metadata). Rule 8 now reads 45 treaties as `numeral` (279
+  before rule 10), 4 as `ordinal`; 1,324 are ordinary. Tables in
+  `scripts/embeddings/README.md`.
+- **The shard-index bug, fixed with a test.** `plan_shards.py --against`
+  numbered new shards from 0, so `submit_jobs.pending_shards` saw the old
+  `shard-0000.done` and the merge would have silently published the old
+  vectors. New shards now start after the highest `shard-*` index under
+  `--against` or the work directory's own `runs/*/`; `shards.json` records
+  `first_shard_index`.
+- **Reglamentos, incrementally and confined.** The published
+  `emb-run-whole-reglamentos/` was copied (never touched; its `units.parquet`
+  sha256 still matches its `publish/SHA256SUMS.txt`), rebuilt under `md2akn`
+  0.5.0 and replanned: 30 new texts (182464's roman articles), one shard (30)
+  per model, `excluded_already_embedded` 100,852 for both. Of 1,083 files per
+  model only `vectors-182464-<model>-<K>.parquet` differs from the published
+  merge (`pyarrow.Table.equals`); no stale assets. The reglamentos release body
+  was also corrected to the whole-article numbers (it still carried the
+  pre-#256 ones).
+
 ## Articles embedded whole (issue #256, done)
 
 The 2,000-character `cap` that used to split a long article into
@@ -865,6 +905,48 @@ byte-identical to before this issue.
   Atlas page section below.
 - **`md2akn` went to 0.4.0** — a new public keyword (`split_articles`) that
   changes what a *future* vector means, with no change to default output.
+
+## Roman-numbered articles (issue #279, done)
+
+`md2akn.text_units` raised nothing on the `scjn-tratados` corpus (issue #277),
+but a treaty numbers its own articles `ARTÍCULO I`, `ARTÍCULO II`, … and none
+of those was an `article` unit: a treaty's body fell into `preamble`/`loose`
+blocks. **Rule 10** reads a roman-numbered opener as an article, and `md2akn`
+went to 0.5.0 (never published on PyPI) — the same reasoning as 0.3.0 and
+0.4.0, a new rule changes what a future vector means.
+
+- **Measured over the whole cached corpus (2026-10-11):** 1,373 treaties with
+  text, 0 exceptions, 0 `coverage()` failures, 0 `splittable`; 489 treaties
+  carry 6,646 roman openers; 229 treaties had no `article` unit before the
+  rule (176 of them roman-numbered) and **53 have none after it** — exchanges
+  of notes and prose protocols with no roman opener either, left as they are.
+  Rule 8 used to misfire on a roman-numbered treaty whose paragraphs read
+  `1.`/`2.` (ids 11097, 11103): the gate saw no article. It sees one now.
+- **Part of `NUM_ARTICULO`, unconditional.** `patterns.NUMERO_ROMANO` is a
+  third alternative of `NUM_ARTICULO`, so the builder, `clasifica` and
+  `modo_sin_articulos` all see it at once. A *valid*, upper-case roman numeral
+  (`ARTÍCULO MIL`/`CIVIL` are only roman letters) followed by what may follow
+  a digit number, so `ARTÍCULO VIGÉSIMO` stays an ordinal word; the Latin
+  suffix is admitted (`XV BIS`). `eId`s keep the number as written
+  (`art_I`, `art_1`): roman and arabic never collide. Rule 8's thresholds and
+  gate are untouched; no document-level gate was added for roman numerals.
+- **The plural `ARTICULOS I y II`** is read as article `I`, the way `ARTICULOS
+  1 y 2` always was; pinned in `test_roman_articles.py`, not designed.
+- **Its reach on the published corpora, proved and not argued:** the three
+  corpora's `units.parquet` regenerated with `build_units.py
+  --no-split-articles` reproduce the published ones as tables
+  (`pyarrow.Table.equals`; bytes differ by the writer-version footer) — leyes
+  (68,581 rows) and lineamientos (5,514) are equal, and reglamentos (110,670)
+  is equal except `clave == "182464"`, a Contrato Ley's pension reglamento
+  whose 30 `ARTÍCULO I.` … `ARTÍCULO XXX.` lines were `loose` and are now
+  `article` units (its 47 rows: 30 loose + 4 article before, 34 article after).
+  The repository owner chose to regenerate `scjn-reglamentos-vectors` for that
+  one instrument rather than leave it stale; that is the follow-up issue's
+  work, not this one's.
+- **The release sweep covers four corpora** (`test_tratados`,
+  `test_tratados_split_articles_false`, and a treaty test asserting that every
+  roman-opener treaty has a roman-numbered `article` unit and that at most 53
+  have none), ~17 minutes.
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 

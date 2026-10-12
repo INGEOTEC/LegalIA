@@ -1,10 +1,11 @@
 """A vector for every text of every federal instrument — the reader.
 
-This project embeds the current text of three SCJN corpora — every federal
-law, every federal *reglamento*, every federal *lineamiento* — one vector per
-distinct text, and publishes the result as three GitHub releases
+This project embeds the current text of four SCJN corpora — every federal
+law, every federal *reglamento*, every federal *lineamiento*, every international
+treaty — one vector per
+distinct text, and publishes the result as four GitHub releases
 (`scjn-leyes-vectors`, `scjn-reglamentos-vectors`,
-`scjn-lineamientos-vectors`). This package is how they are read back.
+`scjn-lineamientos-vectors`, `scjn-tratados-vectors`). This package is how they are read back.
 
 It is deliberately not part of `scjn`: `scjn` means "client for the Court",
 and these vectors are *this project's own*, derived on a GPU from a specific
@@ -35,7 +36,7 @@ from legalvec.release import (
     model_slug,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "download_vectors_assets",

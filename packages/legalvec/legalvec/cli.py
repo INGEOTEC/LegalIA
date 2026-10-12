@@ -1,7 +1,7 @@
 """`legalvec`'s command line: putting the vector releases on disk, and
 saying what is already there.
 
-    legalvec download [--collection {leyes,reglamentos,lineamientos,all}]
+    legalvec download [--collection {leyes,reglamentos,lineamientos,tratados,all}]
                       [--key KEY]... [--model MODEL]...
                       [--cache-dir DIR] [--refresh]
     legalvec status [--cache-dir DIR]
@@ -15,14 +15,14 @@ no HTTP request whatsoever. Reading the vectors themselves stays the Python
 API's job (`load_vectors`, `load_units`); there is no search verb here.
 
 `--collection` defaults to `all`, so the bare `legalvec download` fetches all
-three releases for both models — ~2.08 GB across ~3,067 assets, which is what
+four releases for both models — ~1.16 GB across ~5,820 assets, which is what
 the flag's help says out loud. Naming one collection, one `--key` or one
 `--model` is how that gets smaller.
 
 The flags are in English (`--collection`, `--key`, `--refresh`) where
 `scjn`/`nota2md` spell theirs in Spanish: this is new code, and CLAUDE.md's
 language policy is that new code is written in English while existing
-identifiers are left alone. One `--key` covers all three collections — a law's
+identifiers are left alone. One `--key` covers all four collections — a law's
 slug, an `id_ordenamiento` otherwise — because `units.parquet` has had one
 uniform `clave` column since issue #227 and `download_vectors_assets` takes
 one uniform `claves` list.
@@ -61,13 +61,13 @@ def _parser():
     )
     download.add_argument(
         "--collection", choices=(*cache.RELEASE_TAGS, "all"), default="all",
-        help="Which release to download (default: %(default)s -- all three, for both "
-        "models, ~2.08 GB across ~3,067 assets).",
+        help="Which release to download (default: %(default)s -- all four, for both "
+        "models, ~1.16 GB across ~5,820 assets).",
     )
     download.add_argument(
         "--key", action="append", default=None, metavar="KEY", dest="keys",
         help="Only this instrument's vector files, by clave -- a law's slug, an "
-        "id_ordenamiento for a reglamento or a lineamiento (repeatable, and it needs "
+        "id_ordenamiento for any other collection (repeatable, and it needs "
         "a single --collection). Not given: every instrument the release publishes. "
         "Each model's shared file and the five metadata assets are always downloaded, "
         "since neither an instrument's vectors nor their texts can be read without them.",
@@ -107,8 +107,8 @@ def _main_download(args, log=print):
     if args.keys and args.collection == "all":
         raise SystemExit(
             "--key needs a single --collection: a clave belongs to one collection, "
-            "so applying it to all three would download nothing but the metadata for "
-            "the other two"
+            "so applying it to all four would download nothing but the metadata for "
+            "the other three"
         )
 
     colecciones = (

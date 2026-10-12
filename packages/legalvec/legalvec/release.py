@@ -1,8 +1,8 @@
 """Reading this project's own vector releases (issue #227's Fase 4).
 
-Three releases, one per corpus — `scjn-leyes-vectors`,
-`scjn-reglamentos-vectors`, `scjn-lineamientos-vectors` — mirroring the three
-corpus releases `scjn` publishes, because the corpora are crawled, packaged
+Four releases, one per corpus — `scjn-leyes-vectors`,
+`scjn-reglamentos-vectors`, `scjn-lineamientos-vectors` and, since issue #280,
+`scjn-tratados-vectors` — mirroring the four corpus releases `scjn` publishes, because the corpora are crawled, packaged
 and republished independently and a reader who wants only lineamientos should
 not resolve two thousand assets to find 254 (issue #227's decision 10).
 
@@ -16,8 +16,8 @@ What a release holds, per collection:
     vectors-<clave>-<model>-<K>.parquet          one per instrument, per model
     vectors-shared-<model>-<K>.parquet           the text several share
 
-`clave` is a law's slug and the `id_ordenamiento` of a reglamento or a
-lineamiento (issue #227's decision 7), so a reader never branches on which
+`clave` is a law's slug and the `id_ordenamiento` of a reglamento, a
+lineamiento or a treaty (issue #227's decision 7), so a reader never branches on which
 collection it is reading. A vector file holds `text_sha1` and a fixed-size
 `float16` list; `units.parquet` is what maps those hashes back to text,
 articles and laws — kept in one file rather than repeated per instrument.
