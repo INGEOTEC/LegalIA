@@ -278,8 +278,14 @@ def load(work_dir: Path, *, cache_dir=None, log=print) -> dict:
     if instruments["i"].astype(int).tolist() != list(range(n)):
         raise SystemExit("instruments.parquet is not in `i` order")
 
-    collections = tuple(name for name in html.COLLECTION_CODES
-                        if name in set(instruments["coleccion"]))
+    present = set(instruments["coleccion"])
+    unknown = sorted(present - set(html.COLLECTION_CODES))
+    if unknown:
+        # A collection outside the registry used to be dropped here silently,
+        # leaving instruments with no pair file at all (issue #282).
+        raise SystemExit(f"instruments.parquet holds collection(s) {unknown} that "
+                         "build_umap_html.COLLECTION_CODES does not know")
+    collections = tuple(name for name in html.COLLECTION_CODES if name in present)
     units = instrument_matrix.unit_rows(work_dir, collections=collections,
                                         cache_dir=cache_dir, log=log)
     points, _ = html.load_frames(work_dir, [], neighbors=0, collections=collections,

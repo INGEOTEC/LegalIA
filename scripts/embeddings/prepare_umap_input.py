@@ -1,9 +1,9 @@
-"""Read the three collections' vectors once, into one matrix every UMAP job maps.
+"""Read the collections' vectors once, into one matrix every UMAP job maps.
 
 Issue #241. `legalvec` publishes one vector per distinct text of each corpus,
 split into a per-instrument file plus the collection's shared file, so
 reading the whole corpus means ~1,500 `load_vectors` calls over ~600 parquet
-files. Three cluster jobs each doing that would triple a ten-minute step and,
+files. Several cluster jobs each doing that would multiply a ten-minute step and,
 worse, could disagree about row order; one `vectors.npy` cannot. This is the
 login-node step that writes it, along with the id table that maps a row back
 to its `(coleccion, text_sha1)` and the per-instrument centroid inputs.
@@ -56,8 +56,10 @@ import legalvec
 from _atomic import atomic_write_npy, atomic_write_table, atomic_write_text
 from unique_instruments import first_publication_dates, select_unique
 
-#: The three corpora, in the order their rows are stacked into `vectors.npy`.
-COLLECTIONS = ("leyes", "reglamentos", "lineamientos")
+#: The corpora, in the order their rows are stacked into `vectors.npy`. A new
+#: collection goes last, so an earlier work directory's row order is a prefix
+#: of the new one (issue #282).
+COLLECTIONS = ("leyes", "reglamentos", "lineamientos", "tratados")
 
 #: The model this issue projects. `--model` exists so the 4B can be run
 #: later; issue #241 runs only this one.
@@ -152,7 +154,7 @@ def collection_matrix(coleccion: str, records: list[dict], model: str, *, cache_
             # matrix (this instrument's file *plus* the collection's shared
             # file, ~11 MB for reglamentos) alive for as long as any one of
             # its rows is kept, which measured at ~7 GB after 300
-            # instruments and would have reached ~25 GB over the three
+            # instruments and would have reached ~25 GB over the
             # collections. Copying the row keeps the peak at the matrix
             # itself (~780 MB).
             rows.append(vectors.vectors[i].copy())
@@ -308,7 +310,7 @@ def main(argv=None) -> None:
                         help="comma-separated collections to stack, in order")
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--unique-names", action="store_true",
-                        help="keep one reglamento/lineamiento per name (issue #259)")
+                        help="keep one reglamento/lineamiento per name (issue #259); treaties are never grouped")
     args = parser.parse_args(argv)
 
     prepare(

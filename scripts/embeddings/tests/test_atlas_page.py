@@ -73,7 +73,11 @@ RENDERED_CHAPINGO_SCREENSHOT = REPO / "output" / "atlas-rendered-chapingo.png"
 QUARTO_MARGIN_COLOR = "rgb(99, 96, 86)"
 
 TITLE = "An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines"
-PALETTE = {"leyes": "#2a78d6", "reglamentos": "#008300", "lineamientos": "#e87ba4"}
+PALETTE = {"leyes": "#2a78d6", "reglamentos": "#008300", "lineamientos": "#e87ba4",
+           "tratados": "#eda100"}
+#: The plural each collection's legend button prints (`atlas.js`'s `many`).
+PLURAL = {"leyes": "laws", "reglamentos": "regulations", "lineamientos": "guidelines",
+          "tratados": "treaties"}
 CONSTITUTION = "CONSTITUCIÓN Política de los Estados Unidos Mexicanos"
 CHAPINGO = "LEY que crea la Universidad Autónoma Chapingo"
 
@@ -89,16 +93,20 @@ def instrument(data: dict, clave: str) -> dict:
 def counts(data: dict) -> dict:
     """The numbers the page prints, read off `atlas.json` so the prose, the
     subtitle and the legend cannot drift from the data."""
-    collections = data["meta"]["collections"]
-    return {"leyes": collections["leyes"], "reglamentos": collections["reglamentos"],
-            "lineamientos": collections["lineamientos"]}
+    return dict(data["meta"]["collections"])
+
+
+def palette_of(data: dict) -> dict:
+    """`PALETTE` restricted to the collections the data holds (issue #282): the
+    committed files carry three today and must keep passing, a four-collection
+    file gets the yellow too."""
+    return {name: PALETTE[name] for name in data["meta"]["collections"]}
 
 
 def subtitle_of(data: dict) -> str:
-    n = counts(data)
-    return (f"{n['leyes']:,} laws, {n['reglamentos']:,} regulations and "
-            f"{n['lineamientos']:,} guidelines, placed by where their "
-            "excerpts' closest texts live")
+    parts = [f"{n:,} {PLURAL[name]}" for name, n in counts(data).items()]
+    listed = f"{', '.join(parts[:-1])} and {parts[-1]}"
+    return f"{listed}, placed by where their excerpts' closest texts live"
 
 
 def targets_of(data: dict, clave: str) -> list[tuple[str, str]]:
@@ -245,6 +253,7 @@ def test_the_application_files_say_nothing_forbidden():
         assert "UMAP" not in text, path
     # D3 v7, and no other library.
     assert "d3." in APP_JS.read_text(encoding="utf-8")
+    # Every colour of every collection the script knows, treaties' included.
     for color in PALETTE.values():
         assert color in APP_JS.read_text(encoding="utf-8")
 
@@ -894,7 +903,7 @@ def test_every_instrument_is_one_circle_in_the_sites_palette(page):
     assert circles.count() == atlas_data()["meta"]["instruments"]
     fills = set(page.eval_on_selector_all(
         "circle.atlas-point", "nodes => nodes.map(n => n.getAttribute('fill'))"))
-    assert fills == set(PALETTE.values())
+    assert fills == set(palette_of(atlas_data()).values())
     for clave, collection in (("cpeum", "leyes"), ("luach", "leyes")):
         assert page.get_attribute(f'circle[data-k="{clave}"]', "fill") == PALETTE[collection]
 
@@ -1035,7 +1044,7 @@ def test_the_neighbourhood_control_moves_the_points_and_keeps_the_selection(page
     assert page.locator("line.atlas-link").count() == len(targets_of(atlas_data(), "luach"))
 
 
-def test_a_collection_button_dims_the_other_two(page):
+def test_a_collection_button_dims_the_others(page):
     law = 'circle[data-k="cpeum"]'
     regulation = 'circle.atlas-point[fill="#008300"]'
     assert page.get_attribute(law, "opacity") == "0.8"
@@ -1043,8 +1052,12 @@ def test_a_collection_button_dims_the_other_two(page):
     laws = page.locator('.atlas-collection[data-c="leyes"]')
     n = counts(atlas_data())
     assert f"{n['leyes']:,} laws" in laws.inner_text()
-    assert f"{n['reglamentos']:,} regulations" in page.locator(".atlas-collections").inner_text()
-    assert f"{n['lineamientos']:,} guidelines" in page.locator(".atlas-collections").inner_text()
+    legend = page.locator(".atlas-collections")
+    for name, count in n.items():
+        assert f"{count:,} {PLURAL[name]}" in legend.inner_text()
+    # One button per collection in the data, in the data's own order.
+    assert page.locator(".atlas-collection").evaluate_all(
+        "nodes => nodes.map(n => n.dataset.c)") == list(n)
     laws.click()
     assert laws.get_attribute("aria-pressed") == "true"
     assert page.get_attribute(law, "opacity") == "0.8"
@@ -1052,6 +1065,59 @@ def test_a_collection_button_dims_the_other_two(page):
     laws.click()
     assert laws.get_attribute("aria-pressed") == "false"
     assert page.locator(regulation).first.get_attribute("opacity") == "0.8"
+
+
+def with_treaties(data, how_many=7):
+    """The committed data with its first `how_many` guidelines relabelled as
+    treaties: a four-collection file for a page that has none (issue #282)."""
+    moved = [entry for entry in data["instruments"] if entry["c"] == "lineamientos"][:how_many]
+    for entry in moved:
+        entry["c"] = "tratados"
+    collections = data["meta"]["collections"]
+    collections["lineamientos"] -= how_many
+    collections["tratados"] = how_many
+    return data
+
+
+def test_a_fourth_collection_gets_a_yellow_treaties_button(browser, server):
+    """A file whose `meta.collections` includes `tratados` draws its circles in
+    `#eda100` and gets a fourth legend button, last, naming the treaties."""
+    def serve_treaties(page):
+        page.route("**/atlas/atlas.json", lambda route: route.fulfill(
+            status=200, content_type="application/json",
+            body=json.dumps(with_treaties(atlas_data()))))
+    page, _, _ = open_counting(browser, server, before=serve_treaties)
+    try:
+        buttons = page.locator(".atlas-collection")
+        assert buttons.evaluate_all("nodes => nodes.map(n => n.dataset.c)") == \
+            ["leyes", "reglamentos", "lineamientos", "tratados"]
+        assert "7 treaties" in buttons.last.inner_text()
+        assert page.locator(".atlas-collection .atlas-dot").last.evaluate(
+            "node => getComputedStyle(node).backgroundColor") == "rgb(237, 161, 0)"
+        assert page.locator('circle.atlas-point[fill="#eda100"]').count() == 7
+        buttons.last.click()
+        assert page.locator('circle.atlas-point[fill="#eda100"]').first.get_attribute(
+            "opacity") == "0.8"
+        assert float(page.locator('circle[data-k="cpeum"]').get_attribute("opacity")) < 0.2
+    finally:
+        page.close()
+
+
+def test_a_collection_the_page_does_not_know_stops_it_with_a_message_naming_it(browser, server):
+    data = atlas_data()
+    data["instruments"][0]["c"] = "normas"
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.route("**/atlas/atlas.json", lambda route: route.fulfill(
+        status=200, content_type="application/json", body=json.dumps(data)))
+    try:
+        page.goto(server)
+        page.wait_for_selector('#atlas[data-ready="error"]', timeout=30000)
+        assert 'unknown collection "normas"' in page.locator(".atlas-error").inner_text()
+        assert errors == []
+    finally:
+        page.close()
 
 
 def test_escape_and_an_empty_click_clear_the_selection(page):

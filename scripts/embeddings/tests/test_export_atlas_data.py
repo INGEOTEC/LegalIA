@@ -324,7 +324,7 @@ def test_instruments_as_accepts_an_identical_table(exported, reference, tmp_path
     assert json.loads(output.read_text(encoding="utf-8")) == exported["data"]
 
 
-@pytest.mark.parametrize("key,value", [("k", "zzz"), ("p", 99999), ("c", "tratados"),
+@pytest.mark.parametrize("key,value", [("k", "zzz"), ("p", 99999), ("c", "normas"),
                                        ("n", "Another name")])
 def test_instruments_as_refuses_a_differing_field_naming_the_position(
         exported, reference, tmp_path, key, value):

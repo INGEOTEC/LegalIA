@@ -87,7 +87,7 @@ SCRIPT_PATH = "scripts/embeddings/build_instrument_umap_html.py"
 
 #: Same colours as #241's unit-level page, so the two read as one pair.
 COLLECTION_COLORS = {"leyes": "#4c78a8", "reglamentos": "#f58518",
-                     "lineamientos": "#54a24b"}
+                     "lineamientos": "#54a24b", "tratados": "#e45756"}
 
 
 def normalise_rows(matrix):
@@ -354,7 +354,7 @@ def build_chart(points, *, n_neighbors=DEFAULT_N_NEIGHBORS, radio_value=DEFAULT_
                 f"{len(points)} federal instruments, placed by where their units' "
                 "nearest foreign neighbours live",
                 subtitle=[
-                    "each point is a law, reglamento or lineamiento; size = its units,"
+                    "each point is a law, reglamento, lineamiento or treaty; size = its units,"
                     " colour = its collection (click the legend to hide one)",
                     "click a point: black ring + name on it, ○ red rings on the "
                     f"{TOP_TARGETS} instruments named in the tooltip; "

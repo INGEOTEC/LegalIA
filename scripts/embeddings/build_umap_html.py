@@ -5,8 +5,8 @@ Issue #241, the last step: coordinates, centroids, neighbours and
 is a Vega-Lite spec generated with Altair. Three linked views over one fixed
 `[0, 1]` frame:
 
-* **Overview** — one mark per **unit row** of the three corpora (408,804 for
-  all unit types today; a text several instruments share is one vector but
+* **Overview** — one mark per **unit row** of the corpora (408,804 for
+  all unit types of the three SCJN corpora of issue #241; a text several instruments share is one vector but
   several unit rows, so it is drawn once per row that carries it), coloured
   by collection. Clicking a mark sets `pick`; clicking a legend entry toggles
   a whole collection through `collections`.
@@ -68,11 +68,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from project_umap import DEFAULT_N_NEIGHBORS  # noqa: E402
 
-#: The three corpora and the one-letter code each carries in the compact
-#: point records — `c` is in 400,000 rows, so it is a letter and the legend
-#: maps it back to a name.
-COLLECTION_CODES = {"leyes": "L", "reglamentos": "R", "lineamientos": "N"}
-COLLECTION_COLORS = {"L": "#4c78a8", "R": "#f58518", "N": "#54a24b"}
+#: The corpora of the Atlas chain, in the order their rows are stacked, and the
+#: one-letter code each carries in the compact point records — `c` is in
+#: 400,000 rows, so it is a letter and the legend maps it back to a name. This
+#: dict is the gate every script of the chain reads (issue #282): a collection
+#: absent from it is never joined, and `prepare_umap_input.COLLECTIONS` and
+#: `legalvec.cache.RELEASE_TAGS` must name the same collections in the same order.
+COLLECTION_CODES = {"leyes": "L", "reglamentos": "R", "lineamientos": "N", "tratados": "T"}
+COLLECTION_COLORS = {"L": "#4c78a8", "R": "#f58518", "N": "#54a24b", "T": "#e45756"}
 
 #: `md2akn`'s own `unit_type` vocabulary (issue #218), coded the same way and
 #: for the same reason. Order is the code: `u = 0` is `article`.
@@ -498,7 +501,7 @@ def build_chart(points: pd.DataFrame, instruments: pd.DataFrame, projections: li
         # it into the compiled mark name `overview_marks`.
         .properties(name="overview", width=520, height=520,
                     title=alt.TitleParams(
-                        f"{len(overview_data)} units of the three corpora",
+                        f"{len(overview_data)} units of the corpora",
                         subtitle=["click a unit to fill the two views below and to the right;"
                                   " double-click to clear",
                                   "the last click wins: clicking an instrument below clears"
@@ -560,7 +563,7 @@ def build_chart(points: pd.DataFrame, instruments: pd.DataFrame, projections: li
     if neighbors:
         detail_subtitle.append(
             f"○ red rings: its {neighbors} nearest neighbours by cosine, "
-            "across all three collections")
+            "across all the collections")
     detail_subtitle.append(
         "filled shapes: every unit of the same instrument (shape = unit type)")
     detail_title = (
@@ -631,7 +634,7 @@ def build_chart(points: pd.DataFrame, instruments: pd.DataFrame, projections: li
         .configure_view(stroke=None)
         .configure_legend(labelFontSize=11, titleFontSize=11)
         .properties(
-            title="UMAP of every text of the federal laws, reglamentos and lineamientos",
+            title="UMAP of every text of the laws, reglamentos, lineamientos and treaties",
             usermeta=usermeta,
         )
     )

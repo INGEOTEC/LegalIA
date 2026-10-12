@@ -187,7 +187,7 @@ def output_dir(work_dir: Path) -> Path:
 
 
 def unit_rows(work_dir: Path, *, collections=None, cache_dir=None, log=print):
-    """Every unit row of the three corpora, with the vector row, the
+    """Every unit row of the corpora, with the vector row, the
     instrument it belongs to and whether it lies in a transitorios section.
 
     This is `build_umap_html.load_frames`' own join — `units.parquet` ->

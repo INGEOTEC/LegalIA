@@ -38,6 +38,7 @@
     leyes: { color: "#2a78d6", one: "Law", many: "laws" },
     reglamentos: { color: "#008300", one: "Regulation", many: "regulations" },
     lineamientos: { color: "#e87ba4", one: "Guideline", many: "guidelines" },
+    tratados: { color: "#eda100", one: "Treaty", many: "treaties" },
   };
   const INK = "#1f1e1b";
   const DEFAULT_NEIGHBOURHOOD = 16;
@@ -162,6 +163,16 @@
   }
 
   function build(data) {
+    // Every lookup below goes through COLLECTIONS: a collection it does not
+    // know must stop the page here, once and by name, not throw inside a D3
+    // callback (issue #282).
+    const known = new Set([
+      ...Object.keys(data.meta.collections || {}),
+      ...data.instruments.map((entry) => entry.c),
+    ]);
+    known.forEach((c) => {
+      if (!Object.prototype.hasOwnProperty.call(COLLECTIONS, c)) throw new Error(`unknown collection "${c}"`);
+    });
     const items = data.instruments.map((entry, i) => ({
       i,
       c: entry.c,
@@ -856,8 +867,11 @@
     }
 
     // -- the collection legend ------------------------------------------------- //
-    Object.entries(COLLECTIONS).forEach(([c, collection]) => {
-      const count = data.meta.collections[c] || 0;
+    // One button per collection the file holds, in the file's own order: a
+    // collection absent from the data gets none.
+    Object.keys(data.meta.collections).forEach((c) => {
+      const collection = COLLECTIONS[c];
+      const count = data.meta.collections[c];
       const button = element(
         "button",
         {

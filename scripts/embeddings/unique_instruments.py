@@ -11,6 +11,9 @@ guidelines, and this module is the rule that picks them:
   `abrev`, a curated key, and pass through untouched (`lamn` and `lamni` both
   read "LEY DE AMNISTÍA" and both stay). Names are never compared *across*
   collections.
+* Treaties (`tratados`) are not grouped: measured on the live `scjn-tratados`
+  index (2026-10-12), 0 of its 1,373 names repeat under the folding below, so
+  the rule has nothing to do for them (issue #282).
 * Two instruments share a name when they are equal after NFKD, dropping the
   combining marks, collapsing whitespace and casefolding. Nothing looser: no
   fuzzy matching.
@@ -33,7 +36,9 @@ import re
 import unicodedata
 from datetime import date, datetime
 
-#: The collections whose instruments are reissued under a new id.
+#: The collections whose instruments are reissued under a new id. Treaties are
+#: not among them: measured on the live `scjn-tratados` index (2026-10-12),
+#: 0 of its 1,373 names repeat under this folding (issue #282).
 GROUPED_COLLECTIONS = ("reglamentos", "lineamientos")
 
 

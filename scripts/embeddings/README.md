@@ -752,6 +752,18 @@ The vectors are the whole-article ones (`split_articles: false`, `md2akn`
 0.4.0, issue #256) that `legalvec` reads back from the three
 `scjn-*-vectors` releases.
 
+Since issue #282 the chain (`prepare_umap_input.COLLECTIONS`,
+`build_umap_html.COLLECTION_CODES`, `legalvec.cache.RELEASE_TAGS` — a test pins
+that the three agree, in order) and the page's script (`atlas.js`, whose legend
+is built from `meta.collections`) can carry a fourth collection, `tratados`,
+stacked last and coloured `#eda100` on the page. Treaties are not grouped by
+name (`unique_instruments.GROUPED_COLLECTIONS` is unchanged: none of the
+1,373 names repeats), and `export_atlas_pairs.py` refuses an instrument whose
+collection the registry does not know instead of dropping it. Nothing above was
+regenerated: the committed `atlas*.json` and the numbers in this section still
+describe the three-corpus map, and rebuilding it with the treaties is the
+follow-up issue's work.
+
 ### Where things are
 
 | What | Path |
