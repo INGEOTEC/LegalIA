@@ -25,8 +25,9 @@ jobs:
         with:
           version: 1.9.38
 
-      # The Atlas pair explanations (issues #249/#250): ~7,600 JSON files,
-      # ~356 MB, too big for git, so they live in the `atlas-pairs` release,
+      # The Atlas pair explanations (issues #249/#250, four corpora since #283):
+      # ~12,000 JSON files per data set, ~215-236 MB each (~46-49 MB compressed),
+      # too big for git, so they live in the `atlas-pairs` release,
       # which a human publishes by running the PUBLICAR.md that
       # scripts/embeddings/export_atlas_pairs.py generates (issue #115,
       # Hallazgo C). This step only copies that already-published asset into

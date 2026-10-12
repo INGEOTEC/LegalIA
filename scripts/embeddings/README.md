@@ -732,13 +732,14 @@ exactly once.
 ## The instrument map (issues #242, #259)
 
 The UMAP explorer above is a picture of **texts**. This is a picture of the
-1,303 unique **instruments** that own them, built from one question asked of
-every unit of every federal law, reglamento and lineamiento:
+2,676 unique **instruments** that own them (1,303 until issue #283 put the 1,373
+treaties on the map), built from one question asked of every unit of every
+federal law, reglamento, lineamiento and treaty:
 
 > which instrument owns the text closest to this one, among all the texts
 > that are not exclusively mine?
 
-Weighing the answers gives a square matrix `A` (1,303 × 1,303, rows and
+Weighing the answers gives a square matrix `A` (2,676 × 2,676, rows and
 columns in `instruments.parquet`'s `i` order): every *counted* unit row of
 instrument `I` hands out a total weight of **1**, `A[I, J] += 1/m` to each of
 the `m` instruments owning a winning text. Headings and transitorios
@@ -755,14 +756,13 @@ The vectors are the whole-article ones (`split_articles: false`, `md2akn`
 Since issue #282 the chain (`prepare_umap_input.COLLECTIONS`,
 `build_umap_html.COLLECTION_CODES`, `legalvec.cache.RELEASE_TAGS` — a test pins
 that the three agree, in order) and the page's script (`atlas.js`, whose legend
-is built from `meta.collections`) can carry a fourth collection, `tratados`,
-stacked last and coloured `#eda100` on the page. Treaties are not grouped by
-name (`unique_instruments.GROUPED_COLLECTIONS` is unchanged: none of the
-1,373 names repeats), and `export_atlas_pairs.py` refuses an instrument whose
-collection the registry does not know instead of dropping it. Nothing above was
-regenerated: the committed `atlas*.json` and the numbers in this section still
-describe the three-corpus map, and rebuilding it with the treaties is the
-follow-up issue's work.
+is built from `meta.collections`) carry a fourth collection, `tratados`, stacked
+last and coloured `#eda100` on the page. Treaties are not grouped by name
+(`unique_instruments.GROUPED_COLLECTIONS` is unchanged: none of the 1,373 names
+repeats), and `export_atlas_pairs.py` refuses an instrument whose collection the
+registry does not know instead of dropping it. Issue #283 rebuilt the three data
+sets with them ("Measured, with the treaties, 2026-10-12", below); the sections
+dated before that describe the three-corpus map and are kept as history.
 
 ### Where things are
 
@@ -1012,7 +1012,8 @@ regulations and guidelines, and `unique_instruments.py` is the rule:
 | leyes | (not grouped) | 0 | 315 |
 | reglamentos | 138 | 219 | 863 |
 | lineamientos | 1 | 1 | 125 |
-| **total** | | 220 | **1,303** |
+| tratados | (not grouped: no name repeats) | 0 | 1,373 |
+| **total** | | 220 | **2,676** (1,303 before issue #283) |
 
 Four kept pairs of regulations still differ only by punctuation (a final
 period, or a comma) — `159474`/`178861`, `52327`/`107302`, `69462`/`108392` and
@@ -1829,6 +1830,144 @@ merge by `pyarrow.Table.equals`, across 1,083 files per model, **only
 differ**; every other per-instrument file and both shared files are equal.
 `package_vectors.py` reports no stale asset (every instrument keeps its file
 name) and the same 995 + 1,000 + 171 partition.
+
+### Measured, with the treaties, 2026-10-12 (issue #283)
+
+The three data sets rebuilt **in place** (`emb-run-atlas/`, `-4b/`, `-bm25/`) with
+`tratados` as the fourth, last collection, at commit `84a0cb6d`. Inputs: the four
+`legalvec` releases at `legalvec` 0.2.0 — `scjn-tratados-vectors` downloaded
+whole (2,753 assets, 222.8 MB, SHA256SUMS checked, 0 `.partial`), and
+`scjn-reglamentos-vectors` refreshed for instrument `182464` and the metadata
+(`legalvec download --collection reglamentos --key 182464 --refresh`, 9 assets);
+its `corpus-manifest.json` now says `md2akn_version` `0.5.0`, `split_articles`
+`false` (the other two cached releases stay at 0.4.0, proved byte-equal under
+rule 10 in issue #280). Instruments: 315 laws + 863 regulations + 125 guidelines
++ **1,373 treaties = 2,676**, `unique-instruments.json` has `tratados` with
+`before` 1,373, `dropped` 0.
+
+| | 0.6B | 4B | BM25 |
+|---|---|---|---|
+| prepare (login node) | 241.8 s | 531.1 s | 22.8 s (143,301 documents) |
+| matrix job (`geoint`) | 182.2 s (job 43088, 2.36 GB) | 309.0 s (43092, 4.02 GB) | 719.0 s (43089, 3.14 GB) |
+| unit rows | 203,324 | 203,324 | 203,324 |
+| heading rows excluded | 31,172 | 31,172 | 31,172 |
+| transitorio rows excluded | 26,182 | 26,182 | 26,182 |
+| searched rows | 145,970 | 145,970 | 145,970 |
+| identical winners shared by several instruments, not counted | 1,947 | 1,947 | 2,308 |
+| **counted rows** (`A.sum()`) | **144,023** | **144,023** | **143,661** |
+| vector rows | 185,456 | 185,456 | 185,456 |
+| row sums equal counted rows | yes | yes | yes |
+| non-zero cells | 46,819 | 44,045 | 47,429 |
+| searched rows with a tie | 889 | 853 | 5,348 |
+| largest `m` | 14 | 14 | 16 |
+| four UMAP fits | 116.6 s | 116.2 s | 118.1 s |
+
+The 0.6B and the 4B again count the same rows. `atlas.json`,
+`atlas-qwen3-4b.json` and `atlas-bm25.json` (about 0.9 MB each) list the same
+2,676 instruments in the same positions (`--instruments-as` accepted both
+others), `meta.collections` is `leyes` 315, `reglamentos` 863, `lineamientos`
+125, `tratados` 1,373, `meta.sources` names eight releases, and
+`meta.duplicates_dropped` lists only `reglamentos` and `lineamientos`. The pair
+sets, installed into the gitignored `website/pages/atlas/pairs*/`: 12,002
+(215.0 MB of JSON, 45.7 MB compressed, 95,141 excerpt rows), 11,983 (227.6 MB,
+48.5 MB, 98,001) and 12,074 (235.8 MB, 49.5 MB, 97,457) files.
+
+How the treaties changed the picture, 0.6B (4B in parentheses, BM25 after): the
+closest instrument is unchanged for **1,275 (1,277; 1,209)** of the 1,303 earlier
+instruments; **13 (15; 14)** of them now have a treaty as their closest
+instrument, and **1,284 (1,304; 1,326)** of the 1,373 treaties have a treaty as
+theirs. The three data sets agree on the closest instrument for 1,971 (0.6B and
+4B), 1,557 (0.6B and BM25) and 1,610 (4B and BM25) of the 2,676. The 1,373
+treaties sit apart on the map: the mean `(x, y)` of the 0.6B's 16-neighbour layout
+is (0.31, 0.64) for treaties against (0.43, 0.34), (0.47, 0.29) and (0.57, 0.33)
+for laws, regulations and guidelines.
+
+Chapingo under the 0.6B: 28 excerpts, 18 counted, 10 to the UAM, 6 to Antonio
+Narro, 1 to the IPN and 1 to the *CONVENIO INTERNACIONAL PARA EL ESTABLECIMIENTO
+DE LA UNIVERSIDAD PARA LA PAZ…*; 21 excerpts of 8 other instruments point at it
+(7 Antonio Narro, 7 UAM). The Constitution: 137 counted, closest the LGIPE at
+14.0 (14 excerpts, article 96 at 0.86 the closest, article 58 at 0.67 the
+weakest), then the LOPJF 9.0, the LOCGEUM 8.0 and, new, the *CONVENCION AMERICANA
+SOBRE DERECHOS HUMANOS* (5.0). The page's two worked examples follow these
+numbers.
+
+### Measured, strong links, with the treaties, 2026-10-12 (issue #283)
+
+`gold_links.py`, `evaluate_links.py` and `evaluate_citations.py` rerun on the
+rebuilt directories, outputs in `emb-run-atlas/gold-links/` (the 2026-10-05
+outputs were kept aside and are the "before" below). **The gold did not change**:
+the sources are still the 863 reglamentos and 125 lineamientos, treaties are
+extra candidates only, and every gold number repeats — A 132 (131 + 1), B 160
+(153 + 7), A union B 212 (204 + 8), 227 links, 55 unresolved names, signal C
+3,647 hits in 2,537 rows of 832 instruments citing 179 laws, 2,010 citing exactly
+one; `_gold-links.md` is byte-identical. Only the candidates grew, from 1,302
+foreign instruments to 2,675.
+
+| gold | metric | 0.6B | 4B | BM25 |
+|---|---|---|---|---|
+| A (132) | closest is a gold law | 99 (0.750) | 96 (0.727) | 102 (0.773) |
+| A (132) | a gold law among the five closest | 122 (0.924) | 122 (0.924) | 125 (0.947) |
+| A (132) | mean reciprocal rank | 0.829 | 0.819 | 0.849 |
+| A (132) | weight share on gold laws | 0.367 | 0.392 | 0.363 |
+| A union B (212) | closest is a gold law | 125 (0.590) | 122 (0.575) | 126 (0.594) |
+| A union B (212) | a gold law among the five closest | 179 (0.844) | 177 (0.835) | 179 (0.844) |
+| A union B (212) | mean reciprocal rank | 0.697 | 0.690 | 0.700 |
+| A union B (212) | weight share on gold laws | 0.278 | 0.296 | 0.274 |
+
+"Closest" ties with a non-gold instrument: 2 / 0 / 1 (A) and 4 / 1 / 3 (A union
+B). Verdicts (difference of the first minus the second; intervals and McNemar
+p-values in `evaluation.md`):
+
+| pair | closest | top-5 | MRR | weight share |
+|---|---|---|---|---|
+| 0.6B vs 4B, A | tie (+0.023) | tie (0.000) | tie (+0.010) | **4B better** (-0.025) |
+| 0.6B vs BM25, A | tie (-0.023) | tie (-0.023) | tie (-0.019) | tie |
+| 4B vs BM25, A | tie (-0.045) | tie (-0.023) | **BM25 better** (-0.029) | **4B better** (+0.029) |
+| 0.6B vs 4B, A union B | tie (+0.014) | tie (+0.009) | tie (+0.007) | **4B better** (-0.018) |
+| 0.6B vs BM25, A union B | tie (-0.005) | tie (0.000) | tie (-0.003) | tie |
+| 4B vs BM25, A union B | tie (-0.019) | tie (-0.009) | tie (-0.011) | **4B better** (+0.022) |
+
+**Reading.** The conclusion of 2026-10-05 stands: on the closest and the five
+closest instruments the three data sets are indistinguishable, the 4B puts more
+weight on the gold law, and on A alone BM25's reciprocal rank beats the 4B's.
+Adding 1,373 candidates moved each count by one to three instruments (0.6B A:
+100 → 99 closest, 123 → 122 top-5) and not one verdict changed except that the
+4B-versus-BM25 *closest* p-value on A is 0.07 (it was 0.18).
+
+### Measured, row-level citations, with the treaties, 2026-10-12 (issue #283)
+
+`evaluate_citations.py` over the same 2,003 scored rows (7 removed as
+word-for-word shared by several instruments in each model, 0 where the cited law
+owns a copy), the cited law now ranked among **2,675** foreign instruments:
+
+| metric | 0.6B | 4B | BM25 |
+|---|---|---|---|
+| recall@1 | 190 (0.095) | 202 (0.101) | 177 (0.088) |
+| recall@5 | 500 (0.250) | 536 (0.268) | 482 (0.241) |
+| recall@10 | 692 (0.345) | 743 (0.371) | 684 (0.341) |
+| MRR | 0.178 | 0.190 | 0.171 |
+| median rank | 30 | 22 | 30 |
+| recall@5, without the Constitution (1,444 rows) | 0.332 | 0.355 | 0.321 |
+| MRR, without the Constitution | 0.235 | 0.247 | 0.228 |
+| median rank, without the Constitution | 14 | 11 | 13 |
+
+| pair | cited law first | among the five | among the ten | MRR | median rank |
+|---|---|---|---|---|---|
+| 0.6B − 4B | tie (p = 0.28) | 4B better (p = 0.003) | 4B better (p < 0.001) | 4B better ([−0.019, −0.005]) | 4B better ([+5, +10]) |
+| 0.6B − BM25 | tie (p = 0.35) | tie (p = 0.34) | tie (p = 0.71) | tie ([−0.004, +0.017]) | tie ([−7, +4]) |
+| 4B − BM25 | tie (p = 0.052) | 4B better (p = 0.002) | 4B better (p = 0.002) | 4B better ([+0.009, +0.029]) | 4B better ([−15, −3]) |
+
+By collection (recall@5 for 0.6B / 4B / BM25): lineamientos (172 rows) 0.302 /
+0.308 / 0.238, reglamentos (1,831 rows) 0.245 / 0.264 / 0.241. Among the ten most
+cited laws the extremes are the *Código Fiscal de la Federación* (57 rows, BM25
+0.684 against 0.404 for the 4B and 0.316 for the 0.6B) and the *Ley Orgánica del
+Poder Judicial de la Federación* (41 rows, 0.171 BM25 against 0.439 for the 4B
+and 0.488 for the 0.6B). **Reading:** unchanged — the 4B is better than both
+others at ranking a cited law among the candidates, the 0.6B and BM25 are tied,
+the absolute level is low and falls with the Constitution included. Every
+recall moved by at most 0.01 and the median rank by one or two places (29 → 30,
+21 → 22) with 1,373 more candidates, which is how little a treaty competes
+with the law an excerpt cites.
 
 ### Measured, BM25 tuning, 2026-10-01 (issue #267, review fix)
 

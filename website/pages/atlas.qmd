@@ -1,6 +1,6 @@
 ---
-title: "An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines"
-subtitle: "315 laws, 863 regulations and 125 guidelines, placed by where their excerpts' closest texts live"
+title: "An Atlas of Mexican Federal Law: Laws, Regulations, Guidelines and Treaties"
+subtitle: "315 laws, 863 regulations, 125 guidelines and 1,373 treaties, placed by where their excerpts' closest texts live"
 page-layout: full
 toc: false
 number-sections: false
@@ -16,11 +16,12 @@ number-sections: false
 ::: {.atlas-prose}
 
 ::: {.atlas-lead}
-Every federal law, regulation and guideline that the Supreme Court publishes in
-consolidated form is one point on this map. Two instruments sit close together
+Every federal law, regulation and guideline, and every international treaty,
+that the Supreme Court publishes in consolidated form is one point on this map. Two instruments sit close together
 when the texts nearest to their excerpts live in the same places, so that the
 organic laws of the public universities, for instance, land beside one
-another whatever words they happen to use.
+another whatever words they happen to use, and the treaties gather in a region
+of their own.
 :::
 
 ## Where the instruments come from
@@ -70,12 +71,26 @@ instead of reforming it, these two corpora are keyed by that identifier and not
 by name. For 5 regulations and 37 guidelines the Court serves no text at all, so
 they belong to the corpora but cannot appear on the map.
 
+The treaties were found in a different way, because the Court does not file a
+treaty as a federal instrument but gives it a scope of its own, *Tratados
+Internacionales*. A treaty is therefore any instrument of that scope, whatever
+its category, since the category of a treaty is as likely to be a convention, an
+agreement or a protocol as a treaty in the strict sense, and a list of categories
+would have left hundreds of them out. The scope was read in pages through the same
+search service, with a union of the phrases `tratado`, `convenio`, `convencion`,
+`arreglo`, `carta`, `declaracion`, `pacto`, `protocolo`, `acuerdo`, `de`, `a`,
+`la`, `y`, `para` and `el`, which serve only to page through the scope and do not
+decide whether an instrument belongs to it. This found 1,455 treaties
+([`scjn-tratados`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-tratados)),
+and for 82 of them the Court serves no text, so that 1,373 appear on the map.
+
 The map uses the newest consolidated text of every instrument, one per
 instrument. Since regulations are reissued, several regulations or guidelines
 share one name, and the map keeps only the most recently issued of them, names
 being compared after folding accents, case and whitespace and only within a
-collection, so that laws are never grouped. This leaves 315 laws, 863 regulations
-and 125 guidelines, which are 1,303 instruments once 220 have been dropped (219
+collection, so that laws are never grouped, and neither are treaties, since no two
+of the 1,373 share a name. This leaves 315 laws, 863 regulations, 125 guidelines
+and 1,373 treaties, which are 2,676 instruments once 220 have been dropped (219
 regulations and 1 guideline). The current text of each of them is then divided
 into excerpts, as the section on what is compared describes.
 
@@ -85,11 +100,12 @@ into excerpts, as the section on what is compared describes.
 ::: {.front}
 ### A point
 
-A point is one law, regulation or guideline. Its area is proportional to its
+A point is one law, regulation, guideline or treaty. Its area is proportional to its
 counted excerpts, that is, to the number of articles and other pieces of text
 into which it is divided and which are compared with those of other
 instruments (its headings and transitory articles are not). Its colour is its
-collection, blue for laws, green for regulations and magenta for guidelines.
+collection, blue for laws, green for regulations, magenta for guidelines and yellow for
+treaties.
 :::
 ::: {.front}
 ### Distance
@@ -180,23 +196,30 @@ slightly different numbers in the panel. The *LEY que crea la Universidad
 Autónoma Chapingo* has 28 excerpts, 18 of which count, the other ten being
 headings and transitory articles that are not compared. For 10 of them the
 closest text outside the law belongs to the *LEY Orgánica de la Universidad
-Autónoma Metropolitana*, for 7 to the *LEY Orgánica de la Universidad Autónoma
-Agraria Antonio Narro*, and the last one goes to the *LEY Orgánica del
-Instituto Politécnico Nacional*. On the map the law sits among the organic laws
-of the UNAM, Antonio Narro, the UAM and the IPN. The relation is directed, since
-24 excerpts of other instruments have their closest text in Chapingo's law, 9
-of them in Antonio Narro's and 7 in the UAM's.
+Autónoma Metropolitana*, for 6 to the *LEY Orgánica de la Universidad Autónoma
+Agraria Antonio Narro*, one goes to the *LEY Orgánica del Instituto Politécnico
+Nacional*, and the last one to a treaty, the *CONVENIO INTERNACIONAL PARA EL
+ESTABLECIMIENTO DE LA UNIVERSIDAD PARA LA PAZ Y CARTA DE LA UNIVERSIDAD PARA LA PAZ
+(MULTILATERAL, 1980)*. On the map the law sits among the organic laws of Antonio
+Narro, the UNAM, the UAM and the IPN. The relation is directed, since 21
+excerpts of other instruments have their closest text in Chapingo's law, 7 of
+them in Antonio Narro's and 7 in the UAM's.
 
 The Constitution has 1,328 excerpts, but only its 136 articles and its
 preamble are compared, so that 137 count. Its closest instrument is the *LEY
-General de Instituciones y Procedimientos Electorales*, at 15.0. The table
-behind that weight lists 15 excerpts, every one a whole 1, among them articles
+General de Instituciones y Procedimientos Electorales*, at 14.0. The table
+behind that weight lists 14 excerpts, every one a whole 1, among them articles
 41, 51 to 56, 58 to 60 and 63 on elections and Congress. The closest of them,
 article 96, is matched to article 494 of that law at a similarity of 0.86, and
-the weakest, article 125, to its article 11 at 0.61. The next closest
+the weakest, article 58, to its article 10 at 0.67. The next closest
 instruments are the *LEY Orgánica del Poder Judicial de la Federación* at 9.0
 and the *LEY Orgánica del Congreso General de los Estados Unidos Mexicanos* at
-8.0.
+8.0, and a treaty, the *Convención Americana sobre Derechos Humanos*, is among
+the five closest at 5.0.
+
+Treaties mostly resemble one another. For 1,284 of the 1,373 treaties the closest
+instrument is another treaty, and only 8 laws and 5 regulations have a treaty as
+their closest instrument.
 
 ## The neighbourhood size
 
@@ -207,8 +230,8 @@ a graph that joins each point to its nearest neighbours and then lays that
 graph out in the plane so that neighbours stay close. The neighbourhood size is
 the number of neighbours in that graph, so that small values preserve tight
 local groups, such as the universities above, while large values preserve the
-overall shape, such as how the laws, the regulations and the guidelines sit
-relative to one another. Switching it changes the layout and never the
+overall shape, such as how the laws, the regulations, the guidelines and the
+treaties sit relative to one another. Switching it changes the layout and never the
 relations listed in the panel.
 
 ## The similarity
@@ -294,7 +317,7 @@ it is 1 when the law is first, 1/2 when it is second and 0 when the law
 receives no weight at all.
 
 At the level of the excerpt, each citing excerpt is compared with the texts of
-the 1,302 instruments other than its own. Every one of those instruments is
+the 2,675 instruments other than its own. Every one of those instruments is
 scored by the similarity of its closest text to the excerpt, and the
 instruments are ordered by that score. The rank of the cited law is its
 position in that order, an instrument whose score only equals the law's not
@@ -303,7 +326,7 @@ excerpts for which that rank is 1, and the measures **among the five closest**
 and **among the ten closest** are the shares for which it is at most 5 and at
 most 10. The **mean reciprocal rank** is the average of 1 divided by the rank,
 and the **median rank** is the middle value of the rank over all the excerpts,
-out of 1,302.
+out of 2,675.
 
 The scores behind these tables are computed by the same three methods and under
 the same rules as the map, so that the tables measure the map itself.
@@ -322,17 +345,17 @@ finds no real difference the two methods are tied.
 
 ### The instruments
 
-The measures below were taken on 5 October 2026, over the 132 instruments of
+The measures below were taken on 12 October 2026, over the 132 instruments of
 signal A alone and over the 212 of signals A and B together.
 
 | Gold links | Measure | 0.6B | 4B | BM25 |
 |---|---|---|---|---|
-| A (132) | closest is a gold law | 100 | 96 | 101 |
-| A (132) | a gold law among the five closest | 123 | 122 | 126 |
-| A (132) | mean reciprocal rank | 0.836 | 0.819 | 0.845 |
-| A and B (212) | closest is a gold law | 126 | 122 | 126 |
-| A and B (212) | a gold law among the five closest | 180 | 177 | 181 |
-| A and B (212) | mean reciprocal rank | 0.701 | 0.690 | 0.700 |
+| A (132) | closest is a gold law | 99 | 96 | 102 |
+| A (132) | a gold law among the five closest | 122 | 122 | 125 |
+| A (132) | mean reciprocal rank | 0.829 | 0.819 | 0.849 |
+| A and B (212) | closest is a gold law | 125 | 122 | 126 |
+| A and B (212) | a gold law among the five closest | 179 | 177 | 179 |
+| A and B (212) | mean reciprocal rank | 0.697 | 0.690 | 0.700 |
 
 The methods are then compared two at a time. Each difference is the first method
 minus the second, and each cell gives the verdict and, in parentheses, the
@@ -341,12 +364,12 @@ of the bootstrap for the others.
 
 | Gold links | Pair | closest is a gold law | a gold law among the five closest | mean reciprocal rank |
 |---|---|---|---|---|
-| A (132) | 0.6B − 4B | tie (p = 0.29) | tie (p = 1.00) | tie ([−0.005, +0.039]) |
-| A (132) | 0.6B − BM25 | tie (p = 1.00) | tie (p = 0.38) | tie ([−0.037, +0.017]) |
-| A (132) | 4B − BM25 | tie (p = 0.18) | tie (p = 0.13) | BM25 better ([−0.054, −0.002]) |
-| A and B (212) | 0.6B − 4B | tie (p = 0.42) | tie (p = 0.55) | tie ([−0.009, +0.031]) |
-| A and B (212) | 0.6B − BM25 | tie (p = 1.00) | tie (p = 1.00) | tie ([−0.027, +0.028]) |
-| A and B (212) | 4B − BM25 | tie (p = 0.48) | tie (p = 0.42) | tie ([−0.038, +0.017]) |
+| A (132) | 0.6B − 4B | tie (p = 0.45) | tie (p = 1.00) | tie ([−0.009, +0.030]) |
+| A (132) | 0.6B − BM25 | tie (p = 0.45) | tie (p = 0.25) | tie ([−0.045, +0.003]) |
+| A (132) | 4B − BM25 | tie (p = 0.07) | tie (p = 0.25) | BM25 better ([−0.056, −0.007]) |
+| A and B (212) | 0.6B − 4B | tie (p = 0.58) | tie (p = 0.75) | tie ([−0.011, +0.026]) |
+| A and B (212) | 0.6B − BM25 | tie (p = 1.00) | tie (p = 1.00) | tie ([−0.029, +0.021]) |
+| A and B (212) | 4B − BM25 | tie (p = 0.45) | tie (p = 0.79) | tie ([−0.036, +0.014]) |
 
 On what the map shows, which is the closest instrument and the five closest, the
 three methods cannot be told apart. The one real difference at this level is
@@ -361,23 +384,23 @@ remain once those citing the Constitution are set aside.
 
 | Measure | 0.6B | 4B | BM25 |
 |---|---|---|---|
-| cited law first | 0.095 | 0.103 | 0.091 |
-| among the five closest | 0.253 | 0.273 | 0.241 |
-| among the ten closest | 0.350 | 0.380 | 0.346 |
-| mean reciprocal rank | 0.180 | 0.194 | 0.173 |
-| median rank | 29 | 21 | 29 |
-| among the five closest, without the Constitution | 0.337 | 0.361 | 0.323 |
-| mean reciprocal rank, without the Constitution | 0.238 | 0.252 | 0.231 |
-| median rank, without the Constitution | 13 | 11 | 13 |
+| cited law first | 0.095 | 0.101 | 0.088 |
+| among the five closest | 0.250 | 0.268 | 0.241 |
+| among the ten closest | 0.345 | 0.371 | 0.341 |
+| mean reciprocal rank | 0.178 | 0.190 | 0.171 |
+| median rank | 30 | 22 | 30 |
+| among the five closest, without the Constitution | 0.332 | 0.355 | 0.321 |
+| mean reciprocal rank, without the Constitution | 0.235 | 0.247 | 0.228 |
+| median rank, without the Constitution | 14 | 11 | 13 |
 
 The pairs are compared in the same way, the median rank being given with the
 interval of its difference in ranks.
 
 | Pair | cited law first | among the five closest | among the ten closest | mean reciprocal rank | median rank |
 |---|---|---|---|---|---|
-| 0.6B − 4B | tie (p = 0.14) | 4B better (p = 0.001) | 4B better (p < 0.001) | 4B better ([−0.020, −0.007]) | 4B better ([+5, +10]) |
-| 0.6B − BM25 | tie (p = 0.53) | tie (p = 0.19) | tie (p = 0.75) | tie ([−0.004, +0.017]) | tie ([−6, +5]) |
-| 4B − BM25 | tie (p = 0.054) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([+0.010, +0.030]) | 4B better ([−14, −3]) |
+| 0.6B − 4B | tie (p = 0.28) | 4B better (p = 0.003) | 4B better (p < 0.001) | 4B better ([−0.019, −0.005]) | 4B better ([+5, +10]) |
+| 0.6B − BM25 | tie (p = 0.35) | tie (p = 0.34) | tie (p = 0.71) | tie ([−0.004, +0.017]) | tie ([−7, +4]) |
+| 4B − BM25 | tie (p = 0.052) | 4B better (p = 0.002) | 4B better (p = 0.002) | 4B better ([+0.009, +0.029]) | 4B better ([−15, −3]) |
 
 At this level the methods are no longer tied. The 4B is better than both of the
 others on four of the five measures, the exception being the share of excerpts
@@ -397,30 +420,32 @@ develops, and a lexical baseline that learns nothing is as good as either
 embedding model. The 4B ranks a cited law higher for a single excerpt, and this
 is the one measured reason for switching to it. BM25 is not beaten everywhere. Among the ten most cited
 laws it is clearly the best on the *Código Fiscal de la Federación*, where the
-cited law is among the five closest for 68.4 % of the excerpts against 43.9 %
+cited law is among the five closest for 68.4 % of the excerpts against 40.4 %
 for the 4B, and clearly the worst on the *Ley Orgánica del Poder Judicial de la
-Federación*, with 19.5 % against 43.9 %. These checks look at the law and not
+Federación*, with 17.1 % against 43.9 %. These checks look at the law and not
 at the article, so they say nothing about whether the right article of that
 law ranks first.
 
 ::: {.atlas-data}
-**Data.** The texts are the three consolidated corpora this project publishes
+**Data.** The texts are the four consolidated corpora this project publishes
 from the Supreme Court (SCJN), namely the [laws](leyes.ipynb)
 ([`scjn-leyes`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes)),
 the regulations
 ([`scjn-reglamentos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos))
-and the guidelines
-([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos)).
+the guidelines
+([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos))
+and the treaties
+([`scjn-tratados`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-tratados)).
 They are divided into excerpts and embedded with `Qwen/Qwen3-Embedding-0.6B`,
 the default of the map, and with `Qwen/Qwen3-Embedding-4B`, to which the
 similarity control switches, as it does to BM25, a lexical baseline computed
-from the same excerpts. Of the 161,989 excerpts, 28,568 are headings and 21,344
-are transitory articles, neither of which is compared, and 1,715 are
+from the same excerpts. Of the 203,324 excerpts, 31,172 are headings and 26,182
+are transitory articles, neither of which is compared, and 1,947 are
 word-for-word texts shared by several instruments, which are matched but not
-counted, so that 110,362 count. The map
+counted, so that 144,023 count. The map
 is a UMAP projection with the cosine metric of each instrument's matches. The
 Diario Oficial de la Federación remains the official source of legal text. Map
-data generated on <span data-atlas-generated>5 October 2026</span>.
+data generated on <span data-atlas-generated>12 October 2026</span>.
 
 *Read more.* The division of instruments into excerpts is described in
 [`md2akn`](https://legalia.readthedocs.io/en/latest/md2akn_api.html), the way

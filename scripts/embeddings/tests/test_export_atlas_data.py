@@ -59,8 +59,8 @@ def test_the_schema_is_meta_instruments_projections(exported):
         "distinct_texts", "collections", "unique_names", "duplicates_dropped",
         "n_neighbors", "default_n_neighbors", "umap", "weighting", "top", "sources"]
     meta = data["meta"]
-    assert meta["title"] == ("An Atlas of Mexican Federal Law: Laws, Regulations "
-                             "and Guidelines")
+    assert meta["title"] == ("An Atlas of Mexican Federal Law: Laws, Regulations, "
+                             "Guidelines and Treaties")
     assert meta["generated"] == "2026-09-22T12:00:00+00:00"
     assert meta["commit"]
     assert meta["model"] == "Qwen/Qwen3-Embedding-0.6B"

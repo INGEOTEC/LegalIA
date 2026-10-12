@@ -1,18 +1,18 @@
 The evidence behind every **Closest instruments** weight of the website's
 [Atlas](https://ingeotec.github.io/LegalIA/pages/atlas.html): for each of the
-1,303 unique federal laws, regulations and guidelines, and each of the (at most) five
+2,676 unique federal laws, regulations and guidelines and international treaties, and each of the (at most) five
 instruments it points at hardest, which of its excerpts point there, the
 text they matched on the other side, and how much each one adds to the weight.
 
 | Asset | Contents |
 |---|---|
-| `atlas-pairs.tar.gz` | The **Qwen/Qwen3-Embedding-0.6B** set: `pairs/<i>-<j>.json`, one file per pair (6,288 files, 159 MB of JSON, 34 MB compressed), plus `manifest.json` |
+| `atlas-pairs.tar.gz` | The **Qwen/Qwen3-Embedding-0.6B** set: `pairs/<i>-<j>.json`, one file per pair (12,002 files, 215 MB of JSON, 46 MB compressed), plus `manifest.json` |
 | `manifest.json` | What produced the files: model, commit, matrix summary, tolerance, counts, sizes |
 | `SHA256SUMS.txt` | The digest of the two assets above |
-| `atlas-pairs-qwen3-4b.tar.gz` | The same, built from **Qwen/Qwen3-Embedding-4B** (K = 2560): `pairs/<i>-<j>.json` plus `manifest.json` |
+| `atlas-pairs-qwen3-4b.tar.gz` | The same, built from **Qwen/Qwen3-Embedding-4B** (K = 2560): `pairs/<i>-<j>.json` plus `manifest.json` (11,983 files, 228 MB of JSON, 49 MB compressed) |
 | `manifest-qwen3-4b.json` | The 4B set's manifest, the same file the tarball carries as `manifest.json` |
 | `SHA256SUMS-qwen3-4b.txt` | The digest of the two 4B assets above |
-| `atlas-pairs-bm25.tar.gz` | The same, scored by **BM25** instead of an embedding: `pairs/<i>-<j>.json` plus `manifest.json` |
+| `atlas-pairs-bm25.tar.gz` | The same, scored by **BM25** instead of an embedding: `pairs/<i>-<j>.json` plus `manifest.json` (12,074 files, 236 MB of JSON, 49 MB compressed) |
 | `manifest-bm25.json` | The BM25 set's manifest, the same file the tarball carries as `manifest.json` |
 | `SHA256SUMS-bm25.txt` | The digest of the two BM25 assets above |
 
@@ -41,7 +41,7 @@ file.
 The website's publish workflow downloads these assets and unpacks them into the
 site: GitHub release assets carry no CORS header, so a browser cannot read
 them from here. Built by `scripts/embeddings/export_atlas_pairs.py` (issue
-#249) from the gitignored `emb-run-atlas/` (0.6B), `emb-run-atlas-4b/` (4B,
+#249; four corpora since issue #283, which added the 1,373 treaties of `scjn-tratados`) from the gitignored `emb-run-atlas/` (0.6B), `emb-run-atlas-4b/` (4B,
 issue #261) and `emb-run-atlas-bm25/` (BM25, issue #267) work directories, and
 published by a
 human, never by a workflow (issue #115, Hallazgo C). The SCJN is not an

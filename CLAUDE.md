@@ -1154,7 +1154,7 @@ see the #242 bullet above), #245 draws it.
   `gold_links.py` (`citations.parquet`: "artículo N de la Ley X") and
   `scripts/embeddings/evaluate_citations.py` re-score each work directory with its
   own scorer under the matrix's own mask and rank the cited law among the 1,302
-  foreign instruments, over 2,003 single-law citing rows. Result: **the 4B is
+  foreign instruments (2,675 since #283), over 2,003 single-law citing rows. Result: **the 4B is
   better** (recall@5 0.273 against 0.253 and 0.241, median rank 21 against 29),
   while the 0.6B and BM25 tie; see "Row level: explicit citations" in the same
   README. Law level only, local, gitignored outputs.
@@ -1185,6 +1185,37 @@ see the #242 bullet above), #245 draws it.
   `website/pages/atlas/_gold-links.md`, which `gold_links.py` writes as `links.md`) as literals copied from
   `scripts/embeddings/README.md`'s dated *Measured* subsections, never
   recomputed.
+
+- **The treaties on the map (issues #282, #283, done).** The Atlas carries a
+  **fourth collection**, `tratados` (the `scjn-tratados` corpus of #277 and the
+  vectors of #280): #282 made the chain and the page able to (one registry,
+  `build_umap_html.COLLECTION_CODES`, equal in order to
+  `prepare_umap_input.COLLECTIONS` and `legalvec.cache.RELEASE_TAGS` — a test
+  pins it; `atlas.js` builds its legend from `meta.collections`, treaties
+  yellow `#eda100`, an unknown collection stops the page with a message naming
+  it; `export_atlas_pairs.py` refuses, rather than drops, a collection outside
+  the registry) and #283 rebuilt the three data sets in place with them:
+  315 + 863 + 125 + **1,373 = 2,676 instruments**, 203,324 excerpts, 144,023
+  counted (143,661 for BM25), `tratados` stacked last so an old row order is a
+  prefix. **Treaties are not grouped by name** (0 of 1,373 names repeat under
+  #259's folding; `GROUPED_COLLECTIONS` unchanged) and are **candidates only**
+  in the evaluation: `gold_links.py`'s sources stay `reglamentos` and
+  `lineamientos`, the gold is byte-identical, only the candidates grew (1,302 →
+  2,675 foreign instruments). The #272/#273 evaluation was re-run and the page's
+  literals and `_gold-links.md` follow it (conclusions unchanged; the 4B is still
+  better row by row, the three are still tied on the closest instrument). The
+  page's title, subtitle, provenance (treaties found by the *Tratados
+  Internacionales* scope, any category, 1,455 found, 82 without text), legend
+  sentence, Data box and both worked examples (Chapingo now has a treaty among
+  its closest, the Constitution too) describe the new data and are pinned by
+  `test_atlas_page.py` against `atlas.json`. The unit-level explorer (#241) was
+  not rebuilt. The three `atlas-pairs` sets were regenerated (12,002 / 11,983 /
+  12,074 files); **nothing was published** — a human runs the three
+  `PUBLICAR.md` (`emb-run-atlas/atlas-pairs/`, `emb-run-atlas-4b/atlas-pairs/`,
+  `emb-run-atlas-bm25/atlas-pairs/`) before the pull request merges, or
+  `website.yml` pairs the new `atlas*.json` with the old pair files. Measured
+  tables: `scripts/embeddings/README.md` ("Measured, with the treaties,
+  2026-10-12").
 
 ## Tables in SCJN snapshots (issue #253, done)
 
