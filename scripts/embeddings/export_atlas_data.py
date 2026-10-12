@@ -87,7 +87,7 @@ from unique_instruments import GROUPED_COLLECTIONS  # noqa: E402
 DEFAULT_OUTPUT = Path("website/pages/atlas/atlas.json")
 DEFAULT_DECIMALS = 4
 
-TITLE = "An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines"
+TITLE = "An Atlas of Mexican Federal Law: Laws, Regulations, Guidelines and Treaties"
 
 
 def weighted_targets(matrix, index: int, limit: int) -> list[list]:

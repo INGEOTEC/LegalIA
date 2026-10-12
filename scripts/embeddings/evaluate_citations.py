@@ -4,7 +4,8 @@
 is its closest instrument. This asks the question one *unit row* at a time, with
 signal C of `gold_links.py`: a unit row that cites "artículo N de la Ley X" names
 the law it is about, and the three data sets (0.6B, 4B, BM25) can be asked where
-that law ranks among the 1,302 foreign instruments *for that one row*.
+that law ranks among the foreign instruments (every instrument but the source:
+the work directory's instruments minus one) *for that one row*.
 
 A model's `nearest.parquet` keeps only the winner of each row, so the rank needs
 the row's full score vector: each model's work directory is re-scored here with

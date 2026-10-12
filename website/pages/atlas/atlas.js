@@ -55,7 +55,7 @@
     "overall shape. The layout changes, the data does not.";
   const EMPTY =
     "Search for an instrument or click a point to see which laws, " +
-    "regulations and guidelines its excerpts are closest to.";
+    "regulations, guidelines and treaties its excerpts are closest to.";
   const MODEL_CAPTION =
     "The method that measured how similar two texts are; the 0.6B is the " +
     "default. Switching it changes which instruments are closest, so both the " +
@@ -214,7 +214,7 @@
       type: "search",
       id: "atlas-search",
       className: "atlas-search-input",
-      placeholder: "Find a law, regulation or guideline",
+      placeholder: "Find a law, regulation, guideline or treaty",
       autocomplete: "off",
       spellcheck: "false",
       role: "combobox",
