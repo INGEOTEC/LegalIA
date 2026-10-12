@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines – LegalIA</title>
+<title>An Atlas of Mexican Federal Law: Laws, Regulations, Guidelines and Treaties – LegalIA</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -170,8 +170,8 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines</h1>
-<p class="subtitle lead">315 laws, 863 regulations and 125 guidelines, placed by where their excerpts’ closest texts live</p>
+<h1 class="title">An Atlas of Mexican Federal Law: Laws, Regulations, Guidelines and Treaties</h1>
+<p class="subtitle lead">315 laws, 863 regulations, 125 guidelines and 1,373 treaties, placed by where their excerpts’ closest texts live</p>
 </div>
 
 
@@ -198,21 +198,22 @@ div.csl-indent {
 <!-- /atlas:app -->
 <div class="atlas-prose">
 <div class="atlas-lead">
-<p>Every federal law, regulation and guideline that the Supreme Court publishes in consolidated form is one point on this map. Two instruments sit close together when the texts nearest to their excerpts live in the same places, so that the organic laws of the public universities, for instance, land beside one another whatever words they happen to use.</p>
+<p>Every federal law, regulation and guideline, and every international treaty, that the Supreme Court publishes in consolidated form is one point on this map. Two instruments sit close together when the texts nearest to their excerpts live in the same places, so that the organic laws of the public universities, for instance, land beside one another whatever words they happen to use, and the treaties gather in a region of their own.</p>
 </div>
 <section id="where-the-instruments-come-from" class="level2">
 <h2 class="anchored" data-anchor-id="where-the-instruments-come-from">Where the instruments come from</h2>
 <p>The texts come from the legislative database of the Supreme Court of Justice of the Nation (<a href="https://legislacion.scjn.gob.mx/consulta/home">legislacion.scjn.gob.mx<wbr>/consulta</a>), which keeps for every instrument a table of its reforms and serves the consolidated text of the instrument as it stood after each one. The project reads the database through the Court’s own search service, which gives every instrument a stable identifier. The <em>Diario Oficial de la Federación</em> remains the official source of legal text, and the consolidated versions of the Court are an editorial product.</p>
 <p>The 315 laws, which include the codes and the Constitution, are published as the <a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes"><code>scjn-leyes</code></a> corpus, and the <a href="../pages/leyes.html">Federal Laws page</a> describes it in full. The list of federal laws was seeded from the catalogue of federal legislation that the Cámara de Diputados publishes (<a href="https://www.diputados.gob.mx/LeyesBiblio/">LeyesBiblio</a>, 316 instruments), which gave each law its name and its abbreviation. Each law was then searched by its name in the Court’s database and resolved by the identifier the Court gives it, and never by the rank of the search, because the Court’s search can return a wrong document for a name. Its whole reform table was crawled, which gives one dated text for every reform, 3,707 texts in all.</p>
 <p>The Court’s search has no way of listing everything, so the 1,087 regulations (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos"><code>scjn-reglamentos</code></a>) and the 163 guidelines (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos"><code>scjn-lineamientos</code></a>) were found through a set of phrase searches. These did not use the search form of the site but the search service behind it, which accepts the scope and the category of the instruments as part of each request even where the form does not offer them as choices, and which answers every instrument together with its category, as the listing of the site shows. Each phrase was sent to the service for the federal scope and for the category REGLAMENTO or LINEAMIENTOS, the service answered in pages, and every page was read to the end, so that the union of the results of the phrases is the list of candidates. The phrases for the regulations were <code>reglamento</code>, <code>de</code>, <code>a</code>, <code>la</code>, <code>y</code>, <code>para</code> and <code>el</code>, and those for the guidelines were <code>lineamientos</code>, <code>lineamiento</code>, <code>de</code>, <code>a</code>, <code>la</code>, <code>y</code>, <code>para</code> and <code>el</code>. Besides the word of the category, the short common words are there so that an instrument of the category whose title does not contain that word is still reached. To these were added the instruments that the Court files under another category but whose own reform table has a row of that category, which were looked for among the hits of one phrase, <code>reglamento</code> for the regulations and <code>lineamientos</code> for the guidelines, and which rescued 6 regulations and 4 guidelines. Because the Court reissues a regulation under a new identifier instead of reforming it, these two corpora are keyed by that identifier and not by name. For 5 regulations and 37 guidelines the Court serves no text at all, so they belong to the corpora but cannot appear on the map.</p>
-<p>The map uses the newest consolidated text of every instrument, one per instrument. Since regulations are reissued, several regulations or guidelines share one name, and the map keeps only the most recently issued of them, names being compared after folding accents, case and whitespace and only within a collection, so that laws are never grouped. This leaves 315 laws, 863 regulations and 125 guidelines, which are 1,303 instruments once 220 have been dropped (219 regulations and 1 guideline). The current text of each of them is then divided into excerpts, as the section on what is compared describes.</p>
+<p>The treaties were found in a different way, because the Court does not file a treaty as a federal instrument but gives it a scope of its own, <em>Tratados Internacionales</em>. A treaty is therefore any instrument of that scope, whatever its category, since the category of a treaty is as likely to be a convention, an agreement or a protocol as a treaty in the strict sense, and a list of categories would have left hundreds of them out. The scope was read in pages through the same search service, with a union of the phrases <code>tratado</code>, <code>convenio</code>, <code>convencion</code>, <code>arreglo</code>, <code>carta</code>, <code>declaracion</code>, <code>pacto</code>, <code>protocolo</code>, <code>acuerdo</code>, <code>de</code>, <code>a</code>, <code>la</code>, <code>y</code>, <code>para</code> and <code>el</code>, which serve only to page through the scope and do not decide whether an instrument belongs to it. This found 1,455 treaties (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-tratados"><code>scjn-tratados</code></a>), and for 82 of them the Court serves no text, so that 1,373 appear on the map.</p>
+<p>The map uses the newest consolidated text of every instrument, one per instrument. Since regulations are reissued, several regulations or guidelines share one name, and the map keeps only the most recently issued of them, names being compared after folding accents, case and whitespace and only within a collection, so that laws are never grouped, and neither are treaties, since no two of the 1,373 share a name. This leaves 315 laws, 863 regulations, 125 guidelines and 1,373 treaties, which are 2,676 instruments once 220 have been dropped (219 regulations and 1 guideline). The current text of each of them is then divided into excerpts, as the section on what is compared describes.</p>
 </section>
 <section id="how-to-read-the-map" class="level2">
 <h2 class="anchored" data-anchor-id="how-to-read-the-map">How to read the map</h2>
 <div class="fronts">
 <section id="a-point" class="level3 front">
 <h3 class="anchored" data-anchor-id="a-point">A point</h3>
-<p>A point is one law, regulation or guideline. Its area is proportional to its counted excerpts, that is, to the number of articles and other pieces of text into which it is divided and which are compared with those of other instruments (its headings and transitory articles are not). Its colour is its collection, blue for laws, green for regulations and magenta for guidelines.</p>
+<p>A point is one law, regulation, guideline or treaty. Its area is proportional to its counted excerpts, that is, to the number of articles and other pieces of text into which it is divided and which are compared with those of other instruments (its headings and transitory articles are not). Its colour is its collection, blue for laws, green for regulations, magenta for guidelines and yellow for treaties.</p>
 </section>
 <section id="distance" class="level3 front">
 <h3 class="anchored" data-anchor-id="distance">Distance</h3>
@@ -239,12 +240,13 @@ div.csl-indent {
 </section>
 <section id="an-example" class="level2">
 <h2 class="anchored" data-anchor-id="an-example">An example</h2>
-<p>The two examples below describe the map as it opens, which is drawn from the 0.6B model, so that a reader who has switched to the 4B or to BM25 may see slightly different numbers in the panel. The <em>LEY que crea la Universidad Autónoma Chapingo</em> has 28 excerpts, 18 of which count, the other ten being headings and transitory articles that are not compared. For 10 of them the closest text outside the law belongs to the <em>LEY Orgánica de la Universidad Autónoma Metropolitana</em>, for 7 to the <em>LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro</em>, and the last one goes to the <em>LEY Orgánica del Instituto Politécnico Nacional</em>. On the map the law sits among the organic laws of the UNAM, Antonio Narro, the UAM and the IPN. The relation is directed, since 24 excerpts of other instruments have their closest text in Chapingo’s law, 9 of them in Antonio Narro’s and 7 in the UAM’s.</p>
-<p>The Constitution has 1,328 excerpts, but only its 136 articles and its preamble are compared, so that 137 count. Its closest instrument is the <em>LEY General de Instituciones y Procedimientos Electorales</em>, at 15.0. The table behind that weight lists 15 excerpts, every one a whole 1, among them articles 41, 51 to 56, 58 to 60 and 63 on elections and Congress. The closest of them, article 96, is matched to article 494 of that law at a similarity of 0.86, and the weakest, article 125, to its article 11 at 0.61. The next closest instruments are the <em>LEY Orgánica del Poder Judicial de la Federación</em> at 9.0 and the <em>LEY Orgánica del Congreso General de los Estados Unidos Mexicanos</em> at 8.0.</p>
+<p>The two examples below describe the map as it opens, which is drawn from the 0.6B model, so that a reader who has switched to the 4B or to BM25 may see slightly different numbers in the panel. The <em>LEY que crea la Universidad Autónoma Chapingo</em> has 28 excerpts, 18 of which count, the other ten being headings and transitory articles that are not compared. For 10 of them the closest text outside the law belongs to the <em>LEY Orgánica de la Universidad Autónoma Metropolitana</em>, for 6 to the <em>LEY Orgánica de la Universidad Autónoma Agraria Antonio Narro</em>, one goes to the <em>LEY Orgánica del Instituto Politécnico Nacional</em>, and the last one to a treaty, the <em>CONVENIO INTERNACIONAL PARA EL ESTABLECIMIENTO DE LA UNIVERSIDAD PARA LA PAZ Y CARTA DE LA UNIVERSIDAD PARA LA PAZ (MULTILATERAL, 1980)</em>. On the map the law sits among the organic laws of Antonio Narro, the UNAM, the UAM and the IPN. The relation is directed, since 21 excerpts of other instruments have their closest text in Chapingo’s law, 7 of them in Antonio Narro’s and 7 in the UAM’s.</p>
+<p>The Constitution has 1,328 excerpts, but only its 136 articles and its preamble are compared, so that 137 count. Its closest instrument is the <em>LEY General de Instituciones y Procedimientos Electorales</em>, at 14.0. The table behind that weight lists 14 excerpts, every one a whole 1, among them articles 41, 51 to 56, 58 to 60 and 63 on elections and Congress. The closest of them, article 96, is matched to article 494 of that law at a similarity of 0.86, and the weakest, article 58, to its article 10 at 0.67. The next closest instruments are the <em>LEY Orgánica del Poder Judicial de la Federación</em> at 9.0 and the <em>LEY Orgánica del Congreso General de los Estados Unidos Mexicanos</em> at 8.0, and a treaty, the <em>Convención Americana sobre Derechos Humanos</em>, is among the five closest at 5.0.</p>
+<p>Treaties mostly resemble one another. For 1,284 of the 1,373 treaties the closest instrument is another treaty, and only 8 laws and 5 regulations have a treaty as their closest instrument.</p>
 </section>
 <section id="the-neighbourhood-size" class="level2">
 <h2 class="anchored" data-anchor-id="the-neighbourhood-size">The neighbourhood size</h2>
-<p>The map is drawn four times from the same data. Each layout is a two-dimensional UMAP (Uniform Manifold Approximation and Projection) embedding of every instrument’s row of weights <span class="citation" data-cites="McInnes2018UMAP">(<a href="references.html#ref-McInnes2018UMAP" role="doc-biblioref">McInnes et al. 2018</a>)</span>. UMAP builds a graph that joins each point to its nearest neighbours and then lays that graph out in the plane so that neighbours stay close. The neighbourhood size is the number of neighbours in that graph, so that small values preserve tight local groups, such as the universities above, while large values preserve the overall shape, such as how the laws, the regulations and the guidelines sit relative to one another. Switching it changes the layout and never the relations listed in the panel.</p>
+<p>The map is drawn four times from the same data. Each layout is a two-dimensional UMAP (Uniform Manifold Approximation and Projection) embedding of every instrument’s row of weights <span class="citation" data-cites="McInnes2018UMAP">(<a href="references.html#ref-McInnes2018UMAP" role="doc-biblioref">McInnes et al. 2018</a>)</span>. UMAP builds a graph that joins each point to its nearest neighbours and then lays that graph out in the plane so that neighbours stay close. The neighbourhood size is the number of neighbours in that graph, so that small values preserve tight local groups, such as the universities above, while large values preserve the overall shape, such as how the laws, the regulations, the guidelines and the treaties sit relative to one another. Switching it changes the layout and never the relations listed in the panel.</p>
 </section>
 <section id="the-similarity" class="level2">
 <h2 class="anchored" data-anchor-id="the-similarity">The similarity</h2>
@@ -253,24 +255,33 @@ div.csl-indent {
 </section>
 <section id="checking-the-map-against-known-links" class="level2">
 <h2 class="anchored" data-anchor-id="checking-the-map-against-known-links">Checking the map against known links</h2>
-<p>The three methods agree on the closest instrument for most instruments, but agreement is not correctness, and a method that all three share could be wrong in the same way. The corpus itself offers a way to check, because a federal regulation exists to develop one law and usually says so. Such a statement is a strong link between two instruments that no similarity method was used to find, and it can be used as a gold standard against which the three data sets are scored.</p>
+<p>The three methods agree on the closest instrument for most instruments, but agreement is not correctness, and a method that all three share could be wrong in the same way. The corpus itself offers a way to check, because an instrument often says which other instrument it develops, applies or amends. A regulation exists to develop one law and usually says so, a law may be reglamentaria of an article of the Constitution, and a treaty may be the protocol of an earlier one. Such a statement is a strong link between two instruments that no similarity method was used to find, and it can be used as a gold standard against which the three data sets are scored.</p>
 <section id="how-the-strong-links-are-built" class="level3">
 <h3 class="anchored" data-anchor-id="how-the-strong-links-are-built">How the strong links are built</h3>
-<p>The links come from three signals, each read from the text of the regulations and guidelines (988 instruments on the map). The first, A, is the name of the instrument. When the name of a regulation contains the name of a law, as in the <em>REGLAMENTO DE LA LEY FEDERAL DE CORREDURÍA PÚBLICA</em>, the law is the <em>Ley Federal de Correduría Pública</em>. This links 132 instruments, 131 regulations and one guideline. The second, B, is the sentence that states the purpose of the instrument, usually its first article, which often names the law it regulates. Article 1 of the <em>REGLAMENTO DE LA LEY DE AGUAS NACIONALES</em> reads “El presente ordenamiento tiene por objeto reglamentar la Ley de Aguas Nacionales”, which confirms what its name already said. Article 1 of the <em>REGLAMENTO DE SISTEMAS DE COMERCIALIZACIÓN MEDIANTE LA INTEGRACIÓN DE GRUPOS DE CONSUMIDORES</em> reads “El presente ordenamiento tiene por objeto regular los sistemas de comercialización mediante la integración de grupos de consumidores, a que se refiere el artículo 63 de la Ley Federal de Protección al Consumidor”, so that its law is found although its name never mentions it. Signal B links 160 instruments, and the two signals together link 212 instruments to 227 laws.</p>
-<p>A name is not always enough. For 55 instruments the name points to a law that cannot be resolved among the 315 laws of the corpus, as with the <em>REGLAMENTO DE LA LEY FEDERAL DE TURISMO</em>, whose law has been abrogated, and these instruments are left out of the gold standard instead of being guessed.</p>
-<p>The third signal, C, works on single excerpts instead of whole instruments. An excerpt that cites “artículo 38 Bis de la Ley General del Equilibrio Ecológico y la Protección al Ambiente” names the law it is about, and the same three data sets can be asked where that law ranks for that one excerpt. The corpus holds 3,647 such citations, in 2,537 distinct excerpts of 832 instruments that cite 179 different laws. Of those excerpts, 2,010 cite exactly one law. An excerpt that cites two or more laws is counted but not scored, because it has no single right answer, and seven more are removed because their text is word for word the text of several instruments. The 2,003 excerpts that remain are scored, and 559 of them cite the Constitution, which every kind of regulation cites.</p>
+<p>A strong link goes from one instrument to another, and nothing restricts what the two are. Every one of the 2,676 instruments on the map can be the source of a link and every one can be its target, whichever collection each belongs to, under a single rule, which is that an instrument is never linked to itself. When two instruments carry exactly the same name, as the two <em>LEY de Amnistía</em> do, or as a regulation of the Senate does with the law it was filed beside, the name is the instrument’s own and it is not read as a mention of the other.</p>
+<p>The links come from three signals, each read from the text of the source. The first, A, is the name of the instrument. When the name of a regulation contains the name of a law, as in the <em>REGLAMENTO DE LA LEY FEDERAL DE CORREDURÍA PÚBLICA</em>, the law is the <em>Ley Federal de Correduría Pública</em>. The same reading links a law to the instrument it regulates, the <em>LEY de Amparo, Reglamentaria de los artículos 103 y 107 de la Constitución Política de los Estados Unidos Mexicanos</em> to the Constitution, and a treaty to the one it implements, the <em>AVISO POR EL QUE SE DA A CONOCER EL ESQUEMA DE CERTIFICACION QUE LA REPUBLICA SOCIALISTA DE VIETNAM APLICARA EN EL MARCO DEL TRATADO INTEGRAL Y PROGRESISTA DE ASOCIACION TRANSPACIFICO</em> to that treaty. A treaty is often cited by a short form of its name, so a treaty name of five words or more is also read without its trailing qualifier and up to its first comma, and the name of an instrument that merely extends another with more words is never read as a link to it. Signal A links 161 instruments: 130 regulations, 19 treaties, 10 laws and two guidelines. The second, B, is the sentence that states the purpose of the instrument, usually its first article, which often names what it regulates. Article 1 of the <em>REGLAMENTO DE LA LEY DE AGUAS NACIONALES</em> reads “El presente ordenamiento tiene por objeto reglamentar la Ley de Aguas Nacionales”, which confirms what its name already said. Article 1 of the <em>REGLAMENTO DE SISTEMAS DE COMERCIALIZACIÓN MEDIANTE LA INTEGRACIÓN DE GRUPOS DE CONSUMIDORES</em> reads “El presente ordenamiento tiene por objeto regular los sistemas de comercialización mediante la integración de grupos de consumidores, a que se refiere el artículo 63 de la Ley Federal de Protección al Consumidor”, so that its law is found although its name never mentions it. Signal B links 170 instruments, and the two signals together link 251 instruments through 275 links.</p>
+<p>The links run in many directions, though most of them go from a regulation to a law. By the collection of the source and of the target, there are 215 links from regulations to laws, 23 from treaties to treaties, 12 from laws to laws, nine from guidelines to laws, six from regulations to regulations, five from regulations to treaties, three from guidelines to regulations and two from laws to treaties. The 21 treaties that are the source of a link all point to another treaty, as the <em>ACUERDO PARA LA APLICACION DE SALVAGUARDIAS EN RELACION CON EL TRATADO PARA LA PROSCRIPCION DE LAS ARMAS NUCLEARES EN LA AMERICA LATINA Y EL TRATADO SOBRE LA NO PROLIFERACION DE LAS ARMAS NUCLEARES</em> does.</p>
+<p>A name is not always enough. For 62 instruments the name points to an instrument that cannot be resolved among the 2,676 of the corpus, as with the <em>REGLAMENTO DE LA LEY FEDERAL DE TURISMO</em>, whose law has been abrogated, and these instruments are left out of the gold standard instead of being guessed.</p>
+<p>The third signal, C, works on single excerpts instead of whole instruments. An excerpt that cites “artículo 38 Bis de la Ley General del Equilibrio Ecológico y la Protección al Ambiente” names the instrument it is about, and the same three data sets can be asked where that instrument ranks for that one excerpt. The corpus holds 7,066 such citations, in 5,218 distinct excerpts of 1,925 instruments that cite 316 different instruments, once the 258 citations of an instrument to itself have been set aside. Of those excerpts, 4,497 cite exactly one instrument. An excerpt that cites two or more instruments is counted but not scored, because it has no single right answer, and 29 more are removed because their text is word for word the text of several instruments. The 4,468 excerpts that remain are scored, and 1,934 of them cite the Constitution, which every kind of instrument cites. Laws, regulations, guidelines and treaties all appear among the instruments that cite, and a treaty cites a law far more often than another treaty, with 863 pairs of an excerpt and a cited law against 37 of a cited treaty.</p>
 </section>
 <section id="what-is-measured" class="level3">
 <h3 class="anchored" data-anchor-id="what-is-measured">What is measured</h3>
-<p>At the level of the instrument, each regulation is scored against its gold law, or its gold laws when it has several. The panel orders the other instruments by the weight they receive from the regulation, which is the number printed under <em>Closest instruments</em>. The measure <strong>closest is a gold law</strong> counts the regulations whose gold law is the instrument at the top of that order, and the measure <strong>a gold law among the five closest</strong> counts those for which a gold law is among the first five. The <strong>mean reciprocal rank</strong> averages, over all the regulations scored, the reciprocal rank of the best-placed gold law, which is 1 divided by its position in the order, so that it is 1 when the law is first, 1/2 when it is second and 0 when the law receives no weight at all.</p>
-<p>At the level of the excerpt, each citing excerpt is compared with the texts of the 1,302 instruments other than its own. Every one of those instruments is scored by the similarity of its closest text to the excerpt, and the instruments are ordered by that score. The rank of the cited law is its position in that order, an instrument whose score only equals the law’s not being placed ahead of it. The measure <strong>cited law first</strong> is the share of excerpts for which that rank is 1, and the measures <strong>among the five closest</strong> and <strong>among the ten closest</strong> are the shares for which it is at most 5 and at most 10. The <strong>mean reciprocal rank</strong> is the average of 1 divided by the rank, and the <strong>median rank</strong> is the middle value of the rank over all the excerpts, out of 1,302.</p>
+<p>At the level of the instrument, each source is scored against its gold instrument, or its gold instruments when it has several. The panel orders the other instruments by the weight they receive from the source, which is the number printed under <em>Closest instruments</em>. The measure <strong>closest is a gold instrument</strong> counts the sources whose gold instrument is the one at the top of that order, and the measure <strong>a gold instrument among the five closest</strong> counts those for which a gold instrument is among the first five. The <strong>mean reciprocal rank</strong> averages, over all the sources scored, the reciprocal rank of the best-placed gold instrument, which is 1 divided by its position in the order, so that it is 1 when the instrument is first, 1/2 when it is second and 0 when it receives no weight at all.</p>
+<p>At the level of the excerpt, each citing excerpt is compared with the texts of the 2,675 instruments other than its own. Every one of those instruments is scored by the similarity of its closest text to the excerpt, and the instruments are ordered by that score. The rank of the cited instrument is its position in that order, an instrument whose score only equals the cited instrument’s not being placed ahead of it. The measure <strong>cited instrument first</strong> is the share of excerpts for which that rank is 1, and the measures <strong>among the five closest</strong> and <strong>among the ten closest</strong> are the shares for which it is at most 5 and at most 10. The <strong>mean reciprocal rank</strong> is the average of 1 divided by the rank, and the <strong>median rank</strong> is the middle value of the rank over all the excerpts, out of 2,675.</p>
 <p>The scores behind these tables are computed by the same three methods and under the same rules as the map, so that the tables measure the map itself.</p>
-<p>Two methods are compared measure by measure, and a single test is used for each measure. For a measure answered yes or no for every instrument or excerpt, which are <strong>closest is a gold law</strong> and <strong>a gold law among the five closest</strong> at the level of the instrument, and <strong>cited law first</strong>, <strong>among the five closest</strong> and <strong>among the ten closest</strong> at the level of the excerpt, McNemar’s exact test is applied to the cases on which the two methods disagree, and the difference is real when its p-value is below 0.05. For the <strong>mean reciprocal rank</strong> and the <strong>median rank</strong>, the difference between the two methods is given with the 95 % interval of a paired bootstrap, and it is real when the interval does not contain zero. This rule was fixed before the results were seen, and when it finds no real difference the two methods are tied.</p>
+<p>Two methods are compared measure by measure, and a single test is used for each measure. For a measure answered yes or no for every instrument or excerpt, which are <strong>closest is a gold instrument</strong> and <strong>a gold instrument among the five closest</strong> at the level of the instrument, and <strong>cited instrument first</strong>, <strong>among the five closest</strong> and <strong>among the ten closest</strong> at the level of the excerpt, McNemar’s exact test is applied to the cases on which the two methods disagree, and the difference is real when its p-value is below 0.05. For the <strong>mean reciprocal rank</strong> and the <strong>median rank</strong>, the difference between the two methods is given with the 95 % interval of a paired bootstrap, and it is real when the interval does not contain zero. This rule was fixed before the results were seen, and when it finds no real difference the two methods are tied.</p>
 </section>
 <section id="the-instruments" class="level3">
 <h3 class="anchored" data-anchor-id="the-instruments">The instruments</h3>
-<p>The measures below were taken on 5 October 2026, over the 132 instruments of signal A alone and over the 212 of signals A and B together.</p>
+<p>The measures below were taken on 12 October 2026, over the 161 instruments of signal A alone and over the 251 of signals A and B together.</p>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Gold links</th>
@@ -282,46 +293,46 @@ div.csl-indent {
 </thead>
 <tbody>
 <tr class="odd">
-<td>A (132)</td>
-<td>closest is a gold law</td>
-<td>100</td>
-<td>96</td>
+<td>A (161)</td>
+<td>closest is a gold instrument</td>
+<td>102</td>
+<td>98</td>
 <td>101</td>
 </tr>
 <tr class="even">
-<td>A (132)</td>
-<td>a gold law among the five closest</td>
-<td>123</td>
-<td>122</td>
-<td>126</td>
+<td>A (161)</td>
+<td>a gold instrument among the five closest</td>
+<td>130</td>
+<td>132</td>
+<td>132</td>
 </tr>
 <tr class="odd">
-<td>A (132)</td>
+<td>A (161)</td>
 <td>mean reciprocal rank</td>
-<td>0.836</td>
-<td>0.819</td>
-<td>0.845</td>
+<td>0.713</td>
+<td>0.707</td>
+<td>0.714</td>
 </tr>
 <tr class="even">
-<td>A and B (212)</td>
-<td>closest is a gold law</td>
-<td>126</td>
-<td>122</td>
-<td>126</td>
+<td>A and B (251)</td>
+<td>closest is a gold instrument</td>
+<td>130</td>
+<td>127</td>
+<td>129</td>
 </tr>
 <tr class="odd">
-<td>A and B (212)</td>
-<td>a gold law among the five closest</td>
-<td>180</td>
-<td>177</td>
-<td>181</td>
+<td>A and B (251)</td>
+<td>a gold instrument among the five closest</td>
+<td>195</td>
+<td>194</td>
+<td>193</td>
 </tr>
 <tr class="even">
-<td>A and B (212)</td>
+<td>A and B (251)</td>
 <td>mean reciprocal rank</td>
-<td>0.701</td>
-<td>0.690</td>
-<td>0.700</td>
+<td>0.629</td>
+<td>0.625</td>
+<td>0.625</td>
 </tr>
 </tbody>
 </table>
@@ -338,61 +349,61 @@ div.csl-indent {
 <tr class="header">
 <th>Gold links</th>
 <th>Pair</th>
-<th>closest is a gold law</th>
-<th>a gold law among the five closest</th>
+<th>closest is a gold instrument</th>
+<th>a gold instrument among the five closest</th>
 <th>mean reciprocal rank</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>A (132)</td>
+<td>A (161)</td>
 <td>0.6B − 4B</td>
-<td>tie (p = 0.29)</td>
-<td>tie (p = 1.00)</td>
-<td>tie ([−0.005, +0.039])</td>
+<td>tie (p = 0.34)</td>
+<td>tie (p = 0.73)</td>
+<td>tie ([−0.021, +0.034])</td>
 </tr>
 <tr class="even">
-<td>A (132)</td>
+<td>A (161)</td>
 <td>0.6B − BM25</td>
 <td>tie (p = 1.00)</td>
-<td>tie (p = 0.38)</td>
-<td>tie ([−0.037, +0.017])</td>
+<td>tie (p = 0.75)</td>
+<td>tie ([−0.032, +0.031])</td>
 </tr>
 <tr class="odd">
-<td>A (132)</td>
+<td>A (161)</td>
 <td>4B − BM25</td>
-<td>tie (p = 0.18)</td>
-<td>tie (p = 0.13)</td>
-<td>BM25 better ([−0.054, −0.002])</td>
-</tr>
-<tr class="even">
-<td>A and B (212)</td>
-<td>0.6B − 4B</td>
-<td>tie (p = 0.42)</td>
 <td>tie (p = 0.55)</td>
-<td>tie ([−0.009, +0.031])</td>
-</tr>
-<tr class="odd">
-<td>A and B (212)</td>
-<td>0.6B − BM25</td>
 <td>tie (p = 1.00)</td>
-<td>tie (p = 1.00)</td>
-<td>tie ([−0.027, +0.028])</td>
+<td>tie ([−0.035, +0.020])</td>
 </tr>
 <tr class="even">
-<td>A and B (212)</td>
+<td>A and B (251)</td>
+<td>0.6B − 4B</td>
+<td>tie (p = 0.63)</td>
+<td>tie (p = 1.00)</td>
+<td>tie ([−0.018, +0.026])</td>
+</tr>
+<tr class="odd">
+<td>A and B (251)</td>
+<td>0.6B − BM25</td>
+<td>tie (p = 1.00)</td>
+<td>tie (p = 0.85)</td>
+<td>tie ([−0.023, +0.030])</td>
+</tr>
+<tr class="even">
+<td>A and B (251)</td>
 <td>4B − BM25</td>
-<td>tie (p = 0.48)</td>
-<td>tie (p = 0.42)</td>
-<td>tie ([−0.038, +0.017])</td>
+<td>tie (p = 0.82)</td>
+<td>tie (p = 1.00)</td>
+<td>tie ([−0.025, +0.024])</td>
 </tr>
 </tbody>
 </table>
-<p>On what the map shows, which is the closest instrument and the five closest, the three methods cannot be told apart. The one real difference at this level is that on signal A alone BM25 has a higher mean reciprocal rank than the 4B, a small effect that does not survive on the wider gold standard.</p>
+<p>On what the map shows, which is the closest instrument and the five closest, the three methods cannot be told apart, and no pair differs on any of the three measures, on the narrow gold standard or on the wide one. The collection of the source matters more than the method. Of the 208 regulations scored on the wide gold standard, the closest instrument is a gold instrument for 122 under the 0.6B and BM25 and for 119 under the 4B, while for the 21 treaties it is so for five, three and three, and for the 13 laws for none, two and one. The links that start in a law or a treaty are few, which is why their figures change so much from one method to the next.</p>
 </section>
 <section id="the-excerpts" class="level3">
 <h3 class="anchored" data-anchor-id="the-excerpts">The excerpts</h3>
-<p>The same three data sets were then scored one excerpt at a time over the 2,003 excerpts that cite exactly one law, and again over the 1,444 excerpts that remain once those citing the Constitution are set aside.</p>
+<p>The same three data sets were then scored one excerpt at a time over the 4,468 excerpts that cite exactly one instrument, and again over the 2,534 excerpts that remain once those citing the Constitution are set aside.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -410,52 +421,52 @@ div.csl-indent {
 </thead>
 <tbody>
 <tr class="odd">
-<td>cited law first</td>
-<td>0.095</td>
-<td>0.103</td>
-<td>0.091</td>
+<td>cited instrument first</td>
+<td>0.093</td>
+<td>0.108</td>
+<td>0.100</td>
 </tr>
 <tr class="even">
 <td>among the five closest</td>
-<td>0.253</td>
-<td>0.273</td>
-<td>0.241</td>
+<td>0.248</td>
+<td>0.278</td>
+<td>0.255</td>
 </tr>
 <tr class="odd">
 <td>among the ten closest</td>
-<td>0.350</td>
-<td>0.380</td>
-<td>0.346</td>
+<td>0.334</td>
+<td>0.363</td>
+<td>0.341</td>
 </tr>
 <tr class="even">
 <td>mean reciprocal rank</td>
+<td>0.174</td>
+<td>0.195</td>
 <td>0.180</td>
-<td>0.194</td>
-<td>0.173</td>
 </tr>
 <tr class="odd">
 <td>median rank</td>
-<td>29</td>
-<td>21</td>
-<td>29</td>
+<td>39</td>
+<td>30</td>
+<td>40</td>
 </tr>
 <tr class="even">
 <td>among the five closest, without the Constitution</td>
-<td>0.337</td>
-<td>0.361</td>
-<td>0.323</td>
+<td>0.387</td>
+<td>0.423</td>
+<td>0.409</td>
 </tr>
 <tr class="odd">
 <td>mean reciprocal rank, without the Constitution</td>
-<td>0.238</td>
-<td>0.252</td>
-<td>0.231</td>
+<td>0.271</td>
+<td>0.294</td>
+<td>0.289</td>
 </tr>
 <tr class="even">
 <td>median rank, without the Constitution</td>
-<td>13</td>
-<td>11</td>
-<td>13</td>
+<td>10</td>
+<td>8</td>
+<td>9</td>
 </tr>
 </tbody>
 </table>
@@ -472,7 +483,7 @@ div.csl-indent {
 <thead>
 <tr class="header">
 <th>Pair</th>
-<th>cited law first</th>
+<th>cited instrument first</th>
 <th>among the five closest</th>
 <th>among the ten closest</th>
 <th>mean reciprocal rank</th>
@@ -482,52 +493,53 @@ div.csl-indent {
 <tbody>
 <tr class="odd">
 <td>0.6B − 4B</td>
-<td>tie (p = 0.14)</td>
-<td>4B better (p = 0.001)</td>
 <td>4B better (p &lt; 0.001)</td>
-<td>4B better ([−0.020, −0.007])</td>
-<td>4B better ([+5, +10])</td>
+<td>4B better (p &lt; 0.001)</td>
+<td>4B better (p &lt; 0.001)</td>
+<td>4B better ([−0.027, −0.016])</td>
+<td>4B better ([+6, +11])</td>
 </tr>
 <tr class="even">
 <td>0.6B − BM25</td>
-<td>tie (p = 0.53)</td>
-<td>tie (p = 0.19)</td>
-<td>tie (p = 0.75)</td>
-<td>tie ([−0.004, +0.017])</td>
-<td>tie ([−6, +5])</td>
+<td>tie (p = 0.09)</td>
+<td>tie (p = 0.27)</td>
+<td>tie (p = 0.29)</td>
+<td>tie ([−0.013, +0.001])</td>
+<td>tie ([−5, +3])</td>
 </tr>
 <tr class="odd">
 <td>4B − BM25</td>
-<td>tie (p = 0.054)</td>
+<td>tie (p = 0.08)</td>
 <td>4B better (p &lt; 0.001)</td>
 <td>4B better (p &lt; 0.001)</td>
-<td>4B better ([+0.010, +0.030])</td>
-<td>4B better ([−14, −3])</td>
+<td>4B better ([+0.008, +0.022])</td>
+<td>4B better ([−14, −6])</td>
 </tr>
 </tbody>
 </table>
-<p>At this level the methods are no longer tied. The 4B is better than both of the others on four of the five measures, the exception being the share of excerpts whose cited law is first, on which the three cannot be told apart, and the 0.6B and BM25 are tied on every measure. The differences are small, two to three points of recall, but they are not noise. The absolute level is low because an excerpt that cites an article of a law is usually about something other than the rest of that law, and the Constitution, which is cited by 559 of the excerpts, drags it down further. The order of the three is the same without the Constitution.</p>
+<p>At this level the methods are no longer tied. The 4B is better than the 0.6B on all five measures and better than BM25 on four of them, the exception being the share of excerpts whose cited instrument is first, on which the two cannot be told apart, and the 0.6B and BM25 are tied on every measure. The differences are small, two to three points of recall, but they are not noise. The absolute level is low because an excerpt that cites an article of a law is usually about something other than the rest of that law, and the Constitution, which is cited by 1,934 of the excerpts, drags it down further. The order of the three is the same without the Constitution.</p>
+<p>The level depends on who cites. The cited instrument is among the five closest for 35 %, 41 % and 38 % of the 1,528 excerpts of laws under the 0.6B, the 4B and BM25, for 26 %, 28 % and 26 % of the 1,901 excerpts of regulations, and for 32 %, 35 % and 28 % of the 185 excerpts of guidelines. For the 854 excerpts of treaties it is 2.7 %, 2.3 % and 1.9 %, with a median rank above 1,400 in every method. A treaty that cites an article of a Mexican law mentions it in passing, inside an agreement about something else, so that the law’s own text is probably far from the excerpt, and none of the three methods bridges that gap.</p>
 </section>
 <section id="the-reading" class="level3">
 <h3 class="anchored" data-anchor-id="the-reading">The reading</h3>
-<p>On the question the map answers, which is what an instrument is closest to, the three methods are indistinguishable at finding the law that a regulation develops, and a lexical baseline that learns nothing is as good as either embedding model. The 4B ranks a cited law higher for a single excerpt, and this is the one measured reason for switching to it. BM25 is not beaten everywhere. Among the ten most cited laws it is clearly the best on the <em>Código Fiscal de la Federación</em>, where the cited law is among the five closest for 68.4 % of the excerpts against 43.9 % for the 4B, and clearly the worst on the <em>Ley Orgánica del Poder Judicial de la Federación</em>, with 19.5 % against 43.9 %. These checks look at the law and not at the article, so they say nothing about whether the right article of that law ranks first.</p>
+<p>On the question the map answers, which is what an instrument is closest to, the three methods are indistinguishable at finding the instrument that another one develops, and a lexical baseline that learns nothing is as good as either embedding model. The 4B ranks a cited instrument higher for a single excerpt, and this is the one measured reason for switching to it. BM25 is not beaten everywhere. Among the ten most cited instruments it is the best on the <em>Código Fiscal de la Federación</em>, where the cited instrument is among the five closest for 79.7 % of the 172 excerpts against 44.2 % for the 4B, and the lowest of the three on the Constitution, with 5.2 % of 1,934 excerpts against 8.8 % for the 4B. These checks look at the instrument and not at the article, so they say nothing about whether the right article of that instrument ranks first.</p>
 <div class="atlas-data">
-<p><strong>Data.</strong> The texts are the three consolidated corpora this project publishes from the Supreme Court (SCJN), namely the <a href="../pages/leyes.html">laws</a> (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes"><code>scjn-leyes</code></a>), the regulations (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos"><code>scjn-reglamentos</code></a>) and the guidelines (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos"><code>scjn-lineamientos</code></a>). They are divided into excerpts and embedded with <code>Qwen/Qwen3-Embedding-0.6B</code>, the default of the map, and with <code>Qwen/Qwen3-Embedding-4B</code>, to which the similarity control switches, as it does to BM25, a lexical baseline computed from the same excerpts. Of the 161,989 excerpts, 28,568 are headings and 21,344 are transitory articles, neither of which is compared, and 1,715 are word-for-word texts shared by several instruments, which are matched but not counted, so that 110,362 count. The map is a UMAP projection with the cosine metric of each instrument’s matches. The Diario Oficial de la Federación remains the official source of legal text. Map data generated on <span data-atlas-generated="">5 October 2026</span>.</p>
+<p><strong>Data.</strong> The texts are the four consolidated corpora this project publishes from the Supreme Court (SCJN), namely the <a href="../pages/leyes.html">laws</a> (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-leyes"><code>scjn-leyes</code></a>), the regulations (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos"><code>scjn-reglamentos</code></a>) the guidelines (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos"><code>scjn-lineamientos</code></a>) and the treaties (<a href="https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-tratados"><code>scjn-tratados</code></a>). They are divided into excerpts and embedded with <code>Qwen/Qwen3-Embedding-0.6B</code>, the default of the map, and with <code>Qwen/Qwen3-Embedding-4B</code>, to which the similarity control switches, as it does to BM25, a lexical baseline computed from the same excerpts. Of the 203,324 excerpts, 31,172 are headings and 26,182 are transitory articles, neither of which is compared, and 1,947 are word-for-word texts shared by several instruments, which are matched but not counted, so that 144,023 count. The map is a UMAP projection with the cosine metric of each instrument’s matches. The Diario Oficial de la Federación remains the official source of legal text. Map data generated on <span data-atlas-generated="">12 October 2026</span>.</p>
 <p><em>Read more.</em> The division of instruments into excerpts is described in <a href="https://legalia.readthedocs.io/en/latest/md2akn_api.html"><code>md2akn</code></a>, the way the vectors are read back in <a href="https://legalia.readthedocs.io/en/latest/legalvec_api.html"><code>legalvec</code></a>, and the full tables of the two evaluations in the <a href="https://github.com/INGEOTEC/LegalIA/blob/master/scripts/embeddings/README.md">project’s notes</a>.</p>
 </div>
-<div class="callout callout-style-default callout-note callout-titled" title="The 227 strong links of the 212 instruments">
+<div class="callout callout-style-default callout-note callout-titled" title="The 275 strong links of the 251 instruments">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>The 227 strong links of the 212 instruments
+<span class="screen-reader-only">Note</span>The 275 strong links of the 251 instruments
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>A link comes from signal A when the name of the instrument contains the name of the law and from signal B when the sentence that states the purpose of the instrument names it, and the full table of links is given below.</p>
+<p>A link comes from signal A when the name of the instrument contains the name of another instrument and from signal B when the sentence that states the purpose of the instrument names it, and the full table of links is given below.</p>
 <!-- The strong links of the Atlas instruments (signals A and B), one row per link. A generated file: regenerate it, do not edit it. -->
 <table class="caption-top table">
 <colgroup>
@@ -538,24 +550,144 @@ div.csl-indent {
 <thead>
 <tr class="header">
 <th>Instrument</th>
-<th>Law</th>
+<th>Links to</th>
 <th>Signal</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td>ACUERDO PARA LA APLICACION DE SALVAGUARDIAS EN RELACION CON EL TRATADO PARA LA PROSCRIPCION DE LAS ARMAS NUCLEARES EN LA AMERICA LATINA Y EL TRATADO SOBRE LA NO PROLIFERACION DE LAS ARMAS NUCLEARES (OIEA, 1972)</td>
+<td>TRATADO SOBRE LA NO PROLIFERACION DE LAS ARMAS NUCLEARES (MULTILATERAL, 1968)</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>AVISO POR EL QUE SE DA A CONOCER EL ESQUEMA DE CERTIFICACION QUE LA REPUBLICA SOCIALISTA DE VIETNAM APLICARA EN EL MARCO DEL TRATADO INTEGRAL Y PROGRESISTA DE ASOCIACION TRANSPACIFICO</td>
+<td>TRATADO INTEGRAL Y PROGRESISTA DE ASOCIACION TRANSPACIFICO (MULTILATERAL, 2018)</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>CODIGO INTERNACIONAL DE SISTEMAS DE SEGURIDAD CONTRA INCENDIOS (CODIGO SSCI)</td>
+<td>CONVENIO INTERNACIONAL PARA LA SEGURIDAD DE LA VIDA HUMANA EN EL MAR (MULTILATERAL, 1974)</td>
+<td>B</td>
+</tr>
+<tr class="even">
+<td>CODIGO PARA LAS ORGANIZACIONES RECONOCIDAS (CODIGO OR)</td>
+<td>CONVENIO INTERNACIONAL PARA LA SEGURIDAD DE LA VIDA HUMANA EN EL MAR (MULTILATERAL, 1974)</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>CODIGO PARA LAS ORGANIZACIONES RECONOCIDAS (CODIGO OR)</td>
+<td>CONVENIO INTERNACIONAL PARA PREVENIR LA CONTAMINACION POR LOS BUQUES, 1973, ADOPTADO EN LA CIUDAD DE LONDRES, GRAN BRETAÑA EL 2 DE NOVIEMBRE DE 1973, Y EL PROTOCOLO DE 1978 RELATIVO AL CONVENIO INTERNACIONAL PARA PREVENIR LA CONTAMINACION POR LOS BUQUES, 1973, ADOPTADO EN LA CIUDAD DE LONDRES, GRAN BRETAÑA, EL 17 DE FEBRERO DE 1978</td>
+<td>B</td>
+</tr>
+<tr class="even">
+<td>CODIGO PARA LAS ORGANIZACIONES RECONOCIDAS (CODIGO OR)</td>
+<td>CONVENIO INTERNACIONAL SOBRE LINEAS DE CARGA (MULTILATERAL, 1966)</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>CONVENCION PARA HOMOLOGAR EL TRATAMIENTO IMPOSITIVO PREVISTO EN LOS CONVENIOS PARA EVITAR LA DOBLE IMPOSICION SUSCRITOS ENTRE LOS ESTADOS PARTE DEL ACUERDO MARCO DE LA ALIANZA DEL PACIFICO (MULTILATERAL, 2017)</td>
+<td>ACUERDO MARCO DE LA ALIANZA DEL PACIFICO (MULTILATERAL, 2012)</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>LEY de Amparo, Reglamentaria de los artículos 103 y 107 de la Constitución Política de los Estados Unidos Mexicanos</td>
+<td>CONSTITUCIÓN Política de los Estados Unidos Mexicanos</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>LEY de Fomento a la Industria Vitivinícola</td>
+<td>LEY de Desarrollo Rural Sustentable</td>
+<td>B</td>
+</tr>
+<tr class="even">
+<td>LEY de Fomento a la Industria Vitivinícola</td>
+<td>LEY para Impulsar el Incremento Sostenido de la Productividad y la Competitividad de la Economía Nacional</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>LEY de Ingresos sobre Hidrocarburos</td>
+<td>LEY del Sector Hidrocarburos</td>
+<td>B</td>
+</tr>
+<tr class="even">
+<td>LEY General para Prevenir y Sancionar los Delitos en Materia de Secuestro, Reglamentaria de la fracción XXI del artículo 73 de la Constitución Política de los Estados Unidos Mexicanos</td>
+<td>CONSTITUCIÓN Política de los Estados Unidos Mexicanos</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>Ley General para Prevenir, Investigar y Sancionar los Delitos en Materia de Extorsión, Reglamentaria de la fracción XXI del artículo 73 de la Constitución Política de los Estados Unidos Mexicanos</td>
+<td>CONSTITUCIÓN Política de los Estados Unidos Mexicanos</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>LEY Orgánica de la Procuraduría General de Justicia del Distrito Federal</td>
+<td>ESTATUTO de Gobierno del Distrito Federal</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>LEY que Aprueba la Adhesión de México al Convenio Constitutivo del Banco de Desarrollo del Caribe y su Ejecución</td>
+<td>CONVENIO CONSTITUTIVO DEL BANCO DE DESARROLLO DEL CARIBE (MULTILATERAL, 1969)</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>LEY que Establece Bases para la Ejecución en México, por el Poder Ejecutivo Federal, del Convenio Constitutivo del Banco Interamericano de Desarrollo</td>
+<td>CONVENIO CONSTITUTIVO DEL BANCO INTERAMERICANO DE DESARROLLO (MULTILATERAL, 1959)</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>LEY Reglamentaria de la fracción VI del artículo 76 de la Constitución Política de los Estados Unidos Mexicanos</td>
+<td>CONSTITUCIÓN Política de los Estados Unidos Mexicanos</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>LEY Reglamentaria de la Fracción XIII Bis del Apartado B, del Artículo 123 de la Constitución Política de los Estados Unidos Mexicanos</td>
+<td>CONSTITUCIÓN Política de los Estados Unidos Mexicanos</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>LEY Reglamentaria de las Fracciones I y II del Artículo 105 de la Constitución Política de los Estados Unidos Mexicanos</td>
+<td>CONSTITUCIÓN Política de los Estados Unidos Mexicanos</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>LEY Reglamentaria del Artículo 3o. de la Constitución Política de los Estados Unidos Mexicanos, en materia de Mejora Continua de la Educación</td>
+<td>CONSTITUCIÓN Política de los Estados Unidos Mexicanos</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>LEY Reglamentaria del artículo 6o., párrafo primero, de la Constitución Política de los Estados Unidos Mexicanos, en materia del Derecho de Réplica</td>
+<td>CONSTITUCIÓN Política de los Estados Unidos Mexicanos</td>
+<td>A</td>
+</tr>
+<tr class="even">
 <td>LINEAMIENTOS [QUE ESTABLECEN LAS MEDIDAS DE RACIONALIDAD, AUSTERIDAD, DISCIPLINA PRESUPUESTAL Y MODERNIZACION DE LA GESTION EN LA SUPREMA CORTE DE JUSTICIA DE LA NACION PARA EL EJERCICIO FISCAL DOS MIL VEINTICINCO]</td>
 <td>LEY Orgánica del Poder Judicial de la Federación</td>
 <td>B</td>
 </tr>
+<tr class="odd">
+<td>LINEAMIENTOS [QUE ESTABLECEN LAS MEDIDAS DE RACIONALIDAD, AUSTERIDAD, DISCIPLINA PRESUPUESTAL Y MODERNIZACION DE LA GESTION EN LA SUPREMA CORTE DE JUSTICIA DE LA NACION PARA EL EJERCICIO FISCAL DOS MIL VEINTICINCO]</td>
+<td>REGLAMENTO ORGANICO EN MATERIA DE ADMINISTRACION DE LA SUPREMA CORTE DE JUSTICIA DE LA NACION</td>
+<td>B</td>
+</tr>
 <tr class="even">
+<td>LINEAMIENTOS DEL SIETE DE MARZO DE 2007, DE LA COMISION MIXTA DE ESCALAFON, EN MATERIA DE EVALUACION DE LOS FACTORES ESCALAFONARIOS EN TERMINOS DE LO ESTABLECIDO EN EL CAPITULO CUARTO DEL REGLAMENTO DE ESCALAFON DE LA SUPREMA CORTE DE JUSTICIA DE LA NACION Y, DE APLICACION Y EVALUACION DE EXAMENES DE CONOCIMIENTOS CONFORME A LO ESTABLECIDO EN EL ARTICULO 27 DEL REGLAMENTO DE ESCALAFON DE LA SUPREMA CORTE DE JUSTICIA DE LA NACION</td>
+<td>REGLAMENTO DE ESCALAFON DE LA SUPREMA CORTE DE JUSTICIA DE LA NACION</td>
+<td>A</td>
+</tr>
+<tr class="odd">
 <td>LINEAMIENTOS PARA EL OTORGAMIENTO DE MEDIDAS EN MATERIA DE TRASLADOS</td>
 <td>LEY General de Víctimas</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>LINEAMIENTOS PARA LA APLICACION, CONSTITUCION Y RECONSTITUCION DE LAS RESERVAS DEL PENSIONISSSTE</td>
 <td>LEY del Instituto de Seguridad y Servicios Sociales de los Trabajadores del Estado</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>LINEAMIENTOS PARA LA APLICACION, CONSTITUCION Y RECONSTITUCION DE LAS RESERVAS DEL PENSIONISSSTE</td>
+<td>REGLAMENTO ORGANICO DEL FONDO NACIONAL DE PENSIONES DE LOS TRABAJADORES AL SERVICIO DEL ESTADO</td>
 <td>B</td>
 </tr>
 <tr class="even">
@@ -589,6 +721,86 @@ div.csl-indent {
 <td>B</td>
 </tr>
 <tr class="even">
+<td>PROTOCOLO A LA CONVENCION AMERICANA SOBRE DERECHOS HUMANOS RELATIVO A LA ABOLICION DE LA PENA DE MUERTE, ADOPTADO EN ASUNCION, PARAGUAY, EL 8 DE JUNIO DE 1990</td>
+<td>CONVENCION AMERICANA SOBRE DERECHOS HUMANOS, ADOPTADA EN SAN JOSE DE COSTA RICA Y ABIERTA A FIRMA EL DIA 22 DE NOVIEMBRE DE 1969, CON LAS DECLARACIONES INTERPRETATIVAS AL PARRAFO 1 DEL ARTICULO 4 Y AL ARTICULO 12 Y LA RESERVA AL ARTICULO 23, PARRAFO 2, QUE FORMULARA EL EJECUTIVO DE LA UNION AL PROCEDER A SU ADHESION</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>PROTOCOLO ADICIONAL A LA CONVENCION AMERICANA SOBRE DERECHOS HUMANOS EN MATERIA DE DERECHOS ECONOMICOS, SOCIALES Y CULTURALES “PROTOCOLO DE SAN SALVADOR” ADOPTADO EN LA CIUDAD DE SAN SALVADOR, EL 17 DE NOVIEMBRE DE 1988</td>
+<td>CONVENCION AMERICANA SOBRE DERECHOS HUMANOS, ADOPTADA EN SAN JOSE DE COSTA RICA Y ABIERTA A FIRMA EL DIA 22 DE NOVIEMBRE DE 1969, CON LAS DECLARACIONES INTERPRETATIVAS AL PARRAFO 1 DEL ARTICULO 4 Y AL ARTICULO 12 Y LA RESERVA AL ARTICULO 23, PARRAFO 2, QUE FORMULARA EL EJECUTIVO DE LA UNION AL PROCEDER A SU ADHESION</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>PROTOCOLO CONTRA EL TRAFICO ILICITO DE MIGRANTES POR TIERRA, MAR Y AIRE, QUE COMPLEMENTA LA CONVENCION DE LAS NACIONES UNIDAS CONTRA LA DELINCUENCIA ORGANIZADA TRANSNACIONAL, ADOPTADO POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 15 DE NOVIEMBRE DE 2000</td>
+<td>CONVENCION DE LAS NACIONES UNIDAS CONTRA LA DELINCUENCIA ORGANIZADA TRANSNACIONAL, ADOPTADA POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 15 DE NOVIEMBRE DE 2000</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>PROTOCOLO CONTRA LA FABRICACION Y EL TRAFICO ILICITOS DE ARMAS DE FUEGO, SUS PIEZAS Y COMPONENTES Y MUNICIONES, QUE COMPLEMENTA LA CONVENCION DE LAS NACIONES UNIDAS CONTRA LA DELINCUENCIA ORGANIZADA TRANSNACIONAL, ADOPTADO POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 31 DE MAYO DE 2001</td>
+<td>CONVENCION DE LAS NACIONES UNIDAS CONTRA LA DELINCUENCIA ORGANIZADA TRANSNACIONAL, ADOPTADA POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 15 DE NOVIEMBRE DE 2000</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>PROTOCOLO DE 1996 RELATIVO AL CONVENIO SOBRE LA PREVENCION DE LA CONTAMINACION DEL MAR POR VERTIMIENTO DE DESECHOS Y OTRAS MATERIAS, 1972, ADOPTADO EN LA CIUDAD DE LONDRES, EL 7 DE NOVIEMBRE DE 1996</td>
+<td>CONVENIO SOBRE LA PREVENCION DE LA CONTAMINACION DEL MAR POR VERTIMIENTO DE DESECHOS Y OTRAS MATERIAS, ABIERTO A FIRMA EN LAS CIUDADES DE MEXICO, LONDRES, MOSCU, Y WASHINGTON, EL 29 DE DICIEMBRE DE 1972</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>PROTOCOLO DE CARTAGENA SOBRE LA SEGURIDAD DE LA BIOTECNOLOGIA DEL CONVENIO SOBRE LA DIVERSIDAD BIOLOGICA, ADOPTADO EN MONTREAL, EL 29 DE ENERO DE 2000</td>
+<td>CONVENIO SOBRE LA DIVERSIDAD BIOLOGICA, ADOPTADO EN RIO DE JANERIO, BRASIL, EL 5 DE JUNIO DE 1992</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>PROTOCOLO DE NAGOYA SOBRE ACCESO A LOS RECURSOS GENETICOS Y PARTICIPACION JUSTA Y EQUITATIVA EN LOS BENEFICIOS QUE SE DERIVEN DE SU UTILIZACION AL CONVENIO SOBRE LA DIVERSIDAD BIOLOGICA (MULTILATERAL, 2010)</td>
+<td>CONVENIO SOBRE LA DIVERSIDAD BIOLOGICA, ADOPTADO EN RIO DE JANERIO, BRASIL, EL 5 DE JUNIO DE 1992</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>PROTOCOLO FACULTATIVO DE LA CONVENCION CONTRA LA TORTURA Y OTROS TRATOS O PENAS CRUELES, INHUMANOS O DEGRADANTES, ADOPTADO POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 18 DE DICIEMBRE DE 2002</td>
+<td>CONVENCION CONTRA LA TORTURA Y OTROS TRATOS O PENAS CRUELES, INHUMANOS O DEGRADANTES, ADOPTADA POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS, EL DIA 10 DEL MES DE DICIEMBRE DEL AÑO DE 1984</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>PROTOCOLO FACULTATIVO DE LA CONVENCION SOBRE LA ELIMINACION DE TODAS LAS FORMAS DE DISCRIMINACION CONTRA LA MUJER, ADOPTADO POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 6 DE OCTUBRE DE 1999</td>
+<td>CONVENCION SOBRE LA ELIMINACION DE TODAS LAS FORMAS DE DISCRIMINACION CONTRA LA MUJER, ADOPTADA POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS, EL DIA 18 DE DICIEMBRE DE 1979</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>PROTOCOLO FACULTATIVO DE LA CONVENCION SOBRE LOS DERECHOS DEL NIÑO RELATIVO A LA PARTICIPACION DE NIÑOS EN LOS CONFLICTOS ARMADOS, ADOPTADO POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 25 DE MAYO DE 2000</td>
+<td>CONVENCION SOBRE LOS DERECHOS DEL NIÑO, ADOPTADA EN LA CIUDAD DE NUEVA YORK, N. Y., EL 20 DE NOVIEMBRE DE 1989</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>PROTOCOLO FACULTATIVO DE LA CONVENCION SOBRE LOS DERECHOS DEL NIÑO RELATIVO A LA VENTA DE NIÑOS, LA PROSTITUCION INFANTIL Y LA UTILIZACION DE LOS NIÑOS EN LA PORNOGRAFIA, ADOPTADO POR LA ASAMBLEA DE LAS NACIONES UNIDAS EL 25 DE MAYO DE 2000</td>
+<td>CONVENCION SOBRE LOS DERECHOS DEL NIÑO, ADOPTADA EN LA CIUDAD DE NUEVA YORK, N. Y., EL 20 DE NOVIEMBRE DE 1989</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>PROTOCOLO FACULTATIVO DEL PACTO INTERNACIONAL DE DERECHOS CIVILES Y POLITICOS, ADOPTADO POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 16 DE DICIEMBRE DE 1966</td>
+<td>PACTO INTERNACIONAL DE DERECHOS CIVILES Y POLITICOS, ABIERTO A FIRMA EN LA CIUDAD DE NUEVA YORK, E.U.A., EL DIA 19 DE DICIEMBRE DE 1966, CON LAS DECLARACIONES INTERPRETATIVAS A LOS ARTICULOS 9, PARRAFO 5, Y AL ARTICULO 18, Y LAS RESERVAS AL ARTICULO 13 Y AL INCISO B) DEL ARTICULO 25, QUE EFECTUARA EL EJECUTIVO DE LA UNION AL PROCEDER A SU ADHESION</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>PROTOCOLO PARA PREVENIR, REPRIMIR Y SANCIONAR LA TRATA DE PERSONAS, ESPECIALMENTE MUJERES Y NIÑOS, QUE COMPLEMENTA LA CONVENCION DE LAS NACIONES UNIDAS CONTRA LA DELINCUENCIA ORGANIZADA TRANSNACIONAL, ADOPTADO POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 15 DE NOVIEMBRE DE 2000</td>
+<td>CONVENCION DE LAS NACIONES UNIDAS CONTRA LA DELINCUENCIA ORGANIZADA TRANSNACIONAL, ADOPTADA POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 15 DE NOVIEMBRE DE 2000</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>PROTOCOLO POR EL QUE SE SUSTITUYE EL TRATADO DE LIBRE COMERCIO DE AMERICA DEL NORTE POR EL TRATADO ENTRE LOS ESTADOS UNIDOS MEXICANOS, LOS ESTADOS UNIDOS DE AMERICA Y CANADA (MULTILATERAL, 2018)</td>
+<td>TRATADO DE LIBRE COMERCIO DE AMERICA DEL NORTE (17 DE DICIEMBRE DE 1992)</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>REGLAMENTO DE ADMINISTRACION Y FUNCIONAMIENTO DE LA CORPORACION ANGELES VERDES</td>
+<td>REGLAMENTO INTERIOR DE LA SECRETARIA DE TURISMO</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>REGLAMENTO DE BECAS DEL PROGRAMA DE FOMENTO, FORMACION Y CONSOLIDACION DE CAPITAL HUMANO DE ALTO NIVEL – ANTES REGLAMENTO DE BECAS DEL CONSEJO NACIONAL DE CIENCIA Y TECNOLOGIA – ANTES REGLAMENTO DE BECAS DEL PROGRAMA DE FOMENTO, FORMACION, DESARROLLO Y VINCULACION DE RECURSOS HUMANOS DE ALTO NIVEL DEL CONSEJO NACIONAL DE CIENCIA Y TECNOLOGIA–</td>
+<td>REGLAMENTO DE BECAS DEL CONSEJO NACIONAL DE CIENCIA Y TECNOLOGIA</td>
+<td>A</td>
+</tr>
+<tr class="even">
 <td>REGLAMENTO DE COMISIONES DEL CONSEJO GENERAL DEL INSTITUTO NACIONAL ELECTORAL</td>
 <td>LEY General de Instituciones y Procedimientos Electorales</td>
 <td>B</td>
@@ -619,703 +831,703 @@ div.csl-indent {
 <td>B</td>
 </tr>
 <tr class="even">
-<td>REGLAMENTO DE LA CAMARA DE DIPUTADOS</td>
-<td>REGLAMENTO de la Cámara de Diputados</td>
-<td>A</td>
-</tr>
-<tr class="odd">
 <td>REGLAMENTO DE LA COMISION DE AVALUOS DE BIENES NACIONALES</td>
 <td>LEY General de Bienes Nacionales</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA COMISION FEDERAL PARA LA PROTECCION CONTRA RIESGOS SANITARIOS</td>
 <td>LEY General de Salud</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA JUNTA NAVAL</td>
 <td>LEY Orgánica de la Armada de México</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY ADUANERA</td>
 <td>LEY Aduanera</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY AGRARIA EN MATERIA DE CERTIFICACION DE DERECHOS EJIDALES Y TITULACION DE SOLARES</td>
 <td>LEY Agraria</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY AGRARIA EN MATERIA DE ORDENAMIENTO DE LA PROPIEDAD RURAL</td>
 <td>LEY Agraria</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY AGRARIA PARA FOMENTAR LA ORGANIZACION Y DESARROLLO DE LA MUJER CAMPESINA</td>
 <td>LEY Agraria</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE ADQUISICIONES, ARRENDAMIENTOS Y SERVICIOS DEL SECTOR PUBLICO</td>
 <td>LEY de Adquisiciones, Arrendamientos y Servicios del Sector Público</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE AEROPUERTOS</td>
 <td>LEY de Aeropuertos</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE AGUAS NACIONALES</td>
 <td>LEY de Aguas Nacionales</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE ASCENSOS DE LA ARMADA DE MEXICO</td>
 <td>LEY de Ascensos de la Armada de México</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE ASCENSOS Y RECOMPENSAS DEL EJERCITO, FUERZA AEREA Y GUARDIA NACIONAL – ANTES REGLAMENTO DE LA LEY DE ASCENSOS Y RECOMPENSAS DEL EJERCITO Y FUERZA AEREA MEXICANOS –</td>
 <td>LEY de Ascensos y Recompensas del Ejército, Fuerza Aérea y Guardia Nacional</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE ASOCIACIONES PUBLICO PRIVADAS</td>
 <td>LEY de Asociaciones Público Privadas</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE ASOCIACIONES RELIGIOSAS Y CULTO PUBLICO</td>
 <td>LEY de Asociaciones Religiosas y Culto Público</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE AVIACION CIVIL</td>
 <td>LEY de Aviación Civil</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE AYUDA ALIMENTARIA PARA LOS TRABAJADORES</td>
 <td>LEY de Ayuda Alimentaria para los Trabajadores</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE BIOCOMBUSTIBLES</td>
 <td>LEY de Biocombustibles</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE BIOSEGURIDAD DE ORGANISMOS GENETICAMENTE MODIFICADOS</td>
 <td>LEY de Bioseguridad de Organismos Genéticamente Modificados</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE CAMARAS EMPRESARIALES Y SUS CONFEDERACIONES</td>
 <td>LEY de Cámaras Empresariales y sus Confederaciones</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE COMERCIO EXTERIOR</td>
 <td>LEY de Comercio Exterior</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE DESARROLLO RURAL SUSTENTABLE EN MATERIA DE ORGANISMOS, INSTANCIAS DE REPRESENTACION, SISTEMAS Y SERVICIOS ESPECIALIZADOS</td>
 <td>LEY de Desarrollo Rural Sustentable</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE EDUCACION MILITAR DEL EJERCITO, FUERZA AEREA Y GUARDIA NACIONAL – ANTES REGLAMENTO DE LA LEY DE EDUCACION MILITAR DEL EJERCITO Y FUERZA AEREA MEXICANOS –</td>
 <td>LEY de Educación Militar del Ejército, Fuerza Aérea y Guardia Nacional</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE EDUCACION NAVAL</td>
 <td>LEY de Educación Naval</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE ENERGIA PARA EL CAMPO</td>
 <td>LEY de Energía para el Campo</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE FIRMA ELECTRONICA AVANZADA</td>
 <td>LEY de Firma Electrónica Avanzada</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE FOMENTO PARA LA LECTURA Y EL LIBRO</td>
 <td>LEY de Fomento para la Lectura y el Libro</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE GEOTERMIA</td>
 <td>LEY de Geotermia</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE INGRESOS SOBRE HIDROCARBUROS</td>
 <td>LEY de Ingresos sobre Hidrocarburos</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE INVERSION EXTRANJERA Y DEL REGISTRO NACIONAL DE INVERSIONES EXTRANJERAS</td>
 <td>LEY de Inversión Extranjera</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE LA EMPRESA PUBLICA DEL ESTADO, COMISION FEDERAL DE ELECTRICIDAD</td>
 <td>LEY de la Empresa Pública del Estado, Comisión Federal de Electricidad</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE LA EMPRESA PUBLICA DEL ESTADO, PETROLEOS MEXICANOS</td>
 <td>LEY de la Empresa Pública del Estado, Petróleos Mexicanos</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE LA GUARDIA NACIONAL</td>
 <td>LEY de la Guardia Nacional</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE LA POLICIA FEDERAL</td>
 <td>LEY de la Policía Federal</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE LOS SISTEMAS DE AHORRO PARA EL RETIRO</td>
 <td>LEY de los Sistemas de Ahorro para el Retiro</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE MIGRACION</td>
 <td>LEY de Migración</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE NACIONALIDAD</td>
 <td>LEY de Nacionalidad</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE NAVEGACION Y COMERCIO MARITIMOS</td>
 <td>LEY de Navegación y Comercio Marítimos</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE OBRAS PUBLICAS Y SERVICIOS RELACIONADOS CON LAS MISMAS</td>
 <td>LEY de Obras Públicas y Servicios Relacionados con las Mismas</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE ORGANIZACIONES GANADERAS</td>
 <td>LEY de Organizaciones Ganaderas</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE PLANEACION Y TRANSICION ENERGETICA</td>
 <td>LEY de Planeación y Transición Energética</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE PRODUCTOS ORGANICOS</td>
 <td>LEY de Productos Orgánicos</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE PROTECCION DEL ESPACIO AEREO MEXICANO</td>
 <td>LEY de Protección del Espacio Aéreo Mexicano</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DE PUERTOS</td>
 <td>LEY de Puertos</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DE TESORERIA DE LA FEDERACION</td>
 <td>LEY de Tesorería de la Federación</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DEL IMPUESTO AL VALOR AGREGADO</td>
 <td>LEY del Impuesto al Valor Agregado</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DEL IMPUESTO ESPECIAL SOBRE PRODUCCION Y SERVICIOS</td>
 <td>LEY del Impuesto Especial sobre Producción y Servicios</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DEL IMPUESTO SOBRE LA RENTA</td>
 <td>LEY del Impuesto sobre la Renta</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DEL INSTITUTO DE SEGURIDAD SOCIAL PARA LAS FUERZAS ARMADAS MEXICANAS</td>
 <td>LEY del Instituto de Seguridad Social para las Fuerzas Armadas Mexicanas</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DEL INSTITUTO DEL FONDO NACIONAL DE LA VIVIENDA PARA LOS TRABAJADORES EN MATERIA DE TRANSPARENCIA Y ACCESO A LA INFORMACION</td>
 <td>LEY del Instituto del Fondo Nacional de la Vivienda para los Trabajadores</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DEL INSTITUTO DEL FONDO NACIONAL PARA EL CONSUMO DE LOS TRABAJADORES</td>
 <td>LEY del Instituto del Fondo Nacional para el Consumo de los Trabajadores</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DEL REGISTRO PUBLICO VEHICULAR</td>
 <td>LEY del Registro Público Vehicular</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DEL SECTOR ELECTRICO</td>
 <td>LEY del Sector Eléctrico</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DEL SECTOR HIDROCARBUROS</td>
 <td>LEY del Sector Hidrocarburos</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DEL SEGURO SOCIAL EN MATERIA DE AFILIACION, CLASIFICACION DE EMPRESAS, RECAUDACION Y FISCALIZACION</td>
 <td>LEY del Seguro Social</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DEL SEGURO SOCIAL PARA LA CONSTITUCION, INVERSION Y USO PARA LA OPERACION DE LAS RESERVAS FINANCIERAS Y ACTUARIALES Y LA RESERVA GENERAL FINANCIERA Y ACTUARIAL, ASI COMO PARA LA DETERMINACION DE LOS COSTOS FINANCIEROS QUE DEBERAN REINTEGRARSE A LA RESERVA DE OPERACION PARA CONTINGENCIAS Y FINANCIAMIENTO</td>
 <td>LEY del Seguro Social</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DEL SEGURO SOCIAL, EN MATERIA DE ADMINISTRACION Y ENAJENACION DE BIENES ADJUDICADOS CON MOTIVO DE LA APLICACION DEL PROCEDIMIENTO ADMINISTRATIVO DE EJECUCION</td>
 <td>LEY del Seguro Social</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DEL SERVICIO EXTERIOR MEXICANO</td>
 <td>LEY del Servicio Exterior Mexicano</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY DEL SERVICIO MILITAR</td>
 <td>LEY del Servicio Militar</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY DEL SERVICIO PROFESIONAL DE CARRERA EN LA ADMINISTRACION PUBLICA FEDERAL</td>
 <td>LEY del Servicio Profesional de Carrera en la Administración Pública Federal</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY FEDERAL DE ARMAS DE FUEGO Y EXPLOSIVOS</td>
 <td>LEY Federal de Armas de Fuego y Explosivos</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY FEDERAL DE COMPETENCIA ECONOMICA</td>
 <td>LEY Federal de Competencia Económica</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY FEDERAL DE CORREDURIA PUBLICA</td>
 <td>LEY Federal de Correduría Pública</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY FEDERAL DE FOMENTO A LAS ACTIVIDADES REALIZADAS POR ORGANIZACIONES DE LA SOCIEDAD CIVIL</td>
 <td>LEY Federal de Fomento a las Actividades Realizadas por Organizaciones de la Sociedad Civil</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY FEDERAL DE JUEGOS Y SORTEOS</td>
 <td>LEY Federal de Juegos y Sorteos</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY FEDERAL DE LAS ENTIDADES PARAESTATALES</td>
 <td>LEY Federal de las Entidades Paraestatales</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY FEDERAL DE PRESUPUESTO Y RESPONSABILIDAD HACENDARIA</td>
 <td>LEY Federal de Presupuesto y Responsabilidad Hacendaria</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY FEDERAL DE PRODUCCION, CERTIFICACION Y COMERCIO DE SEMILLAS</td>
 <td>LEY Federal de Producción, Certificación y Comercio de Semillas</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY FEDERAL DE PROTECCION A LA PROPIEDAD INDUSTRIAL</td>
 <td>LEY Federal de Protección a la Propiedad Industrial</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY FEDERAL DE PROTECCION AL CONSUMIDOR</td>
 <td>LEY Federal de Protección al Consumidor</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY FEDERAL DE PROTECCION DE DATOS PERSONALES EN POSESION DE LOS PARTICULARES</td>
 <td>LEY Federal de Protección de Datos Personales en Posesión de los Particulares</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY FEDERAL DE SANIDAD ANIMAL</td>
 <td>LEY Federal de Sanidad Animal</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY FEDERAL DE SANIDAD VEGETAL</td>
 <td>LEY Federal de Sanidad Vegetal</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY FEDERAL DE SEGURIDAD PRIVADA</td>
 <td>LEY Federal de Seguridad Privada</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY FEDERAL DE VARIEDADES VEGETALES</td>
 <td>LEY Federal de Variedades Vegetales</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY FEDERAL DE ZONAS ECONOMICAS ESPECIALES</td>
 <td>LEY Federal de Zonas Económicas Especiales</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY FEDERAL DEL DERECHO DE AUTOR</td>
 <td>LEY Federal del Derecho de Autor</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY FEDERAL PARA EL CONTROL DE PRECURSORES QUIMICOS, PRODUCTOS QUIMICOS ESENCIALES Y MAQUINAS PARA ELABORAR CAPSULAS, TABLETAS Y/O COMPRIMIDOS</td>
 <td>LEY Federal para el Control de Precursores Químicos, Productos Químicos Esenciales y Máquinas para Elaborar Cápsulas, Tabletas y/o Comprimidos</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY FEDERAL PARA LA ADMINISTRACION Y ENAJENACION DE BIENES DEL SECTOR PUBLICO</td>
 <td>LEY Federal para la Administración y Enajenación de Bienes del Sector Público</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY FEDERAL PARA LA PREVENCION E IDENTIFICACION DE OPERACIONES CON RECURSOS DE PROCEDENCIA ILICITA</td>
 <td>LEY Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE CAMBIO CLIMATICO EN MATERIA DEL REGISTRO NACIONAL DE EMISIONES</td>
 <td>LEY General de Cambio Climático</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DE CULTURA FISICA Y DEPORTE</td>
 <td>LEY General de Cultura Física y Deporte</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE CULTURA Y DERECHOS CULTURALES</td>
 <td>LEY General de Cultura y Derechos Culturales</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DE DESARROLLO FORESTAL SUSTENTABLE</td>
 <td>LEY General de Desarrollo Forestal Sustentable</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE DESARROLLO SOCIAL</td>
 <td>LEY General de Desarrollo Social</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DE LOS DERECHOS DE NIÑAS, NIÑOS Y ADOLESCENTES</td>
 <td>LEY General de los Derechos de Niñas, Niños y Adolescentes</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE POBLACION</td>
 <td>LEY General de Población</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DE PRESTACION DE SERVICIOS PARA LA ATENCION, CUIDADO Y DESARROLLO INTEGRAL INFANTIL</td>
 <td>LEY General de Prestación de Servicios para la Atención, Cuidado y Desarrollo Integral Infantil</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE PROTECCION CIVIL</td>
 <td>LEY General de Protección Civil</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE CONTROL SANITARIO DE ACTIVIDADES, ESTABLECIMIENTOS, PRODUCTOS Y SERVICIOS</td>
 <td>LEY General de Salud</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE CONTROL SANITARIO DE LA DISPOSICION DE ORGANOS, TEJIDOS Y CADAVERES DE SERES HUMANOS</td>
 <td>LEY General de Salud</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE CONTROL SANITARIO PARA LA PRODUCCION, INVESTIGACION Y USO MEDICINAL DE LA CANNABIS Y SUS DERIVADOS FARMACOLOGICOS</td>
 <td>LEY General de Salud</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE INVESTIGACION PARA LA SALUD</td>
 <td>LEY General de Salud</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE PRESTACION DE SERVICIOS DE ATENCION MEDICA</td>
 <td>LEY General de Salud</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE PROTECCION SOCIAL EN SALUD</td>
 <td>LEY General de Salud</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE PUBLICIDAD</td>
 <td>LEY General de Salud</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE SANIDAD INTERNACIONAL</td>
 <td>LEY General de Salud</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE TRASPLANTES</td>
 <td>LEY General de Salud</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE TURISMO</td>
 <td>LEY General de Turismo</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DE VICTIMAS</td>
 <td>LEY General de Víctimas</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DE VIDA SILVESTRE</td>
 <td>LEY General de Vida Silvestre</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DEL EQUILIBRIO ECOLOGICO Y LA PROTECCION AL AMBIENTE EN MATERIA DE AREAS NATURALES PROTEGIDAS</td>
 <td>LEY General del Equilibrio Ecológico y la Protección al Ambiente</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DEL EQUILIBRIO ECOLOGICO Y LA PROTECCION AL AMBIENTE EN MATERIA DE AUDITORIA AMBIENTAL</td>
 <td>LEY General del Equilibrio Ecológico y la Protección al Ambiente</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DEL EQUILIBRIO ECOLOGICO Y LA PROTECCION AL AMBIENTE EN MATERIA DE AUTORREGULACION Y AUDITORIAS AMBIENTALES</td>
 <td>LEY General del Equilibrio Ecológico y la Protección al Ambiente</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DEL EQUILIBRIO ECOLOGICO Y LA PROTECCION AL AMBIENTE EN MATERIA DE EVALUACION DEL IMPACTO AMBIENTAL</td>
 <td>LEY General del Equilibrio Ecológico y la Protección al Ambiente</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DEL EQUILIBRIO ECOLOGICO Y LA PROTECCION AL AMBIENTE EN MATERIA DE ORDENAMIENTO ECOLOGICO</td>
 <td>LEY General del Equilibrio Ecológico y la Protección al Ambiente</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DEL EQUILIBRIO ECOLOGICO Y LA PROTECCION AL AMBIENTE EN MATERIA DE PREVENCION Y CONTROL DE LA CONTAMINACION DE LA ATMOSFERA</td>
 <td>LEY General del Equilibrio Ecológico y la Protección al Ambiente</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL DEL EQUILIBRIO ECOLOGICO Y LA PROTECCION AL AMBIENTE EN MATERIA DE REGISTRO DE EMISIONES Y TRANSFERENCIA DE CONTAMINANTES</td>
 <td>LEY General del Equilibrio Ecológico y la Protección al Ambiente</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL DEL EQUILIBRIO ECOLOGICO Y LA PROTECCION AL AMBIENTE EN MATERIA DE RESIDUOS PELIGROSOS</td>
 <td>LEY General del Equilibrio Ecológico y la Protección al Ambiente</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL PARA EL CONTROL DEL TABACO</td>
 <td>LEY General para el Control del Tabaco</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL PARA LA ATENCION Y PROTECCION A PERSONAS CON LA CONDICION DEL ESPECTRO AUTISTA</td>
 <td>LEY General para la Atención y Protección a Personas con la Condición del Espectro Autista</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL PARA LA INCLUSION DE LAS PERSONAS CON DISCAPACIDAD</td>
 <td>LEY General para la Inclusión de las Personas con Discapacidad</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL PARA LA PREVENCION SOCIAL DE LA VIOLENCIA Y LA DELINCUENCIA</td>
 <td>LEY General para la Prevención Social de la Violencia y la Delincuencia</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY GENERAL PARA LA PREVENCION Y GESTION INTEGRAL DE LOS RESIDUOS</td>
 <td>LEY General para la Prevención y Gestión Integral de los Residuos</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY GENERAL PARA PREVENIR, SANCIONAR Y ERRADICAR LOS DELITOS EN MATERIA DE TRATA DE PERSONAS Y PARA LA PROTECCION Y ASISTENCIA A LAS VICTIMAS DE ESTOS DELITOS</td>
 <td>LEY General para Prevenir, Sancionar y Erradicar los Delitos en Materia de Trata de Personas y para la Protección y Asistencia a las Víctimas de estos Delitos</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY ORGANICA DEL INSTITUTO NACIONAL DE ANTROPOLOGIA E HISTORIA</td>
 <td>LEY Orgánica del Instituto Nacional de Antropología e Historia</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY PARA EL DESARROLLO DE LA COMPETITIVIDAD DE LA MICRO, PEQUEÑA Y MEDIANA EMPRESA</td>
 <td>LEY para el Desarrollo de la Competitividad de la Micro, Pequeña y Mediana Empresa</td>
 <td>A and B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY PARA EL FOMENTO DE LA INVERSION EN INFRAESTRUCTURA ESTRATEGICA PARA EL DESARROLLO CON BIENESTAR</td>
 <td>LEY para el Fomento de la Inversión en Infraestructura Estratégica para el Desarrollo con Bienestar</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY PARA EL USO Y PROTECCION DE LA DENOMINACION Y DEL EMBLEMA DE LA CRUZ ROJA</td>
 <td>LEY para el uso y protección de la denominación y del emblema de la Cruz Roja</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY PARA LA PROTECCION DE PERSONAS DEFENSORAS DE DERECHOS HUMANOS Y PERIODISTAS</td>
 <td>LEY para la Protección de Personas Defensoras de Derechos Humanos y Periodistas</td>
 <td>A and B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA LEY QUE CREA EL FONDO DE GARANTIA Y FOMENTO PARA LA AGRICULTURA, GANADERIA Y AVICULTURA</td>
 <td>LEY que Crea el Fondo de Garantía y Fomento para la Agricultura, Ganadería y Avicultura</td>
 <td>A</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LA LEY SOBRE EL ESCUDO, LA BANDERA Y EL HIMNO NACIONALES</td>
 <td>LEY sobre el Escudo, la Bandera y el Himno Nacionales</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LA PROCURADURIA FEDERAL DEL CONSUMIDOR</td>
 <td>LEY Federal de Protección al Consumidor</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE LOS ARTICULOS 121 Y 122 DE LA LEY FEDERAL DEL TRABAJO</td>
 <td>LEY Federal del Trabajo</td>
 <td>A</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE LOS SERVICIOS DE ATENCION PARA EL BIENESTAR Y DESARROLLO INFANTIL DEL INSTITUTO DE SEGURIDAD Y SERVICIOS SOCIALES DE LOS TRABAJADORES DEL ESTADO</td>
 <td>LEY del Instituto de Seguridad y Servicios Sociales de los Trabajadores del Estado</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE PRESTACIONES ECONOMICAS Y VIVIENDA DEL INSTITUTO DE SEGURIDAD Y SERVICIOS SOCIALES DE LOS TRABAJADORES AL SERVICIO DEL ESTADO</td>
 <td>LEY del Instituto de Seguridad y Servicios Sociales de los Trabajadores del Estado</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE RADIO Y TELEVISION EN MATERIA ELECTORAL</td>
 <td>LEY General de Instituciones y Procedimientos Electorales</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE SERVICIOS FUNERARIOS DEL INSTITUTO DE SEGURIDAD Y SERVICIOS SOCIALES DE LOS TRABAJADORES DEL ESTADO</td>
 <td>LEY del Instituto de Seguridad y Servicios Sociales de los Trabajadores del Estado</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE SESIONES DE LA JUNTA DE GOBIERNO DEL INSTITUTO NACIONAL DE LAS MUJERES</td>
 <td>LEY Federal de las Entidades Paraestatales</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE SESIONES DEL COMITE DE RADIO Y TELEVISION DEL INSTITUTO NACIONAL ELECTORAL</td>
 <td>LEY General de Instituciones y Procedimientos Electorales</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE SISTEMAS DE COMERCIALIZACION CONSISTENTES EN LA INTEGRACION DE GRUPOS DE CONSUMIDORES</td>
 <td>LEY Federal de Protección al Consumidor</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE SISTEMAS DE COMERCIALIZACION MEDIANTE LA INTEGRACION DE GRUPOS CONSUMIDORES</td>
 <td>LEY Federal de Protección al Consumidor</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE SUPERVISION DE LA COMISION NACIONAL BANCARIA Y DE VALORES</td>
 <td>LEY de Ahorro y Crédito Popular</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE SUPERVISION DE LA COMISION NACIONAL BANCARIA Y DE VALORES</td>
 <td>LEY de la Comisión Nacional Bancaria y de Valores</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE SUPERVISION DE LA COMISION NACIONAL BANCARIA Y DE VALORES</td>
 <td>LEY para Regular las Actividades de las Sociedades Cooperativas de Ahorro y Préstamo</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE TRANSPARENCIA Y ACCESO A LA INFORMACION PUBLICA DEL INSTITUTO NACIONAL DE ESTADISTICA Y GEOGRAFIA</td>
 <td>LEY del Sistema Nacional de Información Estadística y Geográfica</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE TRANSPARENCIA Y ACCESO A LA INFORMACION PUBLICA DEL INSTITUTO NACIONAL DE ESTADISTICA Y GEOGRAFIA</td>
 <td>LEY General de Transparencia y Acceso a la Información Pública</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE TRANSPARENCIA Y ACCESO A LA INFORMACION PUBLICA Y PROTECCION DE DATOS PERSONALES DE LA COMISION FEDERAL DE COMPETENCIA ECONOMICA</td>
 <td>LEY General de Protección de Datos Personales en Posesión de Sujetos Obligados</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DE TRANSPARENCIA Y ACCESO A LA INFORMACION PUBLICA Y PROTECCION DE DATOS PERSONALES DE LA COMISION FEDERAL DE COMPETENCIA ECONOMICA</td>
 <td>LEY General de Transparencia y Acceso a la Información Pública</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DE UNIFORMES, DIVISAS Y EQUIPO DEL EJERCITO, FUERZA AEREA Y GUARDIA NACIONAL – ANTES REGLAMENTO DE UNIFORMES, DIVISAS Y EQUIPO DEL EJERCITO Y FUERZA AEREA MEXICANOS –</td>
 <td>LEY Orgánica del Ejército y Fuerza Aérea Mexicanos</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>REGLAMENTO DE VIGILANCIA DEL DESEMPEÑO JURISDICCIONAL Y ADMINISTRATIVO PARA LAS SALAS REGIONALES, ESPECIALIZADAS, AUXILIARES Y/O MIXTAS, DEL TRIBUNAL FEDERAL DE JUSTICIA FISCAL Y ADMINISTRATIVA</td>
+<td>REGLAMENTO INTERIOR DEL TRIBUNAL FEDERAL DE JUSTICIA FISCAL Y ADMINISTRATIVA</td>
 <td>B</td>
 </tr>
 <tr class="even">
@@ -1369,28 +1581,48 @@ div.csl-indent {
 <td>B</td>
 </tr>
 <tr class="even">
+<td>REGLAMENTO DEL INSTITUTO FEDERAL ELECTORAL EN MATERIA DE TRANSPARENCIA Y ACCESO A LA INFORMACION PUBLICA</td>
+<td>CONVENCION AMERICANA SOBRE DERECHOS HUMANOS, ADOPTADA EN SAN JOSE DE COSTA RICA Y ABIERTA A FIRMA EL DIA 22 DE NOVIEMBRE DE 1969, CON LAS DECLARACIONES INTERPRETATIVAS AL PARRAFO 1 DEL ARTICULO 4 Y AL ARTICULO 12 Y LA RESERVA AL ARTICULO 23, PARRAFO 2, QUE FORMULARA EL EJECUTIVO DE LA UNION AL PROCEDER A SU ADHESION</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>REGLAMENTO DEL INSTITUTO FEDERAL ELECTORAL EN MATERIA DE TRANSPARENCIA Y ACCESO A LA INFORMACION PUBLICA</td>
+<td>CONVENCION SOBRE LA ELIMINACION DE TODAS LAS FORMAS DE DISCRIMINACION CONTRA LA MUJER, ADOPTADA POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS, EL DIA 18 DE DICIEMBRE DE 1979</td>
+<td>B</td>
+</tr>
+<tr class="even">
+<td>REGLAMENTO DEL INSTITUTO FEDERAL ELECTORAL EN MATERIA DE TRANSPARENCIA Y ACCESO A LA INFORMACION PUBLICA</td>
+<td>PACTO INTERNACIONAL DE DERECHOS CIVILES Y POLITICOS, ABIERTO A FIRMA EN LA CIUDAD DE NUEVA YORK, E.U.A., EL DIA 19 DE DICIEMBRE DE 1966, CON LAS DECLARACIONES INTERPRETATIVAS A LOS ARTICULOS 9, PARRAFO 5, Y AL ARTICULO 18, Y LAS RESERVAS AL ARTICULO 13 Y AL INCISO B) DEL ARTICULO 25, QUE EFECTUARA EL EJECUTIVO DE LA UNION AL PROCEDER A SU ADHESION</td>
+<td>B</td>
+</tr>
+<tr class="odd">
 <td>REGLAMENTO DEL INSTITUTO NACIONAL ELECTORAL EN MATERIA DE ADQUISICIONES, ARRENDAMIENTOS DE BIENES MUEBLES Y SERVICIOS</td>
 <td>LEY de Adquisiciones, Arrendamientos y Servicios del Sector Público</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DEL INSTITUTO NACIONAL ELECTORAL EN MATERIA DE ADQUISICIONES, ARRENDAMIENTOS DE BIENES MUEBLES Y SERVICIOS</td>
 <td>LEY Federal de Austeridad Republicana</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DEL INSTITUTO NACIONAL ELECTORAL EN MATERIA DE PROTECCION DE DATOS PERSONALES</td>
 <td>LEY General de Protección de Datos Personales en Posesión de Sujetos Obligados</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DEL INSTITUTO NACIONAL ELECTORAL PARA LA DESIGNACION Y REMOCION DE LAS Y LOS CONSEJEROS PRESIDENTES Y LAS Y LOS CONSEJEROS ELECTORALES DE LOS ORGANISMOS PUBLICOS LOCALES ELECTORALES – ANTES – REGLAMENTO DEL INSTITUTO NACIONAL ELECTORAL PARA LA DESIGNACION Y SANCION DE LAS Y LOS CONSEJEROS PRESIDENTES Y LAS Y LOS CONSEJEROS ELECTORALES DE LOS ORGANISMOS PUBLICOS LOCALES ELECTORALES – ANTES – REGLAMENTO DEL INSTITUTO NACIONAL ELECTORAL PARA LA DESIGNACION Y LA REMOCION DE LAS Y LOS CONSEJEROS PRESIDENTES Y LAS Y LOS CONSEJEROS ELECTORALES DE LOS ORGANISMOS PUBLICOS LOCALES ELECTORALES</td>
 <td>LEY General de Instituciones y Procedimientos Electorales</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DEL MECANISMO NACIONAL DE PREVENCION DE LA TORTURA Y OTROS TRATOS O PENAS CRUELES, INHUMANOS O DEGRADANTES</td>
 <td>LEY General para Prevenir, Investigar y Sancionar la Tortura y Otros Tratos o Penas Crueles, Inhumanos o Degradantes</td>
+<td>B</td>
+</tr>
+<tr class="even">
+<td>REGLAMENTO DEL MECANISMO NACIONAL DE PREVENCION DE LA TORTURA Y OTROS TRATOS O PENAS CRUELES, INHUMANOS O DEGRADANTES</td>
+<td>PROTOCOLO FACULTATIVO DE LA CONVENCION CONTRA LA TORTURA Y OTROS TRATOS O PENAS CRUELES, INHUMANOS O DEGRADANTES, ADOPTADO POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 18 DE DICIEMBRE DE 2002</td>
 <td>B</td>
 </tr>
 <tr class="odd">
@@ -1404,24 +1636,24 @@ div.csl-indent {
 <td>B</td>
 </tr>
 <tr class="odd">
-<td>REGLAMENTO DEL SENADO DE LA REPUBLICA</td>
-<td>REGLAMENTO del Senado de la República</td>
-<td>A</td>
-</tr>
-<tr class="even">
 <td>REGLAMENTO DEL SERVICIO FERROVIARIO</td>
 <td>LEY Reglamentaria del Servicio Ferroviario</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO DEL SISTEMA DE BIBLIOTECAS DEL CONGRESO DE LA UNION</td>
 <td>LEY Orgánica del Congreso General de los Estados Unidos Mexicanos</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO DEL SISTEMA NACIONAL DE AFILIACION Y VIGENCIA DE DERECHOS, DE LA BASE DE DATOS UNICA DE DERECHOHABIENTES Y DEL EXPEDIENTE ELECTRONICO UNICO DEL INSTITUTO DE SEGURIDAD Y SERVICIOS SOCIALES DE LOS TRABAJADORES DEL ESTADO</td>
 <td>LEY del Instituto de Seguridad y Servicios Sociales de los Trabajadores del Estado</td>
 <td>B</td>
+</tr>
+<tr class="even">
+<td>REGLAMENTO DEL SORTEO CHISPAZO DE PRONOSTICOS PARA LA ASISTENCIA PUBLICA -ANTES REGLAMENTO DEL CONCURSO CHISPAZO DE PRONOSTICOS PARA LA ASISTENCIA PUBLICA-</td>
+<td>REGLAMENTO DEL CONCURSO CHISPAZO DE PRONOSTICOS PARA LA ASISTENCIA PUBLICA</td>
+<td>A</td>
 </tr>
 <tr class="odd">
 <td>REGLAMENTO FEDERAL DE SEGURIDAD Y SALUD EN EL TRABAJO</td>
@@ -1489,23 +1721,33 @@ div.csl-indent {
 <td>B</td>
 </tr>
 <tr class="even">
+<td>REGLAMENTO INTERIOR DEL COMITE DE MOLECULAS NUEVAS</td>
+<td>REGLAMENTO DE INSUMOS PARA LA SALUD</td>
+<td>B</td>
+</tr>
+<tr class="odd">
 <td>REGLAMENTO INTERIOR DEL CONSEJO MEXICANO PARA EL DESARROLLO RURAL SUSTENTABLE</td>
 <td>LEY de Desarrollo Rural Sustentable</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO INTERIOR DEL INSTITUTO NACIONAL DE ESTADISTICA Y GEOGRAFIA</td>
 <td>LEY del Sistema Nacional de Información Estadística y Geográfica</td>
 <td>B</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REGLAMENTO INTERIOR DEL INSTITUTO NACIONAL DE ESTADISTICA Y GEOGRAFIA</td>
 <td>LEY General de Desarrollo Social</td>
 <td>B</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REGLAMENTO INTERIOR DEL INSTITUTO NACIONAL DEL DERECHO DE AUTOR</td>
 <td>LEY Federal del Derecho de Autor</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>REGLAMENTO INTERIOR DEL INSTITUTO NACIONAL DEL DERECHO DE AUTOR</td>
+<td>REGLAMENTO INTERIOR DE LA SECRETARIA DE EDUCACION PUBLICA</td>
 <td>B</td>
 </tr>
 <tr class="even">
@@ -1589,14 +1831,14 @@ div.csl-indent {
 <td>B</td>
 </tr>
 <tr class="even">
-<td>REGLAMENTO PARA EL FINANCIAMIENTO DE UNIDADES PRESTADORAS DE SERVICIOS DE SALUD A TRAVES DE ACUERDOS DE GESTION</td>
-<td>LEY del Instituto de Seguridad y Servicios Sociales de los Trabajadores del Estado</td>
+<td>REGLAMENTO PARA EL ARQUEO DE EMBARCACIONES MERCANTES</td>
+<td>CONVENIO INTERNACIONAL SOBRE ARQUEO DE BUQUES (MULTILATERAL, 1969)</td>
 <td>B</td>
 </tr>
 <tr class="odd">
-<td>REGLAMENTO PARA EL GOBIERNO INTERIOR DEL CONGRESO GENERAL DE LOS ESTADOS UNIDOS MEXICANOS</td>
-<td>REGLAMENTO para el Gobierno Interior del Congreso General de los Estados Unidos Mexicanos</td>
-<td>A</td>
+<td>REGLAMENTO PARA EL FINANCIAMIENTO DE UNIDADES PRESTADORAS DE SERVICIOS DE SALUD A TRAVES DE ACUERDOS DE GESTION</td>
+<td>LEY del Instituto de Seguridad y Servicios Sociales de los Trabajadores del Estado</td>
+<td>B</td>
 </tr>
 <tr class="even">
 <td>REGLAMENTO PARA EL OTORGAMIENTO DE BECAS EDUCATIVAS A LOS HIJOS DE MILITARES DE LAS FUERZAS ARMADAS MEXICANAS</td>
@@ -1677,6 +1919,16 @@ div.csl-indent {
 <td>REGLAMENTO SOBRE EL PREMIO NACIONAL DE DERECHOS HUMANOS</td>
 <td>LEY de Premios, Estímulos y Recompensas Civiles</td>
 <td>B</td>
+</tr>
+<tr class="even">
+<td>REGLAMENTO SOBRE LAS COMUNICACIONES PUBLICAS A QUE SE REFIEREN LOS ARTICULOS 19.9 DEL CAPITULO LABORAL DEL TRATADO INTEGRAL Y PROGRESISTA DE ASOCIACION TRANSPACIFICO (TIPAT) Y EL ARTICULO 23.11 DEL CAPITULO LABORAL DEL TRATADO ENTRE LOS ESTADOS UNIDOS MEXICANOS, LOS ESTADOS UNIDOS DE AMERICA Y CANADA (T-MEC)</td>
+<td>TRATADO INTEGRAL Y PROGRESISTA DE ASOCIACION TRANSPACIFICO (MULTILATERAL, 2018)</td>
+<td>A</td>
+</tr>
+<tr class="odd">
+<td>SEGUNDO PROTOCOLO FACULTATIVO DEL PACTO INTERNACIONAL DE DERECHOS CIVILES Y POLITICOS DESTINADO A ABOLIR LA PENA DE MUERTE, ADOPTADO EN LA CIUDAD DE NUEVA YORK, EL 15 DE DICIEMBRE DE 1989</td>
+<td>PROTOCOLO FACULTATIVO DEL PACTO INTERNACIONAL DE DERECHOS CIVILES Y POLITICOS, ADOPTADO POR LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS EL 16 DE DICIEMBRE DE 1966</td>
+<td>A</td>
 </tr>
 </tbody>
 </table>
