@@ -1,20 +1,22 @@
-"""Score the Atlas data sets against the strong-link gold set (issue #272).
+"""Score the Atlas data sets against the strong-link gold set (issues #272, #283 fix-1).
 
-`gold_links.py` builds the gold: reglamentos and lineamientos whose own name (A)
-or own "objeto" sentence (B) names the law they develop. This scores the
+`gold_links.py` builds the gold: instruments of any collection (laws, regulations,
+guidelines, treaties) whose own name (A) or own "objeto" sentence (B) names another
+instrument -- never themselves --, the law a reglamento develops, the convention a
+protocol extends. This scores the
 directed instrument matrix `A` of each data set (`<work-dir>/instrument-matrix/
 matrix.npy`) against it, **at the instrument level**, for every gold instrument
-`i` with gold laws `G` and row `A[i]`:
+`i` with gold targets `G` and row `A[i]`:
 
-* **closest** -- a gold law is the instrument's closest one (rank 1);
-* **top-5** -- a gold law is among its five closest (rank <= 5);
-* **reciprocal rank** -- `1 / rank` of the best-ranked gold law (0 when every
-  gold law has weight 0);
+* **closest** -- a gold target is the instrument's closest one (rank 1);
+* **top-5** -- a gold target is among its five closest (rank <= 5);
+* **reciprocal rank** -- `1 / rank` of the best-ranked gold target (0 when every
+  gold target has weight 0);
 * **weight share** -- `sum(A[i, G]) / A[i].sum()`: how much of the row's weight
   survives on the link.
 
-The rank of a gold law is the *competition* rank: `1 +` the number of
-instruments whose weight is greater than the best gold law's by more than
+The rank of a gold target is the *competition* rank: `1 +` the number of
+instruments whose weight is greater than the best gold target's by more than
 `TIE_TOLERANCE`. Equal weights are frequent (BM25's rows especially), and the
 optimistic rank is the standard choice; it is also what makes "closest" not
 depend on column order, which `argmax` would (the laws come first in `i`).
@@ -37,6 +39,12 @@ is **reported as real only if the bootstrap interval excludes 0 and, for a binar
 metric, McNemar's p < 0.05**; otherwise the pair is a **tie** on that metric. With
 a few hundred cases and differences of a few instruments, a tie is the expected,
 acceptable verdict.
+
+Besides the overall measures, each signal set is also scored **per source
+collection** (the collection of the instrument that names the other), so a reader sees
+whether the three data sets behave the same for laws, regulations, guidelines and
+treaties; those cells carry the counts and means only, with no pairwise test (a
+collection has a few dozen to a few hundred instruments).
 
 Two gold sets are always scored: `A` alone, the near-certain control, and `A+B`,
 the union (`--signals` narrows to one). The gold is read from
@@ -75,10 +83,10 @@ P_THRESHOLD = 0.05
 
 #: `(key, label, binary)`.
 METRICS = (
-    ("closest", "closest is a gold law", True),
-    ("top5", "a gold law among the five closest", True),
+    ("closest", "closest is a gold instrument", True),
+    ("top5", "a gold instrument among the five closest", True),
     ("mrr", "mean reciprocal rank", False),
-    ("share", "weight share on gold laws", False),
+    ("share", "weight share on gold instruments", False),
 )
 
 SIGNAL_SETS = ("A", "A+B")
@@ -92,9 +100,9 @@ def load_gold(path: Path) -> dict:
 
 
 def gold_sets(gold: dict, signal_set: str) -> dict[int, list[int]]:
-    """`{instrument i: [gold law i]}` of one signal set: `A` is the laws the
-    instrument's name gives, `A+B` the union with its "objeto" sentence's."""
-    key = "laws_A" if signal_set == "A" else "laws"
+    """`{instrument i: [gold target i]}` of one signal set: `A` is the instruments
+    the instrument's name gives, `A+B` the union with its "objeto" sentence's."""
+    key = "targets_A" if signal_set == "A" else "targets"
     return {int(e["i"]): list(e[key]) for e in gold["entries"] if e[key]}
 
 
@@ -224,18 +232,35 @@ def compare(first: np.ndarray, second: np.ndarray, binary: bool, indices: np.nda
     return result
 
 
+def model_summary(per: dict, mask) -> dict:
+    """One model's measures over the instruments `mask` selects."""
+    n = int(mask.sum())
+    out = {key: {"mean": float(per[key][mask].mean()) if n else None,
+                 "count": int(per[key][mask].sum()) if binary else None}
+           for key, _, binary in METRICS}
+    out["tied_at_top"] = int(per["tied_at_top"][mask].sum())
+    return out
+
+
 def evaluate_set(matrices: dict[str, np.ndarray], gold_by_instrument: dict[int, list[int]],
-                 *, seed: int, resamples: int) -> dict:
+                 *, seed: int, resamples: int, collections=None) -> dict:
+    """`collections[i]` is the collection of instrument `i`, for the per-source
+    split (omitted: no split)."""
     scorable, arrays, skipped = metric_table(matrices, gold_by_instrument)
     n = len(scorable)
     result = {"gold_instruments": len(gold_by_instrument), "scored": n,
               "skipped_zero_row": skipped, "models": {}, "pairs": []}
+    everyone = np.ones(n, dtype=bool)
     for label, per in arrays.items():
-        result["models"][label] = {
-            key: {"mean": float(per[key].mean()) if n else None,
-                  "count": int(per[key].sum()) if binary else None}
-            for key, _, binary in METRICS}
-        result["models"][label]["tied_at_top"] = int(per["tied_at_top"].sum())
+        result["models"][label] = model_summary(per, everyone)
+    if collections is not None:
+        sources = np.array([collections[i] for i in scorable])
+        result["by_source_collection"] = {
+            name: {"gold_instruments": sum(1 for i in gold_by_instrument if collections[i] == name),
+                   "scored": int((sources == name).sum()),
+                   "models": {label: model_summary(per, sources == name)
+                              for label, per in arrays.items()}}
+            for name in dict.fromkeys(collections) if (sources == name).any()}
     if n == 0:
         return result
     rng = np.random.default_rng(seed)
@@ -252,7 +277,9 @@ def evaluate_set(matrices: dict[str, np.ndarray], gold_by_instrument: dict[int, 
 def evaluate(gold: dict, work_dirs: dict[str, Path], *, signals=SIGNAL_SETS, seed: int = 0,
              resamples: int = 10000) -> dict:
     matrices = {label: load_matrix(label, path, gold) for label, path in work_dirs.items()}
-    sets = {name: evaluate_set(matrices, gold_sets(gold, name), seed=seed, resamples=resamples)
+    collections = [c for c, _ in gold["instruments"]]
+    sets = {name: evaluate_set(matrices, gold_sets(gold, name), seed=seed, resamples=resamples,
+                               collections=collections)
             for name in signals}
     return {
         "thresholds": {
@@ -271,7 +298,7 @@ def evaluate(gold: dict, work_dirs: dict[str, Path], *, signals=SIGNAL_SETS, see
 
 def render_markdown(evaluation: dict) -> str:
     """`evaluation.md`: one metric table and one verdict table per signal set."""
-    lines = ["# Atlas data sets against strong reglamento -> law links", ""]
+    lines = ["# Atlas data sets against strong instrument -> instrument links", ""]
     rule = evaluation["thresholds"]
     lines += [f"Significance (fixed beforehand): paired bootstrap, seed {rule['seed']}, "
               f"{rule['resamples']} resamples, {rule['bootstrap_level']:.0f} % percentile "
@@ -301,6 +328,17 @@ def render_markdown(evaluation: dict) -> str:
             lines.append(f"| {pair['first']} - {pair['second']} | {pair['metric']} | "
                          f"{pair['difference']:+.4f} | [{low:+.4f}, {high:+.4f}] | {p} | "
                          f"{pair['verdict']} |")
+        for source, entry in result.get("by_source_collection", {}).items():
+            lines += ["", f"### Gold {name}, sources in `{source}`: {entry['scored']} instruments "
+                      f"scored (of {entry['gold_instruments']})", "",
+                      "| metric | " + " | ".join(labels) + " |", "|---|" + "---|" * len(labels)]
+            for key, label, binary in METRICS:
+                cells = []
+                for model in labels:
+                    cell = entry["models"][model][key]
+                    cells.append(f"{cell['count']} ({cell['mean']:.3f})" if binary
+                                 else f"{cell['mean']:.3f}")
+                lines.append(f"| {label} | " + " | ".join(cells) + " |")
         lines.append("")
     return "\n".join(lines)
 

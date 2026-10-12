@@ -160,7 +160,7 @@ def test_rank_rows_reproduces_the_matrix_and_an_independent_oracle(prepared, cac
         for law in index.values():
             if law != pair["i"]:
                 frames.append({"i": int(pair["i"]), "row": int(pair["row"]),
-                               "law": int(law), "coleccion": pair["coleccion"]})
+                               "target": int(law), "coleccion": pair["coleccion"]})
     rows = pd.DataFrame(frames)
     scorer = scoring.scorer_for(prepared)
     ranked = evaluate_citations.rank_rows(scorer, units, rows, block_rows=2, log=quiet)
@@ -171,8 +171,8 @@ def test_rank_rows_reproduces_the_matrix_and_an_independent_oracle(prepared, cac
     for n, record in rows.iterrows():
         source = by_index[int(record["i"])]
         text = sha_of[(record["coleccion"], int(record["row"]))]
-        expected, _, _ = oracle(prepared, source, text, by_index[int(record["law"])])
-        assert ranked["rank"][n] == expected, (source, text, by_index[int(record["law"])])
+        expected, _, _ = oracle(prepared, source, text, by_index[int(record["target"])])
+        assert ranked["rank"][n] == expected, (source, text, by_index[int(record["target"])])
 
 
 def test_a_text_shared_with_the_cited_law_ranks_it_first(prepared, cache):
@@ -183,9 +183,9 @@ def test_a_text_shared_with_the_cited_law_ranks_it_first(prepared, cache):
     vector_ids = pq.read_table(prepared / "vector_ids.parquet").to_pandas()
     row = int(vector_ids[(vector_ids["text_sha1"] == "ts")
                          & (vector_ids["coleccion"] == "leyes")]["row"].iloc[0])
-    rows = pd.DataFrame([{"i": index["a"], "row": row, "law": index["b"]}])
+    rows = pd.DataFrame([{"i": index["a"], "row": row, "target": index["b"]}])
     ranked = evaluate_citations.rank_rows(scoring.scorer_for(prepared), units, rows, log=quiet)
-    assert ranked["rank"] == [1] and ranked["law_owns_text"] == [True]
+    assert ranked["rank"] == [1] and ranked["target_owns_text"] == [True]
 
 
 def test_the_exclusive_text_of_the_source_is_masked(prepared, cache):
@@ -196,7 +196,7 @@ def test_the_exclusive_text_of_the_source_is_masked(prepared, cache):
     index = index_of(prepared)
     vector_ids = pq.read_table(prepared / "vector_ids.parquet").to_pandas()
     row = int(vector_ids[vector_ids["text_sha1"] == "t3"]["row"].iloc[0])
-    rows = pd.DataFrame([{"i": index["c"], "row": row, "law": index["a"]}])
+    rows = pd.DataFrame([{"i": index["c"], "row": row, "target": index["a"]}])
     ranked = evaluate_citations.rank_rows(scoring.scorer_for(prepared), units, rows, log=quiet)
     assert ranked["best"][0] < 1.0 - 1e-6
 
@@ -209,7 +209,7 @@ def test_a_disagreement_with_nearest_is_a_system_exit(prepared, cache):
     scorer = scoring.scorer_for(prepared)
     first = nearest.iloc[0]
     rows = pd.DataFrame([{"i": int(first["i"]), "row": int(first["row"]),
-                          "law": next(j for j in index_of(prepared).values()
+                          "target": next(j for j in index_of(prepared).values()
                                       if j != int(first["i"]))}])
     ranked = evaluate_citations.rank_rows(scorer, units, rows, log=quiet)
     with pytest.raises(SystemExit, match="does not reproduce the matrix"):
@@ -228,7 +228,7 @@ def write_gold(prepared, tmp_path, cache):
     gold = {"instruments": [[c, str(k)] for c, k in zip(instruments["coleccion"],
                                                         instruments["clave"])],
             "entries": [], "summary": {}, "provenance": {},
-            "law_names": {str(index[k]): f"Ley {k.upper()}" for k in ("a", "b", "c")}}
+            "target_names": {str(index[k]): f"Ley {k.upper()}" for k in ("a", "b", "c")}}
     (gold_dir / "gold.json").write_text(json.dumps(gold), encoding="utf-8")
     rows = [("900", "t4", "a", True), ("901", "t5", "c", True), ("902", "t6", "b", True),
             ("900", "t1", "a", False), ("900", "t1", "b", False)]
@@ -239,9 +239,9 @@ def write_gold(prepared, tmp_path, cache):
         "text_sha1": [t for _, t, _, _ in rows],
         "eId": ["art_1"] * len(rows), "unit_type": ["article"] * len(rows),
         "article": ["1"] * len(rows),
-        "law": pa.array([index[law] for _, _, law, _ in rows], type=pa.int32()),
+        "target": pa.array([index[law] for _, _, law, _ in rows], type=pa.int32()),
         "span": ["articulo 1 de la ley"] * len(rows), "hits": pa.array([1] * len(rows), type=pa.int32()),
-        "single_law": [s for _, _, _, s in rows],
+        "single_target": [s for _, _, _, s in rows],
     }), gold_dir / "citations.parquet")
     return gold, gold_dir
 
@@ -254,8 +254,8 @@ def test_evaluate_scores_both_scorers_on_the_same_rows(prepared, bm25_dir, cache
         gold, gold_dir, {"dense": prepared, "bm25": bm25_dir}, cache_dir=cache,
         collections=COLLECTIONS, resamples=200, log=quiet)
     cites = evaluation["citations"]
-    assert cites["citing_rows"] == 4 and cites["single_law_rows"] == 3
-    assert cites["multi_law_rows_not_scored"] == 1
+    assert cites["citing_rows"] == 4 and cites["single_target_rows"] == 3
+    assert cites["multi_target_rows_not_scored"] == 1
     assert cites["removed_by_the_matrix_rules"] == {"dense": {}, "bm25": {}}
     assert cites["scored_rows"] == 3
     assert evaluation["models"]["dense"]["method"] == "dense"

@@ -260,171 +260,220 @@ is chosen, and the table behind each weight is then read for that method.
 
 The three methods agree on the closest instrument for most instruments, but
 agreement is not correctness, and a method that all three share could be wrong
-in the same way. The corpus itself offers a way to check, because a federal
-regulation exists to develop one law and usually says so. Such a statement is a
-strong link between two instruments that no similarity method was used to
-find, and it can be used as a gold standard against which the three data sets
-are scored.
+in the same way. The corpus itself offers a way to check, because an
+instrument often says which other instrument it develops, applies or amends.
+A regulation exists to develop one law and usually says so, a law may be
+reglamentaria of an article of the Constitution, and a treaty may be the
+protocol of an earlier one. Such a statement is a strong link between two
+instruments that no similarity method was used to find, and it can be used as a
+gold standard against which the three data sets are scored.
 
 ### How the strong links are built
 
-The links come from three signals, each read from the text of the regulations
-and guidelines (988 instruments on the map). The first, A, is the name of the
-instrument. When the name of a regulation contains the name of a law, as in the
-*REGLAMENTO DE LA LEY FEDERAL DE CORREDURÍA PÚBLICA*, the law is the *Ley
-Federal de Correduría Pública*. This links 132 instruments, 131 regulations and
-one guideline. The second, B, is the sentence that states the purpose of the
-instrument, usually its first article, which often names the law it regulates.
-Article 1 of the *REGLAMENTO DE LA LEY DE AGUAS NACIONALES* reads "El
-presente ordenamiento tiene por objeto reglamentar la Ley de Aguas Nacionales",
-which confirms what its name already said. Article 1 of the *REGLAMENTO DE
-SISTEMAS DE COMERCIALIZACIÓN MEDIANTE LA INTEGRACIÓN DE GRUPOS DE CONSUMIDORES*
-reads "El presente ordenamiento tiene por objeto regular los sistemas de
-comercialización mediante la integración de grupos de consumidores, a que se
-refiere el artículo 63 de la Ley Federal de Protección al Consumidor", so that
-its law is found although its name never mentions it. Signal B links 160
-instruments, and the two signals together link 212 instruments to 227 laws.
+A strong link goes from one instrument to another, and nothing restricts what
+the two are. Every one of the 2,676 instruments on the map can be the source
+of a link and every one can be its target, whichever collection each belongs
+to, under a single rule, which is that an instrument is never linked to
+itself. When two
+instruments carry exactly the same name, as the two *LEY de Amnistía* do, or
+as a regulation of the Senate does with the law it was filed beside, the name
+is the instrument's own and it is not read as a mention of the other.
 
-A name is not always enough. For 55 instruments the name points to a law that
-cannot be resolved among the 315 laws of the corpus, as with the *REGLAMENTO DE
-LA LEY FEDERAL DE TURISMO*, whose law has been abrogated, and these instruments
-are left out of the gold standard instead of being guessed.
+The links come from three signals, each read from the text of the source. The
+first, A, is the name of the instrument. When the name of a regulation contains
+the name of a law, as in the *REGLAMENTO DE LA LEY FEDERAL DE CORREDURÍA
+PÚBLICA*, the law is the *Ley Federal de Correduría Pública*. The same reading
+links a law to the instrument it regulates, the *LEY de Amparo, Reglamentaria
+de los artículos 103 y 107 de la Constitución Política de los Estados Unidos
+Mexicanos* to the Constitution, and a treaty to the one it implements, the
+*AVISO POR EL QUE SE DA A CONOCER EL ESQUEMA DE CERTIFICACION QUE LA REPUBLICA
+SOCIALISTA DE VIETNAM APLICARA EN EL MARCO DEL TRATADO INTEGRAL Y PROGRESISTA DE
+ASOCIACION TRANSPACIFICO* to that treaty. A treaty is often cited by a short
+form of its name, so a treaty name of five words or more is also read without
+its trailing qualifier and up to its first comma, and the name of an instrument
+that merely extends another with more words is never read as a link to it.
+Signal A links 161 instruments: 130 regulations, 19 treaties, 10 laws and two
+guidelines. The second, B, is the sentence that states the purpose of the
+instrument, usually its first article, which often names what it regulates.
+Article 1 of the *REGLAMENTO DE LA LEY DE AGUAS NACIONALES* reads "El presente
+ordenamiento tiene por objeto reglamentar la Ley de Aguas Nacionales", which
+confirms what its name already said. Article 1 of the *REGLAMENTO DE SISTEMAS DE
+COMERCIALIZACIÓN MEDIANTE LA INTEGRACIÓN DE GRUPOS DE CONSUMIDORES* reads "El
+presente ordenamiento tiene por objeto regular los sistemas de comercialización
+mediante la integración de grupos de consumidores, a que se refiere el artículo
+63 de la Ley Federal de Protección al Consumidor", so that its law is found
+although its name never mentions it. Signal B links 170 instruments, and the
+two signals together link 251 instruments through 275 links.
+
+The links run in many directions, though most of them go from a regulation to a
+law. By the collection of the source and of the target, there are 215 links
+from regulations to laws, 23 from treaties to treaties, 12 from laws to laws,
+nine from guidelines to laws, six from regulations to regulations, five from
+regulations to treaties, three from guidelines to regulations and two from laws
+to treaties. The 21 treaties that are the source of a link all point to another
+treaty, as the *ACUERDO PARA LA APLICACION DE SALVAGUARDIAS EN RELACION CON EL
+TRATADO PARA LA PROSCRIPCION DE LAS ARMAS NUCLEARES EN LA AMERICA LATINA Y EL
+TRATADO SOBRE LA NO PROLIFERACION DE LAS ARMAS NUCLEARES* does.
+
+A name is not always enough. For 62 instruments the name points to an
+instrument that cannot be resolved among the 2,676 of the corpus, as with the
+*REGLAMENTO DE LA LEY FEDERAL DE TURISMO*, whose law has been abrogated, and
+these instruments are left out of the gold standard instead of being guessed.
 
 The third signal, C, works on single excerpts instead of whole instruments. An
 excerpt that cites "artículo 38 Bis de la Ley General del Equilibrio Ecológico
-y la Protección al Ambiente" names the law it is about, and the same
-three data sets can be asked where that law ranks for that one excerpt. The
-corpus holds 3,647 such citations, in 2,537 distinct excerpts of 832
-instruments that cite 179 different laws. Of those excerpts, 2,010 cite exactly
-one law. An excerpt that cites two or more laws is counted but not scored,
-because it has no single right answer, and seven more are removed because their
-text is word for word the text of several instruments. The 2,003 excerpts that
-remain are scored, and 559 of them cite the Constitution, which every kind of
-regulation cites.
+y la Protección al Ambiente" names the instrument it is about, and the same
+three data sets can be asked where that instrument ranks for that one excerpt.
+The corpus holds 7,066 such citations, in 5,218 distinct excerpts of 1,925
+instruments that cite 316 different instruments, once the 258 citations of an
+instrument to itself have been set aside. Of those excerpts, 4,497 cite
+exactly one instrument. An excerpt that cites two or more instruments is
+counted but not scored, because it has no single right answer, and 29 more are
+removed because their text is word for word the text of several instruments.
+The 4,468 excerpts that remain are scored, and 1,934 of them cite the
+Constitution, which every kind of instrument cites. Laws, regulations,
+guidelines and treaties all appear among the instruments that cite, and a
+treaty cites a law far more often than another treaty, with 863 pairs of an
+excerpt and a cited law against 37 of a cited treaty.
 
 ### What is measured
 
-At the level of the instrument, each regulation is scored against its gold
-law, or its gold laws when it has several. The panel orders the other
-instruments by the weight they receive from the regulation, which is the
+At the level of the instrument, each source is scored against its gold
+instrument, or its gold instruments when it has several. The panel orders the
+other instruments by the weight they receive from the source, which is the
 number printed under *Closest instruments*. The measure **closest is a gold
-law** counts the regulations whose gold law is the instrument at the top of
-that order, and the measure **a gold law among the five closest** counts those
-for which a gold law is among the first five. The **mean reciprocal rank**
-averages, over all the regulations scored, the reciprocal rank of the
-best-placed gold law, which is 1 divided by its position in the order, so that
-it is 1 when the law is first, 1/2 when it is second and 0 when the law
-receives no weight at all.
+instrument** counts the sources whose gold instrument is the one at the top of
+that order, and the measure **a gold instrument among the five closest** counts
+those for which a gold instrument is among the first five. The **mean
+reciprocal rank** averages, over all the sources scored, the reciprocal rank of
+the best-placed gold instrument, which is 1 divided by its position in the
+order, so that it is 1 when the instrument is first, 1/2 when it is second and
+0 when it receives no weight at all.
 
 At the level of the excerpt, each citing excerpt is compared with the texts of
 the 2,675 instruments other than its own. Every one of those instruments is
 scored by the similarity of its closest text to the excerpt, and the
-instruments are ordered by that score. The rank of the cited law is its
-position in that order, an instrument whose score only equals the law's not
-being placed ahead of it. The measure **cited law first** is the share of
-excerpts for which that rank is 1, and the measures **among the five closest**
-and **among the ten closest** are the shares for which it is at most 5 and at
-most 10. The **mean reciprocal rank** is the average of 1 divided by the rank,
-and the **median rank** is the middle value of the rank over all the excerpts,
-out of 2,675.
+instruments are ordered by that score. The rank of the cited instrument is its
+position in that order, an instrument whose score only equals the cited
+instrument's not being placed ahead of it. The measure **cited instrument
+first** is the share of excerpts for which that rank is 1, and the measures
+**among the five closest** and **among the ten closest** are the shares for
+which it is at most 5 and at most 10. The **mean reciprocal rank** is the
+average of 1 divided by the rank, and the **median rank** is the middle value
+of the rank over all the excerpts, out of 2,675.
 
 The scores behind these tables are computed by the same three methods and under
 the same rules as the map, so that the tables measure the map itself.
 
 Two methods are compared measure by measure, and a single test is used for each
 measure. For a measure answered yes or no for every instrument or excerpt, which
-are **closest is a gold law** and **a gold law among the five closest** at the
-level of the instrument, and **cited law first**, **among the five closest** and
-**among the ten closest** at the level of the excerpt, McNemar's exact test is
-applied to the cases on which the two methods disagree, and the difference is
-real when its p-value is below 0.05. For the **mean reciprocal rank** and the
-**median rank**, the difference between the two methods is given with the 95 %
-interval of a paired bootstrap, and it is real when the interval does not
-contain zero. This rule was fixed before the results were seen, and when it
-finds no real difference the two methods are tied.
+are **closest is a gold instrument** and **a gold instrument among the five
+closest** at the level of the instrument, and **cited instrument first**,
+**among the five closest** and **among the ten closest** at the level of the
+excerpt, McNemar's exact test is applied to the cases on which the two methods
+disagree, and the difference is real when its p-value is below 0.05. For the
+**mean reciprocal rank** and the **median rank**, the difference between the
+two methods is given with the 95 % interval of a paired bootstrap, and it is
+real when the interval does not contain zero. This rule was fixed before the
+results were seen, and when it finds no real difference the two methods are
+tied.
 
 ### The instruments
 
-The measures below were taken on 12 October 2026, over the 132 instruments of
-signal A alone and over the 212 of signals A and B together.
+The measures below were taken on 12 October 2026, over the 161 instruments of
+signal A alone and over the 251 of signals A and B together.
 
 | Gold links | Measure | 0.6B | 4B | BM25 |
 |---|---|---|---|---|
-| A (132) | closest is a gold law | 99 | 96 | 102 |
-| A (132) | a gold law among the five closest | 122 | 122 | 125 |
-| A (132) | mean reciprocal rank | 0.829 | 0.819 | 0.849 |
-| A and B (212) | closest is a gold law | 125 | 122 | 126 |
-| A and B (212) | a gold law among the five closest | 179 | 177 | 179 |
-| A and B (212) | mean reciprocal rank | 0.697 | 0.690 | 0.700 |
+| A (161) | closest is a gold instrument | 102 | 98 | 101 |
+| A (161) | a gold instrument among the five closest | 130 | 132 | 132 |
+| A (161) | mean reciprocal rank | 0.713 | 0.707 | 0.714 |
+| A and B (251) | closest is a gold instrument | 130 | 127 | 129 |
+| A and B (251) | a gold instrument among the five closest | 195 | 194 | 193 |
+| A and B (251) | mean reciprocal rank | 0.629 | 0.625 | 0.625 |
 
 The methods are then compared two at a time. Each difference is the first method
 minus the second, and each cell gives the verdict and, in parentheses, the
 p-value of McNemar's test for a measure answered yes or no or the 95 % interval
 of the bootstrap for the others.
 
-| Gold links | Pair | closest is a gold law | a gold law among the five closest | mean reciprocal rank |
+| Gold links | Pair | closest is a gold instrument | a gold instrument among the five closest | mean reciprocal rank |
 |---|---|---|---|---|
-| A (132) | 0.6B − 4B | tie (p = 0.45) | tie (p = 1.00) | tie ([−0.009, +0.030]) |
-| A (132) | 0.6B − BM25 | tie (p = 0.45) | tie (p = 0.25) | tie ([−0.045, +0.003]) |
-| A (132) | 4B − BM25 | tie (p = 0.07) | tie (p = 0.25) | BM25 better ([−0.056, −0.007]) |
-| A and B (212) | 0.6B − 4B | tie (p = 0.58) | tie (p = 0.75) | tie ([−0.011, +0.026]) |
-| A and B (212) | 0.6B − BM25 | tie (p = 1.00) | tie (p = 1.00) | tie ([−0.029, +0.021]) |
-| A and B (212) | 4B − BM25 | tie (p = 0.45) | tie (p = 0.79) | tie ([−0.036, +0.014]) |
+| A (161) | 0.6B − 4B | tie (p = 0.34) | tie (p = 0.73) | tie ([−0.021, +0.034]) |
+| A (161) | 0.6B − BM25 | tie (p = 1.00) | tie (p = 0.75) | tie ([−0.032, +0.031]) |
+| A (161) | 4B − BM25 | tie (p = 0.55) | tie (p = 1.00) | tie ([−0.035, +0.020]) |
+| A and B (251) | 0.6B − 4B | tie (p = 0.63) | tie (p = 1.00) | tie ([−0.018, +0.026]) |
+| A and B (251) | 0.6B − BM25 | tie (p = 1.00) | tie (p = 0.85) | tie ([−0.023, +0.030]) |
+| A and B (251) | 4B − BM25 | tie (p = 0.82) | tie (p = 1.00) | tie ([−0.025, +0.024]) |
 
 On what the map shows, which is the closest instrument and the five closest, the
-three methods cannot be told apart. The one real difference at this level is
-that on signal A alone BM25 has a higher mean reciprocal rank than the 4B, a
-small effect that does not survive on the wider gold standard.
+three methods cannot be told apart, and no pair differs on any of the three
+measures, on the narrow gold standard or on the wide one. The collection of the
+source matters more than the method. Of the 208 regulations scored on the wide
+gold standard, the closest instrument is a gold instrument for 122 under the
+0.6B and BM25 and for 119 under the 4B, while for the 21 treaties it is so for
+five, three and three, and for the 13 laws for none, two and one. The links that
+start in a law or a treaty are few, which is why their figures change so much
+from one method to the next.
 
 ### The excerpts
 
-The same three data sets were then scored one excerpt at a time over the 2,003
-excerpts that cite exactly one law, and again over the 1,444 excerpts that
-remain once those citing the Constitution are set aside.
+The same three data sets were then scored one excerpt at a time over the 4,468
+excerpts that cite exactly one instrument, and again over the 2,534 excerpts
+that remain once those citing the Constitution are set aside.
 
 | Measure | 0.6B | 4B | BM25 |
 |---|---|---|---|
-| cited law first | 0.095 | 0.101 | 0.088 |
-| among the five closest | 0.250 | 0.268 | 0.241 |
-| among the ten closest | 0.345 | 0.371 | 0.341 |
-| mean reciprocal rank | 0.178 | 0.190 | 0.171 |
-| median rank | 30 | 22 | 30 |
-| among the five closest, without the Constitution | 0.332 | 0.355 | 0.321 |
-| mean reciprocal rank, without the Constitution | 0.235 | 0.247 | 0.228 |
-| median rank, without the Constitution | 14 | 11 | 13 |
+| cited instrument first | 0.093 | 0.108 | 0.100 |
+| among the five closest | 0.248 | 0.278 | 0.255 |
+| among the ten closest | 0.334 | 0.363 | 0.341 |
+| mean reciprocal rank | 0.174 | 0.195 | 0.180 |
+| median rank | 39 | 30 | 40 |
+| among the five closest, without the Constitution | 0.387 | 0.423 | 0.409 |
+| mean reciprocal rank, without the Constitution | 0.271 | 0.294 | 0.289 |
+| median rank, without the Constitution | 10 | 8 | 9 |
 
 The pairs are compared in the same way, the median rank being given with the
 interval of its difference in ranks.
 
-| Pair | cited law first | among the five closest | among the ten closest | mean reciprocal rank | median rank |
+| Pair | cited instrument first | among the five closest | among the ten closest | mean reciprocal rank | median rank |
 |---|---|---|---|---|---|
-| 0.6B − 4B | tie (p = 0.28) | 4B better (p = 0.003) | 4B better (p < 0.001) | 4B better ([−0.019, −0.005]) | 4B better ([+5, +10]) |
-| 0.6B − BM25 | tie (p = 0.35) | tie (p = 0.34) | tie (p = 0.71) | tie ([−0.004, +0.017]) | tie ([−7, +4]) |
-| 4B − BM25 | tie (p = 0.052) | 4B better (p = 0.002) | 4B better (p = 0.002) | 4B better ([+0.009, +0.029]) | 4B better ([−15, −3]) |
+| 0.6B − 4B | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([−0.027, −0.016]) | 4B better ([+6, +11]) |
+| 0.6B − BM25 | tie (p = 0.09) | tie (p = 0.27) | tie (p = 0.29) | tie ([−0.013, +0.001]) | tie ([−5, +3]) |
+| 4B − BM25 | tie (p = 0.08) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([+0.008, +0.022]) | 4B better ([−14, −6]) |
 
-At this level the methods are no longer tied. The 4B is better than both of the
-others on four of the five measures, the exception being the share of excerpts
-whose cited law is first, on which the three cannot be told apart, and the 0.6B
-and BM25 are tied on every measure. The differences are small, two to three
-points of recall, but they are not noise. The absolute level is low because an
-excerpt that cites an article of a law is usually about something other than the
-rest of that law, and the Constitution, which is cited by 559 of the excerpts,
-drags it down further. The order of the three is the same without the
-Constitution.
+At this level the methods are no longer tied. The 4B is better than the 0.6B on
+all five measures and better than BM25 on four of them, the exception being the
+share of excerpts whose cited instrument is first, on which the two cannot be
+told apart, and the 0.6B and BM25 are tied on every measure. The differences are
+small, two to three points of recall, but they are not noise. The absolute level
+is low because an excerpt that cites an article of a law is usually about
+something other than the rest of that law, and the Constitution, which is cited
+by 1,934 of the excerpts, drags it down further. The order of the three is the
+same without the Constitution.
+
+The level depends on who cites. The cited instrument is among the five closest
+for 35 %, 41 % and 38 % of the 1,528 excerpts of laws under the 0.6B, the 4B and
+BM25, for 26 %, 28 % and 26 % of the 1,901 excerpts of regulations, and for 32 %,
+35 % and 28 % of the 185 excerpts of guidelines. For the 854 excerpts of treaties
+it is 2.7 %, 2.3 % and 1.9 %, with a median rank above 1,400 in every method. A
+treaty that cites an article of a Mexican law mentions it in passing, inside an
+agreement about something else, so that the law's own text is probably far from
+the excerpt, and none of the three methods bridges that gap.
 
 ### The reading
 
 On the question the map answers, which is what an instrument is closest to,
-the three methods are indistinguishable at finding the law that a regulation
-develops, and a lexical baseline that learns nothing is as good as either
-embedding model. The 4B ranks a cited law higher for a single excerpt, and this
-is the one measured reason for switching to it. BM25 is not beaten everywhere. Among the ten most cited
-laws it is clearly the best on the *Código Fiscal de la Federación*, where the
-cited law is among the five closest for 68.4 % of the excerpts against 40.4 %
-for the 4B, and clearly the worst on the *Ley Orgánica del Poder Judicial de la
-Federación*, with 17.1 % against 43.9 %. These checks look at the law and not
-at the article, so they say nothing about whether the right article of that
-law ranks first.
+the three methods are indistinguishable at finding the instrument that another
+one develops, and a lexical baseline that learns nothing is as good as either
+embedding model. The 4B ranks a cited instrument higher for a single excerpt,
+and this is the one measured reason for switching to it. BM25 is not beaten
+everywhere. Among the ten most cited instruments it is the best on the *Código
+Fiscal de la Federación*, where the cited instrument is among the five closest
+for 79.7 % of the 172 excerpts against 44.2 % for the 4B, and the lowest of the
+three on the Constitution, with 5.2 % of 1,934 excerpts against 8.8 % for the
+4B. These checks look at the instrument and not at the article, so they say
+nothing about whether the right article of that instrument ranks first.
 
 ::: {.atlas-data}
 **Data.** The texts are the four consolidated corpora this project publishes
@@ -455,10 +504,10 @@ the full tables of the two evaluations in the
 [project's notes](https://github.com/INGEOTEC/LegalIA/blob/master/scripts/embeddings/README.md).
 :::
 
-::: {.callout-note collapse="true" title="The 227 strong links of the 212 instruments"}
+::: {.callout-note collapse="true" title="The 275 strong links of the 251 instruments"}
 A link comes from signal A when the name of the instrument contains the name of
-the law and from signal B when the sentence that states the purpose of the
-instrument names it, and the full table of links is given below.
+another instrument and from signal B when the sentence that states the purpose
+of the instrument names it, and the full table of links is given below.
 
 {{< include atlas/_gold-links.md >}}
 :::

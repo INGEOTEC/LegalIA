@@ -654,9 +654,16 @@ def test_the_qmd_has_the_evaluation_section_with_its_numbers():
     for table in (tables[0], tables[2]):
         header = table.splitlines()[0]
         assert "0.6B" in header and "4B" in header and "BM25" in header
-    for literal in ("132", "160", "212", "55", "3,647", "2,010", "2,003", "0.268",
-                    "0.250", "0.241", "22", "30", "12 October 2026", "2,675"):
+    for literal in ("161", "170", "251", "275", "62", "7,066", "5,218", "1,925", "316", "258",
+                    "4,497", "4,468", "1,934", "2,534", "0.278", "0.248", "0.255", "30", "39",
+                    "12 October 2026", "2,675", "2,676"):
         assert literal in flat, literal
+    # Every collection is a source and a target, and an instrument never links to itself
+    # (review fix-1: the gold used to start only in a regulation or a guideline).
+    assert "nothing restricts what the two are" in flat and "never linked to itself" in flat
+    assert "215 links from regulations to laws, 23 from treaties to treaties" in flat
+    for gone in ("988 instruments", "gold law", "227 strong links", "3,647"):
+        assert gone not in flat, gone
     assert "without the Constitution" in tables[2]
     assert forbidden_in(section) == []
 
@@ -682,12 +689,12 @@ def test_the_qmd_compares_the_methods_with_one_test_per_measure():
     # Six rows (three pairs, two gold standards) by three measures.
     assert len(pairs_instruments) == 2 + 6
     assert [c.strip() for c in pairs_instruments[0].strip("|").split("|")] == [
-        "Gold links", "Pair", "closest is a gold law", "a gold law among the five closest",
-        "mean reciprocal rank"]
+        "Gold links", "Pair", "closest is a gold instrument",
+        "a gold instrument among the five closest", "mean reciprocal rank"]
     # Three rows by five measures.
     assert len(pairs_excerpts) == 2 + 3
     assert [c.strip() for c in pairs_excerpts[0].strip("|").split("|")] == [
-        "Pair", "cited law first", "among the five closest", "among the ten closest",
+        "Pair", "cited instrument first", "among the five closest", "among the ten closest",
         "mean reciprocal rank", "median rank"]
     verdicts = re.compile(r"^(tie|0\.6B better|4B better|BM25 better) \((p [=<] [0-9.]+|"
                           r"\[[−+0-9., ]+\])\)$")
@@ -697,10 +704,12 @@ def test_the_qmd_compares_the_methods_with_one_test_per_measure():
             assert all(verdicts.match(c) for c in cells[first:]), cells
     # The yes-or-no measures carry a p-value, the others an interval.
     body = pairs_excerpts[2].strip("|").split("|")
-    assert "p = " in body[1] and "[" in body[4] and "[" in body[5]
-    # The verdicts the README reports, read off the two evaluation files (review fix-3).
-    assert "BM25 better ([−0.056, −0.007])" in flat
-    assert flat.count("4B better") == 8      # four measures in two pairs
+    assert "(p " in body[1] and "[" in body[4] and "[" in body[5]
+    # The verdicts the README reports, read off the two evaluation files (review fix-1).
+    assert all(cell.strip().startswith("tie") for row in pairs_instruments[2:]
+               for cell in row.strip("|").split("|")[2:])
+    assert flat.count("4B better") == 9      # five measures against the 0.6B, four against BM25
+    assert "BM25 better" not in flat and "0.6B better" not in flat
 
 
 def test_the_bib_has_the_atlas_citations():
@@ -747,8 +756,8 @@ def test_every_bold_measure_is_a_cell_of_a_table_and_the_weight_share_is_gone():
                    text.index("::: {.atlas-data}")]
     explained = text[text.index("### What is measured"):text.index("### The instruments")]
     bold = set(re.findall(r"\*\*(.+?)\*\*", " ".join(explained.split())))
-    assert bold == {"closest is a gold law", "a gold law among the five closest",
-                    "mean reciprocal rank", "cited law first", "among the five closest",
+    assert bold == {"closest is a gold instrument", "a gold instrument among the five closest",
+                    "mean reciprocal rank", "cited instrument first", "among the five closest",
                     "among the ten closest", "median rank"}
     rows = [line for line in section.splitlines() if line.startswith("|") and "---" not in line]
     cells = {cell.strip() for row in rows for cell in row.strip("|").split("|")}
@@ -762,10 +771,10 @@ LINKS = PAGES / "atlas" / "_gold-links.md"
 
 
 def link_rows() -> list[tuple[str, str, str]]:
-    """`(instrument, law, signal)` per row of the included table of strong links."""
+    """`(instrument, target, signal)` per row of the included table of strong links."""
     lines = LINKS.read_text(encoding="utf-8").splitlines()
     assert lines[0].startswith("<!--") and lines[0].endswith("-->")
-    assert lines[2:4] == ["| Instrument | Law | Signal |", "|---|---|---|"]
+    assert lines[2:4] == ["| Instrument | Links to | Signal |", "|---|---|---|"]
     rows = []
     for line in lines[4:]:
         cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", line.strip())[1:-1]]
@@ -775,17 +784,19 @@ def link_rows() -> list[tuple[str, str, str]]:
 
 
 def test_the_links_table_is_the_gold_of_the_evaluation_section():
-    """Review fix-3: the 227 strong links of the 212 instruments, with the signal
-    that found each, included at the end of the page."""
+    """Review fix-3, widened by review fix-1: the 275 strong links of the 251
+    instruments, whatever their collection, with the signal that found each,
+    included at the end of the page."""
     rows = link_rows()
-    assert len(rows) == 227
+    assert len(rows) == 275
     assert {signal for _, _, signal in rows} == {"A", "B", "A and B"}
     instruments = {name for name, _, _ in rows}
-    assert len(instruments) == 212
-    assert len({name for name, _, signal in rows if "A" in signal}) == 132
-    assert len({name for name, _, signal in rows if "B" in signal}) == 160
-    assert sum("A" in signal for _, _, signal in rows) == 132       # one law each by name
-    assert sum("B" in signal for _, _, signal in rows) == 175
+    assert len(instruments) == 251
+    assert len({name for name, _, signal in rows if "A" in signal}) == 161
+    assert len({name for name, _, signal in rows if "B" in signal}) == 170
+    assert sum("A" in signal for _, _, signal in rows) == 161       # one target each by name
+    assert sum("B" in signal for _, _, signal in rows) == 194
+    assert all(name != target for name, target, _ in rows)          # never itself
     assert rows == sorted(rows, key=lambda r: (r[0].casefold(), r[1].casefold(), r[2]))
     assert ("REGLAMENTO DE LA LEY FEDERAL DE CORREDURIA PUBLICA", "LEY Federal de Correduría Pública",
             "A") in rows
@@ -793,7 +804,7 @@ def test_the_links_table_is_the_gold_of_the_evaluation_section():
     text = QMD.read_text(encoding="utf-8")
     assert text.count("{{< include atlas/_gold-links.md >}}") == 1
     callout = text[text.index('::: {.callout-note collapse="true"'):]
-    assert 'title="The 227 strong links of the 212 instruments"' in callout
+    assert 'title="The 275 strong links of the 251 instruments"' in callout
     assert text.index("::: {.atlas-data}") < text.index('::: {.callout-note collapse="true"')
     assert callout.rstrip().endswith(":::\n\n:::") or callout.rstrip().endswith(":::")
     assert "gold_links" not in text and "gold_links" not in LINKS.read_text(encoding="utf-8")
@@ -1817,7 +1828,7 @@ def test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references(rendered_
     # The links of the gold sit in a collapsed callout at the end of the prose (review fix-3).
     callout = rendered_page.locator(".atlas-prose .callout-note").last
     assert callout.locator(".callout-header").get_attribute("class").count("collapsed") == 1
-    assert callout.locator("table tbody tr").count() == 227
+    assert callout.locator("table tbody tr").count() == 275
     assert not callout.locator(".callout-body-container").is_visible()
     callout.locator(".callout-header").click()
     rendered_page.wait_for_timeout(500)

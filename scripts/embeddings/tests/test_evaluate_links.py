@@ -40,10 +40,10 @@ def write_work_dir(path: Path, matrix, instruments=INSTRUMENTS) -> Path:
 def gold_record(entries=None) -> dict:
     """Instrument 2 develops law 0 (A); instrument 3 develops laws 0 and 1 (B)."""
     entries = entries or [
-        {"i": 2, "coleccion": "reglamentos", "clave": "1", "laws_A": [0], "laws_B": [],
-         "laws": [0], "signals": ["A"]},
-        {"i": 3, "coleccion": "reglamentos", "clave": "2", "laws_A": [], "laws_B": [0, 1],
-         "laws": [0, 1], "signals": ["B"]},
+        {"i": 2, "coleccion": "reglamentos", "clave": "1", "targets_A": [0], "targets_B": [],
+         "targets": [0], "signals": ["A"]},
+        {"i": 3, "coleccion": "reglamentos", "clave": "2", "targets_A": [], "targets_B": [0, 1],
+         "targets": [0, 1], "signals": ["B"]},
     ]
     return {"instruments": INSTRUMENTS, "entries": entries, "summary": {}, "provenance": {}}
 
@@ -230,9 +230,41 @@ def test_main_writes_the_json_and_the_markdown(tmp_path, capsys):
     assert both["models"]["bad"]["closest"]["count"] == 0
     assert {p["metric"] for p in both["pairs"]} == {"closest", "top5", "mrr", "share"}
     assert set(out["signal_sets"]) == {"A", "A+B"}
+    # The per-source-collection split: counts and means, no pairwise test.
+    split = both["by_source_collection"]
+    assert list(split) == ["reglamentos"] and split["reglamentos"]["scored"] == 2
+    assert split["reglamentos"]["models"]["good"]["closest"] == {"mean": 1.0, "count": 2}
+    assert "pairs" not in split["reglamentos"]
     capsys.readouterr()
     assert evaluate_links.main(["--gold", str(gold_path), "--report"]) == 0
-    assert "closest is a gold law" in capsys.readouterr().out
+    assert "closest is a gold instrument" in capsys.readouterr().out
+
+
+def test_any_collection_can_be_a_source_and_a_target(tmp_path):
+    """A law whose own text names another law and a treaty that names a regulation
+    (issue #283, fix-1): the metrics index rows by instrument, whatever it is."""
+    instruments = [["leyes", "a"], ["leyes", "b"], ["reglamentos", "1"], ["tratados", "9"]]
+    gold = {"instruments": instruments, "summary": {}, "provenance": {}, "entries": [
+        {"i": 0, "coleccion": "leyes", "clave": "a", "targets_A": [1], "targets_B": [],
+         "targets": [1], "signals": ["A"]},
+        {"i": 3, "coleccion": "tratados", "clave": "9", "targets_A": [], "targets_B": [2],
+         "targets": [2], "signals": ["B"]},
+    ]}
+    path = tmp_path / "gold.json"
+    path.write_text(json.dumps(gold), encoding="utf-8")
+    matrix = [[0, 4, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 3, 0]]
+    write_work_dir(tmp_path / "x", matrix, instruments)
+    write_work_dir(tmp_path / "y", matrix, instruments)
+    evaluate_links.main(["--gold", str(path), "--work-dir", f"x={tmp_path / 'x'}",
+                         "--work-dir", f"y={tmp_path / 'y'}", "--resamples", "100"])
+    out = json.loads((tmp_path / "evaluation.json").read_text(encoding="utf-8"))
+    split = out["signal_sets"]["A+B"]["by_source_collection"]
+    assert list(split) == ["leyes", "tratados"]
+    assert split["leyes"]["models"]["x"]["closest"]["count"] == 1
+    assert split["tratados"]["models"]["x"]["closest"]["count"] == 1
+    assert out["signal_sets"]["A+B"]["models"]["x"]["closest"]["count"] == 2
+    markdown = (tmp_path / "evaluation.md").read_text(encoding="utf-8")
+    assert "sources in `tratados`" in markdown and "instrument -> instrument links" in markdown
 
 
 def test_signals_narrows_the_sets(tmp_path):

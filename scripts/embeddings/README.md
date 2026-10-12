@@ -1969,6 +1969,161 @@ recall moved by at most 0.01 and the median rank by one or two places (29 → 30
 21 → 22) with 1,373 more candidates, which is how little a treaty competes
 with the law an excerpt cites.
 
+### Measured, strong links between any two instruments, 2026-10-12 (issue #283, review fix-1)
+
+**What changed and why.** Until here a strong link had a fixed shape: the source
+was a reglamento or a lineamiento and the target one of the 315 laws, treaties
+only ever being extra candidates. That was a restriction of the first gold, not
+a property of the data: a law can be *reglamentaria* of an article of the
+Constitution, a treaty can implement an earlier treaty, a law can approve a
+convention. `gold_links.py` now takes **every one of the 2,676 instruments as a
+source and every one as a target**, whatever collection each belongs to, under
+one rule, **an instrument is never linked to itself** (`summary.self_links` is
+0, and `test_the_real_gold_never_links_an_instrument_to_itself` pins it on the
+real data). The three scripts changed together (`gold_links.py`,
+`evaluate_links.py`, `evaluate_citations.py`); matrices, `atlas*.json`, pair
+files, vectors and the `atlas-pairs` release are untouched. Everything ran
+offline (the gold takes ~32 s), no Slurm. The
+2026-10-05 and the first 2026-10-12 sections above stay as they were and are the
+"before".
+
+**Rules, each an incident of the first run on the real data.**
+
+* *Names.* The folded names of all 2,676 instruments form one alternation,
+  longest first, compiled as a radix-compressed trie (a character-level trie hit
+  `RecursionError`). A folded name that several instruments share and that is
+  not the source's own would be *ambiguous* and give no link; none is
+  (`summary.ambiguous` is 0).
+* *Own name.* A source never links to an instrument whose folded name is one of
+  its own: the two `LEY de Amnistía`, and the three regulations the corpus holds
+  once as a law and once as a reglamento (`REGLAMENTO DE LA CAMARA DE DIPUTADOS`,
+  `REGLAMENTO DEL SENADO DE LA REPUBLICA`, `REGLAMENTO PARA EL GOBIERNO INTERIOR
+  DEL CONGRESO GENERAL…`) are evidently the same instrument filed under two
+  collections, not a link between two instruments. These are the **three links of the old gold that are gone**:
+  each of the three reglamentos used to link to its twin in `leyes` by signal A.
+  Every other one of the 227 old links is still there (checked row by row
+  against `emb-run-atlas/gold-links/links.md` of 2026-10-05).
+* *Prefix siblings.* A name that matches at position 0 without being the whole
+  source name is a sibling or an extension (`REGLAMENTO DE LA LEY DE NAVEGACION Y
+  COMERCIO MARITIMOS` begins with, and contains, `REGLAMENTO DE LA LEY DE
+  NAVEGACION`), so it is banned and the search repeats; without this rule a
+  treaty named after an earlier one linked to it by an accident of prefix and,
+  once, a reglamento lost its true law.
+* *Treaty aliases.* A treaty is cited by a short name, so a treaty name of **five
+  words or more** also answers to itself without its trailing parenthetical
+  qualifier (`(MULTILATERAL, 1974)`) and cut at its first comma. Shorter names
+  get no alias: generic short forms produced false treaty-to-treaty links on the
+  real data.
+* *Self-mentions in B and C.* An "objeto" sentence or a citation naming the
+  source's own name is not a link; citations of an instrument to itself are
+  counted apart (`citations.self_citations`, 258) and are not in
+  `citations.parquet`.
+* *Unresolved* is now **62** (it was 55): the name says `ley`, `codigo`… and
+  resolves to nothing among the 2,676 instruments; counted and reported, never
+  gold and never a negative, as before.
+
+**The gold.** Signal A 161 instruments (10 laws, 130 reglamentos, 2 lineamientos,
+19 tratados), B 170 (3, 158, 7, 2), A union B **251** (13, 208, 9, 21), A and B
+80 (all reglamentos), B only 90, 19 instruments whose sentence names several
+targets; **275 links** (A 161, B 194, B only 114), `B_links_without_evidence` 0.
+Before: 132 / 160 / 212 / 227. Links by source -> target collection (links,
+distinct sources):
+
+| source -> target | links | sources |
+|---|---|---|
+| reglamentos -> leyes | 215 | 201 |
+| tratados -> tratados | 23 | 21 |
+| leyes -> leyes | 12 | 11 |
+| lineamientos -> leyes | 9 | 8 |
+| reglamentos -> reglamentos | 6 | 6 |
+| reglamentos -> tratados | 5 | 3 |
+| lineamientos -> reglamentos | 3 | 3 |
+| leyes -> tratados | 2 | 2 |
+
+Eight of the sixteen possible source -> target pairs occur; none ends in
+`lineamientos`, and a treaty is the source only of links to treaties.
+`_gold-links.md` now has the header `| Instrument
+| Links to | Signal |` and 275 rows.
+
+**Instrument level** (`evaluation.md`; the metric labels say *gold instrument*
+now):
+
+| gold | metric | 0.6B | 4B | BM25 |
+|---|---|---|---|---|
+| A (161) | closest is a gold instrument | 102 (0.634) | 98 (0.609) | 101 (0.627) |
+| A (161) | a gold instrument among the five closest | 130 (0.807) | 132 (0.820) | 132 (0.820) |
+| A (161) | mean reciprocal rank | 0.713 | 0.707 | 0.714 |
+| A (161) | weight share on gold instruments | 0.307 | 0.322 | 0.293 |
+| A union B (251) | closest is a gold instrument | 130 (0.518) | 127 (0.506) | 129 (0.514) |
+| A union B (251) | a gold instrument among the five closest | 195 (0.777) | 194 (0.773) | 193 (0.769) |
+| A union B (251) | mean reciprocal rank | 0.629 | 0.625 | 0.625 |
+| A union B (251) | weight share on gold instruments | 0.246 | 0.259 | 0.237 |
+
+"Closest" ties with a non-gold instrument: 5 / 0 / 1 (A) and 7 / 2 / 3 (A union
+B). **Every pair is a tie on the closest, the five closest and the MRR**, on both
+gold standards; the only verdicts are the weight share (4B better than the 0.6B,
+-0.015 on A and -0.013 on A union B, and better than BM25, +0.029 and +0.022; the
+0.6B and BM25 tied). The first gold's one other verdict, BM25's MRR above the
+4B's on A alone, **does not survive** (tie, [-0.035, +0.020]).
+
+By collection of the source (A union B; closest / top-5, count of sources, for
+0.6B / 4B / BM25), counts and means only, no pairwise test (a source count of 9
+or 13 cannot carry one): reglamentos (208) 122 / 119 / 122 and 175 / 174 / 174;
+tratados (21) 5 / 3 / 3 and 8 / 8 / 6; leyes (13) 0 / 2 / 1 and 4 / 6 / 6;
+lineamientos (9) 3 / 3 / 3 and 8 / 6 / 7. The links that start in a law or a
+treaty are the hard ones and the three methods disagree among themselves on
+them, which is the sampling noise of a handful of sources.
+
+**Row level (signal C)** (`evaluation-rows.md`): 7,066 citations (258 more of an
+instrument to itself set aside) in 5,218 distinct rows of 1,925 instruments,
+citing 316 instruments, 6,042 (row, instrument) pairs; 4,497 rows cite exactly
+one instrument, 721 cite several (not scored); 29 removed as word-for-word shared
+by several instruments (the same in every model), **4,468 scored**, 0 where the
+cited instrument owns a copy, ranked among 2,675 foreign instruments. Citation
+pairs by source -> target (pairs of a row and an instrument): leyes -> leyes
+1,822, reglamentos -> leyes 2,892, tratados -> leyes 863, lineamientos -> leyes
+209, reglamentos -> reglamentos 157, lineamientos -> reglamentos 37, tratados ->
+tratados 37, tratados -> reglamentos 11, leyes -> reglamentos 8,
+reglamentos -> tratados 4, leyes -> tratados 2.
+
+| metric | 0.6B | 4B | BM25 |
+|---|---|---|---|
+| recall@1 | 414 (0.093) | 483 (0.108) | 448 (0.100) |
+| recall@5 | 1,108 (0.248) | 1,244 (0.278) | 1,138 (0.255) |
+| recall@10 | 1,494 (0.334) | 1,621 (0.363) | 1,524 (0.341) |
+| MRR | 0.174 | 0.195 | 0.180 |
+| median rank | 39 | 30 | 40 |
+| recall@5, without the Constitution (2,534 rows) | 0.387 | 0.423 | 0.409 |
+| MRR, without the Constitution | 0.271 | 0.294 | 0.289 |
+| median rank, without the Constitution | 10 | 8 | 9 |
+
+| pair | cited instrument first | among the five | among the ten | MRR | median rank |
+|---|---|---|---|---|---|
+| 0.6B − 4B | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([−0.027, −0.016]) | 4B better ([+6, +11]) |
+| 0.6B − BM25 | tie (p = 0.09) | tie (p = 0.27) | tie (p = 0.29) | tie ([−0.013, +0.001]) | tie ([−5, +3]) |
+| 4B − BM25 | tie (p = 0.08) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([+0.008, +0.022]) | 4B better ([−14, −6]) |
+
+Recall@5 (0.6B / 4B / BM25) by the collection of the citing row: leyes (1,528)
+0.346 / 0.407 / 0.379, reglamentos (1,901) 0.262 / 0.283 / 0.258, lineamientos
+(185) 0.319 / 0.346 / 0.281, **tratados (854) 0.027 / 0.023 / 0.019** (median
+rank 1,421.5 / 1,613 / 2,119.5): a treaty that cites a Mexican law does it in
+passing, inside an agreement about something else, and no method finds the law
+(the explanation is a hypothesis, not tested). Among the ten most cited
+instruments (recall@5) BM25 is highest on the *Código Fiscal de la Federación*
+(172 rows: 0.797 against 0.442 for the 4B and 0.384 for the 0.6B) and lowest on
+the Constitution (1,934 rows: 0.052 against 0.088 and 0.066); the 4B is
+ahead on the *Ley General de Sociedades Mercantiles* (102 rows: 0.529 against
+0.373 and 0.412).
+
+**Reading.** The conclusions of 2026-10-05 and of the first 2026-10-12 section
+stand, with one change: now the 4B is better than the 0.6B on *all five*
+row-level measures (the 0.6B-versus-4B "cited law first" was a tie) and than BM25
+on four, with a larger row set (4,468 against 2,003); on the closest instrument and the
+five closest the three data sets remain statistically indistinguishable, and
+the 4B alone puts more weight on the gold instrument. The Ley Orgánica del Poder
+Judicial de la Federación is no longer among the ten most cited instruments.
+Nothing here changes which data set the page opens on.
+
 ### Measured, BM25 tuning, 2026-10-01 (issue #267, review fix)
 
 Question: does a better BM25 configuration move the lexical baseline toward the
@@ -2048,6 +2203,11 @@ are exactly what #267/#268 produced, and nothing was regenerated or uploaded.
 
 
 ### Comparing the three data sets against strong links (issue #272)
+
+*Review fix-1 of issue #283 (2026-10-12) generalised this: a source is any of the
+2,676 instruments and a target any other one, never itself. The text below is
+the design of issue #272 as it was written, and the dated section "Measured,
+strong links between any two instruments" gives the current rules and numbers.*
 
 Until here the only comparison between the 0.6B, the 4B and BM25 was
 *agreement* (the closest instrument coincides for 1,077 of 1,303 between the two
