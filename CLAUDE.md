@@ -1141,23 +1141,26 @@ see the #242 bullet above), #245 draws it.
   are untouched, so there is no publish step.
 - **Which data set is right? Strong links, issue #272.** Agreement between the
   three data sets measures consensus, not quality, so
-  `scripts/embeddings/gold_links.py` builds an external gold (a reglamento or
-  lineamiento whose own name or "objeto" sentence names the law it develops;
-  212 instruments) and `evaluate_links.py` scores the three `matrix.npy`
+  `scripts/embeddings/gold_links.py` builds an external gold (an instrument
+  whose own name or "objeto" sentence names the instrument it develops; first
+  a reglamento or lineamiento naming a law, 212 instruments, **since review
+  fix-1 of #283 any instrument naming any other**, see below) and
+  `evaluate_links.py` scores the three `matrix.npy`
   against it under a bootstrap + McNemar rule fixed beforehand. Result: the
   0.6B, the 4B and BM25 are statistically indistinguishable on the closest and
-  the five closest instruments; only the 4B's weight share on the gold law is
-  higher. Outputs stay in `emb-run-atlas/gold-links/` (gitignored); method and
+  the five closest instruments; only the 4B's weight share on the gold
+  instrument is higher. Outputs stay in `emb-run-atlas/gold-links/` (gitignored); method and
   tables are in `scripts/embeddings/README.md` ("Comparing the three data sets
   against strong links").
 - **The same question one unit row at a time, issue #273.** Signal C of
   `gold_links.py` (`citations.parquet`: "artículo N de la Ley X") and
   `scripts/embeddings/evaluate_citations.py` re-score each work directory with its
-  own scorer under the matrix's own mask and rank the cited law among the 1,302
-  foreign instruments, over 2,003 single-law citing rows. Result: **the 4B is
+  own scorer under the matrix's own mask and rank the cited instrument among
+  the 1,302 foreign instruments (2,675 since #283), over 2,003 single-law citing
+  rows (4,468 single-instrument rows since fix-1). Result: **the 4B is
   better** (recall@5 0.273 against 0.253 and 0.241, median rank 21 against 29),
   while the 0.6B and BM25 tie; see "Row level: explicit citations" in the same
-  README. Law level only, local, gitignored outputs.
+  README. Instrument level only, local, gitignored outputs.
 - **The page's prose, citations and evaluation (issue #275).** The prose under
   the map is as wide as the map (`.atlas-prose` has no `max-width`; its tables
   scroll, so a phone never widens), is written
@@ -1181,10 +1184,56 @@ see the #242 bullet above), #245 draws it.
   signals A/B/C with examples, two tables; each measure is named in bold in the
   explanation exactly as in the table, and the weight share is left to the
   README as too hard to follow; one test per measure, a pairwise table under each
-  results table, and the 227 strong links in a collapsed callout fed by
+  results table, and the strong links (227 at first, 275 since fix-1 of #283) in a
+  collapsed callout fed by
   `website/pages/atlas/_gold-links.md`, which `gold_links.py` writes as `links.md`) as literals copied from
   `scripts/embeddings/README.md`'s dated *Measured* subsections, never
   recomputed.
+
+- **The treaties on the map (issues #282, #283, done).** The Atlas carries a
+  **fourth collection**, `tratados` (the `scjn-tratados` corpus of #277 and the
+  vectors of #280): #282 made the chain and the page able to (one registry,
+  `build_umap_html.COLLECTION_CODES`, equal in order to
+  `prepare_umap_input.COLLECTIONS` and `legalvec.cache.RELEASE_TAGS` — a test
+  pins it; `atlas.js` builds its legend from `meta.collections`, treaties
+  yellow `#eda100`, an unknown collection stops the page with a message naming
+  it; `export_atlas_pairs.py` refuses, rather than drops, a collection outside
+  the registry) and #283 rebuilt the three data sets in place with them:
+  315 + 863 + 125 + **1,373 = 2,676 instruments**, 203,324 excerpts, 144,023
+  counted (143,661 for BM25), `tratados` stacked last so an old row order is a
+  prefix. **Treaties are not grouped by name** (0 of 1,373 names repeat under
+  #259's folding; `GROUPED_COLLECTIONS` unchanged) and were **candidates only**
+  in the evaluation at first (`gold_links.py`'s sources stayed `reglamentos` and
+  `lineamientos`, the candidates grew from 1,302 to 2,675 foreign instruments);
+  **review fix-1 removed that restriction after the fact**, because it was a
+  limit of the first gold and not of the data: every one of the 2,676
+  instruments is now a possible source *and* a possible target of a strong link
+  in any direction (reglamento → ley, ley → Constitución, tratado → tratado, ley
+  → tratado, …), under one rule, **an instrument is never linked to itself**
+  (a name the source carries itself, as the two `LEY de Amnistía` or a
+  regulation filed once as a law and once as a reglamento, is its own and not a
+  mention of another instrument; three old links were dropped for it). Treaty
+  names of five words or more also answer to a short form, and a prefix sibling is
+  never a link. The gold is now 251 instruments through 275 links (A 161, B 170,
+  62 unresolved names), signal C 5,218 citing rows (4,468 scored); the
+  conclusions are unchanged (the three data sets are tied on the closest
+  instrument; the 4B is better row by row, on all five measures against the 0.6B),
+  and the page's literals, `_gold-links.md` and the README's dated section
+  "Measured, strong links between any two instruments, 2026-10-12" follow it.
+  Matrices, `atlas*.json` and the pair files were not touched by the fix, so
+  it has no publish step. The
+  page's title, subtitle, provenance (treaties found by the *Tratados
+  Internacionales* scope, any category, 1,455 found, 82 without text), legend
+  sentence, Data box and both worked examples (Chapingo now has a treaty among
+  its closest, the Constitution too) describe the new data and are pinned by
+  `test_atlas_page.py` against `atlas.json`. The unit-level explorer (#241) was
+  not rebuilt. The three `atlas-pairs` sets were regenerated (12,002 / 11,983 /
+  12,074 files); **nothing was published** — a human runs the three
+  `PUBLICAR.md` (`emb-run-atlas/atlas-pairs/`, `emb-run-atlas-4b/atlas-pairs/`,
+  `emb-run-atlas-bm25/atlas-pairs/`) before the pull request merges, or
+  `website.yml` pairs the new `atlas*.json` with the old pair files. Measured
+  tables: `scripts/embeddings/README.md` ("Measured, with the treaties,
+  2026-10-12").
 
 ## Tables in SCJN snapshots (issue #253, done)
 

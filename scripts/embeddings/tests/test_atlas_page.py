@@ -72,8 +72,12 @@ RENDERED_CHAPINGO_SCREENSHOT = REPO / "output" / "atlas-rendered-chapingo.png"
 #: Quarto's margin text colour, `#636056`: what an `aside` on the site gets.
 QUARTO_MARGIN_COLOR = "rgb(99, 96, 86)"
 
-TITLE = "An Atlas of Mexican Federal Law: Laws, Regulations and Guidelines"
-PALETTE = {"leyes": "#2a78d6", "reglamentos": "#008300", "lineamientos": "#e87ba4"}
+TITLE = "An Atlas of Mexican Federal Law: Laws, Regulations, Guidelines and Treaties"
+PALETTE = {"leyes": "#2a78d6", "reglamentos": "#008300", "lineamientos": "#e87ba4",
+           "tratados": "#eda100"}
+#: The plural each collection's legend button prints (`atlas.js`'s `many`).
+PLURAL = {"leyes": "laws", "reglamentos": "regulations", "lineamientos": "guidelines",
+          "tratados": "treaties"}
 CONSTITUTION = "CONSTITUCIÓN Política de los Estados Unidos Mexicanos"
 CHAPINGO = "LEY que crea la Universidad Autónoma Chapingo"
 
@@ -89,16 +93,20 @@ def instrument(data: dict, clave: str) -> dict:
 def counts(data: dict) -> dict:
     """The numbers the page prints, read off `atlas.json` so the prose, the
     subtitle and the legend cannot drift from the data."""
-    collections = data["meta"]["collections"]
-    return {"leyes": collections["leyes"], "reglamentos": collections["reglamentos"],
-            "lineamientos": collections["lineamientos"]}
+    return dict(data["meta"]["collections"])
+
+
+def palette_of(data: dict) -> dict:
+    """`PALETTE` restricted to the collections the data holds (issue #282): the
+    committed files carry three today and must keep passing, a four-collection
+    file gets the yellow too."""
+    return {name: PALETTE[name] for name in data["meta"]["collections"]}
 
 
 def subtitle_of(data: dict) -> str:
-    n = counts(data)
-    return (f"{n['leyes']:,} laws, {n['reglamentos']:,} regulations and "
-            f"{n['lineamientos']:,} guidelines, placed by where their "
-            "excerpts' closest texts live")
+    parts = [f"{n:,} {PLURAL[name]}" for name, n in counts(data).items()]
+    listed = f"{', '.join(parts[:-1])} and {parts[-1]}"
+    return f"{listed}, placed by where their excerpts' closest texts live"
 
 
 def targets_of(data: dict, clave: str) -> list[tuple[str, str]]:
@@ -245,6 +253,7 @@ def test_the_application_files_say_nothing_forbidden():
         assert "UMAP" not in text, path
     # D3 v7, and no other library.
     assert "d3." in APP_JS.read_text(encoding="utf-8")
+    # Every colour of every collection the script knows, treaties' included.
     for color in PALETTE.values():
         assert color in APP_JS.read_text(encoding="utf-8")
 
@@ -315,7 +324,7 @@ def test_the_4b_data_lists_the_same_instruments_as_the_default():
     assert second["meta"]["unique_names"] is True
     assert list(second["projections"]) == ["4", "8", "16", "32"]
     assert list(second) == list(default) and list(second["meta"]) == list(default["meta"])
-    assert len(second["instruments"]) == len(default["instruments"]) == 1303
+    assert len(second["instruments"]) == len(default["instruments"]) == 2676
     for position, (mine, theirs) in enumerate(zip(second["instruments"],
                                                   default["instruments"])):
         assert all(mine[key] == theirs[key] for key in ("c", "k", "n", "p")), position
@@ -324,7 +333,7 @@ def test_the_4b_data_lists_the_same_instruments_as_the_default():
                 "collections", "duplicates_dropped", "n_neighbors"):
         assert second["meta"][key] == default["meta"][key], key
     for layout, points in second["projections"].items():
-        assert len(points) == 1303 and layout in default["projections"]
+        assert len(points) == 2676 and layout in default["projections"]
 
 
 @pytest.mark.skipif(not PAIRS_4B.is_dir(), reason="website/pages/atlas/pairs-qwen3-4b/ "
@@ -377,7 +386,7 @@ def test_the_bm25_data_lists_the_same_instruments_as_the_default():
     assert second["meta"]["unique_names"] is True
     assert list(second["projections"]) == ["4", "8", "16", "32"]
     assert list(second) == list(default)
-    assert len(second["instruments"]) == len(default["instruments"]) == 1303
+    assert len(second["instruments"]) == len(default["instruments"]) == 2676
     for position, (mine, theirs) in enumerate(zip(second["instruments"],
                                                   default["instruments"])):
         assert all(mine[key] == theirs[key] for key in ("c", "k", "n", "p")), position
@@ -387,7 +396,7 @@ def test_the_bm25_data_lists_the_same_instruments_as_the_default():
                 "n_neighbors"):
         assert second["meta"][key] == default["meta"][key], key
     for layout, points in second["projections"].items():
-        assert len(points) == 1303 and layout in default["projections"]
+        assert len(points) == 2676 and layout in default["projections"]
 
 
 @pytest.mark.skipif(not PAIRS_BM25.is_dir(), reason="website/pages/atlas/pairs-bm25/ "
@@ -437,7 +446,7 @@ def test_the_qmd_describes_the_explanation_and_its_example():
 
 def test_the_qmd_opens_with_where_the_instruments_come_from():
     """Review fix-5: the page begins by saying how the three corpora were found,
-    which text of each the map uses and how the 1,303 instruments were selected."""
+    which text of each the map uses and how the 2,676 instruments were selected."""
     text = QMD.read_text(encoding="utf-8")
     lead_end = text.index(":::", text.index("::: {.atlas-lead}") + 5)
     assert text[lead_end:].lstrip(": \n").startswith("## Where the instruments come from")
@@ -446,7 +455,7 @@ def test_the_qmd_opens_with_where_the_instruments_come_from():
     flat = " ".join(section.replace("*", "").split())
     assert forbidden_in(section) == []
     assert "legislacion.scjn.gob.mx" in flat and "Diario Oficial de la Federación remains the official source" in flat
-    for tag in ("scjn-leyes", "scjn-reglamentos", "scjn-lineamientos"):
+    for tag in ("scjn-leyes", "scjn-reglamentos", "scjn-lineamientos", "scjn-tratados"):
         assert f"https://github.com/INGEOTEC/LegalIA/releases/tag/{tag}" in section
     assert "(leyes.ipynb)" in section
     assert "REGLAMENTO or LINEAMIENTOS" in flat
@@ -484,13 +493,25 @@ def test_the_qmd_opens_with_where_the_instruments_come_from():
     data = atlas_data()
     n = counts(data)
     dropped = data["meta"]["duplicates_dropped"]
-    assert f"{n['leyes']} laws, {n['reglamentos']} regulations and {n['lineamientos']} guidelines" in flat
+    assert (f"{n['leyes']} laws, {n['reglamentos']} regulations, {n['lineamientos']} guidelines "
+            f"and {n['tratados']:,} treaties") in flat
     assert f"{data['meta']['instruments']:,} instruments once {sum(dropped.values())} have been dropped" in flat
     assert f"({dropped['reglamentos']} regulations and {dropped['lineamientos']} guideline)" in flat
     for literal in ("3,707", "1,087", "163", "5 regulations and 37 guidelines",
                     "6 regulations and 4 guidelines"):
         assert literal in flat, literal
     assert "divided into excerpts" in flat
+    # Issue #283: treaties were found by scope, not by category, and not grouped.
+    for literal in ("Tratados Internacionales", "whatever its category",
+                    "any instrument of that scope", "1,455 treaties", "for 82 of them",
+                    f"so that {n['tratados']:,} appear on the map",
+                    f"neither are treaties, since no two of the {n['tratados']:,} share a name"):
+        assert literal in flat, literal
+    for phrase in ("tratado", "convenio", "convencion", "arreglo", "carta", "declaracion", "pacto",
+                   "protocolo", "acuerdo"):
+        assert f"`{phrase}`" in flat, phrase
+    assert "does not file a treaty as a federal instrument" in flat
+    assert "tratados" not in dropped
     # The Data box no longer tells the narrative.
     data_box = text[text.index("::: {.atlas-data}"):]
     assert "reissues" not in data_box and "Qwen/Qwen3-Embedding-0.6B" in data_box
@@ -561,17 +582,55 @@ def test_the_qmd_chapingo_example_matches_the_default_data():
     law = instrument(data, "luach")
     assert law["n"] == CHAPINGO
     assert f"has {law['p']} excerpts, {law['pc']} of which count" in flat
-    first, second, last = law["out"]
-    assert data["instruments"][last[0]]["n"] in flat and last[1] == 1
+    first, second, *rest = law["out"]
+    assert len(rest) == 2 and all(weight == 1 for _, weight in rest)
+    assert [data["instruments"][j]["c"] for j, _ in rest] == ["leyes", "tratados"]
+    for j, _ in rest:
+        assert data["instruments"][j]["n"] in flat
     assert (f"For {first[1]:.0f} of them the closest text outside the law belongs to the "
             f"{data['instruments'][first[0]]['n']}") in flat
     assert f"for {second[1]:.0f} to the {data['instruments'][second[0]]['n']}" in flat
     assert f"{law['in']:.0f} excerpts of other instruments" in flat
     (_, w1), (_, w2) = law["inc"][:2]
     assert f"{w1:.0f} of them in Antonio Narro's and {w2:.0f} in the UAM's" in flat
+    assert f"for {second[1]:.0f} to the" in flat and "one goes to the" in flat
     # The 4B's reading of the same law differs, which is why the page says whose it is.
     four = instrument(json.loads(DATA_4B.read_text(encoding="utf-8")), "luach")
     assert four["out"][0][1] != law["out"][0][1]
+
+
+def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_the_prose():
+    """Issue #283: every file lists the same 2,676 instruments, treaties last,
+    `sum(pc)` is the counted rows, and the sentence about treaties resembling one
+    another is read off `atlas.json`."""
+    default = atlas_data()
+    for path in (DATA, DATA_4B, DATA_BM25):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        meta = data["meta"]
+        assert list(meta["collections"]) == ["leyes", "reglamentos", "lineamientos", "tratados"]
+        assert meta["collections"] == {"leyes": 315, "reglamentos": 863, "lineamientos": 125,
+                                       "tratados": 1373}
+        assert meta["instruments"] == len(data["instruments"]) == 2676
+        assert sum(entry["pc"] for entry in data["instruments"]) == meta["counted_rows"]
+        assert [e["c"] for e in data["instruments"]] == [e["c"] for e in default["instruments"]]
+        assert {e["c"] for e in data["instruments"]} == set(PALETTE)
+        assert list(meta["duplicates_dropped"]) == ["reglamentos", "lineamientos"]
+        assert meta["sources"] == ["scjn-leyes", "scjn-reglamentos", "scjn-lineamientos",
+                                   "scjn-tratados", "scjn-leyes-vectors",
+                                   "scjn-reglamentos-vectors", "scjn-lineamientos-vectors",
+                                   "scjn-tratados-vectors"]
+    treaties = [e for e in default["instruments"] if e["c"] == "tratados"]
+    closest = [default["instruments"][e["out"][0][0]]["c"] for e in treaties if e["out"]]
+    assert closest.count("tratados") == 1284 and len(treaties) == 1373
+    others = [e for e in default["instruments"] if e["c"] != "tratados" and e["out"]]
+    by = {}
+    for e in others:
+        if default["instruments"][e["out"][0][0]]["c"] == "tratados":
+            by[e["c"]] = by.get(e["c"], 0) + 1
+    assert by == {"leyes": 8, "reglamentos": 5}
+    flat = " ".join(QMD.read_text(encoding="utf-8").split())
+    assert "For 1,284 of the 1,373 treaties the closest instrument is another treaty" in flat
+    assert "only 8 laws and 5 regulations have a treaty as their closest instrument" in flat
 
 
 def test_the_qmd_has_the_evaluation_section_with_its_numbers():
@@ -595,9 +654,16 @@ def test_the_qmd_has_the_evaluation_section_with_its_numbers():
     for table in (tables[0], tables[2]):
         header = table.splitlines()[0]
         assert "0.6B" in header and "4B" in header and "BM25" in header
-    for literal in ("132", "160", "212", "55", "3,647", "2,010", "2,003", "0.273",
-                    "0.253", "0.241", "21", "29", "5 October 2026"):
+    for literal in ("161", "170", "251", "275", "62", "7,066", "5,218", "1,925", "316", "258",
+                    "4,497", "4,468", "1,934", "2,534", "0.278", "0.248", "0.255", "30", "39",
+                    "12 October 2026", "2,675", "2,676"):
         assert literal in flat, literal
+    # Every collection is a source and a target, and an instrument never links to itself
+    # (review fix-1: the gold used to start only in a regulation or a guideline).
+    assert "nothing restricts what the two are" in flat and "never linked to itself" in flat
+    assert "215 links from regulations to laws, 23 from treaties to treaties" in flat
+    for gone in ("988 instruments", "gold law", "227 strong links", "3,647"):
+        assert gone not in flat, gone
     assert "without the Constitution" in tables[2]
     assert forbidden_in(section) == []
 
@@ -623,12 +689,12 @@ def test_the_qmd_compares_the_methods_with_one_test_per_measure():
     # Six rows (three pairs, two gold standards) by three measures.
     assert len(pairs_instruments) == 2 + 6
     assert [c.strip() for c in pairs_instruments[0].strip("|").split("|")] == [
-        "Gold links", "Pair", "closest is a gold law", "a gold law among the five closest",
-        "mean reciprocal rank"]
+        "Gold links", "Pair", "closest is a gold instrument",
+        "a gold instrument among the five closest", "mean reciprocal rank"]
     # Three rows by five measures.
     assert len(pairs_excerpts) == 2 + 3
     assert [c.strip() for c in pairs_excerpts[0].strip("|").split("|")] == [
-        "Pair", "cited law first", "among the five closest", "among the ten closest",
+        "Pair", "cited instrument first", "among the five closest", "among the ten closest",
         "mean reciprocal rank", "median rank"]
     verdicts = re.compile(r"^(tie|0\.6B better|4B better|BM25 better) \((p [=<] [0-9.]+|"
                           r"\[[−+0-9., ]+\])\)$")
@@ -638,10 +704,12 @@ def test_the_qmd_compares_the_methods_with_one_test_per_measure():
             assert all(verdicts.match(c) for c in cells[first:]), cells
     # The yes-or-no measures carry a p-value, the others an interval.
     body = pairs_excerpts[2].strip("|").split("|")
-    assert "p = " in body[1] and "[" in body[4] and "[" in body[5]
-    # The verdicts the README reports, read off the two evaluation files (review fix-3).
-    assert "BM25 better ([−0.054, −0.002])" in flat
-    assert flat.count("4B better") == 8      # four measures in two pairs
+    assert "(p " in body[1] and "[" in body[4] and "[" in body[5]
+    # The verdicts the README reports, read off the two evaluation files (review fix-1).
+    assert all(cell.strip().startswith("tie") for row in pairs_instruments[2:]
+               for cell in row.strip("|").split("|")[2:])
+    assert flat.count("4B better") == 9      # five measures against the 0.6B, four against BM25
+    assert "BM25 better" not in flat and "0.6B better" not in flat
 
 
 def test_the_bib_has_the_atlas_citations():
@@ -688,8 +756,8 @@ def test_every_bold_measure_is_a_cell_of_a_table_and_the_weight_share_is_gone():
                    text.index("::: {.atlas-data}")]
     explained = text[text.index("### What is measured"):text.index("### The instruments")]
     bold = set(re.findall(r"\*\*(.+?)\*\*", " ".join(explained.split())))
-    assert bold == {"closest is a gold law", "a gold law among the five closest",
-                    "mean reciprocal rank", "cited law first", "among the five closest",
+    assert bold == {"closest is a gold instrument", "a gold instrument among the five closest",
+                    "mean reciprocal rank", "cited instrument first", "among the five closest",
                     "among the ten closest", "median rank"}
     rows = [line for line in section.splitlines() if line.startswith("|") and "---" not in line]
     cells = {cell.strip() for row in rows for cell in row.strip("|").split("|")}
@@ -703,10 +771,10 @@ LINKS = PAGES / "atlas" / "_gold-links.md"
 
 
 def link_rows() -> list[tuple[str, str, str]]:
-    """`(instrument, law, signal)` per row of the included table of strong links."""
+    """`(instrument, target, signal)` per row of the included table of strong links."""
     lines = LINKS.read_text(encoding="utf-8").splitlines()
     assert lines[0].startswith("<!--") and lines[0].endswith("-->")
-    assert lines[2:4] == ["| Instrument | Law | Signal |", "|---|---|---|"]
+    assert lines[2:4] == ["| Instrument | Links to | Signal |", "|---|---|---|"]
     rows = []
     for line in lines[4:]:
         cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", line.strip())[1:-1]]
@@ -716,17 +784,19 @@ def link_rows() -> list[tuple[str, str, str]]:
 
 
 def test_the_links_table_is_the_gold_of_the_evaluation_section():
-    """Review fix-3: the 227 strong links of the 212 instruments, with the signal
-    that found each, included at the end of the page."""
+    """Review fix-3, widened by review fix-1: the 275 strong links of the 251
+    instruments, whatever their collection, with the signal that found each,
+    included at the end of the page."""
     rows = link_rows()
-    assert len(rows) == 227
+    assert len(rows) == 275
     assert {signal for _, _, signal in rows} == {"A", "B", "A and B"}
     instruments = {name for name, _, _ in rows}
-    assert len(instruments) == 212
-    assert len({name for name, _, signal in rows if "A" in signal}) == 132
-    assert len({name for name, _, signal in rows if "B" in signal}) == 160
-    assert sum("A" in signal for _, _, signal in rows) == 132       # one law each by name
-    assert sum("B" in signal for _, _, signal in rows) == 175
+    assert len(instruments) == 251
+    assert len({name for name, _, signal in rows if "A" in signal}) == 161
+    assert len({name for name, _, signal in rows if "B" in signal}) == 170
+    assert sum("A" in signal for _, _, signal in rows) == 161       # one target each by name
+    assert sum("B" in signal for _, _, signal in rows) == 194
+    assert all(name != target for name, target, _ in rows)          # never itself
     assert rows == sorted(rows, key=lambda r: (r[0].casefold(), r[1].casefold(), r[2]))
     assert ("REGLAMENTO DE LA LEY FEDERAL DE CORREDURIA PUBLICA", "LEY Federal de Correduría Pública",
             "A") in rows
@@ -734,7 +804,7 @@ def test_the_links_table_is_the_gold_of_the_evaluation_section():
     text = QMD.read_text(encoding="utf-8")
     assert text.count("{{< include atlas/_gold-links.md >}}") == 1
     callout = text[text.index('::: {.callout-note collapse="true"'):]
-    assert 'title="The 227 strong links of the 212 instruments"' in callout
+    assert 'title="The 275 strong links of the 251 instruments"' in callout
     assert text.index("::: {.atlas-data}") < text.index('::: {.callout-note collapse="true"')
     assert callout.rstrip().endswith(":::\n\n:::") or callout.rstrip().endswith(":::")
     assert "gold_links" not in text and "gold_links" not in LINKS.read_text(encoding="utf-8")
@@ -894,7 +964,7 @@ def test_every_instrument_is_one_circle_in_the_sites_palette(page):
     assert circles.count() == atlas_data()["meta"]["instruments"]
     fills = set(page.eval_on_selector_all(
         "circle.atlas-point", "nodes => nodes.map(n => n.getAttribute('fill'))"))
-    assert fills == set(PALETTE.values())
+    assert fills == set(palette_of(atlas_data()).values())
     for clave, collection in (("cpeum", "leyes"), ("luach", "leyes")):
         assert page.get_attribute(f'circle[data-k="{clave}"]', "fill") == PALETTE[collection]
 
@@ -1035,7 +1105,7 @@ def test_the_neighbourhood_control_moves_the_points_and_keeps_the_selection(page
     assert page.locator("line.atlas-link").count() == len(targets_of(atlas_data(), "luach"))
 
 
-def test_a_collection_button_dims_the_other_two(page):
+def test_a_collection_button_dims_the_others(page):
     law = 'circle[data-k="cpeum"]'
     regulation = 'circle.atlas-point[fill="#008300"]'
     assert page.get_attribute(law, "opacity") == "0.8"
@@ -1043,8 +1113,12 @@ def test_a_collection_button_dims_the_other_two(page):
     laws = page.locator('.atlas-collection[data-c="leyes"]')
     n = counts(atlas_data())
     assert f"{n['leyes']:,} laws" in laws.inner_text()
-    assert f"{n['reglamentos']:,} regulations" in page.locator(".atlas-collections").inner_text()
-    assert f"{n['lineamientos']:,} guidelines" in page.locator(".atlas-collections").inner_text()
+    legend = page.locator(".atlas-collections")
+    for name, count in n.items():
+        assert f"{count:,} {PLURAL[name]}" in legend.inner_text()
+    # One button per collection in the data, in the data's own order.
+    assert page.locator(".atlas-collection").evaluate_all(
+        "nodes => nodes.map(n => n.dataset.c)") == list(n)
     laws.click()
     assert laws.get_attribute("aria-pressed") == "true"
     assert page.get_attribute(law, "opacity") == "0.8"
@@ -1052,6 +1126,73 @@ def test_a_collection_button_dims_the_other_two(page):
     laws.click()
     assert laws.get_attribute("aria-pressed") == "false"
     assert page.locator(regulation).first.get_attribute("opacity") == "0.8"
+
+
+def without_treaties(data):
+    """The committed data with its treaties taken out: a three-collection file
+    for a page that must then draw three legend buttons (issue #282). Treaties
+    are stacked last, so the positions of everything else do not move."""
+    keep = sum(entry["c"] != "tratados" for entry in data["instruments"])
+    assert all(entry["c"] != "tratados" for entry in data["instruments"][:keep])
+    data["instruments"] = data["instruments"][:keep]
+    for entry in data["instruments"]:
+        for column in ("out", "inc"):
+            entry[column] = [[j, w] for j, w in entry[column] if j < keep]
+    data["projections"] = {layout: points[:keep] for layout, points in data["projections"].items()}
+    del data["meta"]["collections"]["tratados"]
+    data["meta"]["instruments"] = keep
+    return data
+
+
+def test_the_treaties_get_a_fourth_yellow_button_and_circles(page):
+    """The committed file holds four collections: one yellow `#eda100` circle
+    per treaty and a fourth legend button, last, naming the treaties."""
+    data = atlas_data()
+    n = counts(data)["tratados"]
+    buttons = page.locator(".atlas-collection")
+    assert buttons.evaluate_all("nodes => nodes.map(n => n.dataset.c)") == \
+        ["leyes", "reglamentos", "lineamientos", "tratados"]
+    assert f"{n:,} treaties" in buttons.last.inner_text()
+    assert page.locator(".atlas-collection .atlas-dot").last.evaluate(
+        "node => getComputedStyle(node).backgroundColor") == "rgb(237, 161, 0)"
+    assert page.locator('circle.atlas-point[fill="#eda100"]').count() == n
+    buttons.last.click()
+    assert page.locator('circle.atlas-point[fill="#eda100"]').first.get_attribute(
+        "opacity") == "0.8"
+    assert float(page.locator('circle[data-k="cpeum"]').get_attribute("opacity")) < 0.2
+
+
+def test_a_file_without_treaties_gets_three_buttons_and_no_yellow(browser, server):
+    def serve_without(page):
+        page.route("**/atlas/atlas.json", lambda route: route.fulfill(
+            status=200, content_type="application/json",
+            body=json.dumps(without_treaties(atlas_data()))))
+    page, _, _ = open_counting(browser, server, before=serve_without)
+    try:
+        assert page.locator(".atlas-collection").evaluate_all(
+            "nodes => nodes.map(n => n.dataset.c)") == ["leyes", "reglamentos", "lineamientos"]
+        fills = set(page.eval_on_selector_all(
+            "circle.atlas-point", "nodes => nodes.map(n => n.getAttribute('fill'))"))
+        assert fills == {PALETTE[name] for name in ("leyes", "reglamentos", "lineamientos")}
+    finally:
+        page.close()
+
+
+def test_a_collection_the_page_does_not_know_stops_it_with_a_message_naming_it(browser, server):
+    data = atlas_data()
+    data["instruments"][0]["c"] = "normas"
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.route("**/atlas/atlas.json", lambda route: route.fulfill(
+        status=200, content_type="application/json", body=json.dumps(data)))
+    try:
+        page.goto(server)
+        page.wait_for_selector('#atlas[data-ready="error"]', timeout=30000)
+        assert 'unknown collection "normas"' in page.locator(".atlas-error").inner_text()
+        assert errors == []
+    finally:
+        page.close()
 
 
 def test_escape_and_an_empty_click_clear_the_selection(page):
@@ -1068,7 +1209,13 @@ def test_escape_and_an_empty_click_clear_the_selection(page):
 
 
 def test_hover_shows_a_name_label_the_page_owns(page):
-    page.locator('circle[data-k="cpeum"]').hover(force=True)
+    # Not `hover()`: with the treaties on the map another circle can sit on top of
+    # the Constitution's centre (issue #283), and the mouse reaches the top one.
+    page.eval_on_selector('circle[data-k="cpeum"]', """node => {
+        const box = node.getBoundingClientRect();
+        node.dispatchEvent(new PointerEvent("pointerenter", {
+            bubbles: false, clientX: box.x + box.width / 2, clientY: box.y + box.height / 2}));
+    }""")
     label = page.locator(".atlas-label")
     assert label.is_visible()
     assert label.inner_text() == CONSTITUTION
@@ -1171,6 +1318,22 @@ def circle_xs(page):
         ".forEach(n => { xs[Number(n.dataset.i)] = Number(n.getAttribute('cx')); }); return xs; }")
 
 
+def settled_xs(page, attempts=40):
+    """`circle_xs` once two reads 250 ms apart agree, after a first 400 ms: with
+    2,676 circles a fixed 900 ms wait no longer outlasts the draw and the 700 ms
+    transition, and a transition can start a little after the call that asks for
+    it (issue #283)."""
+    page.wait_for_timeout(400)
+    last = circle_xs(page)
+    for _ in range(attempts):
+        page.wait_for_timeout(250)
+        now = circle_xs(page)
+        if now == last:
+            return now
+        last = now
+    raise AssertionError("the circles never stopped moving")
+
+
 def layout_fit(page, data, layout):
     """How well the circles' x positions follow `data`'s `layout` (Pearson r);
     1.0 when they are that layout, whatever the scale."""
@@ -1209,7 +1372,7 @@ def test_the_4b_replaces_the_relations_and_the_layout_and_keeps_the_selection(br
         assert out_list(page) == targets_of(default, "luach")
         assert inc_list(page) == [(f"{w:.1f}", default["instruments"][j]["n"])
                                   for j, w in instrument(default, "luach")["inc"]]
-        before = circle_xs(page)
+        before = settled_xs(page)
         assert layout_fit(page, default, 16) > 0.999999
 
         choose_model(page, "4B")
@@ -1234,7 +1397,7 @@ def test_the_4b_replaces_the_relations_and_the_layout_and_keeps_the_selection(br
         assert checked_model(page) == "0.6B"
         assert panel_title(page) == CHAPINGO
         assert out_list(page) == targets_of(default, "luach")
-        assert circle_xs(page) == before
+        assert settled_xs(page) == before
         choose_model(page, "4B")
         assert out_list(page) == targets_of(other, "luach")
         # The 4B file was fetched once, whatever the number of switches.
@@ -1317,7 +1480,7 @@ def test_a_4b_file_that_does_not_fit_is_refused_and_the_page_stays_on_the_defaul
     try:
         select_by_search(page, "chapingo", CHAPINGO)
         page.wait_for_timeout(900)
-        before = circle_xs(page)
+        before = settled_xs(page)
         choose_model(page, "4B", checked=False)
         status = page.locator(".atlas-model-status")
         status.wait_for(state="visible")
@@ -1328,7 +1491,7 @@ def test_a_4b_file_that_does_not_fit_is_refused_and_the_page_stays_on_the_defaul
         assert out_list(page) == targets_of(default, "luach")
         assert panel_title(page) == CHAPINGO
         page.wait_for_timeout(900)
-        assert circle_xs(page) == before
+        assert settled_xs(page) == before
         # Choosing the default again clears the message.
         choose_model(page, "0.6B", checked=False)
         assert page.locator(".atlas-model-status").is_hidden()
@@ -1401,7 +1564,7 @@ def test_bm25_replaces_the_relations_and_the_layout_and_keeps_the_selection(brow
         select_by_search(page, "chapingo", CHAPINGO)
         page.wait_for_timeout(900)
         assert out_list(page) == targets_of(default, "luach")
-        before = circle_xs(page)
+        before = settled_xs(page)
         page.locator(NEIGHBOURHOOD).locator('[data-value="8"]').click()
         page.wait_for_timeout(900)
 
@@ -1452,7 +1615,7 @@ def test_a_bm25_file_that_does_not_fit_is_refused_and_the_page_stays_put(
     try:
         select_by_search(page, "chapingo", CHAPINGO)
         page.wait_for_timeout(900)
-        before = circle_xs(page)
+        before = settled_xs(page)
         choose_model(page, "BM25", checked=False)
         status = page.locator(".atlas-model-status")
         status.wait_for(state="visible")
@@ -1462,7 +1625,7 @@ def test_a_bm25_file_that_does_not_fit_is_refused_and_the_page_stays_put(
         assert checked_model(page) == "0.6B"
         assert out_list(page) == targets_of(default, "luach")
         page.wait_for_timeout(900)
-        assert circle_xs(page) == before
+        assert settled_xs(page) == before
         assert errors == []
     finally:
         page.close()
@@ -1665,7 +1828,7 @@ def test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references(rendered_
     # The links of the gold sit in a collapsed callout at the end of the prose (review fix-3).
     callout = rendered_page.locator(".atlas-prose .callout-note").last
     assert callout.locator(".callout-header").get_attribute("class").count("collapsed") == 1
-    assert callout.locator("table tbody tr").count() == 227
+    assert callout.locator("table tbody tr").count() == 275
     assert not callout.locator(".callout-body-container").is_visible()
     callout.locator(".callout-header").click()
     rendered_page.wait_for_timeout(500)

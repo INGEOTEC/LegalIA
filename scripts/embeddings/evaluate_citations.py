@@ -1,10 +1,14 @@
 """Row-level evaluation of the Atlas data sets against explicit citations (issue #273).
 
-`evaluate_links.py` asks, per *instrument*, whether the law a reglamento develops
-is its closest instrument. This asks the question one *unit row* at a time, with
-signal C of `gold_links.py`: a unit row that cites "artículo N de la Ley X" names
-the law it is about, and the three data sets (0.6B, 4B, BM25) can be asked where
-that law ranks among the 1,302 foreign instruments *for that one row*.
+`evaluate_links.py` asks, per *instrument*, whether the instrument another one
+names (the law a reglamento develops, the convention a protocol extends) is its
+closest instrument. This asks the question one *unit row* at a time, with signal C
+of `gold_links.py`: a unit row that cites "artículo N de la Ley X" (or of a
+reglamento, a convention, ... -- any instrument of the Atlas, in any direction, never
+the source itself) names the instrument it is about, and the three data sets (0.6B,
+4B, BM25) can be asked where that instrument ranks among the foreign instruments
+(every instrument but the source: the work directory's instruments minus one) *for
+that one row*.
 
 A model's `nearest.parquet` keeps only the winner of each row, so the rank needs
 the row's full score vector: each model's work directory is re-scored here with
@@ -12,11 +16,11 @@ its own scorer (`scoring.scorer_for`: the exact cosine over `vectors.npy`, or
 BM25) under the very mask the matrix used -- the source's *exclusively owned*
 texts and the texts no searched row owns are removed
 (`instrument_matrix.owners_of_rows` / `own_rows_of`, imported, not copied) -- and
-every instrument's score is the best over the vector rows it owns. The cited law's
+every instrument's score is the best over the vector rows it owns. The cited instrument's
 rank is its **competition rank** (1 + the foreign instruments scoring strictly
 more, by the scorer's own tie tolerance). A text the citing row shares word for
-word with the cited law is a column the law owns and the mask keeps, so it ranks
-the law first: the matrix's own rule, kept, and counted (`law_owns_text`).
+word with the cited instrument is a column it owns and the mask keeps, so it ranks
+it first: the matrix's own rule, kept, and counted (`target_owns_text`).
 
 Two checks keep this an evaluation of the published data sets and not of a fourth
 method: the best foreign score recomputed here equals `nearest.parquet`'s
@@ -29,13 +33,14 @@ rows. How many each rule removes is reported.
     python evaluate_citations.py                  # the three default work directories
     python evaluate_citations.py --report         # print the table, offline
 
-Law level only (not the cited article), single-law rows only (a row citing two
-laws has two defensible answers; counted, not scored). A law that has no score at
+Instrument level only (not the cited article), single-target rows only (a row citing
+two instruments has two defensible answers; counted, not scored). A target with no score at
 all (BM25, no shared term) has no rank: reciprocal rank 0, never recalled, and it
 counts as `n_foreign + 1` for the median.
 
 **Metrics**: recall@1, recall@5, recall@10, MRR and the median rank, per model and
-per collection (reglamentos / lineamientos), and for the ten most cited laws.
+per *source* collection (laws / regulations / guidelines / treaties), and for the
+ten most cited targets.
 **Significance** is #272's rule, fixed beforehand: for every pair of models and
 every metric a paired bootstrap over rows (seed 0, 10,000 resamples) gives the
 95 % percentile interval of the mean (median) difference, McNemar's exact test is
@@ -70,7 +75,7 @@ from gold_links import CITATIONS, SUBDIR  # noqa: E402
 DEFAULT_GOLD_DIR = Path("emb-run-atlas") / SUBDIR
 EVALUATION = "evaluation-rows.json"
 RECALL_AT = (1, 5, 10)
-TOP_LAWS = 10
+TOP_TARGETS = 10
 CONSTITUTION = "constitucion politica de los estados unidos mexicanos"
 BLOCK_ROWS = 256
 
@@ -88,15 +93,15 @@ METRICS = (
 # -- the rows ------------------------------------------------------------------- #
 
 def load_citations(gold_dir: Path, gold: dict):
-    """The single-law citing rows of `citations.parquet`, one per `(i,
-    text_sha1)`, with the cited law."""
+    """The single-target citing rows of `citations.parquet`, one per `(i,
+    text_sha1)`, with the cited instrument (`target`)."""
     import pandas as pd
 
     path = Path(gold_dir) / CITATIONS
     if not path.is_file():
         raise SystemExit(f"{path} does not exist: run gold_links.py first")
     table = pd.read_parquet(path)
-    return table[table["single_law"]].drop_duplicates(["i", "text_sha1"]).reset_index(drop=True)
+    return table[table["single_target"]].drop_duplicates(["i", "text_sha1"]).reset_index(drop=True)
 
 
 def citing_vector_rows(citations, work_dir: Path):
@@ -119,7 +124,7 @@ def citing_vector_rows(citations, work_dir: Path):
     return joined
 
 
-# -- the rank of the cited law ---------------------------------------------------- #
+# -- the rank of the cited instrument ---------------------------------------------------- #
 
 def instrument_layout(owners):
     """How to reduce a vector-row score to one score per instrument: the owned
@@ -132,20 +137,20 @@ def instrument_layout(owners):
     return pair_rows, starts, instruments[starts]
 
 
-def competition_rank(scores, law_score: float, *, tolerance: float, relative: bool):
-    """`1 +` the scores strictly above `law_score` (beyond the tie tolerance),
-    or `None` for a law with no score (`-inf`, or a lexical score of 0)."""
-    if not np.isfinite(law_score) or (relative and law_score <= 0):
+def competition_rank(scores, target_score: float, *, tolerance: float, relative: bool):
+    """`1 +` the scores strictly above `target_score` (beyond the tie tolerance),
+    or `None` for a target with no score (`-inf`, or a lexical score of 0)."""
+    if not np.isfinite(target_score) or (relative and target_score <= 0):
         return None
-    above = law_score * (1.0 + tolerance) if relative else law_score + tolerance
+    above = target_score * (1.0 + tolerance) if relative else target_score + tolerance
     return 1 + int((scores > above).sum())
 
 
 def rank_rows(scorer, units, rows, *, tolerance: float = instrument_matrix.DEFAULT_TOLERANCE,
               block_rows: int = BLOCK_ROWS, log=print):
-    """For each citing row (a frame with `i`, `row`, `law`), the cited law's rank
+    """For each citing row (a frame with `i`, `row`, `target`), the cited instrument's rank
     among the foreign instruments, the best foreign score (what `nearest.parquet`
-    records) and whether the law owns a text identical to the row's.
+    records) and whether the target owns a text identical to the row's.
 
     `units` is `instrument_matrix.unit_rows`' join; it is narrowed to the searched
     rows (`searched_mask`) and masked exactly as `sweep_answers` does: the
@@ -158,7 +163,7 @@ def rank_rows(scorer, units, rows, *, tolerance: float = instrument_matrix.DEFAU
     pair_rows, starts, instrument_ids = instrument_layout(owners)
     position = {int(i): n for n, i in enumerate(instrument_ids)}
 
-    out = {"rank": [None] * len(rows), "best": [0.0] * len(rows), "law_owns_text": [False] * len(rows)}
+    out = {"rank": [None] * len(rows), "best": [0.0] * len(rows), "target_owns_text": [False] * len(rows)}
     rows = rows.reset_index(drop=True)
     mark = time.time()
     for done, (i, group) in enumerate(rows.groupby("i")):
@@ -177,11 +182,11 @@ def rank_rows(scorer, units, rows, *, tolerance: float = instrument_matrix.DEFAU
                 if not np.isfinite(best) or (scorer.relative and best <= 0):
                     best = 0.0          # a lexical row with no match: recorded as 0
                 out["best"][index] = best
-                law_at = position.get(int(record["law"]))
-                law_score = float(vector[law_at]) if law_at is not None else float("-inf")
+                target_at = position.get(int(record["target"]))
+                target_score = float(vector[target_at]) if target_at is not None else float("-inf")
                 out["rank"][index] = competition_rank(
-                    vector, law_score, tolerance=tolerance, relative=scorer.relative)
-                out["law_owns_text"][index] = int(record["law"]) in owners[int(record["row"])]
+                    vector, target_score, tolerance=tolerance, relative=scorer.relative)
+                out["target_owns_text"][index] = int(record["target"]) in owners[int(record["row"])]
         if done % 100 == 0:
             log(f"  {done + 1} instruments, {time.time() - mark:.0f}s")
     return out
@@ -235,7 +240,7 @@ def score_model(label: str, work_dir: Path, citations, *, cache_dir=None, collec
     flags = rows[["i", "row"]].merge(nearest, on=["i", "row"], how="left")
     if flags["counted"].isna().any():
         raise SystemExit(f"{label}: a citing row is not a searched row of nearest.parquet")
-    rows = rows.assign(rank=ranked["rank"], law_owns_text=ranked["law_owns_text"],
+    rows = rows.assign(rank=ranked["rank"], target_owns_text=ranked["target_owns_text"],
                        counted=flags["counted"].to_numpy(),
                        drop_reason=flags["drop_reason"].to_numpy())
     return {"rows": rows, "max_difference_from_nearest": worst, "method": scorer.method,
@@ -310,7 +315,7 @@ def common_rows(scored: dict[str, dict]):
     """The citing rows every model's matrix counted, in the first model's order,
     and what each rule removed per model."""
     labels = list(scored)
-    base = scored[labels[0]]["rows"][["i", "text_sha1", "coleccion", "law"]].copy()
+    base = scored[labels[0]]["rows"][["i", "text_sha1", "coleccion", "target"]].copy()
     keep = np.ones(len(base), dtype=bool)
     removed = {}
     for label in labels:
@@ -346,7 +351,7 @@ def summarise_scored(gold: dict, citations, all_citations, scored: dict[str, dic
                      work_dirs: dict[str, Path], *, seed: int, resamples: int) -> dict:
     """Everything `evaluation-rows.json` holds, from the per-model ranks."""
     labels = list(scored)
-    names = gold.get("law_names", {})
+    names = gold.get("target_names", {})
     base, keep, removed = common_rows(scored)
     n_foreign = len(gold["instruments"]) - 1
     cap = n_foreign + 1
@@ -366,18 +371,20 @@ def summarise_scored(gold: dict, citations, all_citations, scored: dict[str, dic
         mask = (kept["coleccion"] == coleccion).to_numpy()
         per_collection[coleccion] = {"rows": int(mask.sum()), "models": split(mask)}
 
-    # One law -- the Constitution, cited by every kind of regulation -- is more than a
-    # quarter of the rows, so the metrics are also given without it.
-    constitution = {int(law) for law, nombre in names.items()
+    # One target -- the Constitution, cited by every kind of regulation and by the
+    # promulgation decree of every treaty -- is more than a quarter of the rows, so
+    # the metrics are also given without it.
+    constitution = {int(target) for target, nombre in names.items()
                     if unique_instruments.name_key(nombre).startswith(CONSTITUTION)}
-    others = (~kept["law"].isin(constitution)).to_numpy()
+    others = (~kept["target"].isin(constitution)).to_numpy()
     without_constitution = {"rows": int(others.sum()), "models": split(others)}
 
-    law_counts = kept["law"].value_counts()
-    top_laws = []
-    for law in law_counts.index[:TOP_LAWS]:
-        mask = (kept["law"] == law).to_numpy()
-        top_laws.append({"law": int(law), "nombre": names.get(str(int(law)), str(int(law))),
+    target_counts = kept["target"].value_counts()
+    top_targets = []
+    for target in target_counts.index[:TOP_TARGETS]:
+        mask = (kept["target"] == target).to_numpy()
+        top_targets.append({"target": int(target),
+                         "nombre": names.get(str(int(target)), str(int(target))),
                          "rows": int(mask.sum()),
                          "models": {label: summarise(metric_values(
                              [r for r, m in zip(kept_ranks[label], mask) if m], cap))
@@ -397,12 +404,12 @@ def summarise_scored(gold: dict, citations, all_citations, scored: dict[str, dic
         "citations": {
             "table_rows": int(len(all_citations)),
             "citing_rows": int(all_citations[["i", "text_sha1"]].drop_duplicates().shape[0]),
-            "single_law_rows": int(len(citations)),
-            "multi_law_rows_not_scored": int(
+            "single_target_rows": int(len(citations)),
+            "multi_target_rows_not_scored": int(
                 all_citations[["i", "text_sha1"]].drop_duplicates().shape[0] - len(citations)),
             "removed_by_the_matrix_rules": removed,
             "scored_rows": int(keep.sum()),
-            "law_owns_text": {label: int(scored[label]["rows"]["law_owns_text"][keep].sum())
+            "target_owns_text": {label: int(scored[label]["rows"]["target_owns_text"][keep].sum())
                               for label in labels},
         },
         "models": {label: {"work_dir": str(work_dirs[label]), "method": scored[label]["method"],
@@ -412,7 +419,7 @@ def summarise_scored(gold: dict, citations, all_citations, scored: dict[str, dic
         "pairs": compare_models(values, seed=seed, resamples=resamples),
         "per_collection": per_collection,
         "without_constitution": without_constitution,
-        "top_laws": top_laws,
+        "top_targets": top_targets,
     }
 
 
@@ -437,13 +444,13 @@ def render_markdown(evaluation: dict) -> str:
     labels = list(evaluation["metrics"])
     cites = evaluation["citations"]
     rule = evaluation["thresholds"]
-    lines = ["# Atlas data sets against explicit law citations (row level)", "",
-             f"{cites['citing_rows']} citing rows, {cites['single_law_rows']} citing exactly one "
-             f"law ({cites['multi_law_rows_not_scored']} citing several: not scored); removed by "
+    lines = ["# Atlas data sets against explicit citations (row level)", "",
+             f"{cites['citing_rows']} citing rows, {cites['single_target_rows']} citing exactly one "
+             f"instrument ({cites['multi_target_rows_not_scored']} citing several: not scored); removed by "
              f"the matrix rules (per model): {cites['removed_by_the_matrix_rules']}; "
-             f"**{cites['scored_rows']} scored** (counted by every model). The cited law owns a "
+             f"**{cites['scored_rows']} scored** (counted by every model). The cited instrument owns a "
              f"word-for-word copy of the row's text (rank 1 by the matrix's rule) in "
-             f"{cites['law_owns_text']}. Foreign instruments: {rule['foreign_instruments']}.", "",
+             f"{cites['target_owns_text']}. Foreign instruments: {rule['foreign_instruments']}.", "",
              f"Significance (fixed beforehand): paired bootstrap over rows, seed {rule['seed']}, "
              f"{rule['resamples']} resamples, {rule['bootstrap_level']:.0f} % percentile interval "
              f"must exclude 0 and, for recall@k, McNemar exact p < {rule['p_threshold']}; "
@@ -458,14 +465,14 @@ def render_markdown(evaluation: dict) -> str:
                      f"{pair['difference']:+.4f} | [{low:+.4f}, {high:+.4f}] | {p} | "
                      f"{pair['verdict']} |")
     for coleccion, entry in evaluation["per_collection"].items():
-        lines += ["", f"## {coleccion}: {entry['rows']} rows", ""]
+        lines += ["", f"## Citing {coleccion}: {entry['rows']} rows", ""]
         lines += metric_table(entry["models"], labels)
     entry = evaluation["without_constitution"]
     lines += ["", f"## Without the Constitution: {entry['rows']} rows", ""]
     lines += metric_table(entry["models"], labels)
-    lines += ["", f"## The {len(evaluation['top_laws'])} most cited laws (recall@5)", "",
-              "| law | rows | " + " | ".join(labels) + " |", "|---|---|" + "---|" * len(labels)]
-    for entry in evaluation["top_laws"]:
+    lines += ["", f"## The {len(evaluation['top_targets'])} most cited instruments (recall@5)", "",
+              "| instrument | rows | " + " | ".join(labels) + " |", "|---|---|" + "---|" * len(labels)]
+    for entry in evaluation["top_targets"]:
         cells = [_cell(entry["models"][m]["recall5"], "binary") for m in labels]
         lines.append(f"| {entry['nombre']} | {entry['rows']} | " + " | ".join(cells) + " |")
     return "\n".join(lines) + "\n"

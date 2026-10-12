@@ -59,8 +59,8 @@ def test_the_schema_is_meta_instruments_projections(exported):
         "distinct_texts", "collections", "unique_names", "duplicates_dropped",
         "n_neighbors", "default_n_neighbors", "umap", "weighting", "top", "sources"]
     meta = data["meta"]
-    assert meta["title"] == ("An Atlas of Mexican Federal Law: Laws, Regulations "
-                             "and Guidelines")
+    assert meta["title"] == ("An Atlas of Mexican Federal Law: Laws, Regulations, "
+                             "Guidelines and Treaties")
     assert meta["generated"] == "2026-09-22T12:00:00+00:00"
     assert meta["commit"]
     assert meta["model"] == "Qwen/Qwen3-Embedding-0.6B"
@@ -324,7 +324,7 @@ def test_instruments_as_accepts_an_identical_table(exported, reference, tmp_path
     assert json.loads(output.read_text(encoding="utf-8")) == exported["data"]
 
 
-@pytest.mark.parametrize("key,value", [("k", "zzz"), ("p", 99999), ("c", "tratados"),
+@pytest.mark.parametrize("key,value", [("k", "zzz"), ("p", 99999), ("c", "normas"),
                                        ("n", "Another name")])
 def test_instruments_as_refuses_a_differing_field_naming_the_position(
         exported, reference, tmp_path, key, value):
