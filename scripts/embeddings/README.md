@@ -779,6 +779,7 @@ dated before that describe the three-corpus map and are kept as history.
 | The strong-link gold and the three-way evaluation (issue #272) | `scripts/embeddings/gold_links.py` → `emb-run-atlas/gold-links/` (`gold.json`, `gold.md`), then `scripts/embeddings/evaluate_links.py` → `emb-run-atlas/gold-links/` (`evaluation.json`, `evaluation.md`); gitignored, nothing uploaded |
 | The row-level evaluation against citations (issue #273) | `scripts/embeddings/gold_links.py` also writes `emb-run-atlas/gold-links/citations.parquet`, then `scripts/embeddings/evaluate_citations.py` → `emb-run-atlas/gold-links/` (`evaluation-rows.json`, `evaluation-rows.md`); gitignored, nothing uploaded |
 | The topics of the instrument map (issue #285) | `scripts/embeddings/cluster_instruments.py` → `emb-run-atlas/topics/` (`labels.parquet`, `comparison.json`, `comparison.md`, `topics.json`, `.done`); gitignored, nothing uploaded |
+| The Topics page (issue #286) | `scripts/embeddings/export_topics_page.py` → `website/pages/topics/topics.json` and `_topics.md` (both committed), included by `website/pages/topics.qmd` |
 | Everything derived | `emb-run-atlas/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
 Nothing here is committed except `atlas.json`. Every command takes
@@ -1508,6 +1509,72 @@ largest first and the noise cluster, if any, is `id: -1` last. Two runs are
 byte-identical apart from `meta.generated` (checked on the real run). No
 hierarchy is exported, no topic is named by a language model, and `atlas.js`,
 `atlas.qmd` and `atlas*.json` are untouched.
+
+### The Topics page (issue #286)
+
+```bash
+uv run --group viz python scripts/embeddings/export_topics_page.py --work-dir emb-run-atlas
+```
+
+`website/pages/topics.qmd` (navbar entry *Topics*, right after *Atlas*) presents
+every topic of #285's chosen configuration and its members. It is static Markdown,
+with no code cells and no JavaScript, so it needs no freeze entry and no browser
+harness; `_quarto.yml`'s `project.resources` gained `pages/topics/**`, which
+publishes the data file next to the page. The exporter is a pure read of
+`emb-run-atlas/topics/topics.json` and `instruments.parquet` (seconds, no refit; a
+work directory with no `topics/.done` is refused) and writes the two committed
+files, generated and never edited by hand. Regenerating them is this script, run by
+a human, never a workflow (issue #115, Hallazgo C); `meta.commit` is provenance and
+the page never shows it.
+
+* **`topics.json`** has `meta` (title, generated, commit, model, method, the
+  algorithm, its parameter, the selection, the gates, the measures, the counts),
+  `topics` and `instruments`, the Atlas' `[c, k, n]` triples in `i` order, which a
+  test pins to `atlas.json` at every `i`. A topic is `id` (the page's number),
+  `cluster` (the number #285 gave it), `size`, `terms` (10), `reps` and `members`
+  as lists of `i` in order of distance to the topic's mean, and `by` (counts per
+  collection).
+* **Numbering.** The page numbers the topics from 1 by size, largest first (a tie
+  keeps #285's order), so the 32 topics of the measured run are 1 to 32, where
+  #285's own tables number them from 0; the instruments in no topic, if any, come
+  last as `id: -1`, headed *Instruments in no topic* (the measured run has none).
+* **`_topics.md`** opens with an HTML comment saying it is generated, then a summary
+  table (topic, three leading terms, size, laws / regulations / guidelines / treaties,
+  each topic an anchor to its section) and one section per topic with the heading
+  *Topic n: term · term · term* and an explicit `{#topic-n}` id, its ten terms as
+  inline code, a sentence with its size and composition in words, its three
+  representatives with their collection, and a collapsed `callout-note` with every
+  member. Inside it the members are grouped by collection (laws, regulations,
+  guidelines, treaties, the Atlas' order, each group a bold line with its count),
+  ordered by distance to the topic's mean inside a group, so the representatives
+  lead their own group. Plain lists, not tables: a long treaty name wraps in a list
+  and overflows a table on a phone. A member is its name and its `abrev` (a law) or
+  SCJN id in inline code.
+* **A name is written literally.** Names are escaped for Markdown, whitespace runs
+  (one name carries a line break) collapse to a space, and a run of two hyphens or
+  three dots, which pandoc's smart typography would turn into a dash and an ellipsis,
+  and the straight quotes of 17 names are kept as the corpus spells them; the rendered
+  page is tested for it.
+* **The prose** follows the Atlas' conventions (flowing English, no lead phrase and
+  colon, *excerpts*, no *unit*/*provision*, no script name, no commit), and its
+  numbers are literals copied from "Measured, topics, 2026-10-12" and pinned by
+  `tests/test_topics_page.py` against the committed `topics.json`, as is the worked
+  example (topic 19, the lottery regulations). The class-based TF-IDF is cited as
+  Grootendorst (2022) through `references.qmd`'s `nocite`, and
+  `website/scripts/fix_citation_links.py` retargets the link, `topics.html` being
+  added to its list of pages.
+* **Out of scope**: any change to `atlas.js`, `atlas.css`, `atlas.qmd` or
+  `atlas*.json`, a link from a topic into the map (the Atlas has no URL parameter),
+  a search box or any interaction, a hierarchy, a figure, the 4B and BM25
+  configurations, and a Home teaser card (`index.ipynb` is frozen).
+
+`tests/test_topics_page.py` runs the exporter over a toy work directory (seven
+instruments over three collections, a name full of Markdown syntax, clusters whose
+#285 ids are not in size order), checks the two committed files against each other
+and against `atlas.json`, the qmd's prose and literals against `topics.json`, and,
+when a local Quarto is found the way `test_atlas_page.py` finds it, renders the page
+into the gitignored `website/_site/` and checks the include, the 2,676 member lines,
+the navbar and the citation.
 
 ### Tests
 

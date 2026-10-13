@@ -1254,6 +1254,25 @@ see the #242 bullet above), #245 draws it.
   `atlas*.json`, no hierarchy; the tables are in `scripts/embeddings/README.md`
   ("Measured, topics, 2026-10-12").
 
+- **The Topics page (issue #286, done).** The website's **Topics** page
+  (`website/pages/topics.qmd`, navbar entry right after *Atlas*) lists every topic of
+  #285's chosen configuration: static Markdown, no code cells, no JavaScript, no
+  freeze entry, `project.resources` gaining `pages/topics/**`. Two generated files
+  are committed under `website/pages/topics/`, written by
+  `scripts/embeddings/export_topics_page.py` from `emb-run-atlas/topics/` (a pure
+  read, refusing a work directory with no `topics/.done`): `topics.json` (short keys,
+  the Atlas' `[c, k, n]` triples so an `i` resolves) and `_topics.md`, which the qmd
+  includes — a summary table, then per topic (largest first, numbered from 1, the
+  noise last) a heading with its three leading c-TF-IDF terms and an explicit
+  `{#topic-n}` id, its ten terms, a composition sentence, three representatives and a
+  collapsed member list grouped by collection and ordered by distance to the mean.
+  Regenerating either file is a human running the exporter, never a workflow (issue
+  #115, Hallazgo C). The prose's numbers are literals copied from the README's
+  "Measured, topics, 2026-10-12" and pinned by `test_topics_page.py` against the
+  committed data; the Grootendorst (2022) BERTopic reference is in `references.bib`,
+  `references.qmd`'s `nocite` and `fix_citation_links.py`'s page list. No link into
+  the Atlas, no `atlas*.json` change.
+
 ## Tables in SCJN snapshots (issue #253, done)
 
 The SCOW API hands `scjn.api.articulos_of_reforma` each article's `contenido`
