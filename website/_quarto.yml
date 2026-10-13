@@ -1,10 +1,24 @@
 project:
   type: website
   output-dir: _site
+  # Everything, but the draft Topics page: Quarto 1.9.38 renders a `draft: true` page as an
+  # empty stub (`_site/pages/topics.html`, 90 bytes), and nothing of it may be shipped.
+  render:
+    - "*.qmd"
+    - "*.ipynb"
+    - "pages/*.qmd"
+    - "pages/*.ipynb"
+    - "!pages/topics.qmd"
   # The Atlas (issue #245) is a hand-written D3 page that fetches its data at
   # run time, so its JSON, JS and CSS have to be copied into _site as they are.
   resources:
     - "pages/atlas/**"
+    # The Topics page (pages/topics.qmd, issue #286) is a draft kept in the tree and
+    # unpublished by decision of the repository owner on 2026-10-13. Re-enabling it
+    # takes dropping `draft: true` and the `!pages/topics.qmd` render exclusion above,
+    # restoring the navbar entry after Atlas, a "pages/topics/**" resource here,
+    # @Grootendorst2022BERTopic in references.qmd's nocite and pages/topics.html in
+    # fix_citation_links.py's PAGES.
   post-render:
     - scripts/fix_citation_links.py
 

@@ -149,6 +149,14 @@ def forbidden_in(text: str) -> list[str]:
 
 # -- static checks, always run -------------------------------------------- #
 
+def lead_phrases_in(prose: str) -> list[str]:
+    """The places where a line has a short lead phrase ended by a colon that then
+    carries the real sentence (issue #275). Table rows and rules are skipped, and so
+    are addresses; the Topics page (issue #286) is held to the same register."""
+    flat = " ".join(line for line in prose.splitlines() if not line.startswith(("|", "---")))
+    return re.findall(r"[a-z)] ?: [A-Za-z]", re.sub(r"https?://\S+", "", flat))
+
+
 def test_the_qmd_has_the_agreed_front_matter_and_no_code():
     text = QMD.read_text(encoding="utf-8")
     fields = front_matter(text)
@@ -816,8 +824,7 @@ def test_no_prose_sentence_is_a_lead_phrase_and_a_colon():
     that then carries the real sentence."""
     text = QMD.read_text(encoding="utf-8")
     prose = text.replace(app_block(text), "").split("\n---\n", 1)[1]
-    flat = " ".join(line for line in prose.splitlines() if not line.startswith(("|", "---")))
-    assert not re.findall(r"[a-z)] ?: [A-Za-z]", re.sub(r"https?://\S+", "", flat))
+    assert not lead_phrases_in(prose)
 
 
 def test_the_application_carries_the_dialog_and_its_two_messages():
