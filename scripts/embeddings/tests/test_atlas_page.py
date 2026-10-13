@@ -270,7 +270,7 @@ def test_the_navbar_puts_atlas_right_after_federal_laws_and_ships_its_files():
     text = (WEBSITE / "_quarto.yml").read_text(encoding="utf-8")
     entries = re.findall(r"- href: (\S+)\n\s+text: (.+)", text)
     names = [name.strip() for _, name in entries]
-    assert names[:5] == ["Home", "Archive", "Federal Laws", "Atlas", "DOF Titles"]
+    assert names[:6] == ["Home", "Archive", "Federal Laws", "Atlas", "Instruments", "DOF Titles"]
     assert ("pages/atlas.qmd", "Atlas") in [(h, n.strip()) for h, n in entries]
     assert re.search(r'resources:\s*\n\s*-\s*"pages/atlas/\*\*"', text)
 

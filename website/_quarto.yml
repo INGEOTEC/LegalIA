@@ -11,8 +11,13 @@ project:
     - "!pages/topics.qmd"
   # The Atlas (issue #245) is a hand-written D3 page that fetches its data at
   # run time, so its JSON, JS and CSS have to be copied into _site as they are.
+  #
+  # The Instruments page (issue #290) is the same kind of page: its index, JS and CSS
+  # are copied from pages/instruments/. The per-instrument files under files/ are
+  # not in the tree: website.yml unpacks the `atlas-instruments` release there.
   resources:
     - "pages/atlas/**"
+    - "pages/instruments/**"
     # The Topics page (pages/topics.qmd, issue #286) is a draft kept in the tree and
     # unpublished by decision of the repository owner on 2026-10-13. Re-enabling it
     # takes dropping `draft: true` and the `!pages/topics.qmd` render exclusion above,
@@ -52,6 +57,8 @@ website:
         text: Federal Laws
       - href: pages/atlas.qmd
         text: Atlas
+      - href: pages/instruments.qmd
+        text: Instruments
       - href: pages/titles.ipynb
         text: DOF Titles
       - href: pages/document2md.ipynb
