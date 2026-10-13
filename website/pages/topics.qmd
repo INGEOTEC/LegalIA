@@ -1,0 +1,95 @@
+---
+title: "Topics of the Atlas of Mexican Federal Law"
+subtitle: "2,676 instruments in 32 topics, named by the words that distinguish their excerpts"
+page-layout: article
+toc: true
+toc-depth: 3
+number-sections: false
+---
+
+Every instrument of the [Atlas](atlas.qmd) belongs on this page to exactly one
+topic. A topic gathers instruments whose excerpts have their closest texts in the
+same places, and it is named by the words that set its excerpts apart from those of
+the other topics, so that a reader can see at a glance what a group of laws,
+regulations, guidelines and treaties is about.
+
+## How the topics were found
+
+The Atlas relates every instrument to the others through a matrix. Row *i* of the
+matrix says how the counted excerpts of instrument *i* spread over the other
+instruments that own the text nearest to each of them, and the headings and the
+transitory articles are left out of the comparison. The topics use the same matrix
+for the same 2,676 unique instruments, which are 315 laws, 863 regulations, 125
+guidelines and 1,373 treaties, and they group the instruments by whom they resemble,
+which is what the map draws, so that a topic is a region of the map.
+
+Four families of clustering algorithms were run, each over a fixed sweep of its one
+tuning parameter, 22 configurations in all. They were density-based clustering of a
+five-dimensional reduction of the rows, Ward hierarchical clustering, k-means and
+Louvain community detection on the matrix read as a weighted graph. A rule fixed
+beforehand chose among them. A configuration could be chosen only if it gave between
+20 and 80 topics, left at most 15 % of the instruments in no topic and had no topic
+larger than a quarter of the instruments, which keeps the result a map of topics and
+not a split into the treaties and everything else. Among the configurations that
+passed, the rule took the one that kept together the largest share of the strong
+links of the Atlas, the 275 links in which an instrument names, in its title or in
+its opening sentence, the instrument it develops, as the evaluation on the
+[Atlas page](atlas.qmd) explains.
+
+Only the Louvain communities passed. Ward clustering and k-means left a topic
+holding from a third to seven tenths of the instruments, and the density-based
+clustering left from a fifth to two fifths of the instruments in no topic. The rule
+chose Louvain communities with a resolution of 1.0, which gives 32 topics and leaves
+no instrument outside a topic. The largest topic has 336 instruments, 12.6 % of the
+total, and 235 of the 275 strong links, 85.5 %, have both ends in the same topic. The
+silhouette of the partition is 0.028, close to zero, which says that the instruments
+do not fall into well separated clouds in the space of their rows. The topics are
+communities of a densely connected graph and not compact balls, and the borders
+between neighbouring topics are soft.
+
+## How a topic is named
+
+Nobody gave a topic its name. The heading carries the three words that distinguish
+the topic best, and ten are listed under it, chosen with the class-based TF-IDF of
+BERTopic [@Grootendorst2022BERTopic]. All the excerpts of the instruments in a topic
+are read as one document, and a term scores high when it is frequent in that document
+and rare in the documents of the other topics. A term is a single word or two
+consecutive words, a term had to occur in at least two instruments, and a short list
+of Spanish function words such as `de`, `la` and `el` was dropped so that they would
+not head every topic. Only the excerpts that the Atlas compares are read, which
+leaves out headings and transitory articles.
+
+The terms are kept as the corpus spells them, so that `artículo` and `articulo`, which
+the corpus writes both ways, are two terms. Two topics can share their leading terms,
+as topics 10 and 20 do, two groups of bilateral treaties in which `parte contratante`,
+`contratante` and `parte` lead, and the rest of the ten then tells them apart.
+
+## How to read a topic
+
+The topics are listed from the largest to the smallest. A heading gives the number of
+the topic and its three leading terms, the ten terms follow, and a sentence says how
+many instruments of each kind the topic holds. The three most representative
+instruments are those whose rows of the matrix are closest, by the cosine of the angle
+between them, to the mean row of the topic. The collapsed list holds every member,
+grouped as laws, regulations, guidelines and treaties, and ordered inside each group
+from the closest to the mean row to the farthest, so that the first names of a group
+are the ones that best stand for the topic in it. A member is written as the corpus
+spells its name, followed by its abbreviation if it is a law, or by the identifier
+that the Court gives it otherwise.
+
+## An example
+
+Topic 19 holds 51 instruments, 5 laws and 46 regulations, and its leading terms are
+`sorteo`, `pronósticos` and `premios`. Its three most representative instruments are
+the regulations of the Gana Gato, Tris and Pronósticos Rápidos draws of
+Pronósticos para la Asistencia Pública, so that the topic is the rules of lotteries and games. Its laws
+include the Federal Law of Games and Draws, and it also holds the Organic Law of the
+Seminary of Mexican Culture, which is a reminder that a topic is a community of
+instruments and not a guarantee that every member shares its subject.
+
+## The topics
+
+The table lists the 32 topics with a link to each, and the sizes in it add up to the
+2,676 instruments. No instrument is outside a topic.
+
+{{< include topics/_topics.md >}}

@@ -1,6 +1,6 @@
 """Point the citation links of some pages at the References page.
 
-index.ipynb and pages/atlas.qmd cite publications inline but do not list them
+index.ipynb, pages/atlas.qmd and pages/topics.qmd cite publications inline but do not list them
 (that list lives on references.qmd, at the same navbar level as Home/Archive/
 Federal Laws, through its `nocite` field). Quarto's citeproc always resolves
 citation links to local "#ref-KEY" anchors and appends a "References"
@@ -13,7 +13,8 @@ the entries it would list are already on the References page.
 
 The retargeted address is relative to each page's own directory, so it is
 `pages/references.html` from `index.html` and `references.html` from
-`pages/atlas.html`.
+`pages/atlas.html`
+and `pages/topics.html`.
 
 Quarto runs every script under `project: post-render:` with the working
 directory set to the project directory (website/) and the rendered site in
@@ -29,7 +30,7 @@ SITE = Path("_site")
 REFERENCES = SITE / "pages" / "references.html"
 
 #: Rendered pages whose citations are listed on the References page.
-PAGES = [SITE / "index.html", SITE / "pages" / "atlas.html"]
+PAGES = [SITE / "index.html", SITE / "pages" / "atlas.html", SITE / "pages" / "topics.html"]
 
 
 def retarget(html: str, page: Path) -> str:

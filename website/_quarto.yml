@@ -5,6 +5,9 @@ project:
   # run time, so its JSON, JS and CSS have to be copied into _site as they are.
   resources:
     - "pages/atlas/**"
+    # The Topics page (issue #286) is static Markdown with no JavaScript, but its
+    # data file is published next to it for whoever wants to read it.
+    - "pages/topics/**"
   post-render:
     - scripts/fix_citation_links.py
 
@@ -38,6 +41,8 @@ website:
         text: Federal Laws
       - href: pages/atlas.qmd
         text: Atlas
+      - href: pages/topics.qmd
+        text: Topics
       - href: pages/titles.ipynb
         text: DOF Titles
       - href: pages/document2md.ipynb
