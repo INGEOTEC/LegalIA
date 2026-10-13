@@ -13,7 +13,7 @@ read, seconds, no refit):
 
 * `topics.json`: the page's data, with short keys. `meta` (the title, when and
   from which commit it was generated, the model and method, the algorithm and its
-  parameter, the measures and the counts, copied from #285's `meta`), one entry
+  parameter, the measures, the gold's path, commit and size and the counts, copied from #285's `meta`), one entry
   per topic (`id`, `size`, `terms`, `reps`, `members`, `by`) and `instruments`,
   the Atlas' own `[c, k, n]` triples in `i` order so a reader of the JSON can
   resolve a member `i`. `id` is the number the page prints: the rank of the topic
@@ -197,6 +197,7 @@ def build_data(work_dir: Path, *, now=None, commit=None) -> dict:
         "gates": source["gates"],
         "measures": source["measures"],
         "gold_links": source["gold_links"],
+        "gold": source["gold"],
         "labels": {key: source["labels"][key] for key in
                    ("method", "ngram_range", "min_instruments", "top_terms", "representatives")},
         "instruments": len(instruments),

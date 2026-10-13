@@ -778,7 +778,7 @@ dated before that describe the three-corpus map and are kept as history.
 | The BM25 data set (issue #267) | `scripts/embeddings/prepare_bm25_input.py` → `emb-run-atlas-bm25/` (no vectors; `bm25-index/`, `tokens.parquet`), then the same chain → `website/pages/atlas/atlas-bm25.json` (committed), pair files in `website/pages/atlas/pairs-bm25/` (gitignored), assets `atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` / `SHA256SUMS-bm25.txt`; the scorer is `scripts/embeddings/scoring.py` |
 | The strong-link gold and the three-way evaluation (issue #272) | `scripts/embeddings/gold_links.py` → `emb-run-atlas/gold-links/` (`gold.json`, `gold.md`), then `scripts/embeddings/evaluate_links.py` → `emb-run-atlas/gold-links/` (`evaluation.json`, `evaluation.md`); gitignored, nothing uploaded |
 | The row-level evaluation against citations (issue #273) | `scripts/embeddings/gold_links.py` also writes `emb-run-atlas/gold-links/citations.parquet`, then `scripts/embeddings/evaluate_citations.py` → `emb-run-atlas/gold-links/` (`evaluation-rows.json`, `evaluation-rows.md`); gitignored, nothing uploaded |
-| The topics of the instrument map (issue #285) | `scripts/embeddings/cluster_instruments.py` → `emb-run-atlas/topics/` (`labels.parquet`, `comparison.json`, `comparison.md`, `topics.json`, `.done`); gitignored, nothing uploaded |
+| The topics of the instrument map (issue #285; the 4B since review fix-1) | `scripts/embeddings/cluster_instruments.py --work-dir emb-run-atlas-4b` → `emb-run-atlas-4b/topics/` (`labels.parquet`, `comparison.json`, `comparison.md`, `topics.json`, `.done`); gitignored, nothing uploaded. The 0.6B's own `emb-run-atlas/topics/` stays where #285 wrote it |
 | The Topics page (issue #286) | `scripts/embeddings/export_topics_page.py` → `website/pages/topics/topics.json` and `_topics.md` (both committed), included by `website/pages/topics.qmd` |
 | Everything derived | `emb-run-atlas/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
@@ -1436,8 +1436,8 @@ rendered-site test checks Quarto's `h2` rule does not reach the dialog.
 ### Topics of the instrument map (issue #285)
 
 ```bash
-uv run --group viz python scripts/embeddings/cluster_instruments.py --work-dir emb-run-atlas
-uv run --group viz python scripts/embeddings/cluster_instruments.py --work-dir emb-run-atlas \
+uv run --group viz python scripts/embeddings/cluster_instruments.py --work-dir emb-run-atlas-4b
+uv run --group viz python scripts/embeddings/cluster_instruments.py --work-dir emb-run-atlas-4b \
     --choose louvain:1.5 --force
 ```
 
@@ -1445,10 +1445,18 @@ Nothing in the Atlas groups the instruments or says what a region of the map is
 about. `cluster_instruments.py` groups them from the same information the map is
 drawn from, the **L2-normalised rows of `A`** (not the excerpt centroids, not the
 page's 2-D coordinates; a zero row is reported and assigned noise), and labels
-each cluster. It needs a prepared work directory with a computed matrix and
-`gold-links/gold.json`, refuses one without them naming the file, and runs in
-about five minutes on one CPU: no Slurm, no GPU, no network. The 4B and BM25 work
-directories are accepted through `--work-dir`; only the 0.6B is measured here.
+each cluster. It needs a prepared work directory with a computed matrix, refuses one
+without it naming the file, and runs in about five minutes on one CPU: no Slurm, no
+GPU, no network. **The gold is not read from the work directory** (review fix-1):
+`--gold` names it, defaulting to `emb-run-atlas/gold-links/gold.json` as in
+`evaluate_links.py`, because it is built from names and text and not from a model, so
+one file serves every work directory and `emb-run-atlas-4b/` has no `gold-links/` of
+its own. A gold whose `provenance.instruments` is not the work directory's instrument
+count is refused, and `meta.gold` records its path, commit and count. Issue #285
+measured the 0.6B (`emb-run-atlas`); the page runs the **4B** (`emb-run-atlas-4b`,
+`Qwen/Qwen3-Embedding-4B`), the data set the row-level evaluation found better, with
+the same rule, gates, sweeps and labels, and only the matrix changed. The BM25 work
+directory is accepted through `--work-dir` but not run.
 
 Four algorithms, each swept over its one tuning parameter (22 configurations: the
 issue says 21, but its five, six, six and five values add up to 22):
@@ -1513,7 +1521,7 @@ hierarchy is exported, no topic is named by a language model, and `atlas.js`,
 ### The Topics page (issue #286)
 
 ```bash
-uv run --group viz python scripts/embeddings/export_topics_page.py --work-dir emb-run-atlas
+uv run --group viz python scripts/embeddings/export_topics_page.py --work-dir emb-run-atlas-4b
 ```
 
 `website/pages/topics.qmd` (navbar entry *Topics*, right after *Atlas*) presents
@@ -1521,11 +1529,14 @@ every topic of #285's chosen configuration and its members. It is static Markdow
 with no code cells and no JavaScript, so it needs no freeze entry and no browser
 harness; `_quarto.yml`'s `project.resources` gained `pages/topics/**`, which
 publishes the data file next to the page. The exporter is a pure read of
-`emb-run-atlas/topics/topics.json` and `instruments.parquet` (seconds, no refit; a
+`emb-run-atlas-4b/topics/topics.json` and `instruments.parquet` (seconds, no refit; a
 work directory with no `topics/.done` is refused) and writes the two committed
 files, generated and never edited by hand. Regenerating them is this script, run by
 a human, never a workflow (issue #115, Hallazgo C); `meta.commit` is provenance and
-the page never shows it.
+the page never shows it. The committed files come from `emb-run-atlas-4b/` (review
+fix-1 of #285 and #286; they first came from the 0.6B's `emb-run-atlas/`), so
+`meta.model` is `Qwen/Qwen3-Embedding-4B`, and a test pins that and the instruments'
+`c`/`k`/`n` to `atlas-qwen3-4b.json`.
 
 * **`topics.json`** has `meta` (title, generated, commit, model, method, the
   algorithm, its parameter, the selection, the gates, the measures, the counts),
@@ -1557,9 +1568,9 @@ the page never shows it.
   page is tested for it.
 * **The prose** follows the Atlas' conventions (flowing English, no lead phrase and
   colon, *excerpts*, no *unit*/*provision*, no script name, no commit), and its
-  numbers are literals copied from "Measured, topics, 2026-10-12" and pinned by
+  numbers are literals copied from "Measured, topics, the 4B, 2026-10-13" and pinned by
   `tests/test_topics_page.py` against the committed `topics.json`, as is the worked
-  example (topic 19, the lottery regulations). The class-based TF-IDF is cited as
+  example (topic 21, the lottery regulations). The class-based TF-IDF is cited as
   Grootendorst (2022) through `references.qmd`'s `nocite`, and
   `website/scripts/fix_citation_links.py` retargets the link, `topics.html` being
   added to its list of pages.
@@ -2637,6 +2648,9 @@ nothing about whether the right *article* ranks first.
 
 ### Measured, topics, 2026-10-12 (issue #285)
 
+*This is the 0.6B run and the record of what #285 measured; the Topics page does not
+use it. The page uses the 4B run, "Measured, topics, the 4B, 2026-10-13" below.*
+
 `cluster_instruments.py --work-dir emb-run-atlas`, commit `84165c97`, the 0.6B
 matrix (2,676 × 2,676, 0 zero rows) and the 275 strong links of the review fix of
 issue #283; 5 minutes 40 seconds on one machine with no Slurm (the labels read
@@ -2730,3 +2744,90 @@ lotteries, public procurement, the Congress, migration, tourism). The two
 smallest clusters (30, 31) are a handful of instruments each. The terms are the
 Spanish words of the corpus, left as it spells them (`articulo` and `artículo`
 are two terms: the corpus writes both).
+
+### Measured, topics, the 4B, 2026-10-13 (review fix-1: #285, #286)
+
+`cluster_instruments.py --work-dir emb-run-atlas-4b`, commit `b8a2fd9f`, the 4B
+matrix (`Qwen/Qwen3-Embedding-4B`, 2,676 × 2,676, 0 zero rows) and the same 275
+strong links, read from `emb-run-atlas/gold-links/gold.json` (`--gold`, its default;
+its `provenance.commit` is `a6324cd9`); 4 minutes 48 seconds on one machine with no
+Slurm. Run twice, `topics.json` and `comparison.json` are byte-identical apart from
+`meta.generated`. Every configuration finished (22 of 22). Nothing but the matrix
+changed from the 0.6B run above: same sweeps, gates, rule, c-TF-IDF parameters and
+stopword list. Per configuration, in `comparison.md`:
+
+| algorithm | parameter | clusters | noise | largest | silhouette | co-membership | gates | chosen |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| hdbscan_umap | min_cluster_size 5 | 159 | 19.2% | 1.9% | 0.150 | 0.378 | fail: 159 clusters, outside 20-80; noise 19.2% over 15% |  |
+| hdbscan_umap | min_cluster_size 10 | 74 | 22.7% | 3.7% | 0.105 | 0.473 | fail: noise 22.7% over 15% |  |
+| hdbscan_umap | min_cluster_size 15 | 55 | 28.9% | 3.6% | 0.093 | 0.465 | fail: noise 28.9% over 15% |  |
+| hdbscan_umap | min_cluster_size 20 | 39 | 31.4% | 3.4% | 0.076 | 0.447 | fail: noise 31.4% over 15% |  |
+| hdbscan_umap | min_cluster_size 30 | 4 | 0.0% | 94.9% | 0.009 | 0.996 | fail: 4 clusters, outside 20-80; largest cluster 94.9% over 25% |  |
+| agglomerative | n_clusters 20 | 20 | 0.0% | 76.8% | 0.019 | 0.735 | fail: largest cluster 76.8% over 25% |  |
+| agglomerative | n_clusters 30 | 30 | 0.0% | 69.8% | 0.024 | 0.691 | fail: largest cluster 69.8% over 25% |  |
+| agglomerative | n_clusters 40 | 40 | 0.0% | 59.2% | 0.035 | 0.622 | fail: largest cluster 59.2% over 25% |  |
+| agglomerative | n_clusters 50 | 50 | 0.0% | 57.1% | 0.045 | 0.622 | fail: largest cluster 57.1% over 25% |  |
+| agglomerative | n_clusters 60 | 60 | 0.0% | 50.3% | 0.051 | 0.564 | fail: largest cluster 50.3% over 25% |  |
+| agglomerative | n_clusters 80 | 80 | 0.0% | 42.8% | 0.064 | 0.527 | fail: largest cluster 42.8% over 25% |  |
+| kmeans | n_clusters 20 | 20 | 0.0% | 60.5% | 0.028 | 0.589 | fail: largest cluster 60.5% over 25% |  |
+| kmeans | n_clusters 30 | 30 | 0.0% | 50.0% | 0.040 | 0.549 | fail: largest cluster 50.0% over 25% |  |
+| kmeans | n_clusters 40 | 40 | 0.0% | 49.7% | 0.045 | 0.582 | fail: largest cluster 49.7% over 25% |  |
+| kmeans | n_clusters 50 | 50 | 0.0% | 40.5% | 0.052 | 0.491 | fail: largest cluster 40.5% over 25% |  |
+| kmeans | n_clusters 60 | 60 | 0.0% | 39.5% | 0.059 | 0.429 | fail: largest cluster 39.5% over 25% |  |
+| kmeans | n_clusters 80 | 80 | 0.0% | 33.9% | 0.075 | 0.400 | fail: largest cluster 33.9% over 25% |  |
+| louvain | resolution 0.5 | 17 | 0.0% | 24.2% | 0.017 | 0.851 | fail: 17 clusters, outside 20-80 |  |
+| louvain | resolution 1.0 | 32 | 0.0% | 13.6% | 0.030 | 0.811 | pass | **yes** |
+| louvain | resolution 1.5 | 44 | 0.0% | 10.7% | 0.040 | 0.782 | pass |  |
+| louvain | resolution 2.0 | 52 | 0.0% | 10.9% | 0.044 | 0.793 | pass |  |
+| louvain | resolution 3.0 | 68 | 0.0% | 11.2% | 0.052 | 0.789 | pass |  |
+
+Four configurations pass the gates, all of them Louvain (`resolution` 1.0 to 3.0);
+`resolution` 0.5 gives 17 communities, under 20. Ward and *k*-means leave a topic of
+33.9 to 76.8 % of the instruments in every configuration. HDBSCAN leaves 19.2 to
+31.4 % of the instruments in no dense region with a `min_cluster_size` of 5 to 20,
+and with 30 it merges everything into four clusters, one of 94.9 % of the instruments
+(co-membership 0.996, which is what the gates are for). The rule picks **`louvain`
+`resolution` 1.0**, as for the 0.6B: 32 topics, no noise, the largest with 365
+instruments (13.6 %), silhouette 0.030 and co-membership 0.811 (223 of the 275 strong
+links stay together; the 0.6B's 0.855 was 235). The partition is a different one: the
+lottery regulations, the extradition treaties and the transparency regulations are
+again topics of their own, but the sizes and several members differ.
+
+The 32 topics of the chosen configuration, by size (`topics.json`; the terms are the
+first five of ten, the representative the nearest to the cluster's mean). The page
+numbers them from 1, so page topic *n* is cluster *n* − 1 of this table:
+
+| id | size | collections | top 5 terms | first representative |
+|---:|---:|---|---|---|
+| 0 | 365 | leyes 1, reglamentos 1, tratados 363 | partes, cooperación, unidos mexicanos, estados unidos, unidos | CONVENIO DE COOPERACION EDUCATIVA Y CULTURAL (REPUBLICA VENEZUELA, ... (`24162`) |
+| 1 | 298 | leyes 13, reglamentos 4, tratados 281 | estados, presente, miembros, artículo, parte | CONVENCION DE LA ORGANIZACION MUNDIAL DE LA METEOROLOGIA (MULTILATE... (`23773`) |
+| 2 | 198 | leyes 44, lineamientos 19, reglamentos 129, tratados 6 | secretaría, artículo, federal, nacional, información | REGLAMENTO INTERIOR DE LA SECRETARIA DE GOBERNACION (`179040`) |
+| 3 | 143 | leyes 10, lineamientos 9, reglamentos 63, tratados 61 | trabajo, trabajadores, instituto, artículo, trabajador | LEY del Instituto del Fondo Nacional de la Vivienda para los Trabaj... (`lifnvt`) |
+| 4 | 142 | leyes 4, reglamentos 5, tratados 133 | ex, parte, kg, 01, partes | ACUERDO DE COMPLEMENTACION ECONOMICA No. 66 CELEBRADO ENTRE LOS EST... (`75190`) |
+| 5 | 141 | leyes 25, lineamientos 49, reglamentos 67 | información, tribunal, artículo, transparencia, ley | REGLAMENTO DE TRANSPARENCIA Y ACCESO A LA INFORMACION DEL TRIBUNAL ... (`131773`) |
+| 6 | 121 | leyes 33, lineamientos 3, reglamentos 34, tratados 51 | articulo, artículo, caso, ley, art | CÓDIGO Civil Federal (`ccf`) |
+| 7 | 120 | leyes 2, reglamentos 3, tratados 115 | parte, parte requerida, tratado, extradición, requerida | TRATADO DE EXTRADICION ENTRE LOS ESTADOS UNIDOS MEXICANOS Y LA REPU... (`18576`) |
+| 8 | 96 | leyes 12, lineamientos 1, reglamentos 83 | personal, escuela, educación, plantel, artículo | REGLAMENTO DE LA ESCUELA MILITAR DE GRADUADOS DE SANIDAD (`21471`) |
+| 9 | 91 | tratados 91 | parte contratante, contratante, parte, partes contratantes, otra parte | CONVENIO SOBRE TRANSPORTE AEREO (GOBIERNO FEDERAL DE AUSTRIA, 1995) (`24104`) |
+| 10 | 81 | leyes 26, lineamientos 20, reglamentos 35 | artículo, ley, fiscal, refiere, impuesto | LEY de Ingresos de la Federación para el Ejercicio Fiscal de 2026 (`lif-2026`) |
+| 11 | 81 | leyes 10, lineamientos 1, reglamentos 62, tratados 8 | salud, secretaría, artículo, productos, animal | REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE PRESTACION DE S... (`293`) |
+| 12 | 79 | leyes 5, lineamientos 3, reglamentos 14, tratados 57 | carga, buque, buques, transporte, convenio | CONVENIO INTERNACIONAL PARA PREVENIR LA CONTAMINACION POR LOS BUQUE... (`23845`) |
+| 13 | 77 | leyes 17, reglamentos 52, tratados 8 | artículo, secretaría, comisión, ley, energía | REGLAMENTO PARA LA COMERCIALIZACION DE SERVICIOS DE TELECOMUNICACIO... (`45651`) |
+| 14 | 77 | leyes 7, lineamientos 7, reglamentos 58, tratados 5 | 2023, electoral, partidos, electorales, consejo | LEY General de Partidos Políticos (`lgpp`) |
+| 15 | 76 | tratados 76 | estado, estado contratante, contratante, otro estado, otro | CONVENIO PARA EVITAR LA DOBLE IMPOSICION Y PREVENIR LA EVASION FISC... (`77473`) |
+| 16 | 70 | leyes 34, reglamentos 36 | comisión, ley, artículo, sociedades, sociedad | LEY para Regular las Instituciones de Tecnología Financiera (`lritf`) |
+| 17 | 57 | leyes 13, lineamientos 1, reglamentos 43 | militar, personal, articulo, servicio, guardia | REGLAMENTO PARA EL SERVICIO INTERIOR DE LAS UNIDADES, DEPENDENCIAS ... (`46901`) |
+| 18 | 56 | leyes 11, lineamientos 3, reglamentos 13, tratados 29 | artículo, unión, internacional, presente, ley | ACTA DE GINEBRA DEL ARREGLO DE LA HAYA RELATIVO AL REGISTRO INTERNA... (`143097`) |
+| 19 | 55 | leyes 1, reglamentos 2, tratados 52 | cmr, servicio, banda, administraciones, radiocomunicaciones | ACTAS FINALES DE LA CONFERENCIA ADMINISTRATIVA MUNDIAL DE RADIOCOMU... (`23943`) |
+| 20 | 43 | leyes 2, reglamentos 41 | sorteo, pronósticos, premios, sorteos, números | REGLAMENTO DEL SORTEO GANA GATO DE PRONOSTICOS PARA LA ASISTENCIA P... (`52019`) |
+| 21 | 40 | leyes 15, reglamentos 24, tratados 1 | ambiental, secretaría, agua, artículo, ley | REGLAMENTO DE LA LEY GENERAL DEL EQUILIBRIO ECOLOGICO Y LA PROTECCI... (`16259`) |
+| 22 | 29 | leyes 9, lineamientos 3, reglamentos 16, tratados 1 | artículo, adolescentes, centro, niñas, niñas niños | REGLAMENTO GENERAL PARA LOS CENTROS DE ASISTENCIA SOCIAL Y ESTABLEC... (`158840`) |
+| 23 | 29 | leyes 2, lineamientos 1, tratados 26 | tratado, estado, estado receptor, consular, receptor | CONVENCION SOBRE AGENTES CONSULARES (MULTILATERAL, 1928) (`16462`) |
+| 24 | 22 | leyes 5, lineamientos 4, reglamentos 10, tratados 3 | contrato, artículo, contratación, caso, servicios | REGLAMENTO DEL INSTITUTO FEDERAL ELECTORAL EN MATERIA DE OBRAS PUBL... (`119002`) |
+| 25 | 22 | leyes 5, reglamentos 14, tratados 3 | agencia, persona, vuelo, aviación, aviación civil | REGLAMENTO DE LOS SERVICIOS AUXILIARES AL AUTOTRANSPORTE FEDERAL DE... (`165917`) |
+| 26 | 18 | lineamientos 1, reglamentos 17 | normatividad, normatividad aplicable, pensionissste, aplicable, servicios | REGLAMENTO ORGANICO DEL FONDO DE LA VIVIENDA DEL INSTITUTO DE SEGUR... (`188947`) |
+| 27 | 17 | leyes 5, reglamentos 11, tratados 1 | comisión nacional, nacional, comisión, discapacidad, derechos humanos | REGLAMENTO PARA LA ENTREGA DE LAS MEDALLAS QUE OTORGA LA CAMARA DE ... (`145664`) |
+| 28 | 12 | reglamentos 12 | pasantes, prácticas, examen profesional, naval, profesional | REGLAMENTO PARA EL EXAMEN PROFESIONAL DE LOS PRIMEROS MAESTRES PASA... (`14710`) |
+| 29 | 11 | leyes 4, reglamentos 7 | cámara, mesa, comisiones, presidente, diputados | LEY Orgánica del Congreso General de los Estados Unidos Mexicanos (`locg`) |
+| 30 | 7 | reglamentos 7 | conamed, médica, queja, reembolso, comité | REGLAMENTO PARA EL TRAMITE DE SOLICITUDES DE REEMBOLSO POR LA PREST... (`44035`) |
+| 31 | 2 | tratados 2 | reino países, bajos, dos mil, países bajos, reino | ACUERDO ENTRE LOS ESTADOS UNIDOS MEXICANOS Y EL REINO DE LOS PAISES... (`75722`) |

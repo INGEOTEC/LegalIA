@@ -18,8 +18,10 @@ regulations, guidelines and treaties is about.
 The Atlas relates every instrument to the others through a matrix. Row *i* of the
 matrix says how the counted excerpts of instrument *i* spread over the other
 instruments that own the text nearest to each of them, and the headings and the
-transitory articles are left out of the comparison. The topics use the same matrix
-for the same 2,676 unique instruments, which are 315 laws, 863 regulations, 125
+transitory articles are left out of the comparison. The topics use the same matrix, in
+the version that the 4B embedding model gives, which is the option the Atlas page
+offers as *4B* and which was chosen because its evaluation row by row on that page is
+the better of the three, for the same 2,676 unique instruments, which are 315 laws, 863 regulations, 125
 guidelines and 1,373 treaties, and they group the instruments by whom they resemble,
 which is what the map draws, so that a topic is a region of the map.
 
@@ -37,15 +39,16 @@ its opening sentence, the instrument it develops, as the evaluation on the
 [Atlas page](atlas.qmd) explains.
 
 Only the Louvain communities passed. Ward clustering and k-means left a topic
-holding from a third to seven tenths of the instruments, and the density-based
-clustering left from a fifth to two fifths of the instruments in no topic. The rule
-chose Louvain communities with a resolution of 1.0, which gives 32 topics and leaves
-no instrument outside a topic. The largest topic has 336 instruments, 12.6 % of the
-total, and 235 of the 275 strong links, 85.5 %, have both ends in the same topic. The
-silhouette of the partition is 0.028, close to zero, which says that the instruments
-do not fall into well separated clouds in the space of their rows. The topics are
-communities of a densely connected graph and not compact balls, and the borders
-between neighbouring topics are soft.
+holding from a third to three quarters of the instruments. The density-based clustering
+left from a fifth to a third of the instruments in no topic when its smallest topic was
+set between 5 and 20 instruments, and gave only four topics, one of them holding 94.9 %
+of the instruments, when it was set to 30. The rule chose Louvain communities with a
+resolution of 1.0, which gives 32 topics and leaves no instrument outside a topic. The
+largest topic has 365 instruments, 13.6 % of the total, and 223 of the 275 strong links,
+81.1 %, have both ends in the same topic. The silhouette of the partition is 0.030, close
+to zero, which says that the instruments do not fall into well separated clouds in the
+space of their rows. The topics are communities of a densely connected graph and not
+compact balls, and the borders between neighbouring topics are soft.
 
 ## How a topic is named
 
@@ -60,9 +63,7 @@ not head every topic. Only the excerpts that the Atlas compares are read, which
 leaves out headings and transitory articles.
 
 The terms are kept as the corpus spells them, so that `artículo` and `articulo`, which
-the corpus writes both ways, are two terms. Two topics can share their leading terms,
-as topics 10 and 20 do, two groups of bilateral treaties in which `parte contratante`,
-`contratante` and `parte` lead, and the rest of the ten then tells them apart.
+the corpus writes both ways, are two terms, and topic 7 is led by both.
 
 ## How to read a topic
 
@@ -79,13 +80,13 @@ that the Court gives it otherwise.
 
 ## An example
 
-Topic 19 holds 51 instruments, 5 laws and 46 regulations, and its leading terms are
+Topic 21 holds 43 instruments, 2 laws and 41 regulations, and its leading terms are
 `sorteo`, `pronósticos` and `premios`. Its three most representative instruments are
 the regulations of the Gana Gato, Tris and Pronósticos Rápidos draws of
-Pronósticos para la Asistencia Pública, so that the topic is the rules of lotteries and games. Its laws
-include the Federal Law of Games and Draws, and it also holds the Organic Law of the
-Seminary of Mexican Culture, which is a reminder that a topic is a community of
-instruments and not a guarantee that every member shares its subject.
+Pronósticos para la Asistencia Pública, so that the topic is the rules of lotteries and
+games. Its laws are the Federal Law of Games and Draws and the Federal Law of Public
+Brokerage, and the second is a reminder that a topic is a community of instruments and
+not a guarantee that every member shares its subject.
 
 ## The topics
 
