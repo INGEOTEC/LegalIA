@@ -1601,6 +1601,91 @@ when a local Quarto is found the way `test_atlas_page.py` finds it, renders the 
 into the gitignored `website/_site/` and checks the include, the 2,676 member lines,
 the navbar and the citation.
 
+### Nearest texts (issue #288)
+
+`nearest_texts.py` is the matrix's sweep again, keeping the **five closest
+foreign texts** of every searched excerpt instead of only the best. The
+Instruments page shows them on every excerpt an instrument has and lets the
+reader navigate to them, which `nearest.parquet` (the winner and its exact
+ties) cannot supply. Everything it needs is read from a finished matrix: it
+refuses a work directory without `prepare.done`, `instrument-matrix/.done` and
+`instrument-matrix/nearest.parquet`. Only the 4B work directory
+(`emb-run-atlas-4b`) has been run; the code goes through `scoring.scorer_for`
+and so also works over a BM25 work directory (a lexical score of 0 is never a
+neighbour), but nothing was measured for the other two.
+
+```bash
+uv run python scripts/embeddings/nearest_texts.py --work-dir emb-run-atlas-4b --dry-run
+uv run python scripts/embeddings/nearest_texts.py --work-dir emb-run-atlas-4b --submit
+uv run python scripts/embeddings/nearest_texts.py --work-dir emb-run-atlas-4b --wait --max-wait-minutes 9   # 75 while running
+uv run python scripts/embeddings/nearest_texts.py --work-dir emb-run-atlas-4b --report                       # offline
+uv run python scripts/embeddings/nearest_texts.py --work-dir emb-run-atlas-4b                                # compute here
+```
+
+The rules are the matrix's, imported from `instrument_matrix.py` and not
+restated in code: the sources are the searched unit rows (`searched_mask`: no
+heading, nothing in a transitorios section); the candidates are every vector
+row except the source instrument's *exclusively* owned rows and the rows
+nobody owns among the searched rows; a text the source shares with another
+instrument stays a candidate (at similarity 1 when it is the same text); the
+score is the work directory's own, exact, in blocks of `--block-rows`. What is
+new is the selection. Per block, `np.argpartition` keeps the best `--top`
+columns (`TOP_TEXTS` = 5, importable, "to be consistent with the Atlas"), and
+a row where more than K columns reach the K-th score is redone from every
+column at or above it, so **a tie at the cut is broken by the lower vector
+row**; the kept columns are sorted by `(-similarity, target_row)`. A tie at
+rank 1 is not collapsed: two exact ties are ranks 1 and 2. A masked column, or
+a zero BM25 score, is never written, so a source can have fewer than K rows.
+
+Outputs, under `<work-dir>/nearest-texts/` (its own directory: the matrix's
+`.done` already means "the matrix is there"), written atomically with `.done`
+last:
+
+- `nearest-texts.parquet` — one row per (source, rank), sorted by
+  `(i, row, rank)`: `i`, `coleccion`, `clave`, `row` (the source's vector row),
+  `rank` (1..K), `target_row`, `similarity` (`float32`) and `targets` (the
+  instruments owning `target_row`, minus `i`, sorted). The sources are keyed by
+  `(i, row)`, an instrument and a vector row, **not** by unit row: a text that
+  repeats inside one instrument has one answer, and the exporter fans it back
+  out to its excerpts by `eId`. `summary.json` therefore says both numbers,
+  `sources` (searched unit rows, equal to `nearest.parquet`'s row count) and
+  `source_texts` (distinct `(i, row)`, what this table is keyed by).
+- `summary.json` — `top`, `sources`, `source_texts`, `rows_written`,
+  `sources_short_of_top` (distinct sources with fewer than K rows, one with
+  none at all included), `sources_without_rows`, `agrees_with_nearest`,
+  `tolerance`, the scorer's own `describe()`, `block_rows`, `threads`, `node`,
+  `slurm_job_id`, `seconds` per phase, `seconds_total` and `peak_rss_gb`.
+- `job.json` and `slurm-<jobid>.out` when it ran through Slurm.
+
+**The agreement check.** Rank 1 is supposed to *be* the Atlas' winner, so before
+`.done` the script proves it: for every `(i, row)` of `nearest.parquet` with
+`n_winners > 0` the rank-1 similarity equals the matrix's within `--tolerance`
+(1e-6) and the rank-1 `targets` are among the matrix's; a source the matrix
+found no winner for has no row here, and no source here is missing from
+`nearest.parquet`. Anything else is a `SystemExit` naming the first
+`(i, row)`; the tolerance is not loosened to make a run pass.
+
+**Blocking and the last bit.** Which texts are kept, in which order and owned
+by whom does not depend on `--block-rows`; the `float32` similarity can differ
+in its last bit between block sizes (a different matrix product sums in a
+different order), so the test compares that column at the matrix's tolerance,
+not byte for byte.
+
+The Slurm plumbing is not a copy: `instrument_matrix.sbatch_command`/`submit`/
+`wait`/`load_job`/`slurm_tail`/`output_dir` take the script, the sub-directory,
+the job name, extra arguments and the files that must exist as keyword
+arguments, defaulting to the matrix's own (its tests and outputs are
+unchanged).
+
+`tests/test_nearest_texts.py` imports the toy corpora of
+`test_instrument_matrix.py` and checks the table against a brute force written
+in the test (every foreign candidate scored with plain `numpy`, sorted by
+`(-similarity, row)`), plus the hand-derivable facts: a `top` larger than the
+candidates, the exclusive and unowned rows never a target, a shared text a
+candidate at similarity 1, a tie as ranks 1 and 2, the transitorio corpus, a
+doctored `nearest.parquet`, `.done`/`--force`, the Slurm states and a BM25
+work directory.
+
 ### Tests
 
 ```bash
@@ -2845,3 +2930,31 @@ numbers them from 1, so page topic *n* is cluster *n* − 1 of this table:
 | 29 | 11 | leyes 4, reglamentos 7 | cámara, mesa, comisiones, presidente, diputados | LEY Orgánica del Congreso General de los Estados Unidos Mexicanos (`locg`) |
 | 30 | 7 | reglamentos 7 | conamed, médica, queja, reembolso, comité | REGLAMENTO PARA EL TRAMITE DE SOLICITUDES DE REEMBOLSO POR LA PREST... (`44035`) |
 | 31 | 2 | tratados 2 | reino países, bajos, dos mil, países bajos, reino | ACUERDO ENTRE LOS ESTADOS UNIDOS MEXICANOS Y EL REINO DE LOS PAISES... (`75722`) |
+
+### Measured, nearest texts, the 4B, 2026-10-13 (issue #288)
+
+`nearest_texts.py --work-dir emb-run-atlas-4b`, over the matrix of the 2,676
+instruments (185,456 vector rows, 145,970 searched unit rows), top 5, block of
+1,024 rows, tolerance 1e-6. **Computed locally, not on the cluster**: the job
+was submitted (`sbatch`, job 43111, `--exclude=geoint0`) and sat pending on
+`Resources` for the whole time it was watched, because `geoint1` and `geoint2`
+were held by another user's interactive jobs (11 h and 2 h old) and `geoint0`
+is excluded by default; it was cancelled and the plain `--work-dir` call was
+run on the login node (`geoint0`, 60 threads, a load average of about 18 from
+other users' work), which is why `summary.json` has no `slurm_job_id`.
+
+| | |
+|---|---|
+| sources | 145,970 searched unit rows = 145,693 distinct `(instrument, vector row)` texts |
+| rows written | 728,465 (exactly 5 for every source text; `sources_short_of_top` 0, `sources_without_rows` 0) |
+| `agrees_with_nearest` | **true** (rank-1 similarity within 1e-6 and rank-1 `targets` inside the matrix's, for every source) |
+| rank-1 similarity | median 0.764, mean 0.783, minimum 0.339; 4,809 sources at cosine 1 (a word-for-word text of another instrument) |
+| exact ties at rank 1 and 2 | 853 sources (the rank-1 text has the lower vector row) |
+| rank-1..5 texts with several owners | 17,061 of 728,465 rows, at most 14 owners |
+| seconds | load 6.0, normalise 2.2, sweep 720.6, check 0.8, write 0.8; 729.8 in total |
+| peak RSS | 4.8 GB |
+| `nearest-texts.parquet` | 8.4 MB |
+
+The sweep took about 2.4 times the matrix's 297 s on 62 cluster threads; the
+node was shared, so the extra cost of the top-K selection is not separable
+from it.

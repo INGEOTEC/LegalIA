@@ -1298,6 +1298,40 @@ see the #242 bullet above), #245 draws it.
   `fix_citation_links.py`'s page list. No link into the Atlas, no `atlas*.json`
   change.
 
+## The Instruments page (issues #288, #289, #290)
+
+**In progress: this section is extended by each issue of the run.** The
+website gains a page to browse every instrument of the Atlas as `md2akn` reads
+it, with, on every searched excerpt, its closest texts of other instruments.
+
+- **Nearest texts (issue #288, done).** `scripts/embeddings/nearest_texts.py`
+  repeats `instrument_matrix.py`'s sweep and keeps the **top five foreign
+  vector rows** (`TOP_TEXTS`, importable) of every searched excerpt instead
+  of only the winner, under exactly the matrix's rules — sources are the
+  searched unit rows (no heading, no transitorio), candidates are every vector
+  row but the source instrument's exclusively owned rows and the unowned ones,
+  and a text shared with another instrument stays a candidate. Five *texts*,
+  not five instruments (a text owned by several lists every owner in
+  `targets`); a tie at the cut is broken by the lower vector row, a tie at
+  rank 1 is ranks 1 and 2; rows are keyed by `(i, row)`, not by unit row, and
+  the exporter fans them back out by `eId`. It writes
+  `<work-dir>/nearest-texts/` (its own directory, `.done` last) and **proves
+  before `.done` that rank 1 is the Atlas' winner** (similarity within the
+  matrix's 1e-6, `targets` inside the matrix's, every source present both
+  ways): a disagreement is a `SystemExit` naming `(i, row)`, never a looser
+  tolerance. The 4B (`emb-run-atlas-4b`) only; the 0.6B and BM25 work
+  directories are untouched (the code works through `scoring.scorer_for`).
+  `instrument_matrix.py`'s `sbatch_command`/`submit`/`wait`/`load_job`/
+  `slurm_tail`/`output_dir` gained keyword arguments (script, sub-directory,
+  job name, extra arguments, required files) with the matrix's own as
+  defaults, so the Slurm plumbing is shared, not copied. Measured 2026-10-13:
+  145,970 searched unit rows, 145,693 source texts, 728,465 rows, agreement
+  true; the cluster queue was blocked by other users' jobs, so it was computed
+  on the login node (730 s) — see `scripts/embeddings/README.md`, "Nearest
+  texts" and "Measured, nearest texts, the 4B, 2026-10-13". Nothing is
+  committed from the run (`emb-run-atlas-4b/` is gitignored) and
+  `nearest.parquet`, `atlas*.json` and the `atlas-pairs` release are unchanged.
+
 ## Tables in SCJN snapshots (issue #253, done)
 
 The SCOW API hands `scjn.api.articulos_of_reforma` each article's `contenido`
