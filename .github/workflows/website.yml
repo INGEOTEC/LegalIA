@@ -103,6 +103,35 @@ jobs:
           test "$count" -gt 0
           echo "atlas-pairs-bm25: $count pair files in website/pages/atlas/pairs-bm25"
 
+      # The Instruments page's files (issues #289/#290): one JSON per Atlas
+      # instrument (its md2akn tree, excerpts, parse flags and nearest texts),
+      # ~230 MB, too big for git, so they live in the `atlas-instruments`
+      # release, which a human publishes by running the PUBLICAR.md that
+      # scripts/embeddings/export_instrument_files.py generates (issue #115,
+      # Hallazgo C). Copied, never built here, and a missing release or asset
+      # fails the job: the release must exist before the page's pull request
+      # is merged.
+      - name: Fetch the instrument files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          download=/tmp/atlas-instruments
+          mkdir -p "$download/unpacked"
+          gh release download atlas-instruments --repo "$GITHUB_REPOSITORY" \
+            --pattern 'atlas-instruments-qwen3-4b.tar.gz' --pattern 'SHA256SUMS-qwen3-4b.txt' \
+            --dir "$download"
+          test -s "$download/atlas-instruments-qwen3-4b.tar.gz"
+          grep -q '  atlas-instruments-qwen3-4b.tar.gz$' "$download/SHA256SUMS-qwen3-4b.txt"
+          (cd "$download" && sha256sum -c --ignore-missing SHA256SUMS-qwen3-4b.txt)
+          tar -xzf "$download/atlas-instruments-qwen3-4b.tar.gz" -C "$download/unpacked"
+          rm -rf website/pages/instruments/files
+          mv "$download/unpacked/files" website/pages/instruments/files
+          mv "$download/unpacked/manifest.json" website/pages/instruments/manifest-qwen3-4b.json
+          count=$(find website/pages/instruments/files -name '*.json' | wc -l)
+          test "$count" -gt 0
+          echo "atlas-instruments: $count instrument files in website/pages/instruments/files"
+
       # Execution results are frozen (website/_freeze, with `freeze: true` —
       # see _quarto.yml), so rendering needs neither Python nor the local
       # notas-archivo/ raw data. Any re-execution here is a failure, not a
