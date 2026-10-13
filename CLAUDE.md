@@ -1332,6 +1332,33 @@ it, with, on every searched excerpt, its closest texts of other instruments.
   committed from the run (`emb-run-atlas-4b/` is gitignored) and
   `nearest.parquet`, `atlas*.json` and the `atlas-pairs` release are unchanged.
 
+- **The instrument files (issue #289, done).**
+  `scripts/embeddings/export_instrument_files.py` writes, for each of the Atlas'
+  2,676 instruments of `emb-run-atlas-4b`, `files/<coleccion>/<clave>.json`: the
+  raw Markdown once, the `md2akn` tree (each node `{t, e, n, h, r, s, l, x, a,
+  c}`), the excerpts (`u, e, p, pe, s, l, sha, v, x, f`) and, on every *searched*
+  excerpt, `near`, the five nearest texts of #288 resolved to owners (first owner
+  = lowest Atlas index, a text several instruments own is one entry). **Each
+  instrument is shown at the one snapshot its vectors were built from** (the
+  released `units.parquet`'s `archivo`) and **its re-parse is asserted equal to
+  the released excerpts**, `start_char`/`end_char` included, or the run stops
+  naming the instrument and position — no `--allow-mismatch`; it held for all
+  2,676. **Offsets are UTF-16 code units** (converted from md2akn's code
+  points), so the page slices `markdown` directly. **Flags are counts, never
+  judgements** (`loose`, `duplicate_number`, `numbering_gap`, `over_window`,
+  `no_articles`, `uncovered`, `no_transitorios`; the two numbering flags skip
+  transitorios; `score` ranks); the findings they reveal are reported in the
+  README ("Measured, the instrument files"), not fixed here. The index
+  `website/pages/instruments/instruments.json` (0.57 MB, agrees with
+  `atlas-qwen3-4b.json` by position) is committed; the files (320 MB) are not
+  (`/website/pages/instruments/files/`, gitignored) but travel as the release
+  `atlas-instruments` (`atlas-instruments-qwen3-4b.tar.gz`,
+  `manifest-qwen3-4b.json`, `SHA256SUMS-qwen3-4b.txt`; every name carries the
+  model slug, body `.github/atlas-instruments.md`) which a human publishes with
+  `PUBLICAR.md` (issue #115, Hallazgo C) **before the page's pull request
+  merges** — `website.yml`'s *Fetch the instrument files* step fails without it,
+  on purpose. Nothing was published.
+
 ## Tables in SCJN snapshots (issue #253, done)
 
 The SCOW API hands `scjn.api.articulos_of_reforma` each article's `contenido`
