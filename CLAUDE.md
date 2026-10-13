@@ -1235,43 +1235,56 @@ see the #242 bullet above), #245 draws it.
   tables: `scripts/embeddings/README.md` ("Measured, with the treaties,
   2026-10-12").
 
-- **Topics of the instrument map (issue #285, done).** `scripts/embeddings/cluster_instruments.py`
-  clusters the 2,676 instruments from the L2-normalised rows of `A` with four
-  algorithms (HDBSCAN on a 5-dimensional UMAP, Ward, k-means, Louvain over `A + Aᵀ`),
-  22 configurations (the issue said 21; its own sweeps add up to 22), scored by
-  silhouette and by **strong-link co-membership** (the gold's 275 links), and picks
-  one by a rule fixed beforehand and never tuned: gates of 20-80 clusters, at most
-  15 % noise and a largest cluster of at most 25 %, then the highest co-membership
-  (`--choose` overrides and is recorded; no passing configuration is a non-zero
-  exit, not a softer gate). Measured 2026-10-12: only Louvain passes the gates
-  (Ward and k-means fail the largest-cluster one, HDBSCAN the noise one), and
-  **Louvain at `resolution` 1.0** wins with 32 topics, no noise and co-membership
-  0.855. Each cluster is labelled by its ten c-TF-IDF terms (unigrams and bigrams of
-  the searched rows, `prepare_bm25_input.py`'s tokeniser, 58 Spanish function words
-  dropped because most clusters were otherwise headed by `de`/`la`/`el`) and its
-  three representatives. Output is `emb-run-atlas/topics/` (gitignored, nothing
-  uploaded); `networkx` is now named in the root `viz` group. No page, no change to
-  `atlas*.json`, no hierarchy; the tables are in `scripts/embeddings/README.md`
-  ("Measured, topics, 2026-10-12").
+- **Topics of the instrument map (issue #285, done; the 4B since review fix-1).**
+  `scripts/embeddings/cluster_instruments.py` clusters the 2,676 instruments from
+  the L2-normalised rows of `A` with four algorithms (HDBSCAN on a 5-dimensional
+  UMAP, Ward, k-means, Louvain over `A + Aᵀ`), 22 configurations (the issue said
+  21; its own sweeps add up to 22), scored by silhouette and by **strong-link
+  co-membership** (the gold's 275 links), and picks one by a rule fixed beforehand
+  and never tuned: gates of 20-80 clusters, at most 15 % noise and a largest cluster
+  of at most 25 %, then the highest co-membership (`--choose` overrides and is
+  recorded; no passing configuration is a non-zero exit, not a softer gate). The
+  gold is read through `--gold` (default `emb-run-atlas/gold-links/gold.json`, as in
+  `evaluate_links.py`), not from the work directory: it is built from names and
+  text, so one file serves every work directory, and one built for another
+  instrument count is refused. #285 measured the 0.6B (`emb-run-atlas`); **the page
+  runs the 4B** (`emb-run-atlas-4b`, `Qwen/Qwen3-Embedding-4B`, the data set the
+  row-level evaluation found better), with the same rule, gates, sweeps and
+  labels. Measured 2026-10-13 on the 4B: only Louvain passes the gates (Ward and
+  k-means fail the largest-cluster one, HDBSCAN the noise one or, at a minimum of
+  30, collapses into four clusters), and **Louvain at `resolution` 1.0** wins with
+  32 topics, no noise, a largest topic of 365 instruments and co-membership 0.811
+  (223 of 275). The 0.6B's own run (also Louvain 1.0, 32 topics, 0.855) stays in the
+  README's "Measured, topics, 2026-10-12" as history, and its gitignored output in
+  `emb-run-atlas/topics/` is untouched. Each cluster is labelled by its ten c-TF-IDF
+  terms (unigrams and bigrams of the searched rows, `prepare_bm25_input.py`'s
+  tokeniser, 58 Spanish function words dropped because most clusters were otherwise
+  headed by `de`/`la`/`el`) and its three representatives. Output is
+  `emb-run-atlas-4b/topics/` (gitignored, nothing uploaded); `networkx` is named in
+  the root `viz` group. No hierarchy; the tables are in `scripts/embeddings/README.md`
+  ("Measured, topics, the 4B, 2026-10-13").
 
-- **The Topics page (issue #286, done).** The website's **Topics** page
-  (`website/pages/topics.qmd`, navbar entry right after *Atlas*) lists every topic of
-  #285's chosen configuration: static Markdown, no code cells, no JavaScript, no
+- **The Topics page (issue #286, done; the 4B since review fix-1).** The website's
+  **Topics** page (`website/pages/topics.qmd`, navbar entry right after *Atlas*)
+  lists every topic of the 4B run: static Markdown, no code cells, no JavaScript, no
   freeze entry, `project.resources` gaining `pages/topics/**`. Two generated files
   are committed under `website/pages/topics/`, written by
-  `scripts/embeddings/export_topics_page.py` from `emb-run-atlas/topics/` (a pure
-  read, refusing a work directory with no `topics/.done`): `topics.json` (short keys,
-  the Atlas' `[c, k, n]` triples so an `i` resolves) and `_topics.md`, which the qmd
-  includes — a summary table, then per topic (largest first, numbered from 1, the
-  noise last) a heading with its three leading c-TF-IDF terms and an explicit
-  `{#topic-n}` id, its ten terms, a composition sentence, three representatives and a
-  collapsed member list grouped by collection and ordered by distance to the mean.
-  Regenerating either file is a human running the exporter, never a workflow (issue
-  #115, Hallazgo C). The prose's numbers are literals copied from the README's
-  "Measured, topics, 2026-10-12" and pinned by `test_topics_page.py` against the
-  committed data; the Grootendorst (2022) BERTopic reference is in `references.bib`,
-  `references.qmd`'s `nocite` and `fix_citation_links.py`'s page list. No link into
-  the Atlas, no `atlas*.json` change.
+  `scripts/embeddings/export_topics_page.py --work-dir emb-run-atlas-4b` (a pure
+  read of `emb-run-atlas-4b/topics/`, refusing a work directory with no
+  `topics/.done`): `topics.json` (short keys, `meta.model` is
+  `Qwen/Qwen3-Embedding-4B`, the Atlas' `[c, k, n]` triples so an `i` resolves; a
+  test pins them to `atlas-qwen3-4b.json`) and `_topics.md`, which the qmd includes —
+  a summary table, then per topic (largest first, numbered from 1, the noise last) a
+  heading with its three leading c-TF-IDF terms and an explicit `{#topic-n}` id, its
+  ten terms, a composition sentence, three representatives and a collapsed member
+  list grouped by collection and ordered by distance to the mean. Regenerating
+  either file is a human running the exporter, never a workflow (issue #115,
+  Hallazgo C). The prose says the matrix is the one the 4B gives (the Atlas'
+  *4B* option), and its numbers are literals copied from the README's 4B section and
+  pinned by `test_topics_page.py` against the committed data; the Grootendorst (2022)
+  BERTopic reference is in `references.bib`, `references.qmd`'s `nocite` and
+  `fix_citation_links.py`'s page list. No link into the Atlas, no `atlas*.json`
+  change.
 
 ## Tables in SCJN snapshots (issue #253, done)
 
