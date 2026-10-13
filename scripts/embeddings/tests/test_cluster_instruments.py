@@ -123,13 +123,20 @@ def toy_work(tmp_path, cache):
     out.mkdir(parents=True, exist_ok=True)
     np.save(out / "matrix.npy", matrix)
     (out / "matrix.json").write_text(json.dumps({"counted_rows": 16}), encoding="utf-8")
-    gold = work_dir / "gold-links"
-    gold.mkdir()
-    (gold / "gold.json").write_text(json.dumps({"entries": [
+    # The gold lives outside the work directory, as the real one does (review fix-1
+    # of #285: `emb-run-atlas-4b/` has no `gold-links/`).
+    gold = gold_of(work_dir)
+    gold.parent.mkdir()
+    gold.write_text(json.dumps({"provenance": {"commit": "abc1234", "instruments": 8}, "entries": [
         {"i": index["a"], "targets": [index["b"], index["c"]]},   # one inside, one across
         {"i": index["c"], "targets": [index["902"]]},             # inside
     ]}), encoding="utf-8")
     return work_dir
+
+
+def gold_of(work_dir: Path) -> Path:
+    """Where the toy gold is written: next to the work directory, not in it."""
+    return work_dir.parent / "gold" / "gold.json"
 
 
 #: The toy run's sweeps and gates: two or three clusters of eight, no noise.
@@ -147,6 +154,7 @@ def run(work_dir, cache, **kwargs):
     kwargs.setdefault("sweeps", TOY_SWEEPS)
     kwargs.setdefault("gates", TOY_GATES)
     kwargs.setdefault("now", NOW)
+    kwargs.setdefault("gold", gold_of(work_dir))
     return cluster_instruments.cluster(work_dir, cache_dir=cache, log=lambda *a: None, **kwargs)
 
 
@@ -325,7 +333,7 @@ def test_a_failed_configuration_is_recorded_and_the_sweep_goes_on(toy_work, monk
         raise RuntimeError("no memory")
 
     monkeypatch.setattr(cluster_instruments, "kmeans_labels", boom)
-    inputs = cluster_instruments.load_inputs(toy_work)
+    inputs = cluster_instruments.load_inputs(toy_work, gold_of(toy_work))
     records = cluster_instruments.run_sweeps(
         inputs, sweeps={"kmeans": ("n_clusters", (2,)), "agglomerative": ("n_clusters", (2,))},
         log=lambda *a: None)
@@ -335,7 +343,7 @@ def test_a_failed_configuration_is_recorded_and_the_sweep_goes_on(toy_work, monk
 
 
 def test_every_run_is_deterministic(toy_work):
-    inputs = cluster_instruments.load_inputs(toy_work)
+    inputs = cluster_instruments.load_inputs(toy_work, gold_of(toy_work))
     sweeps = {"kmeans": ("n_clusters", (2,)), "louvain": ("resolution", (1.0,)),
               "hdbscan_umap": ("min_cluster_size", (2,))}
     first = cluster_instruments.run_sweeps(inputs, sweeps=sweeps, log=lambda *a: None)
@@ -353,7 +361,7 @@ def test_a_zero_row_is_noise_in_every_algorithm(toy_work):
     matrix[index["903"], :] = 0.0
     matrix[:, index["903"]] = 0.0
     np.save(out / "matrix.npy", matrix)
-    inputs = cluster_instruments.load_inputs(toy_work)
+    inputs = cluster_instruments.load_inputs(toy_work, gold_of(toy_work))
     records = cluster_instruments.run_sweeps(
         inputs, sweeps={"agglomerative": ("n_clusters", (2,)), "louvain": ("resolution", (1.0,))},
         log=lambda *a: None)
@@ -530,10 +538,40 @@ def test_a_work_directory_without_a_matrix_is_refused_by_name(toy_work, cache):
         run(toy_work, cache)
 
 
-def test_a_work_directory_without_gold_is_refused_by_name(toy_work, cache):
-    (toy_work / "gold-links" / "gold.json").unlink()
+def test_a_missing_gold_is_refused_by_name(toy_work, cache):
+    gold_of(toy_work).unlink()
     with pytest.raises(SystemExit, match="gold.json is missing"):
         run(toy_work, cache)
+
+
+def test_a_gold_built_for_other_instruments_is_refused(toy_work, cache):
+    """Review fix-1 of #285: the gold is shared by every work directory, so its
+    instrument count must be this one's, or its `i` would mean other instruments."""
+    record = json.loads(gold_of(toy_work).read_text(encoding="utf-8"))
+    record["provenance"]["instruments"] = 1303
+    gold_of(toy_work).write_text(json.dumps(record), encoding="utf-8")
+    with pytest.raises(SystemExit, match="built for 1303 instruments but .* lists 8"):
+        run(toy_work, cache)
+    record.pop("provenance")
+    gold_of(toy_work).write_text(json.dumps(record), encoding="utf-8")
+    with pytest.raises(SystemExit, match="built for None instruments"):
+        run(toy_work, cache)
+
+
+def test_the_default_gold_is_the_one_evaluate_links_reads():
+    import evaluate_links
+
+    assert cluster_instruments.DEFAULT_GOLD == evaluate_links.DEFAULT_GOLD == Path(
+        "emb-run-atlas/gold-links/gold.json")
+
+
+def test_the_gold_path_and_commit_are_recorded_and_no_gold_is_needed_in_the_work_dir(
+        toy_work, cache):
+    assert not (toy_work / "gold-links").exists()
+    meta = run(toy_work, cache)["meta"]
+    assert meta["gold"] == {"path": str(gold_of(toy_work)), "commit": "abc1234",
+                            "instruments": 8}
+    assert meta["gold_links"] == 3
 
 
 def test_a_matrix_of_the_wrong_size_is_refused(toy_work, cache):
@@ -546,7 +584,8 @@ def test_a_matrix_of_the_wrong_size_is_refused(toy_work, cache):
 def test_the_command_line_prints_the_chosen_configuration(toy_work, cache, capsys, monkeypatch):
     monkeypatch.setattr(cluster_instruments, "SWEEPS", TOY_SWEEPS)
     monkeypatch.setattr(cluster_instruments, "GATES", TOY_GATES)
-    assert cluster_instruments.main(["--work-dir", str(toy_work), "--cache-dir", str(cache)]) == 0
+    assert cluster_instruments.main(["--work-dir", str(toy_work), "--cache-dir", str(cache),
+                                     "--gold", str(gold_of(toy_work))]) == 0
     printed = capsys.readouterr().out
     assert "chosen (rule): agglomerative n_clusters=2" in printed
     assert "2 topics, 0 instruments in none" in printed

@@ -29,8 +29,12 @@ writes everything under `<work-dir>/topics/` (gitignored):
   number of clusters (noise excluded), the noise fraction, the largest cluster's
   share of the instruments, the cosine silhouette over the normalised rows
   (noise rows excluded) and the **strong-link co-membership** — the fraction of
-  the gold's links (`gold-links/gold.json`, issue #272 and #283's review fix: an
-  instrument's `targets`, `A_or_B`) whose two ends carry the same non-noise label.
+  the gold's links (`--gold`, default `emb-run-atlas/gold-links/gold.json` as in
+  `evaluate_links.py`: issue #272 and #283's review fix, an instrument's `targets`,
+  `A_or_B`) whose two ends carry the same non-noise label. The gold is built from
+  names and text, never from a model, so one file serves every work directory; a
+  gold whose `provenance.instruments` is not the work directory's instrument count
+  is refused, and `meta.gold` records its path, commit and count (review fix-1).
 * **One selection rule, fixed before the run and never tuned after it**
   (`select`): among the configurations that finished, have 20 to 80 clusters, at
   most 15 % noise and a largest cluster of at most 25 % of the instruments
@@ -80,11 +84,11 @@ import numpy as np  # noqa: E402
 import build_umap_html as html  # noqa: E402
 import instrument_matrix  # noqa: E402
 from _atomic import atomic_write_table, atomic_write_text  # noqa: E402
+from evaluate_links import DEFAULT_GOLD  # noqa: E402
 from prepare_bm25_input import TOKENISER  # noqa: E402
 
 SUBDIR = "topics"
 DONE_MARKER = ".done"
-GOLD_JSON = Path("gold-links") / "gold.json"
 
 #: Every random choice of the run, spelled out: UMAP's, k-means' and Louvain's.
 #: HDBSCAN and Ward are deterministic. A fixed UMAP seed makes the fit
@@ -145,9 +149,11 @@ def output_dir(work_dir: Path) -> Path:
 
 # -- loading -------------------------------------------------------------- #
 
-def load_inputs(work_dir: Path) -> dict:
+def load_inputs(work_dir: Path, gold: Path = DEFAULT_GOLD) -> dict:
     """What the run reads, after refusing a work directory without it: the
-    instruments, the raw matrix `A`, `matrix.json`, `input.json` and the gold."""
+    instruments, the raw matrix `A`, `matrix.json`, `input.json` and the gold at
+    `gold` (a path of its own, not under the work directory: review fix-1 of #285,
+    which runs the 4B work directory against the one model-independent gold)."""
     import pyarrow.parquet as pq
 
     work_dir = Path(work_dir)
@@ -155,7 +161,7 @@ def load_inputs(work_dir: Path) -> dict:
               instrument_matrix.output_dir(work_dir) / "matrix.npy",
               instrument_matrix.output_dir(work_dir) / "matrix.json",
               work_dir / "input.json",
-              work_dir / GOLD_JSON]
+              Path(gold)]
     for path in needed:
         if not path.exists():
             hint = ("; run instrument_matrix.py first" if path.name.startswith("matrix")
@@ -166,12 +172,19 @@ def load_inputs(work_dir: Path) -> dict:
     if matrix.shape != (len(instruments),) * 2:
         raise SystemExit(f"{needed[1]} is {matrix.shape[0]} x {matrix.shape[1]} but "
                          f"instruments.parquet lists {len(instruments)} instruments")
+    gold_record = json.loads(needed[4].read_text(encoding="utf-8"))
+    gold_count = gold_record.get("provenance", {}).get("instruments")
+    if gold_count != len(instruments):
+        raise SystemExit(f"{needed[4]} was built for {gold_count} instruments but "
+                         f"{work_dir / 'instruments.parquet'} lists {len(instruments)}: "
+                         "that gold does not index this work directory's instruments")
     return {
         "instruments": instruments,
         "matrix": matrix,
         "matrix_json": json.loads(needed[2].read_text(encoding="utf-8")),
         "input": json.loads(needed[3].read_text(encoding="utf-8")),
-        "gold": json.loads(needed[4].read_text(encoding="utf-8")),
+        "gold": gold_record,
+        "gold_path": str(needed[4]),
     }
 
 
@@ -585,6 +598,9 @@ def build_topics(inputs: dict, chosen: dict, documents: list[str], *, selection:
         "clusters": int(chosen["clusters"]),
         "noise_instruments": int((labels < 0).sum()),
         "gold_links": len(gold_pairs(inputs["gold"])),
+        "gold": {"path": inputs["gold_path"],
+                 "commit": inputs["gold"]["provenance"].get("commit"),
+                 "instruments": inputs["gold"]["provenance"]["instruments"]},
         "gates": dict(GATES if gates is None else gates),
         "configurations": len(records),
         "labels": {"method": "c-TF-IDF", "ngram_range": list(NGRAM_RANGE),
@@ -597,7 +613,8 @@ def build_topics(inputs: dict, chosen: dict, documents: list[str], *, selection:
 
 
 def cluster(work_dir: Path, *, choose: str | None = None, force: bool = False,
-            cache_dir=None, sweeps=None, gates=None, now=None, log=print) -> dict | None:
+            cache_dir=None, sweeps=None, gates=None, now=None, gold: Path = DEFAULT_GOLD,
+            log=print) -> dict | None:
     """The whole run: sweeps, rule, labels, outputs. Returns `topics.json`'s content, or
     `None` when `.done` already stands and `force` is off. Raises `SystemExit` when
     no configuration passes the gates (the comparison is written first)."""
@@ -606,7 +623,7 @@ def cluster(work_dir: Path, *, choose: str | None = None, force: bool = False,
     if (out / DONE_MARKER).exists() and not force:
         log(f"{out / DONE_MARKER} exists; nothing to do (--force recomputes)")
         return None
-    inputs = load_inputs(work_dir)
+    inputs = load_inputs(work_dir, gold)
     (out / DONE_MARKER).unlink(missing_ok=True)
     n = len(inputs["instruments"])
     zero_rows = int((np.linalg.norm(inputs["matrix"], axis=1) == 0).sum())
@@ -654,8 +671,11 @@ def cluster(work_dir: Path, *, choose: str | None = None, force: bool = False,
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--work-dir", type=Path, required=True,
-                        help="a prepared work directory with a computed matrix and gold "
-                             "(emb-run-atlas)")
+                        help="a prepared work directory with a computed matrix "
+                             "(emb-run-atlas, emb-run-atlas-4b)")
+    parser.add_argument("--gold", type=Path, default=DEFAULT_GOLD,
+                        help="the strong-link gold, built from names and text and shared by "
+                             f"every work directory (default {DEFAULT_GOLD})")
     parser.add_argument("--choose", metavar="ALGORITHM:PARAMETER",
                         help="override the selection rule with an explicit, recorded choice "
                              "(e.g. louvain:1.0, kmeans:40)")
@@ -664,7 +684,8 @@ def main(argv=None) -> int:
                         help="the legalvec cache holding the units.parquet files "
                              "(default: $LEGALVEC_CACHE_DIR)")
     args = parser.parse_args(argv)
-    topics = cluster(args.work_dir, choose=args.choose, force=args.force, cache_dir=args.cache_dir)
+    topics = cluster(args.work_dir, choose=args.choose, force=args.force,
+                     cache_dir=args.cache_dir, gold=args.gold)
     if topics is not None:
         meta = topics["meta"]
         print(f"{meta['algorithm']} {meta['parameter_name']}={meta['parameter']}: "
