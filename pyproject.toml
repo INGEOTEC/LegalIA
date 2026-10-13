@@ -63,4 +63,8 @@ viz = [
     # absent (no stemming).
     "bm25s>=0.3.11",
     "scipy",
+    # Louvain communities of the instrument matrix (issue #285,
+    # `cluster_instruments.py`). Present transitively today; named so the import
+    # is deliberate. Leiden would need `igraph`, which is not added.
+    "networkx",
 ]
