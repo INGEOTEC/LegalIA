@@ -1300,9 +1300,9 @@ see the #242 bullet above), #245 draws it.
 
 ## The Instruments page (issues #288, #289, #290)
 
-**In progress: this section is extended by each issue of the run.** The
-website gains a page to browse every instrument of the Atlas as `md2akn` reads
-it, with, on every searched excerpt, its closest texts of other instruments.
+The website gained a page to browse every instrument of the Atlas as `md2akn`
+reads it, with, on every searched excerpt, its closest texts of other instruments
+(issues #288, #289 and #290, all done).
 
 - **Nearest texts (issue #288, done).** `scripts/embeddings/nearest_texts.py`
   repeats `instrument_matrix.py`'s sweep and keeps the **top five foreign
@@ -1358,6 +1358,36 @@ it, with, on every searched excerpt, its closest texts of other instruments.
   `PUBLICAR.md` (issue #115, Hallazgo C) **before the page's pull request
   merges** — `website.yml`'s *Fetch the instrument files* step fails without it,
   on purpose. Nothing was published.
+
+- **The page (issue #290, done).** `website/pages/instruments.qmd` (title *The
+  Instruments of the Atlas, as md2akn Reads Them*, navbar entry *Instruments* right
+  after *Atlas*, `pages/instruments/**` in `project.resources`) mounts
+  `website/pages/instruments/instruments.js`/`instruments.css`: one IIFE, no library,
+  reading only its mount's `data-*` attributes (index, files folder, `data-repo`, and a
+  one-entry `data-models` for the 4B). It is the Atlas' kind of page, not a notebook: no
+  code cell, no freeze entry, prose in `.instruments-prose` as wide as the app. A landing
+  (combobox search — same ARIA, folding and ranking as the Atlas' — and a sortable,
+  collection-filtered corpus table, 50 rows at a time) opens an instrument at
+  `?c=<collection>&k=<key>[#<eId>[.<piece>]]` with `pushState`/`popstate`; the instrument
+  view has a header, a parse summary whose flag counts jump to and cycle through the flagged
+  excerpts, a collapsible outline, the `md2akn` tree rendered in `requestAnimationFrame`
+  chunks (badge `akn_type · eId · num`, per-node *Raw*, every excerpt wrapped with its
+  `data-unit-type`) and a *Parsed/Raw* mode where *Raw* is the whole document once with each
+  excerpt and every uncovered character marked. Compared excerpts (never a heading or a
+  transitory article) carry a lazily built *Nearest texts* list whose links open the other
+  instrument at the excerpt; a missing file, or one whose `meta.k` differs from the index's,
+  is a status message and the page stays usable. Every badge and the header link to a
+  prefilled GitHub issue (`md2akn: <key> <archivo> <eId>`). Decisions: the corpus table has
+  no numbering column (the index does not carry it and #290 may not change #289's data; the
+  mode is in each file's `meta`), a nearest text's label is derived from its eId alone (its
+  file is not loaded yet), and the page says *excerpt*, *compared excerpt*, *nearest texts*
+  and *parse*, never *unit*/*provision*/*tooltip*. Verified by
+  `scripts/embeddings/tests/test_instruments_page.py` (static checks; headless Chromium over
+  a toy site built by the real exporter; the rendered page through Quarto, plus the real Civil
+  Code when the files are installed). The README's "The Instruments page" has the details.
+  **Publish posture:** the `atlas-instruments` release of #289's `PUBLICAR.md` must exist
+  before this reaches `master`; until then `website.yml`'s *Fetch the instrument files* step
+  fails, as intended. Nothing was published and no PR was opened.
 
 ## Tables in SCJN snapshots (issue #253, done)
 

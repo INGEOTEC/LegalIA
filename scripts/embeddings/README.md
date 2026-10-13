@@ -1786,6 +1786,69 @@ tarball and its sums, `PUBLICAR.md`, `--install`, `.done`/`--force`, and the
 static wiring (the workflow step before publishing, the `.gitignore` line, the
 release body and the committed index against `atlas-qwen3-4b.json`).
 
+### The Instruments page (issue #290)
+
+`website/pages/instruments.qmd` (navbar entry *Instruments*, right after *Atlas*) is a
+hand-written, library-free page over #289's outputs: `website/pages/instruments/instruments.js`
+and `instruments.css`, mounted by the qmd's `<!-- instruments:app -->` block, which reads
+only that block's `data-*` attributes (the index, the folder of files, the repository to
+report to, and a `data-models` list with the one entry the 4B). `_quarto.yml`'s
+`project.resources` ships `pages/instruments/**`; the page has no code cell and no freeze
+entry.
+
+- **What it shows.** A landing with a search box and the corpus table (every instrument,
+  its excerpts, compared excerpts, articles, one column per flag and the score; sortable,
+  filterable by collection, 50 rows at a time). Opening an instrument shows its header, a
+  summary of the parse (numbering mode and each flag as a button that jumps to the first
+  flagged excerpt and then cycles), an outline of its containers and articles, and the
+  document as `md2akn` tree: one nested block per node with a badge
+  `akn_type · eId · num` (the Mexican term is its hover text), the node's text rendered with
+  paragraphs and bold only, every excerpt wrapped with its `unit_type` and flags, a per-node
+  *Raw* button, and on every compared excerpt a *Nearest texts* disclosure. The *Raw* mode of
+  the whole page shows the document once, each excerpt as a span
+  (`span.instruments-range[data-unit-type]`) and any character in no excerpt, annotation or
+  frontmatter as `span.instruments-uncovered`. The document is rendered in chunks of a few
+  hundred nodes per animation frame (outline first), so a 3,589-article code opens at once;
+  `data-rendered="true"` marks the end. The whole interface says *excerpt*, *compared excerpt*,
+  *nearest texts* and *parse*.
+- **Addresses.** `instruments.html?c=<collection>&k=<key>` opens an instrument and
+  `#<eId>` (or `#<eId>.<piece>`) an excerpt; the page pushes history on every navigation and
+  restores it on `popstate`, so the back button returns to the previous instrument or
+  excerpt. An unknown instrument is a status line over the landing. A nearest text is an
+  ordinary query-relative link that the page also intercepts, so it opens in a new tab as
+  well; its label (*Article 27*, *Preamble*, *Loose text*, *part 2*) is derived from the
+  eId alone, with the eId as hover text, because the target's file is not loaded yet.
+- **Failure is a message, never a broken page.** A file that does not exist says *This
+  instrument's file is not available.*, a file whose `meta.k` or collection differs from the
+  index's says it was built from *a different version of the data*, a failed index sets
+  `data-ready="error"`, and in every case the page stays usable and a second click retries.
+- **Reporting a parse.** Every badge and the header carry a link to
+  `<repo>/issues/new` with the title `md2akn: <key> <archivo> <eId>` and a body naming the
+  collection, key, name, snapshot, `md2akn` version, eId, the page address with its hash and
+  an empty *What is wrong:* line. It is the only way the page reaches GitHub.
+- **Colours.** The collections keep the Atlas' categorical colours; a node type has a fixed,
+  quiet tint (containers greys, article ink, paragraph/point/subpoint stepped blues) and one
+  warning amber is used for parse flags only, all documented in `instruments.css`.
+- **The numbering column of the corpus table was left out**: the committed index does not
+  carry it (it is in each file's `meta.numbering`, which the instrument view shows), and
+  adding it would have changed #289's data.
+
+```bash
+uv run --group viz pytest scripts/embeddings/tests/test_instruments_page.py -q
+```
+
+`tests/test_instruments_page.py` has three layers. The static checks (front matter and
+literals against the committed index, the mount block verbatim, the prose, the navbar and
+resource, `fix_citation_links.py` untouched) always run. The browser tests drive headless
+Chromium over a *toy site*: the five-instrument corpus of `test_export_instrument_files.py`
+exported by the real exporter into a temporary `pages/` directory with the real script and
+stylesheet and the qmd's own app block, one test per behaviour (landing, sorting, filter,
+*Show more*, search, deep link, back button, nearest texts and their failure messages, flags,
+outline, *Raw*, report links, the 375 px layout), writing `output/instruments-alfa.png`. The
+rendered tests render the qmd with Quarto into the gitignored `website/_site/` and drive it;
+one opens the real Civil Code when `website/pages/instruments/files/` was installed
+(`export_instrument_files.py --install website/pages/instruments/files`).
+
 ### Tests
 
 ```bash
