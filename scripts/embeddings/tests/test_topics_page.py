@@ -8,12 +8,15 @@ includes. The first half of this file runs the exporter over a toy work director
 `tmp_path` (seven instruments over three collections, three clusters whose #285 ids
 are not in size order, a name full of Markdown syntax). The second half checks the
 committed files against each other and against `atlas.json`, the qmd's prose against
-the committed data, and, when a local Quarto is found the way `test_atlas_page.py`
-finds it, the page Quarto renders.
+the committed data. Since review fix-2 the page is a draft the site does not render,
+link or ship: the last section asserts that, statically and, when a local Quarto is found
+the way `test_atlas_page.py` finds it, on the rendered site.
 """
 
+import importlib.util
 import json
 import re
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -486,84 +489,100 @@ def test_the_qmd_remark_on_the_two_spellings_is_true_of_the_data(committed):
     assert "share their leading terms" not in text
 
 
-# -- the wiring ---------------------------------------------------------------------- #
+# -- the wiring: the page is a draft, unpublished (review fix-2 of #286) ----------------- #
+#
+# On 2026-10-13 the repository owner decided that no topic reaches the published site
+# for now. The page, its two generated files, the exporter and the clustering stay in the
+# tree for review, and these tests are the opposite of what #286 first asserted, kept so
+# that a later change cannot republish the page by accident. Re-enabling it takes
+# dropping `draft: true`, the navbar entry after Atlas, a `pages/topics/**` resource,
+# `@Grootendorst2022BERTopic` in references.qmd's nocite and `pages/topics.html` in
+# fix_citation_links.py's PAGES (the note beside `project.resources` in _quarto.yml).
 
-def test_the_navbar_has_topics_right_after_atlas_and_ships_the_data():
-    text = (WEBSITE / "_quarto.yml").read_text(encoding="utf-8")
-    entries = re.findall(r"- href: (\S+)\n\s+text: (.+)", text)
-    names = [name.strip() for _, name in entries]
-    assert names.index("Topics") == names.index("Atlas") + 1
-    assert ("pages/topics.qmd", "Topics") in [(h, n.strip()) for h, n in entries]
-    assert '- "pages/topics/**"' in text and '- "pages/atlas/**"' in text
-    assert "freeze" not in QMD.read_text(encoding="utf-8")
+def test_the_qmd_is_a_draft_and_keeps_its_content():
+    text = QMD.read_text(encoding="utf-8")
+    assert front_matter(text)["draft"] == "true"
+    assert text.count("{{< include topics/_topics.md >}}") == 1
+    assert "freeze" not in text
 
 
-def test_the_bertopic_reference_resolves_through_the_references_page():
+def test_the_site_does_not_list_or_ship_the_topics_page():
+    config = (WEBSITE / "_quarto.yml").read_text(encoding="utf-8")
+    entries = re.findall(r"- href: (\S+)\n\s+text: (.+)", config)
+    assert "pages/topics.qmd" not in [href for href, _ in entries]
+    assert "Topics" not in [name.strip() for _, name in entries]
+    assert [name.strip() for _, name in entries][:5] == [
+        "Home", "Archive", "Federal Laws", "Atlas", "DOF Titles"]
+    resources = re.search(r"resources:\s*\n((?:\s+(?:-|#).*\n)+)", config).group(1)
+    assert "pages/topics/**" not in [line.strip().lstrip("- ").strip('"') for line in resources.splitlines()
+                                     if not line.strip().startswith("#")]
+    assert '- "pages/atlas/**"' in resources
+    assert "draft" in resources and "2026-10-13" in resources     # the note on re-enabling it
+    # Quarto 1.9.38 renders a draft page as an empty stub file, so the page is also
+    # left out of the render list: nothing of it is shipped, not even `topics.html`.
+    assert '- "!pages/topics.qmd"' in config
+
+
+def test_the_bertopic_entry_stays_in_the_bib_but_is_not_listed_on_the_references_page():
     bib = (WEBSITE / "references.bib").read_text(encoding="utf-8")
-    assert re.search(r"@article\{Grootendorst2022BERTopic,", bib)
     entry = bib[bib.index("@article{Grootendorst2022BERTopic"):]
     assert "2203.05794" in entry and "Grootendorst, Maarten" in entry and "year = {2022}" in entry
-    assert "@Grootendorst2022BERTopic" in (PAGES / "references.qmd").read_text(encoding="utf-8")
-    assert "[@Grootendorst2022BERTopic]" in QMD.read_text(encoding="utf-8")
+    assert "[@Grootendorst2022BERTopic]" in QMD.read_text(encoding="utf-8")   # the draft still cites it
     assert "## References" not in QMD.read_text(encoding="utf-8")
+    references = (PAGES / "references.qmd").read_text(encoding="utf-8")
+    assert "Grootendorst2022BERTopic" not in references and "Topics page" not in references
     hook = (WEBSITE / "scripts" / "fix_citation_links.py").read_text(encoding="utf-8")
-    assert '"pages" / "topics.html"' in hook
+    assert "topics.html" not in hook
+    spec = importlib.util.spec_from_file_location("fix_citation_links",
+                                                  WEBSITE / "scripts" / "fix_citation_links.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert [page.name for page in module.PAGES] == ["index.html", "atlas.html"]
 
 
-def test_the_two_generated_files_are_committed_and_the_workflow_needs_nothing_more():
-    assert DATA.exists() and MARKDOWN.exists()
+def test_the_two_generated_files_stay_committed_for_review():
+    assert DATA.exists() and MARKDOWN.exists() and QMD.exists()
     ignored = (WEBSITE.parent / ".gitignore").read_text(encoding="utf-8")
     assert "pages/topics" not in ignored
 
 
-# -- the page Quarto renders ----------------------------------------------------------- #
+# -- the site Quarto renders ----------------------------------------------------------- #
 
 @pytest.fixture(scope="module")
-def rendered_topics():
+def rendered_site():
+    """The whole project rendered into the gitignored `website/_site/`, as CI does."""
     quarto = find_quarto()
     if quarto is None:
         pytest.skip("Quarto not found: put it on PATH or install it under "
                     "~/.local/opt/quarto-<version>/bin/quarto (CI uses 1.9.38)")
-    for source in ("pages/topics.qmd", "pages/references.qmd"):
-        result = subprocess.run([quarto, "render", source], cwd=WEBSITE, check=True,
-                                capture_output=True, text=True, timeout=300)
-        assert "include" not in result.stderr.lower() or "warn" not in result.stderr.lower(), \
-            result.stderr
-    # A single-page render skips the project's post-render hook, so run it.
-    subprocess.run([sys.executable, "scripts/fix_citation_links.py"], cwd=WEBSITE, check=True)
-    assert (SITE / "pages" / "topics.html").exists()
-    return (SITE / "pages" / "topics.html").read_text(encoding="utf-8")
+    shutil.rmtree(SITE, ignore_errors=True)       # a page rendered earlier must not survive
+    result = subprocess.run([quarto, "render"], cwd=WEBSITE, check=True,
+                            capture_output=True, text=True, timeout=600)
+    assert (SITE / "pages" / "atlas.html").exists()
+    return result
 
 
-def test_rendered_the_include_landed_with_every_topic_and_member(rendered_topics, committed):
-    html = rendered_topics
-    ids = re.findall(r'<h3[^>]* data-anchor-id="(topic-\d+)"', html)
-    assert ids == [f"topic-{n}" for n in range(1, committed["meta"]["topics"] + 1)]
-    assert html.count('class="callout callout-style-default callout-note') == len(ids)
-    assert html.count("callout-collapse collapse") == len(ids)
-    assert html.count('href="#topic-1"') >= 1
-    # Every member of every topic, once each: a list item ending in the instrument's
-    # key in `<code>` (a representative's line goes on to name its collection).
-    assert len(re.findall(r"<li>[^\n]*<code>[^<]+</code></li>", html)) == 2676
-    assert "{{<" not in html and "[@" not in html
+def test_rendered_no_topics_page_and_no_topics_directory(rendered_site):
+    assert not (SITE / "pages" / "topics.html").exists()
+    assert not (SITE / "pages" / "topics").exists()
+    assert not list(SITE.rglob("_topics*")) and not list(SITE.rglob("topics.json"))
+    assert "topics.qmd" not in rendered_site.stdout + rendered_site.stderr
 
 
-def test_rendered_the_navbar_carries_topics_after_the_atlas(rendered_topics):
-    nav = re.findall(r'class="nav-link[^"]*"[^>]*href="([^"]+)"[^>]*>\s*<span class="menu-text">([^<]+)',
-                     rendered_topics)
-    names = [name for _, name in nav]
-    assert names.index("Topics") == names.index("Atlas") + 1
+def test_rendered_no_page_links_or_lists_topics(rendered_site):
+    for page in SITE.rglob("*.html"):
+        html = page.read_text(encoding="utf-8")
+        assert 'menu-text">Topics<' not in html, page
+        assert "topics.html" not in html, page
+    search = SITE / "search.json"
+    if search.exists():
+        assert "topics" not in search.read_text(encoding="utf-8").lower().replace("topics of the", "")
+        assert not [entry for entry in json.loads(search.read_text(encoding="utf-8"))
+                    if "topics" in entry.get("href", "")]
 
 
-def test_rendered_the_straight_quotes_and_hyphens_of_names_survive(rendered_topics):
-    assert "ANTES REGLAMENTO DE LA ESCUELA MEDICO MILITAR --" in rendered_topics
-    assert 'ESPECIAL "DR. ALFONSO QUIROZ CUARON" <code>' in rendered_topics
-    assert "“" not in rendered_topics and "”" not in rendered_topics
-
-
-def test_rendered_the_citation_points_at_the_references_page(rendered_topics):
-    assert 'href="references.html#ref-Grootendorst2022BERTopic"' in rendered_topics
-    assert 'id="refs"' not in rendered_topics and "quarto-appendix" not in rendered_topics
+def test_rendered_the_atlas_page_still_cites_through_the_references_page(rendered_site):
+    atlas = (SITE / "pages" / "atlas.html").read_text(encoding="utf-8")
+    assert 'href="references.html#ref-McInnes2018UMAP"' in atlas
     references = (SITE / "pages" / "references.html").read_text(encoding="utf-8")
-    assert 'id="ref-Grootendorst2022BERTopic"' in references
-    assert "BERTopic" in references
+    assert "BERTopic" not in references

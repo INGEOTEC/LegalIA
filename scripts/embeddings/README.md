@@ -779,7 +779,7 @@ dated before that describe the three-corpus map and are kept as history.
 | The strong-link gold and the three-way evaluation (issue #272) | `scripts/embeddings/gold_links.py` → `emb-run-atlas/gold-links/` (`gold.json`, `gold.md`), then `scripts/embeddings/evaluate_links.py` → `emb-run-atlas/gold-links/` (`evaluation.json`, `evaluation.md`); gitignored, nothing uploaded |
 | The row-level evaluation against citations (issue #273) | `scripts/embeddings/gold_links.py` also writes `emb-run-atlas/gold-links/citations.parquet`, then `scripts/embeddings/evaluate_citations.py` → `emb-run-atlas/gold-links/` (`evaluation-rows.json`, `evaluation-rows.md`); gitignored, nothing uploaded |
 | The topics of the instrument map (issue #285; the 4B since review fix-1) | `scripts/embeddings/cluster_instruments.py --work-dir emb-run-atlas-4b` → `emb-run-atlas-4b/topics/` (`labels.parquet`, `comparison.json`, `comparison.md`, `topics.json`, `.done`); gitignored, nothing uploaded. The 0.6B's own `emb-run-atlas/topics/` stays where #285 wrote it |
-| The Topics page (issue #286) | `scripts/embeddings/export_topics_page.py` → `website/pages/topics/topics.json` and `_topics.md` (both committed), included by `website/pages/topics.qmd` |
+| The Topics page (issue #286; a draft, not published) | `scripts/embeddings/export_topics_page.py` → `website/pages/topics/topics.json` and `_topics.md` (both committed), included by `website/pages/topics.qmd` (`draft: true`) |
 | Everything derived | `emb-run-atlas/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
 Nothing here is committed except `atlas.json`. Every command takes
@@ -1524,11 +1524,25 @@ hierarchy is exported, no topic is named by a language model, and `atlas.js`,
 uv run --group viz python scripts/embeddings/export_topics_page.py --work-dir emb-run-atlas-4b
 ```
 
-`website/pages/topics.qmd` (navbar entry *Topics*, right after *Atlas*) presents
+**Status: a draft that the site does not render, link or ship** (review fix-2 of
+#286; decision of the repository owner on 2026-10-13, to be reviewed later). The
+procedure, the exporter, the two generated files and the page's source stay committed
+for that review. `topics.qmd` has `draft: true`; Quarto 1.9.38 renders a draft as an
+empty stub file, so `_quarto.yml`'s `project.render` also excludes
+`!pages/topics.qmd` and `_site/pages/topics.html` does not exist; there is no navbar
+entry, no `pages/topics/**` resource, no BERTopic key in `references.qmd`'s `nocite`
+(the `references.bib` entry stays, and the draft still cites it) and no `topics.html`
+in `fix_citation_links.py`'s `PAGES`. Tests assert all of it, so the page cannot be
+republished by accident. **Re-enabling it** takes dropping `draft: true` and the
+`!pages/topics.qmd` render exclusion, restoring the *Topics* navbar entry right after
+*Atlas*, the `pages/topics/**` resource, `@Grootendorst2022BERTopic` in `nocite` (and
+its sentence) and `pages/topics.html` in `PAGES`, and turning the tests of the wiring
+back. The text below describes the page as it was designed to be published.
+
+`website/pages/topics.qmd` presents
 every topic of #285's chosen configuration and its members. It is static Markdown,
 with no code cells and no JavaScript, so it needs no freeze entry and no browser
-harness; `_quarto.yml`'s `project.resources` gained `pages/topics/**`, which
-publishes the data file next to the page. The exporter is a pure read of
+harness. The exporter is a pure read of
 `emb-run-atlas-4b/topics/topics.json` and `instruments.parquet` (seconds, no refit; a
 work directory with no `topics/.done` is refused) and writes the two committed
 files, generated and never edited by hand. Regenerating them is this script, run by

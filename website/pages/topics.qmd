@@ -5,6 +5,7 @@ page-layout: article
 toc: true
 toc-depth: 3
 number-sections: false
+draft: true
 ---
 
 Every instrument of the [Atlas](atlas.qmd) belongs on this page to exactly one

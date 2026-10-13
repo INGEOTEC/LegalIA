@@ -1264,8 +1264,20 @@ see the #242 bullet above), #245 draws it.
   the root `viz` group. No hierarchy; the tables are in `scripts/embeddings/README.md`
   ("Measured, topics, the 4B, 2026-10-13").
 
-- **The Topics page (issue #286, done; the 4B since review fix-1).** The website's
-  **Topics** page (`website/pages/topics.qmd`, navbar entry right after *Atlas*)
+- **The Topics page (issue #286, done; the 4B since review fix-1; a draft since
+  review fix-2).** **The site does not render, link or ship it**: by decision of the
+  repository owner on 2026-10-13 (to be reviewed later) `website/pages/topics.qmd` has
+  `draft: true` (Quarto 1.9.38 renders a draft as an empty stub, so `_quarto.yml`'s
+  `project.render` also excludes `!pages/topics.qmd` and no `topics.html` exists), and
+  there is no navbar entry, no `pages/topics/**` resource, no BERTopic key in
+  `references.qmd`'s `nocite` and no `topics.html` in `fix_citation_links.py`'s `PAGES`;
+  `test_topics_page.py` asserts all of it. The page, the exporter, the two generated
+  files and the measured README subsections stay committed for that review.
+  **Re-enabling it** takes dropping `draft: true` and the render exclusion, restoring
+  the *Topics* navbar entry right after *Atlas*, the `pages/topics/**` resource, the
+  `nocite` key (and its sentence) and the `PAGES` entry (the note beside
+  `project.resources`). What was designed: the **Topics** page
+  (`website/pages/topics.qmd`, navbar entry right after *Atlas*)
   lists every topic of the 4B run: static Markdown, no code cells, no JavaScript, no
   freeze entry, `project.resources` gaining `pages/topics/**`. Two generated files
   are committed under `website/pages/topics/`, written by
