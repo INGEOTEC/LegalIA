@@ -1235,6 +1235,25 @@ see the #242 bullet above), #245 draws it.
   tables: `scripts/embeddings/README.md` ("Measured, with the treaties,
   2026-10-12").
 
+- **Topics of the instrument map (issue #285, done).** `scripts/embeddings/cluster_instruments.py`
+  clusters the 2,676 instruments from the L2-normalised rows of `A` with four
+  algorithms (HDBSCAN on a 5-dimensional UMAP, Ward, k-means, Louvain over `A + Aᵀ`),
+  22 configurations (the issue said 21; its own sweeps add up to 22), scored by
+  silhouette and by **strong-link co-membership** (the gold's 275 links), and picks
+  one by a rule fixed beforehand and never tuned: gates of 20-80 clusters, at most
+  15 % noise and a largest cluster of at most 25 %, then the highest co-membership
+  (`--choose` overrides and is recorded; no passing configuration is a non-zero
+  exit, not a softer gate). Measured 2026-10-12: only Louvain passes the gates
+  (Ward and k-means fail the largest-cluster one, HDBSCAN the noise one), and
+  **Louvain at `resolution` 1.0** wins with 32 topics, no noise and co-membership
+  0.855. Each cluster is labelled by its ten c-TF-IDF terms (unigrams and bigrams of
+  the searched rows, `prepare_bm25_input.py`'s tokeniser, 58 Spanish function words
+  dropped because most clusters were otherwise headed by `de`/`la`/`el`) and its
+  three representatives. Output is `emb-run-atlas/topics/` (gitignored, nothing
+  uploaded); `networkx` is now named in the root `viz` group. No page, no change to
+  `atlas*.json`, no hierarchy; the tables are in `scripts/embeddings/README.md`
+  ("Measured, topics, 2026-10-12").
+
 ## Tables in SCJN snapshots (issue #253, done)
 
 The SCOW API hands `scjn.api.articulos_of_reforma` each article's `contenido`

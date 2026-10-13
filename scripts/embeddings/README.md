@@ -778,6 +778,7 @@ dated before that describe the three-corpus map and are kept as history.
 | The BM25 data set (issue #267) | `scripts/embeddings/prepare_bm25_input.py` → `emb-run-atlas-bm25/` (no vectors; `bm25-index/`, `tokens.parquet`), then the same chain → `website/pages/atlas/atlas-bm25.json` (committed), pair files in `website/pages/atlas/pairs-bm25/` (gitignored), assets `atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` / `SHA256SUMS-bm25.txt`; the scorer is `scripts/embeddings/scoring.py` |
 | The strong-link gold and the three-way evaluation (issue #272) | `scripts/embeddings/gold_links.py` → `emb-run-atlas/gold-links/` (`gold.json`, `gold.md`), then `scripts/embeddings/evaluate_links.py` → `emb-run-atlas/gold-links/` (`evaluation.json`, `evaluation.md`); gitignored, nothing uploaded |
 | The row-level evaluation against citations (issue #273) | `scripts/embeddings/gold_links.py` also writes `emb-run-atlas/gold-links/citations.parquet`, then `scripts/embeddings/evaluate_citations.py` → `emb-run-atlas/gold-links/` (`evaluation-rows.json`, `evaluation-rows.md`); gitignored, nothing uploaded |
+| The topics of the instrument map (issue #285) | `scripts/embeddings/cluster_instruments.py` → `emb-run-atlas/topics/` (`labels.parquet`, `comparison.json`, `comparison.md`, `topics.json`, `.done`); gitignored, nothing uploaded |
 | Everything derived | `emb-run-atlas/instrument-matrix/` (`matrix.npy`, `nearest.parquet`, `matrix.json`, `umap.parquet`, `umap.json`, `job.json`, `slurm-*.out`, `.done`) |
 
 Nothing here is committed except `atlas.json`. Every command takes
@@ -1431,6 +1432,83 @@ Constitution's heaviest pair (the ESTATUTO, 41 rows, 41.0, every row a whole 1)
 and saves `output/atlas-explain-cpeum.png`; without them it skips. A
 rendered-site test checks Quarto's `h2` rule does not reach the dialog.
 
+### Topics of the instrument map (issue #285)
+
+```bash
+uv run --group viz python scripts/embeddings/cluster_instruments.py --work-dir emb-run-atlas
+uv run --group viz python scripts/embeddings/cluster_instruments.py --work-dir emb-run-atlas \
+    --choose louvain:1.5 --force
+```
+
+Nothing in the Atlas groups the instruments or says what a region of the map is
+about. `cluster_instruments.py` groups them from the same information the map is
+drawn from, the **L2-normalised rows of `A`** (not the excerpt centroids, not the
+page's 2-D coordinates; a zero row is reported and assigned noise), and labels
+each cluster. It needs a prepared work directory with a computed matrix and
+`gold-links/gold.json`, refuses one without them naming the file, and runs in
+about five minutes on one CPU: no Slurm, no GPU, no network. The 4B and BM25 work
+directories are accepted through `--work-dir`; only the 0.6B is measured here.
+
+Four algorithms, each swept over its one tuning parameter (22 configurations: the
+issue says 21, but its five, six, six and five values add up to 22):
+
+| algorithm | what it is | swept |
+|---|---|---|
+| `hdbscan_umap` | UMAP to 5 dimensions (`n_neighbors` 15, `min_dist` 0, cosine, `random_state` 0, fitted once), then `sklearn.cluster.HDBSCAN` on it; density-based, no *k*, an explicit noise label (the BERTopic / Top2Vec pipeline) | `min_cluster_size` 5, 10, 15, 20, 30 |
+| `agglomerative` | Ward linkage on the normalised rows (Euclidean distance on unit vectors is monotone in cosine); a dendrogram cut at *k*, no noise | `n_clusters` 20, 30, 40, 50, 60, 80 |
+| `kmeans` | `KMeans(n_init=10, random_state=0)` on the normalised rows, spherical *k*-means in effect | `n_clusters` as above |
+| `louvain` | `networkx.community.louvain_communities(seed=0)` over the undirected graph of `A + Aᵀ` (the raw matrix, zero diagonal): `A` *is* a weighted directed graph, so it uses the Atlas' own structure with no reduction | `resolution` 0.5, 1.0, 1.5, 2.0, 3.0 |
+
+LDA and NMF are not run (the lexical view already exists as the BM25 data set),
+nor Leiden (it would need `igraph`); `networkx` is named in the root `viz` group so
+the Louvain import is deliberate. A configuration that raises is recorded as
+failed and the sweep goes on. Labels are renumbered by cluster size, so a label
+means the partition and not an algorithm's own numbering.
+
+Five measures per configuration: the number of clusters (noise excluded), the
+noise fraction, the largest cluster's share of the instruments, the cosine
+silhouette over the normalised rows (noise excluded), and the **strong-link
+co-membership**, the fraction of the gold's 275 links (an instrument's `targets`
+in `gold.json`, signals A or B, issue #272 and #283's review fix) whose two ends
+carry the same non-noise label.
+
+**The rule, fixed beforehand and never tuned after the result.** Among the
+configurations that finished with 20 to 80 clusters, at most 15 % noise and a
+largest cluster of at most 25 % of the instruments, take the one with the highest
+co-membership; break a tie by silhouette, then by fewer clusters, then by the
+algorithm's name. Co-membership alone is maximised by one giant cluster, so the
+gates keep the result a topic map and not a partition into "treaties" and
+"everything else". When no configuration passes, the script writes the comparison
+and exits non-zero naming the gate each one failed (a finding for a human, not
+something to relax); `--choose algorithm:parameter` overrides the rule, and
+`meta.selection` records that it did and what the rule would have picked.
+
+**Labels** are BERTopic's class-based TF-IDF over unigrams and bigrams of the
+*searched* unit rows (headings and transitorios left out through
+`instrument_matrix.searched_mask`, every row counted, so an article written twice
+counts twice) of each cluster's instruments, tokenised like
+`prepare_bm25_input.py` (lowercase words of two or more characters). A term's
+weight in a cluster is its count there relative to the cluster's own total (the L1
+normalisation BERTopic applies) times `log(1 + A / f_t)`, `A` the mean number of
+terms per cluster and `f_t` the term's count over all clusters; the noise cluster
+is a class like the others. A term must occur in at least two instruments.
+Without any stopword list, `de`, `la`, `el`, `en`, `los` and `que` were among the
+six leading terms of 28 of the first run's 32 clusters, which names no topic, so
+`STOPWORDS` holds 58 Spanish function words (no domain word: `artículo`, `ley`,
+`estado`, `parte` stay), applied to every cluster alike and recorded in
+`meta.labels`. A cluster's three **representatives** are the instruments nearest
+(cosine) to its mean normalised row, and its members are ordered by that same
+distance.
+
+`topics.json` holds `meta` (algorithm, parameter, selection, seeds, measures,
+counts, gates, label settings, library versions, `model`/`method` from
+`input.json`, the commit) and one entry per cluster: `id`, `size`, `terms`,
+`representatives` and `members` as `[i, distance]`, `collections`. Clusters come
+largest first and the noise cluster, if any, is `id: -1` last. Two runs are
+byte-identical apart from `meta.generated` (checked on the real run). No
+hierarchy is exported, no topic is named by a language model, and `atlas.js`,
+`atlas.qmd` and `atlas*.json` are untouched.
+
 ### Tests
 
 ```bash
@@ -1466,6 +1544,20 @@ The identity (`A.sum(axis=1)` = each instrument's counted rows, `A.sum()` =
 Slurm plumbing is driven through a fake `squeue` in its three states (plus
 `--force` forwarded into the job and the previous `.done` dropped), and the
 page is built with a stub reducer.
+`tests/test_cluster_instruments.py` (issue #285): an eight-instrument toy work
+directory (two collections, a matrix and a gold written by hand, two obvious
+groups, about water and about health) and two-block random matrices for the
+algorithms. Each algorithm recovers the two groups; the measures are the ones the
+text defines (co-membership derived on paper, silhouette undefined for one
+cluster); the gates are inclusive and each decides who can win; the tie-breaks
+run in order; `--choose` overrides the rule and `meta` records it; a failed
+configuration is recorded and the sweep goes on; a zero row is noise in every
+algorithm; c-TF-IDF ranks the group's distinctive word first and a heading never
+reaches a label; every instrument is in exactly one cluster; a second run is
+identical apart from `meta.generated`; `.done` returns and `--force`
+recomputes and drops the old marker first; an interrupted run leaves no `.done`
+and no `.parcial`; no configuration passing the gates writes the comparison and
+exits non-zero; a missing matrix or gold is refused by name. UMAP is a stub.
 `tests/test_unique_instruments.py` covers the selection on toy records — the
 newest original date, a three-member group, accent/double-space folding, a
 date tie resolved by the larger id, `DD-MM-YYYY` parsing, leyes and cross-
@@ -2475,3 +2567,99 @@ the three are within a few rows on the others. Per collection, the order holds i
 reglamentos (1,831 rows); in lineamientos (172) the 4B leads and BM25 is last
 (recall@10 0.523 / 0.500 / 0.390), without a test. Law level only: this says
 nothing about whether the right *article* ranks first.
+
+### Measured, topics, 2026-10-12 (issue #285)
+
+`cluster_instruments.py --work-dir emb-run-atlas`, commit `84165c97`, the 0.6B
+matrix (2,676 × 2,676, 0 zero rows) and the 275 strong links of the review fix of
+issue #283; 5 minutes 40 seconds on one machine with no Slurm (the labels read
+145,970 searched unit rows), the whole run repeated with a byte-identical `topics.json` and
+`comparison.json` apart from `meta.generated`. Every configuration finished (22
+of 22). Per configuration, in `comparison.md`:
+
+| algorithm | parameter | clusters | noise | largest | silhouette | co-membership | gates | chosen |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| hdbscan_umap | min_cluster_size 5 | 146 | 19.4% | 2.7% | 0.144 | 0.429 | fail: 146 clusters, outside 20-80; noise 19.4% over 15% |  |
+| hdbscan_umap | min_cluster_size 10 | 74 | 24.0% | 3.2% | 0.100 | 0.455 | fail: noise 24.0% over 15% |  |
+| hdbscan_umap | min_cluster_size 15 | 47 | 32.1% | 3.3% | 0.086 | 0.389 | fail: noise 32.1% over 15% |  |
+| hdbscan_umap | min_cluster_size 20 | 36 | 34.0% | 8.3% | 0.073 | 0.411 | fail: noise 34.0% over 15% |  |
+| hdbscan_umap | min_cluster_size 30 | 24 | 38.5% | 7.8% | 0.058 | 0.255 | fail: noise 38.5% over 15% |  |
+| agglomerative | n_clusters 20 | 20 | 0.0% | 69.4% | 0.018 | 0.676 | fail: largest cluster 69.4% over 25% |  |
+| agglomerative | n_clusters 30 | 30 | 0.0% | 60.8% | 0.026 | 0.644 | fail: largest cluster 60.8% over 25% |  |
+| agglomerative | n_clusters 40 | 40 | 0.0% | 54.8% | 0.034 | 0.615 | fail: largest cluster 54.8% over 25% |  |
+| agglomerative | n_clusters 50 | 50 | 0.0% | 53.0% | 0.043 | 0.615 | fail: largest cluster 53.0% over 25% |  |
+| agglomerative | n_clusters 60 | 60 | 0.0% | 50.2% | 0.049 | 0.582 | fail: largest cluster 50.2% over 25% |  |
+| agglomerative | n_clusters 80 | 80 | 0.0% | 44.5% | 0.063 | 0.535 | fail: largest cluster 44.5% over 25% |  |
+| kmeans | n_clusters 20 | 20 | 0.0% | 51.4% | 0.025 | 0.640 | fail: largest cluster 51.4% over 25% |  |
+| kmeans | n_clusters 30 | 30 | 0.0% | 50.8% | 0.038 | 0.625 | fail: largest cluster 50.8% over 25% |  |
+| kmeans | n_clusters 40 | 40 | 0.0% | 46.7% | 0.043 | 0.462 | fail: largest cluster 46.7% over 25% |  |
+| kmeans | n_clusters 50 | 50 | 0.0% | 40.5% | 0.052 | 0.509 | fail: largest cluster 40.5% over 25% |  |
+| kmeans | n_clusters 60 | 60 | 0.0% | 36.3% | 0.059 | 0.487 | fail: largest cluster 36.3% over 25% |  |
+| kmeans | n_clusters 80 | 80 | 0.0% | 32.7% | 0.066 | 0.476 | fail: largest cluster 32.7% over 25% |  |
+| louvain | resolution 0.5 | 15 | 0.0% | 23.6% | 0.018 | 0.862 | fail: 15 clusters, outside 20-80 |  |
+| louvain | resolution 1.0 | 32 | 0.0% | 12.6% | 0.028 | 0.855 | pass | **yes** |
+| louvain | resolution 1.5 | 41 | 0.0% | 13.1% | 0.035 | 0.807 | pass |  |
+| louvain | resolution 2.0 | 53 | 0.0% | 12.3% | 0.043 | 0.807 | pass |  |
+| louvain | resolution 3.0 | 67 | 0.0% | 11.4% | 0.047 | 0.800 | pass |  |
+
+Only the four Louvain configurations from `resolution` 1.0 up pass the gates;
+`resolution` 0.5 gives 15 communities, under 20. Every Ward and *k*-means
+configuration fails the largest-cluster gate (a cluster of 33 to 69 % of the
+instruments: the 1,373 treaties and the regulations that read alike do not
+separate in the normalised rows), and every HDBSCAN configuration fails the noise
+gate (19 to 39 % of the instruments in no dense region of the 5-dimensional map).
+The rule picks **`louvain` `resolution` 1.0**: 32 topics, no noise, the largest
+with 336 instruments (12.6 %), silhouette 0.028 and co-membership 0.855 (235 of
+the 275 strong links stay together). The silhouette is near zero for every
+algorithm, which says the rows of `A` have no well-separated clusters in the
+cosine sense; the graph communities are what agree with the strong links, by a
+wide margin (0.80 to 0.86 against at most 0.68 for any other algorithm).
+
+The 32 topics of the chosen configuration, by size (`topics.json`; the terms are
+the first five of ten, the representative the nearest to the cluster's mean):
+
+| id | size | collections | top 5 terms | first representative |
+|---:|---:|---|---|---|
+| 0 | 336 | leyes 1, tratados 335 | partes, cooperación, convenio, unidos mexicanos, estados unidos | CONVENIO DE COOPERACION EN EL CAMPO DE LA EDUCACION Y LA CULTURA (R... (`24170`) |
+| 1 | 301 | leyes 11, reglamentos 6, tratados 284 | estados, presente, miembros, artículo, convención | CONVENIO CONSTITUTIVO DEL ORGANISMO MULTILATERAL DE GARANTIA DE INV... (`60292`) |
+| 2 | 203 | leyes 62, lineamientos 15, reglamentos 116, tratados 10 | secretaría, nacional, artículo, federal, unidades | REGLAMENTO INTERIOR DE LA SECRETARIA DE GOBERNACION (`179040`) |
+| 3 | 185 | leyes 28, lineamientos 6, reglamentos 40, tratados 111 | artículo, articulo, trabajo, caso, convenio | LEY Federal de los Trabajadores al Servicio del Estado, Reglamentar... (`lftse`) |
+| 4 | 162 | leyes 17, lineamientos 69, reglamentos 76 | información, tribunal, artículo, transparencia, datos | REGLAMENTO INTERIOR DEL TRIBUNAL DE DISCIPLINA JUDICIAL (`189406`) |
+| 5 | 152 | leyes 1, tratados 151 | requerida, parte, requirente, parte requerida, tratado | TRATADO DE EXTRADICION ENTRE LOS ESTADOS UNIDOS MEXICANOS Y LA REPU... (`24158`) |
+| 6 | 146 | leyes 15, lineamientos 2, reglamentos 128, tratados 1 | personal, militar, escuela, artículo, plantel | REGLAMENTO DE LA ESCUELA MILITAR DE IDIOMAS (`174497`) |
+| 7 | 140 | leyes 12, reglamentos 15, tratados 113 | ex, kg, parte, 01, demás | ACUERDO DE COMPLEMENTACION ECONOMICA No. 66 CELEBRADO ENTRE LOS EST... (`75190`) |
+| 8 | 84 | leyes 18, reglamentos 37, tratados 29 | secretaría, ambiental, artículo, ley, agua | REGLAMENTO DE LA LEY GENERAL DEL EQUILIBRIO ECOLOGICO Y LA PROTECCI... (`16259`) |
+| 9 | 84 | tratados 84 | parte contratante, contratante, parte, partes contratantes, otra parte | CONVENIO SOBRE TRANSPORTE AEREO (REPUBLICA DE POLONIA, 1990) (`11266`) |
+| 10 | 81 | leyes 5, lineamientos 3, reglamentos 15, tratados 58 | carga, buque, buques, transporte, convenio | CONVENIO INTERNACIONAL SOBRE NORMAS DE FORMACION, TITULACION Y GUAR... (`11345`) |
+| 11 | 80 | leyes 21, lineamientos 1, reglamentos 51, tratados 7 | salud, articulo, artículo, secretaría, ley | REGLAMENTO DE LA LEY GENERAL DE SALUD EN MATERIA DE PRESTACION DE S... (`293`) |
+| 12 | 77 | leyes 4, lineamientos 1, reglamentos 71, tratados 1 | instituto, artículo, trabajadores, servicios, ley | LEY del Instituto del Fondo Nacional de la Vivienda para los Trabaj... (`lifnvt`) |
+| 13 | 74 | leyes 9, lineamientos 2, reglamentos 63 | 2023, electoral, partidos, electorales, instituto | LEY General de Partidos Políticos (`lgpp`) |
+| 14 | 74 | leyes 7, reglamentos 17, tratados 50 | servicio, cmr, banda, administraciones, frecuencias | ACTAS FINALES DE LA CONFERENCIA ADMINISTRATIVA MUNDIAL DE RADIOCOMU... (`23943`) |
+| 15 | 67 | leyes 34, reglamentos 33 | comisión, ley, artículo, sociedades, sociedad | LEY de Uniones de Crédito (`luc`) |
+| 16 | 65 | leyes 24, lineamientos 8, reglamentos 25, tratados 8 | artículo, fiscal, ley, impuesto, refiere | REGLAMENTO DE LA LEY DE PRESUPUESTO, CONTABILIDAD Y GASTO PUBLICO F... (`173`) |
+| 17 | 65 | tratados 65 | estado, estado contratante, contratante, otro estado, otro | CONVENIO PARA EVITAR LA DOBLE IMPOSICION E IMPEDIR LA EVASION FISCA... (`24136`) |
+| 18 | 51 | leyes 5, reglamentos 46 | sorteo, pronósticos, premios, sorteos, premio | REGLAMENTO DEL SORTEO GANA GATO DE PRONOSTICOS PARA LA ASISTENCIA P... (`52019`) |
+| 19 | 42 | tratados 42 | parte contratante, contratante, parte, inversionista, acuerdo | ACUERDO PARA LA PROMOCION Y PROTECCION RECIPROCA DE LAS INVERSIONES... (`55905`) |
+| 20 | 41 | leyes 8, lineamientos 10, reglamentos 22, tratados 1 | artículo, centro, adolescentes, persona, caso | LEY Nacional del Sistema Integral de Justicia Penal para Adolescentes (`lnsijpa`) |
+| 21 | 39 | leyes 10, reglamentos 26, tratados 3 | debe, artículo, secretaría, energía, ley | REGLAMENTO DE LA LEY REGLAMENTARIA DEL ARTICULO 27 CONSTITUCIONAL E... (`70136`) |
+| 22 | 29 | leyes 7, reglamentos 19, tratados 3 | agencia, persona, vuelo, aviación, artículo | REGLAMENTO DE AUTOTRANSPORTE FEDERAL Y SERVICIOS AUXILIARES (`1322`) |
+| 23 | 20 | leyes 5, lineamientos 5, reglamentos 10 | contrato, artículo, contratación, servicios, licitación | REGLAMENTO DEL INSTITUTO FEDERAL ELECTORAL EN MATERIA DE OBRAS PUBL... (`119002`) |
+| 24 | 15 | leyes 2, lineamientos 1, tratados 12 | estado, tratado, estado receptor, consular, receptor | CONVENCION CONSULAR (REPUBLICA POPULAR CHINA, 1986) (`23941`) |
+| 25 | 14 | leyes 4, reglamentos 10 | cámara, mesa, comisiones, presidente, diputados | LEY Orgánica del Congreso General de los Estados Unidos Mexicanos (`locg`) |
+| 26 | 13 | leyes 4, reglamentos 8, tratados 1 | migratoria, territorio nacional, artículo, persona extranjera, territorio | REGLAMENTO PARA LA EXPEDICION DE CERTIFICADOS DE NACIONALIDAD MEXICANA (`59985`) |
+| 27 | 12 | reglamentos 12 | pasantes, prácticas, examen profesional, naval, profesional | REGLAMENTO PARA EL EXAMEN PROFESIONAL DE LOS GUARDIAMARINAS EGRESAD... (`14706`) |
+| 28 | 11 | leyes 1, reglamentos 8, tratados 2 | turísticos, turismo, secretaría, turística, turístico | REGLAMENTO DE LA LEY FEDERAL DE TURISMO (`29`) |
+| 29 | 7 | reglamentos 7 | conamed, médica, queja, reembolso, comité | REGLAMENTO PARA EL TRAMITE DE SOLICITUDES DE REEMBOLSO POR LA PREST... (`44035`) |
+| 30 | 4 | lineamientos 2, reglamentos 2 | bienes, instituto, artículo, deberá, caso | LINEAMIENTOS PARA EL CONTROL DE INVENTARIOS Y ADMINISTRACION DE LOS... (`181245`) |
+| 31 | 2 | tratados 2 | hachemita jordania, hachemita, reino hachemita, jordania, dos mil | CONVENIO MARCO DE COOPERACION TECNICA (REINO HACHEMITA DE JORDANIA,... (`108582`) |
+
+Reading the table: six topics are the treaties alone or nearly so (0, 5, 9, 17,
+19, 24: bilateral cooperation agreements, extradition, air transport, double
+taxation, investment protection, consular conventions), 1 and 7 are the
+multilateral and the trade-tariff ones, and the regulations and laws split by
+subject (interior regulations of a secretariat, military education, environment,
+health, housing and social security, electoral law, finance and credit, taxation,
+lotteries, public procurement, the Congress, migration, tourism). The two
+smallest clusters (30, 31) are a handful of instruments each. The terms are the
+Spanish words of the corpus, left as it spells them (`articulo` and `artículo`
+are two terms: the corpus writes both).
