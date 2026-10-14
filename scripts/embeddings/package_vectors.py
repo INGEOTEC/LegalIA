@@ -376,7 +376,10 @@ def main(argv=None) -> int:
 
     sumas = [f"{sha256(p)}  {p.name}" for p in vectores]
     sumas += [
-        f"{sha256(out_dir / n)}  {n}" for n in METADATOS if (out_dir / n).exists()
+        # Never the sums file itself: on a second run it already exists and would
+        # list a digest of its own previous content (issue #294, found staging).
+        f"{sha256(out_dir / n)}  {n}" for n in METADATOS
+        if n != "SHA256SUMS.txt" and (out_dir / n).exists()
     ]
     (out_dir / "SHA256SUMS.txt").write_text("\n".join(sorted(sumas)) + "\n", encoding="utf-8")
 

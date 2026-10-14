@@ -529,8 +529,10 @@ def test_package_vectors_lists_every_model_and_copies_nothing(tmp_path):
     assert sorted(manifest["models"]) == ["qwen3-0.6b", "qwen3-4b"]
     sumas = (out / "SHA256SUMS.txt").read_text()
     assert "units.parquet" in sumas and "vectors-shared-qwen3-4b-2.parquet" in sumas
-    # A checksum file never lists itself.
+    # A checksum file never lists itself, not even on a second run (issue #294).
     assert "SHA256SUMS.txt" not in sumas
+    package_vectors.main(["--work-dir", str(work_dir), "--coleccion", "leyes"])
+    assert "SHA256SUMS.txt" not in (out / "SHA256SUMS.txt").read_text()
 
 
 def test_package_vectors_splits_a_collection_over_githubs_asset_cap(tmp_path):
