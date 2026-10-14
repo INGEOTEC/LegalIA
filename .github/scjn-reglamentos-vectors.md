@@ -65,12 +65,13 @@ promedia); cada texto truncado queda contado en `vectors-manifest.json`
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | 100 852 | 100 852 |
+| Vectores | 100 879 | 100 879 |
 | De los cuales compartidos | 4 235 | 4 235 |
 | Tamaño | 154 MB | 369 MB |
 
-Corpus: 1 082 reglamentos, 110 670 unidades, **100 852 textos distintos**,
-`cap` 2 000, plantilla `bare`, `md2akn` 0.5.0 (los 30 artículos romanos del
+Corpus: 1 082 reglamentos, 110 697 unidades, **100 879 textos distintos**,
+`cap` 2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos
+decimales, las introducciones de contenedor y las tablas; los 30 artículos romanos del
 reglamento 182464 ya son unidades de artículo, issue #279). Los otros 5 instrumentos del
 release `scjn-reglamentos` no aparecen: la SCJN los clasifica pero no sirve
 texto consolidado de ninguno (`snapshots: 0`, issue #222, decisión 6).

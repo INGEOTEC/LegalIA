@@ -3270,3 +3270,85 @@ Both models merged (`merge_shards.py`) with `missing_vectors` 0 and 0 failed sha
 over each model's own window, as in the earlier measurements. Verifying that only the changed
 instruments' vector files differ from the published ones, the non-finite check and the
 `PUBLICAR.md` for the four vectors releases are issue #293's; nothing was published.
+
+### Measured, the re-embedded vectors against the published ones, 2026-10-14 (issue #293)
+
+**Do the re-embedded merges differ from the published ones only where they must? Yes, in
+every collection and for both models.** `compare_merges.py` (read-only, tested in
+`tests/test_compare_merges.py` against toy merges) answers it from the two work directories alone:
+
+```bash
+python scripts/embeddings/compare_merges.py --published emb-run-whole-leyes \
+    --rebuilt emb-run-leyes-051 --model Qwen/Qwen3-Embedding-0.6B \
+    --changed /tmp/cmp/leyes.json --json /tmp/mcmp/leyes-qwen3-0.6b.json \
+    --changed-files-out /tmp/mcmp/leyes-qwen3-0.6b.names
+```
+
+What it proves, and stops (`SystemExit` naming the files) when any check fails:
+
+1. **The expected change comes from the two `units.parquet`, not from a list.** An instrument's own
+   file holds the texts it owns alone, so it must change exactly when that set changes (a new text, a
+   dropped one, a text that became shared or stopped being shared); the shared file likewise. A file
+   that differs without its set changing, or whose set changed but is the published file, is a problem.
+2. **No file is gained or lost** unless the units say an instrument appeared or went.
+3. **A text present in both merges has the same vector, bit for bit**, wherever it sits (a changed
+   file may hold it again; the same `text_sha1` never gets a new vector).
+4. **Each file holds exactly its expected texts**: none missing, none unexpected, no stale file.
+5. **No vector is non-finite** (NaN or ±inf), in either merge.
+6. With `--changed` (`compare_units.py --json`, issue #291's list) every differing instrument is in
+   that list. A different *order* of rows inside an unchanged file is counted apart (`reordered`),
+   not as a difference of content; there was none.
+
+| collection | model | files published → rebuilt | equal | differing | gained / lost | texts new / dropped | texts with another vector | non-finite files |
+|---|---|---|---:|---:|---|---|---:|---:|
+| leyes | `qwen3-0.6b` | 316 → 316 | 311 | 5 | 0 / 0 | 1,067 / 1,277 | 0 | 0 |
+| leyes | `qwen3-4b` | 316 → 316 | 311 | 5 | 0 / 0 | 1,067 / 1,277 | 0 | 0 |
+| reglamentos | `qwen3-0.6b` | 1,083 → 1,083 | 1,075 | 8 | 0 / 0 | 46 / 19 | 0 | 0 |
+| reglamentos | `qwen3-4b` | 1,083 → 1,083 | 1,075 | 8 | 0 / 0 | 46 / 19 | 0 | 0 |
+| lineamientos | `qwen3-0.6b` | 127 → 127 | 123 | 4 | 0 / 0 | 23 / 17 | 0 | 0 |
+| lineamientos | `qwen3-4b` | 127 → 127 | 123 | 4 | 0 / 0 | 23 / 17 | 0 | 0 |
+| tratados | `qwen3-0.6b` | 1,374 → 1,374 | 1,338 | 35 + shared | 0 / 0 | 2,171 / 1,479 | 0 | 0 |
+| tratados | `qwen3-4b` | 1,374 → 1,374 | 1,338 | 35 + shared | 0 / 0 | 2,171 / 1,479 | 0 | 0 |
+
+Files count one per instrument plus the shared file (an instrument whose texts are all shared has
+an empty file, as in the published merge). The differing instruments are exactly #291's
+"instruments with a new text" (5 laws, 8 reglamentos, 4 lineamientos, 35 treaties), in both models;
+the 44 + 136 + 24 + 72 instruments that were only relabelled (`loose` → `intro`, same `text_sha1`)
+have a file identical to the published one. Only the treaties' shared file differs (a text newly
+shared between treaties); in the three other collections the shared file is unchanged. The new
+vectors of a text that is still present are the published ones: **0 texts have a different vector**,
+as expected of an incremental re-embedding that encodes only what is new. Distinct texts after the
+rebuild, from each `vectors-manifest.json`: leyes 58,968 · reglamentos 100,879 · lineamientos 5,055 ·
+tratados 40,360, with `missing_vectors` 0.
+
+#### `PUBLICAR.md`, one per collection, nothing run
+
+`package_vectors.py --coleccion <c> --work-dir emb-run-<c>-051` (with `--changed-files` taking each
+model's `.names` file) wrote `emb-run-<c>-051/publish/PUBLICAR.md`, `parte-N.txt`,
+`SHA256SUMS.txt` and `vectors-manifest.json`; the live series was read read-only with `gh release
+view`. Assets after the change: leyes 637 (632 vector files), reglamentos 2,171 (2,166),
+lineamientos 259 (254), tratados 2,753 (2,748), each with the five metadata files; **no stale asset
+on any of the four live releases** (the lists of `gh release delete-asset` are empty) and the
+partition into numbered parts is unchanged.
+
+Two things the first version of `package_vectors.py` got wrong for this case, found while checking
+the generated files and fixed with tests:
+
+* It always wrote `gh release create`, which fails on a release that is already live. For a part
+  whose tag is on GitHub it now writes `gh release edit <tag> --notes-file ...` plus `gh release
+  upload <tag> --clobber` for the five metadata files (they always change: `units.parquet`,
+  `leaves.parquet`, the manifests, the sums).
+* `upload_release_assets.py` skips an asset already on the release **at the same size**, and a
+  re-embedded vector file often keeps its size (same number of rows, same dtype). Left alone, the
+  published, now-stale bytes would have stayed. `--changed-files` (what `compare_merges.py
+  --changed-files-out` writes) adds an explicit `gh release upload --clobber` block for exactly the
+  files that keep their name and change content: 5, 8, 4 and 36 per model (the treaties' shared
+  file included).
+
+The four release bodies (`.github/scjn-*-vectors.md`) were updated to the rebuilt corpus
+(`md2akn` 0.5.1, unit and distinct-text counts, vector counts, shared counts and sizes, in the
+lineamientos body also replacing numbers from before issue #256). **Nothing was uploaded**: a human
+runs the four `PUBLICAR.md` (issue #115, Hallazgo C), and since the releases are replaced in place the
+four must be run **before** the pull request merges, or `legalvec` (and the Atlas chain that reads
+the vectors, #294) would pair new units with old vectors. `legalvec download --collection all` was
+not re-run end to end on this machine: GitHub answered 500 to part of the asset requests.

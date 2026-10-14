@@ -46,14 +46,15 @@ partir del hash — un archivo, no una copia del texto por instrumento.
 |---|---|---|
 | Modelo | `Qwen/Qwen3-Embedding-0.6B` | `Qwen/Qwen3-Embedding-4B` |
 | `K` | 1 024 | 2 560 |
-| Vectores | 59 178 | 59 178 |
+| Vectores | 58 968 | 58 968 |
 | De los cuales compartidos | 2 378 | 2 378 |
 | Tamaño | 88 MB | 214 MB |
 | Textos truncados | 1 | 1 |
 
-Corpus: 315 leyes, 68 581 unidades, **59 178 textos distintos**, `cap`
+Corpus: 315 leyes, 68 373 unidades, **58 968 textos distintos**, `cap`
 2 000 caracteres (rige para todo menos el artículo — ver abajo), plantilla
-`bare`, `md2akn` 0.4.0. El único texto truncado en ambos modelos es el mismo:
+`bare`, `md2akn` 0.5.1 (issue #291: los artículos decimales, las introducciones
+de contenedor y las tablas). El único texto truncado en ambos modelos es el mismo:
 el artículo 513 de la `lft`, la tabla de enfermedades de trabajo, 68 689
 tokens. Ambos modelos se publican
 (#227, decisión 9): la evaluación por proxies de #217 no se ha corrido, así

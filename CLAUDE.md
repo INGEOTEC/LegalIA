@@ -987,8 +987,21 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   incrementally with both models into `emb-run-<collection>-051/` (gitignored copies of the four
   published work directories, which were not touched), 0 failed shards, `missing_vectors` 0.
   Tables in `scripts/embeddings/README.md` ("Measured, md2akn 0.5.1 against the published units").
-  **Nothing was published**, and verifying the merged files and packaging the four vectors
-  releases is issue #293, the Atlas chain and the Instruments page #294.
+  **Nothing was published.**
+- **The re-embedded merges, verified and packaged (issue #293, done).**
+  `scripts/embeddings/compare_merges.py` proves, per collection and model and from the two
+  work directories alone, that a rebuilt merge differs from the published one only in the files
+  whose set of owned texts changed (derived from both `units.parquet`, not from a list), gains or
+  loses a file only when an instrument does, keeps every unchanged text's vector bit for bit, holds
+  exactly each file's expected texts and has no non-finite vector; all eight runs are clean (5, 8, 4
+  and 35 + shared differing files, 0 texts with another vector, 0 non-finite). `package_vectors.py`
+  now writes `gh release edit` + `--clobber` for a part already live (it always wrote `gh release
+  create`) and, with `--changed-files`, an explicit `--clobber` block for same-name changed files,
+  because `upload_release_assets.py` skips an asset of the same size. The four release bodies were
+  updated to the rebuilt corpus. **Nothing was published**: the four `emb-run-<c>-051/publish/PUBLICAR.md`
+  are for a human (issue #115, Hallazgo C) and must run before the pull request merges; the Atlas
+  chain and the Instruments page are issue #294. Tables in `scripts/embeddings/README.md`
+  ("Measured, the re-embedded vectors against the published ones").
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 

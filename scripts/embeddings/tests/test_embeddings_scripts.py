@@ -590,6 +590,58 @@ def test_package_vectors_publicar_block_defines_repo_before_using_it(tmp_path):
     assert bloque[1] == f'cd "{(work_dir / "publish").resolve()}"'
 
 
+def _gh_with_live_release(tag, names):
+    """A fake `gh release view` that knows one live release, `tag`."""
+    def run(cmd, **kwargs):
+        if cmd[:3] == ["gh", "release", "view"] and cmd[3] == tag:
+            return SimpleNamespace(
+                returncode=0, stdout=json.dumps({"assets": [{"name": n} for n in names]}))
+        return SimpleNamespace(returncode=1, stdout="")
+    return SimpleNamespace(run=run)
+
+
+def test_publicar_edits_a_live_release_instead_of_creating_it(tmp_path, monkeypatch):
+    # Issue #293: these releases are replaced in place; `gh release create` on
+    # an existing tag fails, so the block edits the body and clobbers the metadata.
+    work_dir = _work_dir_con_vectores(tmp_path, 1)
+    monkeypatch.setattr(package_vectors, "subprocess",
+                        _gh_with_live_release("scjn-leyes-vectors", ["vectors-i0000-qwen3-0.6b-2.parquet"]))
+
+    package_vectors.main(["--work-dir", str(work_dir), "--coleccion", "leyes"])
+
+    publicar = (work_dir / "publish" / "PUBLICAR.md").read_text()
+    assert "gh release create" not in publicar
+    assert "gh release edit scjn-leyes-vectors --repo INGEOTEC/LegalIA --notes-file" in publicar
+    assert "gh release upload scjn-leyes-vectors --repo INGEOTEC/LegalIA --clobber units.parquet" in publicar
+
+
+def test_publicar_still_creates_a_release_that_does_not_exist_yet(tmp_path):
+    work_dir = _work_dir_con_vectores(tmp_path, 1)
+
+    package_vectors.main(["--work-dir", str(work_dir), "--coleccion", "leyes"])
+
+    publicar = (work_dir / "publish" / "PUBLICAR.md").read_text()
+    assert "gh release create scjn-leyes-vectors" in publicar
+    assert "--clobber" not in publicar
+
+
+def test_publicar_clobbers_files_that_changed_under_the_same_name(tmp_path, monkeypatch):
+    work_dir = _work_dir_con_vectores(tmp_path, 2)
+    monkeypatch.setattr(package_vectors, "subprocess",
+                        _gh_with_live_release("scjn-leyes-vectors", []))
+    names = tmp_path / "changed.txt"
+    names.write_text("vectors-i0001-qwen3-0.6b-2.parquet\n")
+
+    package_vectors.main(["--work-dir", str(work_dir), "--coleccion", "leyes",
+                          "--changed-files", str(names)])
+
+    publicar = (work_dir / "publish" / "PUBLICAR.md").read_text()
+    assert "Mismo nombre, contenido distinto" in publicar
+    clobbered = publicar.split("Mismo nombre, contenido distinto", 1)[1].split("```", 1)[0]
+    assert "vectors-i0001-qwen3-0.6b-2.parquet" in clobbered
+    assert "vectors-i0000" not in clobbered
+
+
 # -- upload_release_assets (the secondary-rate-limit recovery) --------------- #
 
 def test_pending_skips_what_is_already_published_at_the_right_size(tmp_path):

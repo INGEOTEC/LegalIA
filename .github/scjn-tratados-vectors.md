@@ -69,12 +69,13 @@ más largos que la ventana de los dos modelos (de 41 360 a 115 193 tokens).
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | 39 668 | 39 668 |
+| Vectores | 40 360 | 40 360 |
 | De los cuales compartidos | 701 | 701 |
-| Tamaño | 65 MB | 151 MB |
+| Tamaño | 66 MB | 154 MB |
 
-Corpus: 1 373 tratados, 41 335 unidades, **39 668 textos distintos**,
-`cap` 2 000, plantilla `bare`, `md2akn` 0.5.0. Los otros 82
+Corpus: 1 373 tratados, 42 063 unidades, **40 360 textos distintos**,
+`cap` 2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos
+decimales, las introducciones de contenedor y las tablas). Los otros 82
 instrumentos del release `scjn-tratados` no aparecen: la SCJN los clasifica
 pero no sirve texto consolidado de ninguno (`snapshots: 0`, issue #222,
 decisión 6).
