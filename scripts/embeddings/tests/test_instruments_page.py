@@ -960,6 +960,95 @@ def test_the_rendered_landing_fits_and_searches(browser, rendered_site):
     page.close()
 
 
+@pytest.fixture(scope="module")
+def real_server(tmp_path_factory):
+    """The real script, stylesheet, index and installed files, served the way the toy site
+    is, with no Quarto: the browser tests over the 2,676 documents need only these."""
+    root = tmp_path_factory.mktemp("instruments-real-site")
+    folder = root / "instruments"
+    folder.mkdir()
+    for name in ("instruments.js", "instruments.css", "instruments.json"):
+        shutil.copy(PAGES / "instruments" / name, folder / name)
+    (folder / "files").symlink_to(FILES)
+    harness = HARNESS.format(app=app_block(QMD.read_text(encoding="utf-8")))
+
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def do_GET(self):
+            if self.path.split("?")[0] == "/harness.html":
+                body = harness.encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            super().do_GET()
+
+        def log_message(self, *args):
+            pass
+
+    httpd = http.server.ThreadingHTTPServer(
+        ("127.0.0.1", 0), functools.partial(Handler, directory=str(root)))
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{httpd.server_address[1]}/harness.html"
+    httpd.shutdown()
+    httpd.server_close()
+
+
+@pytest.mark.skipif(not (FILES / "leyes" / "ligie-2022.json").exists(),
+                    reason="website/pages/instruments/files/ has not been installed")
+def test_ligie_shows_its_section_introduction_and_its_tariff_as_html_tables(browser, real_server):
+    """Issue #294's acceptance: the real LIGIE, parsed by md2akn 0.5.1, has `sec_I__intro` as
+    an introduction and the tariff of each chapter as tables, in pieces, each addressable."""
+    page = open_page(browser, f"{real_server}?c=leyes&k=ligie-2022#sec_I__intro")
+    wait_rendered(page)
+    intro = page.locator('section[data-eid="sec_I__intro"]')
+    assert intro.get_attribute("data-type") == "intro"
+    assert excerpt(page, "sec_I__intro").get_attribute("data-unit-type") == "intro"
+    assert page.locator(".instruments-target").get_attribute("data-excerpt") == "sec_I__intro"
+    document = json.loads((FILES / "leyes" / "ligie-2022.json").read_text(encoding="utf-8"))
+    tables = [u for u in document["units"] if u["u"] == "table"]
+    assert len(tables) > 100
+    assert page.locator("section.instruments-type-table").count() \
+        == len({u["e"] for u in tables})
+    assert page.locator('div.instruments-excerpt[data-unit-type="table"]').count() == len(tables)
+    cells = page.locator("table.instruments-table tr").first.locator("td").count()
+    assert cells >= 2
+    # The tariff is no longer made of loose paragraphs: only the transitory text is loose.
+    assert page.locator('li[data-flag="loose"] button').inner_text() \
+        == str(document["meta"]["flags"]["loose"])
+    piece = next(u for u in tables if u.get("p", 0) == 2)
+    page.goto(f"{real_server}?c=leyes&k=ligie-2022#{piece['e']}.2")
+    wait_rendered(page)
+    assert page.locator(".instruments-target").get_attribute("data-excerpt") == f"{piece['e']}.2"
+    assert page.errors == []
+    page.close()
+
+
+@pytest.mark.skipif(not (FILES / "tratados" / "137355.json").exists(),
+                    reason="website/pages/instruments/files/ has not been installed")
+def test_the_tmec_shows_decimal_article_numbers_and_no_repeated_number_from_a_split_lead(
+        browser, real_server):
+    page = open_page(
+        browser,
+        f"{real_server}?c=tratados&k=137355#cap_1__sec_A:_Disposiciones_Iniciales__art_1.1")
+    wait_rendered(page)
+    document = json.loads((FILES / "tratados" / "137355.json").read_text(encoding="utf-8"))
+    eids = [u["e"] for u in document["units"] if u["u"] == "article"]
+    assert [e.split("__")[-1] for e in eids if "__art_1." in e][:3] == ["art_1.1", "art_1.2", "art_1.3"]
+    article = page.locator('section[data-eid="cap_1__sec_A:_Disposiciones_Iniciales__art_1.1"]')
+    assert article.locator("> .instruments-node-head .instruments-badge").inner_text() \
+        == "article · cap_1__sec_A:_Disposiciones_Iniciales__art_1.1 · 1.1"
+    assert page.locator(".instruments-target").count() == 1
+    # What is left of the repeated-number flag is the annex articles (`Artículo 2.A.1`), not
+    # a decimal number read as its first digit: no decimal article carries the flag.
+    flagged = [u["e"] for u in document["units"] if "duplicate_number" in u.get("f", [])]
+    assert flagged and not any(".art_" in e or "art_1." in e for e in flagged)
+    assert all(re.search(r"__art_\d+(_\d+)?$", e) for e in flagged)
+    assert page.errors == []
+    page.close()
+
+
 @pytest.mark.skipif(not (FILES / "leyes" / "ccf.json").exists(),
                     reason="website/pages/instruments/files/ has not been installed")
 def test_a_real_3589_article_document_renders_in_chunks_with_a_visible_outline(browser, rendered_site):

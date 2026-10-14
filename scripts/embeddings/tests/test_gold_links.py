@@ -252,6 +252,13 @@ def test_signal_b_ignores_headings_preambles_transitorios_and_other_subjects(rec
     assert all(e["clave"] != "15" for e in record["entries"])
 
 
+def test_signal_b_reads_an_introduction_as_it_read_the_loose_text_it_replaced():
+    """md2akn 0.5.1 (rule 12) labels the text a container opens with `intro`, where it was
+    `loose`: the same "objeto" sentence must still be read (issue #294, which lost 6 links
+    to the relabelling until this). A table, heading, preamble and conclusions are not."""
+    assert set(gold_links.SOURCE_UNIT_TYPES) == {"article", "loose", "intro"}
+
+
 def test_the_constitution_is_never_a_signal_b_target(record):
     assert 3 not in entry(record, "10")["targets_B"]
     assert entry(record, "10")["targets_B"] == [0]
