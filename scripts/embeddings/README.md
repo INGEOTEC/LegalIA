@@ -3454,10 +3454,14 @@ against BM25), the 0.6B and BM25 are tied.
 change, their weights are the same. The browser tests ran for real here (headless Chromium, no Quarto, so the
 `rendered_*` ones skip): Playwright's browser needs `libnspr4`/`libnss3`, which this machine does not have and
 which were unpacked from the Debian packages into `~/.cache/chromium-libs` (`LD_LIBRARY_PATH`), outside the
-repository. **Two Atlas tests are flaky on any data**: `test_a_4b_file_that_does_not_fit_...` and
-`test_a_bm25_file_that_does_not_fit_...` compare circle positions after a refused model switch and fail now and
-then; they fail the same way at the commit before this issue (`c8d2c792`, two runs in three) and were left
-alone.
+repository. **Two Atlas tests were flaky on any data** and are fixed: `test_a_4b_file_that_does_not_fit_...` and
+`test_a_bm25_file_that_does_not_fit_...` compare circle positions after a refused model switch and failed now
+and then, at the commit before this issue too (`c8d2c792`, two runs in three). The cause was the test helper,
+not the page: with 2,676 circles drawn by a software renderer a frame can take over a second, so a transition
+stalls and `settled_xs`' two equal reads land on the same frame (a series of samples showed a 1.7 s plateau
+before the last 1.6 px). `settled_xs` now starts from d3's own signal, no live `__transition` on the mount
+(layout tween) or the svg (zoom), and then confirms with the two equal reads; no assertion was loosened. The
+whole file passes (88, nine Quarto skips), three runs of the four tests in a row.
 
 **What a human has to run, in this order, before the pull request merges** (nothing was uploaded): see the
 issue's comment and `CLAUDE.md`.
