@@ -59,6 +59,12 @@ PREÁMBULO de la ley 😀 alfa.
 
 Texto suelto antes de los artículos.
 
+| Concepto | Cuota |
+
+| Uno | 1.5 |
+
+| Dos \\| con barra | **2.5** |
+
 **Artículo 1.-** Texto compartido del primero.
 
 **Artículo 2.-** Texto 𝔘 del segundo:
@@ -70,6 +76,70 @@ II. Fracción dos.
 **Artículo 2.-** Texto repetido del segundo.
 
 **Artículo 5.-** Texto larguísimo del quinto.
+
+**CAPÍTULO II**
+
+Introducción del segundo capítulo.
+
+| fila 01 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 02 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 03 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 04 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 05 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 06 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 07 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 08 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 09 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 10 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 11 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 12 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 13 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 14 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 15 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 16 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 17 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 18 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 19 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 20 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 21 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 22 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 23 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 24 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 25 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 26 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 27 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 28 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 29 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 30 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
 
 **TRANSITORIOS**
 
@@ -281,8 +351,8 @@ def test_the_file_shape_and_every_key(exported):
     assert (meta["model"], meta["model_slug"], meta["top"]) == (MODEL, SLUG, 5)
     assert meta["generated"] == "2026-10-13T12:00:00+00:00" and meta["commit"]
     assert meta["numbering"] == {"mode": "articulo", "roman_articles": 0}
-    assert meta["units"] == len(document["units"]) == 11
-    assert meta["searched"] == sum(1 for u in document["units"] if u.get("x")) == 6
+    assert meta["units"] == len(document["units"]) == 16
+    assert meta["searched"] == sum(1 for u in document["units"] if u.get("x")) == 10
     assert document["markdown"] == ALFA
     assert read_file(exported, "lineamientos", "900")["meta"]["numbering"]["mode"] == "ordinal"
     treaty = read_file(exported, "tratados", "700")["meta"]["numbering"]
@@ -395,7 +465,7 @@ def test_a_doctored_released_row_stops_the_export_naming_the_instrument_and_posi
         exporter.export(world["work_dir"], out_dir=world["tmp"] / "bad", cache_dir=cache,
                         snapshot_reader=reader_for, now=NOW, log=quiet)
     message = str(error.value)
-    assert "leyes/alfa" in message and "excerpt 7 differs" in message
+    assert "leyes/alfa" in message and "excerpt 8 differs" in message
     assert not (world["tmp"] / "bad" / ".done").exists()
 
 
@@ -527,6 +597,44 @@ def test_an_uncovered_document_is_flagged(world, monkeypatch):
     assert manifest["flags"]["uncovered"] == {"instruments": 1, "count": 3}
 
 
+def test_an_introduction_and_a_table_are_nodes_with_their_own_excerpts(exported):
+    """md2akn 0.5.1's rules 12 and 13 (issues #291, #294): a container's opening text is an
+    `intro` node, a run of `| ... |` rows a `table` node, and a long table is cut into
+    pieces, one excerpt each, whose offsets still index the raw document."""
+    document = read_file(exported, "leyes", "alfa")
+    markdown = document["markdown"]
+
+    def nodes(node):
+        yield node
+        for child in node.get("c", []):
+            yield from nodes(child)
+
+    by_eid = {n["e"]: n for n in nodes(document["tree"])}
+    intro = by_eid["tit_PRIMERO__cap_I__intro"]
+    assert intro["t"] == "intro" and [c["t"] for c in intro["c"]] == ["content", "table"]
+    table = by_eid["tit_PRIMERO__cap_I__intro__table_1"]
+    assert table["t"] == "table" and table["n"] == "1"
+    # Offsets are UTF-16 code units (an astral character precedes the table).
+    text = js_slice(markdown, table["s"], table["l"])
+    assert text.startswith("| Concepto | Cuota |")
+    assert text.rstrip().endswith("| Dos \\| con barra | **2.5** |")
+
+    units = {(u["e"], u.get("p", 0)): u for u in document["units"]}
+    assert units[("tit_PRIMERO__cap_I__intro", 0)]["u"] == "intro"
+    assert units[("tit_PRIMERO__cap_I__intro__table_1", 0)]["u"] == "table"
+    # The small table is one piece; the long one is cut at row boundaries.
+    big = [u for u in document["units"] if u["e"] == "tit_PRIMERO__cap_II__intro__table_1"]
+    assert [u.get("p", 0) for u in big] == [1, 2] and {u["u"] for u in big} == {"table"}
+    first, second = big
+    assert first["l"] == second["s"]
+    assert js_slice(markdown, first["s"], first["l"]).startswith("| fila 01 |")
+    assert js_slice(markdown, second["s"], second["l"]).startswith("| fila ")
+    # An introduction and a table are searched, so they carry nearest texts; the
+    # flags that existed for loose text do not apply to them.
+    for unit in (units[("tit_PRIMERO__cap_I__intro", 0)], first, second):
+        assert unit["x"] is True and "near" in unit and "f" not in unit
+
+
 def test_the_numbering_helpers():
     assert [exporter.integer_number(n) for n in ("27", "1º", "1o.", "4 Bis", "I", "Primero", "2,3",
                                                   None)] == [27, 1, 1, None, None, None, None, None]
@@ -546,7 +654,7 @@ def test_the_index_and_its_totals(exported):
     assert meta["model_slug"] == SLUG and meta["md2akn_version"] == md2akn.__version__
     alfa = next(e for e in index["instruments"] if e["k"] == "alfa")
     assert alfa == {"c": "leyes", "k": "alfa", "n": "LEY ALFA", "archivo": "01-02-2020.md",
-                    "u": 11, "x": 6, "a": 5,
+                    "u": 16, "x": 10, "a": 5,
                     "f": {"loose": 1, "duplicate_number": 2, "numbering_gap": 2,
                           "over_window": 1}, "s": 6}
     assert meta["units"] == sum(e["u"] for e in index["instruments"])

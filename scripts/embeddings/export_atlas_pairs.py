@@ -184,11 +184,14 @@ def unit_label(unit_type: str, num=None, path=None, piece=None, text=None) -> st
     * `heading` -> `Heading V`, or the heading's own text when `num` is empty.
     * `loose` -> `Transitory provisions[, <date>]` in a transitorios block,
       `Loose text` otherwise.
+    * `intro` -> `Introduction`, `table` -> `Table` (md2akn 0.5.1's rules 12 and
+      13, issue #294): the text a container opens with, and a table outside an
+      article. The container is the breadcrumb's, never the label's.
     * `preamble` -> `Preamble`; `conclusions` -> `Closing`.
 
     `path` only decides whether a unit sits in a transitorios block and names
     the block; the breadcrumb itself is `breadcrumb(path)`, exported beside
-    the label. An unknown `unit_type` is a `ValueError`: md2akn has six.
+    the label. An unknown `unit_type` is a `ValueError`: md2akn has eight.
     """
     transitory = None
     for element in reversed(_path_list(path)):
@@ -214,6 +217,10 @@ def unit_label(unit_type: str, num=None, path=None, piece=None, text=None) -> st
         return f"Heading {heading}" if heading else "Heading"
     if unit_type == "loose":
         return transitory or "Loose text"
+    if unit_type == "intro":
+        return "Introduction"
+    if unit_type == "table":
+        return "Table"
     if unit_type == "preamble":
         return "Preamble"
     if unit_type == "conclusions":

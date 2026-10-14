@@ -121,7 +121,8 @@ def test_the_prose_says_what_the_page_is_and_nothing_forbidden():
     assert "UMAP" not in prose
     assert lead_phrases_in(prose) == []
     flat = " ".join(prose.split())
-    for needle in ("fracción", "inciso", "apartado", "compared excerpts", "Nearest texts",
+    for needle in ("fracción", "inciso", "apartado", "one introduction", "one table",
+                   "compared excerpts", "Nearest texts",
                    "Qwen3 Embedding 4B", "atlas-instruments", "Raw"):
         assert needle in flat, needle
     # One sentence per flag, under the label the page prints.
@@ -509,7 +510,9 @@ def test_every_node_has_a_badge_with_its_type_identifier_and_number(page):
 
 def test_each_excerpt_is_wrapped_with_its_type_and_the_flagged_ones_say_why(page):
     open_from_table(page, "alfa")
-    loose = excerpt(page, f"{ALFA}p_content")
+    # A container's opening text is an introduction since md2akn 0.5.1; what stays loose is
+    # the text under the transitory section.
+    loose = excerpt(page, "sec_transitorios__p_content")
     assert loose.get_attribute("data-unit-type") == "loose"
     assert loose.locator(".instruments-flag-tag").first.inner_text() == "Loose"
     assert loose.locator(".instruments-flag-tag").first.get_attribute("title").startswith(
@@ -518,6 +521,92 @@ def test_each_excerpt_is_wrapped_with_its_type_and_the_flagged_ones_say_why(page
     assert [t.inner_text() for t in big.locator(".instruments-flag-tag").all()] == [
         "Number gap", "Over window"]
     assert excerpt(page, "preamble").get_attribute("data-unit-type") == "preamble"
+
+
+def test_an_introduction_is_a_node_with_a_badge_an_excerpt_an_outline_entry_and_nearest_texts(page):
+    open_from_table(page, "alfa")
+    intro = page.locator(f'section[data-eid="{ALFA}intro"]')
+    assert intro.get_attribute("data-type") == "intro"
+    badge = intro.locator("> .instruments-node-head .instruments-badge")
+    assert badge.inner_text() == f"intro · {ALFA}intro"
+    wrapper = excerpt(page, f"{ALFA}intro")
+    assert wrapper.get_attribute("data-unit-type") == "intro"
+    assert wrapper.locator(".instruments-tag").first.inner_text() == "intro"
+    assert "Texto suelto antes de los artículos." in wrapper.inner_text()
+    assert wrapper.locator("> details.instruments-near").count() == 1      # a compared excerpt
+    assert wrapper.locator(".instruments-flag-tag").count() == 0           # nothing is loose about it
+    expand_outline(page)
+    link = page.locator(".instruments-outline button.instruments-outline-link",
+                        has_text="Introduction").first
+    assert link.locator(".instruments-compared").count() == 1
+    link.click()
+    assert page.locator(".instruments-target").get_attribute("data-eid").endswith("__intro")
+
+
+def test_a_table_is_drawn_as_an_html_table_in_parsed_mode_with_its_rows_and_cells(page):
+    open_from_table(page, "alfa")
+    node = page.locator(f'section[data-eid="{ALFA}intro__table_1"]')
+    assert node.get_attribute("data-type") == "table"
+    assert node.locator("> .instruments-node-head .instruments-badge").inner_text() \
+        == f"table · {ALFA}intro__table_1 · 1"
+    table = node.locator("table.instruments-table")
+    assert table.count() == 1
+    rows = table.locator("tr")
+    assert rows.count() == 3
+    assert [c.inner_text() for c in rows.nth(0).locator("td").all()] == ["Concepto", "Cuota"]
+    # A pipe written `\|` inside a cell is a character of the cell, and bold is kept.
+    cells = rows.nth(2).locator("td")
+    assert cells.count() == 2
+    assert cells.nth(0).inner_text() == "Dos | con barra"
+    assert cells.nth(1).locator("strong").inner_text() == "2.5"
+    # The markdown rows are not also printed as paragraphs.
+    assert node.locator("p.instruments-paragraph").count() == 0
+    wrapper = excerpt(page, f"{ALFA}intro__table_1")
+    assert wrapper.get_attribute("data-unit-type") == "table"
+    assert wrapper.locator("> details.instruments-near").count() == 1
+    # Raw still shows exactly what md2akn read.
+    node.locator("> .instruments-node-head button.instruments-raw-toggle").click()
+    assert node.locator("pre.instruments-raw-text").inner_text().startswith("| Concepto | Cuota |")
+
+
+def test_a_long_table_is_one_html_table_per_excerpt_each_addressable_by_its_piece(browser, server):
+    chapter = "tit_PRIMERO__cap_II__intro__table_1"
+    page = open_page(browser, f"{server}?c=leyes&k=alfa#{chapter}.2")
+    wait_rendered(page)
+    node = page.locator(f'section[data-eid="{chapter}"]')
+    first, second = excerpt(page, f"{chapter}.1"), excerpt(page, f"{chapter}.2")
+    assert first.count() == second.count() == 1
+    for piece in (first, second):
+        assert piece.get_attribute("data-unit-type") == "table"
+        assert piece.locator("table.instruments-table").count() == 1
+        assert piece.locator("> details.instruments-near").count() == 1
+    assert [t.inner_text() for t in first.locator(".instruments-tag").all()] == ["table", "part 1"]
+    assert [t.inner_text() for t in second.locator(".instruments-tag").all()] == ["table", "part 2"]
+    # Every one of the thirty rows is on the page exactly once, in order.
+    labels = [c.inner_text() for c in node.locator("tr td:first-child").all()]
+    assert labels == [f"fila {n:02d}" for n in range(1, 31)]
+    assert first.locator("tr").count() + second.locator("tr").count() == 30
+    assert first.locator("tr").first.locator("td").first.inner_text() == "fila 01"
+    # The address names the piece, and the page marks that piece, not the whole table.
+    assert page.locator(".instruments-target").get_attribute("data-excerpt") == f"{chapter}.2"
+    assert page.errors == []
+    page.close()
+
+
+def test_the_flags_still_find_the_excerpts_that_are_pieces_of_a_table(browser, server):
+    page = open_page(browser, f"{server}?c=leyes&k=alfa")
+    wait_rendered(page)
+    summary = page.locator("div.instruments-summary")
+    # Nothing but the transitory text is loose any more, and raw mode is untouched.
+    assert summary.locator('li[data-flag="loose"] button').inner_text() == "1"
+    page.locator("button.instruments-segment", has_text="Raw").click()
+    ranges = page.locator(".instruments-rawdoc .instruments-range")
+    document = read_file_of_toy(page, "alfa")
+    assert ranges.count() == sum(1 for u in document["units"] if u["l"] > u["s"])
+    assert page.locator(
+        f'.instruments-range[data-excerpt="tit_PRIMERO__cap_II__intro__table_1.2"]').count() == 1
+    assert page.errors == []
+    page.close()
 
 
 def test_only_compared_excerpts_carry_nearest_texts(page):
