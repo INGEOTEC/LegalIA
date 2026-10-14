@@ -1360,8 +1360,8 @@ reads it, with, on every searched excerpt, its closest texts of other instrument
   on purpose. Nothing was published.
 
 - **The page (issue #290, done).** `website/pages/instruments.qmd` (title *The
-  Instruments of the Atlas, as md2akn Reads Them*, navbar entry *Instruments* right
-  after *Atlas*, `pages/instruments/**` in `project.resources`) mounts
+  Instruments of the Atlas, as md2akn Reads Them*, `pages/instruments/**` in
+  `project.resources`) mounts
   `website/pages/instruments/instruments.js`/`instruments.css`: one IIFE, no library,
   reading only its mount's `data-*` attributes (index, files folder, `data-repo`, and a
   one-entry `data-models` for the 4B). It is the Atlas' kind of page, not a notebook: no
@@ -1385,6 +1385,13 @@ reads it, with, on every searched excerpt, its closest texts of other instrument
   `scripts/embeddings/tests/test_instruments_page.py` (static checks; headless Chromium over
   a toy site built by the real exporter; the rendered page through Quarto, plus the real Civil
   Code when the files are installed). The README's "The Instruments page" has the details.
+  **No navbar entry (review fix-1, decision of the repository owner on
+  2026-10-13):** while the page is used to find parse errors it is reached through the
+  paragraph that ends the Atlas page, not from the navbar; it still renders, is in
+  `search.json`, ships `pages/instruments/**` and keeps `website.yml`'s workflow step, and
+  it is neither a draft nor excluded from `project.render`. Re-enabling the entry takes
+  restoring `Instruments` right after `Atlas` in `_quarto.yml`'s navbar and the six-name
+  pins in `test_atlas_page.py`, `test_topics_page.py` and `test_instruments_page.py`.
   **Publish posture:** the `atlas-instruments` release of #289's `PUBLICAR.md` must exist
   before this reaches `master`; until then `website.yml`'s *Fetch the instrument files* step
   fails, as intended. Nothing was published and no PR was opened.

@@ -167,16 +167,36 @@ def test_the_css_documents_its_palette_and_resets_quartos_grid_rules():
     assert "warning" in css and "#b45309" in css
 
 
-def test_the_navbar_lists_instruments_after_atlas_and_ships_the_folder():
+def test_the_navbar_has_no_instruments_entry_but_the_page_still_renders_and_ships(tmp_path):
+    # By decision of the repository owner on 2026-10-13 (review fix-1 of #290) the page is
+    # reached through the link at the end of the Atlas page, not from the navbar; it is
+    # neither a draft nor excluded from the render.
     text = (WEBSITE / "_quarto.yml").read_text(encoding="utf-8")
     entries = re.findall(r"- href: (\S+)\n\s+text: (.+)", text)
-    names = [name.strip() for _, name in entries]
-    assert names[:6] == ["Home", "Archive", "Federal Laws", "Atlas", "Instruments", "DOF Titles"]
-    assert ("pages/instruments.qmd", "Instruments") in [(h, n.strip()) for h, n in entries]
+    assert "pages/instruments.qmd" not in [href for href, _ in entries]
+    assert "Instruments" not in [name.strip() for _, name in entries]
     resources = re.search(r"resources:\s*\n((?:\s+(?:-|#).*\n)+)", text).group(1)
     listed = [line.strip().lstrip("- ").strip('"') for line in resources.splitlines()
               if not line.strip().startswith("#")]
     assert listed[:2] == ["pages/atlas/**", "pages/instruments/**"]
+    render = [line for line in text[text.index("render:"):text.index("resources:")].splitlines()
+              if line.strip().startswith("-")]
+    assert render and not any("instruments" in line for line in render)
+    assert "draft" not in front_matter(QMD.read_text(encoding="utf-8"))
+
+
+def test_the_atlas_page_ends_with_a_link_to_the_instruments_page():
+    atlas = (PAGES / "atlas.qmd").read_text(encoding="utf-8")
+    assert atlas.count("(instruments.qmd)") == 1
+    link = atlas.index("(instruments.qmd)")
+    assert link > atlas.index("{{< include atlas/_gold-links.md >}}")      # after the callout
+    assert link > atlas.index("::: {.atlas-prose}")
+    tail = atlas[link:]
+    assert tail.rstrip().endswith(":::") and tail.count("\n:::") == 1      # inside .atlas-prose
+    paragraph = atlas[:link].rsplit("\n\n", 1)[1] + tail.split("\n\n", 1)[0]
+    assert "excerpts" in paragraph and "parse" in paragraph
+    assert forbidden_in(paragraph) == []
+    assert lead_phrases_in(paragraph) == []
 
 
 def test_the_citation_hook_and_the_references_page_are_unchanged():
@@ -820,12 +840,19 @@ def rendered_site():
     httpd.server_close()
 
 
-def test_the_rendered_page_is_listed_in_the_navbar_and_the_search_index(rendered_site):
+def test_the_rendered_page_has_no_navbar_entry_but_is_in_the_search_index_and_linked_from_the_atlas(
+        rendered_site):
     html = (SITE / "pages" / "instruments.html").read_text(encoding="utf-8")
-    assert 'href="../pages/instruments.html"' in html
-    assert "Instruments" in html
+    navbar = html[html.index('<nav class="navbar'):html.index("</nav>")]
+    assert 'href="../pages/atlas.html"' in navbar
+    assert "instruments.html" not in navbar and "Instruments" not in navbar
     search_index = json.loads((SITE / "search.json").read_text(encoding="utf-8"))
     assert any(entry["href"].startswith("pages/instruments.html") for entry in search_index)
+    # Rendering the Atlas is cheap next to the browser tests and proves the link opens it.
+    subprocess.run([find_quarto(), "render", "pages/atlas.qmd"], cwd=WEBSITE, check=True,
+                   capture_output=True, timeout=300)
+    atlas = (SITE / "pages" / "atlas.html").read_text(encoding="utf-8")
+    assert 'href="../pages/instruments.html"' in atlas or 'href="./instruments.html"' in atlas
 
 
 def test_the_rendered_landing_fits_and_searches(browser, rendered_site):

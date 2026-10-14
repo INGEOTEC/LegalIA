@@ -1788,7 +1788,7 @@ release body and the committed index against `atlas-qwen3-4b.json`).
 
 ### The Instruments page (issue #290)
 
-`website/pages/instruments.qmd` (navbar entry *Instruments*, right after *Atlas*) is a
+`website/pages/instruments.qmd` is a
 hand-written, library-free page over #289's outputs: `website/pages/instruments/instruments.js`
 and `instruments.css`, mounted by the qmd's `<!-- instruments:app -->` block, which reads
 only that block's `data-*` attributes (the index, the folder of files, the repository to
@@ -1796,6 +1796,12 @@ report to, and a `data-models` list with the one entry the 4B). `_quarto.yml`'s
 `project.resources` ships `pages/instruments/**`; the page has no code cell and no freeze
 entry.
 
+- **No navbar entry (review fix-1 of #290).** By decision of the repository owner on
+  2026-10-13, while the page is used to find parse errors, it is reached through the
+  paragraph that ends the Atlas page, not from the navbar. It still renders, is in the search
+  index and ships its folder, and the workflow step is unchanged. Re-enabling the entry takes
+  restoring `Instruments` right after `Atlas` in `_quarto.yml`'s navbar and the six-name pins
+  in the three test files.
 - **What it shows.** A landing with a search box and the corpus table (every instrument,
   its excerpts, compared excerpts, articles, one column per flag and the score; sortable,
   filterable by collection, 50 rows at a time). Opening an instrument shows its header, a
