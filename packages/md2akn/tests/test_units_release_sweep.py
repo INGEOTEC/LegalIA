@@ -25,6 +25,14 @@ Over the treaties it also asserts rule 10's reach (issue #279): every treaty
 with a roman-numbered article opener has at least one roman-numbered
 `article` unit, so none of them is left as `preamble`/`loose` blocks.
 
+Issue #291's rules 11 to 13 are swept the same way: every treaty that writes a
+decimal article opener (`Artículo 1.1:`) has a decimal-numbered `article` unit,
+and no table row of any collection comes out as a `loose`, `intro` or
+`heading` unit (`TestReglas11A13`). The decimal check reads the *cached*
+snapshots: a cache that still holds the old `**Artículo 1.**1:` shape fails it
+by name until the seven treaties of that issue are re-downloaded -- not a
+reason to loosen the test.
+
 It makes no network request of its own — the releases have to already be
 cached (`nota2md download all` populates all four) — but at roughly 17
 minutes for the full sweep it is excluded from the routine run the same way
@@ -51,7 +59,7 @@ import re
 import unittest
 
 from md2akn import coverage, max_unit_chars, parse_markdown, text_units
-from md2akn.patterns import ARTICULO
+from md2akn.patterns import ARTICULO, FILA_TABLA
 from md2akn.segmenter import iter_blocks, split_frontmatter
 from md2akn.structure import modo_sin_articulos
 
@@ -69,6 +77,8 @@ if _TIENE_SCJN:
     )
 
 _ROMANO = re.compile(r"[IVXLCDM]+")
+_NUMERO_DECIMAL = re.compile(r"\d+(?:\.\d+)+")
+_EID_ARTICULO_DECIMAL = re.compile(r"(?:.*__)?art_\d+(?:\.\d+)+")
 # An article's eId is scoped under its containers (`cap_II__art_IV`).
 _EID_ARTICULO_ROMANO = re.compile(r"(?:.*__)?art_[IVXLCDM]+(?:_\d+)?")
 
@@ -83,6 +93,44 @@ def _abre_con_articulo_romano(markdown: str) -> bool:
         if m and _ROMANO.fullmatch(m.group("num").split()[0]):
             return True
     return False
+
+
+def _abre_con_articulo_decimal(markdown: str) -> bool:
+    """Whether any block of `markdown` opens on a decimal-numbered article
+    heading (rule 11, issue #291), read with the pattern the builder uses."""
+    _meta, fin_meta = split_frontmatter(markdown)
+    for bloque in iter_blocks(markdown, fin_meta):
+        m = ARTICULO.match(bloque.text.split("\n", 1)[0].replace("**", ""))
+        if m and _NUMERO_DECIMAL.fullmatch(m.group("num")):
+            return True
+    return False
+
+
+def _filas_fuera_de_tabla(instrumentos, clave):
+    """`(instruments with table rows, [(clave, archivo, unit_type, eId)])`: the
+    units that are not `table` units (or an article's own text) and still
+    contain a table row. Only a unit before the first container -- the
+    `preamble` -- or after the last one -- `conclusions` -- may: those keep
+    their pre-#291 treatment (rule 12's "text before any container")."""
+    con_tablas = 0
+    fuera = []
+    for instrumento in instrumentos:
+        markdown = instrumento["markdown"]
+        if "\n| " not in markdown and not markdown.startswith("| "):
+            continue
+        con_tablas += 1
+        tree = parse_markdown(markdown)
+        doc = tree.span.doc.text
+        for unit in text_units(tree, split_articles=False):
+            if unit.unit_type not in ("loose", "intro", "heading"):
+                continue
+            filas = [
+                linea for linea in doc[unit.start_char:unit.end_char].split("\n")
+                if FILA_TABLA.match(linea.strip())
+            ]
+            if filas:
+                fuera.append((instrumento[clave], instrumento["archivo"], unit.unit_type, unit.eId))
+    return con_tablas, fuera
 
 
 def _barre(instrumentos, clave, *, split_articles: bool = True):
@@ -204,6 +252,58 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
             "roman-numbered article unit",
         )
         self.assertLessEqual(sin_articulo, 53)
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_tratados_ids(), "no scjn-tratados release cached locally"
+    )
+    def test_todo_tratado_con_articulos_decimales_tiene_unidades_de_articulo_decimales(self):
+        """Rule 11's reach (issue #291): a treaty that numbers its articles
+        `Artículo 1.1:` has decimal-numbered `article` units, so its articles
+        are not all article `1`."""
+        decimales = 0
+        sin_unidad_decimal = []
+        for tratado in iter_current_tratados():
+            if not _abre_con_articulo_decimal(tratado["markdown"]):
+                continue
+            decimales += 1
+            units = text_units(tratado["markdown"], split_articles=False)
+            if not any(
+                u.unit_type == "article" and _EID_ARTICULO_DECIMAL.fullmatch(u.eId)
+                for u in units
+            ):
+                sin_unidad_decimal.append((tratado["id_ordenamiento"], tratado["archivo"]))
+        self.assertGreater(decimales, 0)
+        self.assertEqual(sin_unidad_decimal, [])
+
+    def _comprueba_tablas(self, instrumentos, clave):
+        con_tablas, fuera = _filas_fuera_de_tabla(instrumentos, clave)
+        self.assertGreater(con_tablas, 0)
+        self.assertEqual(
+            fuera, [],
+            f"{len(fuera)} unit(s) of {con_tablas} instruments with tables still hold table rows",
+        )
+
+    @unittest.skipUnless(_TIENE_SCJN and local_slugs(), "no scjn-leyes release cached locally")
+    def test_ninguna_fila_de_tabla_queda_suelta_en_las_leyes(self):
+        self._comprueba_tablas(iter_current_federal_laws(), "slug")
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_reglamentos_ids(), "no scjn-reglamentos release cached locally"
+    )
+    def test_ninguna_fila_de_tabla_queda_suelta_en_los_reglamentos(self):
+        self._comprueba_tablas(iter_current_reglamentos(), "id_ordenamiento")
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_lineamientos_ids(), "no scjn-lineamientos release cached locally"
+    )
+    def test_ninguna_fila_de_tabla_queda_suelta_en_los_lineamientos(self):
+        self._comprueba_tablas(iter_current_lineamientos(), "id_ordenamiento")
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_tratados_ids(), "no scjn-tratados release cached locally"
+    )
+    def test_ninguna_fila_de_tabla_queda_suelta_en_los_tratados(self):
+        self._comprueba_tablas(iter_current_tratados(), "id_ordenamiento")
 
     @unittest.skipUnless(_TIENE_SCJN and local_slugs(), "no scjn-leyes release cached locally")
     def test_la_regla_8_no_se_activa_en_ninguna_ley(self):

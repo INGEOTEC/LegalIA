@@ -121,7 +121,7 @@ build on each other in this sequence.
   Akoma Ntoso XML anywhere: only the vocabulary is borrowed, and the earlier
   XML converter that lived in `nota2md` was removed (issue #168).
   `text_units()` (issue #218) is the retrieval-unit view the embedding work
-  builds on, under **ten** rules since issue #227 added two (and #279 a tenth, below): **rule 8**, an
+  builds on, under **thirteen** rules since issue #227 added two (#279 a tenth, #291 three more, below): **rule 8**, an
   instrument that never writes `Artículo N` numbers its provisions
   `**PRIMERO.-**` or `1.` / `2.1` instead, decided once per *document*
   (`md2akn.structure.modo_sin_articulos`) and therefore incapable of changing
@@ -947,6 +947,48 @@ went to 0.5.0 (never published on PyPI) — the same reasoning as 0.3.0 and
   `test_tratados_split_articles_false`, and a treaty test asserting that every
   roman-opener treaty has a roman-numbered `article` unit and that at most 53
   have none), ~17 minutes.
+
+## Decimal articles, intros and tables (issue #291, done)
+
+Browsing the Instruments page (#289, #290) turned up three parse errors under every
+vector, matrix and Atlas number; they are fixed as **rules 11, 12 and 13** of
+`md2akn.text_units`, `md2akn` **0.5.1** (a patch release: bug fixes only, never published on
+PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
+
+- **Rule 11, `Artículo 1.1:` is article `1.1`.** The T-MEC and six other treaties number
+  their articles chapter.article. `scjn.api._LEAD_ARTICULO` bolded only `**Artículo 1.**` and
+  left `1:` outside, so every `Artículo 1.N` read as article `1`; it now takes
+  `\d+(?:\.\d+)+` whole (`**Artículo 1.1**:`, the `:` outside the bold), and
+  `patterns.NUMERO_DECIMAL_ARTICULO` is tried before `NUM_ARTICULO` inside `ARTICULO` only (eId
+  `art_1.1`). Fixed at source and by re-downloading the seven treaties (#255's procedure; 76,
+  84349, 84350, 90408, 107392, 128585, 137355; `PUBLICAR.md` generated, not run), with no
+  `md2akn` shim for the broken `**Artículo 1.**1:` shape. **A second shape is not fixed**: annex
+  articles `Artículo 2.A.1:` still come out `**Artículo 2.**A.1:` (61 lines in the treaty
+  137355, 3 in the reglamento 145559); the T-MEC keeps 59 repeated numbers (592 before).
+- **Rule 12, a container's introduction is its `intro`.** The blocks between a container's
+  heading (epigraph included) and its first child container or article are one `intro` node
+  (eId `<container>__intro`, children `content`/`table`) and `intro` units, capped and cut like
+  `loose` with the same ancestor `path`. Since an article takes every block after it until the
+  next container, container-level text was always exactly this leading run: the change relabels
+  it (`loose` → `intro`, same `text_sha1`), and splits it from the tables. Text before any
+  container keeps `preamble`/`loose`.
+- **Rule 13, a table is a node.** Consecutive blocks that open and close with `|` (what #253
+  writes) are one `table` node (eId `<parent>__table_N`); the lone `**(ARANCEL)**` label of a
+  LIGIE tariff is tolerated between two rows, any other block ends the table. A table outside an
+  article yields `table` units cut at row boundaries up to the cap, every piece after the first
+  prefixed with the table's first row; a table inside an article stays article text (and is not a
+  node: the article's interior is unchanged). A table is never part of an `intro` unit, and a
+  table row is no container's epigraph. `AKN_TYPES`/`UNIT_TYPES` gain `intro` and `table`;
+  `scripts/embeddings/build_umap_html.UNIT_TYPES` appends them so older codes keep their meaning.
+- **Measured against the published units (2026-10-14), `scripts/embeddings/compare_units.py`.**
+  The vectors have to be recomputed, for all four collections: 3,307 distinct new texts
+  (leyes 1,067 · reglamentos 46 · lineamientos 23 · tratados 2,171); 49 laws, 144 reglamentos,
+  28 lineamientos and 107 treaties change rows, most of them only relabelled. Re-embedded
+  incrementally with both models into `emb-run-<collection>-051/` (gitignored copies of the four
+  published work directories, which were not touched), 0 failed shards, `missing_vectors` 0.
+  Tables in `scripts/embeddings/README.md` ("Measured, md2akn 0.5.1 against the published units").
+  **Nothing was published**, and verifying the merged files and packaging the four vectors
+  releases is issue #293, the Atlas chain and the Instruments page #294.
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 

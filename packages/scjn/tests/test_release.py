@@ -1485,7 +1485,7 @@ class TestScjnTratados(unittest.TestCase):
         ):
             self.assertIn(nombre, scjn.__all__)
             self.assertTrue(callable(getattr(scjn, nombre)))
-        self.assertEqual(scjn.__version__, "0.5.0")
+        self.assertEqual(scjn.__version__, "0.5.1")
 
 
 class TestIterCurrentPorId(ConCacheFixtureReglamentos):

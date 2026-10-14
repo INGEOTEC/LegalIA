@@ -3162,3 +3162,111 @@ numbers, and one text over the window), the law `ligie-2022` (1,384, all loose
 blocks: the tariff), the treaty `114738` (541), the treaty `11345` (501, loose)
 and `ccom` (299). The 56 documents with no article at all are the 53 treaties
 and 3 lineamientos already counted in the rule-10 and rule-8 measurements.
+
+### Measured, `md2akn` 0.5.1 against the published units, 2026-10-14 (issue #291)
+
+**Do the vectors have to be recomputed? Yes — for all four collections, but only 3,307 texts.**
+`md2akn` 0.5.1 (rules 11-13, see `packages/md2akn/README.md`) and `scjn` 0.5.1
+(seven treaties re-downloaded with `**Artículo 1.1**:` leads) change the
+`units.parquet` of every collection. `compare_units.py` (a read-only script, tested in
+`tests/test_compare_units.py`) compares each published work directory with a copy that
+`build_units.py --no-split-articles` rebuilt, instrument by instrument:
+
+```bash
+python scripts/embeddings/compare_units.py --published emb-run-whole-leyes \
+    --rebuilt emb-run-leyes-051 --list-changed
+```
+
+An instrument is *changed* when its `(unit_type, eId, piece, text_sha1)` sequence is not the
+published one. Most are **only relabelled**: a text that was a container's `loose` excerpt is
+now its `intro` (rule 12), with the same `text_sha1`, so it keeps its published vector and
+nothing is encoded for it. What has to be encoded is the *distinct new* `text_sha1`:
+
+| collection | instruments | changed | with a new text | only relabelled | unchanged | rows before → after | distinct new texts (dropped) |
+|---|---:|---:|---:|---:|---:|---|---:|
+| leyes | 315 | 49 | 5 | 44 | 266 | 68,581 → 68,373 | 1,067 (1,277) |
+| reglamentos | 1,082 | 144 | 8 | 136 | 938 | 110,670 → 110,697 | 46 (19) |
+| lineamientos | 126 | 28 | 4 | 24 | 98 | 5,514 → 5,520 | 23 (17) |
+| tratados | 1,373 | 107 | 35 | 72 | 1,266 | 41,335 → 42,063 | 2,171 (1,479) |
+
+Total distinct new texts: **3,307**. The published work directories
+(`emb-run-whole-leyes`, `emb-run-whole-reglamentos-r10`, `emb-run-whole-lineamientos`,
+`emb-run-tratados`) were not written to (file list, sizes and modification times identical
+before and after) and each one's `units.parquet` equals the released one
+(`pyarrow.Table.equals` against `legalvec download`'s cached file).
+
+Rows by `unit_type`, before → after:
+
+| unit_type | leyes | reglamentos | lineamientos | tratados |
+|---|---:|---:|---:|---:|
+| article | 53,586 → 53,586 | 87,129 → 87,129 | 3,768 → 3,768 | 31,493 → 31,493 |
+| heading | 11,879 → 11,879 | 19,858 → 19,858 | 951 → 951 | 2,604 → 2,604 |
+| preamble | 318 → 318 | 1,922 → 1,922 | 310 → 310 | 2,781 → 2,781 |
+| conclusions | 86 → 86 | 436 → 436 | 59 → 59 | 1,261 → 1,261 |
+| loose | 2,712 → 1,071 | 1,325 → 606 | 426 → 137 | 3,196 → 44 |
+| intro | 0 → 575 | 0 → 730 | 0 → 288 | 0 → 3,098 |
+| table | 0 → 858 | 0 → 16 | 0 → 7 | 0 → 782 |
+
+`article` rows are the same in every collection: no rule changes how many articles there are,
+only what a decimal article is *called* (`art_1.1`, not `art_1`, `art_1_2`, ...) and, in the
+seven re-downloaded treaties, what its text says. `loose` shrinks to what is left under the
+transitorios and before the first container; `intro` and `table` are new. Table rows that fall
+before the first container stay in the `preamble` (55 `preamble` units: 9 in reglamentos, 14 in
+lineamientos and 32 in treaties, holding 70 + 47 + 362 rows), and 2 rows of treaty `23935` stay in
+its `conclusions`, as rule 12 says ("text before any container keeps its treatment"); no row of any
+collection is a `loose`, `intro` or `heading` unit (swept, `test_units_release_sweep.py`).
+
+#### The 49 laws that change
+
+Five have a new text; the other 44 are only relabelled (`loose` → `intro`, 0 new texts):
+`cff` (4 new texts), `lfd` (96), `lfisan` (49), `lieps` (43) and `ligie-2022` (875: rows 1,527 → 1,184,
+its tariff is now `table` units; the laws hold 858 `table` units in all). The relabelled ones:
+`ccf`, `ccom`, `cmpp`, `cpf`, `egdf`, `ladua`, `lagra`, `lamp`, `lapp`, `ldpam`, `lfafe`, `lfda`, `lfgr`, `lfi`, `lfmzaah`, `lfpa`, `lfpc`, `lfped`, `lfrcf`, `lfrm`, `lfrsp`, `lft`, `lgcs`, `lgipe`, `lgra`, `lgs`, `lie`, `lisr`, `lmeum`, `lmin`, `lned`, `lnrd`, `loefam`, `lopgjdf`, `louaaan`, `lperc`, `lpf`, `lrart27-mn`, `lrcdn`, `lrfiyii-art105`, `lritf`, `lrsf`, `ltfccg`, `lvgc`.
+
+#### The seven re-downloaded treaties
+
+Only three of the seven change: the units come from each treaty's *latest* snapshot, and the
+broken `**Artículo N.**M` shape was in an older one of `84349`, `84350`, `90408` and `107392`
+(re-downloaded and re-packaged all the same, #255's procedure).
+
+| treaty | rows before → after | new texts |
+|---|---|---:|
+| `128585` (CPTPP, 2018) | 32 → 32 | 1 |
+| `137355` (the T-MEC protocol, 2018) | 1,288 → 1,552 | 1,285 |
+| `76` (NAFTA, 1992) | 14 → 14 | 8 |
+
+`137355` (the T-MEC): 626 articles outside the transitorios, **592 repeated numbers before and
+59 after**. The 59 left are **a second shape this issue does not fix**: the annex articles
+`Artículo 2.A.1:`, `Artículo 12.A.2:` ... (chapter, annex letter, article) are still written by `scjn`
+as `**Artículo 2.**A.1:` (61 lines in `137355` and 3 in the reglamento `145559`, none elsewhere), so
+the number stops at `2` and the annex's articles repeat `art_2`, `art_2_2`, ... — a letter between
+the numbers is outside rule 11's `\d+(?:\.\d+)+`. Every other decimal article has its own eId
+(`art_1.1`, `art_1.2`, ...). Reported here, not fixed: it is a finding for a follow-up issue.
+
+The 107 changed treaties are listed by `compare_units.py --list-changed` (35 with a new text; the
+largest are `137355` 1,285 · `84855` 300 · `11202` 91 · `23940` 74 · `89694` 73 · `11345` 44 ·
+`75190` 38).
+
+#### Re-embedding on `cemieredes`
+
+`plan_shards.py --against <published>/runs/qwen3-0.6b`, one plan for both models: before submitting,
+`already_embedded()` over the published `qwen3-0.6b` and `qwen3-4b` runs agreed in every collection
+(59,178 · 100,882 · 5,049 · 39,668 texts; reglamentos holds 30 more than its units because of the
+pre-rule-10 texts of `182464`). New shards are numbered after the highest existing one
+(`first_shard_index`). Always through Slurm (`--mem 32G`, `--max-batch-tokens 20000`), one model at a
+time, weights kept between collections and deleted at the end; no shard waited for the queue (another
+user's job held one A100 throughout).
+
+| collection | shards | texts | `excluded_already_embedded` | failed | GPU seconds, 0.6B / 4B | truncated texts (published → now) | max tokens embedded |
+|---|---:|---:|---:|---:|---|---|---|
+| leyes | 2 | 1,067 | 59,178 | 0 | 37 / 73 | 1 → 1 (both models) | 32,768 / 40,960 |
+| reglamentos | 1 | 46 | 100,882 | 0 | 15 / 14 | 3 → 3 (0.6B), 1 → 1 (4B) | 32,768 / 40,960 |
+| lineamientos | 1 | 23 | 5,049 | 0 | 25 / 90 | 0 → 0 | 32,768 / 40,960 |
+| tratados | 3 | 2,171 | 39,668 | 0 | 60 / 104 | 10 → 11 (both models) | 32,768 / 40,960 |
+
+Both models merged (`merge_shards.py`) with `missing_vectors` 0 and 0 failed shards, into
+`emb-run-<collection>-051/` (gitignored, each with `corpus-manifest.json` saying `md2akn_version`
+`0.5.1` and `split_articles` false). The one truncated text new to the treaties is one more article
+over each model's own window, as in the earlier measurements. Verifying that only the changed
+instruments' vector files differ from the published ones, the non-finite check and the
+`PUBLICAR.md` for the four vectors releases are issue #293's; nothing was published.

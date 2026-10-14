@@ -73,6 +73,8 @@ II. Fracción dos.
 
 **TRANSITORIOS**
 
+Texto suelto de los transitorios.
+
 **PRIMERO.-** Entra en vigor.
 """
 
@@ -279,7 +281,7 @@ def test_the_file_shape_and_every_key(exported):
     assert (meta["model"], meta["model_slug"], meta["top"]) == (MODEL, SLUG, 5)
     assert meta["generated"] == "2026-10-13T12:00:00+00:00" and meta["commit"]
     assert meta["numbering"] == {"mode": "articulo", "roman_articles": 0}
-    assert meta["units"] == len(document["units"]) == 10
+    assert meta["units"] == len(document["units"]) == 11
     assert meta["searched"] == sum(1 for u in document["units"] if u.get("x")) == 6
     assert document["markdown"] == ALFA
     assert read_file(exported, "lineamientos", "900")["meta"]["numbering"]["mode"] == "ordinal"
@@ -477,7 +479,11 @@ def test_every_flag_is_named_and_explained():
 def test_the_excerpt_flags_of_alfa(exported):
     document = read_file(exported, "leyes", "alfa")
     flags = {u["e"]: u.get("f", []) for u in document["units"]}
-    assert flags["tit_PRIMERO__cap_I__p_content"] == ["loose"]
+    # A container's own opening text is an `intro` since md2akn 0.5.1 (rule 12,
+    # issue #291), not a `loose` excerpt; `loose` is what is left under the
+    # transitorios.
+    assert flags["tit_PRIMERO__cap_I__intro"] == []
+    assert flags["sec_transitorios__p_content"] == ["loose"]
     assert flags["tit_PRIMERO__cap_I__art_2"] == ["duplicate_number"]
     # A repeated number is also "not the previous number plus one".
     assert flags["tit_PRIMERO__cap_I__art_2_2"] == ["duplicate_number", "numbering_gap"]
@@ -540,7 +546,7 @@ def test_the_index_and_its_totals(exported):
     assert meta["model_slug"] == SLUG and meta["md2akn_version"] == md2akn.__version__
     alfa = next(e for e in index["instruments"] if e["k"] == "alfa")
     assert alfa == {"c": "leyes", "k": "alfa", "n": "LEY ALFA", "archivo": "01-02-2020.md",
-                    "u": 10, "x": 6, "a": 5,
+                    "u": 11, "x": 6, "a": 5,
                     "f": {"loose": 1, "duplicate_number": 2, "numbering_gap": 2,
                           "over_window": 1}, "s": 6}
     assert meta["units"] == sum(e["u"] for e in index["instruments"])
