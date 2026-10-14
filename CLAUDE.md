@@ -1298,6 +1298,104 @@ see the #242 bullet above), #245 draws it.
   `fix_citation_links.py`'s page list. No link into the Atlas, no `atlas*.json`
   change.
 
+## The Instruments page (issues #288, #289, #290)
+
+The website gained a page to browse every instrument of the Atlas as `md2akn`
+reads it, with, on every searched excerpt, its closest texts of other instruments
+(issues #288, #289 and #290, all done).
+
+- **Nearest texts (issue #288, done).** `scripts/embeddings/nearest_texts.py`
+  repeats `instrument_matrix.py`'s sweep and keeps the **top five foreign
+  vector rows** (`TOP_TEXTS`, importable) of every searched excerpt instead
+  of only the winner, under exactly the matrix's rules — sources are the
+  searched unit rows (no heading, no transitorio), candidates are every vector
+  row but the source instrument's exclusively owned rows and the unowned ones,
+  and a text shared with another instrument stays a candidate. Five *texts*,
+  not five instruments (a text owned by several lists every owner in
+  `targets`); a tie at the cut is broken by the lower vector row, a tie at
+  rank 1 is ranks 1 and 2; rows are keyed by `(i, row)`, not by unit row, and
+  the exporter fans them back out by `eId`. It writes
+  `<work-dir>/nearest-texts/` (its own directory, `.done` last) and **proves
+  before `.done` that rank 1 is the Atlas' winner** (similarity within the
+  matrix's 1e-6, `targets` inside the matrix's, every source present both
+  ways): a disagreement is a `SystemExit` naming `(i, row)`, never a looser
+  tolerance. The 4B (`emb-run-atlas-4b`) only; the 0.6B and BM25 work
+  directories are untouched (the code works through `scoring.scorer_for`).
+  `instrument_matrix.py`'s `sbatch_command`/`submit`/`wait`/`load_job`/
+  `slurm_tail`/`output_dir` gained keyword arguments (script, sub-directory,
+  job name, extra arguments, required files) with the matrix's own as
+  defaults, so the Slurm plumbing is shared, not copied. Measured 2026-10-13:
+  145,970 searched unit rows, 145,693 source texts, 728,465 rows, agreement
+  true; the cluster queue was blocked by other users' jobs, so it was computed
+  on the login node (730 s) — see `scripts/embeddings/README.md`, "Nearest
+  texts" and "Measured, nearest texts, the 4B, 2026-10-13". Nothing is
+  committed from the run (`emb-run-atlas-4b/` is gitignored) and
+  `nearest.parquet`, `atlas*.json` and the `atlas-pairs` release are unchanged.
+
+- **The instrument files (issue #289, done).**
+  `scripts/embeddings/export_instrument_files.py` writes, for each of the Atlas'
+  2,676 instruments of `emb-run-atlas-4b`, `files/<coleccion>/<clave>.json`: the
+  raw Markdown once, the `md2akn` tree (each node `{t, e, n, h, r, s, l, x, a,
+  c}`), the excerpts (`u, e, p, pe, s, l, sha, v, x, f`) and, on every *searched*
+  excerpt, `near`, the five nearest texts of #288 resolved to owners (first owner
+  = lowest Atlas index, a text several instruments own is one entry). **Each
+  instrument is shown at the one snapshot its vectors were built from** (the
+  released `units.parquet`'s `archivo`) and **its re-parse is asserted equal to
+  the released excerpts**, `start_char`/`end_char` included, or the run stops
+  naming the instrument and position — no `--allow-mismatch`; it held for all
+  2,676. **Offsets are UTF-16 code units** (converted from md2akn's code
+  points), so the page slices `markdown` directly. **Flags are counts, never
+  judgements** (`loose`, `duplicate_number`, `numbering_gap`, `over_window`,
+  `no_articles`, `uncovered`, `no_transitorios`; the two numbering flags skip
+  transitorios; `score` ranks); the findings they reveal are reported in the
+  README ("Measured, the instrument files"), not fixed here. The index
+  `website/pages/instruments/instruments.json` (0.57 MB, agrees with
+  `atlas-qwen3-4b.json` by position) is committed; the files (320 MB) are not
+  (`/website/pages/instruments/files/`, gitignored) but travel as the release
+  `atlas-instruments` (`atlas-instruments-qwen3-4b.tar.gz`,
+  `manifest-qwen3-4b.json`, `SHA256SUMS-qwen3-4b.txt`; every name carries the
+  model slug, body `.github/atlas-instruments.md`) which a human publishes with
+  `PUBLICAR.md` (issue #115, Hallazgo C) **before the page's pull request
+  merges** — `website.yml`'s *Fetch the instrument files* step fails without it,
+  on purpose. Nothing was published.
+
+- **The page (issue #290, done).** `website/pages/instruments.qmd` (title *The
+  Instruments of the Atlas, as md2akn Reads Them*, `pages/instruments/**` in
+  `project.resources`) mounts
+  `website/pages/instruments/instruments.js`/`instruments.css`: one IIFE, no library,
+  reading only its mount's `data-*` attributes (index, files folder, `data-repo`, and a
+  one-entry `data-models` for the 4B). It is the Atlas' kind of page, not a notebook: no
+  code cell, no freeze entry, prose in `.instruments-prose` as wide as the app. A landing
+  (combobox search — same ARIA, folding and ranking as the Atlas' — and a sortable,
+  collection-filtered corpus table, 50 rows at a time) opens an instrument at
+  `?c=<collection>&k=<key>[#<eId>[.<piece>]]` with `pushState`/`popstate`; the instrument
+  view has a header, a parse summary whose flag counts jump to and cycle through the flagged
+  excerpts, a collapsible outline, the `md2akn` tree rendered in `requestAnimationFrame`
+  chunks (badge `akn_type · eId · num`, per-node *Raw*, every excerpt wrapped with its
+  `data-unit-type`) and a *Parsed/Raw* mode where *Raw* is the whole document once with each
+  excerpt and every uncovered character marked. Compared excerpts (never a heading or a
+  transitory article) carry a lazily built *Nearest texts* list whose links open the other
+  instrument at the excerpt; a missing file, or one whose `meta.k` differs from the index's,
+  is a status message and the page stays usable. Every badge and the header link to a
+  prefilled GitHub issue (`md2akn: <key> <archivo> <eId>`). Decisions: the corpus table has
+  no numbering column (the index does not carry it and #290 may not change #289's data; the
+  mode is in each file's `meta`), a nearest text's label is derived from its eId alone (its
+  file is not loaded yet), and the page says *excerpt*, *compared excerpt*, *nearest texts*
+  and *parse*, never *unit*/*provision*/*tooltip*. Verified by
+  `scripts/embeddings/tests/test_instruments_page.py` (static checks; headless Chromium over
+  a toy site built by the real exporter; the rendered page through Quarto, plus the real Civil
+  Code when the files are installed). The README's "The Instruments page" has the details.
+  **No navbar entry (review fix-1, decision of the repository owner on
+  2026-10-13):** while the page is used to find parse errors it is reached through the
+  paragraph that ends the Atlas page, not from the navbar; it still renders, is in
+  `search.json`, ships `pages/instruments/**` and keeps `website.yml`'s workflow step, and
+  it is neither a draft nor excluded from `project.render`. Re-enabling the entry takes
+  restoring `Instruments` right after `Atlas` in `_quarto.yml`'s navbar and the six-name
+  pins in `test_atlas_page.py`, `test_topics_page.py` and `test_instruments_page.py`.
+  **Publish posture:** the `atlas-instruments` release of #289's `PUBLICAR.md` must exist
+  before this reaches `master`; until then `website.yml`'s *Fetch the instrument files* step
+  fails, as intended. Nothing was published and no PR was opened.
+
 ## Tables in SCJN snapshots (issue #253, done)
 
 The SCOW API hands `scjn.api.articulos_of_reforma` each article's `contenido`

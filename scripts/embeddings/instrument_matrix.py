@@ -182,8 +182,11 @@ def searched_mask(units):
             & ~units["transitorio"].to_numpy().astype(bool))
 
 
-def output_dir(work_dir: Path) -> Path:
-    return Path(work_dir) / SUBDIR
+def output_dir(work_dir: Path, subdir: str = SUBDIR) -> Path:
+    """Where a product of this family lives inside `work_dir`: `subdir` is the
+    matrix's own by default, and `nearest_texts.py` (issue #288) passes its own,
+    so the Slurm helpers below serve both without a second copy."""
+    return Path(work_dir) / subdir
 
 
 def unit_rows(work_dir: Path, *, collections=None, cache_dir=None, log=print):
@@ -537,7 +540,9 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
 def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
                    tolerance: float = DEFAULT_TOLERANCE,
                    block_rows: int = DEFAULT_BLOCK_ROWS,
-                   force: bool = False) -> list[str]:
+                   force: bool = False, script: Path = THIS_SCRIPT,
+                   subdir: str = SUBDIR, job_name: str = "instrument-matrix",
+                   extra_args=()) -> list[str]:
     """The one `sbatch` line this issue submits. Absolute paths throughout:
     Slurm copies the wrapper into its own spool directory and chdirs, so a
     relative `--work-dir` would point at nothing.
@@ -546,17 +551,21 @@ def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
     checked inside the job, not here, so recomputing a directory that already
     has one (issue #242's second pass rewrites the whole matrix) needs the flag
     on the other side of `sbatch` too.
+
+    `script`, `subdir`, `job_name` and `extra_args` default to this script's own
+    and let `nearest_texts.py` (issue #288) reuse the line for a sibling job
+    that takes the same `--tolerance`/`--block-rows` plus flags of its own.
     """
     work_dir = Path(work_dir).resolve()
-    cmd = ["sbatch", "--parsable", "--job-name=instrument-matrix",
+    cmd = ["sbatch", "--parsable", f"--job-name={job_name}",
            f"--time={TIME_LIMIT}",
-           f"--output={output_dir(work_dir) / 'slurm-%j.out'}"]
+           f"--output={output_dir(work_dir, subdir) / 'slurm-%j.out'}"]
     if exclude:
         cmd.append(f"--exclude={exclude}")
-    cmd += [str(SUBMIT_SH), str(THIS_SCRIPT),
+    cmd += [str(SUBMIT_SH), str(script),
             "--work-dir", str(work_dir),
             "--tolerance", repr(tolerance),
-            "--block-rows", str(block_rows)]
+            "--block-rows", str(block_rows), *[str(arg) for arg in extra_args]]
     if force:
         cmd.append("--force")
     return cmd
@@ -565,15 +574,24 @@ def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
 def submit(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
            tolerance: float = DEFAULT_TOLERANCE,
            block_rows: int = DEFAULT_BLOCK_ROWS,
-           force: bool = False, dry_run: bool = False, log=print) -> dict:
-    """Submit the sweep as one Slurm job and record `job.json`."""
+           force: bool = False, dry_run: bool = False, log=print,
+           script: Path = THIS_SCRIPT, subdir: str = SUBDIR,
+           job_name: str = "instrument-matrix", extra_args=(), requires=()) -> dict:
+    """Submit the sweep as one Slurm job and record `job.json`.
+
+    `requires` lists files (relative to the work directory) the job reads and
+    that must already exist, for a product that builds on another one.
+    """
     from _atomic import atomic_write_text
 
     work_dir = Path(work_dir).resolve()
     if not (work_dir / "prepare.done").exists():
         raise SystemExit(f"{work_dir / 'prepare.done'} is missing -- this issue "
                          "reads what prepare_umap_input.py wrote (issue #241)")
-    out_dir = output_dir(work_dir)
+    for name in requires:
+        if not (work_dir / name).exists():
+            raise SystemExit(f"{work_dir / name} is missing -- {script.name} builds on it")
+    out_dir = output_dir(work_dir, subdir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     done = out_dir / ".done"
@@ -585,14 +603,15 @@ def submit(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
         log(f"{done} removed: --force means the finished run is being replaced")
 
     cmd = sbatch_command(work_dir, exclude=exclude, tolerance=tolerance,
-                         block_rows=block_rows, force=force)
+                         block_rows=block_rows, force=force, script=script,
+                         subdir=subdir, job_name=job_name, extra_args=extra_args)
     log(" ".join(cmd))
     if dry_run:
         return {"dry_run": True, "command": cmd}
 
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     job_id = result.stdout.strip()
-    log(f"instrument-matrix: job {job_id}")
+    log(f"{job_name}: job {job_id}")
     state = {"job_id": job_id, "submitted_at": time.time(),
              "argv": " ".join(cmd), "exclude": exclude}
     atomic_write_text(out_dir / JOB_JSON,
@@ -600,17 +619,17 @@ def submit(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
     return state
 
 
-def load_job(work_dir: Path) -> dict:
-    path = output_dir(work_dir) / JOB_JSON
+def load_job(work_dir: Path, subdir: str = SUBDIR, script: Path = THIS_SCRIPT) -> dict:
+    path = output_dir(work_dir, subdir) / JOB_JSON
     if not path.exists():
-        raise SystemExit(f"{path} is missing -- run instrument_matrix.py --submit first")
+        raise SystemExit(f"{path} is missing -- run {Path(script).name} --submit first")
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def slurm_tail(work_dir: Path, lines: int = 20, log=print) -> None:
+def slurm_tail(work_dir: Path, lines: int = 20, log=print, subdir: str = SUBDIR) -> None:
     """The tail of whatever Slurm wrote — the only thing that says *why* a
     job left the queue without finishing."""
-    for out in sorted(output_dir(work_dir).glob("slurm-*.out")):
+    for out in sorted(output_dir(work_dir, subdir).glob("slurm-*.out")):
         text = out.read_text(encoding="utf-8", errors="replace").splitlines()[-lines:]
         log(f"--- tail of {out} ---")
         for line in text:
@@ -618,7 +637,8 @@ def slurm_tail(work_dir: Path, lines: int = 20, log=print) -> None:
 
 
 def wait(work_dir: Path, *, poll: int = 60, max_wait_minutes: float = 0.0,
-         sleep=time.sleep, log=print) -> str:
+         sleep=time.sleep, log=print, subdir: str = SUBDIR,
+         script: Path = THIS_SCRIPT, label: str = "instrument-matrix") -> str:
     """Poll `squeue` until the job leaves it.
 
     Returns `"finished"` (`.done` is there), `"still running"` (this chunk's
@@ -627,14 +647,14 @@ def wait(work_dir: Path, *, poll: int = 60, max_wait_minutes: float = 0.0,
     alive) or `"failed"` (the job left the queue and wrote no `.done`).
     """
     work_dir = Path(work_dir)
-    done = output_dir(work_dir) / ".done"
-    state = load_job(work_dir)
+    done = output_dir(work_dir, subdir) / ".done"
+    state = load_job(work_dir, subdir, script)
     job_id = str(state["job_id"])
     chunk_deadline = time.time() + max_wait_minutes * 60 if max_wait_minutes else None
 
     while True:
         if done.exists():
-            log(f"instrument-matrix: {done} is there")
+            log(f"{label}: {done} is there")
             return "finished"
         remaining = queued_jobs([job_id])
         elapsed = (time.time() - state["submitted_at"]) / 60
@@ -644,7 +664,7 @@ def wait(work_dir: Path, *, poll: int = 60, max_wait_minutes: float = 0.0,
             if done.exists():
                 return "finished"
             log(f"job {job_id} left the queue after {elapsed:.1f} min without a .done")
-            slurm_tail(work_dir, log=log)
+            slurm_tail(work_dir, log=log, subdir=subdir)
             return "failed"
         log(f"job {job_id} still queued or running after {elapsed:.1f} min")
         if chunk_deadline is not None and time.time() > chunk_deadline:

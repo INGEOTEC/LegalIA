@@ -1601,6 +1601,260 @@ when a local Quarto is found the way `test_atlas_page.py` finds it, renders the 
 into the gitignored `website/_site/` and checks the include, the 2,676 member lines,
 the navbar and the citation.
 
+### Nearest texts (issue #288)
+
+`nearest_texts.py` is the matrix's sweep again, keeping the **five closest
+foreign texts** of every searched excerpt instead of only the best. The
+Instruments page shows them on every excerpt an instrument has and lets the
+reader navigate to them, which `nearest.parquet` (the winner and its exact
+ties) cannot supply. Everything it needs is read from a finished matrix: it
+refuses a work directory without `prepare.done`, `instrument-matrix/.done` and
+`instrument-matrix/nearest.parquet`. Only the 4B work directory
+(`emb-run-atlas-4b`) has been run; the code goes through `scoring.scorer_for`
+and so also works over a BM25 work directory (a lexical score of 0 is never a
+neighbour), but nothing was measured for the other two.
+
+```bash
+uv run python scripts/embeddings/nearest_texts.py --work-dir emb-run-atlas-4b --dry-run
+uv run python scripts/embeddings/nearest_texts.py --work-dir emb-run-atlas-4b --submit
+uv run python scripts/embeddings/nearest_texts.py --work-dir emb-run-atlas-4b --wait --max-wait-minutes 9   # 75 while running
+uv run python scripts/embeddings/nearest_texts.py --work-dir emb-run-atlas-4b --report                       # offline
+uv run python scripts/embeddings/nearest_texts.py --work-dir emb-run-atlas-4b                                # compute here
+```
+
+The rules are the matrix's, imported from `instrument_matrix.py` and not
+restated in code: the sources are the searched unit rows (`searched_mask`: no
+heading, nothing in a transitorios section); the candidates are every vector
+row except the source instrument's *exclusively* owned rows and the rows
+nobody owns among the searched rows; a text the source shares with another
+instrument stays a candidate (at similarity 1 when it is the same text); the
+score is the work directory's own, exact, in blocks of `--block-rows`. What is
+new is the selection. Per block, `np.argpartition` keeps the best `--top`
+columns (`TOP_TEXTS` = 5, importable, "to be consistent with the Atlas"), and
+a row where more than K columns reach the K-th score is redone from every
+column at or above it, so **a tie at the cut is broken by the lower vector
+row**; the kept columns are sorted by `(-similarity, target_row)`. A tie at
+rank 1 is not collapsed: two exact ties are ranks 1 and 2. A masked column, or
+a zero BM25 score, is never written, so a source can have fewer than K rows.
+
+Outputs, under `<work-dir>/nearest-texts/` (its own directory: the matrix's
+`.done` already means "the matrix is there"), written atomically with `.done`
+last:
+
+- `nearest-texts.parquet` — one row per (source, rank), sorted by
+  `(i, row, rank)`: `i`, `coleccion`, `clave`, `row` (the source's vector row),
+  `rank` (1..K), `target_row`, `similarity` (`float32`) and `targets` (the
+  instruments owning `target_row`, minus `i`, sorted). The sources are keyed by
+  `(i, row)`, an instrument and a vector row, **not** by unit row: a text that
+  repeats inside one instrument has one answer, and the exporter fans it back
+  out to its excerpts by `eId`. `summary.json` therefore says both numbers,
+  `sources` (searched unit rows, equal to `nearest.parquet`'s row count) and
+  `source_texts` (distinct `(i, row)`, what this table is keyed by).
+- `summary.json` — `top`, `sources`, `source_texts`, `rows_written`,
+  `sources_short_of_top` (distinct sources with fewer than K rows, one with
+  none at all included), `sources_without_rows`, `agrees_with_nearest`,
+  `tolerance`, the scorer's own `describe()`, `block_rows`, `threads`, `node`,
+  `slurm_job_id`, `seconds` per phase, `seconds_total` and `peak_rss_gb`.
+- `job.json` and `slurm-<jobid>.out` when it ran through Slurm.
+
+**The agreement check.** Rank 1 is supposed to *be* the Atlas' winner, so before
+`.done` the script proves it: for every `(i, row)` of `nearest.parquet` with
+`n_winners > 0` the rank-1 similarity equals the matrix's within `--tolerance`
+(1e-6) and the rank-1 `targets` are among the matrix's; a source the matrix
+found no winner for has no row here, and no source here is missing from
+`nearest.parquet`. Anything else is a `SystemExit` naming the first
+`(i, row)`; the tolerance is not loosened to make a run pass.
+
+**Blocking and the last bit.** Which texts are kept, in which order and owned
+by whom does not depend on `--block-rows`; the `float32` similarity can differ
+in its last bit between block sizes (a different matrix product sums in a
+different order), so the test compares that column at the matrix's tolerance,
+not byte for byte.
+
+The Slurm plumbing is not a copy: `instrument_matrix.sbatch_command`/`submit`/
+`wait`/`load_job`/`slurm_tail`/`output_dir` take the script, the sub-directory,
+the job name, extra arguments and the files that must exist as keyword
+arguments, defaulting to the matrix's own (its tests and outputs are
+unchanged).
+
+`tests/test_nearest_texts.py` imports the toy corpora of
+`test_instrument_matrix.py` and checks the table against a brute force written
+in the test (every foreign candidate scored with plain `numpy`, sorted by
+`(-similarity, row)`), plus the hand-derivable facts: a `top` larger than the
+candidates, the exclusive and unowned rows never a target, a shared text a
+candidate at similarity 1, a tie as ranks 1 and 2, the transitorio corpus, a
+doctored `nearest.parquet`, `.done`/`--force`, the Slurm states and a BM25
+work directory.
+
+### The instrument files (issue #289)
+
+`export_instrument_files.py` is the data side of the website's Instruments page
+(issue #290): one JSON file per Atlas instrument — the document, the tree
+`md2akn` read in it, the excerpts it was cut into, parse-quality flags and, on
+every searched excerpt, the five nearest texts of `nearest_texts.py` resolved to
+their owners. It is a pure read of the work directory (`instruments.parquet`,
+`nearest.parquet`, `nearest-texts/`), the `legalvec` cache and the `scjn` cache,
+with no Slurm and no network (the 4B run: ~9 minutes).
+
+```bash
+uv run --group viz python scripts/embeddings/export_instrument_files.py --work-dir emb-run-atlas-4b \
+    --instruments-as website/pages/atlas/atlas-qwen3-4b.json \
+    --index website/pages/instruments/instruments.json \
+    --install website/pages/instruments/files
+```
+
+- **Which text, and the check that stops the run.** Each instrument is shown at
+  the *one snapshot its vectors were built from*: the `archivo` column of the
+  vectors release's `units.parquet`, read through `snapshot_reader(coleccion)
+  (clave, archivo)` (default: the `scjn` cache, disk only). The Markdown is
+  parsed again (`md2akn.parse_markdown`, `text_units(split_articles=False)`) and
+  the result must equal the released rows — `(unit_type, eId, piece, text_sha1,
+  start_char, end_char)` in order — or the run is a `SystemExit` naming the
+  instrument and the first differing position. There is no `--allow-mismatch`:
+  issue #279 proved the re-parse reproduces the units, so a difference is a
+  finding to report, not noise to skip.
+- **`files/<coleccion>/<clave>.json`**, short keys, the text stored once. `meta`:
+  the Atlas position `i`, `c`, `k`, `n`, `archivo`, `fecha_publicacion`,
+  `codNota` (leyes only), `md2akn_version`, `model`, `model_slug`, `top`,
+  `generated`, `commit`, `numbering` (`mode` `articulo`/`ordinal`/`numeral` from
+  `modo_sin_articulos`, `roman_articles` the article nodes numbered with a roman
+  numeral), `units`, `searched`, `flags`. `markdown`: the raw document, frontmatter
+  included. `tree`: the root node, each `{t, e, n, h, r, s, l, x, a, c}` (akn
+  type, `eId`, number, heading, `refers_to`, start, end, `["chapeau"|"tail"]`,
+  annotations `{raw, action, scope, date, source}`, children), empty keys omitted.
+  `units`: in document order `{u, e, p, pe, s, l, sha, v, x, f, near}` — `v` is
+  the vector row, `x` is true when the excerpt was searched (the matrix's own
+  `searched_mask`), `f` its flag names and, only when `x`, `near`: up to five
+  `[j, eId, piece, similarity, also]`. `j` is the Atlas index of the *first
+  owner* of the target text (lowest `j`, then its first searched excerpt), `eId`
+  and `piece` that excerpt, `similarity` rounded to four places and `also` the
+  remaining owners `[[j, eId, piece], ...]`; a text owned by several instruments
+  is one entry. The owners must be exactly `nearest-texts.parquet`'s `targets`,
+  and the first entry's similarity `nearest.parquet`'s, both asserted.
+- **Offsets are UTF-16 code units.** `md2akn`'s `start_char`/`end_char` are Python
+  code points and a JavaScript string is UTF-16, so every `s`/`l` is converted
+  once here (an astral character before an offset counts twice, `Utf16`) and the
+  page slices `markdown` directly. A test pins it with an emoji and a
+  supplementary-plane letter before an article, slicing the way JavaScript does.
+- **Flags** are counts the exporter computes, never judgements; the page shows
+  `FLAG_MEANINGS` next to each. Excerpt level: `loose` (an excerpt of type
+  `loose`), `duplicate_number` (an `article` number — as written, trimmed — that
+  appears more than once; every article carrying it is flagged),
+  `numbering_gap` (an article whose integer number — `27`, `1º`, `1o.` — is not
+  the previous integer number plus one; `4 Bis`, roman numerals and ordinal words
+  are skipped, so a repeated number is a gap too), `over_window` (the excerpt's
+  `text_sha1` is in the release's `texts_truncated` for the model). The two
+  numbering flags look only at articles outside a transitorios section: a
+  decree's `PRIMERO` repeats by design. Instrument level: `no_articles` (no
+  `article` excerpt), `uncovered` (`coverage().uncovered_chars > 0`, the flag
+  carries the character count) and `no_transitorios` (no section with
+  `refers_to == "#transitorios"`, informational). `meta.flags` holds the counts
+  and `score`, the sum of the excerpt-level counts plus one for `no_articles` and
+  one for `uncovered` — the page's default ranking key.
+- **The index** (`--index`, committed as `website/pages/instruments/instruments.json`):
+  `meta` (`generated`, `commit`, model, `md2akn_version`, `top`, `instruments`,
+  `collections`, `units`, `searched`, `flags` as `{flag: {instruments, count}}`,
+  `flag_meanings`, `release`, `files`) and `instruments`, one `{c, k, n, archivo,
+  u, x, a, f, s}` per instrument in the Atlas' order. `--instruments-as` refuses
+  an Atlas file whose `c`/`k`/`n` differ at any position (a `SystemExit` naming
+  the first), so the page can open an instrument by its Atlas index.
+- **Packaging and the hand-off.** `atlas-instruments-qwen3-4b.tar.gz` (`files/` +
+  `manifest.json`, members sorted, mtime 0, byte-reproducible),
+  `manifest-qwen3-4b.json` (counts, bytes, `largest`, flag totals, `commit`,
+  the nearest-texts `summary.json`) and `SHA256SUMS-qwen3-4b.txt`; every name
+  carries the model's slug, with no unsuffixed default, because a second model
+  adds its own three assets to the same release `atlas-instruments`
+  (`.github/atlas-instruments.md` is its body). Nothing is published: a human
+  runs `PUBLICAR.md` (issue #115, Hallazgo C) **before** the pull request that adds
+  the page merges, because `website.yml`'s *Fetch the instrument files* step
+  downloads the tarball, checks it against the sums, unpacks it into the
+  gitignored `website/pages/instruments/files/` and fails when it is missing
+  (the manifest lands beside it as `manifest-qwen3-4b.json`, also ignored).
+  `--install DIR` copies the files, and only the files, into `DIR`.
+  `.done` makes a rerun a no-op, `--force` recomputes.
+
+`tests/test_export_instrument_files.py` builds a toy corpus of real Markdown
+(five instruments in three collections, with a loose block, a repeated and a
+skipped article number, a prose-only law, a law with no transitorios, an emoji
+before an article, a text two laws share and a truncated one), parses it with
+`md2akn` the way `build_units.py` does, and runs the matrix and `nearest_texts.py`
+over it. It checks every key, the offsets by slicing as JavaScript would, the
+`SystemExit` on a doctored `units.parquet`, `near` on searched excerpts only,
+each flag (`uncovered` through a stubbed `coverage()`, since the invariant holds
+on every real document), the index and `--instruments-as`, the reproducible
+tarball and its sums, `PUBLICAR.md`, `--install`, `.done`/`--force`, and the
+static wiring (the workflow step before publishing, the `.gitignore` line, the
+release body and the committed index against `atlas-qwen3-4b.json`).
+
+### The Instruments page (issue #290)
+
+`website/pages/instruments.qmd` is a
+hand-written, library-free page over #289's outputs: `website/pages/instruments/instruments.js`
+and `instruments.css`, mounted by the qmd's `<!-- instruments:app -->` block, which reads
+only that block's `data-*` attributes (the index, the folder of files, the repository to
+report to, and a `data-models` list with the one entry the 4B). `_quarto.yml`'s
+`project.resources` ships `pages/instruments/**`; the page has no code cell and no freeze
+entry.
+
+- **No navbar entry (review fix-1 of #290).** By decision of the repository owner on
+  2026-10-13, while the page is used to find parse errors, it is reached through the
+  paragraph that ends the Atlas page, not from the navbar. It still renders, is in the search
+  index and ships its folder, and the workflow step is unchanged. Re-enabling the entry takes
+  restoring `Instruments` right after `Atlas` in `_quarto.yml`'s navbar and the six-name pins
+  in the three test files.
+- **What it shows.** A landing with a search box and the corpus table (every instrument,
+  its excerpts, compared excerpts, articles, one column per flag and the score; sortable,
+  filterable by collection, 50 rows at a time). Opening an instrument shows its header, a
+  summary of the parse (numbering mode and each flag as a button that jumps to the first
+  flagged excerpt and then cycles), an outline of its containers and articles, and the
+  document as `md2akn` tree: one nested block per node with a badge
+  `akn_type · eId · num` (the Mexican term is its hover text), the node's text rendered with
+  paragraphs and bold only, every excerpt wrapped with its `unit_type` and flags, a per-node
+  *Raw* button, and on every compared excerpt a *Nearest texts* disclosure. The *Raw* mode of
+  the whole page shows the document once, each excerpt as a span
+  (`span.instruments-range[data-unit-type]`) and any character in no excerpt, annotation or
+  frontmatter as `span.instruments-uncovered`. The document is rendered in chunks of a few
+  hundred nodes per animation frame (outline first), so a 3,589-article code opens at once;
+  `data-rendered="true"` marks the end. The whole interface says *excerpt*, *compared excerpt*,
+  *nearest texts* and *parse*.
+- **Addresses.** `instruments.html?c=<collection>&k=<key>` opens an instrument and
+  `#<eId>` (or `#<eId>.<piece>`) an excerpt; the page pushes history on every navigation and
+  restores it on `popstate`, so the back button returns to the previous instrument or
+  excerpt. An unknown instrument is a status line over the landing. A nearest text is an
+  ordinary query-relative link that the page also intercepts, so it opens in a new tab as
+  well; its label (*Article 27*, *Preamble*, *Loose text*, *part 2*) is derived from the
+  eId alone, with the eId as hover text, because the target's file is not loaded yet.
+- **Failure is a message, never a broken page.** A file that does not exist says *This
+  instrument's file is not available.*, a file whose `meta.k` or collection differs from the
+  index's says it was built from *a different version of the data*, a failed index sets
+  `data-ready="error"`, and in every case the page stays usable and a second click retries.
+- **Reporting a parse.** Every badge and the header carry a link to
+  `<repo>/issues/new` with the title `md2akn: <key> <archivo> <eId>` and a body naming the
+  collection, key, name, snapshot, `md2akn` version, eId, the page address with its hash and
+  an empty *What is wrong:* line. It is the only way the page reaches GitHub.
+- **Colours.** The collections keep the Atlas' categorical colours; a node type has a fixed,
+  quiet tint (containers greys, article ink, paragraph/point/subpoint stepped blues) and one
+  warning amber is used for parse flags only, all documented in `instruments.css`.
+- **The numbering column of the corpus table was left out**: the committed index does not
+  carry it (it is in each file's `meta.numbering`, which the instrument view shows), and
+  adding it would have changed #289's data.
+
+```bash
+uv run --group viz pytest scripts/embeddings/tests/test_instruments_page.py -q
+```
+
+`tests/test_instruments_page.py` has three layers. The static checks (front matter and
+literals against the committed index, the mount block verbatim, the prose, the navbar and
+resource, `fix_citation_links.py` untouched) always run. The browser tests drive headless
+Chromium over a *toy site*: the five-instrument corpus of `test_export_instrument_files.py`
+exported by the real exporter into a temporary `pages/` directory with the real script and
+stylesheet and the qmd's own app block, one test per behaviour (landing, sorting, filter,
+*Show more*, search, deep link, back button, nearest texts and their failure messages, flags,
+outline, *Raw*, report links, the 375 px layout), writing `output/instruments-alfa.png`. The
+rendered tests render the qmd with Quarto into the gitignored `website/_site/` and drive it;
+one opens the real Civil Code when `website/pages/instruments/files/` was installed
+(`export_instrument_files.py --install website/pages/instruments/files`).
+
 ### Tests
 
 ```bash
@@ -2845,3 +3099,66 @@ numbers them from 1, so page topic *n* is cluster *n* − 1 of this table:
 | 29 | 11 | leyes 4, reglamentos 7 | cámara, mesa, comisiones, presidente, diputados | LEY Orgánica del Congreso General de los Estados Unidos Mexicanos (`locg`) |
 | 30 | 7 | reglamentos 7 | conamed, médica, queja, reembolso, comité | REGLAMENTO PARA EL TRAMITE DE SOLICITUDES DE REEMBOLSO POR LA PREST... (`44035`) |
 | 31 | 2 | tratados 2 | reino países, bajos, dos mil, países bajos, reino | ACUERDO ENTRE LOS ESTADOS UNIDOS MEXICANOS Y EL REINO DE LOS PAISES... (`75722`) |
+
+### Measured, nearest texts, the 4B, 2026-10-13 (issue #288)
+
+`nearest_texts.py --work-dir emb-run-atlas-4b`, over the matrix of the 2,676
+instruments (185,456 vector rows, 145,970 searched unit rows), top 5, block of
+1,024 rows, tolerance 1e-6. **Computed locally, not on the cluster**: the job
+was submitted (`sbatch`, job 43111, `--exclude=geoint0`) and sat pending on
+`Resources` for the whole time it was watched, because `geoint1` and `geoint2`
+were held by another user's interactive jobs (11 h and 2 h old) and `geoint0`
+is excluded by default; it was cancelled and the plain `--work-dir` call was
+run on the login node (`geoint0`, 60 threads, a load average of about 18 from
+other users' work), which is why `summary.json` has no `slurm_job_id`.
+
+| | |
+|---|---|
+| sources | 145,970 searched unit rows = 145,693 distinct `(instrument, vector row)` texts |
+| rows written | 728,465 (exactly 5 for every source text; `sources_short_of_top` 0, `sources_without_rows` 0) |
+| `agrees_with_nearest` | **true** (rank-1 similarity within 1e-6 and rank-1 `targets` inside the matrix's, for every source) |
+| rank-1 similarity | median 0.764, mean 0.783, minimum 0.339; 4,809 sources at cosine 1 (a word-for-word text of another instrument) |
+| exact ties at rank 1 and 2 | 853 sources (the rank-1 text has the lower vector row) |
+| rank-1..5 texts with several owners | 17,061 of 728,465 rows, at most 14 owners |
+| seconds | load 6.0, normalise 2.2, sweep 720.6, check 0.8, write 0.8; 729.8 in total |
+| peak RSS | 4.8 GB |
+| `nearest-texts.parquet` | 8.4 MB |
+
+The sweep took about 2.4 times the matrix's 297 s on 62 cluster threads; the
+node was shared, so the extra cost of the top-K selection is not separable
+from it.
+
+### Measured, the instrument files, the 4B, 2026-10-13 (issue #289)
+
+`export_instrument_files.py --work-dir emb-run-atlas-4b`, md2akn 0.5.0, over the
+2,676 instruments at the snapshot their vectors came from. **The re-parse
+reproduced the released `units.parquet` for every one of them** (203,324
+excerpts, 145,970 searched, `start_char`/`end_char` included): the check never
+fired. 533 s on the login node (no Slurm: the export is one process).
+
+| | |
+|---|---|
+| files | 2,676 (315 leyes, 863 reglamentos, 125 lineamientos, 1,373 tratados), 320.1 MB of JSON (311 MB on disk) |
+| largest file | `files/tratados/137355.json`, 4.9 MB, 1,288 excerpts |
+| tarball | `atlas-instruments-qwen3-4b.tar.gz` 67.8 MB; `instruments.json` 0.57 MB |
+
+The first corpus-wide `md2akn` quality table. Each cell is *flagged excerpts
+(instruments with the flag)*; the instrument-level flags count instruments.
+These are counts for a person to look at, not defects: a loose block or a gap
+can be legitimate.
+
+| collection | instruments | excerpts | `loose` | `duplicate_number` | `numbering_gap` | `over_window` | `no_articles` | `no_transitorios` |
+|---|---|---|---|---|---|---|---|---|
+| leyes | 315 | 68,581 | 2,712 (135) | 539 (41) | 181 (34) | 1 (1) | 0 | 6 |
+| reglamentos | 863 | 87,965 | 936 (195) | 891 (49) | 181 (67) | 1 (1) | 0 | 64 |
+| lineamientos | 125 | 5,443 | 426 (54) | 589 (30) | 31 (15) | 0 | 3 | 11 |
+| tratados | 1,373 | 41,335 | 3,196 (113) | 3,152 (91) | 984 (89) | 10 (9) | 53 | 1,032 |
+| all | 2,676 | 203,324 | 7,270 (497) | 5,171 (211) | 1,377 (205) | 12 (11) | 56 | 1,113 |
+
+`uncovered` fired for **no instrument**: `coverage()` holds on all 2,676
+documents. The highest scores (the page's default order) are the treaty
+`137355` (1,779: 568 loose, 626 duplicated and 584 out-of-sequence article
+numbers, and one text over the window), the law `ligie-2022` (1,384, all loose
+blocks: the tariff), the treaty `114738` (541), the treaty `11345` (501, loose)
+and `ccom` (299). The 56 documents with no article at all are the 53 treaties
+and 3 lineamientos already counted in the rule-10 and rule-8 measurements.

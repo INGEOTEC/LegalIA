@@ -1,0 +1,694 @@
+/* The Instruments page (issue #290). The site's own colours
+   (website/style.scss): ink #1f1e1b, muted #52514e / #898781, rules #e1e0d9,
+   link #1c5cab, panels #f9f8f4. Controls use system-ui; headings keep the
+   site's serif (Palatino).
+
+   Colours, so that one means the same thing everywhere:
+   - a collection has the site's categorical colour (laws #2a78d6, regulations
+     #008300, guidelines #e87ba4, treaties #eda100), as on the Atlas;
+   - a node type has a fixed, quiet tint: containers are greys that darken with
+     depth of meaning (book to level), an article is ink, and a paragraph, a
+     point and a subpoint are stepped tints of the link blue;
+   - the warning tone #b45309 (amber) is used for one thing only: a parse flag
+     (`loose` text and every flag tag, mark and count). */
+
+.instruments {
+  --instruments-ink: #1f1e1b;
+  --instruments-muted: #52514e;
+  --instruments-faint: #898781;
+  --instruments-rule: #e1e0d9;
+  --instruments-link: #1c5cab;
+  --instruments-panel: #f9f8f4;
+  --instruments-warning: #b45309;
+  --instruments-warning-tint: #fdf3e7;
+  --instruments-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --instruments-serif: "Palatino Linotype", Palatino, "URW Palladio L", Georgia, serif;
+  color: var(--instruments-ink);
+  font-family: var(--instruments-sans);
+  font-size: 15px;
+  line-height: 1.45;
+  margin: 1.2rem 0 2.4rem;
+  min-height: 60vh;
+}
+
+.instruments [hidden] {
+  display: none !important;
+}
+
+.instruments p {
+  text-align: left;
+  hyphens: none;
+}
+
+.instruments button {
+  font: inherit;
+  color: inherit;
+}
+
+.instruments-error {
+  color: var(--instruments-warning);
+}
+
+.instruments-status {
+  margin: 0.4rem 0 0.8rem;
+  color: var(--instruments-muted);
+}
+
+.instruments-dot {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  margin-right: 0.45rem;
+  flex: none;
+}
+
+/* -- search ----------------------------------------------------------------- */
+
+.instruments-toolbar {
+  margin-bottom: 0.9rem;
+}
+
+.instruments-search {
+  position: relative;
+  max-width: 620px;
+}
+
+.instruments-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #c9c7be;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+}
+
+.instruments-search-input:focus {
+  outline: 2px solid var(--instruments-link);
+  outline-offset: 1px;
+}
+
+.instruments-suggestions {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #c9c7be;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(31, 30, 27, 0.14);
+}
+
+.instruments-suggestion,
+.instruments-no-match {
+  display: flex;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+
+.instruments-no-match {
+  cursor: default;
+  color: var(--instruments-muted);
+}
+
+.instruments-suggestion[aria-selected="true"] {
+  background: var(--instruments-panel);
+}
+
+.instruments-suggestion-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.instruments-suggestion-collection {
+  margin-left: 0.8rem;
+  color: var(--instruments-faint);
+  font-size: 0.85em;
+}
+
+/* -- the corpus table ---------------------------------------------------------- */
+
+.instruments-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+.instruments-filter {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid #c9c7be;
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.instruments-filter[aria-pressed="true"] {
+  background: var(--instruments-ink);
+  border-color: var(--instruments-ink);
+  color: #fff;
+}
+
+.instruments-caption {
+  color: var(--instruments-muted);
+  margin: 0 0 0.6rem;
+}
+
+.instruments-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.instruments-ranking {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.92em;
+}
+
+.instruments-ranking th,
+.instruments-ranking td {
+  padding: 0.3rem 0.6rem;
+  border-bottom: 1px solid var(--instruments-rule);
+  vertical-align: middle;
+  text-align: left;
+}
+
+.instruments-ranking th.instruments-number,
+.instruments-ranking td.instruments-number {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.instruments-ranking td.instruments-name {
+  min-width: 18rem;
+}
+
+.instruments-ranking td.instruments-name > * {
+  vertical-align: middle;
+}
+
+.instruments-ranking tbody td:nth-child(n + 5):not(.instruments-score) {
+  color: var(--instruments-warning);
+}
+
+.instruments-sort {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: inherit;
+}
+
+.instruments-ranking th[aria-sort="ascending"] .instruments-sort::after {
+  content: " ▲";
+  font-size: 0.7em;
+}
+
+.instruments-ranking th[aria-sort="descending"] .instruments-sort::after {
+  content: " ▼";
+  font-size: 0.7em;
+}
+
+.instruments-open {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--instruments-link);
+  text-align: left;
+}
+
+.instruments-open:hover {
+  text-decoration: underline;
+}
+
+.instruments-more,
+.instruments-back {
+  margin-top: 0.8rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid #c9c7be;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* -- one instrument ------------------------------------------------------------ */
+
+.instruments-back {
+  margin: 0 0 0.6rem;
+}
+
+.instruments-head-line {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.instruments-collection {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.instruments .instruments-title {
+  font-family: var(--instruments-serif);
+  font-size: 1.6rem;
+  line-height: 1.25;
+  margin: 0.4rem 0 0.3rem;
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.instruments-facts {
+  color: var(--instruments-muted);
+  margin: 0 0 0.9rem;
+}
+
+.instruments-report {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 1px solid var(--instruments-warning);
+  border-radius: 50%;
+  color: var(--instruments-warning);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  opacity: 0.55;
+}
+
+.instruments-report:hover,
+.instruments-report:focus {
+  opacity: 1;
+}
+
+.instruments-summary {
+  border: 1px solid var(--instruments-rule);
+  background: var(--instruments-panel);
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.instruments-numbering {
+  margin: 0 0 0.4rem;
+}
+
+.instruments-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.instruments-flag-row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.instruments-flag-name {
+  color: var(--instruments-muted);
+}
+
+.instruments-flag-none,
+.instruments-flag-position {
+  color: var(--instruments-faint);
+  font-size: 0.9em;
+}
+
+.instruments-flag-button {
+  border: 1px solid var(--instruments-warning);
+  border-radius: 4px;
+  background: var(--instruments-warning-tint);
+  color: var(--instruments-warning);
+  padding: 0 0.5rem;
+  cursor: pointer;
+}
+
+.instruments-mode {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.instruments-control-label {
+  color: var(--instruments-muted);
+}
+
+.instruments-segmented {
+  display: inline-flex;
+  border: 1px solid #c9c7be;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.instruments-segment {
+  border: 0;
+  background: #fff;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+}
+
+.instruments-segment + .instruments-segment {
+  border-left: 1px solid #c9c7be;
+}
+
+.instruments-segment[aria-checked="true"] {
+  background: var(--instruments-ink);
+  color: #fff;
+}
+
+/* Quarto's page CSS sends `aside` to the margin and gives h2/h3 a rule and
+   padding; the outline is a plain div and every child of the grid resets its
+   column, as on the Atlas (issue #247). */
+.instruments-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: start;
+}
+
+.instruments-layout > * {
+  grid-column: auto;
+}
+
+.instruments-outline {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  border: 1px solid var(--instruments-rule);
+  background: var(--instruments-panel);
+  border-radius: 6px;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.88em;
+}
+
+.instruments-outline-toggle {
+  display: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.instruments-outline-list {
+  margin: 0;
+  padding-left: 0.9rem;
+  list-style: none;
+}
+
+.instruments-outline > .instruments-outline-list {
+  padding-left: 0;
+}
+
+.instruments-outline-item {
+  margin: 0.1rem 0;
+}
+
+.instruments-outline-link {
+  border: 0;
+  background: none;
+  padding: 0.05rem 0.15rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.instruments-outline-link:hover {
+  text-decoration: underline;
+}
+
+.instruments-outline-fold {
+  border: 0;
+  background: none;
+  padding: 0 0.3rem 0 0;
+  cursor: pointer;
+  color: var(--instruments-faint);
+}
+
+.instruments-compared {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--instruments-link);
+  margin-right: 0.3rem;
+}
+
+.instruments-mark {
+  color: var(--instruments-warning);
+  margin-left: 0.3rem;
+}
+
+/* -- the document ------------------------------------------------------------------ */
+
+.instruments-reading {
+  min-width: 0;
+}
+
+.instruments-node {
+  margin: 0.35rem 0;
+  padding-left: 0.7rem;
+  border-left: 3px solid var(--instruments-rule);
+}
+
+.instruments-type-book,
+.instruments-type-title { border-left-color: #6b6a65; }
+.instruments-type-chapter { border-left-color: #898781; }
+.instruments-type-section,
+.instruments-type-level { border-left-color: #b9b7ae; }
+.instruments-type-article { border-left-color: var(--instruments-ink); }
+.instruments-type-paragraph { border-left-color: #1c5cab; }
+.instruments-type-point { border-left-color: #6f9bd2; }
+.instruments-type-subpoint { border-left-color: #b4cde9; }
+.instruments-type-content { border-left-color: #e1e0d9; }
+
+.instruments-node-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8em;
+  color: var(--instruments-muted);
+}
+
+.instruments-badge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--instruments-panel);
+  border: 1px solid var(--instruments-rule);
+  border-radius: 4px;
+  padding: 0 0.4rem;
+  word-break: break-all;
+}
+
+.instruments-raw-toggle {
+  border: 1px solid var(--instruments-rule);
+  border-radius: 4px;
+  background: #fff;
+  padding: 0 0.5rem;
+  cursor: pointer;
+  font-size: 0.95em;
+}
+
+.instruments-raw-toggle[aria-expanded="true"] {
+  background: var(--instruments-ink);
+  color: #fff;
+}
+
+.instruments-text {
+  margin: 0.2rem 0;
+}
+
+.instruments-paragraph {
+  margin: 0.25rem 0;
+}
+
+.instruments-raw-text,
+.instruments-rawdoc {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--instruments-panel);
+  border: 1px solid var(--instruments-rule);
+  border-radius: 4px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.85em;
+  margin: 0.3rem 0;
+}
+
+.instruments-excerpt {
+  margin: 0.5rem 0;
+  padding: 0.3rem 0.5rem;
+  border: 1px dashed var(--instruments-rule);
+  border-radius: 6px;
+}
+
+.instruments-excerpt[data-unit-type="loose"] {
+  border-color: var(--instruments-warning);
+  background: var(--instruments-warning-tint);
+}
+
+.instruments-excerpt-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.1rem;
+}
+
+.instruments-tag,
+.instruments-flag-tag {
+  font-size: 0.72em;
+  border-radius: 4px;
+  padding: 0 0.4rem;
+  border: 1px solid var(--instruments-rule);
+  color: var(--instruments-muted);
+  background: #fff;
+}
+
+.instruments-flag-tag {
+  border-color: var(--instruments-warning);
+  color: var(--instruments-warning);
+  background: var(--instruments-warning-tint);
+}
+
+.instruments-target {
+  outline: 3px solid var(--instruments-link);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.instruments-near {
+  margin-top: 0.3rem;
+  font-size: 0.88em;
+}
+
+.instruments-near summary {
+  cursor: pointer;
+  color: var(--instruments-link);
+}
+
+.instruments-near-list {
+  margin: 0.3rem 0 0;
+  padding-left: 1.3rem;
+}
+
+.instruments-near-item {
+  margin: 0.2rem 0;
+}
+
+.instruments-near-link {
+  color: var(--instruments-link);
+  text-decoration: none;
+}
+
+.instruments-near-link:hover {
+  text-decoration: underline;
+}
+
+.instruments-similarity {
+  margin-left: 0.6rem;
+  color: var(--instruments-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.instruments-also {
+  display: block;
+  color: var(--instruments-muted);
+  font-size: 0.92em;
+}
+
+/* -- the raw document ----------------------------------------------------------------- */
+
+.instruments-range {
+  border-bottom: 2px solid #b4cde9;
+}
+
+.instruments-range[data-unit-type="heading"] { border-bottom-color: #b9b7ae; }
+.instruments-range[data-unit-type="article"] { border-bottom-color: var(--instruments-ink); }
+.instruments-range[data-unit-type="loose"] { border-bottom-color: var(--instruments-warning); }
+
+.instruments-uncovered {
+  background: #fbd9d0;
+}
+
+.instruments-annotation {
+  color: var(--instruments-faint);
+}
+
+.instruments-frontmatter {
+  color: var(--instruments-faint);
+}
+
+/* -- phones ---------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .instruments-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .instruments-outline {
+    position: static;
+    max-height: none;
+  }
+
+  .instruments-outline-toggle {
+    display: block;
+  }
+
+  .instruments-outline > .instruments-outline-list {
+    display: none;
+    margin-top: 0.5rem;
+  }
+
+  .instruments-outline[data-open="true"] > .instruments-outline-list {
+    display: block;
+    max-height: 50vh;
+    overflow: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .instruments .instruments-title {
+    font-size: 1.3rem;
+  }
+
+  .instruments-flags {
+    flex-direction: column;
+  }
+}
+
+/* -- the prose under the page ---------------------------------------------------------- */
+
+.instruments-prose {
+  margin: 2rem 0 3rem;
+}
+
+/* The prose is as wide as the page; a table scrolls inside it rather than
+   widening it. */
+.instruments-prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}

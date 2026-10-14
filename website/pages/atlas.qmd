@@ -512,4 +512,9 @@ of the instrument names it, and the full table of links is given below.
 {{< include atlas/_gold-links.md >}}
 :::
 
+Every instrument of the map can also be read one by one, as the project parses
+it, with the excerpts that the map compares and the five nearest texts of each,
+on the [Instruments page](instruments.qmd), which exists to find the places
+where the parse goes wrong.
+
 :::

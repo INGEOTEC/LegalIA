@@ -63,3 +63,9 @@ slurm-*.out
 /website/pages/atlas/pairs-qwen3-4b/
 # A BM25 pair set, local scratch of the same shape, never committed.
 /website/pages/atlas/pairs-bm25/
+
+# The Instruments page's per-instrument files (issue #289): installed from the
+# atlas-instruments release (or export_instrument_files.py --install), ~230 MB,
+# never committed. The committed index is website/pages/instruments/instruments.json.
+/website/pages/instruments/files/
+/website/pages/instruments/manifest-*.json
