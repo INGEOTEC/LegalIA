@@ -471,3 +471,14 @@ def test_a_bm25_work_directory_writes_no_zero_score_row(tmp_path, prepared, cach
     for _, group in table.groupby(["i", "row"]):
         keys = list(zip(-group["similarity"].round(6), group["target_row"]))
         assert keys == sorted(keys)
+
+
+def test_nearest_texts_dry_run_on_a_shared_node(tmp_path, capsys):
+    work_dir = ready(tmp_path)
+    assert nearest_texts.main(["--work-dir", str(work_dir), "--dry-run", "--shared-node",
+                               "--cpus", "8", "--mem", "32G"]) == 0
+    command = next(line for line in capsys.readouterr().out.splitlines()
+                   if line.startswith("sbatch"))
+    assert "submit_cpu.sh" in command and "nearest_texts.py" in command
+    assert "--cpus-per-task=8" in command and "--mem=32G" in command
+    assert "--exclude" not in command and "--top 5" in command

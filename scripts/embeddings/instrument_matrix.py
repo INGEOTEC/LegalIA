@@ -128,6 +128,17 @@ DEFAULT_BLOCK_ROWS = 1024
 #: repository's own `.venv`, which is the one interpreter the login node and
 #: both compute nodes agree on (shared `/home`, no GPU, no module system).
 SUBMIT_SH = Path(__file__).with_name("submit_umap.sh")
+
+#: The same wrapper for a node other people and our own GPU jobs share
+#: (`--shared-node`, issue #294): no `--exclusive`, the cores and the memory are
+#: stated on the `sbatch` line, and the interpreter is the cluster's own venv.
+SUBMIT_SHARED_SH = Path(__file__).with_name("submit_cpu.sh")
+
+#: What `--shared-node` asks Slurm for when `--cpus`/`--mem` say nothing: enough
+#: for a block of the corpus multiplied at once (`DEFAULT_BLOCK_ROWS`) with BLAS
+#: on every core, far under a node's own size.
+SHARED_CPUS = 32
+SHARED_MEM = "64G"
 THIS_SCRIPT = Path(__file__)
 
 #: The login node is saturated by another user's work outside Slurm, so the
@@ -542,7 +553,8 @@ def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
                    block_rows: int = DEFAULT_BLOCK_ROWS,
                    force: bool = False, script: Path = THIS_SCRIPT,
                    subdir: str = SUBDIR, job_name: str = "instrument-matrix",
-                   extra_args=()) -> list[str]:
+                   extra_args=(), shared_node: bool = False, cpus: int = SHARED_CPUS,
+                   mem: str = SHARED_MEM, cache_dir=None) -> list[str]:
     """The one `sbatch` line this issue submits. Absolute paths throughout:
     Slurm copies the wrapper into its own spool directory and chdirs, so a
     relative `--work-dir` would point at nothing.
@@ -555,6 +567,13 @@ def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
     `script`, `subdir`, `job_name` and `extra_args` default to this script's own
     and let `nearest_texts.py` (issue #288) reuse the line for a sibling job
     that takes the same `--tolerance`/`--block-rows` plus flags of its own.
+
+    `shared_node` (issue #294) swaps the wrapper for `submit_cpu.sh` and states
+    `--cpus-per-task`/`--mem` instead of relying on an exclusive node; without it
+    the line is byte for byte what it was. `cache_dir`, when given, is forwarded
+    as an absolute `--cache-dir`: the job reads `units.parquet` through `legalvec`
+    and would otherwise read whatever cache the *job's* environment names, not the
+    one the work directory was prepared from.
     """
     work_dir = Path(work_dir).resolve()
     cmd = ["sbatch", "--parsable", f"--job-name={job_name}",
@@ -562,10 +581,14 @@ def sbatch_command(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
            f"--output={output_dir(work_dir, subdir) / 'slurm-%j.out'}"]
     if exclude:
         cmd.append(f"--exclude={exclude}")
-    cmd += [str(SUBMIT_SH), str(script),
+    if shared_node:
+        cmd += [f"--cpus-per-task={cpus}", f"--mem={mem}"]
+    cmd += [str(SUBMIT_SHARED_SH if shared_node else SUBMIT_SH), str(script),
             "--work-dir", str(work_dir),
             "--tolerance", repr(tolerance),
             "--block-rows", str(block_rows), *[str(arg) for arg in extra_args]]
+    if cache_dir is not None:
+        cmd += ["--cache-dir", str(Path(cache_dir).resolve())]
     if force:
         cmd.append("--force")
     return cmd
@@ -576,7 +599,9 @@ def submit(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
            block_rows: int = DEFAULT_BLOCK_ROWS,
            force: bool = False, dry_run: bool = False, log=print,
            script: Path = THIS_SCRIPT, subdir: str = SUBDIR,
-           job_name: str = "instrument-matrix", extra_args=(), requires=()) -> dict:
+           job_name: str = "instrument-matrix", extra_args=(), requires=(),
+           shared_node: bool = False, cpus: int = SHARED_CPUS, mem: str = SHARED_MEM,
+           cache_dir=None) -> dict:
     """Submit the sweep as one Slurm job and record `job.json`.
 
     `requires` lists files (relative to the work directory) the job reads and
@@ -604,7 +629,8 @@ def submit(work_dir: Path, *, exclude: str = DEFAULT_EXCLUDE,
 
     cmd = sbatch_command(work_dir, exclude=exclude, tolerance=tolerance,
                          block_rows=block_rows, force=force, script=script,
-                         subdir=subdir, job_name=job_name, extra_args=extra_args)
+                         subdir=subdir, job_name=job_name, extra_args=extra_args,
+                         shared_node=shared_node, cpus=cpus, mem=mem, cache_dir=cache_dir)
     log(" ".join(cmd))
     if dry_run:
         return {"dry_run": True, "command": cmd}
@@ -697,6 +723,28 @@ def report(work_dir: Path, log=print) -> dict:
     return {"done": done, "summary": summary}
 
 
+def add_slurm_arguments(parser) -> None:
+    """The submission flags `nearest_texts.py` shares with this script."""
+    parser.add_argument("--exclude", default=None,
+                        help="nodes sbatch must not use (default: the saturated login node "
+                             f"{DEFAULT_EXCLUDE!r}; none with --shared-node)")
+    parser.add_argument("--shared-node", action="store_true",
+                        help="submit through submit_cpu.sh: no --exclusive, for a node that "
+                             "other jobs share (issue #294)")
+    parser.add_argument("--cpus", type=int, default=SHARED_CPUS,
+                        help="--cpus-per-task of a --shared-node job")
+    parser.add_argument("--mem", default=SHARED_MEM,
+                        help="--mem of a --shared-node job")
+
+
+def resolve_exclude(args) -> str:
+    """`--exclude`, else the geoint default -- or nothing on a shared node, where
+    `geoint0` does not exist and sbatch may refuse the unknown name."""
+    if args.exclude is not None:
+        return args.exclude
+    return "" if args.shared_node else DEFAULT_EXCLUDE
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -707,8 +755,7 @@ def main(argv=None) -> int:
                         help="rows of one instrument multiplied by the corpus at once")
     parser.add_argument("--threads", type=int, default=None)
     parser.add_argument("--cache-dir", type=Path, default=None)
-    parser.add_argument("--exclude", default=DEFAULT_EXCLUDE,
-                        help="nodes sbatch must not use (default: the saturated login node)")
+    add_slurm_arguments(parser)
     parser.add_argument("--poll", type=int, default=60)
     parser.add_argument("--max-wait-minutes", type=float, default=0.0,
                         help="bound one wait chunk: return exit status 75 after this "
@@ -730,8 +777,10 @@ def main(argv=None) -> int:
         return 0 if report(args.work_dir)["done"] else 1
 
     if args.dry_run or args.submit:
-        submit(args.work_dir, exclude=args.exclude, tolerance=args.tolerance,
-               block_rows=args.block_rows, force=args.force, dry_run=args.dry_run)
+        submit(args.work_dir, exclude=resolve_exclude(args), tolerance=args.tolerance,
+               block_rows=args.block_rows, force=args.force, dry_run=args.dry_run,
+               shared_node=args.shared_node, cpus=args.cpus, mem=args.mem,
+               cache_dir=args.cache_dir)
         if not args.wait:
             return 0
 

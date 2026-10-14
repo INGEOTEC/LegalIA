@@ -374,8 +374,7 @@ def main(argv=None) -> int:
                         help="rows of one instrument multiplied by the corpus at once")
     parser.add_argument("--threads", type=int, default=None)
     parser.add_argument("--cache-dir", type=Path, default=None)
-    parser.add_argument("--exclude", default=instrument_matrix.DEFAULT_EXCLUDE,
-                        help="nodes sbatch must not use (default: the saturated login node)")
+    instrument_matrix.add_slurm_arguments(parser)
     parser.add_argument("--poll", type=int, default=60)
     parser.add_argument("--max-wait-minutes", type=float, default=0.0,
                         help="bound one wait chunk: return exit status 75 after this "
@@ -398,10 +397,13 @@ def main(argv=None) -> int:
 
     if args.dry_run or args.submit:
         instrument_matrix.submit(
-            args.work_dir, exclude=args.exclude, tolerance=args.tolerance,
+            args.work_dir, exclude=instrument_matrix.resolve_exclude(args),
+            tolerance=args.tolerance,
             block_rows=args.block_rows, force=args.force, dry_run=args.dry_run,
             script=THIS_SCRIPT, subdir=SUBDIR, job_name=JOB_NAME,
-            extra_args=["--top", args.top], requires=REQUIRES)
+            extra_args=["--top", args.top], requires=REQUIRES,
+            shared_node=args.shared_node, cpus=args.cpus, mem=args.mem,
+            cache_dir=args.cache_dir)
         if not args.wait:
             return 0
 
