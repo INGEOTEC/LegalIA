@@ -1002,6 +1002,29 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   are for a human (issue #115, Hallazgo C) and must run before the pull request merges; the Atlas
   chain and the Instruments page are issue #294. Tables in `scripts/embeddings/README.md`
   ("Measured, the re-embedded vectors against the published ones").
+- **The Atlas chain and the Instruments page on `md2akn` 0.5.1 (issue #294, done).** Everything
+  downstream of the excerpts was rebuilt from the re-embedded vectors **without publishing them**:
+  `scripts/embeddings/stage_vectors_cache.py` builds `emb-run-vectors-051-cache/` (a `legalvec`-shaped,
+  gitignored cache) from the four `emb-run-<c>-051/` merges, verified against their
+  `SHA256SUMS.txt`, and every script of the chain reads it through `--cache-dir`. The three work
+  directories (`emb-run-atlas`, `-4b`, `-bm25`) were rebuilt from scratch on `cemieredes`, the three
+  `atlas*.json` regenerated with `--instruments-as` (the same 2,676 instruments; 203,874 excerpts,
+  144,456 counted, 144,111 for BM25; the closest instrument unchanged for 2,659 of 2,676 under the 0.6B
+  and the 4B), the three `atlas-pairs` sets, the 4B's nearest texts (their winner-agreement proof
+  passed) and the instrument files (the re-parse equals the staged units for all 2,676) and
+  `instruments.json`. `instrument_matrix.py`/`nearest_texts.py` gained `--shared-node` (`submit_cpu.sh`:
+  no `--exclusive`, the cluster's own venv; the geoint line is unchanged without it) and now forward
+  `--cache-dir` into the job. `gold_links.py`'s signal B reads `intro` units too, since the text a chapter
+  opens with is what `loose` text became (it lost 6 links to the relabelling; the gold is again 251
+  instruments, 275 links). The evaluations were re-run: only last digits moved, no conclusion changed,
+  and the Atlas page's literals say 14 October 2026. **Nothing was published**: before the pull request
+  merges a human must run, in this order, the `scjn-tratados` re-package of #291
+  (`scripts/scjn/tratados-release/PUBLICAR.md`), the four vectors releases of #293
+  (`emb-run-<c>-051/publish/PUBLICAR.md`, leyes, reglamentos, lineamientos, tratados), the three
+  `atlas-pairs` sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`)
+  and `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, a first publish), or
+  `website.yml` fails or pairs the new JSON with old files. Tables in `scripts/embeddings/README.md`
+  ("Measured, the Atlas chain and the Instruments page under `md2akn` 0.5.1").
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 
@@ -1450,6 +1473,15 @@ reads it, with, on every searched excerpt, its closest texts of other instrument
   **Publish posture:** the `atlas-instruments` release of #289's `PUBLICAR.md` must exist
   before this reaches `master`; until then `website.yml`'s *Fetch the instrument files* step
   fails, as intended. Nothing was published and no PR was opened.
+- **Introductions and tables (issue #294, done).** `intro` and `table` (`md2akn` 0.5.1's rules
+  12 and 13) are nodes of the page like any other: badge, outline entry (*Introduction*, *Table N*),
+  excerpt wrapper and nearest texts. In *Parsed* mode a table node is drawn as an HTML table, **one per
+  excerpt**: a long table is cut at row boundaries into pieces (numbered from 1; a table that fits is
+  piece 0), each wrapped as its own excerpt and addressable as `#<eId>.<piece>`; a cell's `\|` is a
+  pipe, `**bold**` is kept, and a block that is not a row (the `**(ARANCEL)**` label) is a one-cell row
+  spanning the table. *Raw* mode is unchanged. The prose says *introduction* and *table*, never *unit*.
+  The real data is covered by browser tests that need no Quarto (`ligie-2022` shows `sec_I__intro` and its
+  tariff as tables, `137355` shows `art_1.1`); `export_atlas_pairs.py` labels the new excerpt types.
 
 ## Tables in SCJN snapshots (issue #253, done)
 

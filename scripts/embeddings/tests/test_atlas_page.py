@@ -1329,8 +1329,19 @@ def settled_xs(page, attempts=40):
     """`circle_xs` once two reads 250 ms apart agree, after a first 400 ms: with
     2,676 circles a fixed 900 ms wait no longer outlasts the draw and the 700 ms
     transition, and a transition can start a little after the call that asks for
-    it (issue #283)."""
+    it (issue #283).
+
+    Two equal reads are not proof the map is still: with 2,676 circles drawn by a
+    software renderer a frame can take well over a second, so a transition stalls and two
+    reads land on the same frame (issue #294, found while the two `..._does_not_fit_...`
+    tests flaked at the commit before it too). The wait therefore starts from d3's own
+    signal, which is that neither the mount (the layout tween) nor the svg (the zoom)
+    carries a live `__transition`."""
     page.wait_for_timeout(400)
+    page.wait_for_function(
+        "() => { const m = document.querySelector('#atlas'); "
+        "const s = document.querySelector('#atlas svg'); "
+        "return !!m && !!s && !m.__transition && !s.__transition; }", timeout=30000)
     last = circle_xs(page)
     for _ in range(attempts):
         page.wait_for_timeout(250)

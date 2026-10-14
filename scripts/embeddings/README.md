@@ -3352,3 +3352,112 @@ runs the four `PUBLICAR.md` (issue #115, Hallazgo C), and since the releases are
 four must be run **before** the pull request merges, or `legalvec` (and the Atlas chain that reads
 the vectors, #294) would pair new units with old vectors. `legalvec download --collection all` was
 not re-run end to end on this machine: GitHub answered 500 to part of the asset requests.
+
+### Measured, the Atlas chain and the Instruments page under `md2akn` 0.5.1, 2026-10-14 (issue #294)
+
+Everything downstream of the excerpts was rebuilt from the vectors #291 re-embedded and #293 verified,
+**without publishing anything**: the same 2,676 instruments, from `md2akn` 0.5.1's units.
+
+**Staging.** `stage_vectors_cache.py` builds `emb-run-vectors-051-cache/` (gitignored by `/emb-run*/`), a
+cache in `legalvec`'s own layout (`<tag>/units.parquet`, `vectors-<clave>-<model>-<K>.parquet`, ...), from the
+four `emb-run-<collection>-051/` merges, and verifies every file against the `SHA256SUMS.txt` that
+`package_vectors.py` wrote for it (5,814 files, hard-linked, 6 s). It is built from the merges alone and
+not from "the published cache plus the changed files": a merge is complete (#293 proved the unchanged
+files bit-identical), and the machine's published cache was incomplete anyway (GitHub answered 500 to part
+of `legalvec download`). Every script of the chain was pointed at it with `--cache-dir` and
+`LEGALVEC_CACHE_DIR`. Two defects surfaced on the way and are fixed with tests: `package_vectors.py`
+listed its own `SHA256SUMS.txt` in the sums on a second run, and `instrument_matrix.py --submit` never
+forwarded `--cache-dir` into the job, so a Slurm job would have read the *published* units against the
+*staged* vectors.
+
+**Slurm on `cemieredes`.** `submit_umap.sh` (`--exclusive -c 60`, the repository's `.venv`) is written for
+`geoint`; on a node that also runs GPU jobs `--exclusive` waits for the whole machine, and this checkout has
+no `.venv`. `instrument_matrix.py`/`nearest_texts.py` gained `--shared-node` (with `--cpus`, default 32, and
+`--mem`, default 64G): it submits through `submit_cpu.sh`, which asks for no exclusivity and runs
+`/home/mgraffg/.venvs/cluster/bin/python` (the interpreter `submit.sh` already runs the GPU jobs with;
+`$LEGALIA_PYTHON` overrides it) and drops the `geoint0` exclusion. Without the flag the sbatch line is byte for
+byte what it was. A BM25 job needs `bm25s`, which that venv lacks: a copy of `bm25s` and `scipy` under
+`~/.cache/legalia-pylibs` was put on `PYTHONPATH` (`sbatch` exports the environment), a local choice, not part
+of the repository. No job waited for the queue (another user's job held the node's other cores; every job
+started at once).
+
+| step | 0.6B | 4B | BM25 |
+|---|---:|---:|---:|
+| `prepare_umap_input.py` / `prepare_bm25_input.py` | 411 s | 15 min | 42 s |
+| matrix job (`instrument_matrix.py`) | 180 s | 340 s | 770 s |
+| `build_instrument_umap_html.py` (4 UMAP fits, login node) | 3 min 43 s | not timed | not timed |
+| `export_atlas_pairs.py` (login node, 8 cores) | 726 s | 816 s | 971 s |
+
+`nearest_texts.py` took 442 s (job 1592) and its proof passed (`agrees_with_nearest: true`);
+`export_instrument_files.py` took 1,242 s (it ran beside two other exports on the login node's 8 cores).
+
+**The data sets.** Same instruments, in the same positions, in all three files (`--instruments-as`):
+
+| | published (0.5.0) | now (0.5.1) |
+|---|---:|---:|
+| instruments | 2,676 | 2,676 |
+| excerpts (`meta.provisions`) | 203,324 | 203,874 |
+| headings excluded | 31,172 | 31,172 |
+| transitory rows excluded | 26,182 | 26,299 |
+| word-for-word shared rows not counted (0.6B and 4B / BM25) | 1,947 / 2,308 | 1,947 / 2,291 |
+| counted rows (0.6B and 4B / BM25) | 144,023 / 143,661 | 144,456 / 144,111 |
+| distinct texts | 185,456 | 185,968 |
+
+The closest instrument is unchanged for **2,659 of the 2,676** under the 0.6B and under the 4B, and for 2,666
+under BM25; `p` changed for 48 instruments (the ones whose rows changed) and `pc` for 43 (71 under BM25). The
+three `atlas-pairs` sets have 12,007, 11,986 and 12,077 files (12,002, 11,983 and 12,074 before). The 4B's
+nearest texts: 146,403 searched unit rows, 146,089 distinct source texts, 730,445 rows (145,970, 145,693 and
+728,465 before).
+
+**The instrument files** (`atlas-instruments`, 2,676 files, 319 MB of JSON, 67.6 MB as the tarball): the
+re-parse equals the staged units for **all 2,676**, offsets included, with no tolerance. The parse flags before
+and after (instruments / excerpts):
+
+| flag | 0.5.0 | 0.5.1 |
+|---|---:|---:|
+| `loose` | 497 / 7,270 | 287 / 1,676 |
+| `duplicate_number` | 211 / 5,171 | 209 / 4,598 |
+| `numbering_gap` | 205 / 1,377 | 203 / 844 |
+| `over_window` | 11 / 12 | 11 / 12 |
+| `no_articles` | 56 | 56 |
+| `no_transitorios` | 1,113 | 1,113 |
+
+`loose` falls by four fifths because a container's opening text is an `intro` and a table is a `table`; the two
+numbering flags fall with the decimal articles, which no longer read as their first digit. The treaty `137355`
+(the T-MEC protocol) has `art_1.1`, `art_1.2`, ... and 63 `duplicate_number` flags, all of them the annex articles
+`Artículo 2.A.1` that #291 reported and did not fix (every decimal article has its own number); `ligie-2022`
+(1,184 excerpts, 1,527 before) has `sec_I__intro` as an `intro`, 259 `intro` and 769 `table` excerpts (its tariff
+was loose paragraphs) and 13 `loose` ones.
+
+**The page.** `intro` and `table` are nodes like any other (badge, outline entry, excerpt marking, nearest
+texts); *Parsed* mode draws a table as an HTML table, one per excerpt (a long table is cut at row boundaries into
+pieces, each addressable as `#<eId>.<piece>`; a cell's `\|` is a pipe and `**` bold is kept), *Raw* is unchanged;
+the prose names the two kinds of excerpt (*introduction*, *table*). `export_atlas_pairs.py` labels them
+`Introduction` and `Table`: it had refused the new unit types with a `ValueError` the first time it ran.
+
+**The evaluations were re-run** (`gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`, 7 min, offline).
+The gold needed one fix: signal B read only `article` and `loose` units, and the text a chapter opens with had
+become `intro`, so the gold lost 6 links to a relabelling (B 167, 269 links). `SOURCE_UNIT_TYPES` now reads
+`intro` too, and the gold is exactly what it was: A 161, B 170, 251 instruments, 275 links, 62 unresolved names,
+`_gold-links.md` byte-identical. The numbers that moved, all by the last digit: A's mean reciprocal rank
+0.713 / 0.707 / 0.714 → 0.712 / 0.706 / 0.714; at the row level the cited instrument among the five closest for
+BM25 0.255 → 0.254, among the ten for the 0.6B 0.334 → 0.335, BM25's mean reciprocal rank 0.180 → 0.179, the
+0.6B's median rank 39 → 38.5 and, without the Constitution, 0.387 → 0.386 and BM25's 0.289 → 0.288; two
+p-values (0.6B − BM25 and 4B − BM25 on "cited instrument first", 0.09 → 0.10 and 0.08 → 0.07) and one interval
+(A and B, 4B − BM25, mean reciprocal rank, `[−0.025, +0.024]` → `[−0.024, +0.024]`). The page's tables carry the
+new values and say 14 October 2026. **No conclusion changed**: the three data sets are tied on the closest and
+the five closest instruments, the 4B is better row by row (on all five measures against the 0.6B and on four
+against BM25), the 0.6B and BM25 are tied.
+
+**Tests.** `test_atlas_page.py` literals follow the data (counts in the Data box, the treaty sentence
+`1,285 of the 1,373`, the evaluation tables); the two worked examples (Chapingo and the Constitution) needed no
+change, their weights are the same. The browser tests ran for real here (headless Chromium, no Quarto, so the
+`rendered_*` ones skip): Playwright's browser needs `libnspr4`/`libnss3`, which this machine does not have and
+which were unpacked from the Debian packages into `~/.cache/chromium-libs` (`LD_LIBRARY_PATH`), outside the
+repository. **Two Atlas tests are flaky on any data**: `test_a_4b_file_that_does_not_fit_...` and
+`test_a_bm25_file_that_does_not_fit_...` compare circle positions after a refused model switch and fail now and
+then; they fail the same way at the commit before this issue (`c8d2c792`, two runs in three) and were left
+alone.
+
+**What a human has to run, in this order, before the pull request merges** (nothing was uploaded): see the
+issue's comment and `CLAUDE.md`.
