@@ -33,23 +33,32 @@ ANIDAMIENTO: dict[str, frozenset[str]] = {
     "act": frozenset({"preamble", "body", "conclusions"}),
     "preamble": frozenset({"content"}),
     "body": frozenset(
-        {"book", "title", "chapter", "section", "level", "article", "content"}
+        {"book", "title", "chapter", "section", "level", "article", "content", "table"}
     ),
-    "book": frozenset({"title", "chapter", "section", "level", "article", "content"}),
-    "title": frozenset({"chapter", "section", "level", "article", "content"}),
-    "chapter": frozenset({"section", "level", "article", "content"}),
-    "section": frozenset({"level", "article", "content"}),
+    # A container's `intro` (rule 12, issue #291) and the `table`s of rule 13
+    # sit among its children; an `intro` holds the plain paragraphs and the
+    # tables of the text a container opens with.
+    "book": frozenset(
+        {"intro", "title", "chapter", "section", "level", "article", "content", "table"}
+    ),
+    "title": frozenset(
+        {"intro", "chapter", "section", "level", "article", "content", "table"}
+    ),
+    "chapter": frozenset({"intro", "section", "level", "article", "content", "table"}),
+    "section": frozenset({"intro", "level", "article", "content", "table"}),
+    "intro": frozenset({"content", "table"}),
     # An apartado holds articles; an apartado *inside* an article holds that
     # article's own fracciones -- which is why `paragraph` is here too. And
     # `point`, because an apartado may go straight to incisos with no fracción
     # in between: article 122 B of the Constitution and article 32 J of the
     # LGIPE both do, and both are the document saying so, not a broken stack.
-    "level": frozenset({"article", "paragraph", "point", "content"}),
+    "level": frozenset({"intro", "article", "paragraph", "point", "content", "table"}),
     "article": frozenset({"level", "paragraph", "content"}),
     "paragraph": frozenset({"point", "content"}),
     "point": frozenset({"subpoint", "content"}),
     "subpoint": frozenset({"content"}),
     "content": frozenset(),
+    "table": frozenset(),
     "conclusions": frozenset(),
 }
 

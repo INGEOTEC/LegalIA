@@ -425,8 +425,12 @@ _ORDINAL = (
     r"Octavo|Noveno|D[ée]cimo(?:\s+(?:Primero|Segundo|Tercero|Cuarto|Quinto|"
     r"Sexto|S[ée]ptimo|Octavo|Noveno))?)"
 )
+# A decimal number (`Artículo 1.1:`, chapter 1 article 1 of a treaty such as
+# the T-MEC, issue #291) is taken whole *before* the plain-digit shape: that
+# one would stop at `1.` and bold only `**Artículo 1.**`, leaving `1:` outside
+# the lead and turning every `Artículo 1.N` of the treaty into article `1`.
 _LEAD_ARTICULO = re.compile(
-    rf"^(Art[íi]culo\s+(?:\d+\s*(?:o\b\.?|[°º])?\s*"
+    rf"^(Art[íi]culo\s+(?:\d+(?:\.\d+)+|\d+\s*(?:o\b\.?|[°º])?\s*"
     r"(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies)?|"
     rf"{_ORDINAL})\.?-?)",
     re.I,

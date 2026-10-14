@@ -85,6 +85,10 @@ UNIT_TYPES = (
     "heading",
     "loose",
     "conclusions",
+    # Issue #291's rules 12 and 13: a container's introductory text, and a
+    # table (cut at row boundaries).
+    "intro",
+    "table",
 )
 
 #: The two templates `text_units` ships (issue #218 Fase 1, rule 7): whether
@@ -102,7 +106,8 @@ class TextUnit:
     model — `text` is already normalized, so it is what a caller would hash
     or embed with no further processing."""
 
-    #: `article | article_piece | preamble | heading | loose | conclusions`.
+    #: `article | article_piece | preamble | heading | loose | conclusions |
+    #: intro | table` (see `UNIT_TYPES`).
     unit_type: str
     #: The anchor node's eId — the article's own, even for one of its pieces.
     eId: str
@@ -584,7 +589,7 @@ def _article_units(
 
 
 def _is_loose_leaf(node: AknNode) -> bool:
-    return not node.children and node.akn_type != "article"
+    return not node.children and node.akn_type not in ("article", "table")
 
 
 def _loose_groups(leaves: list[AknNode], ann_ranges, cap: int) -> list[list[AknNode]]:
@@ -626,6 +631,106 @@ def _loose_units(
     return units
 
 
+def _table_units(
+    table: AknNode,
+    path: tuple[str, ...],
+    ann_ranges,
+    cap: int,
+    split_over_cap: bool = True,
+) -> list[TextUnit]:
+    """Rule 13 (issue #291): one `table` node as `table` units, cut at row
+    boundaries.
+
+    A row is one paragraph of the table's span (`scjn.api` writes one row per
+    Markdown paragraph, issue #253). Rows are packed in order into the longest
+    run whose embedded text still fits `cap`, and **every piece after the
+    first is prefixed with the table's first row** -- its column header --
+    chapeau-style, the way rule 3 repeats an article's chapeau: without it the
+    pieces of a tariff would be rows of numbers with no column names. The
+    prefix is part of the embedded text only; a piece's `[start_char,
+    end_char)` is its own rows, so the pieces partition the table's span and
+    `coverage()` stays true. Like every unit it carries its ancestor `path`.
+
+    A single row over the cap is left whole -- rule 9 never cuts inside a
+    paragraph -- and so is a row whose header prefix pushes it over:
+    `max_unit_chars` counts both as unsplittable. `split_over_cap=False`
+    turns the cutting off and gives one unit per table.
+    """
+    doc_text = ann_ranges.doc_text
+    rows = _paragraph_spans(doc_text, table.start_char, table.end_char)
+    header_raw = _strip_ranges(doc_text, rows[0][0], rows[0][1], ann_ranges)
+
+    def text_of(start: int, end: int, first: bool) -> str:
+        raw = _strip_ranges(doc_text, start, end, ann_ranges)
+        return _with_context(raw if first else f"{header_raw}\n\n{raw}", path)
+
+    whole = text_of(table.start_char, table.end_char, True)
+    if not split_over_cap or len(whole) <= cap or len(rows) <= 1:
+        pieces = [(table.start_char, table.end_char, whole)]
+    else:
+        pieces = []
+        start, end = rows[0]
+        text = text_of(start, end, True)
+        for row_start, row_end in rows[1:]:
+            candidate = text_of(start, row_end, not pieces)
+            if len(candidate) > cap:
+                pieces.append((start, end, text))
+                start, end = row_start, row_end
+                text = text_of(start, end, False)
+            else:
+                end, text = row_end, candidate
+        pieces.append((start, end, text))
+    return _units_from_pieces(
+        pieces, unit_type="table", eId=table.eId, akn_type="table", num=None,
+        path=path, piece_eId=None,
+    )
+
+
+def _intro_units(
+    intro: AknNode,
+    path: tuple[str, ...],
+    ann_ranges,
+    cap: int,
+    split_over_cap: bool = True,
+) -> list[TextUnit]:
+    """Rules 12 and 13 (issue #291) for one container's `intro`: its plain
+    paragraphs as `intro` units, its tables as `table` units, in document
+    order.
+
+    The paragraphs between two tables (or before the first, or after the last)
+    are packed like `loose` leaves -- up to `cap`, then cut at paragraph
+    boundaries by rule 9 -- and all carry the intro's own `eId`: one piece is
+    the unit whole (`piece` 0), several are numbered `1..n` across the whole
+    intro, in document order. A table is never part of an `intro` unit: a
+    LIGIE chapter's *Nota.* paragraphs are one `intro` unit and its tariff is
+    one or more `table` units.
+    """
+    pieces: list[tuple[int, int, str]] = []
+    tables: list[TextUnit] = []
+    run: list[AknNode] = []
+
+    def flush() -> None:
+        for group in _loose_groups(run, ann_ranges, cap):
+            pieces.extend(_capped_pieces(
+                group[0].start_char, group[-1].end_char, ann_ranges, cap,
+                lambda raw: _with_context(raw, path), split_over_cap,
+            ))
+        run.clear()
+
+    for child in intro.children:
+        if child.akn_type == "table":
+            flush()
+            tables.extend(_table_units(child, path, ann_ranges, cap, split_over_cap))
+        else:
+            run.append(child)
+    flush()
+    units = _units_from_pieces(
+        pieces, unit_type="intro", eId=intro.eId, akn_type="intro", num=None,
+        path=path, piece_eId=None,
+    )
+    return sorted(units + tables, key=lambda unit: unit.start_char)
+
+
 def _walk_container(
     node: AknNode,
     path: tuple[str, ...],
@@ -663,6 +768,12 @@ def _walk_container(
                 split_articles,
             ))
             i += 1
+        elif child.akn_type == "intro":
+            units.extend(_intro_units(child, child_path, ann_ranges, cap, split_over_cap))
+            i += 1
+        elif child.akn_type == "table":
+            units.extend(_table_units(child, child_path, ann_ranges, cap, split_over_cap))
+            i += 1
         elif _is_loose_leaf(child):
             j = i + 1
             while j < n and _is_loose_leaf(children[j]):
@@ -693,8 +804,9 @@ def text_units(
     (`md2akn.parse_markdown`'s return), so a caller who parsed for another
     reason does not pay to parse twice.
 
-    The ten rules — seven from issue #218's Fase 1, two added by #227, one by
-    #279, numbered into the same list rather than replacing any of them:
+    The thirteen rules — seven from issue #218's Fase 1, two added by #227, one
+    by #279 and three by #291, numbered into the same list rather than
+    replacing any of them:
 
     1. Frontmatter and reform annotations are metadata, never embedded.
     2. An article no longer than `cap` (normalized) is one unit, whole. With
@@ -732,6 +844,23 @@ def text_units(
        (issue #279). Unconditional: a roman alternative in
        `patterns.NUM_ARTICULO`, so the gate of rule 8 sees it too and a
        roman-numbered treaty is never read as an *acuerdo*.
+    11. A decimal article number is read whole: `Artículo 1.1:` is article
+       `1.1` (eId `art_1.1`), not article `1`. How the T-MEC and six other
+       treaties number their articles (issue #291). Unconditional, and only
+       after the article word.
+    12. A container's introductory text -- every block between its heading
+       (epigraph included) and its first child container or article -- is
+       that container's `intro` node and a `intro` unit, not a `loose` one:
+       the *Notas.* of a LIGIE section or chapter (issue #291). Capped and cut
+       like `loose`, carrying the same ancestor `path`; text before any
+       container keeps its `preamble`/`loose` treatment.
+    13. Consecutive table rows (blocks opening and closing with `|`, as
+       `scjn.api` writes them since #253) are one `table` node, and a table
+       that is not inside an article yields `table` units cut at row
+       boundaries up to `cap`, each piece after the first prefixed with the
+       table's first row -- its column header. A table inside an article is
+       part of that article's own text. A table is never part of an `intro`
+       unit.
 
     >>> import md2akn
     >>> text = (

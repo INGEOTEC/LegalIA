@@ -39,6 +39,11 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 #: has none for them: "transitorios" and "apartado". Both are expressed as an
 #: existing element plus `refers_to` (`section` + `#transitorios`, `level` +
 #: `#apartado`) instead. See #159 and #160.
+#:
+#: `intro` and `table` (issue #291) are Akoma Ntoso's own elements: `<intro>`
+#: is the text a container opens with before its first child, and a table is
+#: a block (`<table>`/`<tr>`/`<td>`) inside a container's intro or content --
+#: never a hierarchical unit, so a row is not a node of its own.
 AKN_TYPES = (
     "act",          # the whole document (the root)
     "preamble",     # "Al margen un sello...", the enacting formula
@@ -48,11 +53,13 @@ AKN_TYPES = (
     "chapter",      # CAPÍTULO
     "section",      # SECCIÓN, and TRANSITORIOS via refers_to
     "level",        # APARTADO A/B, via refers_to
+    "intro",        # a container's introductory text (rule 12, issue #291)
     "article",      # Artículo N
     "paragraph",    # fracción
     "point",        # inciso
     "subpoint",     # subinciso / numeral
     "content",      # a plain paragraph
+    "table",        # consecutive `| ... |` rows (rule 13, issue #291)
     "conclusions",  # the closing signatures
 )
 

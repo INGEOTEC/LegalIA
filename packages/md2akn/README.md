@@ -54,6 +54,8 @@ this package (it remains in git history if it is ever needed again).
 | Artículo N | `article` | |
 | fracción / inciso / subinciso | `paragraph` / `point` / `subpoint` | |
 | TRANSITORIOS | `section` | + `refers_to="#transitorios"` |
+| a container's introductory text (the *Notas.* of a LIGIE chapter) | `intro` | eId `<container>__intro`; rule 12 of `text_units` |
+| consecutive `\| … \|` rows | `table` | eId `<parent>__table_N`; rule 13 of `text_units` |
 | a plain paragraph | `content` | numbered 1..n inside its parent (`art_1o__p_2`) |
 | the closing signatures | `conclusions` | |
 
@@ -347,6 +349,28 @@ over the whole cached SCJN corpus — `scjn-leyes`, `scjn-reglamentos`,
 every machine has — rather than over a handful of fixtures; see its own module docstring.
 
 ## Changelog
+
+- **0.5.1** — three parse errors fixed, bug fixes only (issue #291), as
+  **rules 11, 12 and 13** of `text_units`. All three are unconditional.
+  **Rule 11**: a decimal article number (`Artículo 1.1:`, `Artículo 12.3.-`)
+  is read whole — eId `art_1.1` — where the number used to stop at `1`, so
+  every `Artículo 1.N` of the T-MEC and six other treaties was article `1`
+  (`patterns.NUMERO_DECIMAL_ARTICULO`, tried before `NUM_ARTICULO` inside
+  `ARTICULO` only; rule 8's gate sees such an article, so it stays off).
+  **Rule 12**: a container's introductory text — every block between its
+  heading and its first child container or article — is its `intro` node
+  (`akn_type` `intro`, eId `<container>__intro`) and an `intro` unit, capped
+  and cut like `loose`; it used to be `loose` and glued to whatever followed.
+  **Rule 13**: consecutive `| … |` rows (what `scjn` has written one per
+  paragraph since #253) are one `table` node (eId `<parent>__table_N`, the
+  lone `**(ARANCEL)**` label of a LIGIE tariff tolerated between rows), and a
+  table outside an article yields `table` units cut at row boundaries up to
+  the cap, each piece after the first prefixed with the table's first row. A
+  table inside an article stays that article's own text. `AKN_TYPES` and
+  `UNIT_TYPES` gain `intro` and `table`; `validate`'s nesting table allows
+  them. Default output for a document with none of the three is unchanged;
+  how far they reach on the four published corpora is measured in
+  `scripts/embeddings/README.md`.
 
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an

@@ -273,12 +273,12 @@ on our fixture's first article:
 ------------------------------------------------------
 
 :py:class:`~md2akn.AknNode` and :py:class:`~md2akn.Annotation`, and the
-vocabulary their ``akn_type`` is drawn from — 14 Akoma Ntoso element names,
-in the rough order they nest:
+vocabulary their ``akn_type`` is drawn from — 16 Akoma Ntoso element names
+(``intro`` and ``table`` joined in 0.5.1), in the rough order they nest:
 
 >>> from md2akn import AKN_TYPES, REFERS_TO_APARTADO, REFERS_TO_TRANSITORIOS
 >>> len(AKN_TYPES)
-14
+16
 >>> "article" in AKN_TYPES and "paragraph" in AKN_TYPES and "point" in AKN_TYPES
 True
 >>> REFERS_TO_APARTADO
@@ -488,6 +488,51 @@ longer read as an *acuerdo*:
 >>> tratado = "**ARTÍCULO I**\n\n1. Uno.\n\n2. Dos.\n\n**ARTÍCULO II**\n\nTres.\n"
 >>> [(u.unit_type, u.num) for u in md2akn.text_units(tratado, split_articles=False)]
 [('article', 'I'), ('article', 'II')]
+
+Rules 11, 12 and 13: decimal articles, a container's intro, and tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Issue #291 found three parse errors while browsing the instruments, and fixed
+them as one patch release, ``md2akn`` 0.5.1 — bug fixes, no new parameter.
+None of the three has a gate: they are corrections, and the measurement in
+``scripts/embeddings/README.md`` says how far each one reaches.
+
+Rule 11 reads a **decimal article number** whole. The T-MEC and six other
+treaties write ``Artículo 1.1:`` (chapter 1, article 1); the number used to
+stop at ``1``, so every ``Artículo 1.N`` came out as article ``1``. The eId
+keeps the number as written:
+
+>>> tmec = "**Artículo 1.1**: Uno.\n\n**Artículo 1.2**: Dos.\n\n**Artículo 2.1**: Tres.\n"
+>>> [(u.unit_type, u.num, u.eId) for u in md2akn.text_units(tmec, split_articles=False)]
+[('article', '1.1', 'art_1.1'), ('article', '1.2', 'art_1.2'), ('article', '2.1', 'art_2.1')]
+
+Rule 12 makes **a container's introductory text** its ``intro``: every block
+between the container's heading (epigraph included) and its first child
+container or article. It used to be ``loose`` and was glued to whatever came
+next. Akoma Ntoso's own name for it is ``<intro>``; here it is a node
+(``akn_type == "intro"``, eId ``<container>__intro``) and a ``unit_type``,
+capped and cut like ``loose`` and carrying the same ancestor ``path``.
+
+Rule 13 reads **consecutive table rows** — blocks that open and close with
+``|``, which is how :py:mod:`scjn` writes one recovered row per paragraph — as
+one ``table`` node. A table that is not inside an article yields ``table``
+units cut at row boundaries up to the cap, and every piece after the first is
+prefixed with the table's first row, its column header, the way rule 3 repeats
+an article's chapeau. A table is never part of an ``intro`` unit, and a table
+inside an article stays that article's own text.
+
+>>> capitulo = (
+...     "**CAPÍTULO 01**\n\n**Animales vivos**\n\nNota.\n\n1. Este Capítulo comprende animales.\n\n"
+...     "| CÓDIGO | DESCRIPCIÓN |\n\n| 01.01 | Caballos |\n\n| 01.02 | Bovinos |\n\n"
+...     "**Artículo 1o.** Uno.\n"
+... )
+>>> [(u.unit_type, u.eId, u.piece) for u in md2akn.text_units(capitulo, split_articles=False)]
+[('heading', 'cap_01', 0), ('intro', 'cap_01__intro', 0), ('table', 'cap_01__intro__table_1', 0), ('article', 'cap_01__art_1o', 0)]
+>>> for u in md2akn.text_units(capitulo, cap=80, split_articles=False):
+...     if u.unit_type == "table":
+...         print(u.piece, u.text)
+1 CAPÍTULO 01 Animales vivos | CÓDIGO | DESCRIPCIÓN | | 01.01 | Caballos |
+2 CAPÍTULO 01 Animales vivos | CÓDIGO | DESCRIPCIÓN | | 01.02 | Bovinos |
 
 :py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
 where ``coverage()`` says nothing was lost, this says the units are usable.

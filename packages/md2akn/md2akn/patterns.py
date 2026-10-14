@@ -18,6 +18,10 @@ What is here, and which issue put it there:
 - #161 — the `(REFORMADO, D.O.F. ...)` annotations.
 - #227 — `NUMERAL_DECIMAL`, for the *acuerdo*-shaped instrument that numbers
   its provisions `1.` / `2.1` rather than `Artículo N` (rule 8).
+- #279 — `NUMERO_ROMANO`, a roman-numbered article (rule 10).
+- #291 — `NUMERO_DECIMAL_ARTICULO` (rule 11), a decimal article number
+  (`Artículo 1.1`), and `FILA_TABLA`/`ETIQUETA_TABLA` (rule 13), the table
+  rows `scjn` writes since #253.
 """
 
 import re
@@ -128,6 +132,17 @@ NUM_ARTICULO = (
     r")"
 )
 
+#: A decimal article number (issue #291's rule 11): `Artículo 1.1:`,
+#: `Artículo 12.3.-`, `Artículo 3.2.1` -- chapter and article, how the T-MEC
+#: and six other `scjn-tratados` instruments number their articles. Tried
+#: *before* `NUM_ARTICULO` inside `ARTICULO` only (never part of
+#: `NUM_ARTICULO` itself, which other shapes build on): digits would otherwise
+#: stop at `1` and read `Artículo 1.2`, `1.3`, ... all as article `1`. It
+#: needs a digit after every dot, so `Artículo 1.-` and `Artículo 1.` are read
+#: exactly as before; a `:` after the number is not a separator, it is simply
+#: not consumed (`ARTICULO` is not anchored to the end of the line).
+NUMERO_DECIMAL_ARTICULO = r"\d+(?:\.\d+)+"
+
 #: The word that opens an article heading. `Art.` without bold is how the
 #: oldest laws write it (`Art. N.` 990 times, `Art. N.-` 132), so the bold
 #: markers are optional throughout.
@@ -149,7 +164,7 @@ ARTICULO = re.compile(
     r"^[ \t]*(?:\*\*)?[ \t]*"
     + _PALABRA_ARTICULO
     + r"S?\.?[ \t]*"
-    + rf"(?P<num>{NUM_ARTICULO})"
+    + rf"(?P<num>{NUMERO_DECIMAL_ARTICULO}|{NUM_ARTICULO})"
     + r"(?P<sep>[ \t]*(?:\.\-|\.|\-|–)?)",
     re.UNICODE,
 )
@@ -320,3 +335,27 @@ MARCADOR_LISTA = re.compile(
     r"(?:\*\*)?(?=[ \t]|$)",
     re.UNICODE,
 )
+
+
+# --------------------------------------------------------------------- #291
+
+#: A table row as `scjn.api` writes one since issue #253: a whole block that
+#: opens with `|` and closes with `|` (`| 0101.21.01 | Reproductores de raza
+#: pura. | Cbza | 10 | Ex. |`), matched against the block's stripped text. No
+#: GFM header separator exists in the corpus (#253's decision: one row per
+#: paragraph, no `|---|`). Measured on the latest snapshot of every instrument
+#: (2026-10-14): leyes 31 instruments carry such rows (19,073 of them),
+#: reglamentos 97 (2,126), lineamientos 22 (290), tratados 134 (18,083).
+FILA_TABLA = re.compile(r"^\|.*\|$", re.DOTALL)
+
+#: The one non-row block that does *not* end a table (rule 13): a lone,
+#: all-caps, parenthesised label sitting between two rows -- `**(ARANCEL)**`,
+#: which the LIGIE puts between the header row of every chapter's tariff and
+#: its body (97 of the 97 tables of that law). Without it every one of those
+#: tables would be cut into a one-row table holding the real column header and
+#: a second one whose "first row" is a sub-header. Letters and spaces only, so
+#: no reform annotation (`(REFORMADO, D.O.F. ...)`, which has a comma, a date
+#: and a full stop) can match, and an annotation never joins a table. The
+#: other blocks measured between two rows (`Sub-Sector:`, `Tabla B`, a
+#: reform annotation) are *not* tolerated: they are a table's end.
+ETIQUETA_TABLA = re.compile(r"^\*{0,2}\([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ]{1,30}\)\*{0,2}$")

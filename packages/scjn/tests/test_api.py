@@ -922,3 +922,55 @@ class TestInstrumentMetadata(unittest.TestCase):
             instrument_metadata(cliente, "LEY", 410, paginas=2, tamanio_pagina=3)
         )
         self.assertEqual(len(sesion.llamadas), 2)
+
+
+class TestDecimalArticleLeads(unittest.TestCase):
+    """Issue #291: a treaty such as the T-MEC numbers its articles
+    `Artículo 1.1:` (chapter 1, article 1). The lead used to stop at `1.`,
+    writing `**Artículo 1.**1:` and making every `Artículo 1.N` read as
+    article 1 downstream."""
+
+    def _lead(self, parrafo):
+        from scjn.api import _formatea_parrafo
+
+        return _formatea_parrafo(parrafo)
+
+    def test_un_numero_decimal_con_dos_puntos_se_toma_completo(self):
+        self.assertEqual(
+            self._lead("Artículo 1.1: Establecimiento de una zona de libre comercio"),
+            "**Artículo 1.1**: Establecimiento de una zona de libre comercio",
+        )
+
+    def test_un_numero_decimal_con_separador_incluye_el_separador(self):
+        self.assertEqual(
+            self._lead("Artículo 12.3.- Texto del artículo."),
+            "**Artículo 12.3.-** Texto del artículo.",
+        )
+
+    def test_un_numero_con_dos_niveles_decimales(self):
+        self.assertEqual(self._lead("Artículo 3.2.1: Texto."), "**Artículo 3.2.1**: Texto.")
+
+    def test_los_numeros_sin_decimal_no_cambian(self):
+        self.assertEqual(self._lead("Artículo 1.- Texto."), "**Artículo 1.-** Texto.")
+        self.assertEqual(self._lead("Artículo 1o.- Texto."), "**Artículo 1o.-** Texto.")
+        self.assertEqual(self._lead("Artículo 27 Bis.- Texto."), "**Artículo 27 Bis.-** Texto.")
+        self.assertEqual(self._lead("Artículo Primero.- Texto."), "**Artículo Primero.-** Texto.")
+        self.assertEqual(self._lead("Artículo 5. Texto."), "**Artículo 5.** Texto.")
+
+    def test_un_articulo_decimal_en_un_bloque_con_tabulador_no_es_fila(self):
+        # the guard of `_paragraphs_from_tabbed_block` uses the same regex
+        from scjn.api import _LEAD_ARTICULO
+
+        self.assertTrue(_LEAD_ARTICULO.match("Artículo 1.1"))
+
+    def test_articulos_a_markdown_de_extremo_a_extremo(self):
+        from scjn.api import Articulo, articulos_a_markdown
+
+        arts = [
+            Articulo(1, 1, "ARTÍCULO 1.1", "Artículo 1.1: Establecimiento de una zona."),
+            Articulo(2, 2, "ARTÍCULO 1.2", "Artículo 1.2: Objetivos."),
+        ]
+        self.assertEqual(
+            articulos_a_markdown(arts),
+            "**Artículo 1.1**: Establecimiento de una zona.\n\n**Artículo 1.2**: Objetivos.\n",
+        )

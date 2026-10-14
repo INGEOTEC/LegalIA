@@ -61,6 +61,8 @@ from md2akn.patterns import (
     CONTENEDOR,
     CONTENEDORES,
     DOF_TRANSITORIOS,
+    ETIQUETA_TABLA,
+    FILA_TABLA,
     MAX_EPIGRAFE,
     NOTA_EDITORIAL,
     NUMERAL_DECIMAL,
@@ -83,6 +85,7 @@ PREFIJO_EID = {
     # A paragraph is a citable unit of its own ("el párrafo segundo del
     # artículo 1o.", and reforms published against it) -- issue #181.
     "content": "p",
+    "table": "table",
 }
 
 _ACENTOS = str.maketrans("ÁÉÍÓÚÜáéíóúü", "AEIOUUaeiouu")
@@ -97,6 +100,19 @@ def _limpia(texto: str) -> str:
     """A heading's text without its Markdown bold markers or its trailing
     punctuation — what a reader would call the epigraph."""
     return _ESPACIOS.sub(" ", texto.replace("**", "").strip()).strip(" .:")
+
+
+def es_fila_tabla(bloque) -> bool:
+    """Whether `bloque` is a table row (rule 13, issue #291): a block that
+    opens with `|` and closes with `|`, the shape `scjn.api` writes one
+    recovered row in since issue #253."""
+    return bool(FILA_TABLA.match(bloque.text.strip()))
+
+
+def es_etiqueta_de_tabla(bloque) -> bool:
+    """Whether `bloque` is the one non-row block a table tolerates inside
+    itself (`**(ARANCEL)**`, see `patterns.ETIQUETA_TABLA`)."""
+    return bool(ETIQUETA_TABLA.match(bloque.text.strip()))
 
 
 def clasifica(bloque) -> tuple[str, dict]:
@@ -269,6 +285,11 @@ def _es_epigrafe(bloque, kind: str) -> bool:
     """
     if kind != "contenido":
         return False
+    # A table row is the container's own first table, never its title: a
+    # single line that does not end in a full stop would otherwise pass the
+    # test below (issue #291).
+    if es_fila_tabla(bloque):
+        return False
     texto = bloque.text
     if len(texto) > MAX_EPIGRAFE:
         return False
@@ -331,6 +352,10 @@ class _Constructor:
         self._pendientes = Pendientes()
         self._transitorios: AknNode | None = None
         self._pendiente_epigrafe: AknNode | None = None
+        #: The table (rule 13, issue #291) the previous block belonged to, as
+        #: long as the blocks that follow are still its rows; any other block
+        #: ends it.
+        self._tabla: AknNode | None = None
         #: Rule 8 (issue #227), decided once for the whole document before
         #: the pass starts -- `None` for every law and every instrument that
         #: numbers articles the ordinary way.
@@ -363,13 +388,17 @@ class _Constructor:
         while self._pila and self._pila[-1][0] >= rango:
             self._pila.pop()
 
-    def _nuevo_nodo(self, akn_type, inicio, fin, num=None, refers_to=None, padre=None):
+    def _nuevo_nodo(self, akn_type, inicio, fin, num=None, refers_to=None, padre=None,
+                    eid=None):
         padre = padre if padre is not None else self._padre_contenedor(inicio)
-        eid = self._eids.child(
-            "" if padre.akn_type in ("act", "body") else padre.eId,
-            PREFIJO_EID.get(akn_type, akn_type),
-            num if num is not None else akn_type,
-        )
+        if eid is None:
+            eid = self._eids.child(
+                "" if padre.akn_type in ("act", "body") else padre.eId,
+                PREFIJO_EID.get(akn_type, akn_type),
+                num if num is not None else akn_type,
+            )
+        else:
+            eid = self._eids.allocate(eid)
         inicio, notas = self._pendientes.toma(inicio)
         # The pull-back may not escape the parent, so the parent comes back
         # with it as far as it can. It cannot always: a law whose *title*
@@ -395,6 +424,19 @@ class _Constructor:
             kind, campos = clasifica(bloque)
             if self._modo_sin_articulos is not None:
                 kind, campos = self._promueve_a_articulo(bloque, kind, campos)
+
+            # Rule 13 (issue #291): a table lasts exactly as long as its rows
+            # do, plus one tolerated label block between two of them.
+            if self._tabla is not None and not es_fila_tabla(bloque):
+                if (
+                    kind == "contenido"
+                    and es_etiqueta_de_tabla(bloque)
+                    and i + 1 < self._fin_cuerpo
+                    and es_fila_tabla(self._bloques[i + 1])
+                ):
+                    self._extiende(self._tabla, bloque.end)
+                    continue
+                self._tabla = None
 
             if self._pendiente_epigrafe is not None:
                 contenedor = self._pendiente_epigrafe
@@ -528,7 +570,18 @@ class _Constructor:
             return
         if self._pila or self._transitorios is not None or self.body is not None:
             destino = self._padre_contenedor(bloque.start)
-            self._nuevo_nodo("content", bloque.start, bloque.end, padre=destino)
+            if self._transitorios is None and self._pila:
+                destino = self._intro_de(destino, bloque)
+            if es_fila_tabla(bloque):
+                self._agrega_fila_de_tabla(destino, bloque)
+            elif destino.akn_type == "intro":
+                self._nuevo_nodo(
+                    "content", bloque.start, bloque.end, padre=destino,
+                    num=str(1 + sum(1 for h in destino.children if h.akn_type == "content")),
+                )
+                self._extiende(destino, bloque.end)
+            else:
+                self._nuevo_nodo("content", bloque.start, bloque.end, padre=destino)
             return
         # Nothing structural has opened yet, so this is the preamble.
         if self.preambulo is None:
@@ -538,6 +591,43 @@ class _Constructor:
             )
         else:
             self._extiende(self.preambulo, bloque.end)
+
+    def _intro_de(self, contenedor: AknNode, bloque) -> AknNode:
+        """Where a block that is neither an article nor a container goes when
+        it falls straight under `contenedor` (rule 12, issue #291): the
+        container's `intro`, opened by the first such block.
+
+        Everything between a container's heading (epigraph included) and its
+        first child container or article is its introduction -- the *Notas.*
+        of a LIGIE section or chapter, an acuerdo's opening paragraphs -- and
+        so is a table that sits there. The builder only ever reaches this
+        with a container that has no child yet or whose last child is its
+        `intro`: any block after an article belongs to that article until the
+        next container opens, which is why this text used to come out as a
+        container's own loose `content` leaves. The guard on `children` keeps
+        an `intro` from opening after an article all the same.
+        """
+        if contenedor.children and contenedor.children[-1].akn_type == "intro":
+            return contenedor.children[-1]
+        if contenedor.children:
+            return contenedor
+        return self._nuevo_nodo(
+            "intro", bloque.start, bloque.end, padre=contenedor,
+            eid=f"{contenedor.eId}__intro",
+        )
+
+    def _agrega_fila_de_tabla(self, destino: AknNode, bloque) -> None:
+        """One table row (rule 13): the open table grows over it, or a new
+        `table` opens under `destino` -- the intro it sits in, the container,
+        a transitorios section or the body."""
+        if self._tabla is not None and self._tabla.parent is destino:
+            self._extiende(self._tabla, bloque.end)
+            return
+        numero = 1 + sum(1 for h in destino.children if h.akn_type == "table")
+        self._tabla = self._nuevo_nodo(
+            "table", bloque.start, bloque.end, padre=destino, num=str(numero),
+        )
+        self._extiende(self._tabla, bloque.end)
 
     # Annotations and editorial notes are not nodes: their text belongs to
     # whatever node they precede, which is what keeps #162's coverage

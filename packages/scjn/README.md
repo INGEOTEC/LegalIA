@@ -42,6 +42,14 @@ whatever is not there yet.
 
 ## Changelog
 
+- **0.5.1** — a bug fix (issue #291): `articulos_a_markdown` bolds a decimal
+  article lead whole. The T-MEC and six other treaties write `Artículo 1.1:`
+  (chapter 1, article 1), which used to come out `**Artículo 1.**1:` — so a
+  reader of the Markdown saw every `Artículo 1.N` as article 1. It is now
+  `**Artículo 1.1**:` (the `:` stays outside the bold). Every other lead
+  (`1.-`, `1o.`, `27 Bis`, an ordinal) is byte-identical to 0.5.0; a snapshot
+  written before this fix keeps its old shape until it is re-downloaded.
+
 - **0.5.0** — the fourth id-keyed collection, `scjn-tratados` (issue #277):
   every international treaty the SCJN serves (~1,456 instruments, members
   by the SCJN's *ámbito* `TRATADOS INTERNACIONALES`, any category).
