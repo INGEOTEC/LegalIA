@@ -229,7 +229,10 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
         has at least one roman-numbered `article` unit (before the rule, 176
         of the 229 treaties with no `article` unit were exactly these), and
         the treaties left with no article unit at all are the ones with no
-        roman opener either (53 measured, issue #279)."""
+        roman opener either (53 measured, issue #279; 54 since review fix-1
+        of #291: the treaty 22648 writes its articles as a bold `**III**` and
+        its ten recitals `**PRIMERO.-**` .. `**DECIMO.-**` used to be read as
+        its only articles, rule 17 correctly leaves them in the preamble)."""
         romanos = 0
         sin_unidad_romana = []
         sin_articulo = 0
@@ -251,7 +254,7 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
             f"{len(sin_unidad_romana)} of {romanos} roman-numbered treaties have no "
             "roman-numbered article unit",
         )
-        self.assertLessEqual(sin_articulo, 53)
+        self.assertLessEqual(sin_articulo, 54)
 
     @unittest.skipUnless(
         _TIENE_SCJN and local_tratados_ids(), "no scjn-tratados release cached locally"
