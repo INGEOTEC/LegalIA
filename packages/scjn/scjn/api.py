@@ -500,7 +500,7 @@ _NUM_ARTICULO = (
 # (`test_mismo_markdown_que_el_camino_docx` pins the quirk).
 _LEAD_ARTICULO = re.compile(
     rf"^((?i:Art[íi]culo)\s+(?:\d+(?:\.(?:\d+|[A-Z](?=\.\d)))+|{_NUM_ARTICULO})"
-    r"(?:\.-|-|(?<=\do)\.\s*|\.|(?:(?<=\d)|(?<=\d[oº°]))\s*)?)",
+    r"(?:[ \t]*\.-|[ \t]*-|(?<=\do)\.\s*|[ \t]*\.|(?:(?<=\d)|(?<=\d[oº°]))\s*)?)",
     re.UNICODE,
 )
 _LEAD_ORDINAL = re.compile(rf"^({_ORDINAL}\.-?)", re.I)
