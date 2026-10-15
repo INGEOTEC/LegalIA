@@ -32,20 +32,38 @@ from md2akn.model import AknNode
 ANIDAMIENTO: dict[str, frozenset[str]] = {
     "act": frozenset({"preamble", "body", "conclusions"}),
     "preamble": frozenset({"content"}),
+    # A `part` (`PARTE`), an `attachment` (`ANEXO`/`APÉNDICE`) and a `toc` are
+    # review fix-1 of #291's rules 15 and 16: an attachment closes every other
+    # container, so it sits straight under the body; a part sits under the
+    # body, an attachment or, in a document whose chapters come first, inside
+    # a chapter or a title.
     "body": frozenset(
-        {"book", "title", "chapter", "section", "level", "article", "content", "table"}
+        {"attachment", "part", "toc", "book", "title", "chapter", "section", "level",
+         "article", "content", "table"}
     ),
+    "attachment": frozenset(
+        {"intro", "toc", "part", "book", "title", "chapter", "section", "level", "article",
+         "content", "table"}
+    ),
+    "part": frozenset(
+        {"intro", "toc", "book", "title", "chapter", "section", "level", "article", "content",
+         "table"}
+    ),
+    "toc": frozenset(),
     # A container's `intro` (rule 12, issue #291) and the `table`s of rule 13
     # sit among its children; an `intro` holds the plain paragraphs and the
     # tables of the text a container opens with.
     "book": frozenset(
-        {"intro", "title", "chapter", "section", "level", "article", "content", "table"}
+        {"intro", "toc", "part", "title", "chapter", "section", "level", "article", "content",
+         "table"}
     ),
     "title": frozenset(
-        {"intro", "chapter", "section", "level", "article", "content", "table"}
+        {"intro", "toc", "part", "chapter", "section", "level", "article", "content", "table"}
     ),
-    "chapter": frozenset({"intro", "section", "level", "article", "content", "table"}),
-    "section": frozenset({"intro", "level", "article", "content", "table"}),
+    "chapter": frozenset(
+        {"intro", "toc", "part", "section", "level", "article", "content", "table"}
+    ),
+    "section": frozenset({"intro", "toc", "level", "article", "content", "table"}),
     "intro": frozenset({"content", "table"}),
     # An apartado holds articles; an apartado *inside* an article holds that
     # article's own fracciones -- which is why `paragraph` is here too. And

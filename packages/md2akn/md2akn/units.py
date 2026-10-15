@@ -36,7 +36,7 @@ import hashlib
 import re
 from dataclasses import dataclass
 
-from md2akn.model import REFERS_TO_TRANSITORIOS, AknNode
+from md2akn.model import REFERS_TO_ANEXO, REFERS_TO_TRANSITORIOS, AknNode
 from md2akn.pipeline import parse_markdown
 
 #: The split threshold `text_units` uses when no `cap` is given: measured
@@ -68,6 +68,10 @@ _PARAGRAPH_BREAK = re.compile(r"\n[ \t]*\n")
 #: book/title/chapter/section/level without an article between them, so it
 #: never reaches this function as `node`.
 _CONTAINER_LABEL = {
+    # Review fix-1 of #291 (rule 16): a `PARTE`, and an `ANEXO`/`APÉNDICE` (its
+    # word is `refers_to`'s, see `_container_label`).
+    "attachment": "ANEXO",
+    "part": "PARTE",
     "book": "LIBRO",
     "title": "TÍTULO",
     "chapter": "CAPÍTULO",
@@ -89,6 +93,8 @@ UNIT_TYPES = (
     # table (cut at row boundaries).
     "intro",
     "table",
+    # Review fix-1 of #291's rule 15: a table of contents.
+    "toc",
 )
 
 #: The two templates `text_units` ships (issue #218 Fase 1, rule 7): whether
@@ -107,7 +113,7 @@ class TextUnit:
     or embed with no further processing."""
 
     #: `article | article_piece | preamble | heading | loose | conclusions |
-    #: intro | table` (see `UNIT_TYPES`).
+    #: intro | table | toc` (see `UNIT_TYPES`).
     unit_type: str
     #: The anchor node's eId — the article's own, even for one of its pieces.
     eId: str
@@ -338,6 +344,8 @@ def _container_label(node: AknNode) -> str:
             label = f"{label} {node.num}"
         return label
     label = _CONTAINER_LABEL.get(node.akn_type, node.akn_type.upper())
+    if node.akn_type == "attachment" and node.refers_to != REFERS_TO_ANEXO:
+        label = "APÉNDICE"
     if node.num:
         label = f"{label} {node.num}"
     if node.heading:
@@ -589,7 +597,7 @@ def _article_units(
 
 
 def _is_loose_leaf(node: AknNode) -> bool:
-    return not node.children and node.akn_type not in ("article", "table")
+    return not node.children and node.akn_type not in ("article", "table", "toc")
 
 
 def _loose_groups(leaves: list[AknNode], ann_ranges, cap: int) -> list[list[AknNode]]:
@@ -731,6 +739,32 @@ def _intro_units(
     return sorted(units + tables, key=lambda unit: unit.start_char)
 
 
+def _toc_units(
+    toc: AknNode,
+    path: tuple[str, ...],
+    ann_ranges,
+    cap: int,
+    split_over_cap: bool = True,
+) -> list[TextUnit]:
+    """Rule 15 (review fix-1 of #291): one `toc` node as `toc` units.
+
+    A table of contents is text, and `coverage()` has to account for it, but it
+    is not law: it lists headings the document goes on to write. It is cut like
+    `loose` text (paragraph boundaries, up to `cap`) and carries its ancestor
+    `path`, and the matrix treats it like a heading -- neither a source nor a
+    candidate -- because what an index says is *where* a text is, not what it
+    says.
+    """
+    pieces = _capped_pieces(
+        toc.start_char, toc.end_char, ann_ranges, cap,
+        lambda raw: _with_context(raw, path), split_over_cap,
+    )
+    return _units_from_pieces(
+        pieces, unit_type="toc", eId=toc.eId, akn_type="toc", num=None, path=path,
+        piece_eId=None,
+    )
+
+
 def _walk_container(
     node: AknNode,
     path: tuple[str, ...],
@@ -773,6 +807,9 @@ def _walk_container(
             i += 1
         elif child.akn_type == "table":
             units.extend(_table_units(child, child_path, ann_ranges, cap, split_over_cap))
+            i += 1
+        elif child.akn_type == "toc":
+            units.extend(_toc_units(child, child_path, ann_ranges, cap, split_over_cap))
             i += 1
         elif _is_loose_leaf(child):
             j = i + 1

@@ -22,6 +22,13 @@ What is here, and which issue put it there:
 - #291 — `NUMERO_DECIMAL_ARTICULO` (rule 11), a decimal article number
   (`Artículo 1.1`), and `FILA_TABLA`/`ETIQUETA_TABLA` (rule 13), the table
   rows `scjn` writes since #253.
+- review fix-1 of #291 (repeated article numbers, rules 14 to 17) — the whole
+  article number (`NUM_ARTICULO`, `SUFIJO_LATINO`, `ORDINAL_PALABRA`,
+  `NUMERO_DECIMAL_ARTICULO` read what the SCJN actually writes: `1o. Bis`,
+  `1,055 Bis 1`, `8-01`, `195-Z-1`, `4B`, `Quintus`, `DECIMOSEGUNDO`,
+  `2.A.1`), `MARCADOR_INDICE` (rule 15, a table of contents) and
+  `CONTENEDOR_ANEXO`/`CONTENEDOR_PARTE` (rule 16, `PARTE`/`ANEXO`/`APÉNDICE`
+  containers).
 """
 
 import re
@@ -57,8 +64,15 @@ _DECENA_ORDINAL = (
     r"OCTOG[EÉ]SIM[OA]|NONAG[EÉ]SIM[OA]|CENT[EÉ]SIM[OA]"
 )
 #: An ordinal in words, tens-then-units, matched case-insensitively at use
-#: (`PRIMERO`, `Primero`, `VIGÉSIMO PRIMERO`, `ÚNICO`).
-ORDINAL_PALABRA = rf"(?:(?:{_DECENA_ORDINAL})\s+)?(?:{_UNIDAD_ORDINAL})"
+#: (`PRIMERO`, `Primero`, `VIGÉSIMO PRIMERO`, `ÚNICO`). The tens and the unit
+#: may be written as one word (`DECIMOSEGUNDO`, `ARTICULO DECIMO**TERCERO`:
+#: `tratados/11340`, `23710`, `11379`, `reglamentos/21196`) and the elided
+#: `DECIMOCTAVO` is one too -- review fix-1 of #291: `DECIMO` alone is the
+#: tenth, so reading `DECIMOSEGUNDO` as article `DECIMO` repeated eight
+#: articles of one treaty under one number.
+ORDINAL_PALABRA = (
+    rf"D[EÉ]CIMOCTAV[OA]|VIG[EÉ]SIMOCTAV[OA]|(?:(?:{_DECENA_ORDINAL})[ \t]*)?(?:{_UNIDAD_ORDINAL})"
+)
 
 #: The Latin suffixes a Mexican article number takes when a reform inserts an
 #: article between two existing ones: `27 Bis`, `27 Bis 1`, `27 Ter`. Measured
@@ -68,9 +82,24 @@ ORDINAL_PALABRA = rf"(?:(?:{_DECENA_ORDINAL})\s+)?(?:{_UNIDAD_ORDINAL})"
 #: `**Artículo 3° bis.**` and `**Artículo 3° Ter.**` in lower and title case
 #: within three blocks of each other, and reading those as plain "article 3°"
 #: silently merges three different articles into one number.
+_UNIDAD_LATINA = (
+    r"PRIM[UO]S|SEC[UA]ND[UA]S|TERTIUS|QUARTUS|QUINTUS|SEXTUS|S[EÉ]PTIMUS|OCTAVUS|NONUS"
+)
 SUFIJO_LATINO = (
+    # The compounds first: an alternation takes the first branch that fits,
+    # and `QUINQUIES` alone would leave the `DECIES` of `73 Quinquies decies`.
+    # `78 Quinquies**decies**` and `73 SEXIES DECIES`: the SCJN writes the
+    # compound with or without a space (review fix-1 of #291, `laero`/`lac`).
+    r"(?:QUINQUIES|SEXIES|SEPTIES|OCTIES|NONIES)[ \t]*DECIES|"
     r"BIS|TER|QU[AÁ]TER|QUINQUIES|SEXIES|SEPTIES|OCTIES|NONIES|DECIES|"
-    r"UNDECIES|DUODECIES|TERDECIES|QUATERDECIES"
+    r"UNDECIES|DUODECIES|TERDECIES|QUATERDECIES|"
+    # The `-us` series some laws use instead (`Artículo 12 Quintus`,
+    # `Artículo 188 Quartus decimus`, `Artículo 188 Vicesimus primus`): `cpf`,
+    # `lic`, `cjm`, `lfd`, `lfpc` and the reglamento 109182, which runs it up
+    # to the twenty-first (`Vicesimus primus`).
+    rf"(?:(?:UNDE|DUODE)?(?:VICESIMUS|TRICESIMUS)|UNDECIMUS|DUODECIMUS|DECIMUS)"
+    rf"(?:[ \t]+(?:{_UNIDAD_LATINA}))?|"
+    rf"(?:{_UNIDAD_LATINA})(?:[ \t]+DECIMUS)?"
 )
 
 #: A roman-numbered article's number (issue #279's rule 10): `ARTÍCULO I`,
@@ -99,16 +128,50 @@ NUMERO_ROMANO = (
 
 #: An article's number, as written. Four shapes, in one alternation:
 #:
-#: - digits, optionally ordinal-marked (`1o.`, `1°`, `1º`), optionally with a
-#:   letter suffix (`27-A`, seen as `**ARTICULO N-A.-`), optionally with one
-#:   or more Latin suffixes and their own digit (`27 Bis 1`);
+#: - digits (`28`, or `1,055` with the thousands separator the Código de
+#:   Comercio and the Código Civil Federal write), optionally ordinal-marked
+#:   (`1o.`, `1°`, `1º`, `1/o`), followed by any number of **components**,
+#:   each of which extends the number rather than ending it:
+#:
+#:   * a Latin suffix (`27 Bis`, `103-Bis`, `3bis`, `12 Quintus`), which may
+#:     be followed by its own digits (`27 Bis 1`) and, after an ordinal's
+#:     dot, stands on its own (`1o. Bis`: 24 laws and regulations repeated the
+#:     article `1o` for it before review fix-1 of #291);
+#:   * hyphen-digits (`1-01`, `58-1`, `19-1`, `8-01 bis`), how the ALADI
+#:     agreements and the Ley Federal de Derechos number their insertions;
+#:   * a letter -- hyphenated (`27-A`, `195-Z-1`), space-separated before the
+#:     heading's own separator (`410 A.-`, admitted only there: without the
+#:     lookahead "Artículo 5 A las personas..." would swallow its first word),
+#:     adjacent (`4B.-`, `3A`) or after an ordinal's own separator
+#:     (`1o.-A.-`, `7o.-A.`, how the LIVA and the LIEPS write theirs; the
+#:     letter must be followed directly by a separator, so `1o.-A falta de..`
+#:     stays a sentence);
 #: - **several numbers in one heading** — `Art. 30,31.` (501 occurrences).
 #:   Kept as a single `num` of `"30,31"` rather than split into two nodes:
 #:   the two articles share one heading and one body, and dividing that text
 #:   between them is not possible without guessing. #162's sweep counts them.
+#:   A comma followed by exactly three digits is a thousands separator, not a
+#:   list.
 #: - a roman numeral (`NUMERO_ROMANO`, issue #279), which is how treaties
 #:   number their articles;
 #: - an ordinal in words, which is how transitorio articles are numbered.
+_ENTERO = r"(?:\d{1,3}(?:,\d{3})+(?!\d)|\d+)"
+_COMPONENTE_ARTICULO = (
+    r"(?:"
+    # A Latin suffix, joined by a dash, a space, nothing at all (`3bis`) or,
+    # right after an ordinal, its dot (`1o. Bis`); its own digits may follow.
+    rf"(?:[ \t]*[-–][ \t]*|[ \t]*|\.[ \t]+)(?i:{SUFIJO_LATINO})\b(?:[ \t]+\d+)?"
+    # Hyphen-digits, or a hyphenated letter.
+    r"|[ \t]*[-–][ \t]*(?:\d+|[A-Za-zÁÉÍÓÚÑ]\b)"
+    # The space-separated letter (`410 A.-`) needs the separator right after.
+    r"|[ \t]+[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–])"
+    # An adjacent capital letter (`4B.-`, `3A`) ends the heading or is followed
+    # by a separator.
+    r"|(?<=\d)[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–:]|[ \t]*$)"
+    # A capital letter after an ordinal's own separator (`1o.-A.-`).
+    r"|(?<=[oº°])[ \t]*\.?[ \t]*[-–]?[ \t]*[A-ZÁÉÍÓÚÑ](?=[.\-–])"
+    r")"
+)
 NUM_ARTICULO = (
     r"(?:"
     # The ordinal marker binds to the digits: `(?:[ \t]*[oº°])?`, not
@@ -116,16 +179,8 @@ NUM_ARTICULO = (
     # consumed even when no marker follows, and `ARTICULO 28 Bis` comes out
     # as article "28 " with the suffix stranded -- which silently merged 28
     # and 28 Bis into one number across 136 laws before it was caught.
-    r"\d+(?:[ \t]*[oº°])?"
-    # A Latin suffix may be joined by a space or by a dash: the CCF writes
-    # `ARTICULO 103-Bis.-` where every other law writes `ARTICULO 103 Bis`.
-    rf"(?:(?:[ \t]*[-–][ \t]*|[ \t]+)(?i:{SUFIJO_LATINO})\b(?:[ \t]+\d+)?)*"
-    # A single-letter suffix: `27-A`, and the CCF's space-separated `410 A.-`.
-    # The space-separated form is admitted only when the letter is
-    # immediately followed by the heading's separator -- without that
-    # lookahead, "Artículo 5 A las personas..." would swallow its own first
-    # word as a suffix.
-    r"(?:[ \t]*[-–][ \t]*[A-Za-zÁÉÍÓÚÑ]\b|[ \t]+[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–]))?"
+    rf"{_ENTERO}(?:[ \t]*/?[oº°])?"
+    rf"{_COMPONENTE_ARTICULO}*"
     r"(?:[ \t]*,[ \t]*\d+(?:[ \t]*[oº°])?)*"
     rf"|{NUMERO_ROMANO}"
     rf"|{ORDINAL_PALABRA}"
@@ -134,14 +189,17 @@ NUM_ARTICULO = (
 
 #: A decimal article number (issue #291's rule 11): `Artículo 1.1:`,
 #: `Artículo 12.3.-`, `Artículo 3.2.1` -- chapter and article, how the T-MEC
-#: and six other `scjn-tratados` instruments number their articles. Tried
+#: and six other `scjn-tratados` instruments number their articles; since
+#: review fix-1 also the T-MEC's annex articles, `Artículo 2.A.1:`,
+#: `Artículo 12.D.1:` (a capital letter between two dots, and only when a
+#: digit follows it). Tried
 #: *before* `NUM_ARTICULO` inside `ARTICULO` only (never part of
 #: `NUM_ARTICULO` itself, which other shapes build on): digits would otherwise
 #: stop at `1` and read `Artículo 1.2`, `1.3`, ... all as article `1`. It
 #: needs a digit after every dot, so `Artículo 1.-` and `Artículo 1.` are read
 #: exactly as before; a `:` after the number is not a separator, it is simply
 #: not consumed (`ARTICULO` is not anchored to the end of the line).
-NUMERO_DECIMAL_ARTICULO = r"\d+(?:\.\d+)+"
+NUMERO_DECIMAL_ARTICULO = r"\d+(?:\.(?:\d+|[A-Z](?=\.\d)))+"
 
 #: The word that opens an article heading. `Art.` without bold is how the
 #: oldest laws write it (`Art. N.` 990 times, `Art. N.-` 132), so the bold
@@ -223,7 +281,15 @@ CONTENEDORES = {
 #: container of equal or lower rank is closed. That is what makes a law that
 #: opens with `CAPÍTULO I` and only later reaches `TÍTULO PRIMERO` come out
 #: with the chapter closed rather than swallowed by the title.
-PRECEDENCIA = {"book": 1, "title": 2, "chapter": 3, "section": 4, "level": 5}
+PRECEDENCIA = {
+    "attachment": 0, "part": 1, "book": 2, "title": 3, "chapter": 4, "section": 5, "level": 6,
+}
+
+#: Where a `PARTE` sits when the document opens its chapters *before* its
+#: first part (SOLAS: `Capítulo II-2` holds `Parte A`, `Parte B`): inside the
+#: chapter, so just below it. Every other document -- the IMDG Code, whose
+#: seven parts hold the chapters -- keeps `PRECEDENCIA["part"]`.
+PRECEDENCIA_PARTE_EN_CAPITULO = 4.5
 
 #: A container heading. The **whole line** must be the heading — otherwise
 #: "conforme al Capítulo III de esta Ley" in the middle of a sentence would
@@ -237,6 +303,62 @@ CONTENEDOR = re.compile(
     r"[ \t]+(?P<num>[^*\n]{1,40}?)"
     r"[ \t]*\.?[ \t]*(?:\*\*)?[ \t]*$",
     re.UNICODE,
+)
+
+#: The number a `PARTE`, `ANEXO` or `APÉNDICE` carries (review fix-1 of #291,
+#: rule 16): `1`, `4.31`, `1-A`, `II`, `III-B`, `A`, `B-1`, `PRIMERA`, `ÚNICO`.
+#: A *number token*, never a word: `Parte Contratante` and `Anexo a la
+#: solicitud` are prose, and the whole line has to be the heading.
+_NUM_DE_PARTE = (
+    r"(?:\d+(?:[.\-]\d+)*(?:[ \t]*-?[ \t]*[A-Z])?|[IVXLCDM]{1,8}(?:[ \t]*-[ \t]*[A-Z0-9]+)?|"
+    r"[A-Z](?:-\d+)?|(?i:" + ORDINAL_PALABRA + r")|UNO|Uno|[UÚ]NIC[OA]|[Úú]nic[oa])"
+)
+
+#: What may follow the number on the same line: a parenthesised remark
+#: (`ANEXO 3 (Rev.CMR-07)`, `ANEXO III (cont.)`), or a short title behind a
+#: separator (`PARTE I. DISPOSICIONES GENERALES`, `PARTE II - Fecha de
+#: entrada en vigor`) or, in capitals, directly (`PARTE 1 DISPOSICIONES
+#: GENERALES, DEFINICIONES Y CAPACITACIÓN`).
+_RESTO_DE_PARTE = (
+    r"(?P<resto>[ \t]*(?:\([^)\n]{1,30}\)|[.:\-–—][ \t]*[^\n*]{1,80}|"
+    r"[ \t]+[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ,]{2,80}))?"
+)
+
+#: A `PARTE` heading, in the two shapes the corpus writes it: `PARTE 1`,
+#: `Parte A`, `PARTE I. DISPOSICIONES GENERALES`, and the ordinal word before
+#: the noun (`PRIMERA PARTE`, `SEGUNDA PARTE. FORMATOS E INSTRUCTIVOS`: the
+#: reglamento 975 and 47726). Rule 16, review fix-1 of #291: 114738 (the
+#: IMDG Code) is divided into seven of them, and without a container for it
+#: every chapter `1.1` of every part hung off the root.
+CONTENEDOR_PARTE = re.compile(
+    r"^[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*)?[ \t]*"
+    r"(?:(?P<ord>(?i:" + ORDINAL_PALABRA + r"))[ \t]+PARTE|PARTE[ \t]+(?P<num>" + _NUM_DE_PARTE + r")|"
+    r"Parte[ \t]+(?P<num2>" + _NUM_DE_PARTE + r"))"
+    + _RESTO_DE_PARTE + r"[ \t]*\.?[ \t]*(?:\*\*)?[ \t]*$",
+    re.UNICODE,
+)
+
+#: An `ANEXO` or `APÉNDICE` heading: `ANEXO II`, `**ANEXO**` alone (163
+#: occurrences, every one the heading of an annex), `Apéndice A`, `APÉNDICE 3
+#: (Rev.CMR-07)`. Rule 16, review fix-1 of #291. An annex is its own text and
+#: usually numbers its own articles from 1: it is a container of its own
+#: (Akoma Ntoso's `attachment`) that closes every other open container.
+CONTENEDOR_ANEXO = re.compile(
+    r"^[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*)?[ \t]*"
+    r"(?P<clase>ANEXO|Anexo|AP[ÉE]NDICE|Ap[ée]ndice)"
+    r"(?:[ \t]+(?P<num>" + _NUM_DE_PARTE + r"))?"
+    + _RESTO_DE_PARTE + r"[ \t]*\.?[ \t]*(?:\*\*)?[ \t]*$",
+    re.UNICODE,
+)
+
+#: A table of contents' own marker (rule 15, review fix-1 of #291): a block
+#: that is nothing but `Índice`, `**INDICE**`, `Contenido`, `Tabla de
+#: contenido`. 100 instruments carry one; what follows it is a list of
+#: headings that the rest of the document then repeats as its body.
+MARCADOR_INDICE = re.compile(
+    r"^[ \t]*(?:#{1,6}[ \t]*)?\**[ \t]*(?:tabla[ \t]+de[ \t]+)?"
+    r"(?:[íi]ndice|contenidos?)(?:[ \t]+general)?[ \t]*[.:]?[ \t]*\**[ \t]*$",
+    re.IGNORECASE | re.UNICODE,
 )
 
 #: A TRANSITORIOS marker, opening a block of transitional provisions. The
@@ -261,6 +383,26 @@ TRANSITORIOS = re.compile(
 DOF_TRANSITORIOS = re.compile(
     r"^[ \t]*(?:\*\*)?[ \t]*D\.\s*O\.\s*F\.[ \t]+(?P<fecha>[^*\n]{4,60}?)"
     r"[ \t]*\.?[ \t]*(?:\*\*)?[ \t]*$",
+    re.UNICODE,
+)
+
+#: The heading that opens an instrument's recitals: `**CONSIDERANDO**`,
+#: `**CONSIDERANDO:**`, `CONSIDERANDOS` (rule 17, review fix-1 of #291). A
+#: lineamiento or acuerdo numbers its recitals `PRIMERO.` .. `NOVENO.` and then
+#: numbers its provisions `PRIMERO.` again; the recitals are the preamble, not
+#: articles.
+CONSIDERANDO = re.compile(
+    r"^[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*)?[ \t]*CONSIDERANDOS?[ \t]*[.:]?[ \t]*(?:\*\*)?[ \t]*$",
+    re.IGNORECASE | re.UNICODE,
+)
+
+#: The heading that ends the recitals and opens what the instrument orders
+#: (`**LINEAMIENTOS:**`, `**ACUERDO**`, `ACUERDA:`), a whole line, in capitals.
+MARCADOR_DISPOSITIVO = re.compile(
+    r"^[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*)?[ \t]*"
+    r"(?:ACUERDOS?|ACUERDAN?|LINEAMIENTOS|EXPIDEN?|DISPONEN?|RESUELVEN?|DECRETA|BASES|REGLAS|"
+    r"CRITERIOS|NORMAS|DISPOSICIONES|SE\s+EMITEN\s+LOS\s+SIGUIENTES\s+LINEAMIENTOS)"
+    r"[ \t]*[.:]?[ \t]*(?:\*\*)?[ \t]*$",
     re.UNICODE,
 )
 

@@ -40,6 +40,12 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 #: existing element plus `refers_to` (`section` + `#transitorios`, `level` +
 #: `#apartado`) instead. See #159 and #160.
 #:
+#: `part`, `attachment` and `toc` (review fix-1 of #291, rules 15 and 16) are
+#: Akoma Ntoso's own too: a `part` is a `PARTE` (above a book, or inside a
+#: chapter when the document puts its chapters first), an `attachment` an
+#: `ANEXO` or `APÉNDICE` (told apart by `refers_to`) and a `toc` a table of
+#: contents.
+#:
 #: `intro` and `table` (issue #291) are Akoma Ntoso's own elements: `<intro>`
 #: is the text a container opens with before its first child, and a table is
 #: a block (`<table>`/`<tr>`/`<td>`) inside a container's intro or content --
@@ -48,6 +54,9 @@ AKN_TYPES = (
     "act",          # the whole document (the root)
     "preamble",     # "Al margen un sello...", the enacting formula
     "body",         # the normative body
+    "attachment",   # ANEXO / APÉNDICE, via refers_to (rule 16, review fix-1 of #291)
+    "part",         # PARTE (rule 16, review fix-1 of #291)
+    "toc",          # a table of contents (rule 15, review fix-1 of #291)
     "book",         # LIBRO
     "title",        # TÍTULO
     "chapter",      # CAPÍTULO
@@ -68,6 +77,10 @@ AKN_TYPES = (
 #: same way and a consumer can match on them.
 REFERS_TO_TRANSITORIOS = "#transitorios"
 REFERS_TO_APARTADO = "#apartado"
+#: An `attachment` is an `ANEXO` or an `APÉNDICE`; which one is `refers_to`
+#: (rule 16, review fix-1 of #291).
+REFERS_TO_ANEXO = "#anexo"
+REFERS_TO_APENDICE = "#apendice"
 
 #: eId path separator, as Akoma Ntoso names them: an inciso a) of fracción II
 #: of article 27 is `art_27__para_II__point_a`.

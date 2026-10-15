@@ -46,7 +46,9 @@ import re
 from md2akn.annotations import es_anotacion, parse_annotation
 from md2akn.lists import ConstructorDeArticulo, Pendientes
 from md2akn.model import (
+    REFERS_TO_ANEXO,
     REFERS_TO_APARTADO,
+    REFERS_TO_APENDICE,
     REFERS_TO_TRANSITORIOS,
     AknNode,
     EIdAllocator,
@@ -58,15 +60,22 @@ from md2akn.patterns import (
     ARTICULO_ORDINAL,
     CONCLUSIONES,
     CONCLUSIONES_ULTIMOS_BLOQUES,
+    CONSIDERANDO,
     CONTENEDOR,
+    CONTENEDOR_ANEXO,
+    CONTENEDOR_PARTE,
     CONTENEDORES,
     DOF_TRANSITORIOS,
     ETIQUETA_TABLA,
     FILA_TABLA,
+    MARCADOR_DISPOSITIVO,
+    MARCADOR_INDICE,
     MAX_EPIGRAFE,
     NOTA_EDITORIAL,
     NUMERAL_DECIMAL,
+    ORDINAL_PALABRA,
     PRECEDENCIA,
+    PRECEDENCIA_PARTE_EN_CAPITULO,
     SOLO_NEGRITAS,
     TRANSITORIOS,
 )
@@ -86,7 +95,13 @@ PREFIJO_EID = {
     # artículo 1o.", and reforms published against it) -- issue #181.
     "content": "p",
     "table": "table",
+    # Review fix-1 of #291 (rules 15 and 16).
+    "part": "part",
+    "attachment": "att",
+    "toc": "toc",
 }
+
+_ORDINAL_PALABRA = re.compile(ORDINAL_PALABRA, re.IGNORECASE | re.UNICODE)
 
 _ACENTOS = str.maketrans("ÁÉÍÓÚÜáéíóúü", "AEIOUUaeiouu")
 _ESPACIOS = re.compile(r"\s+")
@@ -100,6 +115,12 @@ def _limpia(texto: str) -> str:
     """A heading's text without its Markdown bold markers or its trailing
     punctuation — what a reader would call the epigraph."""
     return _ESPACIOS.sub(" ", texto.replace("**", "").strip()).strip(" .:")
+
+
+def _titulo(resto) -> str | None:
+    """The short title a container heading carries after its number
+    (`PARTE I. DISPOSICIONES GENERALES`), or `None` when it has none."""
+    return _limpia(resto or "").lstrip("-–— ").strip() or None
 
 
 def es_fila_tabla(bloque) -> bool:
@@ -149,6 +170,23 @@ def clasifica(bloque) -> tuple[str, dict]:
         num = _limpia(m.group("num"))
         if clase in CONTENEDORES and num:
             return "contenedor", {"akn_type": CONTENEDORES[clase], "num": num}
+
+    # Rule 16 (review fix-1 of #291): `PARTE`, `ANEXO`, `APÉNDICE`.
+    m = CONTENEDOR_PARTE.match(linea)
+    if m:
+        num = _limpia(m.group("ord") or m.group("num") or m.group("num2"))
+        return "contenedor", {
+            "akn_type": "part", "num": num, "heading": _titulo(m.group("resto")),
+        }
+    m = CONTENEDOR_ANEXO.match(linea)
+    if m:
+        es_anexo = _sin_acentos_mayusculas(m.group("clase")) == "ANEXO"
+        return "contenedor", {
+            "akn_type": "attachment",
+            "num": _limpia(m.group("num") or "") or None,
+            "refers_to": REFERS_TO_ANEXO if es_anexo else REFERS_TO_APENDICE,
+            "heading": _titulo(m.group("resto")),
+        }
 
     # Matched against the line with its bold markers removed. The CCF puts a
     # `**` in the middle of a number -- `**ARTICULO 410 **A.-`,
@@ -301,6 +339,130 @@ def _es_epigrafe(bloque, kind: str) -> bool:
     return not lineas[0].rstrip().endswith((".", ";", ":"))
 
 
+#: Longest a block of a table of contents may be (rule 15). Some indexes carry
+#: long titles (`5.5.3 Disposiciones especiales aplicables a los bultos...`),
+#: so the bound is generous; `MAX_ENCABEZADO_INDICE` is what a heading that
+#: *repeats* an entry may be.
+MAX_ENTRADA_INDICE = 600
+MAX_ENCABEZADO_INDICE = 250
+
+#: How many of its first entries the body is expected to repeat (rule 15).
+VENTANA_INDICE = 6
+
+#: How many entries a table of contents needs. A marker (`Contenido`) followed
+#: by two short lines is a table column or a caption, not an index.
+MIN_ENTRADAS_INDICE = 3
+
+_PALABRAS_DE_CLASE = {
+    "libro": "libro", "titulo": "titulo", "capitulo": "capitulo", "seccion": "seccion",
+    "apartado": "apartado", "parte": "parte", "anexo": "anexo", "apendice": "apendice",
+    "articulo": "articulo", "art": "articulo",
+}
+_CLASE_Y_NUMERO = re.compile(
+    r"^(libro|t[ií]tulo|cap[ií]tulo|secci[oó]n|apartado|parte|anexo|ap[eé]ndice|"
+    r"art[ií]culo|art)\.?[ \t]+(\S+)",
+    re.IGNORECASE | re.UNICODE,
+)
+_ETIQUETA_DE_ENTRADA = re.compile(r"^(?:\d+(?:\.\d+)*|[IVXLCDM]+|[A-Za-z])[.)\-][ \t]+")
+_PAGINA_AL_FINAL = re.compile(r"[ \t]+\d{1,4}$")
+_NO_ALFANUMERICO = re.compile(r"[^0-9a-z ]")
+
+
+def _plegar(texto: str) -> str:
+    """`texto` without accents, case, punctuation or runs of whitespace."""
+    plano = _sin_acentos_mayusculas(texto).lower()
+    return _ESPACIOS.sub(" ", _NO_ALFANUMERICO.sub(" ", plano)).strip()
+
+
+def _clave_de_entrada(bloque) -> tuple[str, str]:
+    """What identifies a heading whether it is written as a table-of-contents
+    entry or as the heading it lists (rule 15): a container or article word and
+    its number (`CAPÍTULO I. DISPOSICIONES GENERALES.` and `CAPÍTULO I
+    Disposiciones Generales.` are both ``("capitulo", "i")``), else the title
+    with its leading label and its trailing page number dropped (`I. OBJETIVO`
+    and `OBJETIVO` are both ``("titulo", "objetivo")``). An entry written as a
+    table row (`| CAPÍTULO I Disposiciones Generales | 9 |`) is read by its
+    first cell."""
+    linea = bloque.text.split("\n", 1)[0].strip()
+    if linea.startswith("|"):
+        celdas = [c.strip() for c in linea.strip("|").split("|")]
+        linea = next((c for c in celdas if c), "")
+    texto = _ESPACIOS.sub(" ", linea.replace("**", "").replace("#", " ")).strip(" .:")
+    m = _CLASE_Y_NUMERO.match(texto)
+    if m:
+        clase = _PALABRAS_DE_CLASE[_plegar(m.group(1))]
+        return clase, _plegar(m.group(2).strip(".,:;-–"))
+    texto = _PAGINA_AL_FINAL.sub("", _ETIQUETA_DE_ENTRADA.sub("", texto))
+    return "titulo", _plegar(texto)
+
+
+def _es_entrada_de_indice(bloque, clase: str) -> bool:
+    texto = bloque.text.strip()
+    return (
+        len(texto) <= MAX_ENTRADA_INDICE
+        and texto.count("\n") <= 1
+        and clase not in ("anotacion", "nota_editorial")
+    )
+
+
+def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
+    """Rule 15 (review fix-1 of #291): where each table of contents is, as
+    ``{index of its marker block: index of the first block after it}``.
+
+    A table of contents is the run of short blocks (one or two lines, table
+    rows included) that follows a marker (`MARCADOR_INDICE`: a block that is
+    only `Índice`, `Contenido`...) -- at least `MIN_ENTRADAS_INDICE` of them --
+    **and that the document then repeats**: one of its first `VENTANA_INDICE`
+    entries reappears, as `_clave_de_entrada` reads it, as a heading inside
+    that same run of short blocks, which carries on into the body's own first
+    headings (the first one, normally; the IMDG Code's second index lists two
+    parts that live in another volume and is followed by the third). Only that
+    repetition makes it an index; a `Contenido` with no repeat is a column
+    header or a caption and is left alone, which is why no marker alone ever
+    swallows text. The index ends at the first repeat, minus any paragraph
+    that sits just before it, so the preamble some documents put between their
+    index and their first heading is never part of it.
+
+    `clases` is `clasifica` of every block, computed once by the caller.
+    Only the first `fin` blocks are looked at (the closing signatures are not).
+    """
+    rangos: dict[int, int] = {}
+    i = 0
+    while i < fin:
+        marcador = bloques[i].text.strip()
+        if "\n" in marcador or not MARCADOR_INDICE.match(marcador):
+            i += 1
+            continue
+        j = i + 1
+        while j < fin and _es_entrada_de_indice(bloques[j], clases[j][0]):
+            j += 1
+        # The first entries are what the body is expected to replay; an entry
+        # written twice among them (`Véase el volumen 1`) identifies nothing.
+        ventana = min(VENTANA_INDICE, (j - i - 1) // 2)
+        claves = [_clave_de_entrada(bloques[k]) for k in range(i + 1, i + 1 + ventana)]
+        candidatas = {c for c in claves if claves.count(c) == 1}
+        repite = next(
+            (
+                k for k in range(i + 1 + ventana, j)
+                if len(bloques[k].text) <= MAX_ENCABEZADO_INDICE
+                and _clave_de_entrada(bloques[k]) in candidatas
+            ),
+            None,
+        ) if ventana >= MIN_ENTRADAS_INDICE else None
+        if repite is None:
+            i += 1
+            continue
+        fin_indice = repite
+        while (
+            fin_indice - 1 > i + MIN_ENTRADAS_INDICE
+            and len(bloques[fin_indice - 1].text) > MAX_ENCABEZADO_INDICE
+        ):
+            fin_indice -= 1
+        rangos[i] = fin_indice
+        i = fin_indice
+    return rangos
+
+
 def _rango_conclusiones(bloques) -> int:
     """Index of the first block of the closing signatures, or `len(bloques)`
     when the law has none — which is the common case: only 85 of the corpus'
@@ -356,10 +518,39 @@ class _Constructor:
         #: long as the blocks that follow are still its rows; any other block
         #: ends it.
         self._tabla: AknNode | None = None
+        #: `clasifica` of every block, computed once: the table-of-contents
+        #: scan, rule 8's gate, the rank of a `PARTE` and the pass itself all
+        #: read it.
+        self._clases = [clasifica(bloque) for bloque in bloques]
+        #: Rule 15 (review fix-1 of #291): the tables of contents, as
+        #: ``{marker block index: first block index after it}``.
+        self._indices = rangos_de_indice(bloques, self._clases, self._fin_cuerpo)
+        en_indice = {
+            k for inicio, fin in self._indices.items() for k in range(inicio, fin)
+        }
         #: Rule 8 (issue #227), decided once for the whole document before
         #: the pass starts -- `None` for every law and every instrument that
-        #: numbers articles the ordinary way.
-        self._modo_sin_articulos = modo_sin_articulos(bloques)
+        #: numbers articles the ordinary way. A table of contents is not the
+        #: document's own numbering, so its blocks are not read.
+        self._modo_sin_articulos = modo_sin_articulos(
+            [b for k, b in enumerate(bloques) if k not in en_indice]
+        )
+        #: Rule 16 (review fix-1 of #291): a `PARTE` is above the books, titles
+        #: and chapters unless the document opens one of those first.
+        #: Rule 17 (review fix-1 of #291): inside an instrument's recitals,
+        #: whose numbered `PRIMERO.`/`1.` paragraphs are not provisions.
+        self._en_considerandos = False
+        self._recien_abiertos = False
+        self._numeros_de_considerandos: set[str] = set()
+        self._parte_en_capitulo = False
+        for k, (kind, campos) in enumerate(self._clases):
+            if k in en_indice or kind != "contenedor":
+                continue
+            if campos["akn_type"] == "part":
+                break
+            if campos["akn_type"] in ("book", "title", "chapter"):
+                self._parte_en_capitulo = True
+                break
 
     # -- helpers ---------------------------------------------------------
 
@@ -417,11 +608,19 @@ class _Constructor:
     # -- the pass --------------------------------------------------------
 
     def run(self) -> AknNode:
-        for i, bloque in enumerate(self._bloques):
+        i = 0
+        while i < len(self._bloques):
+            bloque = self._bloques[i]
             if i >= self._fin_cuerpo:
                 self._agrega_conclusiones(bloque)
+                i += 1
                 continue
-            kind, campos = clasifica(bloque)
+            if i in self._indices:
+                fin = self._indices[i]
+                self._bloque_indice(self._bloques[i], self._bloques[fin - 1])
+                i = fin
+                continue
+            kind, campos = self._clases[i]
             if self._modo_sin_articulos is not None:
                 kind, campos = self._promueve_a_articulo(bloque, kind, campos)
 
@@ -435,6 +634,7 @@ class _Constructor:
                     and es_fila_tabla(self._bloques[i + 1])
                 ):
                     self._extiende(self._tabla, bloque.end)
+                    i += 1
                     continue
                 self._tabla = None
 
@@ -444,10 +644,13 @@ class _Constructor:
                 if _es_epigrafe(bloque, kind):
                     contenedor.heading = _limpia(bloque.text)
                     self._extiende(contenedor, bloque.end)
+                    i += 1
                     continue
 
+            self._i = i
             manejador = getattr(self, f"_bloque_{kind}", self._bloque_contenido)
             manejador(bloque, campos)
+            i += 1
 
         self._cierra_articulo()
         # An annotation with no node after it — the last thing in the file —
@@ -462,6 +665,28 @@ class _Constructor:
         self._cierra_spans()
         return self.act
 
+    def _bloque_indice(self, primero, ultimo):
+        """Rule 15 (review fix-1 of #291): a table of contents is one `toc`
+        node, a leaf spanning its marker and every entry, hung where any other
+        block of text would be. Nothing in it is classified: its entries are
+        the headings the document repeats as its body, and reading them twice
+        is how a `PARTE` of the IMDG Code came to have 241 articles that were
+        index lines."""
+        self._cierra_articulo()
+        self._pendiente_epigrafe = None
+        self._tabla = None
+        destino = self._padre_contenedor(primero.start)
+        numero = 1 + sum(1 for h in destino.children if h.akn_type == "toc")
+        nodo = self._nuevo_nodo(
+            "toc", primero.start, ultimo.end, padre=destino, num=str(numero),
+        )
+        self._extiende(nodo, ultimo.end)
+
+    def _rango(self, akn_type: str):
+        if akn_type == "part" and self._parte_en_capitulo:
+            return PRECEDENCIA_PARTE_EN_CAPITULO
+        return PRECEDENCIA[akn_type]
+
     def _bloque_contenedor(self, bloque, campos):
         akn_type = campos["akn_type"]
         # A container ends whatever transitorios were open: transitional
@@ -469,12 +694,15 @@ class _Constructor:
         # belongs to a further decree's own text.
         self._transitorios = None
         self._cierra_articulo()
-        self._cierra_hasta(PRECEDENCIA[akn_type])
-        refers_to = REFERS_TO_APARTADO if akn_type == "level" else None
+        rango = self._rango(akn_type)
+        self._cierra_hasta(rango)
+        refers_to = REFERS_TO_APARTADO if akn_type == "level" else campos.get("refers_to")
         nodo = self._nuevo_nodo(
             akn_type, bloque.start, bloque.end, num=campos["num"], refers_to=refers_to,
         )
-        self._pila.append((PRECEDENCIA[akn_type], nodo))
+        if campos.get("heading"):
+            nodo.heading = campos["heading"]
+        self._pila.append((rango, nodo))
         self._pendiente_epigrafe = nodo
 
     def _bloque_articulo(self, bloque, campos):
@@ -515,16 +743,51 @@ class _Constructor:
         Called before the epigraph check rather than inside the block
         handlers, so that a promoted provision can never be swallowed as the
         epigraph of the container above it.
+
+        Except inside the recitals (rule 17, review fix-1 of #291): the
+        paragraphs numbered `PRIMERO.` .. `NOVENO.` (or `1.` ..) under a
+        `CONSIDERANDO` heading are the instrument's preamble, and numbering
+        them as articles gave every such lineamiento two articles `PRIMERO`.
+        The recitals end at a container, at the heading that opens what the
+        instrument orders (`MARCADOR_DISPOSITIVO`), at transitorios, or when
+        their own numbering starts over -- a number already used inside them
+        is the first provision of the next series.
         """
+        linea = bloque.text.split("\n", 1)[0]
+        if kind == "contenido" and self._transitorios is None and CONSIDERANDO.match(linea):
+            self._en_considerandos = True
+            self._recien_abiertos = True
+            self._numeros_de_considerandos = set()
+            return kind, campos
+        numero = None
         if self._modo_sin_articulos == MODO_ORDINAL:
             if kind == "articulo_ordinal":
-                return "articulo", campos
-            return kind, campos
-        if kind == "contenido" and self._transitorios is None:
-            m = NUMERAL_DECIMAL.match(bloque.text.split("\n", 1)[0])
+                numero = campos["num"]
+        elif kind == "contenido" and self._transitorios is None:
+            m = NUMERAL_DECIMAL.match(linea)
             if m:
-                return "articulo", {"num": _limpia(m.group("num"))}
-        return kind, campos
+                numero = _limpia(m.group("num"))
+
+        if self._en_considerandos and self._recien_abiertos:
+            # Numbered recitals are the ones that start with a number right
+            # after the heading; `Que ...` recitals leave the numbered
+            # paragraphs below them to be the provisions.
+            self._recien_abiertos = False
+            if numero is None:
+                self._en_considerandos = False
+        if self._en_considerandos:
+            if kind in ("contenedor", "transitorios", "transitorios_dof") or (
+                kind == "contenido" and MARCADOR_DISPOSITIVO.match(linea)
+            ):
+                self._en_considerandos = False
+            elif numero is not None:
+                if numero not in self._numeros_de_considerandos:
+                    self._numeros_de_considerandos.add(numero)
+                    return kind, campos
+                self._en_considerandos = False
+        if numero is None:
+            return kind, campos
+        return "articulo", ({"num": numero} if self._modo_sin_articulos != MODO_ORDINAL else campos)
 
     def _bloque_articulo_ordinal(self, bloque, campos):
         # `**Primero.**` numbers a transitorio provision; outside
@@ -543,11 +806,37 @@ class _Constructor:
     def _bloque_transitorios_dof(self, bloque, campos):
         # A `**D.O.F. <fecha>.**` header only opens a new block of transitional
         # provisions once inside transitorios; before them, in the body, the
-        # same shape is an ordinary paragraph.
-        if self._transitorios is None:
+        # same shape is an ordinary paragraph -- unless what follows it is a
+        # decree's own provisions (rule 17, review fix-1 of #291).
+        if self._transitorios is None and not self._abre_decreto(self._i):
             self._bloque_contenido(bloque, campos)
             return
         self._abre_transitorios(bloque, campos.get("num"))
+
+    #: How many blocks after a `D.O.F.` header an ordinal provision is looked
+    #: for (rule 17): room for the explanatory line the SCJN sometimes puts
+    #: between the header and the decree's text (`SE TRANSCRIBE UNICAMENTE EL
+    #: TRANSITORIO DEL DECRETO...`) and for a decree that has none.
+    VENTANA_DECRETO = 4
+
+    def _abre_decreto(self, indice: int) -> bool:
+        """Whether the `D.O.F.` header at `indice` heads a decree's
+        transitional provisions even though no `TRANSITORIOS` heading came
+        before it (rule 17, review fix-1 of #291): an ordinal provision --
+        `**PRIMERO.-**`, `**ARTICULO UNICO.-**` -- follows within
+        `VENTANA_DECRETO` blocks, with nothing but explanatory lines, annotations
+        and further `D.O.F.` headers between. The Ley sobre el Contrato de
+        Seguro ends with five such decrees and no `TRANSITORIOS` heading at all,
+        and every one of its `ARTICULO PRIMERO` was an article of the law."""
+        for k in range(indice + 1, min(indice + 1 + self.VENTANA_DECRETO, self._fin_cuerpo)):
+            kind, campos = self._clases[k]
+            if kind == "articulo_ordinal":
+                return True
+            if kind == "articulo":
+                return bool(_ORDINAL_PALABRA.fullmatch(campos["num"]))
+            if kind not in ("contenido", "anotacion", "nota_editorial", "transitorios_dof"):
+                return False
+        return False
 
     def _abre_transitorios(self, bloque, num):
         # Several sibling sections, one per decree that added transitional
