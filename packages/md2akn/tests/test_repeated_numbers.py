@@ -61,6 +61,17 @@ def _num(line: str):
         ("ARTICULO 228 a.- Los certificados.", ("228 a", ".-")),
         ("ARTICULO 228 a BIS.- Los certificados.", ("228 a BIS", ".-")),
         ("ARTICULO 228 A BIS.- Los certificados.", ("228 A BIS", ".-")),
+        # spellings of the Latin suffixes the corpus uses: LAC, LFPED, LGDNNA,
+        # LGV, reglamento 11120
+        ("Artículo 78 Septdecies. La persona prestadora.", ("78 Septdecies", ".")),
+        ("ARTICULO 73 OCTODECIES. Las personas.", ("73 OCTODECIES", ".")),
+        ("Artículo 15 Novenus.- Las instancias.", ("15 Novenus", ".-")),
+        ("Artículo 135 Sexties. Las autoridades.", ("135 Sexties", ".")),
+        ("Artículo 84 Sexíes. La Junta.", ("84 Sexíes", ".")),
+        ("ARTÍCULO 41 QUARTER.- La Dirección.", ("41 QUARTER", ".-")),
+        # an ordinal word with its suffix (reglamento 39766), a letter after `.-` (LIEPS)
+        ("ARTICULO VIGESIMO CUARTO BIS.- Si por causas.", ("VIGESIMO CUARTO BIS", ".-")),
+        ("ARTICULO 18.-A.- Para los efectos de esta ley.", ("18.-A", ".-")),
         # a word after the number is not part of it
         ("Artículo 5 a las personas que...", ("5", "")),
         ("ARTICULO 1o.-A falta de pago.", ("1o", ".-")),
@@ -156,3 +167,22 @@ def test_numerals_that_only_grow_are_untouched():
     text = "\n\n".join(f"{n}. Disposición número {n}." for n in range(1, 8)) + "\n"
     tree = parse_markdown(text)
     assert [a.num for a in _articles(tree)] == [str(n) for n in range(1, 8)]
+
+
+@pytest.mark.parametrize(
+    "heading",
+    [
+        "**DISPOSICIONES TRANSITORIAS:**",  # LMEUM, reglamento 429
+        "**T R A N S I T O R I O S :**",  # reglamento 1027
+        "**TRANSITORIO (SIC)**",  # reglamento 1791
+    ],
+)
+def test_the_transitorios_headings_the_corpus_spells_unusually(heading):
+    # their `ARTICULO 1°` is a transitory article, never the instrument's own
+    text = (
+        "**ARTICULO 1°.-** Uno.\n\n**ARTICULO 2°.-** Dos.\n\n"
+        f"{heading}\n\n**ARTICULO 1°.-** Este reglamento entra en vigor.\n"
+    )
+    tree = parse_markdown(text)
+    assert [a.num for a in _articles(tree)] == ["1°", "2°"]
+    assert not _repeated(tree)

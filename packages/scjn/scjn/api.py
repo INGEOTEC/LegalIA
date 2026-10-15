@@ -439,6 +439,7 @@ _LATINO_UNIDAD = (
 )
 _LATINO = (
     r"(?:QUINQUIES|SEXIES|SEPTIES|OCTIES|NONIES)[ \t]*DECIES|"
+    r"(?:SEPT|OCTO|NOVO|NOVEN)DECIES|SEXTIES|SEX[IÍ]ES|QUARTER|NOVENUS|"
     r"BIS|TER|QU[AÁ]TER|QUINQUIES|SEXIES|SEPTIES|OCTIES|NONIES|DECIES|"
     r"UNDECIES|DUODECIES|TERDECIES|QUATERDECIES|"
     rf"(?:(?:UNDE|DUODE)?(?:VICESIMUS|TRICESIMUS)|UNDECIMUS|DUODECIMUS|DECIMUS)"
@@ -467,6 +468,7 @@ _COMPONENTE = (
     rf"|[ \t]+[a-zñ](?=[.\-–]|[ \t]+(?i:{_LATINO})\b)"
     rf"|[ \t]+[A-ZÁÉÍÓÚÑ](?=[ \t]+(?i:{_LATINO})\b)"
     r"|(?<=\d)[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–:]|[ \t]*$)"
+    r"|(?<=\d)\.[ \t]*-[A-ZÁÉÍÓÚÑ](?=[.\-–])"
     r"|(?<=[oº°])[ \t]*\.?[ \t]*[-–]?[ \t]*[A-ZÁÉÍÓÚÑ]"
     rf"(?=[.\-–]|[ \t]+(?i:{_LATINO})\b)"
     r")"
@@ -483,7 +485,7 @@ _NUM_ARTICULO = (
     rf"{_COMPONENTE}*"
     r"(?:[ \t]*,[ \t]*\d+(?:[ \t]*[oº°])?)*"
     rf"|{_ROMANO}"
-    rf"|(?i:{_ORDINAL_PALABRA})"
+    rf"|(?i:{_ORDINAL_PALABRA})(?:[ \t]+(?i:{_LATINO})\b)?"
     r")"
 )
 # A decimal number (`Artículo 1.1:`, chapter 1 article 1 of a treaty such as

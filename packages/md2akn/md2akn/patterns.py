@@ -91,6 +91,11 @@ SUFIJO_LATINO = (
     # `78 Quinquies**decies**` and `73 SEXIES DECIES`: the SCJN writes the
     # compound with or without a space (review fix-1 of #291, `laero`/`lac`).
     r"(?:QUINQUIES|SEXIES|SEPTIES|OCTIES|NONIES)[ \t]*DECIES|"
+    # `Septdecies`/`Octodecies` (the LAC and the Ley de Aeropuertos),
+    # `Sexties`/`Sexíes` (the LGDNNA, the LGV), `Quarter` (a reglamento) and
+    # `Novenus` (the LFPED): spellings the corpus uses for the same suffixes
+    # (review fix-1 of #291), each one a repeated article number without them.
+    r"(?:SEPT|OCTO|NOVO|NOVEN)DECIES|SEXTIES|SEX[IÍ]ES|QUARTER|NOVENUS|"
     r"BIS|TER|QU[AÁ]TER|QUINQUIES|SEXIES|SEPTIES|OCTIES|NONIES|DECIES|"
     r"UNDECIES|DUODECIES|TERDECIES|QUATERDECIES|"
     # The `-us` series some laws use instead (`Artículo 12 Quintus`,
@@ -174,6 +179,9 @@ _COMPONENTE_ARTICULO = (
     # An adjacent capital letter (`4B.-`, `3A`) ends the heading or is followed
     # by a separator.
     r"|(?<=\d)[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–:]|[ \t]*$)"
+    # A letter right after a plain number's `.-` and followed by its own
+    # separator (`ARTICULO 18.-A.- Para los efectos`, the LIEPS).
+    r"|(?<=\d)\.[ \t]*-[A-ZÁÉÍÓÚÑ](?=[.\-–])"
     # A capital letter after an ordinal's own separator (`1o.-A.-`).
     # Or one whose own Latin suffix follows (`1o.-A BIS.-`, the LIVA's
     # `Artículo 1o.-A Bis`: the repeated `1o` of review fix-1 of #291).
@@ -192,7 +200,10 @@ NUM_ARTICULO = (
     rf"{_COMPONENTE_ARTICULO}*"
     r"(?:[ \t]*,[ \t]*\d+(?:[ \t]*[oº°])?)*"
     rf"|{NUMERO_ROMANO}"
-    rf"|{ORDINAL_PALABRA}"
+    # An ordinal word takes the Latin suffix too (`ARTICULO VIGESIMO CUARTO
+    # BIS.-`, reglamento 39766): without it the suffixed article repeats the
+    # base one's number.
+    rf"|{ORDINAL_PALABRA}(?:[ \t]+(?i:{SUFIJO_LATINO})\b)?"
     r")"
 )
 
@@ -374,10 +385,18 @@ MARCADOR_INDICE = re.compile(
 #: dominant form is already a Markdown heading (`## Transitorios` 301,
 #: `## Transitorio` 154); the rest are bold, with or without the word
 #: "ARTÍCULOS" and with or without a trailing colon or period.
+#:
+#: Review fix-1 of #291 widened it to three more spellings of the same marker:
+#: `DISPOSICIONES TRANSITORIAS` (the LMEUM, reglamento 429), the spaced
+#: `T R A N S I T O R I O S :` (reglamento 1027) and `TRANSITORIO (SIC)`
+#: (reglamento 1791). Their `ARTICULO 1°`, `ARTICULO 2°` were read as the
+#: instrument's own first articles, and each repeated one.
 TRANSITORIOS = re.compile(
     r"^[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*)?[ \t]*"
-    r"(?:(?:ART[IÍ]?CULOS?|Art[ií]culos?)[ \t]+)?"
-    r"(?:TRANSITORIOS?|Transitorios?)"
+    r"(?:(?:ART[IÍ]?CULOS?|Art[ií]culos?|DISPOSICIONES|Disposiciones)[ \t]+)?"
+    r"(?:TRANSITORIOS?|TRANSITORIAS|Transitorios?|Transitorias|"
+    r"T[ \t]R[ \t]A[ \t]N[ \t]S[ \t]I[ \t]T[ \t]O[ \t]R[ \t]I[ \t]O[ \t]S)"
+    r"(?:[ \t]*\((?:SIC|sic)\))?"
     r"(?:[ \t]+(?:DEL?|DE[ \t]+LAS?|Del?)[ \t][^*\n]{0,80}?)?"
     r"[ \t]*[.:]?[ \t]*(?:\*\*)?[ \t]*$",
     re.UNICODE,

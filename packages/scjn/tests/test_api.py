@@ -1033,3 +1033,29 @@ class TestWholeNumberLeads(unittest.TestCase):
     def test_el_espacio_de_las_negritas_no_cambia_donde_el_patron_no_se_equivocaba(self):
         self.assertEqual(self._lead("Artículo 1o. La presente."), "**Artículo 1o. **La presente.")
         self.assertEqual(self._lead("Artículo 1o.- La presente."), "**Artículo 1o.-** La presente.")
+
+    def test_variantes_de_sufijo_latino_del_corpus(self):
+        # LAC, LFPED, LGDNNA, LGV, reglamentos 11120 and 39766, LIEPS (first words
+        # of real rows of the API answer)
+        self.assertEqual(
+            self._lead("Artículo 78 Septdecies. La persona prestadora."),
+            "**Artículo 78 Septdecies.** La persona prestadora.",
+        )
+        self.assertEqual(
+            self._lead("Artículo 15 Novenus.- Las instancias."), "**Artículo 15 Novenus.-** Las instancias."
+        )
+        self.assertEqual(
+            self._lead("Artículo 135 Sexties. Las autoridades."), "**Artículo 135 Sexties.** Las autoridades."
+        )
+        self.assertEqual(self._lead("Artículo 84 Sexíes. La Junta."), "**Artículo 84 Sexíes.** La Junta.")
+        self.assertEqual(
+            self._lead("ARTÍCULO 41 QUARTER.- La Dirección."), "**ARTÍCULO 41 QUARTER.-** La Dirección."
+        )
+        self.assertEqual(
+            self._lead("ARTICULO VIGESIMO CUARTO BIS.- Si por causas."),
+            "**ARTICULO VIGESIMO CUARTO BIS.-** Si por causas.",
+        )
+        self.assertEqual(
+            self._lead("ARTICULO 18.-A.- Para los efectos de esta ley."),
+            "**ARTICULO 18.-A.-** Para los efectos de esta ley.",
+        )

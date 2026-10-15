@@ -1,0 +1,88 @@
+{
+  "coverage": {
+    "total_chars": 506,
+    "frontmatter_chars": 0,
+    "annotation_chars": 0,
+    "covered_chars": 506,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "ACUERDO POR EL QUE SE EMITEN LOS LINEAMIENTOS PARA LA OPERACIÓN **CONSIDERANDO** **PRIMERO.-** Que la ley establece las bases de la operación.",
+      "text_sha1": "6bff8b8f53b4cf597d7884d4307114a92dfe2ffc"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**SEGUNDO.-** Que el reglamento dispone la forma de operar. **TERCERO.-** Que es necesario emitir lineamientos. **ACUERDA**",
+      "text_sha1": "56583ac6a6a379700ca9f2119b5e1ada9016e37f"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_PRIMERO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "PRIMERO",
+      "path": [],
+      "text": "**PRIMERO.-** Se emiten los lineamientos para la operación.",
+      "text_sha1": "9df4963f8e2e2ed2101a7bf8eb502ce5fdcd8efe"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_SEGUNDO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "SEGUNDO",
+      "path": [],
+      "text": "**SEGUNDO.-** Los lineamientos se publicarán en el Diario Oficial.",
+      "text_sha1": "eb115b8213ce00861caafefef6d52201f2150225"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_TERCERO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "TERCERO",
+      "path": [],
+      "text": "**TERCERO.-** La Dirección interpretará los lineamientos.",
+      "text_sha1": "4835b9b6f4d0b593c430665c6e89b7dec23a5ec5"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_CUARTO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "CUARTO",
+      "path": [],
+      "text": "**CUARTO.-** Los casos no previstos serán resueltos por la Dirección.",
+      "text_sha1": "1c60a2a43902deb51a179f714e01c01314caf33e"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_QUINTO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "QUINTO",
+      "path": [],
+      "text": "**QUINTO.-** Los lineamientos entran en vigor al día siguiente.",
+      "text_sha1": "f8f7aac2b6d8f37b88e66cfa2f2bbf2591df2cb2"
+    }
+  ]
+}
