@@ -541,6 +541,10 @@ class _Constructor:
         #: whose numbered `PRIMERO.`/`1.` paragraphs are not provisions.
         self._en_considerandos = False
         self._recien_abiertos = False
+        # Rule 18 (review fix-1 of #291): the highest whole numeral that opened
+        # an article, and the last item of the list being read, if any.
+        self._ultimo_entero = 0
+        self._item_de_lista: int | None = None
         self._numeros_de_considerandos: set[str] = set()
         self._parte_en_capitulo = False
         for k, (kind, campos) in enumerate(self._clases):
@@ -787,6 +791,19 @@ class _Constructor:
                 self._en_considerandos = False
         if numero is None:
             return kind, campos
+        if self._modo_sin_articulos == MODO_NUMERAL and numero.isdigit():
+            # Rule 18 (review fix-1 of #291): a whole numeral that starts over
+            # (`1.` after `3.`) or carries on a list that did is a list item
+            # of the provision above, not a further article. Dotted numerals
+            # (`2.1`) are provisions in their own right and never come here.
+            valor = int(numero)
+            if valor <= self._ultimo_entero or (
+                self._item_de_lista is not None and valor == self._item_de_lista + 1
+            ):
+                self._item_de_lista = valor
+                return kind, campos
+            self._ultimo_entero = valor
+            self._item_de_lista = None
         return "articulo", ({"num": numero} if self._modo_sin_articulos != MODO_ORDINAL else campos)
 
     def _bloque_articulo_ordinal(self, bloque, campos):

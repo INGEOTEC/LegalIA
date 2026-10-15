@@ -160,16 +160,25 @@ _COMPONENTE_ARTICULO = (
     r"(?:"
     # A Latin suffix, joined by a dash, a space, nothing at all (`3bis`) or,
     # right after an ordinal, its dot (`1o. Bis`); its own digits may follow.
-    rf"(?:[ \t]*[-–][ \t]*|[ \t]*|\.[ \t]+)(?i:{SUFIJO_LATINO})\b(?:[ \t]+\d+)?"
+    rf"(?:[ \t]*[-–][ \t]*|[ \t]*|\.[ \t]+|(?<=[oº°])\.[ \t]*[-–][ \t]*)"
+    rf"(?i:{SUFIJO_LATINO})\b(?:[ \t]+\d+)?"
     # Hyphen-digits, or a hyphenated letter.
     r"|[ \t]*[-–][ \t]*(?:\d+|[A-Za-zÁÉÍÓÚÑ]\b)"
     # The space-separated letter (`410 A.-`) needs the separator right after.
     r"|[ \t]+[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–])"
+    # The same letter in lower case (the LGTOC's `228 a.-`, `228 a BIS.-`) is
+    # admitted only with its separator or its own Latin suffix right behind
+    # it, never before a plain word (`Artículo 5 a las personas`).
+    rf"|[ \t]+[a-zñ](?=[.\-–]|[ \t]+(?i:{SUFIJO_LATINO})\b)"
+    rf"|[ \t]+[A-ZÁÉÍÓÚÑ](?=[ \t]+(?i:{SUFIJO_LATINO})\b)"
     # An adjacent capital letter (`4B.-`, `3A`) ends the heading or is followed
     # by a separator.
     r"|(?<=\d)[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–:]|[ \t]*$)"
     # A capital letter after an ordinal's own separator (`1o.-A.-`).
-    r"|(?<=[oº°])[ \t]*\.?[ \t]*[-–]?[ \t]*[A-ZÁÉÍÓÚÑ](?=[.\-–])"
+    # Or one whose own Latin suffix follows (`1o.-A BIS.-`, the LIVA's
+    # `Artículo 1o.-A Bis`: the repeated `1o` of review fix-1 of #291).
+    r"|(?<=[oº°])[ \t]*\.?[ \t]*[-–]?[ \t]*[A-ZÁÉÍÓÚÑ]"
+    rf"(?=[.\-–]|[ \t]+(?i:{SUFIJO_LATINO})\b)"
     r")"
 )
 NUM_ARTICULO = (
