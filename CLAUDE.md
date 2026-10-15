@@ -962,9 +962,9 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   `patterns.NUMERO_DECIMAL_ARTICULO` is tried before `NUM_ARTICULO` inside `ARTICULO` only (eId
   `art_1.1`). Fixed at source and by re-downloading the seven treaties (#255's procedure; 76,
   84349, 84350, 90408, 107392, 128585, 137355; `PUBLICAR.md` generated, not run), with no
-  `md2akn` shim for the broken `**Artículo 1.**1:` shape. **A second shape is not fixed**: annex
+  `md2akn` shim for the broken `**Artículo 1.**1:` shape. **A second shape was not fixed there (fixed by review fix-1 below)**: annex
   articles `Artículo 2.A.1:` still come out `**Artículo 2.**A.1:` (61 lines in the treaty
-  137355, 3 in the reglamento 145559); the T-MEC keeps 59 repeated numbers (592 before).
+  137355, 3 in the reglamento 145559); the T-MEC kept 59 repeated numbers (592 before); the annex lead is read whole since review fix-1 and the T-MEC has none.
 - **Rule 12, a container's introduction is its `intro`.** The blocks between a container's
   heading (epigraph included) and its first child container or article are one `intro` node
   (eId `<container>__intro`, children `content`/`table`) and `intro` units, capped and cut like

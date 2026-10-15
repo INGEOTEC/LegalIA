@@ -1040,11 +1040,12 @@ def test_the_tmec_shows_decimal_article_numbers_and_no_repeated_number_from_a_sp
     assert article.locator("> .instruments-node-head .instruments-badge").inner_text() \
         == "article · cap_1__sec_A:_Disposiciones_Iniciales__art_1.1 · 1.1"
     assert page.locator(".instruments-target").count() == 1
-    # What is left of the repeated-number flag is the annex articles (`Artículo 2.A.1`), not
-    # a decimal number read as its first digit: no decimal article carries the flag.
+    # Review fix-1 of #291: the annex articles (`Artículo 2.A.1`) are read whole too now (the
+    # writer used to bold only `Artículo 2.`), so no article of the treaty carries the repeated
+    # number flag, neither a decimal one nor an annex one.
     flagged = [u["e"] for u in document["units"] if "duplicate_number" in u.get("f", [])]
-    assert flagged and not any(".art_" in e or "art_1." in e for e in flagged)
-    assert all(re.search(r"__art_\d+(_\d+)?$", e) for e in flagged)
+    assert flagged == []
+    assert any(re.search(r"__art_\d+\.[A-Z]\.\d+$", e) for e in eids)
     assert page.errors == []
     page.close()
 
