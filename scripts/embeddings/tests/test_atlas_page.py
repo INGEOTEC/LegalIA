@@ -662,8 +662,8 @@ def test_the_qmd_has_the_evaluation_section_with_its_numbers():
     for table in (tables[0], tables[2]):
         header = table.splitlines()[0]
         assert "0.6B" in header and "4B" in header and "BM25" in header
-    for literal in ("161", "170", "251", "275", "62", "7,066", "5,218", "1,925", "316", "258",
-                    "4,497", "4,468", "1,934", "2,534", "0.278", "0.248", "0.254", "30", "38.5",
+    for literal in ("161", "170", "251", "275", "62", "7,087", "5,224", "1,927", "318", "189",
+                    "4,496", "4,475", "1,933", "2,542", "0.276", "0.248", "0.252", "30", "38",
                     "15 October 2026", "2,675", "2,676"):
         assert literal in flat, literal
     # Every collection is a source and a target, and an instrument never links to itself

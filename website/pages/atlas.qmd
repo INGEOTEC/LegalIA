@@ -324,17 +324,17 @@ The third signal, C, works on single excerpts instead of whole instruments. An
 excerpt that cites "artículo 38 Bis de la Ley General del Equilibrio Ecológico
 y la Protección al Ambiente" names the instrument it is about, and the same
 three data sets can be asked where that instrument ranks for that one excerpt.
-The corpus holds 7,066 such citations, in 5,218 distinct excerpts of 1,925
-instruments that cite 316 different instruments, once the 258 citations of an
-instrument to itself have been set aside. Of those excerpts, 4,497 cite
+The corpus holds 7,087 such citations, in 5,224 distinct excerpts of 1,927
+instruments that cite 318 different instruments, once the 189 citations of an
+instrument to itself have been set aside. Of those excerpts, 4,496 cite
 exactly one instrument. An excerpt that cites two or more instruments is
-counted but not scored, because it has no single right answer, and 29 more are
+counted but not scored, because it has no single right answer, and 21 more are
 removed because their text is word for word the text of several instruments.
-The 4,468 excerpts that remain are scored, and 1,934 of them cite the
+The 4,475 excerpts that remain are scored, and 1,933 of them cite the
 Constitution, which every kind of instrument cites. Laws, regulations,
 guidelines and treaties all appear among the instruments that cite, and a
-treaty cites a law far more often than another treaty, with 863 pairs of an
-excerpt and a cited law against 37 of a cited treaty.
+treaty cites a law far more often than another treaty, with 865 pairs of an
+excerpt and a cited law against 43 of a cited treaty.
 
 ### What is measured
 
@@ -418,19 +418,19 @@ from one method to the next.
 
 ### The excerpts
 
-The same three data sets were then scored one excerpt at a time over the 4,468
-excerpts that cite exactly one instrument, and again over the 2,534 excerpts
+The same three data sets were then scored one excerpt at a time over the 4,475
+excerpts that cite exactly one instrument, and again over the 2,542 excerpts
 that remain once those citing the Constitution are set aside.
 
 | Measure | 0.6B | 4B | BM25 |
 |---|---|---|---|
-| cited instrument first | 0.093 | 0.108 | 0.100 |
-| among the five closest | 0.248 | 0.278 | 0.254 |
-| among the ten closest | 0.335 | 0.363 | 0.341 |
-| mean reciprocal rank | 0.174 | 0.195 | 0.179 |
-| median rank | 38.5 | 30 | 40 |
-| among the five closest, without the Constitution | 0.386 | 0.423 | 0.409 |
-| mean reciprocal rank, without the Constitution | 0.271 | 0.294 | 0.288 |
+| cited instrument first | 0.092 | 0.107 | 0.100 |
+| among the five closest | 0.248 | 0.276 | 0.252 |
+| among the ten closest | 0.333 | 0.362 | 0.340 |
+| mean reciprocal rank | 0.172 | 0.193 | 0.179 |
+| median rank | 38 | 30 | 40 |
+| among the five closest, without the Constitution | 0.387 | 0.421 | 0.406 |
+| mean reciprocal rank, without the Constitution | 0.270 | 0.292 | 0.287 |
 | median rank, without the Constitution | 10 | 8 | 9 |
 
 The pairs are compared in the same way, the median rank being given with the
@@ -438,9 +438,9 @@ interval of its difference in ranks.
 
 | Pair | cited instrument first | among the five closest | among the ten closest | mean reciprocal rank | median rank |
 |---|---|---|---|---|---|
-| 0.6B − 4B | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([−0.027, −0.016]) | 4B better ([+6, +11]) |
-| 0.6B − BM25 | tie (p = 0.10) | tie (p = 0.27) | tie (p = 0.29) | tie ([−0.013, +0.001]) | tie ([−5, +3]) |
-| 4B − BM25 | tie (p = 0.07) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([+0.008, +0.022]) | 4B better ([−14, −6]) |
+| 0.6B − 4B | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([−0.026, −0.016]) | 4B better ([+6, +11]) |
+| 0.6B − BM25 | tie (p = 0.08) | tie (p = 0.47) | tie (p = 0.27) | tie ([−0.014, +0.001]) | tie ([−6, +2]) |
+| 4B − BM25 | tie (p = 0.11) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([+0.008, +0.022]) | 4B better ([−14, −6]) |
 
 At this level the methods are no longer tied. The 4B is better than the 0.6B on
 all five measures and better than BM25 on four of them, the exception being the
@@ -449,14 +449,14 @@ told apart, and the 0.6B and BM25 are tied on every measure. The differences are
 small, two to three points of recall, but they are not noise. The absolute level
 is low because an excerpt that cites an article of a law is usually about
 something other than the rest of that law, and the Constitution, which is cited
-by 1,934 of the excerpts, drags it down further. The order of the three is the
+by 1,933 of the excerpts, drags it down further. The order of the three is the
 same without the Constitution.
 
 The level depends on who cites. The cited instrument is among the five closest
-for 35 %, 41 % and 38 % of the 1,528 excerpts of laws under the 0.6B, the 4B and
-BM25, for 26 %, 28 % and 26 % of the 1,901 excerpts of regulations, and for 32 %,
-35 % and 28 % of the 185 excerpts of guidelines. For the 854 excerpts of treaties
-it is 2.7 %, 2.3 % and 1.9 %, with a median rank above 1,400 in every method. A
+for 35 %, 41 % and 38 % of the 1,526 excerpts of laws under the 0.6B, the 4B and
+BM25, for 26 %, 28 % and 26 % of the 1,901 excerpts of regulations, and for 26 %,
+28 % and 25 % of the 186 excerpts of guidelines. For the 862 excerpts of treaties
+it is 3.1 %, 3.0 % and 2.3 %, with a median rank above 1,400 in every method. A
 treaty that cites an article of a Mexican law mentions it in passing, inside an
 agreement about something else, so that the law's own text is probably far from
 the excerpt, and none of the three methods bridges that gap.
@@ -470,8 +470,8 @@ embedding model. The 4B ranks a cited instrument higher for a single excerpt,
 and this is the one measured reason for switching to it. BM25 is not beaten
 everywhere. Among the ten most cited instruments it is the best on the *Código
 Fiscal de la Federación*, where the cited instrument is among the five closest
-for 79.7 % of the 172 excerpts against 44.2 % for the 4B, and the lowest of the
-three on the Constitution, with 5.2 % of 1,934 excerpts against 8.8 % for the
+for 80.1 % of the 171 excerpts against 45.0 % for the 4B, and the lowest of the
+three on the Constitution, with 5.0 % of 1,933 excerpts against 8.6 % for the
 4B. These checks look at the instrument and not at the article, so they say
 nothing about whether the right article of that instrument ranks first.
 
