@@ -216,6 +216,12 @@ def clasifica(bloque) -> tuple[str, dict]:
 MODO_ORDINAL = "ordinal"
 MODO_NUMERAL = "numeral"
 
+#: Rule 18 (review fix-1 of #291) switch: a whole numeral that starts over is a
+#: list item. `True` is the rule; the one script that measures what each rule of
+#: the fix contributed (`scripts/embeddings/measure_repeated_numbers.py`) turns it
+#: off to see the number repeat again. Not a parameter of the public API.
+REINICIO_ES_ITEM = True
+
 #: How many bold ordinals (`**PRIMERO.-**`) an articleless document needs
 #: before they are read as its article numbering. Measured over the 89
 #: articleless lineamientos of the `scjn-lineamientos` release (issue #227):
@@ -791,7 +797,7 @@ class _Constructor:
                 self._en_considerandos = False
         if numero is None:
             return kind, campos
-        if self._modo_sin_articulos == MODO_NUMERAL and numero.isdigit():
+        if REINICIO_ES_ITEM and self._modo_sin_articulos == MODO_NUMERAL and numero.isdigit():
             # Rule 18 (review fix-1 of #291): a whole numeral that starts over
             # (`1.` after `3.`) or carries on a list that did is a list item
             # of the provision above, not a further article. Dotted numerals

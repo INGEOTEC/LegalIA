@@ -629,7 +629,7 @@ def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_th
                                    "scjn-tratados-vectors"]
     treaties = [e for e in default["instruments"] if e["c"] == "tratados"]
     closest = [default["instruments"][e["out"][0][0]]["c"] for e in treaties if e["out"]]
-    assert closest.count("tratados") == 1285 and len(treaties) == 1373
+    assert closest.count("tratados") == 1283 and len(treaties) == 1373
     others = [e for e in default["instruments"] if e["c"] != "tratados" and e["out"]]
     by = {}
     for e in others:
@@ -637,7 +637,7 @@ def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_th
             by[e["c"]] = by.get(e["c"], 0) + 1
     assert by == {"leyes": 8, "reglamentos": 5}
     flat = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert "For 1,285 of the 1,373 treaties the closest instrument is another treaty" in flat
+    assert "For 1,283 of the 1,373 treaties the closest instrument is another treaty" in flat
     assert "only 8 laws and 5 regulations have a treaty as their closest instrument" in flat
 
 
@@ -664,7 +664,7 @@ def test_the_qmd_has_the_evaluation_section_with_its_numbers():
         assert "0.6B" in header and "4B" in header and "BM25" in header
     for literal in ("161", "170", "251", "275", "62", "7,066", "5,218", "1,925", "316", "258",
                     "4,497", "4,468", "1,934", "2,534", "0.278", "0.248", "0.254", "30", "38.5",
-                    "14 October 2026", "2,675", "2,676"):
+                    "15 October 2026", "2,675", "2,676"):
         assert literal in flat, literal
     # Every collection is a source and a target, and an instrument never links to itself
     # (review fix-1: the gold used to start only in a regulation or a guideline).
