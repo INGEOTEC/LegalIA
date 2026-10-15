@@ -186,7 +186,7 @@ _COMPONENTE_ARTICULO = (
     # Or one whose own Latin suffix follows (`1o.-A BIS.-`, the LIVA's
     # `Artículo 1o.-A Bis`: the repeated `1o` of review fix-1 of #291).
     r"|(?<=[oº°])[ \t]*\.?[ \t]*[-–]?[ \t]*[A-ZÁÉÍÓÚÑ]"
-    rf"(?=[.\-–]|[ \t]+(?i:{SUFIJO_LATINO})\b)"
+    rf"(?=[.\-–]|[ \t]+(?i:{SUFIJO_LATINO})\b|[ \t]*\((?i:sic)\))"
     r")"
 )
 NUM_ARTICULO = (

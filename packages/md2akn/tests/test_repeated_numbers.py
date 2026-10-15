@@ -69,6 +69,8 @@ def _num(line: str):
         ("Artículo 135 Sexties. Las autoridades.", ("135 Sexties", ".")),
         ("Artículo 84 Sexíes. La Junta.", ("84 Sexíes", ".")),
         ("ARTÍCULO 41 QUARTER.- La Dirección.", ("41 QUARTER", ".-")),
+        # a letter followed by `(SIC)` (LIEPS 8o.-B)
+        ("ARTICULO 8o.-B (SIC).- (DEROGADO, D.O.F.", ("8o.-B", "")),
         # an ordinal word with its suffix (reglamento 39766), a letter after `.-` (LIEPS)
         ("ARTICULO VIGESIMO CUARTO BIS.- Si por causas.", ("VIGESIMO CUARTO BIS", ".-")),
         ("ARTICULO 18.-A.- Para los efectos de esta ley.", ("18.-A", ".-")),
