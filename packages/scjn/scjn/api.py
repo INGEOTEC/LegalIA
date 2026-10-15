@@ -425,15 +425,83 @@ _ORDINAL = (
     r"Octavo|Noveno|D[ée]cimo(?:\s+(?:Primero|Segundo|Tercero|Cuarto|Quinto|"
     r"Sexto|S[ée]ptimo|Octavo|Noveno))?)"
 )
+# The number of an `Artículo` lead, whole. Review fix-1 of #291: the lead used
+# to cover digits, an ordinal marker and one of eight Latin suffixes, so
+# `Artículo 27-A.-`, `Artículo 1o.-A BIS.-`, `Artículo 228 a.-`, `Artículo
+# 12 Quintus` and `Artículo IV.-` were bolded only up to the part it knew
+# (`**Artículo 27**-A.-`) and the rest of the number was left in the body,
+# where every reader took it for the article's text -- 209 instruments of the
+# Atlas ended up with a number repeated for it. The shapes below are the ones
+# `md2akn.patterns.NUM_ARTICULO` reads; they are a copy on purpose (`scjn`
+# imports nothing else of this monorepo), so a shape added there is added here.
+_LATINO_UNIDAD = (
+    r"PRIM[UO]S|SEC[UA]ND[UA]S|TERTIUS|QUARTUS|QUINTUS|SEXTUS|S[EÉ]PTIMUS|OCTAVUS|NONUS"
+)
+_LATINO = (
+    r"(?:QUINQUIES|SEXIES|SEPTIES|OCTIES|NONIES)[ \t]*DECIES|"
+    r"BIS|TER|QU[AÁ]TER|QUINQUIES|SEXIES|SEPTIES|OCTIES|NONIES|DECIES|"
+    r"UNDECIES|DUODECIES|TERDECIES|QUATERDECIES|"
+    rf"(?:(?:UNDE|DUODE)?(?:VICESIMUS|TRICESIMUS)|UNDECIMUS|DUODECIMUS|DECIMUS)"
+    rf"(?:[ \t]+(?:{_LATINO_UNIDAD}))?|"
+    rf"(?:{_LATINO_UNIDAD})(?:[ \t]+DECIMUS)?"
+)
+_ORDINAL_UNIDAD = (
+    r"PRIMER[OA]?|SEGUND[OA]|TERCER[OA]?|CUART[OA]|QUINT[OA]|SEXT[OA]|"
+    r"S[EÉ]PTIM[OA]|OCTAV[OA]|NOVEN[OA]|D[EÉ]CIM[OA]|UND[EÉ]CIM[OA]|"
+    r"DUOD[EÉ]CIM[OA]|[UÚ]NIC[OA]"
+)
+_ORDINAL_DECENA = (
+    r"D[EÉ]CIM[OA]|VIG[EÉ]SIM[OA]|TRIG[EÉ]SIM[OA]|CUADRAG[EÉ]SIM[OA]|"
+    r"QUINCUAG[EÉ]SIM[OA]|SEXAG[EÉ]SIM[OA]|SEPTUAG[EÉ]SIM[OA]|"
+    r"OCTOG[EÉ]SIM[OA]|NONAG[EÉ]SIM[OA]|CENT[EÉ]SIM[OA]"
+)
+_ORDINAL_PALABRA = (
+    rf"D[EÉ]CIMOCTAV[OA]|VIG[EÉ]SIMOCTAV[OA]|(?:(?:{_ORDINAL_DECENA})[ \t]*)?(?:{_ORDINAL_UNIDAD})"
+)
+_COMPONENTE = (
+    r"(?:"
+    rf"(?:[ \t]*[-–][ \t]*|[ \t]*|\.[ \t]+|(?<=[oº°])\.[ \t]*[-–][ \t]*)"
+    rf"(?i:{_LATINO})\b(?:[ \t]+\d+)?"
+    r"|[ \t]*[-–][ \t]*(?:\d+|[A-Za-zÁÉÍÓÚÑ]\b)"
+    r"|[ \t]+[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–])"
+    rf"|[ \t]+[a-zñ](?=[.\-–]|[ \t]+(?i:{_LATINO})\b)"
+    rf"|[ \t]+[A-ZÁÉÍÓÚÑ](?=[ \t]+(?i:{_LATINO})\b)"
+    r"|(?<=\d)[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–:]|[ \t]*$)"
+    r"|(?<=[oº°])[ \t]*\.?[ \t]*[-–]?[ \t]*[A-ZÁÉÍÓÚÑ]"
+    rf"(?=[.\-–]|[ \t]+(?i:{_LATINO})\b)"
+    r")"
+)
+_ROMANO = (
+    r"(?=[IVXLCDM])"
+    r"M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})"
+    r"(?=[ \t]*(?:\.|\-|–)|\s|\*|$)"
+    rf"(?:[ \t]+(?i:{_LATINO})\b)*"
+)
+_NUM_ARTICULO = (
+    r"(?:"
+    r"(?:\d{1,3}(?:,\d{3})+(?!\d)|\d+)(?:[ \t]*/?[oº°])?"
+    rf"{_COMPONENTE}*"
+    r"(?:[ \t]*,[ \t]*\d+(?:[ \t]*[oº°])?)*"
+    rf"|{_ROMANO}"
+    rf"|(?i:{_ORDINAL_PALABRA})"
+    r")"
+)
 # A decimal number (`Artículo 1.1:`, chapter 1 article 1 of a treaty such as
-# the T-MEC, issue #291) is taken whole *before* the plain-digit shape: that
-# one would stop at `1.` and bold only `**Artículo 1.**`, leaving `1:` outside
-# the lead and turning every `Artículo 1.N` of the treaty into article `1`.
+# the T-MEC, issue #291; `Artículo 2.A.1:`, its annex) is taken whole *before*
+# the plain-digit shape: that one would stop at `1.` and bold only
+# `**Artículo 1.**`, leaving `1:` outside the lead and turning every
+# `Artículo 1.N` of the treaty into article `1`.
+#
+# What follows the number reproduces the old pattern's whitespace to the byte,
+# on purpose: the lead of a snapshot nothing was wrong with must not change,
+# or every instrument would have to be re-downloaded for a space. A plain-digit
+# number (`5`, `1o`, `1°`) swallows the blanks after it when no separator
+# follows -- `**Artículo 1o. **La presente` -- and an `o.` swallows them too
+# (`test_mismo_markdown_que_el_camino_docx` pins the quirk).
 _LEAD_ARTICULO = re.compile(
-    rf"^(Art[íi]culo\s+(?:\d+(?:\.\d+)+|\d+\s*(?:o\b\.?|[°º])?\s*"
-    r"(?:Bis|Ter|Qu[áa]ter|Quinquies|Sexies|Septies|Octies|Nonies|Decies)?|"
-    rf"{_ORDINAL})\.?-?)",
-    re.I,
+    rf"^((?i:Art[íi]culo)\s+(?:\d+(?:\.(?:\d+|[A-Z](?=\.\d)))+|{_NUM_ARTICULO})"
+    r"(?:\.-|-|(?<=\do)\.\s*|\.|(?:(?<=\d)|(?<=\d[oº°]))\s*)?)",
+    re.UNICODE,
 )
 _LEAD_ORDINAL = re.compile(rf"^({_ORDINAL}\.-?)", re.I)
 _LEAD_LISTA = re.compile(r"^((?:[IVXLCDM]+|[a-záA-Z])[\.\)])(?=\s)")
