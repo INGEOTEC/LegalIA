@@ -48,13 +48,14 @@ promedia); cada texto truncado queda contado en `vectors-manifest.json`
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | 5 055 | 5 055 |
-| De los cuales compartidos | 173 | 173 |
+| Vectores | 4 844 | 4 844 |
+| De los cuales compartidos | 129 | 129 |
 | Tamaño | 8 MB | 19 MB |
 
-Corpus: 126 instrumentos, 5 520 unidades, **5 055 textos distintos**, `cap`
+Corpus: 126 instrumentos, 5 200 unidades, **4 844 textos distintos**, `cap`
 2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos decimales,
-las introducciones de contenedor y las tablas).
+las introducciones de contenedor y las tablas, y la revisión de los números de artículo repetidos:
+reglas 14 a 18).
 
 Los otros 37 instrumentos del release `scjn-lineamientos` no aparecen aquí:
 la SCJN los clasifica pero no sirve texto consolidado de ninguno
