@@ -189,3 +189,21 @@ def test_main_writes_the_changed_file_names(tmp_path, published):
     compare_merges.main(["--published", str(published), "--rebuilt", str(new), "--model", MODEL,
                          "--changed-files-out", str(out)])
     assert out.read_text() == f"vectors-a-{SLUG}-{K}.parquet\n"
+
+
+def test_a_file_that_changes_only_because_a_text_became_shared_with_a_changed_instrument(tmp_path, published):
+    # review fix-1 of #291: `c` now carries `b1`, which `b` owned alone, so b's
+    # own file loses it and the shared file gains it while `b` itself is unchanged
+    units = {**BASE_UNITS, "c": ["c1", "b1"]}
+    new = rebuilt(tmp_path, units, BASE_VECTORS)
+    result = compare_merges.compare(published, new, MODEL, changed={"c"})
+    assert result["problems"] == []
+    assert result["changed_by_sharing"] == ["b"]
+
+
+def test_a_file_changed_by_sharing_with_an_unlisted_instrument_still_stops(tmp_path, published):
+    units = {**BASE_UNITS, "c": ["c1", "b1"]}
+    new = rebuilt(tmp_path, units, BASE_VECTORS)
+    result = compare_merges.compare(published, new, MODEL, changed={"a"})
+    assert any("'b'" in p and "not in the list of changed instruments" in p
+               for p in result["problems"])

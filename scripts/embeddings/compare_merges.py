@@ -24,7 +24,10 @@ else:
    its own expected set.
 5. **No vector is non-finite** (NaN or +-inf), in either merge.
 6. With `--changed <compare_units.py --json output>` the differing instruments
-   must also all be in that list (issue #291's list of changed instruments).
+   must also all be in that list (issue #291's list of changed instruments) --
+   or be an instrument whose file changed only because a text it owned alone is
+   now shared with a changed instrument, or the reverse (`changed_by_sharing`,
+   review fix-1 of #291).
 
     python scripts/embeddings/compare_merges.py \\
         --published emb-run-whole-leyes --rebuilt emb-run-leyes-051 \\
@@ -147,9 +150,23 @@ def compare(published: Path, rebuilt: Path, model: str, *, changed: set[str] | N
         problems.append(f"{key!r}: the file differs from the published one but its set of texts did not change")
     for key in sorted(expected_changed - changed_files):
         problems.append(f"{key!r}: its set of texts changed but the file is the published one")
+    # An instrument whose own rows did not change can still see its file change:
+    # a text it owned alone is now shared with an instrument that did change (or
+    # one it shared stopped being shared). Review fix-1 of #291 met it (a repeated
+    # number fixed in one law made its text equal to another law's). That is
+    # allowed exactly when every text of the file's symmetric difference is owned,
+    # before or after, by an instrument of the changed list.
+    by_sharing: list[str] = []
     if changed is not None:
+        old_owners, new_owners = _owners(old_units), _owners(new_units)
         for key in sorted(k for k in changed_files if k != SHARED and k not in changed):
-            problems.append(f"{key!r}: differs but is not in the list of changed instruments")
+            moved_texts = old_expected.get(key, frozenset()) ^ new_expected.get(key, frozenset())
+            touched = {c for sha in moved_texts
+                       for c in old_owners.get(sha, set()) | new_owners.get(sha, set())}
+            if moved_texts and touched & changed:
+                by_sharing.append(key)
+            else:
+                problems.append(f"{key!r}: differs but is not in the list of changed instruments")
 
     # Unchanged texts keep their vector, wherever they sit.
     old_digest = {sha: d for f in old.values() for sha, d in f["digests"].items()}
@@ -187,6 +204,7 @@ def compare(published: Path, rebuilt: Path, model: str, *, changed: set[str] | N
         # skips an asset of the same size cannot see (`package_vectors.py`).
         "changed_file_names": [new[key]["name"] for key in differing],
         "gained": gained, "lost": lost,
+        "changed_by_sharing": by_sharing,
         "texts_published": len(old_digest), "texts_rebuilt": len(new_digest),
         "texts_new": len(new_digest.keys() - old_digest.keys()),
         "texts_dropped": len(old_digest.keys() - new_digest.keys()),
