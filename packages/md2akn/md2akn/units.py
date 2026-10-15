@@ -898,6 +898,27 @@ def text_units(
        table's first row -- its column header. A table inside an article is
        part of that article's own text. A table is never part of an `intro`
        unit.
+    14. An article's number is read whole (review fix-1 of #291): `1o.-A BIS`,
+       `3o.- Bis`, `228 a`, `228 a BIS`, `Artículo 5 Bis 1` are each their own
+       number, not the base article's again. Unconditional, a widening of
+       `patterns.NUM_ARTICULO`; `scjn.api`'s writer bolds the same shapes.
+    15. A table of contents -- a run of short blocks after a marker (`Índice`,
+       `Contenido`) that the document then repeats as its own headings -- is
+       one `toc` node and `toc` units, never containers or articles. A marker
+       with no repeat after it is left alone.
+    16. `PARTE` is a container above the books and titles, and
+       `ANEXO`/`APÉNDICE` an `attachment` closing a container of its own: the
+       chapter `1.1` of Part 1 is not the chapter `1.1` of Part 2, and an
+       annex is its own text.
+    17. Recitals are not provisions: under `CONSIDERANDO`, numbered paragraphs
+       stay in the preamble, in an instrument whose provisions are numbered
+       the same way (rule 8); they end at a container, at the heading that
+       opens what is ordered, at transitorios or when their numbering starts
+       over. A `D.O.F.`-headed decree quoted in the text opens its own
+       transitorios instead of continuing the host's.
+    18. In rule 8's numeral mode a whole numeral that starts over (`1.` after
+       `3.`), or carries on a list that did, is a list item of the provision
+       above, not a further article. A dotted numeral (`2.1`) always opens one.
 
     >>> import md2akn
     >>> text = (

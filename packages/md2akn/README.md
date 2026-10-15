@@ -54,6 +54,9 @@ this package (it remains in git history if it is ever needed again).
 | Artículo N | `article` | |
 | fracción / inciso / subinciso | `paragraph` / `point` / `subpoint` | |
 | TRANSITORIOS | `section` | + `refers_to="#transitorios"` |
+| PARTE | `part` | above books and titles; rule 16 of `text_units` |
+| ANEXO / APÉNDICE | `attachment` | + `refers_to="#anexo"` / `"#apendice"`; rule 16 |
+| a table of contents | `toc` | eId `toc_N`; rule 15 of `text_units` |
 | a container's introductory text (the *Notas.* of a LIGIE chapter) | `intro` | eId `<container>__intro`; rule 12 of `text_units` |
 | consecutive `\| … \|` rows | `table` | eId `<parent>__table_N`; rule 13 of `text_units` |
 | a plain paragraph | `content` | numbered 1..n inside its parent (`art_1o__p_2`) |
@@ -371,6 +374,26 @@ every machine has — rather than over a handful of fixtures; see its own module
   them. Default output for a document with none of the three is unchanged;
   how far they reach on the four published corpora is measured in
   `scripts/embeddings/README.md`.
+  **Review fix-1 of #291 (a finding made after the fact), still 0.5.1:**
+  209 of the 2,676 Atlas instruments carried an article number more than
+  once, and five more unconditional rules fix what was `md2akn`'s part of it.
+  **Rule 14**: an article's number is read whole (`1o.-A BIS`, `3o.- Bis`,
+  `228 a`, `228 a BIS`; the `ARTÍCULO 1o.-**A` shape the `scjn` writer used to
+  produce is read too). **Rule 15**: a table of contents is one `toc` node
+  and `toc` units (`akn_type` and `unit_type` `toc`), never headings or
+  articles. **Rule 16**: `PARTE` is a container above the books, and
+  `ANEXO`/`APÉNDICE` an `attachment` (`akn_type` `part` and `attachment`;
+  `refers_to` `#anexo`/`#apendice`). **Rule 17**: the recitals under
+  `CONSIDERANDO` are not articles in an instrument whose provisions are
+  numbered the same way, and a `D.O.F.`-headed decree opens its own
+  transitorios. **Rule 18**: in rule 8's numeral mode, a whole numeral that
+  starts over is a list item of the provision above. `AKN_TYPES` gains
+  `attachment`, `part` and `toc`, `UNIT_TYPES` gains `toc`. The golden
+  fixture `acuerdo_ordinal.json` was regenerated, because it encoded the bug
+  (recitals read as articles). What no rule does, on purpose, is hide a
+  repeat the SCJN's own text makes (annexes with their own numbering, two
+  instruments in one file, an API row repeated): those are listed for the
+  repository owner in `scripts/embeddings/README.md`.
 
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an

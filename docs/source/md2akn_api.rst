@@ -273,12 +273,13 @@ on our fixture's first article:
 ------------------------------------------------------
 
 :py:class:`~md2akn.AknNode` and :py:class:`~md2akn.Annotation`, and the
-vocabulary their ``akn_type`` is drawn from — 16 Akoma Ntoso element names
-(``intro`` and ``table`` joined in 0.5.1), in the rough order they nest:
+vocabulary their ``akn_type`` is drawn from — 19 Akoma Ntoso element names
+(``intro`` and ``table`` joined in 0.5.1, ``attachment``, ``part`` and ``toc``
+in review fix-1 of issue #291), in the rough order they nest:
 
 >>> from md2akn import AKN_TYPES, REFERS_TO_APARTADO, REFERS_TO_TRANSITORIOS
 >>> len(AKN_TYPES)
-16
+19
 >>> "article" in AKN_TYPES and "paragraph" in AKN_TYPES and "point" in AKN_TYPES
 True
 >>> REFERS_TO_APARTADO
@@ -533,6 +534,61 @@ inside an article stays that article's own text.
 ...         print(u.piece, u.text)
 1 CAPÍTULO 01 Animales vivos | CÓDIGO | DESCRIPCIÓN | | 01.01 | Caballos |
 2 CAPÍTULO 01 Animales vivos | CÓDIGO | DESCRIPCIÓN | | 01.02 | Bovinos |
+
+Rules 14 to 18: no repeated article number
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A review of the Atlas after issue #291 found that 209 of its 2,676 instruments
+carried an article number more than once. Each had its own cause, and each is
+fixed where it starts — five rules of ``md2akn`` here, and the ``scjn`` writer
+for the cause that is its own (``scjn.api``'s ``_LEAD_ARTICULO`` bolded only
+the part of a number it knew). None of them hides or renumbers a duplicate:
+where the SCJN's own answer repeats a number, it stays repeated and is listed
+for the repository owner in ``scripts/embeddings/README.md``.
+
+Rule 14 reads **an article's number whole**: ``1o.-A BIS`` (the LIVA and the
+LIEPS), ``3o.- Bis``, ``228 a`` and ``228 a BIS`` (the LGTOC) are different
+articles from ``1o``, ``3o`` and ``228``, not a second article with that number.
+A word after the number is not part of it:
+
+>>> leyes = (
+...     "**ARTICULO 228.-** Uno.\n\nARTICULO 228 a.- Dos.\n\n"
+...     "ARTICULO 228 a BIS.- Tres.\n\nARTICULO 5 a las personas.\n"
+... )
+>>> [u.num for u in md2akn.text_units(leyes, split_articles=False)]
+['228', '228 a', '228 a BIS', '5']
+
+Rule 15 reads **a table of contents** — the run of short blocks after a marker
+(``Índice``, ``Contenido``) that the document then repeats as its own headings —
+as one ``toc`` node and ``toc`` units, so an index entry is never a container or
+an article:
+
+>>> codigo = (
+...     "**ÍNDICE**\n\n**PARTE 1 DISPOSICIONES**\n\nCapítulo 1.1 Generales\n\n"
+...     "1.1.0 Nota\n\n1.1.1 Aplicación\n\n1.1.2 Convenios\n\n1.1.3 Prohibido\n\n"
+...     "**PARTE 1**\n\nCapítulo 1.1\n\n1.1.0 Nota\n\nTexto de la nota.\n\n"
+...     "1.1.1 Aplicación\n\nTexto.\n"
+... )
+>>> [(u.unit_type, u.eId) for u in md2akn.text_units(codigo, split_articles=False)][:4]
+[('toc', 'toc_1'), ('heading', 'part_1'), ('heading', 'part_1__cap_1.1'), ('intro', 'part_1__cap_1.1__intro')]
+
+Rule 16 reads ``PARTE`` as a container above books, titles and chapters, and
+``ANEXO``/``APÉNDICE`` as an ``attachment`` at the top of the body: an annex is
+its own text, and a chapter ``1.1`` of Part 1 is not the chapter ``1.1`` of
+Part 2. Rule 17 keeps the **recitals** — ``CONSIDERANDO`` and the numbered
+paragraphs under it — out of the articles in an instrument whose provisions are
+numbered the same way (``PRIMERO.-`` twice), and reads the heading of a decree
+quoted with its ``D.O.F.`` date as the decree's own opening. Rule 18 applies
+only where rule 8's numerals are in force: a whole numeral that starts over
+(``1.`` after ``3.``) or carries on a list that did is a list item of the
+provision above, not a further article:
+
+>>> acuerdo = (
+...     "1. Uno.\n\n2. Dos.\n\n2.1. Sub.\n\n1. Primero de la lista.\n\n"
+...     "2. Segundo.\n\n3. Tercero.\n\n4. Cuarto.\n\n3. Tres.\n\n4. Cuatro.\n"
+... )
+>>> [u.num for u in md2akn.text_units(acuerdo, split_articles=False)]
+['1', '2', '2.1', '3', '4']
 
 :py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
 where ``coverage()`` says nothing was lost, this says the units are usable.

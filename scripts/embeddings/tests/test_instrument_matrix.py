@@ -319,7 +319,9 @@ def test_headings_are_neither_sources_nor_winners(prepared, cache):
     assert tied["similarity"] < 0.999
     assert matrix[index["b"], index["c"]] == 0
     summary = result["summary"]
-    assert summary["excluded_unit_types"] == ["heading"]
+    # A table of contents joined the headings in review fix-1 of #291 (md2akn's
+    # rule 15), so the recorded list says both.
+    assert summary["excluded_unit_types"] == ["heading", "toc"]
     assert summary["heading_rows_excluded"] == 3
     assert summary["unit_rows"] == 16
     assert summary["searched_rows"] == 13
@@ -1062,7 +1064,9 @@ def test_the_counts_and_the_identity(transitorio_work):
     assert summary["searched_rows"] == len(nearest) == 8
     assert (summary["searched_rows"] + summary["heading_rows_excluded"]
             + summary["transitorio_rows_excluded"]) == summary["unit_rows"]
-    assert summary["excluded_unit_types"] == ["heading"]
+    # A table of contents joined the headings in review fix-1 of #291 (md2akn's
+    # rule 15), so the recorded list says both.
+    assert summary["excluded_unit_types"] == ["heading", "toc"]
     assert summary["excluded_transitorios"] is True
     assert summary["identical_shared_dropped"] == 3
     assert summary["counted_rows"] == 5
@@ -1281,3 +1285,16 @@ def test_an_explicit_exclude_wins_on_a_shared_node():
     assert instrument_matrix.resolve_exclude(parser.parse_args([])) == "geoint0"
     assert instrument_matrix.resolve_exclude(
         parser.parse_args(["--shared-node", "--exclude", "hollow"])) == "hollow"
+
+
+def test_a_table_of_contents_is_never_searched():
+    # review fix-1 of #291: a `toc` unit lists headings, like a heading unit
+    import pandas as pd
+
+    from instrument_matrix import searched_mask
+
+    units = pd.DataFrame({
+        "unit_type": ["article", "heading", "toc", "article"],
+        "transitorio": [False, False, False, True],
+    })
+    assert searched_mask(units).tolist() == [True, False, False, False]

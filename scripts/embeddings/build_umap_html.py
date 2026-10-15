@@ -83,12 +83,12 @@ COLLECTION_COLORS = {"L": "#4c78a8", "R": "#f58518", "N": "#54a24b", "T": "#e457
 #: code an older `points.parquet`/`atlas.json` carries keeps its meaning.
 UNIT_TYPES = (
     "article", "article_piece", "heading", "loose", "preamble", "conclusions",
-    "intro", "table",
+    "intro", "table", "toc",
 )
 
 UNIT_SHAPES = (
     "circle", "square", "triangle-up", "diamond", "cross", "triangle-down",
-    "triangle-right", "triangle-left",
+    "triangle-right", "triangle-left", "wedge",
 )
 
 DEFAULT_OUTPUT = Path("output/umap-vectors-qwen3-0.6b.html")

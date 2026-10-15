@@ -187,11 +187,13 @@ def unit_label(unit_type: str, num=None, path=None, piece=None, text=None) -> st
     * `intro` -> `Introduction`, `table` -> `Table` (md2akn 0.5.1's rules 12 and
       13, issue #294): the text a container opens with, and a table outside an
       article. The container is the breadcrumb's, never the label's.
+    * `toc` -> `Table of contents` (md2akn's rule 15, review fix-1 of #291; it
+      is never a searched excerpt, the label is for completeness).
     * `preamble` -> `Preamble`; `conclusions` -> `Closing`.
 
     `path` only decides whether a unit sits in a transitorios block and names
     the block; the breadcrumb itself is `breadcrumb(path)`, exported beside
-    the label. An unknown `unit_type` is a `ValueError`: md2akn has eight.
+    the label. An unknown `unit_type` is a `ValueError`: md2akn has ten.
     """
     transitory = None
     for element in reversed(_path_list(path)):
@@ -221,6 +223,8 @@ def unit_label(unit_type: str, num=None, path=None, piece=None, text=None) -> st
         return "Introduction"
     if unit_type == "table":
         return "Table"
+    if unit_type == "toc":
+        return "Table of contents"
     if unit_type == "preamble":
         return "Preamble"
     if unit_type == "conclusions":
