@@ -3465,3 +3465,368 @@ whole file passes (88, nine Quarto skips), three runs of the four tests in a row
 
 **What a human has to run, in this order, before the pull request merges** (nothing was uploaded): see the
 issue's comment and `CLAUDE.md`.
+
+
+### Measured, repeated numbers, 2026-10-15 (review fix-1 of issue #291)
+
+*Review fix-1 of #291, found after the fact:* browsing the Instruments page showed that 209 of the Atlas'
+2,676 instruments carried `duplicate_number` (an article number repeated in the instrument; tratados 89,
+reglamentos 49, leyes 41, lineamientos 30; 4,598 flagged excerpts), the worst being `tratados/114738` (the
+IMDG code, 482). The repository owner's rule is that no instrument should repeat a number, and the owner
+suspected the Markdown writer. Nothing was hidden to meet it: the flag's definition
+(`export_instrument_files.excerpt_flags`: article units outside the transitorios sharing a `num`,
+whatever their container) is unchanged, no `md2akn` rule merges or renumbers, and no instrument is special-cased.
+
+**Where each repeat comes from.** `scripts/embeddings/measure_repeated_numbers.py` reparses, for each of the 209,
+the document the Atlas showed and switches one rule off at a time (`uv run --group viz python
+scripts/embeddings/measure_repeated_numbers.py --old-files ... --old-index ... --json ...`); a rule's share is the
+flagged excerpts that come back when it is off. Totals over the 209 (4,598 excerpts):
+
+| cause (where it originates) | excerpts | fix |
+|---|---:|---|
+| the writer, `scjn.api` | 0 | none needed for the numbers; its lead regex is nevertheless widened (see below) |
+| the number grammar and the transitorios markers of `md2akn` (rule 14) | 948 | whole article number: `18.-A.-`, `Bis` after an ordinal, lowercase and ordinal letters, more Latin spellings, spaced and `DISPOSICIONES TRANSITORIAS` markers, `(SIC)` |
+| a table of contents read as articles (rule 15) | 1,374 | a `toc` node and unit, never an article, outside the rule-8 gate |
+| restarted whole numerals read as articles in numeral mode (rule 18) | 449 | the restart is a list item of the article it follows |
+| recitals under `CONSIDERANDO` and D.O.F.-headed decrees (rule 17) | 150 | recitals are not articles |
+| `PARTE`, `ANEXO`, `APÉNDICE` containers (rule 16) | 0 | containers, so their chapters and articles sit under them; it does not change the container-blind flag |
+| what remains | 1,605 | the SCJN's own text, below |
+
+Per collection, before and after: leyes 41 instruments (539 excerpts) to 3 (6), reglamentos 49 (891) to 23 (459),
+lineamientos 30 (589) to 1 (2), tratados 89 (2,579) to 46 (1,961). The totals after are 73 instruments and 2,428
+excerpts: the 68 of the 209 that still repeat (1,605) plus 5 instruments that were not flagged before
+(`tratados/96728`, `108587`, `76945`, `108558` and `reglamentos/992`: 823 excerpts). Those five are not new errors:
+the old parse read, for example, the fire-test exposure code (PEF 2010, `96728`) as five units (one article over every
+model's window), and the new parse segments it into 1,164, exposing the restart of its `1.1` numbering in each annex.
+
+**The writer.** `scjn.api._LEAD_ARTICULO` bolded only part of some article numbers (`**Artículo 18.-**A.-`), which
+`md2akn` ignores because it matches a block with the `**` removed; it now takes the whole number (the grammar is a
+copy of `md2akn`'s, since `scjn` imports nothing else of this monorepo) and `TestWholeNumberLeads` in
+`packages/scjn/tests/test_api.py` pins it from real fragments. Its share of the repeats is 0, as the ablation
+shows, so the re-download was a consistency step and not the cure. The 32 + 1 leyes, 13 reglamentos and 24
+tratados whose bold or header changed were re-downloaded and repackaged (`PUBLICAR.md` generated, not run); a snapshot
+is adopted from the fresh answer only when the two differ in bold or in the header, and otherwise the old file
+is kept (150 snapshots), because the fresh answer turns tab-indented text into `|  | text |` rows (#253) and the
+repository owner did not ask for that. The five text-less reglamentos' `estado.json` were rebuilt from the
+published index so the repackaged index and manifest stay complete.
+
+**`114738`.** `duplicate_number` is 0. The document is two amendments ("annex 1" with parts 1 and A, "annex 2" with
+part 3 and the two appendices A and B, plus the annexes between them), so parts 1 to 7 are `part` nodes holding
+their own chapters (`1.1`, `1.2`, ...), the text of part 3 sits under part 3, `APÉNDICES A` and `B` are `attachment` nodes at the
+end, and the table of contents are `toc` nodes, not articles. Two chapter headings of part 3 are still odd (`3.1 – Generalidades`
+holding a dangerous-goods row), a limit of the parse that no repeated number reveals.
+
+**What remains, for the repository owner.** The 73 instruments below still repeat a number under the unchanged
+definition. In each, the repeated number is in the SCJN's own API answer (the rows are listed by their `referencia`
+for the newest reform), and none is hidden. The causes are of four kinds: numbering that restarts in an annex or an
+appendix (the instrument's own text numbers its annexes from 1), in each Part or in a later chapter, title or document
+(a law printed together with its protocol, or a congress's decisions), two API rows carrying the same number
+(`ARTÍCULO 6` and `ARTÍCULO 6 (SIC)`, a number reused for an `ENCABEZADO` row, the same reform printed twice), and a
+few rows with two openers inside one row. Questions: should an annex or part restart count as a repetition (the flag
+is container-blind by definition), and should a `(SIC)` row repeat its number at all?
+
+| collection | key | instrument | repeated excerpts | what repeats | evidence in the API answer |
+|---|---|---|---:|---|---|
+| leyes | `cjm` | CÓDIGO de Justicia Militar | 2 | two SCJN rows (or two documents) carry the same number | no. 916: row 1105 “ARTÍCULO  915”; row 1106 “ARTÍCULO  916” |
+| leyes | `cmpp` | CÓDIGO Militar de Procedimientos Penales | 2 | two SCJN rows (or two documents) carry the same number | no. 396: two openers inside one row (row 471) |
+| leyes | `lieps` | LEY del Impuesto Especial sobre Producción y | 2 | two SCJN rows (or two documents) carry the same number | no. 23: row 50 “ARTÍCULO  23”; row 51 “ARTÍCULO  23-BIS” |
+| lineamientos | `109459` | LINEAMIENTOS QUE RIGEN LA OPERACION DEL CENT | 2 | numbering restarts in a later chapter, title or document | no. TERCERO: parsed from one row |
+| reglamentos | `975` | REGLAMENTO GENERAL PARA EL SERVICIO DE SANID | 136 | numbering restarts in each Part | no. 1°: row 3 “ARTÍCULO  1”; row 86 “ARTÍCULO  1” |
+| reglamentos | `103948` | REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES E | 96 | numbering restarts inside an annex or appendix | no. 1: row 6 “ARTÍCULO 1”; row 70 “D.O.F. 10 DE NOVIEMBRE D” |
+| reglamentos | `965` | REGLAMENTO GENERAL DE REGIONES Y ZONAS MILIT | 64 | numbering restarts in each Part | no. 1°: row 4 “ARTÍCULO  1”; row 61 “ARTÍCULO  1” |
+| reglamentos | `67602` | REGLAMENTO PARA LA DESTRUCCION DE FORMATOS D | 56 | numbering restarts in a later chapter, title or document | no. 1: row 10 “ÍNDICE”; row 13 “ARTÍCULO  1” |
+| reglamentos | `952` | REGLAMENTO GENERAL DE INFANTERIA | 41 | numbering restarts in a later chapter, title or document | no. 2°: row 9 “ARTÍCULO 2”; row 42 “ARTÍCULO 2” |
+| reglamentos | `61683` | REGLAMENTO DE LA CORTE SUPREMA DE JUSTICIA D | 10 | numbering restarts in a later chapter, title or document | no. 1: row 16 “ARTÍCULO 1”; row 30 “ARTÍCULO 1”; row 34 “ARTÍCULO 1” |
+| reglamentos | `116367` | REGLAMENTO DE ELECCIONES DEL INSTITUTO NACIO | 8 | two SCJN rows (or two documents) carry the same number | no. 4: row 6 “ARTÍCULO 4”; row 631 “D.O.F. 17 DE OCTUBRE DE ” |
+| reglamentos | `992` | REGLAMENTO PARA PREVENIR Y CONTROLAR LA CONT | 6 | numbering restarts inside an annex or appendix | no. 1: row 3 “ARTÍCULO  1”; row 44 “D.O.F. 19 DE SEPTIEMBRE ” |
+| reglamentos | `14971` | REGLAMENTO DE LA COMISION INTERINSTITUCIONAL | 6 | two SCJN rows (or two documents) carry the same number | no. 1: row 0 “ENCABEZADO”; row 2 “ARTÍCULO  1” |
+| reglamentos | `182893` | REGLAMENTO INTERIOR DEL CONSEJO NACIONAL DEL | 6 | numbering restarts in a later chapter, title or document | no. 1: row 1 “ARTÍCULO 1”; row 7 “ARTÍCULO 1” |
+| reglamentos | `1000` | REGLAMENTO DE ADMISION A LAS ESCUELAS NAVALE | 4 | numbering restarts inside an annex or appendix | no. 41: row 48 “ARTÍCULO  41”; row 57 “ANEXO NÚMERO CUATRO” |
+| reglamentos | `179970` | REGLAMENTO DEL CENTRO PUBLICO DE MECANISMOS  | 4 | numbering restarts in a later chapter, title or document | no. 1: row 0 “ENCABEZADO”; row 4 “ARTÍCULO 1” |
+| reglamentos | `567` | REGLAMENTO DE LOS SERVICIOS DE GUARDERIAS PA | 2 | two SCJN rows (or two documents) carry the same number | no. 6o: row 8 “ARTÍCULO  6”; row 9 “ARTÍCULO  6 (SIC)” |
+| reglamentos | `878` | REGLAMENTO NACIONAL DE CARRERAS DE CABALLOS  | 2 | numbering restarts in a later chapter, title or document | no. 152: row 158 “ARTÍCULO  152 (SIC)”; row 169 “ARTÍCULO  152” |
+| reglamentos | `925` | REGLAMENTO DE CEREMONIAL MILITAR | 2 | two SCJN rows (or two documents) carry the same number | no. UNICO: row 251 “D.O. 23 DE JULIO DE 1949”; row 252 “D.O. 19 DE DICIEMBRE DE ”; row 253 “D.O.F. 14 DE SEPTIEMBRE ” |
+| reglamentos | `10911` | REGLAMENTO PARA LA IMPOSICION DE MULTAS POR  | 2 | two SCJN rows (or two documents) carry the same number | no. 16: row 21 “ARTÍCULO  15”; row 22 “ARTÍCULO  16” |
+| reglamentos | `1152` | REGLAMENTO INTERIOR DEL BANCO DE MEXICO | 2 | two SCJN rows (or two documents) carry the same number | no. 14: row 19 “ARTÍCULO  14”; row 20 “ARTÍCULO  14 BIS” |
+| reglamentos | `15305` | REGLAMENTO QUE ESTABLECE LOS LINEAMIENTOS PA | 2 | two SCJN rows (or two documents) carry the same number | no. 18: two openers inside one row (row 30) |
+| reglamentos | `31949` | REGLAMENTO DEL SORTEO MELATE-REVANCHA DE PRO | 2 | numbering restarts in a later chapter, title or document | no. 47o: row 59 “ARTÍCULO  47”; row 61 “ARTÍCULO  47 (SIC)” |
+| reglamentos | `62098` | REGLAMENTO DEL INSTITUTO FEDERAL ELECTORAL P | 2 | two SCJN rows (or two documents) carry the same number | no. 20: row 38 “ARTÍCULO  20”; row 39 “ARTÍCULO  20 (SIC)” |
+| reglamentos | `95146` | REGLAMENTO DE VIGILANCIA DEL DESEMPEÑO JURIS | 2 | two SCJN rows (or two documents) carry the same number | no. 68: row 88 “ARTÍCULO 68”; row 89 “ARTÍCULO 68 (SIC)” |
+| reglamentos | `180418` | REGLAMENTO DE SESIONES DE LA SALA SUPERIOR | 2 | numbering restarts in a later chapter, title or document | no. 1: row 0 “ENCABEZADO”; row 6 “ARTÍCULO 1” |
+| reglamentos | `178268` | REGLAMENTO GENERAL PARA LAS ESCUELAS DE LOS  | 2 | numbering restarts in a later chapter, title or document | no. 1: row 0 “ENCABEZADO”; row 5 “ARTÍCULO 1” |
+| tratados | `96728` | CODIGO INTERNACIONAL PARA LA APLICACION DE P | 787 | numbering restarts inside an annex or appendix | no. 1.1: parsed from one row |
+| tratados | `96707` | CODIGO INTERNACIONAL PARA LA CONSTRUCCION Y  | 153 | numbering restarts inside an annex or appendix | no. 1.1: parsed from one row |
+| tratados | `11293` | CONVENIO INTERNACIONAL PARA LA SEGURIDAD DE  | 130 | numbering restarts inside an annex or appendix | no. 11.1: parsed from one row |
+| tratados | `50540` | DECISIONES DEL XXIII CONGRESO DE BUCAREST 20 | 129 | numbering restarts in a later chapter, title or document | no. 1: row 13 “ARTÍCULO  1”; row 106 “ARTÍCULO  1”; row 140 “ARTÍCULO  1” |
+| tratados | `43712` | DECISIONES DEL XXII CONGRESO DE BEIJING 1999 | 118 | numbering restarts in a later chapter, title or document | no. I: row 8 “ARTÍCULO  I”; row 210 “ARTÍCULO  I” |
+| tratados | `125636` | CONVENCION CONJUNTA SOBRE SEGURIDAD EN LA GE | 54 | two SCJN rows (or two documents) carry the same number | no. 18: row 7 “PREÁMBULO”; row 29 “ARTÍCULO 18” |
+| tratados | `24074` | ACUERDO SOBRE EL ESTABLECIMIENTO DE LA COMIS | 48 | numbering restarts inside an annex or appendix | no. III: row 10 “ACUERDO”; row 22 “ARTÍCULO III”; row 90 “ARTÍCULO III” |
+| tratados | `89657` | CONVENIO DE GINEBRA RELATIVO AL TRATO DE LOS | 37 | numbering restarts inside an annex or appendix | no. 1: row 8 “ARTÍCULO  1”; row 183 “ANEXO II”; row 184 “ANEXO III” |
+| tratados | `67952` | ACUERDO RELATIVO A GIROS POSTALES Y LOS BONO | 36 | numbering restarts in a later chapter, title or document | no. 1: row 4 “ARTÍCULO  1”; row 111 “ARTÍCULO  1” |
+| tratados | `11248` | CONVENCION SOBRE ASISTENCIA EN CASO DE ACCID | 34 | two SCJN rows (or two documents) carry the same number | no. 1: row 7 “ARTÍCULO  1”; row 27 “ARTÍCULO  1” |
+| tratados | `89658` | CONVENIO DE GINEBRA RELATIVO A LA PROTECCION | 34 | numbering restarts inside an annex or appendix | no. 1: row 8 “ARTÍCULO  1”; row 191 “ANEXO I”; row 192 “ANEXO II” |
+| tratados | `26628` | CONVENIO-MARCO RELATIVO A LA EJECUCION DE LA | 31 | numbering restarts inside an annex or appendix | no. 1: row 7 “ARTÍCULO  1”; row 20 “CONTENIDO DEL ANEXO”; row 22 “ANEXO 1” |
+| tratados | `23837` | CONVENIO RELATIVO A LA RADIODIFUSION EN FREC | 28 | numbering restarts inside an annex or appendix | no. 3: row 6 “INDICE”; row 12 “ARTÍCULO  3” |
+| tratados | `47860` | ACTAS FINALES DE LA CONFERENCIA MUNDIAL DE R | 27 | numbering restarts inside an annex or appendix | no. 1: row 8 “ARTÍCULOS”; row 9 “APÉNDICES” |
+| tratados | `89655` | CONVENIO DE GINEBRA PARA MEJORAR LA SUERTE D | 26 | numbering restarts inside an annex or appendix | no. 1: row 7 “ARTÍCULO  1”; row 81 “ANEXO I” |
+| tratados | `108587` | CONVENIO DE MINAMATA SOBRE EL MERCURIO (MULT | 22 | numbering restarts in each Part | no. 1: row 8 “ARTÍCULO 1”; row 50 “ARTÍCULO 1”; row 68 “ARTÍCULO 1” |
+| tratados | `16189` | CONVENCION Y ESTATUTO SOBRE EL REGIMEN INTER | 20 | two SCJN rows (or two documents) carry the same number | no. 1: row 4 “ARTÍCULO  1”; row 16 “ARTÍCULO  1” |
+| tratados | `23952` | CONVENIO PARA LA REPRESION DE ACTOS ILICITOS | 20 | two SCJN rows (or two documents) carry the same number | no. 1: row 7 “ARTÍCULO  1”; row 31 “CONTENIDO DEL PROTOCOLO” |
+| tratados | `44552` | ACTAS FINALES DE LA CONFERENCIA MUNDIAL DE R | 20 | numbering restarts inside an annex or appendix | no. 1: two openers inside one row (row 16) |
+| tratados | `60292` | CONVENIO CONSTITUTIVO DEL ORGANISMO MULTILAT | 19 | numbering restarts inside an annex or appendix | no. 1: row 8 “ARTÍCULO  1”; row 86 “ANEXO 1”; row 87 “ANEXO II (SIC)” |
+| tratados | `50539` | CONVENIO CONSTITUTIVO DEL FONDO MULTILATERAL | 17 | numbering restarts inside an annex or appendix | no. I: row 7 “ARTÍCULO I”; row 16 “ARTÍCULO I”; row 24 “ANEXO A” |
+| tratados | `66295` | CONVENIO INTERNACIONAL PARA EL ESTABLECIMIEN | 16 | two SCJN rows (or two documents) carry the same number | no. 1: row 3 “ARTÍCULO  1”; row 11 “ANEXO DEL CONVENIO” |
+| tratados | `67984` | CONVENCION SOBRE UN CODIGO DE CONDUCTA DE LA | 16 | numbering restarts in each Part | no. 3: row 13 “ARTÍCULO  3”; row 73 “PARTE FINAL DE LA CONVEN” |
+| tratados | `125345` | ACUERDO SOBRE UN PROGRAMA INTERNACIONAL DE E | 16 | numbering restarts inside an annex or appendix | no. 2: row 10 “ARTÍCULO 2”; row 108 “ARTÍCULO 2” |
+| tratados | `84855` | ACTAS FINALES DE LA CONFERENCIA MUNDIAL DE R | 14 | numbering restarts inside an annex or appendix | no. 2: row 7 “ÍNDICE”; row 13 “ANEXO 2”; row 14 “ANEXO 3” |
+| tratados | `18122` | CONVENIO PARA LA COOPERACION EN EL MARCO DE  | 12 | two SCJN rows (or two documents) carry the same number | no. 1: row 7 “ARTÍCULO  1”; row 18 “CONTENIDO DEL ESTATUTO” |
+| tratados | `23774` | CONVENCION CONSTITUTIVA DE LA ORGANIZACION M | 11 | two SCJN rows (or two documents) carry the same number | no. 29: two openers inside one row (row 7) |
+| tratados | `16165` | TRATADO PARA EVITAR O PREVENIR CONFLICTOS EN | 10 | numbering restarts inside an annex or appendix | no. I: row 4 “ARTÍCULO  I”; row 14 “APÉNDICE” |
+| tratados | `24154` | ACUERDO PARA LA PROMOCION Y PROTECCION RECIP | 10 | numbering restarts inside an annex or appendix | no. PRIMERO: row 7 “ARTÍCULO PRIMERO”; row 21 “ANEXO” |
+| tratados | `11422` | TRATADO DEFINITIVO DE PAZ Y AMISTAD (S.M.C.  | 8 | two SCJN rows (or two documents) carry the same number | no. I: row 2 “ARTÍCULO  I”; row 12 “DECLARACIÓN” |
+| tratados | `16296` | ACUERDO DE ASOCIACION ECONOMICA, CONCERTACIO | 6 | numbering restarts inside an annex or appendix | no. 1: row 2 “PRIMERO”; row 3 “SEGUNDO” |
+| tratados | `22544` | TRATADO SOBRE DISTRIBUCION DE AGUAS INTERNAC | 6 | two SCJN rows (or two documents) carry the same number | no. 1º: row 4 “ARTÍCULO  1”; row 44 “CONTENIDO DE LA APROBACI” |
+| tratados | `85041` | CONVENIO IBEROAMERICANO SOBRE EL USO DE LA V | 6 | numbering restarts in a later chapter, title or document | no. 1º: row 8 “ARTÍCULO 1”; row 22 “PROTOCOLO” |
+| tratados | `19438` | TRATADO GENERAL DE ARBITRAJE INTERAMERICANO  | 4 | two SCJN rows (or two documents) carry the same number | no. 1: row 4 “ARTÍCULO  1”; row 16 “CONTENIDO DEL PROTOCOLO” |
+| tratados | `23743` | CONVENCION SOBRE EXTRADICION (MULTILATERAL,  | 4 | two SCJN rows (or two documents) carry the same number | no. 2: row 4 “ARTÍCULO  2”; row 27 “RESERVAS” |
+| tratados | `23966` | CONVENCION SOBRE PRESCRIPCION EN MATERIA DE  | 4 | two SCJN rows (or two documents) carry the same number | no. 43: row 62 “ARTÍCULO  43”; row 64 “ARTÍCULO  43 (SIC)” |
+| tratados | `49685` | ACUERDO PARA LA PROMOCION Y PROTECCION RECIP | 4 | numbering restarts in a later chapter, title or document | no. 1: row 8 “ARTÍCULO  1”; row 39 “PROTOCOLO” |
+| tratados | `50610` | TRATADO PARA LA EXTRADICION DE CRIMINALES (1 | 4 | two SCJN rows (or two documents) carry the same number | no. I: row 3 “ARTÍCULO I”; row 25 “ARTÍCULO I” |
+| tratados | `76945` | CONVENCION INTERAMERICANA SOBRE TRANSPARENCI | 4 | numbering restarts inside an annex or appendix | no. III: row 10 “ARTÍCULO  III”; row 23 “ANEXOS” |
+| tratados | `108558` | CONVENIO SOBRE RECONOCIMIENTO MUTUO DE DIPLO | 4 | two SCJN rows (or two documents) carry the same number | no. 2.1: parsed from one row |
+| tratados | `11440` | TRATADO DE PAZ, AMISTAD, LIMITES Y ARREGLO D | 2 | two SCJN rows (or two documents) carry the same number | no. IX: row 10 “ARTÍCULO  IX”; row 27 “TEXTO DE LAS MODIFICACIO” |
+| tratados | `14273` | CONVENCION PARA EL ESTABLECIMIENTO DE UNA CO | 2 | two SCJN rows (or two documents) carry the same number | no. IV: row 10 “ARTÍCULO  IV”; row 14 “CONTENIDO DE LAS NOTAS” |
+| tratados | `22834` | CONSTITUCION DE LA ORGANIZACION INTERNACIONA | 2 | two SCJN rows (or two documents) carry the same number | no. 18: two openers inside one row (row 6) |
+| tratados | `23762` | CONVENCION SOBRE EL INSTITUTO INTERAMERICANO | 2 | two SCJN rows (or two documents) carry the same number | no. IV: two openers inside one row (row 6) |
+| tratados | `28571` | ACUERDO DE CONSTITUCION DEL INSTITUTO INTERN | 2 | two SCJN rows (or two documents) carry the same number | no. IV: row 11 “ARTÍCULO  IV”; row 12 “ARTÍCULO  IV (SIC)” |
+| tratados | `89155` | PROTOCOLO DE REFORMAS A LA CARTA DE LA ORGAN | 2 | two SCJN rows (or two documents) carry the same number | no. 8: row 8 “ARTÍCULO  II”; row 10 “ARTÍCULO  IV” |
+
+**Per instrument, the 209 that were flagged** (excerpts flagged under each cause when only that rule is off, and the
+count the Atlas shows now):
+
+| collection | key | instrument | before | number grammar and markers | table of contents (15) | recitals (17) | restarted numerals (18) | writer | after |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| leyes | `ccom` | CÓDIGO de Comercio | 127 | 127 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lfd` | LEY Federal de Derechos | 92 | 92 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lmeum` | LEY Monetaria de los Estados Unidos Mexi | 38 | 38 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lfpca` | LEY Federal de Procedimiento Contencioso | 34 | 34 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lieps` | LEY del Impuesto Especial sobre Producci | 26 | 24 | 0 | 0 | 0 | 0 | 2 |
+| leyes | `liva` | LEY del Impuesto al Valor Agregado | 26 | 26 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lgtoc` | LEY General de Títulos y Operaciones de  | 23 | 23 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `ccf` | CÓDIGO Civil Federal | 21 | 21 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `cff` | CÓDIGO Fiscal de la Federación | 16 | 16 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lfped` | LEY Federal para Prevenir y Eliminar la  | 11 | 11 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `cjm` | CÓDIGO de Justicia Militar | 9 | 7 | 0 | 0 | 0 | 0 | 2 |
+| leyes | `lgoaac` | LEY General de Organizaciones y Activida | 9 | 9 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lcf` | LEY de Coordinación Fiscal | 7 | 7 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lgs` | LEY General de Salud | 7 | 7 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lac` | LEY de Aviación Civil | 6 | 6 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lfpc` | LEY Federal de Protección al Consumidor | 6 | 6 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lic` | LEY de Instituciones de Crédito | 6 | 6 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `cpf` | CÓDIGO Penal Federal | 5 | 5 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `laero` | LEY de Aeropuertos | 5 | 5 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lccbid` | LEY que Establece Bases para la Ejecució | 5 | 5 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lfcdo` | LEY Federal contra la Delincuencia Organ | 5 | 5 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lft` | LEY Federal del Trabajo | 5 | 5 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lsat` | LEY del Servicio de Administración Tribu | 5 | 5 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lebhn` | LEY sobre el Escudo, la Bandera y el Him | 4 | 4 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lfmzaah` | LEY Federal sobre Monumentos y Zonas Arq | 4 | 4 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `loefam` | LEY Orgánica del Ejército y Fuerza Aérea | 4 | 4 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lrsic` | LEY para Regular las Sociedades de Infor | 4 | 4 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lcm` | LEY de Concursos Mercantiles | 3 | 3 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `cmpp` | CÓDIGO Militar de Procedimientos Penales | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| leyes | `lcpaf` | LEY de Caminos, Puentes y Autotransporte | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lcs` | LEY Sobre el Contrato de Seguro | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `ldofgg` | LEY del Diario Oficial de la Federación  | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `ldpam` | LEY de los Derechos de las Personas Adul | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lfda` | LEY Federal del Derecho de Autor | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lfpa` | LEY Federal de Procedimiento Administrat | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lgbn` | LEY General de Bienes Nacionales | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lgdnna` | LEY General de los Derechos de Niñas, Ni | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lgv` | LEY General de Víctimas | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lpdusf` | LEY de Protección y Defensa al Usuario d | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lrfxiiib-art123` | LEY Reglamentaria de la Fracción XIII Bi | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| leyes | `lsnieg` | LEY del Sistema Nacional de Información  | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| lineamientos | `180530` | LINEAMIENTOS PARA LA EVALUACION, CERTIFI | 80 | 0 | 80 | 0 | 0 | 0 | 0 |
+| lineamientos | `180527` | LINEAMIENTOS DE CAPACITACION PARA LA FOR | 68 | 0 | 68 | 0 | 0 | 0 | 0 |
+| lineamientos | `180532` | LINEAMIENTOS Y BASES PARA INVITACION Y P | 60 | 0 | 60 | 0 | 0 | 0 | 0 |
+| lineamientos | `180528` | LINEAMIENTOS DE CREACION DEL A PLATAFORM | 34 | 0 | 34 | 0 | 0 | 0 | 0 |
+| lineamientos | `180529` | LINEAMIENTOS DE CREACION, ACTUALIZACION  | 30 | 0 | 30 | 0 | 0 | 0 | 0 |
+| lineamientos | `93817` | LINEAMIENTOS GENERALES Y ESPECIFICOS PAR | 29 | 0 | 0 | 0 | 29 | 0 | 0 |
+| lineamientos | `90710` | LINEAMIENTOS PARA LA ADMINISTRACION, ADQ | 28 | 0 | 0 | 0 | 28 | 0 | 0 |
+| lineamientos | `87314` | LINEAMIENTOS PARA LA ELABORACION, MODIFI | 24 | 0 | 0 | 0 | 0 | 0 | 0 |
+| lineamientos | `72249` | LINEAMIENTOS PARA LA RECEPCION, REGISTRO | 22 | 0 | 0 | 0 | 22 | 0 | 0 |
+| lineamientos | `81411` | LINEAMIENTOS DEL PROGRAMA DE SERVICIO SO | 20 | 0 | 0 | 0 | 0 | 0 | 0 |
+| lineamientos | `160908` | LINEAMIENTOS POR LOS QUE SE ESTABLECE EL | 18 | 0 | 0 | 18 | 0 | 0 | 0 |
+| lineamientos | `168971` | LINEAMIENTOS QUE REGULAN LA GESTION Y EV | 18 | 0 | 0 | 0 | 18 | 0 | 0 |
+| lineamientos | `178432` | LINEAMIENTOS [QUE ESTABLECEN LAS MEDIDAS | 18 | 0 | 0 | 18 | 0 | 0 | 0 |
+| lineamientos | `139056` | LINEAMIENTOS POR LOS QUE SE ESTABLECE EL | 12 | 0 | 0 | 12 | 0 | 0 | 0 |
+| lineamientos | `88543` | LINEAMIENTOS PARA EL MANEJO DE FONDOS FI | 12 | 0 | 0 | 0 | 0 | 0 | 0 |
+| lineamientos | `95755` | LINEAMIENTOS PARA EL MANEJO DE FONDOS FI | 12 | 0 | 0 | 0 | 0 | 0 | 0 |
+| lineamientos | `54339` | LINEAMIENTOS RELATIVOS A LAS MEDIDAS DE  | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
+| lineamientos | `54342` | LINEAMIENTOS RELATIVOS A LOS GASTOS POR  | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
+| lineamientos | `62338` | LINEAMIENTOS DEL SIETE DE MARZO DE 2007, | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
+| lineamientos | `178461` | LINEAMIENTOS DE LA COMISION MIXTA DE ESC | 8 | 0 | 0 | 8 | 0 | 0 | 0 |
+| lineamientos | `54334` | LINEAMIENTOS RELATIVOS AL FOTOCOPIADO DE | 8 | 0 | 0 | 8 | 0 | 0 | 0 |
+| lineamientos | `54335` | LINEAMIENTOS RELATIVOS A LAS MEDIDAS DE  | 8 | 0 | 0 | 8 | 0 | 0 | 0 |
+| lineamientos | `54336` | LINEAMIENTOS RELATIVOS A LAS MEDIDAS DE  | 8 | 0 | 0 | 8 | 0 | 0 | 0 |
+| lineamientos | `54338` | LINEAMIENTOS RELATIVOS A LAS ACCIONES PA | 8 | 0 | 0 | 8 | 0 | 0 | 0 |
+| lineamientos | `54340` | LINEAMIENTOS RELATIVOS A LAS MEDIDAS DE  | 8 | 0 | 0 | 8 | 0 | 0 | 0 |
+| lineamientos | `54341` | LINEAMIENTOS RELATIVOS A LOS MECANISMOS  | 8 | 0 | 0 | 8 | 0 | 0 | 0 |
+| lineamientos | `63485` | LINEAMIENTOS DEL CATORCE DE NOVIEMBRE DE | 8 | 0 | 0 | 8 | 0 | 0 | 0 |
+| lineamientos | `63487` | LINEAMIENTOS Y DISPOSICIONES REGLAMENTAR | 4 | 0 | 0 | 4 | 0 | 0 | 0 |
+| lineamientos | `99972` | LINEAMIENTOS DEL FONDO DE RESERVA INDIVI | 4 | 0 | 0 | 4 | 0 | 0 | 0 |
+| lineamientos | `109459` | LINEAMIENTOS QUE RIGEN LA OPERACION DEL  | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `975` | REGLAMENTO GENERAL PARA EL SERVICIO DE S | 136 | 0 | 0 | 0 | 0 | 0 | 136 |
+| reglamentos | `180526` | REGLAMENTO INTERNO DEL CONSEJO NACIONAL  | 134 | 0 | 134 | 0 | 0 | 0 | 0 |
+| reglamentos | `164927` | REGLAMENTO DE ESTUDIOS DE POSGRADO DEL C | 106 | 0 | 106 | 0 | 0 | 0 | 0 |
+| reglamentos | `103948` | REGLAMENTO DE PROCEDIMIENTOS SANCIONADOR | 96 | 0 | 0 | 0 | 0 | 0 | 96 |
+| reglamentos | `965` | REGLAMENTO GENERAL DE REGIONES Y ZONAS M | 64 | 0 | 0 | 0 | 0 | 0 | 64 |
+| reglamentos | `67602` | REGLAMENTO PARA LA DESTRUCCION DE FORMAT | 56 | 0 | 0 | 0 | 0 | 0 | 56 |
+| reglamentos | `1322` | REGLAMENTO DE AUTOTRANSPORTE FEDERAL Y S | 52 | 52 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `952` | REGLAMENTO GENERAL DE INFANTERIA | 42 | 1 | 0 | 0 | 0 | 0 | 41 |
+| reglamentos | `116367` | REGLAMENTO DE ELECCIONES DEL INSTITUTO N | 24 | 16 | 0 | 0 | 0 | 0 | 8 |
+| reglamentos | `109182` | REGLAMENTO INTERNO DEL TRIBUNAL ELECTORA | 20 | 20 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `46360` | REGLAMENTO DE PRONOSTICOS INTERACTIVOS | 12 | 0 | 0 | 0 | 12 | 0 | 0 |
+| reglamentos | `1027` | REGLAMENTO ORGANICO PARA EL CURSO DE INS | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `31947` | REGLAMENTO  DEL CONCURSO PROGOL DE PRONO | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `61683` | REGLAMENTO DE LA CORTE SUPREMA DE JUSTIC | 10 | 0 | 0 | 0 | 0 | 0 | 10 |
+| reglamentos | `40532` | REGLAMENTO GENERAL DEL COLEGIO DEL AIRE | 9 | 9 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `1152` | REGLAMENTO INTERIOR DEL BANCO DE MEXICO | 7 | 5 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `14971` | REGLAMENTO DE LA COMISION INTERINSTITUCI | 6 | 0 | 0 | 0 | 0 | 0 | 6 |
+| reglamentos | `182893` | REGLAMENTO INTERIOR DEL CONSEJO NACIONAL | 6 | 0 | 0 | 0 | 0 | 0 | 6 |
+| reglamentos | `31948` | REGLAMENTO DEL SORTEO CHISPAZO DE PRONOS | 6 | 6 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `31949` | REGLAMENTO DEL SORTEO MELATE-REVANCHA DE | 6 | 4 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `429` | REGLAMENTO DE TRANSITO EN CARRETERAS FED | 6 | 6 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `1000` | REGLAMENTO DE ADMISION A LAS ESCUELAS NA | 4 | 0 | 0 | 0 | 0 | 0 | 4 |
+| reglamentos | `1183` | REGLAMENTO SOBRE LAS INSTITUCIONES NACIO | 4 | 4 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `1791` | REGLAMENTO GENERAL PARA LA CAMPAÑA CONTR | 4 | 4 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `179970` | REGLAMENTO DEL CENTRO PUBLICO DE MECANIS | 4 | 0 | 0 | 0 | 0 | 0 | 4 |
+| reglamentos | `21170` | REGLAMENTO DE LA ESCUELA SUPERIOR DE GUE | 4 | 4 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `46354` | REGLAMENTO DE FUNCIONAMIENTO DE LOS SORT | 4 | 4 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `49` | REGLAMENTO DE LA ESCUELA MILITAR DE INGE | 4 | 4 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `100939` | REGLAMENTO DE LA LEY GENERAL DE CULTURA  | 3 | 3 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `36110` | REGLAMENTO INTERIOR DE LA COMISION FEDER | 3 | 3 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `925` | REGLAMENTO DE CEREMONIAL MILITAR | 3 | 1 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `10911` | REGLAMENTO PARA LA IMPOSICION DE MULTAS  | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `11120` | REGLAMENTO INTERIOR DE LA SECRETARIA DE  | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `123` | REGLAMENTO DE LA ESCUELA MILITAR DE MATE | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `15305` | REGLAMENTO QUE ESTABLECE LOS LINEAMIENTO | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `15324` | REGLAMENTO DEL INSTITUTO MEXICANO DE LA  | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `173` | REGLAMENTO DE LA LEY DE PRESUPUESTO, CON | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `178268` | REGLAMENTO GENERAL PARA LAS ESCUELAS DE  | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `180418` | REGLAMENTO DE SESIONES DE LA SALA SUPERI | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `21471` | REGLAMENTO DE LA ESCUELA MILITAR DE GRAD | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `33592` | REGLAMENTO DE FUNCIONAMIENTO DE LOS CONC | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `39766` | REGLAMENTO PARA EL SORTEO PRONOSTICOS RA | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `53` | REGLAMENTO PARA EL TRANSPORTE TERRESTRE  | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `565` | REGLAMENTO SOBRE PUBLICACIONES Y REVISTA | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `567` | REGLAMENTO DE LOS SERVICIOS DE GUARDERIA | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `62098` | REGLAMENTO DEL INSTITUTO FEDERAL ELECTOR | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `72` | REGLAMENTO DE LA LEY DEL SERVICIO PUBLIC | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| reglamentos | `878` | REGLAMENTO NACIONAL DE CARRERAS DE CABAL | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| reglamentos | `95146` | REGLAMENTO DE VIGILANCIA DEL DESEMPEÑO J | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| tratados | `114738` | CODIGO MARITIMO INTERNACIONAL DE MERCANC | 482 | 0 | 482 | 0 | 0 | 0 | 0 |
+| tratados | `96707` | CODIGO INTERNACIONAL PARA LA CONSTRUCCIO | 153 | 0 | 0 | 0 | 0 | 0 | 153 |
+| tratados | `50540` | DECISIONES DEL XXIII CONGRESO DE BUCARES | 131 | 1 | 1 | 0 | 0 | 0 | 129 |
+| tratados | `11293` | CONVENIO INTERNACIONAL PARA LA SEGURIDAD | 130 | 0 | 0 | 0 | 0 | 0 | 130 |
+| tratados | `75190` | ACUERDO DE COMPLEMENTACION ECONOMICA No. | 129 | 129 | 0 | 0 | 0 | 0 | 0 |
+| tratados | `43712` | DECISIONES DEL XXII CONGRESO DE BEIJING  | 119 | 0 | 1 | 0 | 0 | 0 | 118 |
+| tratados | `23890` | CONVENIO INTERNACIONAL PARA LA PROTECCIO | 84 | 0 | 84 | 0 | 0 | 0 | 0 |
+| tratados | `24846` | TRATADO DE LA OMPI SOBRE INTERPRETACION  | 66 | 0 | 66 | 0 | 0 | 0 | 0 |
+| tratados | `137355` | PROTOCOLO POR EL QUE SE SUSTITUYE EL TRA | 63 | 63 | 0 | 0 | 0 | 0 | 0 |
+| tratados | `125636` | CONVENCION CONJUNTA SOBRE SEGURIDAD EN L | 54 | 0 | 0 | 0 | 0 | 0 | 54 |
+| tratados | `15733` | TRATADO DE LA OMPI SOBRE DERECHO DE AUTO | 50 | 0 | 50 | 0 | 0 | 0 | 0 |
+| tratados | `24074` | ACUERDO SOBRE EL ESTABLECIMIENTO DE LA C | 50 | 0 | 2 | 0 | 0 | 0 | 48 |
+| tratados | `23943` | ACTAS FINALES DE LA CONFERENCIA ADMINIST | 49 | 0 | 0 | 0 | 49 | 0 | 0 |
+| tratados | `17152` | TRATADO DE BUDAPEST SOBRE EL RECONOCIMIE | 40 | 0 | 40 | 0 | 0 | 0 | 0 |
+| tratados | `89657` | CONVENIO DE GINEBRA RELATIVO AL TRATO DE | 37 | 0 | 0 | 0 | 0 | 0 | 37 |
+| tratados | `67952` | ACUERDO RELATIVO A GIROS POSTALES Y LOS  | 36 | 0 | 0 | 0 | 0 | 0 | 36 |
+| tratados | `11248` | CONVENCION SOBRE ASISTENCIA EN CASO DE A | 34 | 0 | 0 | 0 | 0 | 0 | 34 |
+| tratados | `89658` | CONVENIO DE GINEBRA RELATIVO A LA PROTEC | 34 | 0 | 0 | 0 | 0 | 0 | 34 |
+| tratados | `914` | TRATADO SOBRE EL REGISTRO INTERNACIONAL  | 34 | 0 | 34 | 0 | 0 | 0 | 0 |
+| tratados | `143097` | ACTA DE GINEBRA DEL ARREGLO DE LA HAYA R | 32 | 0 | 32 | 0 | 0 | 0 | 0 |
+| tratados | `23837` | CONVENIO RELATIVO A LA RADIODIFUSION EN  | 32 | 0 | 4 | 0 | 0 | 0 | 28 |
+| tratados | `84855` | ACTAS FINALES DE LA CONFERENCIA MUNDIAL  | 32 | 0 | 18 | 0 | 0 | 0 | 14 |
+| tratados | `26628` | CONVENIO-MARCO RELATIVO A LA EJECUCION D | 31 | 0 | 0 | 0 | 0 | 0 | 31 |
+| tratados | `11294` | ACUERDO SOBRE LA FACULTAD LATINOAMERICAN | 29 | 0 | 0 | 0 | 29 | 0 | 0 |
+| tratados | `17154` | ARREGLO DE NIZA RELATIVO A LA CLASIFICAC | 28 | 0 | 28 | 0 | 0 | 0 | 0 |
+| tratados | `47860` | ACTAS FINALES DE LA CONFERENCIA MUNDIAL  | 27 | 0 | 0 | 0 | 0 | 0 | 27 |
+| tratados | `89655` | CONVENIO DE GINEBRA PARA MEJORAR LA SUER | 26 | 0 | 0 | 0 | 0 | 0 | 26 |
+| tratados | `85035` | CONVENIO SOBRE TRANSPORTE AEREO (REPUBLI | 23 | 0 | 0 | 0 | 23 | 0 | 0 |
+| tratados | `11327` | CONVENIO SOBRE TRANSPORTES AEREOS (SUIZA | 21 | 0 | 0 | 0 | 21 | 0 | 0 |
+| tratados | `11354` | TRATADO DE NAIROBI SOBRE LA PROTECCION D | 20 | 0 | 20 | 0 | 0 | 0 | 0 |
+| tratados | `11448` | CONVENIO PARA EL CANJE DE PUBLICACIONES  | 20 | 0 | 0 | 0 | 20 | 0 | 0 |
+| tratados | `16189` | CONVENCION Y ESTATUTO SOBRE EL REGIMEN I | 20 | 0 | 0 | 0 | 0 | 0 | 20 |
+| tratados | `23952` | CONVENIO PARA LA REPRESION DE ACTOS ILIC | 20 | 0 | 0 | 0 | 0 | 0 | 20 |
+| tratados | `44552` | ACTAS FINALES DE LA CONFERENCIA MUNDIAL  | 20 | 0 | 0 | 0 | 0 | 0 | 20 |
+| tratados | `60292` | CONVENIO CONSTITUTIVO DEL ORGANISMO MULT | 19 | 0 | 0 | 0 | 0 | 0 | 19 |
+| tratados | `50539` | CONVENIO CONSTITUTIVO DEL FONDO MULTILAT | 17 | 0 | 0 | 0 | 0 | 0 | 17 |
+| tratados | `85038` | CONVENIO SOBRE TRANSPORTE AEREO (JAMAICA | 17 | 0 | 0 | 0 | 17 | 0 | 0 |
+| tratados | `125345` | ACUERDO SOBRE UN PROGRAMA INTERNACIONAL  | 16 | 0 | 0 | 0 | 0 | 0 | 16 |
+| tratados | `66295` | CONVENIO INTERNACIONAL PARA EL ESTABLECI | 16 | 0 | 0 | 0 | 0 | 0 | 16 |
+| tratados | `67671` | ACUERDO PARA EL ESTABLECIMIENTO DE LA RE | 16 | 0 | 0 | 0 | 16 | 0 | 0 |
+| tratados | `67984` | CONVENCION SOBRE UN CODIGO DE CONDUCTA D | 16 | 0 | 0 | 0 | 0 | 0 | 16 |
+| tratados | `90408` | ACUERDO MARCO DE LA ALIANZA DEL PACIFICO | 15 | 0 | 0 | 0 | 15 | 0 | 0 |
+| tratados | `110814` | CONVENIO BASICO DE COOPERACION PARA EL D | 14 | 0 | 0 | 0 | 14 | 0 | 0 |
+| tratados | `107086` | CONVENIO SOBRE SERVICIOS AEREOS (GOBIERN | 12 | 0 | 0 | 0 | 12 | 0 | 0 |
+| tratados | `11174` | ACUERDO SOBRE TRANSPORTES AEREOS (REPUBL | 12 | 0 | 0 | 0 | 12 | 0 | 0 |
+| tratados | `18122` | CONVENIO PARA LA COOPERACION EN EL MARCO | 12 | 0 | 0 | 0 | 0 | 0 | 12 |
+| tratados | `23774` | CONVENCION CONSTITUTIVA DE LA ORGANIZACI | 11 | 0 | 0 | 0 | 0 | 0 | 11 |
+| tratados | `11272` | CONVENIO PARA LA TRANSMISION DE VALIJAS  | 10 | 0 | 0 | 0 | 10 | 0 | 0 |
+| tratados | `11340` | CONVENIO DE COOPERACION QUE CELEBRAN LOS | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
+| tratados | `11379` | TRATADO DE EXTRADICION (CUBA, 1925) | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
+| tratados | `16165` | TRATADO PARA EVITAR O PREVENIR CONFLICTO | 10 | 0 | 0 | 0 | 0 | 0 | 10 |
+| tratados | `16685` | ACTAS FINALES DE LA CONFERENCIA MUNDIAL  | 10 | 0 | 0 | 0 | 10 | 0 | 0 |
+| tratados | `23834` | CONVENIO SOBRE TRANSPORTES AEREOS (REINO | 10 | 0 | 0 | 0 | 10 | 0 | 0 |
+| tratados | `24154` | ACUERDO PARA LA PROMOCION Y PROTECCION R | 10 | 0 | 0 | 0 | 0 | 0 | 10 |
+| tratados | `90396` | PRINCIPIOS RELATIVOS AL ESTATUTO DE LAS  | 9 | 0 | 0 | 0 | 9 | 0 | 0 |
+| tratados | `11422` | TRATADO DEFINITIVO DE PAZ Y AMISTAD (S.M | 8 | 0 | 0 | 0 | 0 | 0 | 8 |
+| tratados | `24017` | ACUERDO RELATIVO AL PROCEDIMIENTO DE EST | 8 | 0 | 0 | 0 | 8 | 0 | 0 |
+| tratados | `44555` | CONVENIO SOBRE TRANSPORTE AEREO (REPUBLI | 8 | 0 | 0 | 0 | 8 | 0 | 0 |
+| tratados | `64685` | CONVENIO SOBRE TRANSPORTE AEREO (REPUBLI | 8 | 0 | 0 | 0 | 8 | 0 | 0 |
+| tratados | `11447` | CONVENIO PARA EL CANJE DE PERIODICOS OFI | 6 | 0 | 0 | 0 | 6 | 0 | 0 |
+| tratados | `131814` | ACUERDO SOBRE SERVICIOS AEREOS (GOBIERNO | 6 | 0 | 0 | 0 | 6 | 0 | 0 |
+| tratados | `16296` | ACUERDO DE ASOCIACION ECONOMICA, CONCERT | 6 | 0 | 0 | 0 | 0 | 0 | 6 |
+| tratados | `18864` | ACUERDO RELATIVO AL COMERCIO INTERNACION | 6 | 0 | 0 | 0 | 6 | 0 | 0 |
+| tratados | `22544` | TRATADO SOBRE DISTRIBUCION DE AGUAS INTE | 6 | 0 | 0 | 0 | 0 | 0 | 6 |
+| tratados | `23710` | CONVENCIONES PARA LA UNIFICACION DE DETE | 6 | 6 | 0 | 0 | 0 | 0 | 0 |
+| tratados | `23911` | ACUERDO RELATIVO A LA ASIGNACION Y UTILI | 6 | 0 | 0 | 0 | 6 | 0 | 0 |
+| tratados | `23956` | ACUERDO CONCERNIENTE A LA UTILIZACION DE | 6 | 0 | 0 | 0 | 6 | 0 | 0 |
+| tratados | `85041` | CONVENIO IBEROAMERICANO SOBRE EL USO DE  | 6 | 0 | 0 | 0 | 0 | 0 | 6 |
+| tratados | `107392` | TRATADO DE LIBRE COMERCIO (REPUBLICA DE  | 4 | 0 | 0 | 0 | 4 | 0 | 0 |
+| tratados | `129239` | CONVENIO SOBRE TRANSPORTE AEREO (REINO D | 4 | 0 | 0 | 0 | 4 | 0 | 0 |
+| tratados | `16580` | CONVENIO SOBRE TRANSPORTE AEREO (REPUBLI | 4 | 0 | 0 | 0 | 4 | 0 | 0 |
+| tratados | `19438` | TRATADO GENERAL DE ARBITRAJE INTERAMERIC | 4 | 0 | 0 | 0 | 0 | 0 | 4 |
+| tratados | `23743` | CONVENCION SOBRE EXTRADICION (MULTILATER | 4 | 0 | 0 | 0 | 0 | 0 | 4 |
+| tratados | `23966` | CONVENCION SOBRE PRESCRIPCION EN MATERIA | 4 | 0 | 0 | 0 | 0 | 0 | 4 |
+| tratados | `42131` | ACUERDO PARA EL FORTALECIMIENTO DE LA AS | 4 | 0 | 0 | 0 | 4 | 0 | 0 |
+| tratados | `49685` | ACUERDO PARA LA PROMOCION Y PROTECCION R | 4 | 0 | 0 | 0 | 0 | 0 | 4 |
+| tratados | `50610` | TRATADO PARA LA EXTRADICION DE CRIMINALE | 4 | 0 | 0 | 0 | 0 | 0 | 4 |
+| tratados | `84349` | ACUERDO DE INTEGRACION COMERCIAL (PERU,  | 4 | 0 | 0 | 0 | 0 | 0 | 0 |
+| tratados | `11418` | CONVENIO DE INTERCAMBIO CULTURAL (REPUBL | 3 | 3 | 0 | 0 | 0 | 0 | 0 |
+| tratados | `16277` | TRATADO DE LIBRE COMERCIO ENTRE LOS ESTA | 3 | 3 | 0 | 0 | 0 | 0 | 0 |
+| tratados | `87918` | ACUERDO DE RECONOCIMIENTO MUTUO ENTRE EL | 3 | 0 | 0 | 0 | 3 | 0 | 0 |
+| tratados | `11311` | CONVENIO DE INTERCAMBIO CULTURAL (REPUBL | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| tratados | `11329` | CONVENIO SOBRE SERVICIOS AEREOS (COREA,  | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
+| tratados | `11440` | TRATADO DE PAZ, AMISTAD, LIMITES Y ARREG | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| tratados | `14273` | CONVENCION PARA EL ESTABLECIMIENTO DE UN | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| tratados | `22834` | CONSTITUCION DE LA ORGANIZACION INTERNAC | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| tratados | `23762` | CONVENCION SOBRE EL INSTITUTO INTERAMERI | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| tratados | `28571` | ACUERDO DE CONSTITUCION DEL INSTITUTO IN | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+| tratados | `89155` | PROTOCOLO DE REFORMAS A LA CARTA DE LA O | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
+
+**Reach of the rebuild.** The units changed in 95 leyes, 231 reglamentos, 84 lineamientos and 332 treaties against the
+published ones (cumulative with #291); the distinct texts new against the published vectors are 4,558, 1,435, 569
+and 11,811. This pass only had to embed what rules 14 to 18 added to the #294 state: 122 (leyes), 55
+(reglamentos), 2 (lineamientos) and 29 (tratados) texts, one shard per model each, both models, 0 failed;
+`compare_merges.py` passes for all eight runs (0 texts with another vector, 0 non-finite; 58, 127, 72 and 304 files
+differ in the 4B, of which 2, 16, 0 and 2 only because they share a text with a changed instrument, a case
+`compare_merges.py` now accounts for with its own tests). The three Atlas data sets keep the same 2,676 instruments in
+the same order: 209,584 excerpts (203,874 before), 148,911 counted (144,456; 148,482 and 144,111 under BM25), and the
+closest instrument is unchanged for 2,544 (0.6B), 2,536 (4B) and 2,518 (BM25) of 2,676. The strong-link gold is
+unchanged (161 + 170 = 251 instruments, 275 links); the citations are 7,087 hits in 5,224 excerpts and 4,475 scored
+rows (4,468 before), and the verdicts of both evaluations are unchanged (the three data sets tied on the closest
+instruments, the 4B better row by row on all five measures against the 0.6B), only the last digits moved. The
+excerpt-level table of the Atlas page, its worked examples and its treaty sentence follow the new data. The 3,184-unit
+`114738` is rendered by the Instruments page like any other. **Nothing was published.**

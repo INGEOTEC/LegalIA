@@ -1025,6 +1025,26 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   and `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, a first publish), or
   `website.yml` fails or pairs the new JSON with old files. Tables in `scripts/embeddings/README.md`
   ("Measured, the Atlas chain and the Instruments page under `md2akn` 0.5.1").
+- **Repeated article numbers, rules 14 to 18 (review fix-1 of #291, found after the fact).** 209 of the
+  Atlas' 2,676 instruments carried `duplicate_number` (the IMDG code `tratados/114738` 482). The origin was
+  evidenced per instrument by ablation (`scripts/embeddings/measure_repeated_numbers.py`): **the Markdown writer
+  accounts for 0 of the 4,598 repeats**; `md2akn` does. **Rule 14**, the whole article number (`18.-A.-`, `Bis`
+  after an ordinal, lowercase/ordinal letters, more Latin spellings, spaced and `DISPOSICIONES TRANSITORIAS`
+  markers, `(SIC)`; 948 excerpts); **rule 15**, a table of contents is a `toc` node and unit, never an article,
+  and outside rule 8's gate (1,374; `toc`, like a heading, is neither a source nor a candidate of the matrix);
+  **rule 16**, `PARTE`/`ANEXO`/`APÉNDICE` are `part`/`attachment` containers; **rule 17**, recitals under
+  `CONSIDERANDO` and D.O.F.-headed decrees are not articles (150); **rule 18**, in numeral mode a restarted whole
+  numeral is a list item (449; switch `structure.REINICIO_ES_ITEM`). `md2akn` and `scjn` stay 0.5.1; the writer's
+  lead regex takes the whole number too (cosmetic for the parse, pinned in `test_api.py`). The flag's definition,
+  `export_instrument_files.py`, is untouched and nothing hides, merges or renumbers a repeat: **73 instruments
+  (2,428 excerpts) still repeat**, all the SCJN's own numbering (annex/part restarts, `(SIC)` rows, a protocol
+  printed with its treaty), listed with raw API evidence as questions for the repository owner in
+  `scripts/embeddings/README.md` ("Measured, repeated numbers, 2026-10-15") and in the comment on #291. Five
+  instruments appear newly flagged because the old parse left them as one giant article. 32+1 leyes, 13
+  reglamentos and 24 tratados were re-downloaded and repackaged (a snapshot is adopted only when its bold/header
+  differ; 150 kept as published, because the fresh answer turns tab-indented text into table rows); the vectors
+  (122/55/2/29 new texts), the Atlas data sets, the pair sets, the instrument files and the evaluations were
+  rebuilt, the page's literals follow. **Nothing was published**: the human order is in the #291 comment.
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 

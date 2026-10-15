@@ -49,6 +49,18 @@ whatever is not there yet.
   `**Artículo 1.1**:` (the `:` stays outside the bold). Every other lead
   (`1.-`, `1o.`, `27 Bis`, an ordinal) is byte-identical to 0.5.0; a snapshot
   written before this fix keeps its old shape until it is re-downloaded.
+  **Review fix-1 of #291 (a finding made after the fact), still 0.5.1:** the
+  lead takes the *whole* article number inside the bold — `**Artículo
+  18.-A.-**`, `**Artículo 10 Bis.-**`, a lowercase or ordinal letter, the
+  Latin suffixes up to `Novodecies`/`Novendecies`, a letter before `(SIC)` —
+  where it used to bold only the digits and leave the rest outside. `md2akn`
+  matches a block with the `**` stripped, so this was cosmetic for the parse
+  (the ablation of `scripts/embeddings/README.md`, "Measured, repeated
+  numbers", gives the writer a share of 0 of the repeated numbers); it makes
+  the Markdown itself say what the article number is. The grammar is a copy
+  of `md2akn`'s, since `scjn` imports nothing else of this monorepo, and
+  every previous lead stays byte-identical, blanks before the separator
+  included.
 
 - **0.5.0** — the fourth id-keyed collection, `scjn-tratados` (issue #277):
   every international treaty the SCJN serves (~1,456 instruments, members
