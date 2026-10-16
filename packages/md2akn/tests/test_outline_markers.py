@@ -58,8 +58,12 @@ def test_annex_holds_its_parts_and_each_part_its_appendix():
     tree = parse_markdown(_read("outline_tratado.md"))
     body = next(c for c in tree.children if c.akn_type == "body")
     top = [(c.akn_type, c.num) for c in body.children if c.akn_type not in ("article", "content")]
-    # the index is a toc, not containers; ANEXO 1 and ANEXO 2 are siblings
-    assert top == [("toc", "1"), ("attachment", "1"), ("attachment", "2")]
+    # the index is a toc, not containers; the block that holds articles `1.1`
+    # and `1.2` in its own text is an implicit section (rule 23); ANEXO 1 and
+    # ANEXO 2 are siblings
+    assert top == [
+        ("toc", "1"), ("section", "1 ÁMBITO"), ("attachment", "1"), ("attachment", "2"),
+    ]
     anexo1 = body.find("att_1")
     assert [(c.akn_type, c.num) for c in anexo1.children if c.akn_type == "part"] == [
         ("part", "1"), ("part", "2"),
@@ -73,8 +77,8 @@ def test_annex_holds_its_parts_and_each_part_its_appendix():
 def test_the_same_number_in_two_parts_is_not_a_repeat():
     tree = parse_markdown(_read("outline_tratado.md"))
     eids = [n.eId for n in _walk(tree) if n.akn_type == "article"]
-    # the body's own `1.1` (the Code's) and Part 1's `1.1` are two identifiers
-    assert "art_1.1" in eids and "att_1__part_1__art_1.1" in eids
+    # the implicit section's own `1.1` and Part 1's `1.1` are two identifiers
+    assert "sec_1_ÁMBITO__art_1.1" in eids and "att_1__part_1__art_1.1" in eids
     assert not any(n.repeated for n in _walk(tree))
     assert len(eids) == len(set(eids))
 
@@ -150,3 +154,52 @@ def test_markers_are_never_embedded_and_coverage_holds():
         assert units and not any("scjn:block" in u.text for u in units)
         # a marker's characters are accounted for like a reform annotation's
         assert coverage(tree, units).uncovered_chars == 0
+
+
+# -- rules 22-24 -----------------------------------------------------------
+
+
+def test_an_article_label_that_disagrees_with_its_text_does_not_collide():
+    """The API's label is not always the article's number: `ARTÍCULO 6` on a
+    block whose text says `ARTICULO 7`. The text's number wins when the label
+    does not extend it, so the two articles are two identifiers."""
+    text = (
+        '<!-- scjn:block orden=1 numero=6 kind=article num="6" label="ARTÍCULO 6" -->\n\n'
+        "**Artículo 6.-** Seis.\n\n"
+        '<!-- scjn:block orden=2 numero=7 kind=article num="6" label="ARTÍCULO 6" -->\n\n'
+        "**Artículo 7.-** Siete.\n"
+    )
+    arts = [n for n in _walk(parse_markdown(text)) if n.akn_type == "article"]
+    assert [n.eId for n in arts] == ["art_6", "art_7"]
+    assert not any(n.repeated for n in arts)
+
+
+def test_an_article_block_that_quotes_another_article_stays_one_article():
+    """Rule 24: inside an `article` block no line opens structure -- an
+    amendment article quoting `ARTÍCULO 5.-` is that article's own text."""
+    text = (
+        '<!-- scjn:block orden=1 numero=1 kind=article num="1" label="ARTÍCULO 1" -->\n\n'
+        "**Artículo 1.-** Se reforma el siguiente artículo:\n\n"
+        "**ARTÍCULO 5.-** Texto citado.\n"
+    )
+    tree = parse_markdown(text)
+    arts = [n for n in _walk(tree) if n.akn_type == "article"]
+    assert [n.eId for n in arts] == ["art_1"]
+    assert "Texto citado." in arts[0].text
+
+
+def test_a_block_that_holds_articles_in_its_own_text_opens_a_section():
+    """Rule 23: an `other` block carrying articles opens an implicit section,
+    so a number the next block restarts is not a repeat."""
+    text = (
+        '<!-- scjn:block orden=1 numero=0 kind=other label="1 ÁMBITO" -->\n\n'
+        "**1 ÁMBITO**\n\n"
+        "**Artículo 1.1:** Uno.\n\n"
+        '<!-- scjn:block orden=2 numero=0 kind=other label="2 OTRO" -->\n\n'
+        "**2 OTRO**\n\n"
+        "**Artículo 1.1:** Otra vez, en otra sección.\n"
+    )
+    tree = parse_markdown(text)
+    secs = [n for n in _walk(tree) if n.akn_type == "section"]
+    assert len(secs) == 2
+    assert not any(n.repeated for n in _walk(tree))

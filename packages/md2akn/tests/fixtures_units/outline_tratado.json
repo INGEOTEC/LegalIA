@@ -151,35 +151,41 @@
       "text_sha1": "9eb6f049c3d4aef9769867a964ef6bcfd1e03ad7"
     },
     {
-      "unit_type": "loose",
-      "eId": "p_content",
+      "unit_type": "intro",
+      "eId": "sec_1_ÁMBITO__intro",
       "piece": 0,
       "piece_eId": null,
-      "akn_type": "content",
+      "akn_type": "intro",
       "num": null,
-      "path": [],
-      "text": "**1 ÁMBITO**",
-      "text_sha1": "061d21c18a30484e364ab9da8488457b4ddd6c5d"
+      "path": [
+        "SECCIÓN 1 ÁMBITO"
+      ],
+      "text": "SECCIÓN 1 ÁMBITO **1 ÁMBITO**",
+      "text_sha1": "f99c5c392e9e5d0f3082f193db168d59b6a2e1fd"
     },
     {
       "unit_type": "article_piece",
-      "eId": "art_1.1",
+      "eId": "sec_1_ÁMBITO__art_1.1",
       "piece": 1,
-      "piece_eId": "art_1.1__p_1",
+      "piece_eId": "sec_1_ÁMBITO__art_1.1__p_1",
       "akn_type": "article",
       "num": "1.1",
-      "path": [],
+      "path": [
+        "SECCIÓN 1 ÁMBITO"
+      ],
       "text": "1.1 El presente Código está destinado a que lo utilicen la Administración y la autoridad competente del Estado de abanderamiento cuando aprueben productos que se vayan a instalar en buques que enarbolen el pabellón del Estado de abanderamiento, de conformidad con las prescripciones de seguridad contra incendios del Convenio internacional para la seguridad de la vida humana en el mar, 1974, enmendado.",
       "text_sha1": "12db7b26ca28c5e292518df9ffa63cecdf37a6eb"
     },
     {
       "unit_type": "article",
-      "eId": "art_1.2",
+      "eId": "sec_1_ÁMBITO__art_1.2",
       "piece": 0,
       "piece_eId": null,
       "akn_type": "article",
       "num": "1.2",
-      "path": [],
+      "path": [
+        "SECCIÓN 1 ÁMBITO"
+      ],
       "text": "1.2 El Código será utilizado por los laboratorios de ensayo cuando sometan a ensayo y evalúen productos con arreglo a lo dispuesto en el mismo.",
       "text_sha1": "8db9a6aba0d5569980ec32574d7c32bfae8cb7ae"
     },
