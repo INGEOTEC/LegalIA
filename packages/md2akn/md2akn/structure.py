@@ -530,6 +530,21 @@ def _valor_entero(numero: str) -> int | None:
     return total
 
 
+def _es_el_mismo_numero_en_otra_cifra(texto: str, etiqueta: str) -> bool:
+    """Whether the two print one number in two numerals, roman and arabic
+    (`Artículo I` under the label `ARTÍCULO 1`): the same value and the same
+    rest (`I BIS` and `1 BIS`). A treaty's text spells its articles the way the
+    treaty does and the SCJN's label counts in arabic; the text's spelling is
+    the one kept, as everywhere else."""
+    valores = _valor_entero(texto), _valor_entero(etiqueta)
+    if valores[0] is None or valores[0] != valores[1]:
+        return False
+    resto = [
+        _forma_comparable(re.sub(r"^\s*(?:\d+|[IVXLCDMivxlcdm]+\b)", "", s)) for s in (texto, etiqueta)
+    ]
+    return resto[0] == resto[1]
+
+
 def _numero_de_articulo(texto: str | None, etiqueta: str, numero: str | None = None) -> str:
     """The number an article block is identified by (rule 19): what its text
     prints, unless the SCJN's label says something more specific or something
@@ -555,6 +570,10 @@ def _numero_de_articulo(texto: str | None, etiqueta: str, numero: str | None = N
     '915'
     >>> _numero_de_articulo("XXXVII", "XXVII", "37")
     'XXXVII'
+    >>> _numero_de_articulo("I", "1")
+    'I'
+    >>> _numero_de_articulo("IV BIS", "4 BIS")
+    'IV BIS'
     >>> _numero_de_articulo(None, "7")
     '7'
     """
@@ -562,6 +581,8 @@ def _numero_de_articulo(texto: str | None, etiqueta: str, numero: str | None = N
         return etiqueta
     t, e = _forma_comparable(texto), _forma_comparable(etiqueta)
     if t == e or _extiende(t, e):
+        return texto
+    if _es_el_mismo_numero_en_otra_cifra(texto, etiqueta):
         return texto
     if _extiende(e, t):
         return etiqueta

@@ -59,6 +59,7 @@ import re
 import unittest
 
 from md2akn import coverage, max_unit_chars, parse_markdown, text_units
+from md2akn.outline import lee_marcador
 from md2akn.patterns import ARTICULO, FILA_TABLA
 from md2akn.segmenter import iter_blocks, split_frontmatter
 from md2akn.structure import modo_sin_articulos
@@ -83,12 +84,30 @@ _EID_ARTICULO_DECIMAL = re.compile(r"(?:.*__)?art_\d+(?:\.\d+)+")
 _EID_ARTICULO_ROMANO = re.compile(r"(?:.*__)?art_[IVXLCDM]+(?:_\d+)?")
 
 
+def _bloques_que_abren_un_articulo(markdown: str):
+    """The blocks whose first line may be an article heading. A document with no
+    outline marker: every block. One written with the outline (review fix-2 of
+    #291): only the block a marker says is an article's -- a line inside another
+    API block (a treaty's text quoting `Artículo 17.9.2 `) is not an opener."""
+    _meta, fin_meta = split_frontmatter(markdown)
+    bloques = list(iter_blocks(markdown, fin_meta))
+    con_esquema = any(lee_marcador(b.text.split("\n", 1)[0]) for b in bloques)
+    anterior = None
+    for bloque in bloques:
+        marca = lee_marcador(bloque.text.split("\n", 1)[0])
+        if marca is not None:
+            anterior = marca
+            continue
+        if not con_esquema or (anterior is not None and anterior.get("kind") == "article"):
+            yield bloque
+        anterior = None
+
+
 def _abre_con_articulo_romano(markdown: str) -> bool:
     """Whether any block of `markdown` opens on a roman-numbered article
     heading (rule 10, issue #279) — read with the same pattern the builder
     uses, bold markers removed."""
-    _meta, fin_meta = split_frontmatter(markdown)
-    for bloque in iter_blocks(markdown, fin_meta):
+    for bloque in _bloques_que_abren_un_articulo(markdown):
         m = ARTICULO.match(bloque.text.split("\n", 1)[0].replace("**", ""))
         if m and _ROMANO.fullmatch(m.group("num").split()[0]):
             return True
@@ -98,12 +117,16 @@ def _abre_con_articulo_romano(markdown: str) -> bool:
 def _abre_con_articulo_decimal(markdown: str) -> bool:
     """Whether any block of `markdown` opens on a decimal-numbered article
     heading (rule 11, issue #291), read with the pattern the builder uses."""
-    _meta, fin_meta = split_frontmatter(markdown)
-    for bloque in iter_blocks(markdown, fin_meta):
+    for bloque in _bloques_que_abren_un_articulo(markdown):
         m = ARTICULO.match(bloque.text.split("\n", 1)[0].replace("**", ""))
         if m and _NUMERO_DECIMAL.fullmatch(m.group("num")):
             return True
     return False
+
+
+def _es_fila_de_una_celda(linea):
+    celdas = [c.strip() for c in linea.strip().strip("|").split("|")]
+    return sum(1 for c in celdas if c) == 1
 
 
 def _filas_fuera_de_tabla(instrumentos, clave):
@@ -127,6 +150,11 @@ def _filas_fuera_de_tabla(instrumentos, clave):
             filas = [
                 linea for linea in doc[unit.start_char:unit.end_char].split("\n")
                 if FILA_TABLA.match(linea.strip())
+                # Review fix-2 of #291: the SCJN's text puts a tab after some
+                # container labels, which `scjn.api` reads as a row of one
+                # non-empty cell (`| CAPÍTULO II |  |`). In a heading that row
+                # *is* the label the API's marker names -- not table data.
+                and not (unit.unit_type == "heading" and _es_fila_de_una_celda(linea))
             ]
             if filas:
                 fuera.append((instrumento[clave], instrumento["archivo"], unit.unit_type, unit.eId))
