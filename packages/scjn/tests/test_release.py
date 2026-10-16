@@ -253,6 +253,23 @@ class TestMarkdownDeSnapshot(ConCacheFixture):
         with self.assertRaises(release.AssetNotCached):
             release.markdown_de_snapshot("lfca", "05-01-1999.md", cache_dir=self.tmp)
 
+    def test_outline_false_quita_los_marcadores_y_deja_el_texto(self):
+        # review fix-2 of #291: a snapshot carries the API's outline as marker
+        # lines; a reader that wants the law, not its structure, strips them.
+        marcador = '<!-- scjn:block orden=1 numero=1 kind=article label="ARTÍCULO 1" -->'
+        self._publica_tgz(
+            "lfca", **{"lfca/05-01-1999.md": f"fuente: scjn\n\n{marcador}\n\n**Artículo 1.** Texto."}
+        )
+
+        con = release.markdown_de_snapshot("lfca", "05-01-1999.md", cache_dir=self.tmp)
+        sin = release.markdown_de_snapshot(
+            "lfca", "05-01-1999.md", cache_dir=self.tmp, outline=False
+        )
+
+        self.assertIn("scjn:block", con)
+        self.assertNotIn("scjn:block", sin)
+        self.assertIn("**Artículo 1.** Texto.", sin)
+
 
 class TestLocalSlugs(unittest.TestCase):
     """`local_slugs` (issue #205, made public in #209): the cache-first

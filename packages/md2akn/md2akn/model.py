@@ -129,13 +129,19 @@ class EIdAllocator:
             self.suffixed.add(candidate)
         return candidate
 
+    def propuesto(self, parent_eid: str, prefix: str, num: str) -> str:
+        """The eId a child would take under `parent_eid` if nothing else held
+        it: the parent's path and the child's own segment (the path is skipped
+        for the structural roots, which carry no number and would only add
+        noise to every path)."""
+        segment = eid_component(prefix, num)
+        return f"{parent_eid}{EID_SEPARATOR}{segment}" if parent_eid else segment
+
     def child(self, parent_eid: str, prefix: str, num: str) -> str:
         """A child's eId, scoped under `parent_eid` — the same allocation,
         with the parent's path prepended (skipped for the structural roots,
         which carry no number and would only add noise to every path)."""
-        segment = eid_component(prefix, num)
-        base = f"{parent_eid}{EID_SEPARATOR}{segment}" if parent_eid else segment
-        return self.allocate(base)
+        return self.allocate(self.propuesto(parent_eid, prefix, num))
 
 
 @dataclass
@@ -196,13 +202,17 @@ class AknNode:
     #: no tail, because there is nothing to interleave and nothing to choose.
     is_chapeau: bool = False
     is_tail: bool = False
-    #: Whether this node's eId had to be disambiguated (`_2`, `_3`, ...)
-    #: because a node before it had proposed the same one: the definition of a
-    #: *repeated* number (review fix-2 of #291). A number is repeated only
-    #: when it is the same identifier -- `1.1` of Part 1 and `1.1` of Part 2
-    #: have different eIds and are not -- so this is the one place the
-    #: question is answered, by construction.
+    #: Whether this node shares the identifier it proposed with another node,
+    #: so one of the two had to take a `_2`-style suffix: the definition of a
+    #: *repeated* number (review fix-2 of #291), true of both claimants. A
+    #: number is repeated only when it is the same identifier -- `1.1` of Part 1
+    #: and `1.1` of Part 2 have different eIds and are not -- so this is the one
+    #: place the question is answered, by construction.
     repeated: bool = False
+    #: On the root `act` only: how the document numbers its provisions when it
+    #: never writes `Artículo N` -- rule 8's `"ordinal"` or `"numeral"`, or
+    #: `None` (the ordinary case) -- as the builder decided it.
+    modo: str | None = None
     parent: "AknNode | None" = field(default=None, repr=False)
     children: list["AknNode"] = field(default_factory=list, repr=False)
     notes: list[Annotation] = field(default_factory=list, repr=False)

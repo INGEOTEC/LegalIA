@@ -30,6 +30,7 @@ from pathlib import Path
 import requests
 
 from scjn import cache
+from scjn.outline import strip_markers
 from scjn.cache import _SCJN_LEYES_RELEASE, LINEAMIENTOS, REGLAMENTOS, TRATADOS, Coleccion
 from scjn.header import _fecha
 from scjn.state import ARCHIVO_ESTADO
@@ -342,16 +343,24 @@ def download_scjn_leyes_index(*, cache_dir=None) -> dict:
     return indice
 
 
-def markdown_de_snapshot(slug: str, archivo: str, *, cache_dir=None) -> str:
+def markdown_de_snapshot(
+    slug: str, archivo: str, *, cache_dir=None, outline: bool = True
+) -> str:
     """The text of one snapshot, read out of its law's already-cached
     `<slug>.tgz` asset. Raises `AssetNotCached` when that tarball is not on
-    disk under `cache_dir` yet."""
+    disk under `cache_dir` yet.
+
+    A snapshot written since review fix-2 of #291 carries the outline the
+    SCJN's API states, one marker line before each block (`scjn.outline`);
+    `outline=False` takes those lines out and returns the text as it always
+    read, for a reader that wants the law and not its structure."""
     contenido = _read_asset(f"{slug}.tgz", cache_dir)
     with tarfile.open(fileobj=io.BytesIO(contenido), mode="r:gz") as tar:
         # Every member is prefixed with `<slug>/` so the tarball unpacks
         # anywhere -- see scripts/empaqueta_scjn_leyes.py.
         miembro = tar.extractfile(tar.getmember(f"{slug}/{archivo}"))
-        return miembro.read().decode("utf-8")
+        texto = miembro.read().decode("utf-8")
+    return texto if outline else strip_markers(texto)
 
 
 def download_scjn_leyes_corpus(slug: str, *, cache_dir=None) -> dict:

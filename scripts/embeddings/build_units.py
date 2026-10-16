@@ -58,8 +58,6 @@ from md2akn import (  # noqa: E402
     parse_markdown,
     text_units,
 )
-from md2akn.segmenter import iter_blocks, split_frontmatter  # noqa: E402
-from md2akn.structure import modo_sin_articulos  # noqa: E402
 from scjn import (  # noqa: E402
     iter_current_federal_laws,
     iter_current_lineamientos,
@@ -164,10 +162,11 @@ def build_rows(
         instrumentos += 1
         clave = str(instrumento[lector["clave"]])
         markdown = instrumento["markdown"]
-        _meta, fin_meta = split_frontmatter(markdown)
-        modo = modo_sin_articulos(list(iter_blocks(markdown, fin_meta)))
-        modos[modo or "articulo"] = modos.get(modo or "articulo", 0) + 1
         tree = parse_markdown(markdown)
+        # The builder's own decision (rule 8, marker-aware since rule 19), not a
+        # second reading of the text.
+        modo = tree.modo
+        modos[modo or "articulo"] = modos.get(modo or "articulo", 0) + 1
         units = text_units(
             tree, cap=cap, template=template, split_over_cap=split_over_cap,
             split_articles=split_articles,

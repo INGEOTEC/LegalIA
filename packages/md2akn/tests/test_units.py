@@ -68,6 +68,10 @@ class TestCoverageInvariant(unittest.TestCase):
                 cov = coverage(tree, text_units(text))
                 raw_notes = [n.raw for node in tree.walk() if node is not tree for n in node.notes]
                 raw_notes += [n.raw for n in tree.notes]
+                # An outline marker line (rule 19) is metadata like a note.
+                raw_notes += [
+                    line for line in text.splitlines() if line.startswith("<!-- scjn:block ")
+                ]
                 annotation_chars_from_notes = sum(
                     sum(1 for c in raw if not c.isspace()) for raw in raw_notes
                 )

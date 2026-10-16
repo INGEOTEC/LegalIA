@@ -96,12 +96,20 @@ _RE_CONTAINER = re.compile(
     r"^(LIBRO|TITULO|CAPITULO|SECCION|APARTADO)\s+(?P<num>\S.*)$"
 )
 _RE_PART = re.compile(r"^PARTE\s+(?P<num>(?!FINAL\b)\S.*)$")
+# `PRIMERA PARTE`, `I PARTE`: the number first.
+_RE_PART_FIRST = re.compile(
+    r"^(?P<num>(?:UNICA|PRIMERA|SEGUNDA|TERCERA|CUARTA|QUINTA|SEXTA|SEPTIMA|OCTAVA|NOVENA|"
+    r"DECIMA(?:\s+(?:PRIMERA|SEGUNDA|TERCERA))?|[IVXLCDM]+))\s+PARTE$"
+)
 _RE_ANNEX = re.compile(r"^ANEXO(?:\s+(?P<num>\S.*))?$")
 _RE_APPENDIX = re.compile(r"^APENDICE(?:\s+(?P<num>\S.*))?$")
-_RE_ARTICLE = re.compile(r"^ARTICULOS?\s+(?P<num>\S.*)$")
-_RE_DECREE = re.compile(r"^D\.?\s*O\.?\s*F\.?\s+(?P<num>\S.*)$")
+# `ARTÍCULO I: ENMIENDA` is article `I`: what follows a colon is a title.
+_RE_ARTICLE = re.compile(r"^ARTICULOS?\s+(?P<num>[^:\s](?:[^:]*[^:\s])?)\s*(?::.*)?$")
+# `D.O.F. 10 DE NOVIEMBRE DE 2023`, and `D.O. 23 DE JULIO DE 1949` for what the
+# gazette was called before 1977.
+_RE_DECREE = re.compile(r"^D\.?\s*O\.?(?:\s*F\.?)?\s+(?P<num>\d.*)$")
 _RE_PROVISION = re.compile(rf"^(?P<num>{_ORDINAL}|\d+(?:\.\d+)*)\.?$")
-_RE_TRANSITORIOS = re.compile(r"^(?:DISPOSICIONES\s+)?TRANSITORI[OA]S?$")
+_RE_TRANSITORIOS = re.compile(r"^(?:ARTICULOS\s+|DISPOSICIONES\s+)?TRANSITORI[OA]S?$")
 
 
 def _fold(text: str) -> tuple[str, list[int]]:
@@ -164,6 +172,9 @@ def classify(referencia: str) -> dict[str, str]:
             "num": _num(original, origin, m),
         }
     m = _RE_PART.match(label)
+    if m:
+        return {"kind": "container", "type": "part", "num": _num(original, origin, m)}
+    m = _RE_PART_FIRST.match(label)
     if m:
         return {"kind": "container", "type": "part", "num": _num(original, origin, m)}
     m = _RE_ANNEX.match(label)

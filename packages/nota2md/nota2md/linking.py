@@ -46,6 +46,7 @@ from pathlib import Path
 
 from nota2md.text import normaliza_para_comparar
 from scjn.header import VersionInstrumento
+from scjn.outline import strip_markers
 from scjn.release import download_scjn_leyes_index, markdown_de_snapshot
 from scjn.text import _normaliza
 
@@ -312,8 +313,10 @@ def _cuerpo_de_snapshot(archivo: Path) -> str:
     its top stripped off — header and body are separated by the first blank
     line, so a diff between two snapshots never mistakes a header field
     (e.g. a different
-    `ratio_similitud`) for a change in the law's own text."""
-    return archivo.read_text(encoding="utf-8").partition("\n\n")[2]
+    `ratio_similitud`) for a change in the law's own text. The outline markers
+    `scjn.api` writes since review fix-2 of #291 are taken out too: they say
+    where the SCJN's blocks are, not what the law says."""
+    return strip_markers(archivo.read_text(encoding="utf-8").partition("\n\n")[2])
 
 
 def _added_blocks(anterior: str, nuevo: str) -> list[str]:
@@ -624,5 +627,5 @@ def snapshot_de_codNota(
     if ubicacion is None:
         return None
     slug, archivo = ubicacion
-    markdown = markdown_de_snapshot(slug, archivo, cache_dir=cache_dir)
+    markdown = markdown_de_snapshot(slug, archivo, cache_dir=cache_dir, outline=False)
     return slug, archivo, markdown

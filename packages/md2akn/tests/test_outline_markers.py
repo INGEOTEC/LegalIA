@@ -81,7 +81,7 @@ def test_the_same_number_in_two_parts_is_not_a_repeat():
 
 def test_a_number_repeated_in_one_container_is_flagged():
     """The other side of the definition: two provisions that end up with the
-    same identifier are exactly the ones whose eId needed a `_2`."""
+    same identifier -- both of them -- are the ones one of which needed a `_2`."""
     text = (
         '<!-- scjn:block orden=1 numero=0 kind=container type=chapter num="I" label="CAPÍTULO I" -->\n\n'
         "**CAPÍTULO I**\n\n"
@@ -96,7 +96,7 @@ def test_a_number_repeated_in_one_container_is_flagged():
     )
     arts = [n for n in _walk(parse_markdown(text)) if n.akn_type == "article"]
     assert [(n.eId, n.repeated) for n in arts] == [
-        ("cap_I__art_1", False), ("cap_I__art_1_2", True), ("cap_II__art_1", False),
+        ("cap_I__art_1", True), ("cap_I__art_1_2", True), ("cap_II__art_1", False),
     ]
 
 

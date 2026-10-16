@@ -1,0 +1,513 @@
+{
+  "coverage": {
+    "total_chars": 6162,
+    "frontmatter_chars": 37,
+    "annotation_chars": 946,
+    "covered_chars": 5179,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN**",
+      "text_sha1": "d49b3d1a588e897d7189eb189efe5e17d115d9f6"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**PRIMERO.** Se abroga el Reglamento de Procedimientos en Materia de Fiscalización, aprobado el 4 de julio de 2011 en sesión extraordinaria del Consejo General del entonces Instituto Federal Electoral mediante el Acuerdo CG199/2011.1",
+      "text_sha1": "4df8588c70e02205c195ba93a9e834d0776b30ba"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 3,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**SEGUNDO.** Se expide el Reglamento de Procedimientos Sancionadores en Materia de Fiscalización, para quedar como sigue: **REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN**",
+      "text_sha1": "045ff39fdb5685283d3bfe32517d4122a0dbe29a"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "tit_PRIMERO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "title",
+      "num": "PRIMERO",
+      "path": [],
+      "text": "Título Primero. Reglas Generales",
+      "text_sha1": "53c3e692d529a06b304038daff78a905f7feb2ef"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "tit_PRIMERO__cap_I",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "chapter",
+      "num": "I",
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales"
+      ],
+      "text": "TÍTULO PRIMERO Reglas Generales Capítulo I. Disposiciones Preliminares",
+      "text_sha1": "e8fa63e7a658972098d5c98146e605616c1bb23d"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "tit_PRIMERO__cap_I__art_1",
+      "piece": 1,
+      "piece_eId": "tit_PRIMERO__cap_I__art_1__p_1",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "**Artículo 1.**",
+      "text_sha1": "e33953b72e1a47ddc1eaf1beffe2fd0543b9de2d"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "tit_PRIMERO__cap_I__art_1",
+      "piece": 2,
+      "piece_eId": "tit_PRIMERO__cap_I__art_1__p_2",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "Ámbito y objeto de aplicación",
+      "text_sha1": "00fd728ad1fc1d3f57d97dc5e07c4751932a4075"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "tit_PRIMERO__cap_I__art_1",
+      "piece": 3,
+      "piece_eId": "tit_PRIMERO__cap_I__art_1__p_3",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "1. El presente Reglamento es de orden público, observancia general y tiene por objeto establecer los términos, disposiciones y requisitos para la tramitación, sustanciación y resolución de los procedimientos administrativos sancionadores electorales en materia de fiscalización, entendiéndose como tales, las quejas o procedimientos oficiosos que versen sobre el origen, monto, destino y aplicación de los recursos derivados del financiamiento de los sujetos obligados.",
+      "text_sha1": "7f8d00223e57ac2f6471a5eb845855dad09e2516"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "tit_PRIMERO__cap_I__art_1",
+      "piece": 4,
+      "piece_eId": "tit_PRIMERO__cap_I__art_1__p_4",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "2. En caso de que el Instituto Nacional Electoral delegue las funciones de fiscalización, el Organismo Público Local respectivo aplicará las disposiciones previstas en el presente Reglamento.",
+      "text_sha1": "9987d3f4fdeb0310c2773658164afa794550ab77"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "tit_PRIMERO__cap_I__art_1",
+      "piece": 5,
+      "piece_eId": "tit_PRIMERO__cap_I__art_1__p_5",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "En tal supuesto descrito en el párrafo anterior, el Organismo Público Local sustanciará y resolverá los procedimientos oficiosos o de queja relacionados con el objeto materia de delegación en el proceso de fiscalización.",
+      "text_sha1": "043c0d581c71640a208cc63e611185c7b11fb01f"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "tit_PRIMERO__cap_I__art_1",
+      "piece": 6,
+      "piece_eId": "tit_PRIMERO__cap_I__art_1__p_6",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "3. El Instituto podrá asumir los procedimientos que hayan sido delegados a los Organismos Públicos Locales, asimismo, podrá ejercer su facultad de atracción, cuando así lo determine el Consejo.",
+      "text_sha1": "fc1ffbe1eafd408132a8d6dad66062ae415d0511"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "tit_PRIMERO__cap_I__art_3",
+      "piece": 1,
+      "piece_eId": "tit_PRIMERO__cap_I__art_3__p_1",
+      "akn_type": "article",
+      "num": "3",
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "**Artículo 3.**",
+      "text_sha1": "c0045965c8d3e670cb6fd2969eccbf612b4065c8"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "tit_PRIMERO__cap_I__art_3",
+      "piece": 2,
+      "piece_eId": "tit_PRIMERO__cap_I__art_3__p_2",
+      "akn_type": "article",
+      "num": "3",
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "Supletoriedad",
+      "text_sha1": "d038d6747d7df98d80fe2729c07dd25c01209b23"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "tit_PRIMERO__cap_I__art_3",
+      "piece": 3,
+      "piece_eId": "tit_PRIMERO__cap_I__art_3__p_3",
+      "akn_type": "article",
+      "num": "3",
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "1. En lo no previsto expresamente en el presente Reglamento, para la tramitación, sustanciación y resolución de los procedimientos, se aplicará supletoriamente la Ley General y la Ley de Medios.",
+      "text_sha1": "21fbccade3c3d8055e21cb06439e7910045acd87"
+    },
+    {
+      "unit_type": "loose",
+      "eId": "tit_PRIMERO__cap_I__p_content",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "content",
+      "num": null,
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "TÍTULO PRIMERO Reglas Generales > CAPÍTULO I Disposiciones Preliminares",
+      "text_sha1": "ba876b5ee3063bc3070d8839f678c9ea421767ee"
+    },
+    {
+      "unit_type": "loose",
+      "eId": "tit_PRIMERO__cap_I__p_content",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "content",
+      "num": null,
+      "path": [
+        "TÍTULO PRIMERO Reglas Generales",
+        "CAPÍTULO I Disposiciones Preliminares"
+      ],
+      "text": "TÍTULO PRIMERO Reglas Generales > CAPÍTULO I Disposiciones Preliminares **TERCERO.** El presente Reglamento entrará en vigor al día siguiente de su aprobación por el Consejo General del Instituto Nacional Electoral.",
+      "text_sha1": "4304b553db8336a4246e1532021de1fe5caaef71"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "section",
+      "num": "10 DE NOVIEMBRE DE 2023",
+      "path": [],
+      "text": "**D.O.F. 10 DE NOVIEMBRE DE 2023.**",
+      "text_sha1": "055b28f90b403b3c5480fddab08e205ae2d096cd"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_Primero",
+      "piece": 1,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_Primero__p_1",
+      "akn_type": "article",
+      "num": "Primero",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023"
+      ],
+      "text": "**Primero.** En tanto se incorporen las funcionalidades en los sistemas o aplicativos que proporciona el Instituto para el cumplimiento de las obligaciones en materia de fiscalización establecidas en el presente Reglamento, referentes al Sistema de Procedimientos Sancionadores en materia de Fiscalización, continuarán aplicándose los procedimientos y mecanismos establecidos en el Acuerdo que por esta vía se modifica.",
+      "text_sha1": "e1fe45063d49f0fd0b3e16dd8afc918df4cfb10c"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_Segundo",
+      "piece": 1,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_Segundo__p_1",
+      "akn_type": "article",
+      "num": "Segundo",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023"
+      ],
+      "text": "**Segundo.** Durante el desarrollo del Sistema de Procedimientos Sancionadores en materia de Fiscalización, se organizarán mesas de trabajo con los usuarios de dicho sistema, así como con los integrantes del Consejo General del Instituto, con la finalidad de analizar los alcances de las funcionalidades del sistema en comento.",
+      "text_sha1": "3b41e91a88b1894512d6f66e439a3fa84c68e5a3"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_Tercero",
+      "piece": 1,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_Tercero__p_1",
+      "akn_type": "article",
+      "num": "Tercero",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023"
+      ],
+      "text": "**Tercero.** La fecha de liberación del Sistema de Procedimientos Sancionadores en materia de Fiscalización se dará a conocer a través de la página de internet del Instituto Nacional Electoral y se comunicará a los partidos políticos nacionales, con acreditación local y partidos políticos locales a través del módulo de notificaciones electrónicas del Sistema Integral de Fiscalización.",
+      "text_sha1": "2e64996aea1a016b4b0293bee5ce3a29d37d9771"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_SEGUNDO",
+      "piece": 1,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_SEGUNDO__p_1",
+      "akn_type": "article",
+      "num": "SEGUNDO",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023"
+      ],
+      "text": "**SEGUNDO.** Con la finalidad de dar certeza a los sujetos obligados, publíquese en el Diario Oficial de la Federación el Reglamento de Procedimientos Sancionadores en Materia de Fiscalización aprobado mediante Acuerdo INE/CG264/2014, con las modificaciones aprobadas a través de los Acuerdos INE/CG1048/2015, INE/CG319/2016 e INE/CG614/2017, adicionando las modificaciones aprobadas en el presente Acuerdo, el cual se incorpora como Anexo único del presente acuerdo.",
+      "text_sha1": "ad0b8be60efb08471a81bf4362e5f01b81ec53e2"
+    },
+    {
+      "unit_type": "article",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_TERCERO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "TERCERO",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023"
+      ],
+      "text": "**TERCERO.** La modificación al Reglamento de Procedimientos Sancionadores en Materia de Fiscalización entrará en vigor al día siguiente de su aprobación.",
+      "text_sha1": "30de3e838904170bc93873042aeaae260e508205"
+    },
+    {
+      "unit_type": "article",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_CUARTO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "CUARTO",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023"
+      ],
+      "text": "**CUARTO.** Notifíquese electrónicamente a través del Sistema Integral de Fiscalización a los partidos políticos nacionales y locales.",
+      "text_sha1": "038fc0f0927cee9d934ca6f7028562d0af305c4f"
+    },
+    {
+      "unit_type": "article",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_QUINTO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "QUINTO",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023"
+      ],
+      "text": "**QUINTO.** Se instruye a la Unidad Técnica de Vinculación que notifique el presente Acuerdo a los Organismos Públicos Locales.",
+      "text_sha1": "3c0b72890078150e39ebbba410ad5cc330bcfda4"
+    },
+    {
+      "unit_type": "article",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__art_SEXTO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "SEXTO",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023"
+      ],
+      "text": "**SEXTO.** Publíquese en la Gaceta Electoral, en NormaINE y en el portal de internet del Instituto Nacional Electoral.",
+      "text_sha1": "5602810dc218d5d13e028dc6a69fcc4ec6a234b9"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "attachment",
+      "num": "ÚNICO",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023"
+      ],
+      "text": "TRANSITORIOS 10 DE NOVIEMBRE DE 2023 **ANEXO ÚNICO** **REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN**",
+      "text_sha1": "e7c5a9b3cea677c2db2d7862e520d4c7574471e3"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "title",
+      "num": "Primero. Reglas Generales",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023",
+        "ANEXO ÚNICO REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN"
+      ],
+      "text": "TRANSITORIOS 10 DE NOVIEMBRE DE 2023 > ANEXO ÚNICO REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN Título Primero. Reglas Generales",
+      "text_sha1": "595a4e11317d4689bcd978d9e16792b8f3e53aa1"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "chapter",
+      "num": "I. Disposiciones Preliminares",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023",
+        "ANEXO ÚNICO REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN",
+        "TÍTULO Primero. Reglas Generales"
+      ],
+      "text": "TRANSITORIOS 10 DE NOVIEMBRE DE 2023 > ANEXO ÚNICO REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN > TÍTULO Primero. Reglas Generales Capítulo I. Disposiciones Preliminares",
+      "text_sha1": "4de337d0d85ccb5966198a211cd98afab1c5af2c"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1",
+      "piece": 1,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1__p_1",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023",
+        "ANEXO ÚNICO REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN",
+        "TÍTULO Primero. Reglas Generales",
+        "CAPÍTULO I. Disposiciones Preliminares"
+      ],
+      "text": "**Artículo 1.**",
+      "text_sha1": "e33953b72e1a47ddc1eaf1beffe2fd0543b9de2d"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1",
+      "piece": 2,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1__p_2",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023",
+        "ANEXO ÚNICO REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN",
+        "TÍTULO Primero. Reglas Generales",
+        "CAPÍTULO I. Disposiciones Preliminares"
+      ],
+      "text": "Ámbito y objeto de aplicación",
+      "text_sha1": "00fd728ad1fc1d3f57d97dc5e07c4751932a4075"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1",
+      "piece": 3,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1__p_3",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023",
+        "ANEXO ÚNICO REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN",
+        "TÍTULO Primero. Reglas Generales",
+        "CAPÍTULO I. Disposiciones Preliminares"
+      ],
+      "text": "1. El presente Reglamento es de orden público, observancia general y tiene por objeto establecer los términos, disposiciones y requisitos para la tramitación, sustanciación y resolución de los procedimientos administrativos sancionadores electorales en materia de fiscalización, entendiéndose como tales, las quejas o procedimientos oficiosos que versen sobre el origen, monto, destino y aplicación de los recursos derivados del financiamiento de los sujetos obligados.",
+      "text_sha1": "7f8d00223e57ac2f6471a5eb845855dad09e2516"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1",
+      "piece": 4,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1__p_4",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023",
+        "ANEXO ÚNICO REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN",
+        "TÍTULO Primero. Reglas Generales",
+        "CAPÍTULO I. Disposiciones Preliminares"
+      ],
+      "text": "2. En caso de que el Instituto Nacional Electoral delegue las funciones de fiscalización, el Organismo Público Local respectivo aplicará las disposiciones previstas en el presente Reglamento.",
+      "text_sha1": "9987d3f4fdeb0310c2773658164afa794550ab77"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1",
+      "piece": 5,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1__p_5",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023",
+        "ANEXO ÚNICO REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN",
+        "TÍTULO Primero. Reglas Generales",
+        "CAPÍTULO I. Disposiciones Preliminares"
+      ],
+      "text": "En tal supuesto descrito en el párrafo anterior, el Organismo Público Local sustanciará y resolverá los procedimientos oficiosos o de queja relacionados con el objeto materia de delegación en el proceso de fiscalización.",
+      "text_sha1": "043c0d581c71640a208cc63e611185c7b11fb01f"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1",
+      "piece": 6,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO__tit_Primero._Reglas_Generales__cap_I._Disposiciones_Preliminares__art_1__p_6",
+      "akn_type": "article",
+      "num": "1",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023",
+        "ANEXO ÚNICO REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN",
+        "TÍTULO Primero. Reglas Generales",
+        "CAPÍTULO I. Disposiciones Preliminares"
+      ],
+      "text": "3. El Instituto podrá asumir los procedimientos que hayan sido delegados a los Organismos Públicos Locales, asimismo, podrá ejercer su facultad de atracción, cuando así lo determine el Consejo.",
+      "text_sha1": "fc1ffbe1eafd408132a8d6dad66062ae415d0511"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__sec_transitorios",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "section",
+      "num": "transitorios",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023"
+      ],
+      "text": "TRANSITORIOS 10 DE NOVIEMBRE DE 2023 Artículos Transitorios",
+      "text_sha1": "0d22722c2e35effef8c7990bcb9cde5336840f1b"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_10_DE_NOVIEMBRE_DE_2023__sec_transitorios__art_Primero",
+      "piece": 1,
+      "piece_eId": "sec_10_DE_NOVIEMBRE_DE_2023__sec_transitorios__art_Primero__p_1",
+      "akn_type": "article",
+      "num": "Primero",
+      "path": [
+        "TRANSITORIOS 10 DE NOVIEMBRE DE 2023",
+        "TRANSITORIOS"
+      ],
+      "text": "**Primero.** En tanto se incorporen las funcionalidades en los sistemas o aplicativos que proporciona el Instituto para el cumplimiento de las obligaciones en materia de fiscalización establecidas en el presente Reglamento, referentes al Sistema de Procedimientos Sancionadores en materia de Fiscalización, continuarán aplicándose los procedimientos y mecanismos establecidos en el Acuerdo que por esta vía se modifica.",
+      "text_sha1": "e1fe45063d49f0fd0b3e16dd8afc918df4cfb10c"
+    },
+    {
+      "unit_type": "loose",
+      "eId": "sec_28_DE_NOVIEMBRE_DE_2023",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "section",
+      "num": null,
+      "path": [],
+      "text": "**D.O.F. 28 DE NOVIEMBRE DE 2023.**",
+      "text_sha1": "202518a751e1c9b44445366b3c623c0f1f9051dc"
+    }
+  ]
+}

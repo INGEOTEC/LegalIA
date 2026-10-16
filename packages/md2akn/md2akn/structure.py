@@ -490,27 +490,111 @@ def _rango_conclusiones(bloques) -> int:
     return len(bloques)
 
 
-def _quita_etiqueta(linea: str, etiqueta: str) -> str | None:
-    """What follows the label `etiqueta` at the start of `linea`, as a
-    heading, or `None` when it does not start with it or nothing follows
-    (rule 19: `PARTE 1- ENSAYO DE INCOMBUSTIBILIDAD` under the label
-    `PARTE 1` is the part titled `ENSAYO DE INCOMBUSTIBILIDAD`). Compared
-    without accents, case, spaces or punctuation."""
+_MARCA_ORDINAL = re.compile(r"(?<=\d)[oº°]")
+_SOLO_ALFANUMERICO = re.compile(r"[^0-9a-z]")
+
+
+def _forma_comparable(numero: str) -> str:
+    """`numero` as `_numero_de_articulo` compares it: no accents, case,
+    spaces, punctuation or ordinal indicator (`1o.-A BIS` is `1abis`)."""
+    plano = _sin_acentos_mayusculas(numero).lower()
+    return _SOLO_ALFANUMERICO.sub("", _MARCA_ORDINAL.sub("", plano))
+
+
+def _extiende(largo: str, corto: str) -> bool:
+    """Whether `largo` is `corto` followed by more -- not by more digits, which
+    would make `10` an extension of `1`."""
+    return (
+        len(largo) > len(corto)
+        and largo.startswith(corto)
+        and not (corto[-1:].isdigit() and largo[len(corto)].isdigit())
+    )
+
+
+_ROMANO_VALOR = {"i": 1, "v": 5, "x": 10, "l": 50, "c": 100, "d": 500, "m": 1000}
+
+
+def _valor_entero(numero: str) -> int | None:
+    """The integer an article number starts with, arabic or roman (`82 BIS`
+    is 82, `XXXVII` is 37), or `None`."""
+    m = re.match(r"\s*(\d+)", numero)
+    if m:
+        return int(m.group(1))
+    m = re.match(r"\s*([IVXLCDMivxlcdm]+)\b", numero)
+    if not m:
+        return None
+    total = 0
+    simbolos = [_ROMANO_VALOR[c.lower()] for c in m.group(1)]
+    for k, valor in enumerate(simbolos):
+        total += -valor if k + 1 < len(simbolos) and valor < simbolos[k + 1] else valor
+    return total
+
+
+def _numero_de_articulo(texto: str | None, etiqueta: str, numero: str | None = None) -> str:
+    """The number an article block is identified by (rule 19): what its text
+    prints, unless the SCJN's label says something more specific or something
+    else.
+
+    The two agree almost always (`1o.-` under the label `ARTÍCULO 1`), and then
+    the text's spelling is kept. The label can be the longer one -- `ARTÍCULO 6
+    (SIC)` over a text that prints `6o` -- and then it is the label's, and the
+    text can be -- `ARTICULO 82 BIS` under a block the SCJN labels `ARTÍCULO 82`
+    -- and then it is the text's. When they disagree the one that agrees with
+    the API's own `numero` for the block wins (the label `ARTICULO XXVII` on the
+    block numbered 37, whose text prints `XXXVII`; the text `916` under the
+    labels 915 and 916), and failing that the label, which is the one that is
+    not repeated.
+
+    >>> _numero_de_articulo("1o", "1")
+    '1o'
+    >>> _numero_de_articulo("82 BIS", "82")
+    '82 BIS'
+    >>> _numero_de_articulo("6o", "6 (SIC)")
+    '6 (SIC)'
+    >>> _numero_de_articulo("916", "915", "915")
+    '915'
+    >>> _numero_de_articulo("XXXVII", "XXVII", "37")
+    'XXXVII'
+    >>> _numero_de_articulo(None, "7")
+    '7'
+    """
+    if texto is None:
+        return etiqueta
+    t, e = _forma_comparable(texto), _forma_comparable(etiqueta)
+    if t == e or _extiende(t, e):
+        return texto
+    if _extiende(e, t):
+        return etiqueta
+    if numero is not None and numero.strip().isdigit():
+        if _valor_entero(texto) == int(numero) and _valor_entero(etiqueta) != int(numero):
+            return texto
+    return etiqueta
+
+
+def _quita_etiqueta(linea: str, etiqueta: str) -> tuple[bool, str | None]:
+    """Whether `linea` starts with the label `etiqueta`, and what follows it as
+    a heading (`None` when nothing does): rule 19 reads `PARTE 1- ENSAYO DE
+    INCOMBUSTIBILIDAD` under the label `PARTE 1` as the part titled `ENSAYO DE
+    INCOMBUSTIBILIDAD`. Compared without accents, case, spaces or punctuation."""
     texto = linea.replace("**", "")
     objetivo = [c for c in _sin_acentos_mayusculas(etiqueta).lower() if c.isalnum()]
     if not objetivo:
-        return None
+        return False, None
     consumidos = 0
     for i, char in enumerate(texto):
         plano = _sin_acentos_mayusculas(char).lower()
         if not plano.isalnum():
             continue
         if plano != objetivo[consumidos]:
-            return None
+            return False, None
         consumidos += 1
         if consumidos == len(objetivo):
-            return _limpia(texto[i + 1:]).lstrip("-–— ").strip() or None
-    return None
+            # `PARTE 10` is not the label `PARTE 1` followed by a `0`.
+            resto = texto[i + 1:]
+            if resto[:1].isalnum():
+                return False, None
+            return True, _limpia(resto).lstrip("-–— ").strip() or None
+    return False, None
 
 
 class _Constructor:
@@ -593,6 +677,7 @@ class _Constructor:
         self._modo_sin_articulos = modo_sin_articulos(
             [bloques[k] for k in propios], [self._clases[k] for k in propios]
         )
+        self._busca_secciones(self._indices_de_marca, self._siguiente_de_marca)
         #: Rule 16 (review fix-1 of #291): a `PARTE` is above the books, titles
         #: and chapters unless the document opens one of those first.
         #: Rule 17 (review fix-1 of #291): inside an instrument's recitals,
@@ -609,6 +694,11 @@ class _Constructor:
         #: the decree whatever it reprints.
         self._decreto = False
         self._decreto_nodo: AknNode | None = None
+        #: Rule 23: the implicit section open now, as (node, index of the block
+        #: that ends it), or `None`.
+        self._implicita: tuple[AknNode, int] | None = None
+        #: The node that holds each eId, for `AknNode.repeated`.
+        self._por_eid: dict[str, AknNode] = {}
         #: Rule 21 (review fix-2 of #291): the rank of the container the
         #: current API block opened, or `None`. A heading the *text* of that
         #: block contains (an `APÉNDICE` inside a `PARTE`) belongs to it.
@@ -640,21 +730,137 @@ class _Constructor:
     def _lee_marcas(self) -> None:
         """Find the markers, and settle with them what the block each one
         heads *is*: the first block of an API block that is not an annotation
-        carries its label's meaning (`_clase_de_marca`)."""
+        carries its label's meaning (`_clase_de_marca`); for a container, the
+        block that is the heading does (`_encabezado_de`)."""
+        indices = [k for k, bloque in enumerate(self._bloques)
+                   if bloque.text.startswith("<!-- scjn:block ")
+                   and lee_marcador(bloque.text) is not None]
+        siguiente = {k: (indices[n + 1] if n + 1 < len(indices) else len(self._bloques))
+                     for n, k in enumerate(indices)}
         actual = None
         esperando_primero = False
         for k, bloque in enumerate(self._bloques):
-            marca = lee_marcador(bloque.text) if bloque.text.startswith("<!-- scjn:block ") else None
-            if marca is not None:
-                self._marcas[k] = marca
-                actual = marca
+            if k in siguiente:
+                actual = lee_marcador(bloque.text)
+                self._marcas[k] = actual
                 esperando_primero = True
                 self._clases[k] = ("marcador", {})
+                inicio_de_marca = k
             elif esperando_primero and self._clases[k][0] not in ("anotacion", "nota_editorial"):
-                self._primeros[k] = actual
                 esperando_primero = False
-                self._clases[k] = self._clase_de_marca(self._clases[k], actual, bloque)
+                destino = k
+                if actual.get("kind") in ("container", "article", "transitorios", "decree"):
+                    destino = self._encabezado_de(k, siguiente[inicio_de_marca], actual)
+                    # What stands between the marker and its heading is the
+                    # heading's own annotation (`(REFORMADA SU DENOMINACIÓN,
+                    # ...) (REPUBLICADA, ...)`), whatever it looks like.
+                    for i in range(k, destino):
+                        texto = self._bloques[i].text.strip().replace("**", "")
+                        if texto.startswith("("):
+                            self._clases[i] = ("anotacion", {"cuerpo": texto.strip("() ")})
+                self._primeros[destino] = actual
+                self._clases[destino] = self._clase_de_marca(
+                    self._clases[destino], actual, self._bloques[destino]
+                )
+                if actual.get("kind") in self.BLOQUES_DE_UN_SOLO_TEXTO:
+                    # Rule 24: a block the SCJN labels as an article is one
+                    # article, and one labelled as a title block, a preamble or
+                    # recitals opens none: an article, container or
+                    # transitorios heading inside its text is quoted text (an
+                    # amendment quoting the text it amends, an alternative
+                    # wording, a list of the articles that follow), not a
+                    # further one.
+                    desde = destino + 1 if actual["kind"] == "article" else k
+                    for i in range(desde, siguiente[inicio_de_marca]):
+                        if self._clases[i][0] in self.APERTURAS_DE_ESTRUCTURA:
+                            self._clases[i] = ("contenido", {})
             self._de_marca[k] = actual
+        self._indices_de_marca = indices
+        self._siguiente_de_marca = siguiente
+
+    def _abre_articulos(self, i: int) -> bool:
+        """Whether block `i` opens an article, as the pass will read it: by its
+        class, or, in a document that numbers its provisions some other way
+        (rule 8), by the shape that document numbers them with."""
+        kind, _campos = self._clases[i]
+        if kind == "articulo":
+            return True
+        if self._modo_sin_articulos == MODO_ORDINAL:
+            return kind == "articulo_ordinal"
+        if self._modo_sin_articulos == MODO_NUMERAL and kind == "contenido":
+            return bool(NUMERAL_DECIMAL.match(self._bloques[i].text.split("\n", 1)[0]))
+        return False
+
+    def _busca_secciones(self, indices, siguiente) -> None:
+        """Rule 23: which markers open an implicit section, and where it ends.
+
+        The SCJN gives a heading it has no word for as a block of its own --
+        `ESTATUTO`, `MANUAL OPERATIVO`, `ESTATUS DE LA LISTA DE RESERVAS`, a
+        second `PREÁMBULO` -- and what is under it is a text of its own: its
+        articles start over at 1. A block of `kind` `other`, or a preamble that
+        is not the document's first, opens a section when it holds articles in
+        its own text or is followed by article blocks. The section lasts until
+        the first later marker that is not an article."""
+        self._aperturas: dict[int, int] = {}
+        preambulos = 0
+        for n, k in enumerate(indices):
+            kind = self._marcas[k].get("kind")
+            if kind == "preamble":
+                preambulos += 1
+            if not (kind == "other" or (kind == "preamble" and preambulos > 1)):
+                continue
+            propio = any(self._abre_articulos(i) for i in range(k + 1, siguiente[k]))
+            fin = n + 1
+            while fin < len(indices) and self._marcas[indices[fin]].get("kind") == "article":
+                fin += 1
+            siguientes = fin > n + 1
+            if propio or siguientes:
+                self._aperturas[k] = indices[fin] if fin < len(indices) else len(self._bloques)
+
+    #: Rule 24: the `kind`s of API block inside which no heading opens a
+    #: structure, and the classes of block that would.
+    BLOQUES_DE_UN_SOLO_TEXTO = ("article", "header", "preamble", "recitals")
+    APERTURAS_DE_ESTRUCTURA = (
+        "articulo", "articulo_ordinal", "contenedor", "transitorios", "transitorios_dof",
+    )
+
+    #: How many blocks into an API block a container's heading is looked for.
+    VENTANA_ENCABEZADO = 6
+
+    def _encabezado_de(self, primero: int, fin: int, marca) -> int:
+        """Index of the block that is an API block's heading -- the one its
+        marker's `kind` is about: the first block the text itself reads as that
+        (a container of that type, an article, transitorios, a `D.O.F.` header),
+        else, for a container, the first that starts with the label (`PARTE 1-
+        ENSAYO...` under `PARTE 1`), else `primero`. Looked for only before the
+        block's first article, and not past `VENTANA_ENCABEZADO` blocks."""
+        kind = marca.get("kind")
+        akn_type, _ = self.TIPOS_DE_CONTENEDOR.get(marca.get("type"), (None, None))
+        limite = min(fin, primero + self.VENTANA_ENCABEZADO)
+        rango = []
+        for i in range(primero, limite):
+            rango.append(i)
+            if self._clases[i][0] in ("articulo", "transitorios", "transitorios_dof"):
+                break
+        for i in rango:
+            clase = self._clases[i]
+            if kind == "container":
+                if clase[0] == "contenedor" and clase[1].get("akn_type") == akn_type:
+                    return i
+            elif kind == "article":
+                if clase[0] == "articulo":
+                    return i
+            elif kind == "transitorios":
+                if clase[0] == "transitorios":
+                    return i
+            elif kind == "decree":
+                if clase[0] == "transitorios_dof":
+                    return i
+        if kind == "container":
+            for i in rango:
+                if _quita_etiqueta(self._bloques[i].text.split("\n", 1)[0], marca.get("label", ""))[0]:
+                    return i
+        return primero
 
     def _clase_de_marca(self, clase, marca, bloque):
         """`clasifica`'s answer for the first block of an API block, as its
@@ -665,7 +871,7 @@ class _Constructor:
         linea = bloque.text.split("\n", 1)[0]
         if kind == "container" and marca.get("type") in self.TIPOS_DE_CONTENEDOR:
             akn_type, refers_to = self.TIPOS_DE_CONTENEDOR[marca["type"]]
-            heading = _quita_etiqueta(linea, marca.get("label", ""))
+            heading = _quita_etiqueta(linea, marca.get("label", ""))[1]
             if clase[0] == "contenedor" and clase[1].get("akn_type") == akn_type:
                 heading = clase[1].get("heading") or heading
             return "contenedor", {
@@ -679,8 +885,15 @@ class _Constructor:
             return "transitorios_dof", {"num": _limpia(marca.get("num", "")), "forzado": True}
         if kind == "transitorios":
             return "transitorios", {}
-        if kind == "article" and clase[0] != "articulo" and marca.get("num"):
-            return "articulo", {"num": _limpia(marca["num"])}
+        if kind == "article" and marca.get("num"):
+            texto = clase[1]["num"] if clase[0] == "articulo" else None
+            etiqueta = _limpia(marca["num"])
+            elegido = _numero_de_articulo(texto, etiqueta, marca.get("numero"))
+            otro = texto if elegido == etiqueta else etiqueta
+            campos = {"num": elegido}
+            if texto is not None and _forma_comparable(otro) != _forma_comparable(elegido):
+                campos["alternativa"] = otro
+            return "articulo", campos
         return clase
 
     def _indices_de_marcas(self) -> dict[int, int]:
@@ -702,7 +915,7 @@ class _Constructor:
         recitals."""
         marca = self._de_marca[k]
         return marca is not None and marca.get("kind") in (
-            "decree", "recitals", "preamble", "header",
+            "decree", "recitals", "preamble", "header", "transitorios",
         )
 
     def _toma_marca(self, inicio: int) -> int:
@@ -731,6 +944,19 @@ class _Constructor:
         self._cierra_articulo()
         self._pendiente_epigrafe = None
         self._tabla = None
+        if self._implicita is not None and self._i >= self._implicita[1]:
+            # Rule 23: the implicit section ends where the first marker that is
+            # not an article begins.
+            nodo, _ = self._implicita
+            self._implicita = None
+            while self._pila and self._pila[-1][1] is not nodo and nodo in [n for _, n in self._pila]:
+                self._pila.pop()
+            if self._pila and self._pila[-1][1] is nodo:
+                self._pila.pop()
+        if marca.get("kind") == "article":
+            # An article the SCJN serves as a block of its own is not a
+            # transitory provision of the block before it.
+            self._transitorios = None
         if marca.get("kind") in ("header", "preamble", "recitals") and (
             self.body is not None or self._pila
         ):
@@ -738,6 +964,14 @@ class _Constructor:
             # later on (the preamble of a resolution annexed to an acuerdo) is
             # text of its own, not the tail of the transitorios before it.
             self._transitorios = None
+        if self._i in self._aperturas:
+            etiqueta = _limpia(marca.get("label", "")) or "section"
+            nodo = self._nuevo_nodo("section", bloque.start, bloque.end, num=etiqueta)
+            nodo.heading = None
+            self._marca_inicio = None
+            self._pila.append((5.0, nodo))
+            self._piso = 5.0
+            self._implicita = (nodo, self._aperturas[self._i])
 
     # -- helpers ---------------------------------------------------------
 
@@ -773,13 +1007,14 @@ class _Constructor:
                     eid=None):
         padre = padre if padre is not None else self._padre_contenedor(inicio)
         if eid is None:
-            eid = self._eids.child(
+            propuesto = self._eids.propuesto(
                 "" if padre.akn_type in ("act", "body") else padre.eId,
                 PREFIJO_EID.get(akn_type, akn_type),
                 num if num is not None else akn_type,
             )
         else:
-            eid = self._eids.allocate(eid)
+            propuesto = eid
+        eid = self._eids.allocate(propuesto)
         inicio, notas = self._pendientes.toma(inicio)
         inicio = self._toma_marca(inicio)
         # The pull-back may not escape the parent, so the parent comes back
@@ -792,8 +1027,13 @@ class _Constructor:
         inicio = max(inicio, self._retrocede(padre, inicio))
         nodo = AknNode(
             akn_type, self._span(inicio, fin, eid), eId=eid, num=num, refers_to=refers_to,
-            notes=notas, repeated=eid in self._eids.suffixed,
+            notes=notas, repeated=eid != propuesto,
         )
+        # A repeat (review fix-2 of #291) involves both claimants of the
+        # identifier: the one that had to take a suffix and the one that held it.
+        if eid != propuesto and propuesto in self._por_eid:
+            self._por_eid[propuesto].repeated = True
+        self._por_eid.setdefault(eid, nodo)
         return padre.add(nodo)
 
     # -- the pass --------------------------------------------------------
@@ -854,6 +1094,7 @@ class _Constructor:
         # `preamble` in document order.
         self._asegura_body(self.act.start_char)
         self._cierra_spans()
+        self.act.modo = self._modo_sin_articulos
         return self.act
 
     def _bloque_indice(self, primero, ultimo):
@@ -910,8 +1151,19 @@ class _Constructor:
 
     def _bloque_articulo(self, bloque, campos):
         self._cierra_articulo()
+        num = campos["num"]
+        if campos.get("alternativa") is not None:
+            # The label and the text disagree and neither explains the other
+            # (`ARTÍCULO 6` on a block whose text prints `ARTICULO 7.-`): the
+            # one whose identifier is not already taken is the article's.
+            padre = self._padre_contenedor(bloque.start)
+            tomado = self._eids.propuesto(
+                "" if padre.akn_type in ("act", "body") else padre.eId, "art", num
+            ) in self._eids.used
+            if tomado:
+                num = campos["alternativa"]
         self._articulo = self._nuevo_nodo(
-            "article", bloque.start, bloque.end, num=campos["num"],
+            "article", bloque.start, bloque.end, num=num,
         )
         self._interior = ConstructorDeArticulo(
             self._articulo, self._eids, self._node_span, self._doc, PREFIJO_EID,
