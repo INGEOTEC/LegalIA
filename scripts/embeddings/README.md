@@ -3100,6 +3100,98 @@ numbers them from 1, so page topic *n* is cluster *n* − 1 of this table:
 | 30 | 7 | reglamentos 7 | conamed, médica, queja, reembolso, comité | REGLAMENTO PARA EL TRAMITE DE SOLICITUDES DE REEMBOLSO POR LA PREST... (`44035`) |
 | 31 | 2 | tratados 2 | reino países, bajos, dos mil, países bajos, reino | ACUERDO ENTRE LOS ESTADOS UNIDOS MEXICANOS Y EL REINO DE LOS PAISES... (`75722`) |
 
+
+### Measured, topics, the 4B, 2026-10-16 (review fix-2 of #291)
+
+The topics were run again because the matrix changed: the SCJN's outline (`scjn.outline`, rules 19 to 24)
+moved the excerpts, and the Atlas has 2,677 instruments now. `cluster_instruments.py --work-dir
+emb-run-atlas-4b` over the new 4B matrix (`Qwen/Qwen3-Embedding-4B`, 2,677 × 2,677, 0 zero rows) and the
+277 strong links of the rebuilt gold (`emb-run-atlas/gold-links/gold.json`); every configuration
+finished (22 of 22), same sweeps, gates, rule, c-TF-IDF parameters and stopword list. Per configuration,
+in `comparison.md`:
+
+| algorithm | parameter | clusters | noise | largest | silhouette | co-membership | gates | chosen |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| hdbscan_umap | min_cluster_size 5 | 158 | 18.8% | 2.4% | 0.152 | 0.401 | fail: 158 clusters, outside 20-80; noise 18.8% over 15% |  |
+| hdbscan_umap | min_cluster_size 10 | 82 | 21.6% | 2.5% | 0.112 | 0.473 | fail: 82 clusters, outside 20-80; noise 21.6% over 15% |  |
+| hdbscan_umap | min_cluster_size 15 | 56 | 28.0% | 4.4% | 0.099 | 0.448 | fail: noise 28.0% over 15% |  |
+| hdbscan_umap | min_cluster_size 20 | 38 | 29.3% | 4.7% | 0.079 | 0.484 | fail: noise 29.3% over 15% |  |
+| hdbscan_umap | min_cluster_size 30 | 25 | 37.1% | 9.6% | 0.066 | 0.350 | fail: noise 37.1% over 15% |  |
+| agglomerative | n_clusters 20 | 20 | 0.0% | 76.8% | 0.024 | 0.729 | fail: largest cluster 76.8% over 25% |  |
+| agglomerative | n_clusters 30 | 30 | 0.0% | 63.2% | 0.033 | 0.657 | fail: largest cluster 63.2% over 25% |  |
+| agglomerative | n_clusters 40 | 40 | 0.0% | 55.4% | 0.044 | 0.610 | fail: largest cluster 55.4% over 25% |  |
+| agglomerative | n_clusters 50 | 50 | 0.0% | 53.8% | 0.052 | 0.610 | fail: largest cluster 53.8% over 25% |  |
+| agglomerative | n_clusters 60 | 60 | 0.0% | 47.3% | 0.057 | 0.574 | fail: largest cluster 47.3% over 25% |  |
+| agglomerative | n_clusters 80 | 80 | 0.0% | 38.2% | 0.072 | 0.520 | fail: largest cluster 38.2% over 25% |  |
+| kmeans | n_clusters 20 | 20 | 0.0% | 56.7% | 0.033 | 0.505 | fail: largest cluster 56.7% over 25% |  |
+| kmeans | n_clusters 30 | 30 | 0.0% | 46.2% | 0.041 | 0.513 | fail: largest cluster 46.2% over 25% |  |
+| kmeans | n_clusters 40 | 40 | 0.0% | 42.6% | 0.050 | 0.545 | fail: largest cluster 42.6% over 25% |  |
+| kmeans | n_clusters 50 | 50 | 0.0% | 38.3% | 0.058 | 0.516 | fail: largest cluster 38.3% over 25% |  |
+| kmeans | n_clusters 60 | 60 | 0.0% | 36.6% | 0.062 | 0.487 | fail: largest cluster 36.6% over 25% |  |
+| kmeans | n_clusters 80 | 80 | 0.0% | 29.8% | 0.078 | 0.415 | fail: largest cluster 29.8% over 25% |  |
+| louvain | resolution 0.5 | 17 | 0.0% | 18.0% | 0.018 | 0.838 | fail: 17 clusters, outside 20-80 |  |
+| louvain | resolution 1.0 | 31 | 0.0% | 13.3% | 0.032 | 0.823 | pass |  |
+| louvain | resolution 1.5 | 40 | 0.0% | 12.1% | 0.039 | 0.841 | pass | **yes** |
+| louvain | resolution 2.0 | 49 | 0.0% | 10.2% | 0.045 | 0.801 | pass |  |
+| louvain | resolution 3.0 | 66 | 0.0% | 9.9% | 0.055 | 0.798 | pass |  |
+
+Four configurations pass the gates, all of them Louvain (`resolution` 1.0 to 3.0); `resolution` 0.5 gives
+17 communities, under 20. Ward and *k*-means leave a topic of 29.8 to 76.8 % of the instruments in every
+configuration. HDBSCAN leaves 18.8 to 29.3 % of the instruments in no dense region with a `min_cluster_size`
+of 5 to 20, and 37.1 % with 30 (it no longer merges everything into four clusters, as it did before the
+outline). The rule picks **`louvain` `resolution` 1.5**: 40 topics, no noise, the largest with 323
+instruments (12.1 %), silhouette 0.039 and co-membership 0.841 (233 of the 277 strong links stay together).
+The 2026-10-13 run chose resolution 1.0 (32 topics, 0.811 of 275); the rule is the same, and the higher
+resolution now has the highest co-membership among the four that pass (1.0: 0.823; 1.5: 0.841; 2.0: 0.801;
+3.0: 0.798). The lottery regulations are again a topic of their own (page topic 27, 43 instruments, 2 laws and
+41 regulations).
+
+The 40 topics of the chosen configuration, by size (`topics.json`, numbered from 1 as the page numbers
+them; the terms are the first five of ten):
+
+| id | size | collections | top 5 terms |
+|---:|---:|---|---|
+| 1 | 323 | tratados 323 | partes, cooperación, unidos mexicanos, convenio, estados unidos |
+| 2 | 155 | leyes 9, tratados 146 | miembros, estados, miembro, consejo, organización |
+| 3 | 150 | leyes 5, reglamentos 5, tratados 140 | ex, parte, kg, partes, 01 |
+| 4 | 110 | leyes 16, lineamientos 1, reglamentos 93 | personal, escuela, educación, plantel, artículo |
+| 5 | 99 | leyes 1, tratados 98 | parte, parte requerida, requerida, requirente, parte requirente |
+| 6 | 94 | leyes 5, lineamientos 3, reglamentos 19, tratados 67 | trabajo, trabajadores, convenio, trabajadoras, personas trabajadoras |
+| 7 | 93 | leyes 26, lineamientos 14, reglamentos 41, tratados 12 | artículo, nacional, secretaría, ley, general |
+| 8 | 88 | leyes 4, reglamentos 4, tratados 80 | estado parte, parte, presente, estados, estado |
+| 9 | 85 | tratados 85 | estado, estado contratante, contratante, otro estado, otro |
+| 10 | 79 | leyes 7, lineamientos 6, reglamentos 66 | instituto, artículo, trabajadores, servicios, ley |
+| 11 | 78 | leyes 27, lineamientos 18, reglamentos 33 | artículo, ley, fiscal, refiere, impuesto |
+| 12 | 78 | leyes 19, lineamientos 23, reglamentos 36 | tribunal, judicial, sala, artículo, superior |
+| 13 | 77 | leyes 21, lineamientos 4, reglamentos 52 | secretaría, federal, unidades, administrativas, desarrollo |
+| 14 | 77 | leyes 14, reglamentos 45, tratados 18 | secretaría, artículo, comisión, energía, ley |
+| 15 | 76 | leyes 12, reglamentos 10, tratados 54 | convención, estados, artículo, derechos, nacional |
+| 16 | 73 | leyes 4, lineamientos 35, reglamentos 34 | información, transparencia, acceso, datos personales, datos |
+| 17 | 71 | leyes 3, reglamentos 68 | comisión, sesiones, comité, artículo, técnico |
+| 18 | 68 | leyes 12, lineamientos 2, reglamentos 7, tratados 47 | articulo, art, artículo, juez, caso |
+| 19 | 68 | leyes 19, lineamientos 1, reglamentos 39, tratados 9 | articulo, salud, secretaría, artículo, productos |
+| 20 | 67 | leyes 5, lineamientos 2, reglamentos 59, tratados 1 | 2023, electoral, partidos, electorales, instituto |
+| 21 | 64 | tratados 64 | parte contratante, parte, otra parte, contratante, otra |
+| 22 | 61 | leyes 14, lineamientos 1, reglamentos 46 | militar, personal, articulo, servicio, ejército |
+| 23 | 59 | leyes 3, lineamientos 1, reglamentos 15, tratados 40 | carga, anexo, buque, buques, código |
+| 24 | 58 | leyes 29, reglamentos 29 | comisión, ley, artículo, sociedades, sociedad |
+| 25 | 58 | leyes 5, lineamientos 1, tratados 52 | tratado, estado, estados, consular, estado receptor |
+| 26 | 56 | tratados 56 | cmr, banda, mhz, radiocomunicaciones, servicio |
+| 27 | 43 | leyes 2, reglamentos 41 | sorteo, pronósticos, premios, sorteos, números |
+| 28 | 40 | leyes 4, lineamientos 3, reglamentos 8, tratados 25 | artículo, internacional, unión, presente, solicitud |
+| 29 | 38 | leyes 14, reglamentos 24 | ambiental, secretaría, agua, manejo, forestales |
+| 30 | 33 | leyes 10, lineamientos 7, reglamentos 16 | centro, artículo, adolescentes, ministerio público, niñas |
+| 31 | 24 | leyes 6, reglamentos 16, tratados 2 | agencia, persona, vuelo, aviación, aviación civil |
+| 32 | 23 | leyes 1, reglamentos 2, tratados 20 | postal, postales, envíos, congreso, unión |
+| 33 | 20 | leyes 5, lineamientos 3, reglamentos 10, tratados 2 | contrato, contratación, artículo, licitación, trabajos |
+| 34 | 20 | tratados 20 | aduanera, autoridad aduanera, aduaneras, autoridad, autoridades aduaneras |
+| 35 | 18 | leyes 4, reglamentos 14 | consumidor, procuraduría, evaluación conformidad, metrología, ley |
+| 36 | 14 | leyes 1, reglamentos 1, tratados 12 | potencia, guerra, prisioneros, potencias, presente |
+| 37 | 12 | leyes 4, reglamentos 8 | cámara, mesa, comisiones, presidente, diputados |
+| 38 | 12 | reglamentos 12 | pasantes, prácticas, examen profesional, naval, profesional |
+| 39 | 8 | leyes 3, reglamentos 5 | federal electricidad, petróleos, petróleos mexicanos, electricidad, consejo administración |
+| 40 | 7 | leyes 1, reglamentos 6 | nacionalidad, consular, pasaporte, nacionalidad mexicana, mexicana |
+
 ### Measured, nearest texts, the 4B, 2026-10-13 (issue #288)
 
 `nearest_texts.py --work-dir emb-run-atlas-4b`, over the matrix of the 2,676
