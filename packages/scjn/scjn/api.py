@@ -391,6 +391,7 @@ class ScjnApi:
 # article whose `referencia` is unexpected has to come out as the same
 # paragraph it does today, not as a differently-shaped file.
 
+from scjn.outline import marker_line  # noqa: E402
 from scjn.text import (  # noqa: E402  (deliberately below the client)
     quita_notas_editoriales,
     ratio_similitud,
@@ -685,7 +686,7 @@ def _paragraphs_from_tabbed_block(bloque: str) -> list[str]:
     return paragraphs
 
 
-def articulos_a_markdown(articulos: list[Articulo]) -> str:
+def articulos_a_markdown(articulos: list[Articulo], *, outline: bool = False) -> str:
     """The reform's consolidated text as the same light Markdown the
     retired `scjn.docx_a_markdown` produced from the .docx: one
     blank-line-separated
@@ -698,10 +699,18 @@ def articulos_a_markdown(articulos: list[Articulo]) -> str:
     in otherwise plain text, so such a block is handed to
     `_paragraphs_from_tabbed_block` and comes back as one paragraph per
     recovered row instead of one per wrapped line. A block with no tab is
-    unaffected."""
+    unaffected.
+
+    With `outline=True` (what `snapshot` passes, review fix-2 of #291) every
+    API block that yields text opens with a marker paragraph carrying its
+    `orden`, `numero` and `referencia` and the `kind` derived from the label
+    -- see `scjn.outline`. No character of the block's own text changes:
+    `scjn.outline.strip_markers` of the result is the `outline=False`
+    output, which a test pins."""
     bloques: list[str] = []
     for articulo in articulos:
         contenido = _ETIQUETA_HTML.sub("", _SALTO_HTML.sub("\n", articulo.contenido))
+        antes = len(bloques)
         for bloque in _BLOCK_SEPARATOR.split(contenido):
             if not bloque.strip():
                 continue
@@ -721,6 +730,8 @@ def articulos_a_markdown(articulos: list[Articulo]) -> str:
                 linea = quita_notas_editoriales(linea)
                 if linea:
                     bloques.append(_formatea_parrafo(linea))
+        if outline and len(bloques) > antes:
+            bloques.insert(antes, marker_line(articulo.orden, articulo.numero, articulo.referencia))
     return "\n\n".join(bloques) + "\n"
 
 
@@ -771,7 +782,10 @@ def snapshot(
 ) -> str:
     """A whole `<fecha_publicacion>.md` — header, blank line, body — exactly
     as `descarga_ordenamiento` writes one."""
-    return f"{cabecera(ordenamiento, reforma, nombre_buscado)}\n\n{articulos_a_markdown(articulos)}"
+    return (
+        f"{cabecera(ordenamiento, reforma, nombre_buscado)}\n\n"
+        f"{articulos_a_markdown(articulos, outline=True)}"
+    )
 
 
 # --- Candidate selection (issue #176) ------------------------------------
@@ -940,6 +954,35 @@ def instrument_metadata(
 
 # --- Whole-instrument crawl (issue #177) ---------------------------------
 
+import gzip  # noqa: E402
+import json  # noqa: E402
+
+
+def guarda_crudo(destino: "Path", articulos: list[Articulo]) -> None:
+    """What the API answered for one reform, kept as gzipped JSON -- the four
+    fields of every block that `articulos_a_markdown` reads."""
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    filas = [
+        {"numero": a.numero, "orden": a.orden, "referencia": a.referencia, "contenido": a.contenido}
+        for a in articulos
+    ]
+    with gzip.open(destino, "wt", encoding="utf-8") as f:
+        json.dump(filas, f, ensure_ascii=False)
+
+
+def articulos_de_crudo(origen: "Path") -> list[Articulo]:
+    """The inverse of `guarda_crudo`: the blocks a reform answered with, ready
+    for `snapshot`."""
+    with gzip.open(origen, "rt", encoding="utf-8") as f:
+        filas = json.load(f)
+    return [
+        Articulo(
+            numero=a.get("numero"), orden=a.get("orden"),
+            referencia=a.get("referencia") or "", contenido=a.get("contenido") or "",
+        )
+        for a in filas
+    ]
+
 from collections.abc import Callable  # noqa: E402
 from pathlib import Path  # noqa: E402
 
@@ -977,6 +1020,7 @@ def descarga_ordenamiento(
     *,
     on_progreso: Callable[[str], None] | None = None,
     id_ordenamiento: str | int | None = None,
+    raw_dir: Path | None = None,
 ) -> ResultadoCrawl:
     """Every reform-dated snapshot the SCJN has for `nombre`, written as
     ``outdir/<fecha_publicacion>.md`` — the same contract as
@@ -1006,6 +1050,13 @@ def descarga_ordenamiento(
     kept apart because only the first is an expected absence — which is what
     lets a caller check `len(escritos) + len(reformas_sin_articulos)`
     against `total_reformas`, the count the SCJN's own detail page shows.
+
+    `raw_dir`, when given, also keeps what the API answered for each reform it
+    fetched, as ``raw_dir/<snapshot name>.json.gz`` -- the four fields the
+    writer reads (`numero`, `orden`, `referencia`, `contenido`) of every
+    block. It is what lets the writer change again without asking the SCJN
+    for a whole corpus a second time (review fix-2 of #291): see
+    `articulos_de_crudo` and `scripts/rewrite_scjn_from_raw.py`.
     """
     if id_ordenamiento is not None:
         elegido = Ordenamiento(
@@ -1054,6 +1105,8 @@ def descarga_ordenamiento(
             if on_progreso is not None:
                 on_progreso(f"aviso: la SCJN no sirve la reforma {reforma.fecha_publicacion}")
             continue
+        if raw_dir is not None:
+            guarda_crudo(raw_dir / f"{destino.stem}.json.gz", articulos)
         destino.write_text(snapshot(elegido, reforma, articulos, nombre), encoding="utf-8")
         escritos.append(destino)
     return ResultadoCrawl(

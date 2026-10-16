@@ -113,6 +113,10 @@ class EIdAllocator:
 
     def __init__(self):
         self.used: set[str] = set()
+        #: The eIds that were handed out with a `_2`-style suffix, because the
+        #: proposed one was taken -- a *repeat* (review fix-2 of #291): two
+        #: provisions that came out with the same identifier.
+        self.suffixed: set[str] = set()
 
     def allocate(self, proposed: str) -> str:
         candidate = proposed
@@ -121,6 +125,8 @@ class EIdAllocator:
             candidate = f"{proposed}_{i}"
             i += 1
         self.used.add(candidate)
+        if candidate != proposed:
+            self.suffixed.add(candidate)
         return candidate
 
     def child(self, parent_eid: str, prefix: str, num: str) -> str:
@@ -190,6 +196,13 @@ class AknNode:
     #: no tail, because there is nothing to interleave and nothing to choose.
     is_chapeau: bool = False
     is_tail: bool = False
+    #: Whether this node's eId had to be disambiguated (`_2`, `_3`, ...)
+    #: because a node before it had proposed the same one: the definition of a
+    #: *repeated* number (review fix-2 of #291). A number is repeated only
+    #: when it is the same identifier -- `1.1` of Part 1 and `1.1` of Part 2
+    #: have different eIds and are not -- so this is the one place the
+    #: question is answered, by construction.
+    repeated: bool = False
     parent: "AknNode | None" = field(default=None, repr=False)
     children: list["AknNode"] = field(default_factory=list, repr=False)
     notes: list[Annotation] = field(default_factory=list, repr=False)

@@ -37,6 +37,7 @@ import re
 from dataclasses import dataclass
 
 from md2akn.model import REFERS_TO_ANEXO, REFERS_TO_TRANSITORIOS, AknNode
+from md2akn.outline import MARCADORES_EN_TEXTO
 from md2akn.pipeline import parse_markdown
 
 #: The split threshold `text_units` uses when no `cap` is given: measured
@@ -274,6 +275,12 @@ def _annotation_ranges(tree: AknNode, doc_text: str) -> list[tuple[int, int]]:
             continue
         ranges.append((idx, idx + len(note.raw)))
         cursor = idx + len(note.raw)
+    # An outline marker (rule 19) is metadata exactly like an annotation: it
+    # is no part of what gets embedded, and `coverage()` counts its
+    # characters as annotation.
+    if "<!-- scjn:block " in doc_text:
+        ranges.extend((m.start(), m.end()) for m in MARCADORES_EN_TEXTO.finditer(doc_text))
+        ranges.sort()
     return ranges
 
 

@@ -45,6 +45,7 @@ import re
 
 from md2akn.annotations import es_anotacion, parse_annotation
 from md2akn.lists import ConstructorDeArticulo, Pendientes
+from md2akn.outline import lee_marcador
 from md2akn.model import (
     REFERS_TO_ANEXO,
     REFERS_TO_APARTADO,
@@ -236,7 +237,7 @@ MIN_ORDINALES = 3
 MIN_NUMERALES = 5
 
 
-def modo_sin_articulos(bloques) -> str | None:
+def modo_sin_articulos(bloques, clases=None) -> str | None:
     """Rule 8 (issue #227), decided **once per document**: how this
     instrument numbers its provisions, when it never writes `Artículo N`.
 
@@ -276,12 +277,16 @@ def modo_sin_articulos(bloques) -> str | None:
     'ordinal'
     >>> modo_sin_articulos(list(iter_blocks("**Artículo 1o.** Uno."))) is None
     True
+
+    `clases`, when given, is `clasifica`'s answer for each of `bloques` -- what
+    the builder passes for a snapshot that carries outline markers (rule 19),
+    whose classes the markers have already settled.
     """
     en_transitorios = False
     ordinales = 0
     numerales = 0
-    for bloque in bloques:
-        kind, _campos = clasifica(bloque)
+    for k, bloque in enumerate(bloques):
+        kind, _campos = clasifica(bloque) if clases is None else clases[k]
         if kind == "articulo":
             if not en_transitorios:
                 return None
@@ -485,6 +490,29 @@ def _rango_conclusiones(bloques) -> int:
     return len(bloques)
 
 
+def _quita_etiqueta(linea: str, etiqueta: str) -> str | None:
+    """What follows the label `etiqueta` at the start of `linea`, as a
+    heading, or `None` when it does not start with it or nothing follows
+    (rule 19: `PARTE 1- ENSAYO DE INCOMBUSTIBILIDAD` under the label
+    `PARTE 1` is the part titled `ENSAYO DE INCOMBUSTIBILIDAD`). Compared
+    without accents, case, spaces or punctuation."""
+    texto = linea.replace("**", "")
+    objetivo = [c for c in _sin_acentos_mayusculas(etiqueta).lower() if c.isalnum()]
+    if not objetivo:
+        return None
+    consumidos = 0
+    for i, char in enumerate(texto):
+        plano = _sin_acentos_mayusculas(char).lower()
+        if not plano.isalnum():
+            continue
+        if plano != objetivo[consumidos]:
+            return None
+        consumidos += 1
+        if consumidos == len(objetivo):
+            return _limpia(texto[i + 1:]).lstrip("-–— ").strip() or None
+    return None
+
+
 class _Constructor:
     """The single pass over the blocks that builds the tree.
 
@@ -528,18 +556,42 @@ class _Constructor:
         #: scan, rule 8's gate, the rank of a `PARTE` and the pass itself all
         #: read it.
         self._clases = [clasifica(bloque) for bloque in bloques]
+        #: Rule 19 (review fix-2 of #291): the outline markers a snapshot
+        #: written by `scjn.api` carries, ``{block index: attributes}``, and
+        #: for every block the marker of the API block it belongs to.
+        self._marcas: dict[int, dict[str, str]] = {}
+        self._de_marca: list[dict[str, str] | None] = [None] * len(bloques)
+        #: The first block of each API block that is not an annotation: the
+        #: one the marker's `kind` is about, ``{block index: attributes}``.
+        self._primeros: dict[int, dict[str, str]] = {}
+        #: Where the marker line not yet claimed by a node starts, so that
+        #: node's span is pulled back over it (the way an annotation's is).
+        self._marca_inicio: int | None = None
+        self._lee_marcas()
         #: Rule 15 (review fix-1 of #291): the tables of contents, as
-        #: ``{marker block index: first block index after it}``.
+        #: ``{marker block index: first block index after it}``. Rule 19: a
+        #: block the SCJN labels `ÍNDICE` is one, whatever its text says.
         self._indices = rangos_de_indice(bloques, self._clases, self._fin_cuerpo)
+        for inicio, fin in self._indices_de_marcas().items():
+            self._indices = {
+                a: b for a, b in self._indices.items() if b <= inicio or a >= fin
+            }
+            self._indices[inicio] = fin
         en_indice = {
             k for inicio, fin in self._indices.items() for k in range(inicio, fin)
         }
         #: Rule 8 (issue #227), decided once for the whole document before
         #: the pass starts -- `None` for every law and every instrument that
         #: numbers articles the ordinary way. A table of contents is not the
-        #: document's own numbering, so its blocks are not read.
+        #: document's own numbering, so its blocks are not read. Rule 19: nor
+        #: are a reform decree's, or the recitals', which are not the
+        #: instrument's own provisions either.
+        propios = [
+            k for k in range(len(bloques))
+            if k not in en_indice and not self._es_ajeno_a_la_numeracion(k)
+        ]
         self._modo_sin_articulos = modo_sin_articulos(
-            [b for k, b in enumerate(bloques) if k not in en_indice]
+            [bloques[k] for k in propios], [self._clases[k] for k in propios]
         )
         #: Rule 16 (review fix-1 of #291): a `PARTE` is above the books, titles
         #: and chapters unless the document opens one of those first.
@@ -552,6 +604,15 @@ class _Constructor:
         self._ultimo_entero = 0
         self._item_de_lista: int | None = None
         self._numeros_de_considerandos: set[str] = set()
+        #: Rule 20 (review fix-2 of #291): inside a block the SCJN labels
+        #: `D.O.F. <fecha>`, a reform decree's own text, which nests under
+        #: the decree whatever it reprints.
+        self._decreto = False
+        self._decreto_nodo: AknNode | None = None
+        #: Rule 21 (review fix-2 of #291): the rank of the container the
+        #: current API block opened, or `None`. A heading the *text* of that
+        #: block contains (an `APÉNDICE` inside a `PARTE`) belongs to it.
+        self._piso: float | None = None
         self._parte_en_capitulo = False
         for k, (kind, campos) in enumerate(self._clases):
             if k in en_indice or kind != "contenedor":
@@ -561,6 +622,122 @@ class _Constructor:
             if campos["akn_type"] in ("book", "title", "chapter"):
                 self._parte_en_capitulo = True
                 break
+
+    # -- outline markers (rule 19, review fix-2 of #291) ------------------
+
+    #: A marker's container `type` as the tree's `akn_type` and `refers_to`.
+    TIPOS_DE_CONTENEDOR = {
+        "book": ("book", None),
+        "title": ("title", None),
+        "chapter": ("chapter", None),
+        "section": ("section", None),
+        "apartado": ("level", None),
+        "part": ("part", None),
+        "annex": ("attachment", REFERS_TO_ANEXO),
+        "appendix": ("attachment", REFERS_TO_APENDICE),
+    }
+
+    def _lee_marcas(self) -> None:
+        """Find the markers, and settle with them what the block each one
+        heads *is*: the first block of an API block that is not an annotation
+        carries its label's meaning (`_clase_de_marca`)."""
+        actual = None
+        esperando_primero = False
+        for k, bloque in enumerate(self._bloques):
+            marca = lee_marcador(bloque.text) if bloque.text.startswith("<!-- scjn:block ") else None
+            if marca is not None:
+                self._marcas[k] = marca
+                actual = marca
+                esperando_primero = True
+                self._clases[k] = ("marcador", {})
+            elif esperando_primero and self._clases[k][0] not in ("anotacion", "nota_editorial"):
+                self._primeros[k] = actual
+                esperando_primero = False
+                self._clases[k] = self._clase_de_marca(self._clases[k], actual, bloque)
+            self._de_marca[k] = actual
+
+    def _clase_de_marca(self, clase, marca, bloque):
+        """`clasifica`'s answer for the first block of an API block, as its
+        marker says it should read: a container of the type and number the
+        label names, a reform decree, transitorios, an article of the number
+        the label names. Anything else keeps the text's own reading."""
+        kind = marca.get("kind")
+        linea = bloque.text.split("\n", 1)[0]
+        if kind == "container" and marca.get("type") in self.TIPOS_DE_CONTENEDOR:
+            akn_type, refers_to = self.TIPOS_DE_CONTENEDOR[marca["type"]]
+            heading = _quita_etiqueta(linea, marca.get("label", ""))
+            if clase[0] == "contenedor" and clase[1].get("akn_type") == akn_type:
+                heading = clase[1].get("heading") or heading
+            return "contenedor", {
+                "akn_type": akn_type,
+                "num": _limpia(marca.get("num", "")) or None,
+                "refers_to": refers_to,
+                "heading": heading,
+                "forzado": True,
+            }
+        if kind == "decree":
+            return "transitorios_dof", {"num": _limpia(marca.get("num", "")), "forzado": True}
+        if kind == "transitorios":
+            return "transitorios", {}
+        if kind == "article" and clase[0] != "articulo" and marca.get("num"):
+            return "articulo", {"num": _limpia(marca["num"])}
+        return clase
+
+    def _indices_de_marcas(self) -> dict[int, int]:
+        """The blocks a marker labels `ÍNDICE`, as ``{marker index: first
+        index after the API block}`` -- rule 15's table of contents, decided
+        by the SCJN rather than by the text."""
+        rangos = {}
+        siguientes = sorted(self._marcas)
+        for n, k in enumerate(siguientes):
+            if self._marcas[k].get("kind") != "toc" or k >= self._fin_cuerpo:
+                continue
+            fin = siguientes[n + 1] if n + 1 < len(siguientes) else len(self._bloques)
+            rangos[k] = min(fin, self._fin_cuerpo)
+        return rangos
+
+    def _es_ajeno_a_la_numeracion(self, k: int) -> bool:
+        """Whether block `k` is not one of the instrument's own provisions, so
+        rule 8 must not read its numbering: a reform decree's text, or the
+        recitals."""
+        marca = self._de_marca[k]
+        return marca is not None and marca.get("kind") in (
+            "decree", "recitals", "preamble", "header",
+        )
+
+    def _toma_marca(self, inicio: int) -> int:
+        """`inicio`, pulled back over the marker line still waiting for a node
+        -- the way a node's span is pulled back over its annotation."""
+        if self._marca_inicio is None:
+            return inicio
+        marca, self._marca_inicio = self._marca_inicio, None
+        return min(inicio, marca)
+
+    def _bloque_marcador(self, bloque, campos):
+        """A marker is metadata: it ends whatever the previous API block had
+        open (an article never reaches into the next block the SCJN serves,
+        which is what kept the text after a treaty's last article inside it),
+        and its characters belong to the node the block it heads opens."""
+        marca = self._marcas[self._i]
+        if self._marca_inicio is None:
+            self._marca_inicio = bloque.start
+        self._decreto = False
+        self._piso = None
+        # Recitals, a preamble and a title block are not provisions: no
+        # numbered paragraph of theirs opens an article (rule 8, rule 17).
+        self._en_considerandos = marca.get("kind") in ("recitals", "preamble", "header")
+        self._recien_abiertos = False
+        self._numeros_de_considerandos = set()
+        self._cierra_articulo()
+        self._pendiente_epigrafe = None
+        self._tabla = None
+        if marca.get("kind") in ("header", "preamble", "recitals") and (
+            self.body is not None or self._pila
+        ):
+            # An instrument's own opening text comes first; one of these
+            # later on (the preamble of a resolution annexed to an acuerdo) is
+            # text of its own, not the tail of the transitorios before it.
+            self._transitorios = None
 
     # -- helpers ---------------------------------------------------------
 
@@ -580,6 +757,9 @@ class _Constructor:
         container, or the body itself — many short laws have no containers at
         all, and an article with no chapter is not an error."""
         if self._transitorios is not None:
+            # Rule 20: a reform decree's own containers nest under it.
+            if self._decreto and self._pila:
+                return self._pila[-1][1]
             return self._transitorios
         if self._pila:
             return self._pila[-1][1]
@@ -601,6 +781,7 @@ class _Constructor:
         else:
             eid = self._eids.allocate(eid)
         inicio, notas = self._pendientes.toma(inicio)
+        inicio = self._toma_marca(inicio)
         # The pull-back may not escape the parent, so the parent comes back
         # with it as far as it can. It cannot always: a law whose *title*
         # carries an annotation (`(REFORMADA SU DENOMINACIÓN, …)`, written
@@ -611,7 +792,7 @@ class _Constructor:
         inicio = max(inicio, self._retrocede(padre, inicio))
         nodo = AknNode(
             akn_type, self._span(inicio, fin, eid), eId=eid, num=num, refers_to=refers_to,
-            notes=notas,
+            notes=notas, repeated=eid in self._eids.suffixed,
         )
         return padre.add(nodo)
 
@@ -692,19 +873,29 @@ class _Constructor:
         )
         self._extiende(nodo, ultimo.end)
 
-    def _rango(self, akn_type: str):
-        if akn_type == "part" and self._parte_en_capitulo:
-            return PRECEDENCIA_PARTE_EN_CAPITULO
-        return PRECEDENCIA[akn_type]
+    def _rango(self, akn_type: str, forzado: bool = False):
+        rango = (
+            PRECEDENCIA_PARTE_EN_CAPITULO
+            if akn_type == "part" and self._parte_en_capitulo
+            else PRECEDENCIA[akn_type]
+        )
+        if forzado:
+            self._piso = rango
+        elif self._piso is not None and rango <= self._piso:
+            # Rule 21: a heading the text of this API block contains nests
+            # under the container the API block itself opened.
+            return self._piso + 0.5
+        return rango
 
     def _bloque_contenedor(self, bloque, campos):
         akn_type = campos["akn_type"]
         # A container ends whatever transitorios were open: transitional
         # provisions are the tail of the law, and a container after them
         # belongs to a further decree's own text.
-        self._transitorios = None
+        if not self._decreto:
+            self._transitorios = None
         self._cierra_articulo()
-        rango = self._rango(akn_type)
+        rango = self._rango(akn_type, campos.get("forzado", False))
         self._cierra_hasta(rango)
         refers_to = REFERS_TO_APARTADO if akn_type == "level" else campos.get("refers_to")
         nodo = self._nuevo_nodo(
@@ -713,7 +904,9 @@ class _Constructor:
         if campos.get("heading"):
             nodo.heading = campos["heading"]
         self._pila.append((rango, nodo))
-        self._pendiente_epigrafe = nodo
+        # A heading the label's own line already carried (`PARTE 1- ENSAYO`)
+        # is not looked for again in the block after it (rule 19).
+        self._pendiente_epigrafe = None if campos.get("forzado") and nodo.heading else nodo
 
     def _bloque_articulo(self, bloque, campos):
         self._cierra_articulo()
@@ -764,7 +957,12 @@ class _Constructor:
         is the first provision of the next series.
         """
         linea = bloque.text.split("\n", 1)[0]
-        if kind == "contenido" and self._transitorios is None and CONSIDERANDO.match(linea):
+        if self._marcas:
+            # Rule 19: the recitals are the API block labelled `CONSIDERANDO`,
+            # and end where it does -- no text heuristic needed.
+            if self._en_considerandos:
+                return kind, campos
+        elif kind == "contenido" and self._transitorios is None and CONSIDERANDO.match(linea):
             self._en_considerandos = True
             self._recien_abiertos = True
             self._numeros_de_considerandos = set()
@@ -831,6 +1029,11 @@ class _Constructor:
         # provisions once inside transitorios; before them, in the body, the
         # same shape is an ordinary paragraph -- unless what follows it is a
         # decree's own provisions (rule 17, review fix-1 of #291).
+        if campos.get("forzado"):
+            # Rule 20: the SCJN labels this block a decree, whatever came before.
+            self._abre_transitorios(bloque, campos.get("num"), decreto=True)
+            self._decreto = True
+            return
         if self._transitorios is None and not self._abre_decreto(self._i):
             self._bloque_contenido(bloque, campos)
             return
@@ -861,10 +1064,15 @@ class _Constructor:
                 return False
         return False
 
-    def _abre_transitorios(self, bloque, num):
+    def _abre_transitorios(self, bloque, num, decreto=False):
         # Several sibling sections, one per decree that added transitional
         # provisions -- never merged, since which decree a provision belongs
         # to is exactly what the separation records.
+        #
+        # Inside a decree's own text (rule 20) a `Transitorios` heading is that
+        # decree's own transitory provisions, nested under it: it must not
+        # end the decree and start a sibling at the body.
+        padre = self._decreto_nodo if self._decreto and not decreto else None
         self._pila.clear()
         self._cierra_articulo()
         self._transitorios = None
@@ -872,8 +1080,10 @@ class _Constructor:
             "section", bloque.start, bloque.end,
             num=num or "transitorios",
             refers_to=REFERS_TO_TRANSITORIOS,
-            padre=self._asegura_body(bloque.start),
+            padre=padre if padre is not None else self._asegura_body(bloque.start),
         )
+        if decreto:
+            self._decreto_nodo = self._transitorios
 
     def _bloque_contenido(self, bloque, campos, es_marcador_estructural=False):
         if self._articulo is not None:
@@ -898,7 +1108,7 @@ class _Constructor:
         # Nothing structural has opened yet, so this is the preamble.
         if self.preambulo is None:
             self.preambulo = self.act.add(
-                AknNode("preamble", self._span(bloque.start, bloque.end, "preamble"),
+                AknNode("preamble", self._span(self._toma_marca(bloque.start), bloque.end, "preamble"),
                         eId=self._eids.allocate("preamble"))
             )
         else:
@@ -972,7 +1182,8 @@ class _Constructor:
     def _agrega_conclusiones(self, bloque):
         if self.conclusiones is None:
             self.conclusiones = self.act.add(
-                AknNode("conclusions", self._span(bloque.start, bloque.end, "conclusions"),
+                AknNode("conclusions",
+                        self._span(self._toma_marca(bloque.start), bloque.end, "conclusions"),
                         eId=self._eids.allocate("conclusions"))
             )
         else:
