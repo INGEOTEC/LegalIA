@@ -1045,6 +1045,48 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   differ; 150 kept as published, because the fresh answer turns tab-indented text into table rows); the vectors
   (122/55/2/29 new texts), the Atlas data sets, the pair sets, the instrument files and the evaluations were
   rebuilt, the page's literals follow. **Nothing was published**: the human order is in the #291 comment.
+  **Corrected by review fix-2 below: the 73 were not the SCJN's own numbering.**
+- **The structure the SCJN states, rules 19 to 24 (review fix-2 of #291, found after the fact; corrects fix-1's
+  premise).** The SCJN's `Articulos` blocks carry an outline (`referencia`, `numero`, `orden`) that `scjn.api`
+  discarded, so `md2akn` guessed a structure from flattened text and fix-1 mistook the result for "the SCJN's own
+  numbering". The owner's rule: **a number is repeated only when it is the same identifier** (`1.1` of Part 1 is not
+  `1.1` of Part 2); the goal is zero repeats. `scjn.outline` (new) writes one marker line before each block,
+  `<!-- scjn:block orden=N numero=N kind=<kind> [type=] [num=] label="..." -->` (`kind`: header, recitals, preamble,
+  toc, transitorios, decree, container, article, provision, other; an HTML comment on purpose: invisible, no
+  character of the text changes, `strip_markers` returns it byte for byte, and `markdown_de_snapshot(...,
+  outline=False)` is what `nota2md` reads); `articulos_a_markdown(..., outline=True)` is what `snapshot` passes,
+  and the raw answer of every reform is kept gzipped (`raw_dir`, `guarda_crudo`, `scripts/scjn/raw-api/`, local
+  scratch) so the writer can change without a re-crawl (`scripts/rewrite_scjn_from_raw.py`). All four corpora were
+  re-crawled with `scripts/recrawl_scjn_outline.py` (provenance headers kept, an instrument swapped in only when
+  every snapshot it had came back, no `--reintenta`: 8,966 reform answers, 1,781,734 blocks, 0 failed; it also
+  picked up `cpeum` 07-10-2026, `ligie-2022` 13-10-2026, four reglamentos reforms and `189946`'s first text,
+  `17349`'s reform). `md2akn` (still 0.5.1; `md2akn.outline` reads the marker): **rule 19**, markers are metadata and
+  decide the class of a block's heading (a container with its type and number, an article with its number, the
+  index a `toc`); **rule 20**, a reform decree holds what follows it (its own transitorios, an `ANEXO ÚNICO`
+  reprinting the instrument); **rule 21**, a container found in a container's text nests below it; **rule 22**, a
+  second claimant of an identifier takes a `_2` suffix and `AknNode.repeated` is true on **both** (what
+  `export_instrument_files.excerpt_flags` now counts as `duplicate_number`; `AknNode.modo` carries rule 8's mode);
+  **rule 23**, a block holding articles in its own text opens an implicit section; **rule 24**, inside an
+  article, header, preamble or recitals block no line opens structure. What the data forced, each with a test: the
+  label can be wrong (the text's number wins when it equals or extends the label's, a roman numeral and an arabic one
+  of the same value are one number and the text's spelling is kept, else the one that agrees with `numero`), the
+  LIGIE's tariff chapters are served as `ARTÍCULO 83`/`84` (a text that says `Capítulo N` with the label's number is a
+  chapter), and a label followed by a tab (`| CAPÍTULO II |  |`) is the heading, not a table. No rule is keyed to an
+  instrument, a document with no marker is read as before, and `nota2md` strips the markers on the SCJN path.
+  Result (`scripts/embeddings/measure_outline_repeats.py`, markers stripped against kept, same parser): **7
+  instruments and 164 excerpts repeat, from 36 and 356** (leyes, reglamentos and lineamientos 0), all seven treaties
+  with the repeat inside a single API block that serves a whole document under one label (`96728` PARTE 3, `11293`
+  two IMO resolutions, `23774`, `44552`, `47860`, `22834`, `96707`), listed with their raw API block as a question
+  for the owner in `scripts/embeddings/README.md` ("Measured, the structure the SCJN states, 2026-10-16"). The four
+  corpora, the four vectors releases (3, 6, 2 and 8 shards, 0 new texts on the later rebuilds, `compare_merges` clean
+  for all eight runs), the Atlas data sets (**2,677 instruments**: `189946` is a reglamento the SCJN serves a text for
+  now; 214,294 excerpts, 156,448 counted), the three pair sets, the nearest texts, the 2,677 instrument files, the
+  gold (253 instruments, 277 links), the evaluations and the topics (Louvain 1.5, 40 topics) were rebuilt and the
+  pages' literals follow; no conclusion of the evaluations changed. `export_instrument_files.py` and the page's flag
+  prose changed with the flag's definition. **Nothing was published**; before the pull request merges a human runs,
+  in this order, the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`), the four vectors releases
+  (`emb-run-<c>-052/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, or `website.yml`
+  fails or pairs the new JSON with old files.
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 
