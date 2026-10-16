@@ -3561,6 +3561,10 @@ issue's comment and `CLAUDE.md`.
 
 ### Measured, repeated numbers, 2026-10-15 (review fix-1 of issue #291)
 
+> **Corrected by review fix-2 ("Measured, the structure the SCJN states, 2026-10-16", below):** the 73 instruments
+> below do not repeat the SCJN's own numbering; the SCJN states the structure and the writer threw it away. The tables
+> here are the record of what fix-1 measured, under its own definition.
+
 *Review fix-1 of #291, found after the fact:* browsing the Instruments page showed that 209 of the Atlas'
 2,676 instruments carried `duplicate_number` (an article number repeated in the instrument; tratados 89,
 reglamentos 49, leyes 41, lineamientos 30; 4,598 flagged excerpts), the worst being `tratados/114738` (the
@@ -3922,3 +3926,191 @@ rows (4,468 before), and the verdicts of both evaluations are unchanged (the thr
 instruments, the 4B better row by row on all five measures against the 0.6B), only the last digits moved. The
 excerpt-level table of the Atlas page, its worked examples and its treaty sentence follow the new data. The 3,184-unit
 `114738` is rendered by the Instruments page like any other. **Nothing was published.**
+
+
+### Measured, the structure the SCJN states, 2026-10-16 (review fix-2 of issue #291)
+
+*Review fix-2 of #291, found after the fact, and a correction of fix-1 above.* Fix-1 concluded that the 73
+instruments that still repeated an article number repeat it in **the SCJN's own numbering** (annex and part
+restarts, `(SIC)` rows, a protocol printed with its treaty). That conclusion was wrong, and the repository owner
+said why: a number is repeated only when it is the same identifier, and `1.1` of Part 1 is not `1.1` of Part 2.
+The SCJN states the structure and the writer threw it away.
+
+**The outline.** `GET /api/SCOW/Articulos` returns an instrument as ordered *blocks*, each with an `orden`, a
+`numero` and a `referencia` (`ENCABEZADO`, `ÍNDICE`, `TÍTULO PRIMERO`, `ARTÍCULO 6 TER`, `PARTE 3`, `ANEXO 1`,
+`D.O.F. 10 DE NOVIEMBRE DE 2023`, `TRANSITORIO`). Over the 8,966 reform answers of the four corpora (1,781,734
+blocks) `scjn.outline.classify` finds ten kinds; the vocabulary is open, 3,953 distinct shapes once digits are
+folded, so what matches no rule is `other` and keeps its label:
+
+| kind | leyes | reglamentos | lineamientos | tratados |
+|---|---:|---:|---:|---:|
+| `article` | 1,065,044 | 265,919 | 1,967 | 35,174 |
+| `container` (book, title, chapter, section, apartado, part, annex, appendix) | 176,940 | 61,526 | 1,009 | 4,916 |
+| `decree` (`D.O.F. <date>`: a reform decree's own text) | 113,687 | 11,058 | 51 | 4 |
+| `other` (`PROMULGACIÓN`, `FIRMA`, `PARTE FINAL DEL ACUERDO`, `CANJE DE NOTAS`, ...) | 3,170 | 3,240 | 504 | 13,007 |
+| `header` (`ENCABEZADO`) | 3,717 | 2,939 | 174 | 2,162 |
+| `transitorios` | 3,656 | 2,848 | 161 | 600 |
+| `provision` (`PRIMERO`, `1.`) | 0 | 1,523 | 3,122 | 1,057 |
+| `preamble` | 0 | 8 | 0 | 1,597 |
+| `recitals` (`CONSIDERANDO`) | 0 | 431 | 113 | 274 |
+| `toc` (`ÍNDICE`) | 0 | 47 | 42 | 47 |
+
+**The marker.** `scjn.api.articulos_a_markdown(..., outline=True)` (what `snapshot` passes) writes one HTML comment
+before each block that yields text, `<!-- scjn:block orden=6 numero=0 kind=toc label="ÍNDICE" -->`. An HTML
+comment is invisible to every renderer, changes no character of the block's own text and is one regular
+expression to read; `scjn.outline.strip_markers` returns the text byte for byte as it was (pinned by a test over the
+real API blocks of the tratado 96728 and the reglamento 103948, kept as fixtures). The raw answer of every reform is
+kept gzipped under `scripts/scjn/raw-api/` (`descarga_ordenamiento(..., raw_dir=...)`), so the writer can change
+without a second crawl (`scripts/rewrite_scjn_from_raw.py`, which it did twice while this was built). The RTF files
+the API's `ruta` field points at were not needed: the outline is complete in `referencia`.
+
+**The re-crawl** (`scripts/recrawl_scjn_outline.py`: every snapshot of all four corpora, each instrument
+crawled into a staging directory and swapped in only when every snapshot it already had came back, provenance
+headers kept verbatim, no `--reintenta`; 0 incomplete, 0 failed reforms):
+
+| corpus | instruments | snapshots | reforms the SCJN has published since | reforms without articles | wall time |
+|---|---:|---:|---|---:|---:|
+| leyes | 315 | 3,709 | `cpeum` 07-10-2026, `ligie-2022` 13-10-2026 | 130 | 1.22 h |
+| reglamentos | 1,087 | 2,924 | `11721`, `173676`, `189946` (its first text), `95203` | 130 | 0.79 h |
+| tratados | 1,455 | 2,160 | `17349` | 1,546 | 0.63 h |
+| lineamientos | 163 | 173 | none | 67 | 0.06 h |
+
+The text of a rewritten snapshot equals the old one once its markers are stripped (checked on 100 treaty
+snapshots). `cpeum` and `ligie-2022`'s new reforms were linked with `enlaza_scjn_legislacion.py`: no DOF note names
+them yet (`codNota` null, `none`). The four corpora were repackaged (`empaqueta_scjn_leyes.py`,
+`empaqueta_scjn_coleccion.py`; `PUBLICAR.md` generated, **not run**); the reglamentos release gains one tarball
+(1,083 with text, 4 without) and the previous cache was kept as `~/.cache/scjn-fix1-backup`.
+
+**What `md2akn` does with it** (rules 19 to 24, `md2akn/README.md`): the markers are metadata and decide the class of
+a block's heading; a reform decree holds what follows it; a container found in a container's text nests below it; a
+second claimant of an identifier takes a `_2` suffix and `AknNode.repeated` is true on both (the flag the page
+counts); a block holding articles in its own text opens an implicit section; inside an article, header, preamble
+or recitals block nothing opens structure. Three things the real data forced, each with a test: the SCJN's label can
+disagree with its text (`ARTÍCULO XXVII` on a block numbered 37, `ARTÍCULO 6` over `Artículo 7`, `ARTÍCULO I (SIC)`;
+the text's number wins when it equals or extends the label's, else the one that agrees with `numero`, and a roman
+numeral and an arabic one of the same value are one number written twice, the text's spelling kept), some of the LIGIE's tariff
+chapters (`Capítulo 67`, `83`, `84`, ...) are served as `ARTÍCULO 67`, `83`, `84` (the text says `Capítulo 84` with the
+label's own number, so it is a chapter), and a container label the SCJN's text follows with a tab (`| CAPÍTULO II |  |`) is the heading, not a table.
+No rule is keyed to an instrument; a document with no marker is read as before.
+
+**The repeats, before and after.** `scripts/embeddings/measure_outline_repeats.py` counts the `duplicate_number`
+excerpts (the flag is now *the eId needed a `_2` suffix*, both claimants flagged) of the newest snapshot of each
+Atlas instrument twice with the same parser: on the Markdown with its markers stripped, i.e. what the writer used to
+produce, and as it is now:
+
+| collection | instruments | with a repeat before → after | repeated excerpts before → after |
+|---|---:|---|---|
+| leyes | 315 | 3 → 0 | 6 → 0 |
+| reglamentos | 864 | 8 → 0 | 16 → 0 |
+| lineamientos | 125 | 0 → 0 | 0 → 0 |
+| tratados | 1,373 | 25 → 7 | 334 → 164 |
+| all | 2,677 | 36 → 7 | 356 → 164 |
+
+(Under fix-1's definition, the number alone and container-blind, it was 73 instruments and 2,428 excerpts; that
+number is no longer the question. `measure_repeated_numbers.py` is kept as the record of fix-1 with its own
+definition copied.) The two cases the owner named: `tratados/96728` (the fire-test code) is divided into its parts,
+`ANEXO 1` holds `PARTE 1` to `PARTE 11` with their appendices, the index is a `toc`, and 62 excerpts repeat, no longer 787;
+`reglamentos/103948` appears once, its own articles outside the `D.O.F. 10 DE NOVIEMBRE DE 2023` decree that holds
+`ANEXO ÚNICO` and a transitorios section of its own, with 0 repeats, no longer 96.
+
+**What still repeats, for the repository owner.** Seven treaties, 164 excerpts, **every one inside a single API
+block** that serves a whole document under one label, so there is no outline inside it to read. Nothing is hidden,
+merged or renumbered:
+
+| treaty | excerpts | API block (`orden`, `numero`, kind, `referencia`) | what repeats |
+|---|---:|---|---|
+| `11293` (SOLAS, 27-04-2026) | 79 | 14 `other` `RESOLUCIÓN MSC.496(105)` (45); 15 `other` `RESOLUCIÓN MSC.497(105)` (34) | the numbered sections of the annexes of two IMO resolutions (`2.1`, `2.2`, ...) restart in each annex of one block |
+| `96728` (fire-test code) | 62 | 20 `container` `PARTE 3` (60); 28 `container` `PARTE 11` (2) | the subsections `1.1`, `1.2`, ... of the appendices inside `PARTE 3` restart in each appendix; two `1.1` in `PARTE 11` |
+| `23774` | 7 | 8 `other` `CONTENIDO DE LAS ENMIENDAS DE 1977` | the amendments of the 1977 conference quote articles 42, 43, 45 ... of the instrument they amend |
+| `44552` (ITU final acts) | 6 | 17 `other` `CONTENIDO APÉNDICES` | `ARTÍCULO 1` and `ARTÍCULO 11` of two appendices in one block |
+| `47860` (ITU final acts) | 6 | 10 `other` `APÉNDICES` | `ARTÍCULO 2` and `ARTÍCULO 9` of two appendices in one block |
+| `22834` | 2 | 7 `other` `LISTA DE ENMIENDAS PROPUESTAS A LA CONSTITUCIÓN` | `Artículo 18` twice: the text, then the proposed amendment of it |
+| `96707` | 2 | 32 `container` `APÉNDICE 5` | `1.1` twice in one appendix |
+
+Questions: should a number that restarts *inside one API block* (an annex of a resolution, an appendix of a
+code) open a section of its own, which the API does not state, or stay as it is, flagged? A raw answer to
+check any of them is `scripts/scjn/raw-api/tratados/<id>/<snapshot>.json.gz`.
+
+**Reach on the units, against the published ones** (`compare_units.py`, both runs under `md2akn` 0.5.1 with
+`--no-split-articles`; the published work directories were not written to):
+
+| collection | instruments | changed | with a new text | only relabelled | unchanged | rows before → after | distinct new texts |
+|---|---:|---:|---:|---:|---:|---|---:|
+| leyes | 315 | 238 | 202 | 35 | 77 | 68,581 → 68,870 | 6,846 |
+| reglamentos | 1,083 | 644 | 516 | 128 | 439 | 110,670 → 112,962 | 7,177 |
+| lineamientos | 126 | 105 | 99 | 6 | 21 | 5,514 → 5,614 | 1,168 |
+| tratados | 1,373 | 1,161 | 1,157 | 4 | 212 | 41,335 → 49,956 | 16,983 |
+
+The transitory rows the matrix leaves out fall from 26,212 to 22,810: before, a treaty's articles that followed the
+promulgation decree's `TRANSITORIO` were read as transitory too (`161085`: 54 rows, now 2). The `loose` flag grows
+(390 instruments and 2,251 excerpts to 1,469 and 5,674) because the blocks the API marks `other` (a treaty's
+`PROMULGACIÓN`, `FIRMA`, `CERTIFICACIÓN`) are text outside any structure; `numbering_gap` falls (103 instruments to
+31). `1,083` reglamentos have text now: `189946` (*Reglamento de la Ley de Infraestructura de la Calidad*) is the
+first text the SCJN serves for it.
+
+**Re-embedding on `cemieredes`** (the same incremental plan as above, `--against` each work directory's own runs, one
+plan for both models, `already_embedded()` equal between the models in every collection): 3, 6, 2 and 8 shards of
+2,456, 5,973, 819 and 10,468 texts (the rest of the new texts were already embedded by #291's runs), 0 failed shards,
+both models. Two later changes of `md2akn` (a roman article under an arabic label, the LIGIE's chapters) rebuilt the
+units again with **0 new texts**: only the `eId`s and the `num` differ, so the vectors are untouched. `merge_shards.py`
+and `compare_merges.py` (all eight runs clean: 0 texts with another vector, 0 non-finite) were run again after each
+rebuild; `package_vectors.py` wrote `emb-run-<c>-052/publish/PUBLICAR.md`:
+
+| collection | instruments | distinct texts | shared | files published → rebuilt | equal | assets (parts) | stale assets |
+|---|---:|---:|---:|---|---:|---:|---:|
+| leyes | 315 | 59,334 | 2,443 | 316 → 316 | 120 | 637 (1) | 0 |
+| reglamentos | 1,083 | 103,001 | 4,344 | 1,083 → 1,084 | 548 | 2,173 (3) | 0 |
+| lineamientos | 126 | 5,245 | 141 | 127 → 127 | 27 | 259 (1) | 0 |
+| tratados | 1,373 | 48,121 | 882 | 1,374 → 1,374 | 226 | 2,753 (3) | 0 |
+
+Live truncated texts (a merge manifest also lists the hashes of every earlier shard): `lft` article 513 in leyes (68,689
+tokens, both models), two reglamentos articles over the 0.6B's window only (39,463 and 39,295 tokens), none in the
+other two corpora. The treaties without an `article` unit are 44 (53 before) and two lineamientos have none.
+`stage_vectors_cache.py` built `emb-run-vectors-052-cache/` from the four merges (verified against their sums).
+
+**The Atlas chain**, from that cache (**all of it with `--cache-dir`/`LEGALVEC_CACHE_DIR` on every script**: the
+first BM25 index was built without it, joined the published units to the staged vectors and was caught by the
+matrix' own check, 12 all-zero rows, not by a test):
+
+| | before (fix-1) | now |
+|---|---:|---:|
+| instruments | 2,676 | 2,677 |
+| excerpts (`meta.provisions`) | 209,584 | 214,294 |
+| headings excluded | 32,499 | 33,019 |
+| transitory rows excluded | 26,212 | 22,810 |
+| word-for-word shared rows not counted (0.6B and 4B / BM25) | 1,962 / 2,335 | 2,017 / 2,417 |
+| counted rows (0.6B and 4B / BM25) | 148,911 / 148,482 | 156,448 / 155,992 |
+| distinct texts | 191,641 | 196,082 |
+| regulations kept | 863 | 864 |
+
+The closest instrument is unchanged for 2,271 of the 2,676 earlier instruments under the 0.6B, 2,284 under the 4B and
+2,247 under BM25 (`p` changed for 1,585 instruments, `pc` for 1,507 and 1,527 under BM25): this rebuild moves the map
+much more than #294's did, as the counted rows did. The three `atlas-pairs` sets have 12,715, 12,707 and 12,746 files (226 MB and 240 MB of JSON for the first
+two; 12,002, 11,983 and 12,074 files at #283). The BM25 pair set was built with `--tolerance 2e-6` (recorded in its manifest): one pair (1498-2523) scored 22.0009155 on the login node and
+22.0009384 in the matrix job, 1.04e-6 apart in float32 (summation order), and the default 1e-6 refused it; every other check, the
+per-pair sums against the matrix included, passed at the wider tolerance. The 4B's nearest texts: 158,465 searched unit rows, 158,261 distinct source texts, 791,305
+rows, `agrees_with_nearest` true. The instrument files: 2,677 files, 340 MB (72.0 MB as the tarball), the re-parse equals
+the staged units for **all 2,677**, offsets included:
+
+| flag | before (fix-1) | now |
+|---|---:|---:|
+| `loose` | 390 / 2,251 | 1,469 / 5,674 |
+| `duplicate_number` | 73 / 2,428 | 7 / 164 |
+| `numbering_gap` | 103 / 266 | 31 / 96 |
+| `over_window` | 1 / 1 | 1 / 1 |
+| `no_articles` | 57 | 46 |
+| `no_transitorios` | 1,065 | 1,054 |
+
+The evaluations were re-run (`gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`): the gold is 253
+instruments through 277 links (A 162, B 172, 62 unresolved names; two links more than before, among them the new
+reglamento `189946` to its law), the row-level evaluation scores 4,512 of 5,256 citing rows. **No conclusion
+changed**: the three data sets are tied on the closest and the five closest instruments (every pair, both gold
+standards), the 4B is better row by row than the 0.6B on all five measures and better than BM25 on four, the 0.6B
+and BM25 are tied. The Atlas page's literals say 16 October 2026. The topics were run again on the new 4B matrix:
+Louvain `resolution` 1.5, 40 topics (see "Measured, topics, the 4B, 2026-10-16").
+
+**What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four corpora
+(`scripts/scjn/leyes-release/`, `reglamentos-release/`, `lineamientos-release/`, `tratados-release/` `PUBLICAR.md`), the
+four vectors releases (`emb-run-<c>-052/publish/PUBLICAR.md`, leyes, reglamentos, lineamientos, tratados), the three
+`atlas-pairs` sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`) and
+`atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`).
