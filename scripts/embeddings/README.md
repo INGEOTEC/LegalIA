@@ -4109,6 +4109,12 @@ standards), the 4B is better row by row than the 0.6B on all five measures and b
 and BM25 are tied. The Atlas page's literals say 16 October 2026. The topics were run again on the new 4B matrix:
 Louvain `resolution` 1.5, 40 topics (see "Measured, topics, the 4B, 2026-10-16").
 
+**The release sweep** (`packages/md2akn/tests/test_units_release_sweep.py`, over the four corpora as the re-crawl wrote them):
+15 passed in 39 minutes (`coverage()` 0 failures, `max_unit_chars` 0 splittable, no table row left outside a table unit
+except a container label the SCJN wrote as a one-cell row, every roman-opener treaty with a roman article unit, every
+decimal-article treaty with decimal article units). Its premises read the opener by the outline now (a line inside another
+API block, such as a treaty quoting `Artículo 17.9.2 `, is not an article opener).
+
 **What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four corpora
 (`scripts/scjn/leyes-release/`, `reglamentos-release/`, `lineamientos-release/`, `tratados-release/` `PUBLICAR.md`), the
 four vectors releases (`emb-run-<c>-052/publish/PUBLICAR.md`, leyes, reglamentos, lineamientos, tratados), the three
