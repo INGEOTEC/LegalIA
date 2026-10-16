@@ -54,7 +54,7 @@ top ranks the instruments by their sum so that the likeliest problems come first
 ```{=html}
 <ul class="instruments-flag-meanings">
 <li><strong>Loose</strong> is text that no rule placed inside an article.</li>
-<li><strong>Repeated number</strong> marks two articles that ended up with the same identifier outside the transitory section: the same number in the same place of the outline, so the second could only be kept apart with a suffix. The same number in two different containers (article 1 of Part 1 and of Part 2) is not a repeat.</li>
+<li><strong>Repeated number</strong> marks two articles that ended up with the same identifier outside the transitory section, that is the same number in the same place of the outline, so that the second could only be kept apart with a suffix. The same number in two different containers, article 1 of Part 1 and of Part 2, is not a repeat.</li>
 <li><strong>Number gap</strong> is an article whose number does not follow the previous one in its own container.</li>
 <li><strong>Over window</strong> is an excerpt longer than the embedding model's window, whose vector was computed on a truncated text.</li>
 <li><strong>No articles</strong> means the instrument has no article at all.</li>

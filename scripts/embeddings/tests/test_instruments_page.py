@@ -1031,14 +1031,14 @@ def test_the_tmec_shows_decimal_article_numbers_and_no_repeated_number_from_a_sp
         browser, real_server):
     page = open_page(
         browser,
-        f"{real_server}?c=tratados&k=137355#cap_1__sec_A:_Disposiciones_Iniciales__art_1.1")
+        f"{real_server}?c=tratados&k=137355#cap_1__sec_A__art_1.1")
     wait_rendered(page)
     document = json.loads((FILES / "tratados" / "137355.json").read_text(encoding="utf-8"))
     eids = [u["e"] for u in document["units"] if u["u"] == "article"]
     assert [e.split("__")[-1] for e in eids if "__art_1." in e][:3] == ["art_1.1", "art_1.2", "art_1.3"]
-    article = page.locator('section[data-eid="cap_1__sec_A:_Disposiciones_Iniciales__art_1.1"]')
+    article = page.locator('section[data-eid="cap_1__sec_A__art_1.1"]')
     assert article.locator("> .instruments-node-head .instruments-badge").inner_text() \
-        == "article · cap_1__sec_A:_Disposiciones_Iniciales__art_1.1 · 1.1"
+        == "article · cap_1__sec_A__art_1.1 · 1.1"
     assert page.locator(".instruments-target").count() == 1
     # Review fix-1 of #291: the annex articles (`Artículo 2.A.1`) are read whole too now (the
     # writer used to bold only `Artículo 2.`), so no article of the treaty carries the repeated
