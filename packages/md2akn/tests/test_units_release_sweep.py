@@ -81,7 +81,8 @@ _ROMANO = re.compile(r"[IVXLCDM]+")
 _NUMERO_DECIMAL = re.compile(r"\d+(?:\.\d+)+")
 _EID_ARTICULO_DECIMAL = re.compile(r"(?:.*__)?art_\d+(?:\.\d+)+")
 # An article's eId is scoped under its containers (`cap_II__art_IV`).
-_EID_ARTICULO_ROMANO = re.compile(r"(?:.*__)?art_[IVXLCDM]+(?:_\d+)?")
+# `(SIC)` is the SCJN's own mark on a label (`ARTÍCULO  I (SIC)`, treaty 11237).
+_EID_ARTICULO_ROMANO = re.compile(r"(?:.*__)?art_[IVXLCDM]+(?:_\d+|_\(SIC\))?")
 
 
 def _bloques_que_abren_un_articulo(markdown: str):
