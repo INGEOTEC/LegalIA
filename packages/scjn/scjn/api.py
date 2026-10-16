@@ -383,13 +383,20 @@ class ScjnApi:
 # table row instead of one per wrapped source line. A block with no tab is
 # completely unaffected and still reproduces the .docx path byte for byte.
 #
-# `referencia`/`orden` are not used to shape the file. They are reliable
+# `referencia`/`orden` do not shape the *text* of the file. They are reliable
 # (issue #173: never empty over ~13 000 articles, `orden` always contiguous)
 # but their vocabulary is open — besides `ENCABEZADO`/`TÍTULO PRIMERO`/
 # `ARTÍCULO 1` it includes chapter names and the editorial `D.O.F. <fecha>`
 # rows, which are precisely what `quita_notas_editoriales` removes. An
 # article whose `referencia` is unexpected has to come out as the same
 # paragraph it does today, not as a differently-shaped file.
+#
+# Review fix-2 of #291 (a finding made after the fact) is the one place they
+# are used: with `outline=True` (what `snapshot` passes) each block that yields
+# text is preceded by one marker line stating its `orden`, `numero` and
+# `referencia` (`scjn.outline`), so a reader no longer has to guess the
+# structure back from flattened text. Strip the markers and the file is the
+# text it has always been (a test pins it).
 
 from scjn.outline import marker_line  # noqa: E402
 from scjn.text import (  # noqa: E402  (deliberately below the client)

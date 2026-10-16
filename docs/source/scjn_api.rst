@@ -480,6 +480,35 @@ of one paragraph per wrapped source line:
    :private-members:
    :undoc-members:
 
+``scjn.outline`` — the outline the SCJN's API states (review fix-2 of #291)
+---------------------------------------------------------------------------
+
+``GET /api/SCOW/Articulos`` returns an instrument as ordered *blocks*, each with
+an ``orden``, a ``numero`` and a ``referencia`` that names what the block is
+(``ÍNDICE``, ``TÍTULO PRIMERO``, ``ARTÍCULO 6 TER``, ``ANEXO 1``,
+``D.O.F. 10 DE NOVIEMBRE DE 2023``). The writer used to discard it; it now puts
+one HTML-comment marker line before each block, so a reader of the Markdown
+(``md2akn``) knows where the index, the containers, a reform decree and each
+article are instead of guessing. ``classify`` derives the ``kind`` from the
+label, ``marker_line``/``parse_marker`` write and read the line, and
+``strip_markers`` gives the text back as it always was:
+
+>>> from scjn.outline import classify, marker_line, parse_marker, strip_markers
+>>> classify("PARTE 3")
+{'kind': 'container', 'type': 'part', 'num': '3'}
+>>> line = marker_line(6, 0, "ÍNDICE")
+>>> line
+'<!-- scjn:block orden=6 numero=0 kind=toc label="ÍNDICE" -->'
+>>> parse_marker(line)["kind"]
+'toc'
+>>> strip_markers(line + "\n\nTexto.\n")
+'Texto.\n'
+
+.. automodule:: scjn.outline
+   :members:
+   :private-members:
+   :undoc-members:
+
 ``scjn.discovery`` — shared id-keyed collection discovery (issue #222)
 ---------------------------------------------------------------------------
 

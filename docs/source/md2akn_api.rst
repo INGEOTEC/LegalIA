@@ -590,6 +590,35 @@ provision above, not a further article:
 >>> [u.num for u in md2akn.text_units(acuerdo, split_articles=False)]
 ['1', '2', '2.1', '3', '4']
 
+A second review of the same repeats found that the cause was neither the SCJN
+nor ``md2akn``'s rules alone: the SCJN's API states an outline for each block of
+a snapshot (its ``referencia``, ``numero`` and ``orden``) and the ``scjn`` writer
+discarded it. It now writes one marker line before every block
+(``<!-- scjn:block ... -->``, see :py:mod:`scjn.outline`), and ``md2akn`` reads
+it. **Rule 19**: the markers are metadata and decide the class of the block's
+heading — a container with its type and number, an article with its number, the
+index as a ``toc`` — while the text heuristics keep working inside a block.
+**Rule 20**: a reform decree the API marks holds everything after it. **Rule
+21**: a container found in a container's text nests below it. **Rule 22**: an
+identifier is never silently reused — a second claimant takes a ``_2`` suffix,
+and ``repeated`` is true on both nodes. **Rule 23**: a block holding articles in
+its own text opens an implicit section. **Rule 24**: inside an article, header,
+preamble or recitals block no line opens structure.
+
+>>> marked = (
+...     '<!-- scjn:block orden=1 numero=0 kind=container type=chapter num="I" label="CAPÍTULO I" -->\n\n'
+...     "**CAPÍTULO I**\n\n"
+...     '<!-- scjn:block orden=2 numero=1 kind=article num="1" label="ARTÍCULO 1" -->\n\n'
+...     "**Artículo 1.-** Uno.\n\n"
+...     '<!-- scjn:block orden=3 numero=1 kind=article num="1" label="ARTÍCULO 1" -->\n\n'
+...     "**Artículo 1.-** Otra vez.\n"
+... )
+>>> tree = md2akn.parse_markdown(marked)
+>>> [(n.eId, n.repeated) for n in tree.walk() if n.akn_type == "article"]
+[('cap_I__art_1', True), ('cap_I__art_1_2', True)]
+>>> [u.text for u in md2akn.text_units(marked, split_articles=False)]
+['**CAPÍTULO I**', '**Artículo 1.-** Uno.', '**Artículo 1.-** Otra vez.']
+
 :py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
 where ``coverage()`` says nothing was lost, this says the units are usable.
 ``splittable == 0`` is the invariant a corpus build asserts; ``unsplittable``

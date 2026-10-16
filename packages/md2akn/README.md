@@ -394,6 +394,22 @@ every machine has — rather than over a handful of fixtures; see its own module
   repeat the SCJN's own text makes (annexes with their own numbering, two
   instruments in one file, an API row repeated): those are listed for the
   repository owner in `scripts/embeddings/README.md`.
+  **Review fix-2 of #291 (found after the fact, still 0.5.1):** fix-1's
+  premise, that the repeats were the SCJN's own numbering, was wrong — the
+  API's `Articulos` blocks carry an outline (`referencia`, `numero`, `orden`)
+  that the `scjn` writer threw away, so `md2akn` guessed a structure from
+  flattened text. `scjn.api` now writes one marker line before each block
+  (`scjn.outline`) and `md2akn` reads it (`md2akn.outline`): **rule 19**,
+  markers are metadata and decide the class of a block's heading; **rule 20**,
+  a reform decree holds what follows it; **rule 21**, a container found in a
+  container's text nests below it; **rule 22**, a repeated identifier takes a
+  `_2` suffix and `AknNode.repeated` is true for both claimants (the flag the
+  Instruments page counts, `AknNode.modo` carries rule 8's mode); **rule 23**,
+  a block holding articles in its own text opens an implicit section;
+  **rule 24**, inside an article/header/preamble/recitals block nothing opens
+  structure. A document with no marker is read as before. Repeats over the
+  2,676 Atlas instruments: 36 → 0 in leyes, reglamentos and lineamientos, 7
+  treaties and 164 excerpts left (listed in `scripts/embeddings/README.md`).
 
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an

@@ -848,8 +848,8 @@ def text_units(
     (`md2akn.parse_markdown`'s return), so a caller who parsed for another
     reason does not pay to parse twice.
 
-    The thirteen rules — seven from issue #218's Fase 1, two added by #227, one
-    by #279 and three by #291, numbered into the same list rather than
+    The twenty-four rules — seven from issue #218's Fase 1, two added by #227, one
+    by #279, three by #291 and eleven by its review fixes, numbered into the same list rather than
     replacing any of them:
 
     1. Frontmatter and reform annotations are metadata, never embedded.
@@ -926,6 +926,38 @@ def text_units(
     18. In rule 8's numeral mode a whole numeral that starts over (`1.` after
        `3.`), or carries on a list that did, is a list item of the provision
        above, not a further article. A dotted numeral (`2.1`) always opens one.
+    19. (review fix-2 of #291, again after the fact.) A snapshot written by
+       `scjn.api` since that fix carries the outline the SCJN's API states, one
+       `<!-- scjn:block ... -->` marker line before each block (`kind`:
+       header, recitals, preamble, toc, transitorios, decree, container,
+       article, provision, other). The markers are metadata, like rule 1's
+       frontmatter: never embedded, counted as annotation by `coverage()`.
+       Where one is present it decides the class of the block's heading (a
+       container with its type and number, an article with its number, the
+       index as a `toc`) and the text heuristics are used only inside a
+       block. A document with no marker is read exactly as before.
+    20. A reform decree the API marks (`kind=decree`, `D.O.F.` plus a date)
+       holds everything after it -- its own transitorios, an `ANEXO ÚNICO`
+       reprinting the instrument -- as one section, so none of it is the host
+       instrument's again.
+    21. A container found in the *text* of a container's block nests below
+       that container instead of beside it (`AknNode`'s floor): the `PARTE 1`
+       an annex's block contains is inside that annex.
+    22. An identifier is never silently reused: a second claimant of an eId
+       takes a `_2` suffix and `AknNode.repeated` is true for **both**
+       claimants, which is what the Instruments page's *repeated number* flag
+       counts. A number that restarts inside another container is a
+       different identifier and no repeat.
+    23. A block the API marks `other` (or a second `preamble`) that holds
+       articles in its own text, or is followed by article blocks, opens an
+       implicit `section` until the next non-article marker: a code's
+       `1 ÁMBITO` whose articles are `1.1`, `1.2`.
+    24. Inside a block the API marks `article`, `header`, `preamble` or
+       `recitals`, no line opens structure: an amendment article quoting
+       `ARTÍCULO 5.-` is that article's own text. An article's identity is
+       the number of its text when it equals or extends the API's label, the
+       label when it extends the text's, else the one consistent with the
+       API's own `numero`.
 
     >>> import md2akn
     >>> text = (

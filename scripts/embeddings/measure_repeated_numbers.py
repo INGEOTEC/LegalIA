@@ -17,6 +17,11 @@ instrument file) and counts the flagged excerpts under the same definition
     S2  the new parser on the Markdown the fixed `scjn.api` writer produced
         (the snapshot in the local `scjn` cache), i.e. what the Atlas shows now
 
+This is the record of review fix-1 and counts by the number alone (the flag's
+definition then); review fix-2 changed the flag to the identifier
+(`measure_outline_repeats.py`), and fix-1's own conclusion about what survives
+was corrected by it.
+
 Nothing is hidden: what survives in S2 is the SCJN's own repeated numbering
 (annex and appendix restarts, one law in several documents, an API row
 repeated), reported for the repository owner. Read-only; no network.
@@ -55,9 +60,21 @@ SWITCHES = {
 
 
 def repeated(markdown: str) -> int:
-    """Excerpts flagged `duplicate_number`, by the instrument files' own definition."""
+    """Excerpts whose article number appears more than once outside the
+    transitorios -- the definition of `duplicate_number` the instrument files
+    had when this script was written (review fix-1). Review fix-2 of #291
+    replaced it in `export_instrument_files.excerpt_flags` by "the eId needed a
+    `_2` suffix" (`AknNode.repeated`), because a number that restarts inside
+    another container is not a repeat; the old definition is kept here, copied,
+    so this record of fix-1 still reproduces."""
     units = text_units(markdown, split_articles=False)
-    return sum("duplicate_number" in names for names in X.excerpt_flags(units, set()))
+    numbered = [
+        str(unit.num).strip() for unit in units
+        if unit.unit_type == "article" and unit.num is not None
+        and not X.instrument_matrix.is_transitorio_path(unit.path)
+    ]
+    counts = collections.Counter(numbered)
+    return sum(counts[number] > 1 for number in numbered)
 
 
 def counts(job):

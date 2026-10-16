@@ -61,6 +61,21 @@ whatever is not there yet.
   of `md2akn`'s, since `scjn` imports nothing else of this monorepo, and
   every previous lead stays byte-identical, blanks before the separator
   included.
+  **Review fix-2 of #291 (found after the fact, still 0.5.1):** fix-1 had
+  concluded that the repeated article numbers were the SCJN's own. They were
+  not: the API's `Articulos` blocks carry an outline (`referencia`, `numero`,
+  `orden`) that the writer threw away, so `md2akn` guessed a structure from
+  flattened text. `articulos_a_markdown(..., outline=True)` — what `snapshot`
+  now passes — writes one marker line (`<!-- scjn:block orden=… numero=…
+  kind=… label="…" -->`, the new `scjn.outline`) before each block that yields
+  text; strip the markers (`scjn.outline.strip_markers`, or
+  `markdown_de_snapshot(..., outline=False)`) and the text is byte-identical
+  to before. `descarga_ordenamiento(..., raw_dir=...)` keeps what the API
+  answered, gzipped, so the writer can change without a second crawl
+  (`guarda_crudo`/`articulos_de_crudo`). A snapshot written before this keeps
+  its old shape until it is re-downloaded; the four corpora were re-crawled
+  with `scripts/recrawl_scjn_outline.py` (provenance headers kept verbatim, an
+  instrument swapped in only when every snapshot it had came back).
 
 - **0.5.0** — the fourth id-keyed collection, `scjn-tratados` (issue #277):
   every international treaty the SCJN serves (~1,456 instruments, members
