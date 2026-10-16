@@ -1,5 +1,5 @@
 Un vector por cada texto distinto del corpus de **reglamentos federales**: el
-texto vigente de los 1 082 instrumentos con texto que publica
+texto vigente de los 1 083 instrumentos con texto que publica
 [`scjn-reglamentos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-reglamentos),
 segmentado en unidades de recuperación por
 [`md2akn`](https://pypi.org/project/md2akn/) y embebido con los dos modelos
@@ -22,7 +22,7 @@ del título choca (issue #220).
 
 ## Publicado en tres partes
 
-Un release de GitHub admite a lo más 1 000 assets, y aquí hay 2 171. Así que
+Un release de GitHub admite a lo más 1 000 assets, y aquí hay 2 173. Así que
 esta colección se publica como una serie numerada, igual que el corpus del
 que sale (issue #223):
 
@@ -45,7 +45,7 @@ cuántas partes hay, y nada publicado registra ese número.
 | `corpus-manifest.json` | Cómo se construyeron las unidades |
 | `vectors-manifest.json` | Cómo se construyeron los vectores |
 | `SHA256SUMS.txt` | Suma de cada asset de la serie completa |
-| `vectors-<id_ordenamiento>-<modelo>-<K>.parquet` | Los vectores propios de un reglamento — 1 082, por modelo |
+| `vectors-<id_ordenamiento>-<modelo>-<K>.parquet` | Los vectores propios de un reglamento — 1 083, por modelo |
 | `vectors-shared-<modelo>-<K>.parquet` | Los vectores del texto que varios comparten — uno por modelo |
 
 Los dos archivos de vectores se leen juntos, siempre: un texto que varios
@@ -65,15 +65,15 @@ promedia); cada texto truncado queda contado en `vectors-manifest.json`
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | 101 312 | 101 312 |
-| De los cuales compartidos | 4 242 | 4 242 |
-| Tamaño | 159 MB | 386 MB |
+| Vectores | 103 001 | 103 001 |
+| De los cuales compartidos | 4 344 | 4 344 |
+| Tamaño | 162 MB | 392 MB |
 
-Corpus: 1 082 reglamentos, 111 079 unidades, **101 312 textos distintos**,
+Corpus: 1 083 reglamentos, 112 962 unidades, **103 001 textos distintos**,
 `cap` 2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos
 decimales, las introducciones de contenedor y las tablas, y la revisión de los números
-de artículo repetidos: reglas 14 a 18; los 30 artículos romanos del
-reglamento 182464 ya son unidades de artículo, issue #279). Los otros 5 instrumentos del
+de artículo repetidos: reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24); los 30 artículos romanos del
+reglamento 182464 ya son unidades de artículo, issue #279). Los otros 4 instrumentos del
 release `scjn-reglamentos` no aparecen: la SCJN los clasifica pero no sirve
 texto consolidado de ninguno (`snapshots: 0`, issue #222, decisión 6).
 
