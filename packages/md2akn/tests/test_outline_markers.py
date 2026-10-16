@@ -220,3 +220,22 @@ def test_a_container_label_written_as_a_table_row_is_a_heading_not_a_table():
     assert chapter.heading == "DE LOS INGRESOS"
     heading = next(u for u in text_units(text, split_articles=False) if u.unit_type == "heading")
     assert "|" not in heading.text and heading.text.startswith("CAPÍTULO II")
+
+
+def test_a_chapter_the_api_labels_as_an_article_is_a_chapter():
+    """The SCJN's own label is wrong for the LIGIE's tariff: `Capítulo 84` is
+    served under `ARTÍCULO 84`. The text says container, with the label's own
+    number, so it is a chapter; a container with another number printed above an
+    article (`Sección A` over `Artículo 3-01`) stays inside the article."""
+    text = (
+        '<!-- scjn:block orden=1 numero=84 kind=article num="84" label="ARTÍCULO 84" -->\n\n'
+        "Capítulo 84\n\nReactores nucleares\n\n"
+        '<!-- scjn:block orden=2 numero=85 kind=article num="85" label="ARTÍCULO 85" -->\n\n'
+        "Capítulo 85\n\nMáquinas eléctricas\n\n"
+        '<!-- scjn:block orden=3 numero=3 kind=article num="3" label="ARTÍCULO  3" -->\n\n'
+        "Sección A - Ámbito\n\n**Artículo 3-01**: Texto.\n"
+    )
+    tree = parse_markdown(text)
+    assert [(n.akn_type, n.num) for n in _walk(tree) if n.akn_type in ("chapter", "article")] == [
+        ("chapter", "84"), ("chapter", "85"), ("article", "3"),
+    ]

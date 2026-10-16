@@ -909,6 +909,14 @@ class _Constructor:
             return "transitorios_dof", {"num": _limpia(marca.get("num", "")), "forzado": True}
         if kind == "transitorios":
             return "transitorios", {}
+        if (kind == "article" and clase[0] == "contenedor"
+                and _forma_comparable(clase[1].get("num") or "") == _forma_comparable(marca.get("num", ""))):
+            # The SCJN's own label is wrong: its LIGIE calls the tariff's
+            # `Capítulo 84` block `ARTÍCULO 84`. The text says container, with the
+            # very number the label gives, so it is read as the container it is
+            # (a container with another number, a section heading printed above
+            # an article, stays inside the article, rule 24).
+            return clase
         if kind == "article" and marca.get("num"):
             texto = clase[1]["num"] if clase[0] == "articulo" else None
             etiqueta = _limpia(marca["num"])
