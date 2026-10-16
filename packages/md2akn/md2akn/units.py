@@ -369,6 +369,22 @@ def _with_context(raw_text: str, path: tuple[str, ...]) -> str:
     return normalize(f"{prefix}\n\n{raw_text}")
 
 
+def _unpipe_label_rows(raw_text: str) -> str:
+    """`raw_text` with every line written as a table row (`| CAPÍTULO II |  |`)
+    reduced to its cells joined by a space. The SCJN's own text puts a tab after
+    some container labels, which `scjn.api` reads as a two-cell row; in a
+    *heading* that row is the label, not a table (review fix-2 of #291: the
+    marker says it is the container's own heading block)."""
+    lines = []
+    for line in raw_text.split("\n"):
+        stripped = line.strip()
+        if len(stripped) > 1 and stripped.startswith("|") and stripped.endswith("|"):
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            line = " ".join(c for c in cells if c)
+        lines.append(line)
+    return "\n".join(lines)
+
+
 def _with_article_template(raw_text: str, template: str, num: str | None, law_name: str | None) -> str:
     """`raw_text`, prefixed as `template` says — rule 7's article prefix.
 
@@ -790,7 +806,7 @@ def _walk_container(
         if normalize(heading_raw):
             pieces = _capped_pieces(
                 node.start_char, first_start, ann_ranges, cap,
-                lambda raw: _with_context(raw, path), split_over_cap,
+                lambda raw: _with_context(_unpipe_label_rows(raw), path), split_over_cap,
             )
             units.extend(_units_from_pieces(
                 pieces, unit_type="heading", eId=node.eId, akn_type=node.akn_type,

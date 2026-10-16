@@ -593,6 +593,9 @@ def _quita_etiqueta(linea: str, etiqueta: str) -> tuple[bool, str | None]:
             resto = texto[i + 1:]
             if resto[:1].isalnum():
                 return False, None
+            # A label the API wrote as a table row (`| CAPÍTULO II |  |`, the
+            # SCJN's own text carries a tab) has no heading in its cells.
+            resto = resto.replace("|", " ") if linea.lstrip().startswith("|") else resto
             return True, _limpia(resto).lstrip("-–— ").strip() or None
     return False, None
 

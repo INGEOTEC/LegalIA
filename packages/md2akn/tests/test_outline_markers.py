@@ -203,3 +203,20 @@ def test_a_block_that_holds_articles_in_its_own_text_opens_a_section():
     secs = [n for n in _walk(tree) if n.akn_type == "section"]
     assert len(secs) == 2
     assert not any(n.repeated for n in _walk(tree))
+
+
+def test_a_container_label_written_as_a_table_row_is_a_heading_not_a_table():
+    """The SCJN's text puts a tab after some labels, which `scjn.api` reads as
+    a two-cell row (`| CAPÍTULO II |  |`); the marker says it is the chapter's
+    own heading block, so its cells are the label and the title follows."""
+    text = (
+        '<!-- scjn:block orden=1 numero=0 kind=container type=chapter num="II" label="CAPÍTULO II" -->\n\n'
+        "| CAPÍTULO II |  |\n\n**DE LOS INGRESOS**\n\n"
+        '<!-- scjn:block orden=2 numero=1 kind=article num="1" label="ARTÍCULO 1" -->\n\n'
+        "**Artículo 1.** Uno.\n"
+    )
+    tree = parse_markdown(text)
+    chapter = next(n for n in _walk(tree) if n.akn_type == "chapter")
+    assert chapter.heading == "DE LOS INGRESOS"
+    heading = next(u for u in text_units(text, split_articles=False) if u.unit_type == "heading")
+    assert "|" not in heading.text and heading.text.startswith("CAPÍTULO II")
