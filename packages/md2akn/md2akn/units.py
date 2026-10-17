@@ -974,6 +974,27 @@ def text_units(
        the number of its text when it equals or extends the API's label, the
        label when it extends the text's, else the one consistent with the
        API's own `numero`.
+    25. An annex the API numbers after a chapter (`numero` 2, `num` `2-A`:
+       the `N-` prefix is the fallback) is a child of the innermost open
+       container carrying that number -- `cap_2__att_2-A` -- and the next
+       container of the chapter's level or higher closes it, so a chapter is
+       never inside an annex. An annex with no owner stays at the top. Its
+       title is the text of its own label (`ANEXO 2-A:` is not annex `2`
+       titled `A`).
+    26. An appendix is an `attachment` whose `refersTo` is `#apendice` and
+       whose eId prefix is `app` (`app_1`), never `att`. One the API marks
+       with no owner nests in the annex that is open, after that annex's
+       chapters, or else in the instrument.
+    27. A bare `**APÉNDICE**` heading, with no number, directly under the
+       unnumbered appendix it repeats is that appendix's own running page
+       header (the T-MEC's tariff appendix of annex 2-C, over seven pages), not
+       a further appendix.
+    28. A block the API marks `other` that opens an implicit section (rule
+       23) is a text of its own -- an amending `RESOLUCIÓN MSC.411(97)` --
+       and hangs from the body whatever was open: never inside the appendix,
+       annex or chapter before it.
+    Rules 25 to 28 apply to a document with outline markers; one without
+    them is read, and its eIds written, as before.
 
     >>> import md2akn
     >>> text = (

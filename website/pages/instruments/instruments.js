@@ -37,7 +37,10 @@
     subpoint: "subinciso",
     content: "texto",
   };
-  const CONTAINERS = new Set(["book", "title", "chapter", "section", "level"]);
+  // What an `attachment` is called, from its `refersTo` and never from its eId: md2akn
+  // types an annex and an appendix alike (Akoma Ntoso's `attachment`).
+  const ATTACHMENT_NAMES = { "#anexo": "Annex", "#apendice": "Appendix" };
+  const CONTAINERS = new Set(["book", "title", "chapter", "section", "level", "part", "attachment"]);
   const FLAG_ORDER = [
     "loose",
     "duplicate_number",
@@ -861,7 +864,12 @@
         if (node.t === "intro") return "Introduction";
         if (node.t === "table") return `Table ${node.n || ""}`.trim();
         const term = TERMS[node.t] || node.t;
-        const name = node.r === "#transitorios" ? "Transitory section" : term.charAt(0).toUpperCase() + term.slice(1);
+        const name =
+          node.t === "attachment" && ATTACHMENT_NAMES[node.r]
+            ? ATTACHMENT_NAMES[node.r]
+            : node.r === "#transitorios"
+              ? "Transitory section"
+              : term.charAt(0).toUpperCase() + term.slice(1);
         const num = node.n && node.r !== "#transitorios" ? ` ${node.n}` : "";
         return `${name}${num}`;
       }
@@ -1009,7 +1017,7 @@
           "data-start": String(node.s),
           "data-end": String(node.l),
         });
-        const term = TERMS[node.t] || node.t;
+        const term = node.t === "attachment" && ATTACHMENT_NAMES[node.r] ? ATTACHMENT_NAMES[node.r].toLowerCase() : TERMS[node.t] || node.t;
         const badge = element("span", {
           className: "instruments-badge",
           title: node.r === "#transitorios" ? `${term} — transitorios` : `${term}`,

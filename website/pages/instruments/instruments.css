@@ -477,7 +477,9 @@
 
 .instruments-type-book,
 .instruments-type-title { border-left-color: #6b6a65; }
-.instruments-type-chapter { border-left-color: #898781; }
+.instruments-type-chapter,
+.instruments-type-part,
+.instruments-type-attachment { border-left-color: #898781; }
 .instruments-type-section,
 .instruments-type-level { border-left-color: #b9b7ae; }
 .instruments-type-article { border-left-color: var(--instruments-ink); }

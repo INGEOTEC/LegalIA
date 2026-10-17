@@ -715,6 +715,52 @@ def test_the_outline_scrolls_to_a_node_and_marks_compared_and_flagged_articles(p
     assert outline.locator("button.instruments-outline-link:visible").count() < before
 
 
+def outline_entry(outline, label):
+    """The `li` of the outline whose own button reads `label`."""
+    return outline.locator("li.instruments-outline-item", has=outline.page.locator(
+        f'xpath=./button[contains(@class, "instruments-outline-link")][normalize-space(.)="{label}"]'
+    )).first
+
+
+def test_the_outline_nests_an_annex_under_its_chapter_and_appendices_under_their_annex(browser, server):
+    """Review fix-3 of #291: the toy treaty has a chapter with two annexes (`3-A`, `3-B`), then
+    an annex with no owner that holds two appendices. The outline mirrors the tree and names
+    each by its kind, from `refersTo` and never from the eId."""
+    page = open_page(browser, f"{server}?c=tratados&k=700")
+    wait_rendered(page)
+    outline = page.locator(".instruments-outline")
+    expand_outline(page)
+    names = [b.inner_text().strip() for b in outline.locator("button.instruments-outline-link").all()]
+    assert "Annex 3-A" in names and "Annex 3-B" in names and "Annex I" in names
+    assert "Appendix 1" in names and "Appendix 2" in names
+    assert not any(n.startswith("Attachment") for n in names)
+
+    def children_of(label):
+        item = outline_entry(outline, label)
+        return [b.inner_text().strip() for b in item.locator(
+            "xpath=./ul/li/button[contains(@class, 'instruments-outline-link')]").all()]
+
+    assert children_of("Capítulo 3") == ["Annex 3-A", "Annex 3-B"]
+    assert children_of("Annex I") == ["Introduction", "Appendix 1", "Appendix 2"]
+    # collapsing and expanding work at every level
+    annex = outline_entry(outline, "Annex I")
+    fold = annex.locator("xpath=./button[contains(@class, 'instruments-outline-fold')]")
+    inner = annex.locator("xpath=./ul")
+    assert inner.is_visible()
+    fold.click()
+    assert not inner.is_visible()
+    fold.click()
+    assert inner.is_visible()
+    # the document carries the same nesting and the same kinds
+    nested = page.locator('section[data-eid="cap_3__att_3-A"]')
+    assert nested.get_attribute("data-type") == "attachment"
+    assert nested.locator("> .instruments-node-head .instruments-badge").get_attribute("title") == "annex"
+    app = page.locator('section[data-eid="att_I__app_1"]')
+    assert app.locator("> .instruments-node-head .instruments-badge").get_attribute("title") == "appendix"
+    assert page.errors == []
+    page.close()
+
+
 def test_the_raw_button_of_a_node_shows_exactly_its_markdown(page):
     open_from_table(page, "alfa")
     document = read_file_of_toy(page, "alfa")

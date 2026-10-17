@@ -410,6 +410,19 @@ every machine has — rather than over a handful of fixtures; see its own module
   structure. A document with no marker is read as before. Repeats over the
   2,676 Atlas instruments: 36 → 0 in leyes, reglamentos and lineamientos, 7
   treaties and 164 excerpts left (listed in `scripts/embeddings/README.md`).
+  **Review fix-3 of #291 (still 0.5.1):** the Instruments page's outline showed
+  two hierarchy errors under the markers, both fixed with rules that apply only
+  to a document that has them. **Rule 25**, an annex the API numbers after a
+  chapter (`numero` 2, `num` `2-A`) is a child of that chapter
+  (`cap_2__att_2-A`), so a chapter is never nested inside the annex before it;
+  **rule 26**, an appendix keeps `attachment`/`refersTo="#apendice"` but takes
+  the eId prefix `app` and nests in the annex it follows, after that annex's
+  chapters; **rule 27**, a bare `**APÉNDICE**` heading repeated under the
+  unnumbered appendix it repeats is that appendix's running page header (the
+  T-MEC's seven-page tariff appendix was seven appendices); **rule 28**, a
+  block the API marks `other` that opens a section of its own (an amending
+  `RESOLUCIÓN MSC.411(97)`) hangs from the body, never inside the appendix
+  before it.
 
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an

@@ -192,6 +192,52 @@ Las Partes cooperarán entre sí.
 **ARTÍCULO II**
 
 Este Tratado entrará en vigor.
+
+<!-- scjn:block orden=3 numero=0 kind=container type=chapter num="3" label="CAPÍTULO 3" -->
+
+**CAPÍTULO 3**
+
+**COMERCIO**
+
+<!-- scjn:block orden=4 numero=3 kind=container type=annex num="3-A" label="ANEXO 3-A" -->
+
+**ANEXO 3-A**
+
+**LISTA DE MERCANCÍAS**
+
+Las mercancías de la lista.
+
+<!-- scjn:block orden=5 numero=3 kind=container type=annex num="3-B" label="ANEXO 3-B" -->
+
+**ANEXO 3-B**
+
+**LISTA DE SERVICIOS**
+
+Los servicios de la lista.
+
+<!-- scjn:block orden=7 numero=0 kind=container type=annex num="I" label="ANEXO I" -->
+
+**ANEXO I**
+
+**FORMULARIOS**
+
+Los formularios del Tratado.
+
+<!-- scjn:block orden=8 numero=0 kind=container type=appendix num="1" label="APÉNDICE 1" -->
+
+**APÉNDICE 1**
+
+**FORMULARIO DE NOTIFICACIÓN**
+
+Texto del primer apéndice.
+
+<!-- scjn:block orden=9 numero=0 kind=container type=appendix num="2" label="APÉNDICE 2" -->
+
+**APÉNDICE 2**
+
+**MODELO DE CERTIFICADO**
+
+Texto del segundo apéndice.
 """
 
 #: `(coleccion, clave) -> (nombre, archivo, codNota, markdown)`, in the order

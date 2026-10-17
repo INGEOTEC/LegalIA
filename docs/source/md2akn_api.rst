@@ -619,6 +619,32 @@ preamble or recitals block no line opens structure.
 >>> [u.text for u in md2akn.text_units(marked, split_articles=False)]
 ['**CAPÍTULO I**', '**Artículo 1.-** Uno.', '**Artículo 1.-** Otra vez.']
 
+Review fix-3 of the same issue found two hierarchy errors the markers could
+settle. **Rule 25**: an annex the API numbers after a chapter (its ``numero`` is
+the chapter's, and so is the ``N-`` prefix of its ``num``) is a child of that
+chapter, and the next chapter closes it — a chapter is never inside an annex.
+**Rule 26**: an appendix is an ``attachment`` with ``refersTo="#apendice"`` and
+the eId prefix ``app``, nested in the annex it follows (after that annex's
+chapters) or, with none open, in the instrument. **Rule 27**: a bare
+``**APÉNDICE**`` heading directly under the unnumbered appendix it repeats is that
+appendix's running page header, not a further appendix. **Rule 28**: a block the
+API marks ``other`` that opens a section of its own (an amending resolution) hangs
+from the body, never inside the appendix before it. A document with no markers
+is read, and its eIds written, as before.
+
+>>> annexed = (
+...     '<!-- scjn:block orden=1 numero=0 kind=container type=chapter num="2" label="CAPÍTULO 2" -->\n\n'
+...     "**CAPÍTULO 2**\n\n"
+...     '<!-- scjn:block orden=2 numero=2 kind=container type=annex num="2-A" label="ANEXO 2-A" -->\n\n'
+...     "**ANEXO 2-A**\n\n**EXCEPCIONES**\n\n"
+...     '<!-- scjn:block orden=3 numero=0 kind=container type=chapter num="3" label="CAPÍTULO 3" -->\n\n'
+...     "**CAPÍTULO 3**\n\n"
+...     '<!-- scjn:block orden=4 numero=0 kind=container type=appendix num="1" label="APÉNDICE 1" -->\n\n'
+...     "**APÉNDICE 1**\n\n**FORMULARIO**\n"
+... )
+>>> [(n.eId, n.refers_to) for n in md2akn.parse_markdown(annexed).walk() if n.akn_type in ("chapter", "attachment")]
+[('cap_2', None), ('cap_2__att_2-A', '#anexo'), ('cap_3', None), ('app_1', '#apendice')]
+
 :py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
 where ``coverage()`` says nothing was lost, this says the units are usable.
 ``splittable == 0`` is the invariant a corpus build asserts; ``unsplittable``

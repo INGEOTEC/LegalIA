@@ -102,6 +102,10 @@ PREFIJO_EID = {
     "toc": "toc",
 }
 
+#: The eId prefix of an appendix (rule 26, review fix-3 of #291): AKN types it as
+#: an `attachment`, like an annex, and `refersTo` tells them apart.
+PREFIJO_EID_APENDICE = "app"
+
 _ORDINAL_PALABRA = re.compile(ORDINAL_PALABRA, re.IGNORECASE | re.UNICODE)
 
 _ACENTOS = str.maketrans("ÁÉÍÓÚÜáéíóúü", "AEIOUUaeiouu")
@@ -895,8 +899,8 @@ class _Constructor:
         linea = bloque.text.split("\n", 1)[0]
         if kind == "container" and marca.get("type") in self.TIPOS_DE_CONTENEDOR:
             akn_type, refers_to = self.TIPOS_DE_CONTENEDOR[marca["type"]]
-            heading = _quita_etiqueta(linea, marca.get("label", ""))[1]
-            if clase[0] == "contenedor" and clase[1].get("akn_type") == akn_type:
+            coincide, heading = _quita_etiqueta(linea, marca.get("label", ""))
+            if not coincide and clase[0] == "contenedor" and clase[1].get("akn_type") == akn_type:
                 heading = clase[1].get("heading") or heading
             return "contenedor", {
                 "akn_type": akn_type,
@@ -904,6 +908,8 @@ class _Constructor:
                 "refers_to": refers_to,
                 "heading": heading,
                 "forzado": True,
+                "numero": marca.get("numero"),
+                "tipo": marca["type"],
             }
         if kind == "decree":
             return "transitorios_dof", {"num": _limpia(marca.get("num", "")), "forzado": True}
@@ -997,6 +1003,13 @@ class _Constructor:
             # text of its own, not the tail of the transitorios before it.
             self._transitorios = None
         if self._i in self._aperturas:
+            # Rule 28 (review fix-3 of #291): a text of its own -- the
+            # `RESOLUCIÓN MSC.411(97)` a treaty prints after the code it amends --
+            # is not part of the appendix, the annex or the chapter that came
+            # before it: it hangs from the body, a sibling of the instrument's
+            # own parts, whatever was open.
+            self._pila.clear()
+            self._transitorios = None
             etiqueta = _limpia(marca.get("label", "")) or "section"
             nodo = self._nuevo_nodo("section", bloque.start, bloque.end, num=etiqueta)
             nodo.heading = None
@@ -1039,9 +1052,15 @@ class _Constructor:
                     eid=None):
         padre = padre if padre is not None else self._padre_contenedor(inicio)
         if eid is None:
+            prefijo = PREFIJO_EID.get(akn_type, akn_type)
+            if self._marcas and akn_type == "attachment" and refers_to == REFERS_TO_APENDICE:
+                # Rule 26 (review fix-3 of #291): an appendix is not an annex, and
+                # its identifier says so. Only where the document has markers,
+                # so one without them keeps the eIds it always had.
+                prefijo = PREFIJO_EID_APENDICE
             propuesto = self._eids.propuesto(
                 "" if padre.akn_type in ("act", "body") else padre.eId,
-                PREFIJO_EID.get(akn_type, akn_type),
+                prefijo,
                 num if num is not None else akn_type,
             )
         else:
@@ -1160,15 +1179,100 @@ class _Constructor:
             return self._piso + 0.5
         return rango
 
+    def _dueno_numerado(self, campos) -> tuple[float, AknNode] | None:
+        """Rule 25 (review fix-3 of #291): the open container an annex or an
+        appendix the SCJN numbers belongs to, as ``(rank, node)``.
+
+        A treaty prints `ANEXO 2-A` after the chapter it annexes, and the API
+        says so: the block's `numero` is the chapter's number (2), and so is the
+        `N-` prefix of its `num`. The innermost open container (a chapter, a
+        title, a part...; never another annex or appendix) whose number is that
+        one is the owner. `numero` 0 -- the API's "no owner" -- falls back to the
+        prefix, and a prefix that names no open container, or none at all
+        (`ANEXO I`, `APÉNDICE 1`), means no owner: the annex stays where its
+        own rank puts it."""
+        numero = (campos.get("numero") or "").strip()
+        tipos = None
+        if not numero.isdigit() or int(numero) == 0:
+            # The prefix is a weaker signal than the API's own number (the
+            # letter of a section is not the number of a chapter), so it is
+            # only read against the containers that carry numbers.
+            prefijo = re.match(r"\s*(\w+?)[-.]", campos.get("num") or "")
+            numero = prefijo.group(1) if prefijo else ""
+            tipos = ("book", "title", "chapter", "part")
+        if not numero:
+            return None
+        buscado = _forma_comparable(numero)
+        for rango, nodo in reversed(self._pila):
+            if nodo.akn_type == "attachment" or nodo.num is None:
+                continue
+            if tipos is not None and nodo.akn_type not in tipos:
+                continue
+            if _forma_comparable(nodo.num) == buscado:
+                return rango, nodo
+        return None
+
+    #: Rule 25: how far below its owner an annex sits -- under the chapter, above
+    #: everything the chapter's own sections would hold.
+    RANGO_BAJO_DUENO = 0.25
+    #: Rule 26: where an appendix with no owner sits inside the annex that holds
+    #: it -- under the annex, above every chapter or part of the annex's text.
+    RANGO_APENDICE_EN_ANEXO = 0.5
+
+    def _rango_de_anexo(self, campos) -> float | None:
+        """Rules 25 and 26: the rank an annex or appendix the markers name takes
+        when it belongs to something open, or `None` when it keeps its own."""
+        if campos.get("tipo") not in ("annex", "appendix"):
+            return None
+        dueno = self._dueno_numerado(campos)
+        if dueno is not None:
+            return dueno[0] + self.RANGO_BAJO_DUENO
+        if campos["tipo"] == "appendix" and any(
+            n.akn_type == "attachment" and n.refers_to == REFERS_TO_ANEXO
+            for _, n in self._pila
+        ):
+            return self.RANGO_APENDICE_EN_ANEXO
+        return None
+
+    def _es_cabecera_repetida(self, campos) -> bool:
+        """Rule 27 (review fix-3 of #291): a bare `**APÉNDICE**` heading, with no
+        number, directly under the unnumbered appendix it repeats.
+
+        The T-MEC prints the tariff appendix of its annex 2-C over seven pages,
+        and the SCJN's text carries each page's running header (`**APÉNDICE**`,
+        `**AUTOPARTES**`, `Continúa`) in the middle of the table. Read as
+        headings they were seven appendices (`att_attachment` ... `_7`) holding
+        one table each; they are the one appendix's own text. Only where the
+        document has markers, so a document without them parses as before."""
+        if not self._marcas or campos.get("forzado") or campos.get("num") is not None:
+            return False
+        if campos["akn_type"] != "attachment" or campos.get("refers_to") != REFERS_TO_APENDICE:
+            return False
+        if not self._pila:
+            return False
+        arriba = self._pila[-1][1]
+        return (
+            arriba.akn_type == "attachment"
+            and arriba.refers_to == REFERS_TO_APENDICE
+            and arriba.num is None
+        )
+
     def _bloque_contenedor(self, bloque, campos):
         akn_type = campos["akn_type"]
+        if self._es_cabecera_repetida(campos):
+            self._bloque_contenido(bloque, campos)
+            return
         # A container ends whatever transitorios were open: transitional
         # provisions are the tail of the law, and a container after them
         # belongs to a further decree's own text.
         if not self._decreto:
             self._transitorios = None
         self._cierra_articulo()
-        rango = self._rango(akn_type, campos.get("forzado", False))
+        rango_propio = self._rango_de_anexo(campos) if campos.get("forzado") else None
+        if rango_propio is not None:
+            self._piso = rango = rango_propio
+        else:
+            rango = self._rango(akn_type, campos.get("forzado", False))
         self._cierra_hasta(rango)
         refers_to = REFERS_TO_APARTADO if akn_type == "level" else campos.get("refers_to")
         nodo = self._nuevo_nodo(

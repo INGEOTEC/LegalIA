@@ -30,6 +30,12 @@ node was read from, and the *Raw* mode of the whole page shows the document once
 with every excerpt underlined and any character that belongs to no excerpt
 marked in red.
 
+The outline on the left follows the same hierarchy. An annex that the Court's
+text numbers after a chapter, such as *Annex 2-A* of chapter 2, is shown under
+that chapter, and an appendix under the annex or the instrument that it closes,
+each one named by its own kind, so that *Annex 2-A* and *Appendix 1* are never
+mistaken for each other.
+
 An excerpt is the piece of text that the Atlas compares, which is one article,
 one heading, one introduction, one table, one stretch of loose text or the
 preamble, each with its own vector. An introduction is the text that a title,
