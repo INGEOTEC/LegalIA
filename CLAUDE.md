@@ -1087,6 +1087,28 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   in this order, the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`), the four vectors releases
   (`emb-run-<c>-052/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, or `website.yml`
   fails or pairs the new JSON with old files.
+- **Annexes under their chapter, appendices as appendices, rules 25 to 28 (review fix-3 of #291, found after the
+  fact).** The Instruments page's outline showed two hierarchy errors under the markers: the T-MEC (`137355`) built every
+  `ANEXO 2-A` ... as a sibling of the chapters and nested the next chapter inside the annex before it, and the gas carrier
+  code (`96707`) made its `APÉNDICE 1` to `5` five bare top-level attachments with the amending resolutions inside appendix 5.
+  Every rule applies only to a document with outline markers (one without them parses, and writes its eIds, as before), and no
+  rule names an instrument. **Rule 25**, an annex whose API `numero` (or the `N-` prefix of its `num`, against books, titles,
+  chapters and parts only) is the number of an open container is that container's child (`cap_2__att_2-A`), a quarter of a rank
+  below it so the next chapter closes it; its title is what follows its own label (`ANEXO 2-A:` read by the text was annex `2`
+  titled `A`). **Rule 26**, an appendix keeps `attachment`/`refersTo="#apendice"` and takes the eId prefix `app` (`app_1`),
+  nested in the annex that is open, after its chapters, else in the instrument. **Rule 27**, a bare `**APÉNDICE**` directly under
+  the unnumbered appendix it repeats is that appendix's running page header (the T-MEC's seven-page tariff appendix was seven
+  appendices). **Rule 28**, a block the API marks `other` that opens a section (rule 23) while an annex or appendix is open hangs
+  from the body, a sibling of the instrument's parts; unguarded it also moved the Código Civil Federal's `DISPOSICIONES
+  GENERALES` out of its chapter, which the before/after tree comparison caught and a test pins. `instruments.js` shows `part`
+  and `attachment` in the outline, each named by its own kind from `refersTo`, never from the eId (*Annex 2-A*, *Appendix 1*).
+  No re-crawl: **51 of 2,897 trees changed** (2 leyes, 3 reglamentos, 2 lineamientos, 44 tratados; 20 only by `att_` -> `app_`),
+  repeats unchanged at 7 / 164, and 1,614 unit rows have a new `text_sha1` (a heading or intro carries the containers in front of
+  it), so 3, 17, 1 and 1,528 texts were encoded with both models, the four `-052` work directories re-merged (`compare_merges`
+  clean for all eight runs), the Atlas chain, the instrument files, the evaluations and the page's literals rebuilt (only last
+  digits moved; the closest instrument of 1,303 of 1,373 treaties is a treaty, 7 laws and 6 regulations and no guideline have a
+  treaty as their closest). The release sweep passes (15 in 40 minutes). **Nothing was published**; the publish order is the one
+  above, with the four vectors releases, the three `atlas-pairs` sets and `atlas-instruments` regenerated.
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 

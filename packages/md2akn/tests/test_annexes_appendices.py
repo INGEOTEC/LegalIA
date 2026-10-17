@@ -213,3 +213,20 @@ def test_a_document_without_markers_keeps_its_attachment_eids():
     assert [(n.eId, n.parent.akn_type) for n in _walk(tree) if n.akn_type == "attachment"] == [
         ("att_2-A", "body"), ("att_1", "body"),
     ]
+
+
+def test_a_section_of_its_own_stays_in_its_chapter_when_no_attachment_is_open():
+    """Rule 28 only separates a text of its own from an annex or appendix: the
+    `DISPOSICIONES GENERALES` the Código Civil Federal's chapter IV opens with is
+    a section of that chapter (an unguarded rule hung it from the body)."""
+    text = (
+        f'{M}orden=1 numero=0 kind=container type=chapter num="IV" label="CAPÍTULO IV" -->\n\n'
+        "**CAPÍTULO IV**\n\n**Del contrato**\n\n"
+        f'{M}orden=2 numero=0 kind=other label="DISPOSICIONES GENERALES" -->\n\n'
+        "**DISPOSICIONES GENERALES**\n\n"
+        f'{M}orden=3 numero=178 kind=article num="178" label="ARTÍCULO 178" -->\n\n'
+        "**Artículo 178.-** Uno.\n"
+    )
+    tree = parse_markdown(text)
+    section = next(n for n in _walk(tree) if n.akn_type == "section")
+    assert section.parent.eId == "cap_IV"

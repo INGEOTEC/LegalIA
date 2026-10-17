@@ -217,8 +217,8 @@ and the *LEY Orgánica del Congreso General de los Estados Unidos Mexicanos* at
 8.0, and a treaty, the *Convención Americana sobre Derechos Humanos*, is among
 the five closest at 5.0.
 
-Treaties mostly resemble one another. For 1,306 of the 1,373 treaties the closest
-instrument is another treaty, and only 7 laws, 6 regulations and 1 guideline have a
+Treaties mostly resemble one another. For 1,303 of the 1,373 treaties the closest
+instrument is another treaty, and only 7 laws and 6 regulations have a
 treaty as their closest instrument.
 
 ## The neighbourhood size
@@ -380,7 +380,7 @@ tied.
 
 ### The instruments
 
-The measures below were taken on 16 October 2026, over the 162 instruments of
+The measures below were taken on 17 October 2026, over the 162 instruments of
 signal A alone and over the 253 of signals A and B together.
 
 | Gold links | Measure | 0.6B | 4B | BM25 |
@@ -390,7 +390,7 @@ signal A alone and over the 253 of signals A and B together.
 | A (162) | mean reciprocal rank | 0.713 | 0.710 | 0.729 |
 | A and B (253) | closest is a gold instrument | 127 | 125 | 132 |
 | A and B (253) | a gold instrument among the five closest | 197 | 200 | 199 |
-| A and B (253) | mean reciprocal rank | 0.623 | 0.624 | 0.636 |
+| A and B (253) | mean reciprocal rank | 0.623 | 0.624 | 0.635 |
 
 The methods are then compared two at a time. Each difference is the first method
 minus the second, and each cell gives the verdict and, in parentheses, the
@@ -402,9 +402,9 @@ of the bootstrap for the others.
 | A (162) | 0.6B − 4B | tie (p = 0.51) | tie (p = 0.62) | tie ([−0.020, +0.026]) |
 | A (162) | 0.6B − BM25 | tie (p = 0.73) | tie (p = 0.34) | tie ([−0.040, +0.007]) |
 | A (162) | 4B − BM25 | tie (p = 0.23) | tie (p = 0.73) | tie ([−0.045, +0.006]) |
-| A and B (253) | 0.6B − 4B | tie (p = 0.80) | tie (p = 0.51) | tie ([−0.020, +0.019]) |
-| A and B (253) | 0.6B − BM25 | tie (p = 0.38) | tie (p = 0.84) | tie ([−0.037, +0.010]) |
-| A and B (253) | 4B − BM25 | tie (p = 0.17) | tie (p = 1.00) | tie ([−0.036, +0.010]) |
+| A and B (253) | 0.6B − 4B | tie (p = 0.80) | tie (p = 0.51) | tie ([−0.020, +0.018]) |
+| A and B (253) | 0.6B − BM25 | tie (p = 0.38) | tie (p = 0.84) | tie ([−0.036, +0.010]) |
+| A and B (253) | 4B − BM25 | tie (p = 0.17) | tie (p = 1.00) | tie ([−0.035, +0.011]) |
 
 On what the map shows, which is the closest instrument and the five closest, the
 three methods cannot be told apart, and no pair differs on any of the three
@@ -428,7 +428,7 @@ that remain once those citing the Constitution are set aside.
 | among the five closest | 0.246 | 0.274 | 0.252 |
 | among the ten closest | 0.332 | 0.361 | 0.341 |
 | mean reciprocal rank | 0.171 | 0.192 | 0.178 |
-| median rank | 39 | 31 | 40 |
+| median rank | 39 | 30.5 | 40 |
 | among the five closest, without the Constitution | 0.382 | 0.414 | 0.405 |
 | mean reciprocal rank, without the Constitution | 0.265 | 0.288 | 0.284 |
 | median rank, without the Constitution | 10 | 9 | 9 |
@@ -439,7 +439,7 @@ interval of its difference in ranks.
 | Pair | cited instrument first | among the five closest | among the ten closest | mean reciprocal rank | median rank |
 |---|---|---|---|---|---|
 | 0.6B − 4B | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([−0.026, −0.016]) | 4B better ([+6, +11]) |
-| 0.6B − BM25 | tie (p = 0.06) | tie (p = 0.33) | tie (p = 0.15) | tie ([−0.014, +0.000]) | tie ([−4, +3]) |
+| 0.6B − BM25 | tie (p = 0.06) | tie (p = 0.33) | tie (p = 0.16) | tie ([−0.014, +0.000]) | tie ([−4.5, +3]) |
 | 4B − BM25 | tie (p = 0.09) | 4B better (p < 0.001) | 4B better (p = 0.001) | 4B better ([+0.007, +0.021]) | 4B better ([−13, −5]) |
 
 At this level the methods are no longer tied. The 4B is better than the 0.6B on
@@ -488,13 +488,13 @@ and the treaties
 They are divided into excerpts and embedded with `Qwen/Qwen3-Embedding-0.6B`,
 the default of the map, and with `Qwen/Qwen3-Embedding-4B`, to which the
 similarity control switches, as it does to BM25, a lexical baseline computed
-from the same excerpts. Of the 214,294 excerpts, 33,019 are headings and 22,810
+from the same excerpts. Of the 214,285 excerpts, 33,010 are headings and 22,810
 are transitory articles, neither of which is compared, and 2,017 are
 word-for-word texts shared by several instruments, which are matched but not
 counted, so that 156,448 count. The map
 is a UMAP projection with the cosine metric of each instrument's matches. The
 Diario Oficial de la Federación remains the official source of legal text. Map
-data generated on <span data-atlas-generated>16 October 2026</span>.
+data generated on <span data-atlas-generated>17 October 2026</span>.
 
 *Read more.* The division of instruments into excerpts is described in
 [`md2akn`](https://legalia.readthedocs.io/en/latest/md2akn_api.html), the way

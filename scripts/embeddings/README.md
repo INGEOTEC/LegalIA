@@ -4120,3 +4120,121 @@ API block, such as a treaty quoting `Artículo 17.9.2 `, is not an article opene
 four vectors releases (`emb-run-<c>-052/publish/PUBLICAR.md`, leyes, reglamentos, lineamientos, tratados), the three
 `atlas-pairs` sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`) and
 `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`).
+
+
+### Measured, annexes under their chapter and appendices as appendices, 2026-10-17 (review fix-3 of issue #291)
+
+*Review fix-3 of #291, found after the fact.* Browsing the Instruments page after fix-2 turned up two hierarchy errors,
+both visible in the page's left-hand outline, which must mirror the instrument's real hierarchy.
+
+**What was wrong.** The T-MEC (`tratados/137355`) prints `ANEXO 2-A`, `2-B`, `2-C` after chapter 2, and the SCJN's
+outline says so: the marker is `kind=container type=annex num="2-A"` with `numero=2` (chapter 3's annexes carry `3`, and
+so on to `16-A`). `md2akn` built every annex as a **sibling** of the chapters under `body` and, worse, nested the next
+chapter *inside* the annex before it (`att_3-D__cap_4`, `att_5-A__cap_6`). The gas carrier code (`tratados/96707`)
+closes with `APÉNDICE 1` to `5` (`type=appendix`), which `md2akn` made five bare top-level `attachment`s,
+indistinguishable from annexes and outside the code they belong to, and the amending resolutions that follow
+(`RESOLUCIÓN MSC.411(97)` ... `MSC.566(109)`, `kind=other`) ended up inside appendix 5.
+
+**What `md2akn` does now** (rules 25 to 28, `md2akn/README.md`; no instrument is named anywhere, and every rule applies
+only to a document with outline markers, so one without them parses, and writes its eIds, byte for byte as before):
+
+* **Rule 25.** An annex whose API `numero` (or, when that is 0, the `N-` prefix of its `num`, read only against books,
+  titles, chapters and parts) equals the number of an open container is a child of the innermost such container:
+  `cap_2__att_2-A`. It sits a quarter of a rank below its owner, so the next container of the owner's level or higher
+  closes it and a chapter is never nested inside an annex; an annex with no owner (`ANEXO I`, `numero` 0) stays where its
+  own rank puts it. Its title is what follows *its own label*: `ANEXO 2-A:` read by the text alone was annex `2` titled `A`.
+* **Rule 26.** An appendix keeps `attachment` and `refersTo="#apendice"` and takes the eId prefix `app` (`app_1`), so
+  neither the eId nor the page confuses it with an annex. One the API marks with no owner nests in the annex that is
+  open, after that annex's chapters (`att_attachment__app_1`), else in the instrument.
+* **Rule 27.** A bare `**APÉNDICE**` with no number, directly under the unnumbered appendix it repeats, is that
+  appendix's running page header. This is the cause of the anonymous `att_attachment` ... `_7` that the T-MEC's annex
+  `2-C` carried: its tariff appendix is printed over seven pages, each headed `**APÉNDICE**`, `**AUTOPARTES**`,
+  `Continúa`, and each was read as an appendix of its own.
+* **Rule 28.** A block the API marks `other` that opens an implicit section (rule 23) while an annex or an appendix is
+  open is a text of its own, and hangs from the body: the six resolutions of `96707` are siblings, none inside appendix
+  5, each with its own annex. Without an attachment open the section stays where rule 23 put it (the Código Civil Federal's
+  `DISPOSICIONES GENERALES` is a section of chapter IV; the first version of the rule, unguarded, moved it to the body and
+  the comparison below caught it, so it is pinned by a test).
+
+**Trees, before and after** (the same parser at `a46857dc` and at this commit, over the newest snapshot of the 2,897
+instruments with text, a signature of every node's eId, type, `refersTo`, number, heading, span and `repeated` flag):
+
+| collection | instruments | trees changed | of which only an eId (`att_` → `app_`) | structure |
+|---|---:|---:|---:|---:|
+| leyes | 315 | 2 | 1 | 1 |
+| reglamentos | 1,083 | 3 | 2 | 1 |
+| lineamientos | 126 | 2 | 0 | 2 |
+| tratados | 1,373 | 44 | 17 | 27 |
+
+All 51 are Atlas instruments. The ones the issue named: `137355` has every annex under its chapter (`cap_2__att_2-A`,
+`cap_3__att_3-D`, `cap_10__att_10-B.5`, ...) and no chapter inside an annex, `96707` has `app_1` ... `app_5` after chapter 19
+inside the annex that holds the code and the resolutions beside it, and `96728`, `103948` and `114738` keep what fix-2 gave
+them (`96728` only renames its appendices `app_`; `114738` also puts `Apéndice 1`, with its Partes 1 to 7, inside the annex it
+follows). Repeated identifiers did not grow: `measure_outline_repeats.py` still says **7 instruments and 164 excerpts**, as
+after fix-2 (the question to the repository owner above stays open: none of the seven is resolved by this fix).
+
+**Units.** `compare_units.py` against fix-2's own, both `--no-split-articles`:
+
+| collection | rows before → after | instruments differing | with a new text | only relabelled | distinct new texts | encoded (not embedded by an earlier run) |
+|---|---|---:|---:|---:|---:|---:|
+| leyes | 68,870 → 68,870 | 2 | 1 | 1 | 4 | 3 |
+| reglamentos | 112,962 → 112,962 | 3 | 1 | 2 | 20 | 17 |
+| lineamientos | 5,614 → 5,608 | 2 | 2 | 0 | 2 | 1 |
+| tratados | 49,956 → 49,953 | 43 | 24 | 19 | 1,590 | 1,528 |
+
+So some `text_sha1` **did** change, and the vectors and the Atlas were rebuilt, as fix-2 did. The new rows are in 51
+instruments, almost all of them treaties (1,614 rows of the 49,953: 920 `intro`, 393 `table`, 252 `heading`, 37 `loose`, 12
+`toc`), 1,032 of them in the T-MEC and 173 in `11293` (SOLAS); the laws' four rows are `lfcsq`'s and the reglamentos' twenty
+`1000`'s. Why: a `heading` or `intro` unit's text carries the containers in front of it (`CAPÍTULO 3 COMERCIO > ANEXO 3-A ...`),
+so an annex that moves under its chapter changes the text of its heading, its introduction and everything it holds; the
+epigraph an annex or appendix now takes as its heading (`lfcsq`'s `APÉNDICE DOS` is `ESTADOS PARTE`, not `DOS`) leaves the
+introduction; and the tariff appendix of annex `2-C` is one appendix now, so its tables are cut at other rows. The `loose`
+excerpts fall by six (5,674 to 5,668).
+
+**Re-embedding on `cemieredes`** (`plan_shards.py --against` each work directory's own runs, one plan for both models,
+`already_embedded()` equal between them in every collection; the old `shards.json`, `publish/` and `runs/*/manifest.json`
+removed first and the previous metadata kept in `emb-run-<c>-052-before-fix3/`): 3, 12, 1 and 12 shards of 3, 17, 1 and 1,528
+texts, 0 failed, both models, `merge_shards.py` with `missing_vectors` 0. The 4B's weights had to be downloaded again
+(they are deleted after each run) and the download, resumed once after a background limit cut it, was the slowest step; no shard waited for the queue.
+`compare_merges.py` against the published merges: **all eight runs clean** (0 texts with another vector, 0 non-finite, 196,
+535, 100 and 1,148 differing files per model, the same files as after fix-2; 316, 1,084, 127 and 1,374 files rebuilt).
+`package_vectors.py` wrote `emb-run-<c>-052/publish/PUBLICAR.md` again (632, 2,168, 254 and 2,748 vector files in 1, 3, 1
+and 3 parts; no stale asset on any live release) and `stage_vectors_cache.py` rebuilt `emb-run-vectors-052-cache/`
+(verified against the sums). Distinct texts are 59,334, 103,001, 5,239 and 48,121.
+
+**The Atlas chain**, from that cache, every script with `--cache-dir`/`LEGALVEC_CACHE_DIR` (the previous work directories
+are `emb-run-atlas*-prev`, the fix-1 ones deleted):
+
+| | fix-2 | now |
+|---|---:|---:|
+| instruments | 2,677 | 2,677 |
+| excerpts (`meta.provisions`) | 214,294 | 214,285 |
+| headings excluded | 33,019 | 33,010 |
+| transitory rows excluded | 22,810 | 22,810 |
+| word-for-word shared rows not counted (0.6B and 4B / BM25) | 2,017 / 2,417 | 2,017 / 2,433 |
+| counted rows (0.6B and 4B / BM25) | 156,448 / 155,992 | 156,448 / 155,975 |
+
+The unique-instrument selection is byte-identical (315 + 864 + 125 + 1,373). The closest instrument is unchanged for 2,666
+of 2,677 under the 0.6B, for all 2,677 under the 4B and for 2,672 under BM25 (`p` changed for 13 instruments, `pc` for 13 and
+28 under BM25). The three `atlas-pairs` sets have 12,715, 12,707 and 12,746 files, as before. The 4B's nearest texts: 158,465
+searched unit rows, 158,257 distinct source texts, 791,285 rows, `agrees_with_nearest` true. The instrument files:
+2,677 files, 340 MB (72.0 MB as the tarball), the re-parse equals the staged units for **all 2,677**, offsets included;
+`loose` 5,674 → 5,668 excerpts (1,469 instruments), `duplicate_number` 7 / 164, `numbering_gap` 31 / 96, `no_articles` 46,
+`no_transitorios` 1,054. 13 entries of `instruments.json` changed.
+
+The evaluations were re-run (`gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`): the gold is exactly fix-2's (253
+instruments, 277 links, `_gold-links.md` byte-identical) and only last digits moved: BM25's mean reciprocal rank on the wide
+gold 0.636 → 0.635, three of that table's intervals (`[−0.020, +0.019]` → `[−0.020, +0.018]`, `[−0.037, +0.010]` →
+`[−0.036, +0.010]`, `[−0.036, +0.010]` → `[−0.035, +0.011]`), the 4B's median rank 31 → 30.5 and the interval of the
+0.6B − BM25 median difference `[−4, +3]` → `[−4.5, +3]`, and one p-value (0.6B − BM25 among the ten closest, 0.15 → 0.16). **No
+conclusion changed.** The page's literals follow and say 17 October 2026, and its two treaty counts moved: the closest
+instrument of 1,303 of 1,373 treaties is a treaty (1,306), and 7 laws and 6 regulations, no guideline, have a treaty as their
+closest. The topics (a draft page) were not regenerated.
+
+**The release sweep** (`test_units_release_sweep.py`, over the four corpora): 15 passed in 40 minutes.
+
+**What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four corpora
+(`scripts/scjn/<c>-release/PUBLICAR.md`, unchanged by this fix), the four vectors releases
+(`emb-run-<c>-052/publish/PUBLICAR.md`, **regenerated**, leyes, reglamentos, lineamientos, tratados), the three `atlas-pairs`
+sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and
+`atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).

@@ -900,8 +900,16 @@ class _Constructor:
         if kind == "container" and marca.get("type") in self.TIPOS_DE_CONTENEDOR:
             akn_type, refers_to = self.TIPOS_DE_CONTENEDOR[marca["type"]]
             coincide, heading = _quita_etiqueta(linea, marca.get("label", ""))
-            if not coincide and clase[0] == "contenedor" and clase[1].get("akn_type") == akn_type:
-                heading = clase[1].get("heading") or heading
+            if clase[0] == "contenedor" and clase[1].get("akn_type") == akn_type:
+                # Review fix-3 of #291: unless the label's number extends the
+                # text's -- `ANEXO 2-A:` read by the text alone is annex `2`
+                # titled `A` -- and then what follows the label is the title.
+                extiende = coincide and _extiende(
+                    _forma_comparable(marca.get("num", "")),
+                    _forma_comparable(clase[1].get("num") or ""),
+                )
+                if not extiende:
+                    heading = clase[1].get("heading") or heading
             return "contenedor", {
                 "akn_type": akn_type,
                 "num": _limpia(marca.get("num", "")) or None,
@@ -1005,11 +1013,13 @@ class _Constructor:
         if self._i in self._aperturas:
             # Rule 28 (review fix-3 of #291): a text of its own -- the
             # `RESOLUCIÓN MSC.411(97)` a treaty prints after the code it amends --
-            # is not part of the appendix, the annex or the chapter that came
-            # before it: it hangs from the body, a sibling of the instrument's
-            # own parts, whatever was open.
-            self._pila.clear()
-            self._transitorios = None
+            # is not part of the annex or appendix that came before it: when one
+            # is open it hangs from the body, a sibling of the instrument's own
+            # parts. (Without an attachment open the section stays where rule 23
+            # put it: `DISPOSICIONES GENERALES` inside the chapter that holds it.)
+            if any(n.akn_type == "attachment" for _, n in self._pila):
+                self._pila.clear()
+                self._transitorios = None
             etiqueta = _limpia(marca.get("label", "")) or "section"
             nodo = self._nuevo_nodo("section", bloque.start, bloque.end, num=etiqueta)
             nodo.heading = None

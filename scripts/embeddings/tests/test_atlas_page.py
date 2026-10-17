@@ -629,16 +629,16 @@ def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_th
                                    "scjn-tratados-vectors"]
     treaties = [e for e in default["instruments"] if e["c"] == "tratados"]
     closest = [default["instruments"][e["out"][0][0]]["c"] for e in treaties if e["out"]]
-    assert closest.count("tratados") == 1306 and len(treaties) == 1373
+    assert closest.count("tratados") == 1303 and len(treaties) == 1373
     others = [e for e in default["instruments"] if e["c"] != "tratados" and e["out"]]
     by = {}
     for e in others:
         if default["instruments"][e["out"][0][0]]["c"] == "tratados":
             by[e["c"]] = by.get(e["c"], 0) + 1
-    assert by == {"leyes": 7, "reglamentos": 6, "lineamientos": 1}
+    assert by == {"leyes": 7, "reglamentos": 6}
     flat = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert "For 1,306 of the 1,373 treaties the closest instrument is another treaty" in flat
-    assert "only 7 laws, 6 regulations and 1 guideline have a treaty as their closest instrument" in flat
+    assert "For 1,303 of the 1,373 treaties the closest instrument is another treaty" in flat
+    assert "only 7 laws and 6 regulations have a treaty as their closest instrument" in flat
 
 
 def test_the_qmd_has_the_evaluation_section_with_its_numbers():
@@ -663,8 +663,8 @@ def test_the_qmd_has_the_evaluation_section_with_its_numbers():
         header = table.splitlines()[0]
         assert "0.6B" in header and "4B" in header and "BM25" in header
     for literal in ("162", "172", "253", "277", "62", "7,121", "5,256", "1,925", "323", "219",
-                    "4,529", "4,512", "1,936", "2,576", "0.274", "0.246", "0.252", "31", "39",
-                    "16 October 2026", "2,676", "2,677"):
+                    "4,529", "4,512", "1,936", "2,576", "0.274", "0.246", "0.252", "30.5", "39",
+                    "17 October 2026", "2,676", "2,677"):
         assert literal in flat, literal
     # Every collection is a source and a target, and an instrument never links to itself
     # (review fix-1: the gold used to start only in a regulation or a guideline).
