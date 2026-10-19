@@ -4238,3 +4238,100 @@ closest. The topics (a draft page) were not regenerated.
 (`emb-run-<c>-052/publish/PUBLICAR.md`, **regenerated**, leyes, reglamentos, lineamientos, tratados), the three `atlas-pairs`
 sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and
 `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).
+
+### Measured, the blocks the API calls `other`, divisions and radio-regulations numbering, 2026-10-19 (review fix-4 of issue #291)
+
+Fix-2 left **7 instruments and 164 excerpts** with a repeated article number and called it the SCJN's own numbering; the
+repository owner's rule stayed the same (a number repeats only when it is the same identifier, the goal is zero) and the
+`loose` text, 5,668 excerpts, was the other thing still unread. Both came from the same place: the API blocks it labels
+`kind=other`, where a whole text (a model certificate, the Radio Regulations' articles and appendices, an amending
+resolution) is served under one label. Four rules, 29 to 32 of `md2akn.text_units` (`md2akn` and `scjn` stay 0.5.1; no rule
+names an instrument and a document with no marker parses byte for byte as before: `test_other_blocks.py` and the fixtures
+pin it).
+
+* **Rule 29.** Every `other` block is an `hcontainer` (Akoma Ntoso's generic container), eId and `num` derived from its
+  label, its leading text its `intro`. A role table (`md2akn.outline.ROLES_DE_ETIQUETA`, matched against the *whole* folded
+  label, so `RESERVAS AL REGLAMENTO DE RADIOCOMUNICACIONES` is no `RESERVAS`) gives `refersTo`: `PARTE FINAL ...` is
+  `#conclusions`, `NOTA EXPLICATIVA`/`NOTAS` `#note`, the steps of the Mexican promulgation decree (`FIRMA`, `APROBACIÓN`,
+  `RESERVA(S)`, `RATIFICACIÓN Y DEPÓSITO`, `PROMULGACIÓN`, `CERTIFICACIÓN`, `DECLARACIÓN ...`, `ADOPCIÓN`, `ADHESIÓN`,
+  `DEPÓSITO`, `NOTIFICACIÓN`) are **kept together** under one `#promulgation` container, and `RESOLUCIÓN ...` is the
+  amending-resolution container of rule 28. A block that clears the stack (a role) hangs from the body, never inside the
+  annex before it. An API `provision` block (`PRIMERO.-` of an acuerdo) is an article. Over the 2,677 instruments the
+  vocabulary is **10,919 blocks in 1,968 shapes** once digits are folded (`measure_loose.py --other-labels`):
+
+  | | promulgation | conclusions | note | resolution | folded into the block before (rule 30) | generic |
+  |---|---:|---:|---:|---:|---:|---:|
+  | leyes | 5 | 0 | 0 | 11 | 0 | 115 |
+  | reglamentos | 8 | 54 | 0 | 0 | 0 | 847 |
+  | lineamientos | 29 | 13 | 0 | 0 | 0 | 330 |
+  | tratados | 5,200 | 2,284 | 6 | 136 | 51 | 1,830 |
+
+  The commonest shapes are `PROMULGACIÓN` (1,194 treaties), `APROBACIÓN` (1,120), `CERTIFICACIÓN` (1,065), `FIRMA` (1,029),
+  `PARTE FINAL DEL DECRETO PROMULGATORIO` (1,027), `PARTE FINAL DEL CONVENIO` (401), `PARTE FINAL DEL ACUERDO` (355),
+  `CANJE DE NOTAS` (245); what is left is each instrument's own section titles (`OBJETIVO`, `PRESENTACIÓN`, `MARCO JURÍDICO`),
+  which stay generic containers. `RESERVAS` alone is a promulgation step, though in 2 instruments it is a numbered section
+  of the treaty itself (`22592`): not special-cased.
+* **Rule 30.** A title block and the block labelled `CONTENIDO <title>` that follows it (`ARTÍCULOS` + `CONTENIDO ARTICULOS`,
+  51 pairs, all in treaties) are one container.
+* **Rule 31.** A numbering that starts over inside one block opens a **division** (`hcontainer`, `refersTo="#division"`,
+  or `#form` for a model certificate). It is only needed where an article took a `_2` suffix, it opens at the nearest heading
+  in the gap since the previous article that reads as one (a *strong* one: a document title, `A.II - VENTANAS`, a line with a
+  colon of five words; else a *weak* one: a short plain line such as `Artículos que se refieren al Comité Ejecutivo`), and
+  where the run of numbers that restarted begins (`divisions.inicio_de_la_serie`). **With no heading there is no division and
+  the repeat stays**, flagged on both claimants; nothing is merged, dropped or renumbered afterwards. The boxes of a model
+  certificate (`MODELO DE CERTIFICADO ...`, or only `(VÉASE ARCHIVO ANEXO)` + `SE CERTIFICA:` for the ones whose title is a
+  picture) are not articles; a numeral followed by a lower-case word (`1.1. cuando las propiedades ...`) is a value, not an
+  opener (`3. a) Por ...` is still a provision: a lettered paragraph follows); a numeral equal to the number of the article
+  just above is that article's paragraph.
+* **Rule 32.** The number grammar of the marker path reads `S5.43`/`5.43A` (a radio-regulations provision, under its
+  `ARTÍCULO S5` section and its `APÉNDICE S30` appendix), a mixed-case `Artículo Primero.-` inside transitorios and the
+  caption line the SCJN prints *before* an article's heading (`Objeto` over `Artículo 1`) as the start of that article. A
+  `(NOTA: ...)` before a container or article heading is an annotation, and the marker of the block that follows an index
+  is not an entry of it.
+
+**The seven instruments, cause by cause** (all zero now, measured by `measure_loose.py`; `measure_outline_repeats.py` agrees):
+
+| treaty | what repeated | what reads it |
+|---|---|---|
+| `11293` (the SOLAS amendments, `RESOLUCIÓN MSC.496/497(105)`) | an appendix of five model certificates, each numbering its boxes `2.1` ... in lower-case text; only the first has a `MODELO DE ...` heading, the others only `(VÉASE ARCHIVO ANEXO)` + `SE CERTIFICA:` | rule 31, forms (192 → 104 articles: the boxes are no longer articles) |
+| `96728` | appendix 2 of Part 3 holds subdivisions `A.I - VENTANAS`, `A.II - ...`, each restarting at `1.1`; and the SCJN prints `1.1` twice running where the second is `1.1.1` | rule 31, strong headings; the repeated numeral is a paragraph |
+| `23774`, `22834` | the articles restart after a plain, non-bold line (`Artículos que se refieren al Comité Ejecutivo`, `Artículos 33 a 63 (numerados ...`) | rule 31, weak headings |
+| `44552`, `47860` | the Radio Regulations: `APÉNDICE S30` read as a number, `ARTÍCULO 2A (CMR-03)`, `ARTÍCULO 9**A`, a `SUP` and an `ADD` of the same `9A` | rule 32, and a run of one at an equal number |
+| `96707` | `1.1. cuando ...`/`1.0. cuando ...` are values of a table, read as decimal articles | rule 31, lower-case guard |
+
+**`loose` before and after** (`measure_loose.py`, the newest snapshot of the 2,677 instruments, before at `ac60a1d0^` ):
+
+| collection | instruments with `loose` | excerpts before → after |
+|---|---:|---:|
+| leyes | 139 → 22 | 1,231 → 95 |
+| reglamentos | 189 → 58 | 875 → 104 |
+| lineamientos | 69 → 23 | 440 → 44 |
+| tratados | 1,072 → 98 | 3,122 → 205 |
+
+**5,668 → 448**, and `duplicate_number` **164 → 0** excerpts in every collection. By the API block the `loose` text started
+in, before: `decree` 1,161 (the mixed-case `Artículo Primero.-` and the editorial titles of a decree's transitorios), `other`
+3,114, `provision` 331, `preamble` 387, `article` 327, `container` 149, `transitorios` 160. The ten sampled instruments the
+issue named: `44552` 266 → 3, `84855` 221 → 0, `47860` 165 → 2, `84183` 126 → 0, `952` 124 → 0, `lfd` 118 → 6, `cpeum` 107 → 0,
+`cff` 95 → 6, `lfisan` 62 → 43, `lieps` 57 → 0. **What remains** is a handful of shapes, none of them a parse error of a
+number or a heading, and none fixed (a rule for any of them would be a guess at what the Court's text means):
+a container that has only its own heading lines and no body (the annex list printed as bare bold headings `**ANEXO A**
+**ANEXO B**`, a chapter whose text is `...` or `[...]`, 117 treaty and 44 law/regulation excerpts); an index printed inside
+an `other` block (`ÍNDICE DE MATERIAS` of `43712`, `50540`); a decree's own dated headings with nothing under them
+(`**D.O.F. 24 DE DICIEMBRE DE 2020.**`, `ladua`, `lfd`, `lacp`); a table or a lettered list in a decree's transitorios
+(`lfisan`'s `**A.** Tarifa para determinar ...`, 43 of the 448); and a title or a list of countries under `TRANSITORIOS`.
+
+**Trees, before and after** (`measure_trees.py`, a digest of every node's type, eId, `refersTo` and `repeated`, and of every unit's
+type, eId and `text_sha1`, over the same instruments):
+
+| collection | instruments | trees changed | units changed | nodes: `hcontainer` | `intro` | `article` |
+|---|---:|---:|---:|---:|---:|---:|
+| leyes | 315 | 136 | 135 | +32 | +639 | +437 |
+| reglamentos | 864 | 207 | 194 | +410 | +522 | +665 |
+| lineamientos | 125 | 80 | 77 | +344 | +197 | +910 |
+| tratados | 1,373 | 1,330 | 1,329 | +11,407 | +8,984 | +376 |
+
+The reach is wide on purpose (every treaty has a promulgation decree, almost every lineamiento an acuerdo of `PRIMERO.-`
+provisions) and every gain is a labelled block or provision that used to be loose text. **Four instruments lose articles**,
+each explained: `11293` 192 → 104 (the certificates' boxes), `96728` 1,082 → 1,081 (the `1.1` that is a paragraph),
+`22592` 25 → 24 (`RESERVAS`, see above) and `23818` 8 → 7 (`29.1 a 29.3 [Sin cambios]`, a range, no longer an opener). The
+four fixed structures of fix-3 (`96728`, `103948`, `114738`, `137355`) and `96707` are unchanged.
