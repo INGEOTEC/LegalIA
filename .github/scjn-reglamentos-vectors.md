@@ -65,14 +65,14 @@ promedia); cada texto truncado queda contado en `vectors-manifest.json`
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | 103 001 | 103 001 |
-| De los cuales compartidos | 4 344 | 4 344 |
-| Tamaño | 162 MB | 392 MB |
+| Vectores | 103 457 | 103 457 |
+| De los cuales compartidos | 4 469 | 4 469 |
+| Tamaño | 162 MB | 394 MB |
 
-Corpus: 1 083 reglamentos, 112 962 unidades, **103 001 textos distintos**,
+Corpus: 1 083 reglamentos, 113 572 unidades, **103 457 textos distintos**,
 `cap` 2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos
 decimales, las introducciones de contenedor y las tablas, y la revisión de los números
-de artículo repetidos: reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24); los 30 artículos romanos del
+de artículo repetidos: reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24, y revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32); los 30 artículos romanos del
 reglamento 182464 ya son unidades de artículo, issue #279). Los otros 4 instrumentos del
 release `scjn-reglamentos` no aparecen: la SCJN los clasifica pero no sirve
 texto consolidado de ninguno (`snapshots: 0`, issue #222, decisión 6).
