@@ -4335,3 +4335,83 @@ provisions) and every gain is a labelled block or provision that used to be loos
 each explained: `11293` 192 → 104 (the certificates' boxes), `96728` 1,082 → 1,081 (the `1.1` that is a paragraph),
 `22592` 25 → 24 (`RESERVAS`, see above) and `23818` 8 → 7 (`29.1 a 29.3 [Sin cambios]`, a range, no longer an opener). The
 four fixed structures of fix-3 (`96728`, `103948`, `114738`, `137355`) and `96707` are unchanged.
+
+**Units.** `compare_units.py` against fix-3's own, both `--no-split-articles`:
+
+| collection | rows before → after | instruments differing | with a new text | only relabelled | distinct new texts | encoded (not embedded by an earlier run) |
+|---|---|---:|---:|---:|---:|---:|
+| leyes | 68,870 → 68,794 | 135 | 80 | 45 | 445 | 445 |
+| reglamentos | 112,962 → 113,572 | 244 | 185 | 59 | 2,115 | 1,967 |
+| lineamientos | 5,608 → 6,242 | 78 | 76 | 2 | 1,377 | 1,211 |
+| tratados | 49,953 → 56,395 | 1,329 | 1,327 | 2 | 14,246 | 14,153 |
+
+By `unit_type`, `loose` falls from 1,231, 1,032, 440 and 3,122 rows to 95, 121, 51 and 208 and `intro` rises (621 → 1,293 in the
+laws, 1,653 → 2,803, 385 → 552 and 6,024 → 16,175): the text that was loose is an introduction of the block that holds it
+now. Each of the 18,178 distinct new texts needed a vector: a heading's or an introduction's text carries the containers in
+front of it, so an instrument that gains a promulgation container, a division or a block of its own changes the text of
+everything inside it.
+
+**Re-embedding on `cemieredes`** (`plan_shards.py --against` each work directory's own runs, one plan for both models,
+`already_embedded()` equal between them in every collection; the work directories are copies of fix-3's, `emb-run-<c>-053/`,
+with the old `shards.json`, `publish/` and `runs/*/manifest.json` removed first): 3, 3, 3 and 6 shards of 445, 1,967, 1,211
+and 14,153 texts, 0 failed, both models, `merge_shards.py` with `missing_vectors` 0 (the first plan was made before the
+index fix of this issue's last commit and was thrown away with its Slurm jobs, before any shard ran). The three GPUs
+were held by other users for about two hours (the queue said `Resources`, never `Priority` alone) and then every shard of
+the day, four collections and both models, ran in 11 minutes. `compare_merges.py` against fix-3's merges: **all eight runs
+clean** (0 texts with another vector, 0 non-finite, no file gained or lost; 83, 186, 76 and 1,325 differing files per model
+of 316, 1,084, 127 and 1,374). `package_vectors.py` wrote `emb-run-<c>-053/publish/PUBLICAR.md` (166, 372, 152 and 2,650 same-name
+changed files for the `--clobber` block; the same asset counts as before, 632, 2,168, 254 and 2,748 vector files in 1, 3, 1
+and 3 parts, no stale asset on any live release), the four `.github/scjn-*-vectors*.md` bodies carry the new counts (distinct
+texts 59,235, 103,457, 5,856 and 54,141; the leyes body also had its truncated-text count wrong since fix-2: 2, not 1), and
+`stage_vectors_cache.py` built `emb-run-vectors-053-cache/` (verified against the sums).
+
+**The Atlas chain**, from that cache, every script with `--cache-dir`/`LEGALVEC_CACHE_DIR` (the previous work directories
+were moved to `emb-run-atlas*-prev` and deleted once the new ones had passed):
+
+| | fix-3 | now |
+|---|---:|---:|
+| instruments | 2,677 | 2,677 |
+| excerpts (`meta.provisions`) | 214,285 | 221,698 |
+| headings excluded | 33,010 | 32,989 |
+| transitory rows excluded | 22,810 | 22,477 |
+| word-for-word shared rows not counted (0.6B and 4B / BM25) | 2,017 / 2,433 | 2,438 / 2,865 |
+| counted rows (0.6B and 4B / BM25) | 156,448 / 155,975 | 163,794 / 163,360 |
+| distinct texts | 214,285 − dups | 202,951 |
+
+The unique-instrument selection is unchanged (315 + 864 + 125 + 1,373). The closest instrument is unchanged for **2,377 of
+2,677** under the 0.6B, 2,377 under the 4B and 2,355 under BM25 (it was 2,666, 2,677 and 2,672 after fix-3): this rebuild
+moves much more than the earlier ones, because 7,413 excerpts that used to be loose text, a table of a treaty or one
+giant article are articles and introductions now, and 14,246 new texts took part in the comparison. `p` changed for 1,560
+instruments, `pc` for 1,497 (1,514 under BM25). The three `atlas-pairs` sets have 12,930, 12,909 and 12,939 files (12,715,
+12,707 and 12,746 before). The 4B's nearest texts: 166,232 searched unit rows, 166,082 distinct source texts, 830,410 rows,
+`agrees_with_nearest` true. The instrument files: 2,677 files, 349.5 MB (73.5 MB as the tarball), the re-parse equals
+the staged units for **all 2,677**, offsets included; the flags are `loose` 448 excerpts in 201 instruments (5,668 before),
+**`duplicate_number` none** (7 instruments and 164 excerpts before), `numbering_gap` 157 in 31, `over_window` 1,
+`no_articles` 34 (46) and `no_transitorios` 1,054.
+
+The evaluations were re-run (`gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`): the gold is the same size (A
+162, B 172, 253 instruments, 277 links, 62 unresolved names) and `_gold-links.md` changed only in the excerpt a link was read
+from (`art_PRIMERO` where it was `intro`, `hc_PREÁMBULO__intro` where it was `intro`). Signal C grew a little (7,145 citations
+in 5,295 distinct excerpts, 4,570 citing exactly one instrument; 204 self-citations; 326 cited instruments) and the rows it
+scores fell from 4,512 to **4,387**: a text that is word for word the text of several instruments is not counted, and 179
+rows (164 under BM25) now are, because the rebuilt units repeat more boilerplate articles across instruments. Numbers that
+moved (all in `website/pages/atlas.qmd`, and its page test): at the instrument level A's closest 101 / 98 / 103 → 101 / 99 / 103, the
+five closest 133 / 135 / 137 → 133 / 137 / 138, A and B's 127 / 125 / 132 → 127 / 126 / 130 and 197 / 200 / 199 → 198 / 203
+/ 199, the mean reciprocal ranks 0.623 / 0.624 / 0.635 → 0.626 / 0.629 / 0.633; at the row level recall@5 0.246 / 0.274 / 0.252 →
+0.256 / 0.286 / 0.260, the median rank 39 / 30.5 / 40 → 35 / 26 / 34 and the Constitution is cited by 1,766 of the excerpts
+(1,936). **No conclusion changed**: the three data sets are tied on the closest and the five closest instruments, on both
+golds and against every pair; row by row the 4B is better than the 0.6B on all five measures and better than BM25 on four
+(not on the share of excerpts whose cited instrument is first), and the 0.6B and BM25 are tied on all five. The page's
+literals follow and say 19 October 2026, and two treaty counts moved: the closest instrument of 1,319 of 1,373 treaties is
+a treaty (1,303), and 7 laws, 6 regulations and 1 guideline have a treaty as their closest. The topics (a draft page) were
+not regenerated.
+
+**The release sweep** (`test_units_release_sweep.py`, over the four corpora): 15 passed in 39 minutes.
+`scripts/embeddings/tests` (Chromium with `libnspr4`/`libnss3` unpacked from the Debian packages into `/tmp/nsslibs`, the
+cluster venv without `bm25s` on `PYTHONPATH=~/.cache/legalia-pylibs`): see the commit.
+
+**What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four corpora
+(`scripts/scjn/<c>-release/PUBLICAR.md`, unchanged by this fix), the four vectors releases
+(`emb-run-<c>-053/publish/PUBLICAR.md`, **regenerated**, leyes, reglamentos, lineamientos, tratados), the three `atlas-pairs`
+sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and
+`atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).
