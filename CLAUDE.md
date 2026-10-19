@@ -1109,6 +1109,32 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   digits moved; the closest instrument of 1,303 of 1,373 treaties is a treaty, 7 laws and 6 regulations and no guideline have a
   treaty as their closest). The release sweep passes (15 in 40 minutes). **Nothing was published**; the publish order is the one
   above, with the four vectors releases, the three `atlas-pairs` sets and `atlas-instruments` regenerated.
+- **The blocks the API calls `other`, divisions and radio-regulations numbering, rules 29 to 32 (review fix-4 of #291,
+  found after the fact; fix-2's "the SCJN's own numbering" was still wrong for the last 7).** The 164 repeated-number
+  excerpts of 7 treaties and 5,668 `loose` excerpts all came from the API blocks the SCJN labels `kind=other`, where a whole text
+  (a model certificate, the Radio Regulations, an amending resolution) is served under one label. **Rule 29**, every such block
+  is an `hcontainer` (new `AKN_TYPES` member, eId derived from the label, its leading text its `intro`) with an explicit,
+  tested role table (`md2akn.outline.ROLES_DE_ETIQUETA`, matched on the *whole* folded label): `PARTE FINAL ...`
+  `#conclusions`, `NOTA EXPLICATIVA`/`NOTAS` `#note`, the steps of the Mexican promulgation decree kept together under one
+  `#promulgation`, `RESOLUCIÓN ...` rule 28's container; an API `provision` is an article; the whole `other` vocabulary (10,919
+  blocks, 1,968 shapes) is tabulated in `scripts/embeddings/README.md`. **Rule 30**, `ARTÍCULOS` + `CONTENIDO ARTICULOS` is one
+  container. **Rule 31**, a numbering that starts over *inside* one block opens a division (`#division`, `#form` for the
+  boxes of a model certificate) at the nearest heading that reads as one, strong before weak, and **with none there is no
+  division and the repeat stays**: nothing is merged, dropped or renumbered afterwards; a numeral before a lower-case word
+  is a value, and one equal to the article above is that article's paragraph. **Rule 32**, `S5.43`/`5.43A`, `ARTÍCULO S5`,
+  `APÉNDICE S30`, a mixed-case `Artículo Primero.-` in transitorios and the caption line before an article's heading.
+  Every rule applies only to a document with outline markers; no rule names an instrument; `md2akn` and `scjn` stay 0.5.1.
+  Result over the 2,677 instruments (`scripts/embeddings/measure_loose.py`, `measure_trees.py`): `loose` 5,668 → 448 excerpts,
+  repeats 164 → **0** (all seven treaties resolved, each cause recorded in the README), 4 treaties lose articles and every
+  loss is explained. What stays `loose` is a container with only its own heading lines, an index printed inside an `other`
+  block, a decree's dated headings with nothing under them and a lettered table in a decree's transitorios. The four
+  corpora's units, the four vectors releases (445, 2,115, 1,377 and 14,246 new texts, 3/3/3/6 shards, 0 failed,
+  `compare_merges` clean for all eight runs), the Atlas data sets, the three pair sets, the nearest texts, the 2,677 instrument
+  files, the evaluations (no conclusion changed) and the page's literals were rebuilt without re-crawling; the closest instrument
+  moved for 300 of 2,677 under the 0.6B (7,413 more excerpts). The Instruments page's outline names every labelled block by
+  its role (`Promulgation decree`, `Note`, `Closing formulas`, `Form`, `Division`, else `Block: <label>`). The release sweep
+  passes (15 in 39 minutes). **Nothing was published**; the human order is: the four corpora, the four vectors releases
+  (`emb-run-<c>-053/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 
