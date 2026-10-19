@@ -4299,7 +4299,7 @@ pin it).
 | `44552`, `47860` | the Radio Regulations: `APÉNDICE S30` read as a number, `ARTÍCULO 2A (CMR-03)`, `ARTÍCULO 9**A`, a `SUP` and an `ADD` of the same `9A` | rule 32, and a run of one at an equal number |
 | `96707` | `1.1. cuando ...`/`1.0. cuando ...` are values of a table, read as decimal articles | rule 31, lower-case guard |
 
-**`loose` before and after** (`measure_loose.py`, the newest snapshot of the 2,677 instruments, before at `ac60a1d0^` ):
+**`loose` before and after** (`measure_loose.py`, the newest snapshot of the 2,677 instruments, before is the parser of `3eda43a6`):
 
 | collection | instruments with `loose` | excerpts before → after |
 |---|---:|---:|
@@ -4315,7 +4315,7 @@ issue named: `44552` 266 → 3, `84855` 221 → 0, `47860` 165 → 2, `84183` 12
 `cff` 95 → 6, `lfisan` 62 → 43, `lieps` 57 → 0. **What remains** is a handful of shapes, none of them a parse error of a
 number or a heading, and none fixed (a rule for any of them would be a guess at what the Court's text means):
 a container that has only its own heading lines and no body (the annex list printed as bare bold headings `**ANEXO A**
-**ANEXO B**`, a chapter whose text is `...` or `[...]`, 117 treaty and 44 law/regulation excerpts); an index printed inside
+**ANEXO B**`, a chapter whose text is `...` or `[...]`, 117 treaty and 48 law, regulation and guideline excerpts); an index printed inside
 an `other` block (`ÍNDICE DE MATERIAS` of `43712`, `50540`); a decree's own dated headings with nothing under them
 (`**D.O.F. 24 DE DICIEMBRE DE 2020.**`, `ladua`, `lfd`, `lacp`); a table or a lettered list in a decree's transitorios
 (`lfisan`'s `**A.** Tarifa para determinar ...`, 43 of the 448); and a title or a list of countries under `TRANSITORIOS`.
