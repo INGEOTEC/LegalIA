@@ -4356,8 +4356,8 @@ everything inside it.
 with the old `shards.json`, `publish/` and `runs/*/manifest.json` removed first): 3, 3, 3 and 6 shards of 445, 1,967, 1,211
 and 14,153 texts, 0 failed, both models, `merge_shards.py` with `missing_vectors` 0 (the first plan was made before the
 index fix of this issue's last commit and was thrown away with its Slurm jobs, before any shard ran). The three GPUs
-were held by other users for about two hours (the queue said `Resources`, never `Priority` alone) and then every shard of
-the day, four collections and both models, ran in 11 minutes. `compare_merges.py` against fix-3's merges: **all eight runs
+were held by other users for about two hours, and then every shard of the day, four collections and both models, ran
+in about 12 minutes. `compare_merges.py` against fix-3's merges: **all eight runs
 clean** (0 texts with another vector, 0 non-finite, no file gained or lost; 83, 186, 76 and 1,325 differing files per model
 of 316, 1,084, 127 and 1,374). `package_vectors.py` wrote `emb-run-<c>-053/publish/PUBLICAR.md` (166, 372, 152 and 2,650 same-name
 changed files for the `--clobber` block; the same asset counts as before, 632, 2,168, 254 and 2,748 vector files in 1, 3, 1
@@ -4376,7 +4376,7 @@ were moved to `emb-run-atlas*-prev` and deleted once the new ones had passed):
 | transitory rows excluded | 22,810 | 22,477 |
 | word-for-word shared rows not counted (0.6B and 4B / BM25) | 2,017 / 2,433 | 2,438 / 2,865 |
 | counted rows (0.6B and 4B / BM25) | 156,448 / 155,975 | 163,794 / 163,360 |
-| distinct texts | 214,285 − dups | 202,951 |
+| distinct vector rows | not recorded | 202,951 |
 
 The unique-instrument selection is unchanged (315 + 864 + 125 + 1,373). The closest instrument is unchanged for **2,377 of
 2,677** under the 0.6B, 2,377 under the 4B and 2,355 under BM25 (it was 2,666, 2,677 and 2,672 after fix-3): this rebuild
@@ -4390,11 +4390,11 @@ the staged units for **all 2,677**, offsets included; the flags are `loose` 448 
 `no_articles` 34 (46) and `no_transitorios` 1,054.
 
 The evaluations were re-run (`gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`): the gold is the same size (A
-162, B 172, 253 instruments, 277 links, 62 unresolved names) and `_gold-links.md` changed only in the excerpt a link was read
-from (`art_PRIMERO` where it was `intro`, `hc_PREÁMBULO__intro` where it was `intro`). Signal C grew a little (7,145 citations
+162, B 172, 253 instruments, 277 links, 62 unresolved names) and `_gold-links.md` changed only in the eId of the excerpt a link
+was read from (`cap_I__art_PRIMERO` where it was `cap_I__intro`, `hc_PREÁMBULO__intro` where it was `p_content`). Signal C grew a little (7,145 citations
 in 5,295 distinct excerpts, 4,570 citing exactly one instrument; 204 self-citations; 326 cited instruments) and the rows it
 scores fell from 4,512 to **4,387**: a text that is word for word the text of several instruments is not counted, and 179
-rows (164 under BM25) now are, because the rebuilt units repeat more boilerplate articles across instruments. Numbers that
+rows (164 under BM25) now are, against 17 before. Numbers that
 moved (all in `website/pages/atlas.qmd`, and its page test): at the instrument level A's closest 101 / 98 / 103 → 101 / 99 / 103, the
 five closest 133 / 135 / 137 → 133 / 137 / 138, A and B's 127 / 125 / 132 → 127 / 126 / 130 and 197 / 200 / 199 → 198 / 203
 / 199, the mean reciprocal ranks 0.623 / 0.624 / 0.635 → 0.626 / 0.629 / 0.633; at the row level recall@5 0.246 / 0.274 / 0.252 →
