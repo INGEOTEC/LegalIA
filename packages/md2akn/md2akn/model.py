@@ -46,6 +46,14 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 #: `ANEXO` or `APÉNDICE` (told apart by `refers_to`) and a `toc` a table of
 #: contents.
 #:
+#: `hcontainer` (review fix-4 of #291, rules 29 to 31) is Akoma Ntoso's generic
+#: hierarchical container: a block the SCJN's API labels with a name no
+#: container word covers (`NOTA EXPLICATIVA`, `FIRMA`, `PARTE FINAL DEL
+#: ACUERDO`), the group of blocks a Mexican promulgation decree is made of, and a
+#: division a restart of numbering opens (a model certificate, an appendix of
+#: amendments). What it is a division *of* is its `refers_to` (`#promulgation`,
+#: `#note`, `#conclusions`, `#form`) or, for a plain division, nothing.
+#:
 #: `intro` and `table` (issue #291) are Akoma Ntoso's own elements: `<intro>`
 #: is the text a container opens with before its first child, and a table is
 #: a block (`<table>`/`<tr>`/`<td>`) inside a container's intro or content --
@@ -62,6 +70,7 @@ AKN_TYPES = (
     "chapter",      # CAPÍTULO
     "section",      # SECCIÓN, and TRANSITORIOS via refers_to
     "level",        # APARTADO A/B, via refers_to
+    "hcontainer",   # a labelled block or division (rules 29-31, review fix-4 of #291)
     "intro",        # a container's introductory text (rule 12, issue #291)
     "article",      # Artículo N
     "paragraph",    # fracción
@@ -81,6 +90,13 @@ REFERS_TO_APARTADO = "#apartado"
 #: (rule 16, review fix-1 of #291).
 REFERS_TO_ANEXO = "#anexo"
 REFERS_TO_APENDICE = "#apendice"
+#: What an `hcontainer` is (rules 29 and 31, review fix-4 of #291). A plain
+#: block or division carries no `refers_to`.
+REFERS_TO_PROMULGACION = "#promulgation"   # the Mexican decree's own blocks, grouped
+REFERS_TO_CONCLUSIONES = "#conclusions"    # `PARTE FINAL ...`
+REFERS_TO_NOTA = "#note"                   # `NOTA EXPLICATIVA`, `NOTAS`
+REFERS_TO_FORMULARIO = "#form"             # a model certificate or form
+REFERS_TO_DIVISION = "#division"           # a division a restart of numbering opened
 
 #: eId path separator, as Akoma Ntoso names them: an inciso a) of fracción II
 #: of article 27 is `art_27__para_II__point_a`.

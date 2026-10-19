@@ -31,6 +31,7 @@
     chapter: "capítulo",
     section: "sección",
     level: "apartado",
+    hcontainer: "bloque",
     article: "artículo",
     paragraph: "fracción",
     point: "inciso",
@@ -40,7 +41,18 @@
   // What an `attachment` is called, from its `refersTo` and never from its eId: md2akn
   // types an annex and an appendix alike (Akoma Ntoso's `attachment`).
   const ATTACHMENT_NAMES = { "#anexo": "Annex", "#apendice": "Appendix" };
-  const CONTAINERS = new Set(["book", "title", "chapter", "section", "level", "part", "attachment"]);
+  // What an `hcontainer` is, from its `refersTo` (md2akn's rules 29 to 31): the Mexican
+  // promulgation decree's blocks grouped, a note, a closing formula, a model certificate or
+  // form, a division a restarted numbering opened, and any other block the Court labels
+  // (named by its own label).
+  const HCONTAINER_NAMES = {
+    "#promulgation": "Promulgation decree",
+    "#note": "Note",
+    "#conclusions": "Closing provisions",
+    "#form": "Form",
+    "#division": "Division",
+  };
+  const CONTAINERS = new Set(["book", "title", "chapter", "section", "level", "part", "attachment", "hcontainer"]);
   const FLAG_ORDER = [
     "loose",
     "duplicate_number",
@@ -863,6 +875,13 @@
       function outlineLabel(node) {
         if (node.t === "intro") return "Introduction";
         if (node.t === "table") return `Table ${node.n || ""}`.trim();
+        if (node.t === "hcontainer") {
+          // The group of decree blocks needs no label (its name says it); every other
+          // one is named by what it is and by the Court's own label, when it has one.
+          if (node.r === "#promulgation") return HCONTAINER_NAMES[node.r];
+          const kind = HCONTAINER_NAMES[node.r] || "Block";
+          return node.n ? `${kind}: ${node.n}` : kind;
+        }
         const term = TERMS[node.t] || node.t;
         const name =
           node.t === "attachment" && ATTACHMENT_NAMES[node.r]

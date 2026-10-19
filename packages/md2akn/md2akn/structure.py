@@ -45,11 +45,28 @@ import re
 
 from md2akn.annotations import es_anotacion, parse_annotation
 from md2akn.lists import ConstructorDeArticulo, Pendientes
-from md2akn.outline import lee_marcador
+from md2akn.divisions import (
+    ARTICULO_ORDINAL_MIXTO,
+    ENCABEZADO_APENDICE_RR,
+    ENCABEZADO_ARTICULO_RR,
+    PROVISION_RR,
+    SE_CERTIFICA,
+    VEASE_ARCHIVO_ANEXO,
+    encabezado_debil,
+    encabezado_fuerte,
+    es_encabezado_de_formulario,
+    inicio_de_la_serie,
+)
+from md2akn.outline import es_continuacion, lee_marcador, rol_de_etiqueta
 from md2akn.model import (
     REFERS_TO_ANEXO,
     REFERS_TO_APARTADO,
     REFERS_TO_APENDICE,
+    REFERS_TO_CONCLUSIONES,
+    REFERS_TO_DIVISION,
+    REFERS_TO_FORMULARIO,
+    REFERS_TO_NOTA,
+    REFERS_TO_PROMULGACION,
     REFERS_TO_TRANSITORIOS,
     AknNode,
     EIdAllocator,
@@ -100,6 +117,8 @@ PREFIJO_EID = {
     "part": "part",
     "attachment": "att",
     "toc": "toc",
+    # Review fix-4 of #291 (rules 29 to 31): a labelled block or a division.
+    "hcontainer": "hc",
 }
 
 #: The eId prefix of an appendix (rule 26, review fix-3 of #291): AKN types it as
@@ -633,12 +652,22 @@ class _Constructor:
     One instance per document; nothing survives between documents.
     """
 
-    def __init__(self, doc, meta, bloques):
+    def __init__(self, doc, meta, bloques, divisiones=None):
         from md2akn.segmenter import node_span
 
         self._doc = doc
         self._node_span = node_span
         self._bloques = bloques
+        #: Rule 31 (review fix-4 of #291): the blocks that open a division of
+        #: their own, ``{block index: (label, role)}``, as the passes before this
+        #: one asked for them (`pide_divisiones`); the model-certificate headings
+        #: are added below, once the markers are known.
+        self._divisiones: dict[int, tuple[str | None, str | None]] = dict(divisiones or {})
+        self._nodos_division: set[AknNode] = set()
+        self._formularios: set[AknNode] = set()
+        #: The block each article was opened at, ``{eId: block index}`` -- what a
+        #: later pass needs to place a division in front of a restarted series.
+        self._bloque_de_articulo: dict[str, int] = {}
         self._eids = EIdAllocator()
         self._fin_cuerpo = _rango_conclusiones(bloques)
 
@@ -676,6 +705,9 @@ class _Constructor:
         #: The first block of each API block that is not an annotation: the
         #: one the marker's `kind` is about, ``{block index: attributes}``.
         self._primeros: dict[int, dict[str, str]] = {}
+        #: Rule 29: for an article whose caption comes before its heading line,
+        #: ``{heading block index: first block index}``.
+        self._encabezados_de_leyenda: dict[int, int] = {}
         #: Where the marker line not yet claimed by a node starts, so that
         #: node's span is pulled back over it (the way an annotation's is).
         self._marca_inicio: int | None = None
@@ -706,6 +738,7 @@ class _Constructor:
             [bloques[k] for k in propios], [self._clases[k] for k in propios]
         )
         self._busca_secciones(self._indices_de_marca, self._siguiente_de_marca)
+        self._busca_formularios(en_indice)
         #: Rule 16 (review fix-1 of #291): a `PARTE` is above the books, titles
         #: and chapters unless the document opens one of those first.
         #: Rule 17 (review fix-1 of #291): inside an instrument's recitals,
@@ -722,6 +755,13 @@ class _Constructor:
         #: the decree whatever it reprints.
         self._decreto = False
         self._decreto_nodo: AknNode | None = None
+        #: Rule 29 (review fix-4 of #291): the labelled container the current API
+        #: block opened, the group of the Mexican promulgation decree's blocks, and
+        #: the role of the current block's label.
+        self._bloque_abierto: AknNode | None = None
+        self._piso_del_bloque: float | None = None
+        self._grupo: AknNode | None = None
+        self._rol_actual: str | None = None
         #: Rule 23: the implicit section open now, as (node, index of the block
         #: that ends it), or `None`.
         self._implicita: tuple[AknNode, int] | None = None
@@ -782,7 +822,10 @@ class _Constructor:
                     # What stands between the marker and its heading is the
                     # heading's own annotation (`(REFORMADA SU DENOMINACIÓN,
                     # ...) (REPUBLICADA, ...)`), whatever it looks like.
-                    for i in range(k, destino):
+                    # Rule 29: that includes the court's `(NOTA: EL PLENO ...)` the
+                    # SCJN prints before a chapter's own heading, which used to
+                    # hang from the container before it.
+                    for i in range(inicio_de_marca + 1, destino):
                         texto = self._bloques[i].text.strip().replace("**", "")
                         if texto.startswith("("):
                             self._clases[i] = ("anotacion", {"cuerpo": texto.strip("() ")})
@@ -790,6 +833,20 @@ class _Constructor:
                 self._clases[destino] = self._clase_de_marca(
                     self._clases[destino], actual, self._bloques[destino]
                 )
+                if actual.get("kind") == "article" and self._clases[destino][0] == "articulo":
+                    # Rule 29: what the API block prints before the article's own
+                    # heading line (the caption `Objeto`, a `(NOTA: ...)`) is the
+                    # article's, not text hanging from the container before it: the
+                    # article opens at the first of those blocks and its heading
+                    # line goes on in it.
+                    primero = next(
+                        (i for i in range(k, destino)
+                         if self._clases[i][0] not in ("anotacion", "nota_editorial")),
+                        None,
+                    )  # (a note before `k` is an annotation now: see above)
+                    if primero is not None:
+                        self._clases[primero] = ("articulo", dict(self._clases[destino][1]))
+                        self._encabezados_de_leyenda[destino] = primero
                 if actual.get("kind") in self.BLOQUES_DE_UN_SOLO_TEXTO:
                     # Rule 24: a block the SCJN labels as an article is one
                     # article, and one labelled as a title block, a preamble or
@@ -813,14 +870,25 @@ class _Constructor:
         kind, _campos = self._clases[i]
         if kind == "articulo":
             return True
+        if self._marcas and kind == "contenido":
+            # Rule 32: a radio-regulations provision (`S5.43`) is an article.
+            linea = self._bloques[i].text.split("\n", 1)[0]
+            if PROVISION_RR.match(linea) or ENCABEZADO_ARTICULO_RR.match(linea):
+                return True
         if self._modo_sin_articulos == MODO_ORDINAL:
             return kind == "articulo_ordinal"
         if self._modo_sin_articulos == MODO_NUMERAL and kind == "contenido":
             return bool(NUMERAL_DECIMAL.match(self._bloques[i].text.split("\n", 1)[0]))
         return False
 
+    #: The roles whose blocks are never read as a section of numbered articles
+    #: (rule 23): the Mexican decree's own blocks, a closing formula, a note.
+    ROLES_SIN_SECCION = ("promulgation", "conclusions", "note")
+
     def _busca_secciones(self, indices, siguiente) -> None:
-        """Rule 23: which markers open an implicit section, and where it ends.
+        """Rules 23 and 30: which markers open an implicit section, where it
+        ends, and which markers are only the second half of a block the SCJN
+        split in two.
 
         The SCJN gives a heading it has no word for as a block of its own --
         `ESTATUTO`, `MANUAL OPERATIVO`, `ESTATUS DE LA LISTA DE RESERVAS`, a
@@ -828,22 +896,88 @@ class _Constructor:
         articles start over at 1. A block of `kind` `other`, or a preamble that
         is not the document's first, opens a section when it holds articles in
         its own text or is followed by article blocks. The section lasts until
-        the first later marker that is not an article."""
+        the first later marker that is not an article. One whose label names a
+        role of the Mexican decree (`FIRMA`, `PARTE FINAL ...`, `NOTA EXPLICATIVA`)
+        never opens one (rule 29): it is an `hcontainer`.
+
+        Rule 30: a block labelled `CONTENIDO <label of the block before>` (`ARTÍCULOS`
+        and `CONTENIDO ARTICULOS`) is the content of that block, not a new one:
+        it opens nothing, and the container the first opened goes on through it.
+        """
         self._aperturas: dict[int, int] = {}
+        self._fusion: set[int] = set()
+        for n in range(1, len(indices)):
+            marca, anterior = self._marcas[indices[n]], self._marcas[indices[n - 1]]
+            if marca.get("kind") == "other" and es_continuacion(
+                marca.get("label", ""), anterior.get("label", "")
+            ):
+                self._fusion.add(indices[n])
+        #: The role of each `other` block, by marker index.
+        self._rol_de: dict[int, str | None] = {
+            k: rol_de_etiqueta(self._marcas[k].get("label", ""))
+            for k in indices if self._marcas[k].get("kind") == "other"
+        }
         preambulos = 0
         for n, k in enumerate(indices):
             kind = self._marcas[k].get("kind")
             if kind == "preamble":
                 preambulos += 1
-            if not (kind == "other" or (kind == "preamble" and preambulos > 1)):
+            if k in self._fusion or not (
+                kind == "other" or (kind == "preamble" and preambulos > 1)
+            ):
                 continue
-            propio = any(self._abre_articulos(i) for i in range(k + 1, siguiente[k]))
-            fin = n + 1
+            rol = self._rol_de.get(k)
+            if rol in self.ROLES_SIN_SECCION:
+                continue
+            ultimo = n
+            while ultimo + 1 < len(indices) and indices[ultimo + 1] in self._fusion:
+                ultimo += 1
+            propio = any(
+                self._abre_articulos(i) for i in range(k + 1, siguiente[indices[ultimo]])
+            )
+            fin = ultimo + 1
             while fin < len(indices) and self._marcas[indices[fin]].get("kind") == "article":
                 fin += 1
-            siguientes = fin > n + 1
+            siguientes = fin > ultimo + 1
             if propio or siguientes:
                 self._aperturas[k] = indices[fin] if fin < len(indices) else len(self._bloques)
+
+    def _busca_formularios(self, en_indice) -> None:
+        """Rule 31: the heading of a model certificate or form opens a division of
+        its own -- the `MODELO DE CERTIFICADO ...` an appendix reprints, one per
+        certificate, each numbering its boxes from 2.1. A second heading in the
+        very next block (`CERTIFICADO DE SEGURIDAD ...` under `MODELO DE
+        CERTIFICADO DE SEGURIDAD ...`) is the same certificate's title."""
+        if not self._marcas:
+            return
+        anterior = None
+        #: A heading's own `SE CERTIFICA` has not been read yet.
+        esperando_cuerpo = False
+        for k, bloque in enumerate(self._bloques):
+            if k in en_indice or self._clases[k][0] != "contenido" or k >= self._fin_cuerpo:
+                continue
+            if self._de_marca[k] is not None and self._de_marca[k].get("kind") in (
+                self.BLOQUES_DE_UN_SOLO_TEXTO + ("toc", "transitorios", "decree")
+            ):
+                continue
+            titulo = es_encabezado_de_formulario(bloque.text)
+            if titulo is not None:
+                if anterior != k - 1 and k not in self._divisiones:
+                    self._divisiones[k] = (titulo, "form")
+                anterior = k
+                esperando_cuerpo = True
+            elif SE_CERTIFICA.match(bloque.text.strip()):
+                if esperando_cuerpo:
+                    esperando_cuerpo = False
+                    continue
+                # A certificate whose title is a picture: it begins at the
+                # placeholder the SCJN prints for it, when there is one.
+                inicio = k
+                if k and VEASE_ARCHIVO_ANEXO.match(self._bloques[k - 1].text.strip()) and (
+                    self._clases[k - 1][0] == "contenido"
+                ):
+                    inicio = k - 1
+                self._divisiones.setdefault(inicio, ("SE CERTIFICA", "form"))
 
     #: Rule 24: the `kind`s of API block inside which no heading opens a
     #: structure, and the classes of block that would.
@@ -990,11 +1124,21 @@ class _Constructor:
         self._cierra_articulo()
         self._pendiente_epigrafe = None
         self._tabla = None
+        self._cierra_divisiones()
+        continuacion = self._i in self._fusion
+        if not continuacion:
+            self._cierra_bloque_otro(marca)
+        elif self._piso_del_bloque is not None:
+            # The second half of a block the API split in two (rule 30): what its
+            # text opens still nests under the container the first half opened.
+            self._piso = self._piso_del_bloque
+        self._rol_actual = self._rol_de.get(self._i) if marca.get("kind") == "other" else None
         if self._implicita is not None and self._i >= self._implicita[1]:
             # Rule 23: the implicit section ends where the first marker that is
             # not an article begins.
             nodo, _ = self._implicita
             self._implicita = None
+            self._piso_del_bloque = None
             while self._pila and self._pila[-1][1] is not nodo and nodo in [n for _, n in self._pila]:
                 self._pila.pop()
             if self._pila and self._pila[-1][1] is nodo:
@@ -1025,8 +1169,116 @@ class _Constructor:
             nodo.heading = None
             self._marca_inicio = None
             self._pila.append((5.0, nodo))
-            self._piso = 5.0
+            self._piso = self._piso_del_bloque = 5.0
             self._implicita = (nodo, self._aperturas[self._i])
+        elif not continuacion and self._i + 1 < self._fin_cuerpo and (
+            marca.get("kind") == "other"
+            or (marca.get("kind") in ("header", "preamble", "recitals")
+                and (self.body is not None or self._pila))
+        ):
+            # Rule 29. A title block, a preamble or recitals that come after the
+            # instrument's own text began (a treaty's preamble after the
+            # promulgation decree that precedes it) are a text of their own: a
+            # labelled container, not loose text of the body.
+            self._abre_bloque_otro(bloque, marca)
+
+    # -- blocks the API labels `other` (rules 29-31, review fix-4 of #291) --
+
+    #: Where a labelled block, a promulgation decree's group and a division sit
+    #: in the stack of open containers: below every container a text can open
+    #: (`PRECEDENCIA` ends at 6), so any heading of the text closes them.
+    RANGO_BLOQUE = 7.0
+    RANGO_BLOQUE_EN_GRUPO = 7.25
+
+    def _cierra_a_traves_de(self, nodo) -> None:
+        """Pop the stack through `nodo`, if it is on it."""
+        if nodo is not None and any(n is nodo for _, n in self._pila):
+            while self._pila and self._pila.pop()[1] is not nodo:
+                pass
+
+    def _cierra_divisiones(self) -> None:
+        """Every division ends where the API block it was opened in does."""
+        for k, (_, nodo) in enumerate(self._pila):
+            if nodo in self._nodos_division:
+                del self._pila[k:]
+                return
+
+    def _cierra_bloque_otro(self, marca) -> None:
+        """The previous API block's labelled container ends at this marker, and
+        so does the group of promulgation blocks, unless this block is one too."""
+        self._cierra_a_traves_de(self._bloque_abierto)
+        self._bloque_abierto = None
+        self._piso_del_bloque = None
+        rol = self._rol_de.get(self._i) if marca.get("kind") == "other" else None
+        if self._grupo is not None and rol != "promulgation":
+            self._cierra_a_traves_de(self._grupo)
+            self._grupo = None
+
+    def _eid_de_bloque(self, padre: AknNode, etiqueta: str) -> str:
+        """An eId for a labelled block or a division: the parent's path and
+        `hc_<label>`, with a counter when the same label comes up again under the
+        same parent -- never a repeat (rule 22 is about articles): two blocks both
+        labelled `PARTE FINAL DE LAS ACTAS` are two blocks."""
+        propuesto = self._eids.propuesto(
+            "" if padre.akn_type in ("act", "body") else padre.eId, "hc", etiqueta[:60]
+        )
+        eid, i = propuesto, 2
+        while eid in self._eids.used:
+            eid = f"{propuesto}_{i}"
+            i += 1
+        return eid
+
+    def _abre_bloque_otro(self, bloque, marca) -> None:
+        """Rule 29: a block the API labels `other` is a container of its own, an
+        `hcontainer` named by its label. One whose label has a role in the Mexican
+        decree (`rol_de_etiqueta`) hangs from the body, whatever was open; the
+        blocks of the promulgation decree are kept together under one container
+        for the decree, and `PARTE FINAL ...` is its `#conclusions`, `NOTA
+        EXPLICATIVA` its `#note`. Any other label opens a plain labelled container
+        where the text stands, as rule 23's sections do."""
+        etiqueta = _limpia(marca.get("label", "")) or "block"
+        rol = self._rol_actual
+        refers_to = {
+            "promulgation": REFERS_TO_PROMULGACION,
+            "conclusions": REFERS_TO_CONCLUSIONES,
+            "note": REFERS_TO_NOTA,
+        }.get(rol)
+        rango, piso = self.RANGO_BLOQUE, self.RANGO_BLOQUE
+        padre = None
+        if rol == "resolution":
+            # An amending resolution is a text of its own, not the tail of the
+            # transitorios before it.
+            self._transitorios = None
+        if rol in self.ROLES_SIN_SECCION:
+            # Whatever transitorios were open end: this is a text of its own.
+            self._transitorios = None
+            self._decreto = False
+            # Nor is it part of the chapter or annex before it (unless it is the
+            # next block of the promulgation decree already open).
+            if not (rol == "promulgation" and self._grupo is not None):
+                self._pila.clear()
+                self._grupo = None
+            if rol == "promulgation":
+                if self._grupo is None:
+                    cuerpo = self._asegura_body(bloque.start)
+                    self._grupo = self._nuevo_nodo(
+                        "hcontainer", bloque.start, bloque.start, num="DECRETO PROMULGATORIO",
+                        refers_to=REFERS_TO_PROMULGACION, padre=cuerpo,
+                        eid=self._eid_de_bloque(cuerpo, "DECRETO PROMULGATORIO"),
+                    )
+                    self._pila.append((self.RANGO_BLOQUE, self._grupo))
+                padre = self._grupo
+                rango, piso = self.RANGO_BLOQUE_EN_GRUPO, self.RANGO_BLOQUE_EN_GRUPO
+                refers_to = None
+        padre_real = padre if padre is not None else self._padre_contenedor(bloque.start)
+        nodo = self._nuevo_nodo(
+            "hcontainer", bloque.start, bloque.end, num=etiqueta, refers_to=refers_to,
+            padre=padre_real, eid=self._eid_de_bloque(padre_real, etiqueta),
+        )
+        self._marca_inicio = None
+        self._pila.append((rango, nodo))
+        self._piso = self._piso_del_bloque = piso
+        self._bloque_abierto = nodo
 
     # -- helpers ---------------------------------------------------------
 
@@ -1113,6 +1365,9 @@ class _Constructor:
                 i = fin
                 continue
             kind, campos = self._clases[i]
+            self._i = i
+            if self._marcas:
+                kind, campos = self._refina_con_marcas(bloque, kind, campos)
             if self._modo_sin_articulos is not None:
                 kind, campos = self._promueve_a_articulo(bloque, kind, campos)
 
@@ -1139,6 +1394,12 @@ class _Constructor:
                     i += 1
                     continue
 
+            if self._marcas and i in self._divisiones:
+                # Rule 31. After the epigraph check: the title of the container
+                # just opened is its own, whatever it is called.
+                self._abre_division(bloque, *self._divisiones[i])
+                i += 1
+                continue
             self._i = i
             manejador = getattr(self, f"_bloque_{kind}", self._bloque_contenido)
             manejador(bloque, campos)
@@ -1157,6 +1418,148 @@ class _Constructor:
         self._cierra_spans()
         self.act.modo = self._modo_sin_articulos
         return self.act
+
+    def _refina_con_marcas(self, bloque, kind, campos):
+        """Rule 32 (review fix-4 of #291): numbering the ordinary grammar does not
+        read, on a snapshot that carries markers. Inside transitorios, `Artículo
+        Primero.-` with the ordinal in mixed case is a transitory article; outside
+        them, `ARTÍCULO S5` of a radio-regulations text is the container of its
+        provisions and `S5.43` is a provision (an article). Never inside the
+        blocks rule 24 reads as one text, the recitals or a Mexican decree's own
+        blocks."""
+        primera = self._primeros.get(self._i)
+        if (
+            kind in ("contenido", "articulo_ordinal") and primera is not None
+            and primera.get("kind") == "provision" and primera.get("num")
+            and not self._en_considerandos
+        ):
+            # Rule 29: the API says this block is a numbered provision of an
+            # acuerdo (`PRIMERO`, `1.1.0`): it is an article, whatever case its
+            # ordinal is written in and whether or not the document as a whole is
+            # read as numbering that way (rule 8).
+            # The number the text writes wins over the label's (an upper-case
+            # `PRIMERO` and the instrument's own `Primero` are two provisions).
+            numero = campos["num"] if kind == "articulo_ordinal" else _limpia(primera["num"])
+            if self._modo_sin_articulos == MODO_NUMERAL and numero.isdigit():
+                # The numbered list inside this provision (`1.`, `2.`) starts
+                # over after it, exactly as after a provision numeral mode read
+                # itself (rule 18).
+                self._ultimo_entero = int(numero)
+                self._item_de_lista = None
+            return "articulo", {"num": numero}
+        if kind != "contenido" or self._en_considerandos:
+            return kind, campos
+        marca = self._de_marca[self._i]
+        if marca is not None and marca.get("kind") in self.BLOQUES_DE_UN_SOLO_TEXTO:
+            return kind, campos
+        linea = bloque.text.split("\n", 1)[0]
+        if self._transitorios is not None:
+            m = ARTICULO_ORDINAL_MIXTO.match(linea.replace("**", ""))
+            if m:
+                return "articulo", {"num": _limpia(m.group("num"))}
+            return kind, campos
+        if self._rol_actual in self.ROLES_SIN_SECCION:
+            return kind, campos
+        m = ENCABEZADO_APENDICE_RR.match(linea)
+        if m:
+            return "contenedor", {
+                "akn_type": "attachment", "num": m.group("num"),
+                "refers_to": REFERS_TO_APENDICE, "heading": None,
+            }
+        m = ENCABEZADO_ARTICULO_RR.match(linea)
+        if m:
+            return "contenedor", {"akn_type": "section", "num": m.group("num")}
+        m = PROVISION_RR.match(linea)
+        if m:
+            return "articulo", {"num": m.group("num")}
+        return kind, campos
+
+    def _en_formulario(self) -> bool:
+        return any(nodo in self._formularios for _, nodo in self._pila)
+
+    def _abre_division(self, bloque, etiqueta, rol) -> None:
+        """Rule 31: the heading at `bloque` opens a division, an `hcontainer`
+        named by it, that lasts until the next division, the next container the
+        text opens or the end of the API block. What it holds is segmented as
+        anywhere else; its articles are its own."""
+        self._cierra_articulo()
+        self._pendiente_epigrafe = None
+        self._tabla = None
+        self._cierra_divisiones()
+        padre = self._padre_contenedor(bloque.start)
+        nodo = self._nuevo_nodo(
+            "hcontainer", bloque.start, bloque.end, num=etiqueta,
+            refers_to=REFERS_TO_FORMULARIO if rol == "form" else REFERS_TO_DIVISION,
+            padre=padre, eid=self._eid_de_bloque(padre, etiqueta or "division"),
+        )
+        self._extiende(nodo, bloque.end)
+        self._pila.append((self.RANGO_BLOQUE, nodo))
+        self._nodos_division.add(nodo)
+        if rol == "form":
+            self._formularios.add(nodo)
+
+    def pide_divisiones(self) -> dict[int, tuple[str | None, str | None]]:
+        """The divisions that would keep apart the articles this pass could only
+        tell apart with a `_2` suffix (rule 31): for each article that took one
+        (outside transitorios), the series of article numbers it belongs to -- the
+        run that strictly increases up to it, in its container -- begins where the
+        numbering started over, and the heading just before that point opens a
+        division. The nearest heading in the gap since the previous article is the
+        one (an upper-case line, a document title, else a short plain paragraph);
+        with none there is no division and the repeat stays what the text says: the
+        same number twice with nothing between to say it is another text."""
+        nuevas: dict[int, tuple[str | None, str | None]] = {}
+        for nodo in self.act.walk():
+            if nodo.akn_type != "article" or nodo.eId not in self._eids.suffixed:
+                continue
+            if any(a.refers_to == REFERS_TO_TRANSITORIOS for a in self._ancestros(nodo)):
+                continue
+            hermanos = [h for h in nodo.parent.children if h.akn_type == "article"]
+            posicion = hermanos.index(nodo)
+            inicio = inicio_de_la_serie([h.num for h in hermanos], posicion)
+            if inicio == 0:
+                inicio = posicion
+            primero = self._bloque_de_articulo.get(hermanos[inicio].eId)
+            if primero is None:
+                continue
+            anterior = self._bloque_de_articulo.get(hermanos[inicio - 1].eId) if inicio else None
+            encontrado = self._encabezado_de_serie(primero, anterior)
+            if encontrado is not None and encontrado[0] not in self._divisiones:
+                nuevas[encontrado[0]] = (encontrado[1], None)
+        return nuevas
+
+    def _ancestros(self, nodo):
+        while nodo.parent is not None:
+            nodo = nodo.parent
+            yield nodo
+
+    def _encabezado_de_serie(self, primero: int, anterior: int | None) -> tuple[int, str] | None:
+        """The block a division in front of the series that starts at block
+        `primero` opens at, and its label: the nearest strong heading between the
+        previous article's block and `primero`, else the nearest weak one, else
+        `primero` itself and no label. The scan stops at a marker (another API
+        block) and never reads an annotation, a table row or a block the text
+        classes as structure."""
+        fuerte = debil = None
+        for k in range(primero - 1, (anterior if anterior is not None else -1), -1):
+            if k in self._marcas or self._clases[k][0] != "contenido" or es_fila_tabla(self._bloques[k]):
+                if k in self._marcas:
+                    break
+                continue
+            texto = self._bloques[k].text
+            if fuerte is None:
+                titulo = encabezado_fuerte(texto)
+                if titulo is not None:
+                    fuerte = (k, titulo)
+                    break
+            if debil is None:
+                titulo = encabezado_debil(texto)
+                if titulo is not None:
+                    debil = (k, titulo)
+        elegido = fuerte or debil
+        if elegido is None:
+            return None
+        return elegido[0], elegido[1][:80]
 
     def _bloque_indice(self, primero, ultimo):
         """Rule 15 (review fix-1 of #291): a table of contents is one `toc`
@@ -1181,6 +1584,18 @@ class _Constructor:
             if akn_type == "part" and self._parte_en_capitulo
             else PRECEDENCIA[akn_type]
         )
+        if (
+            self._marcas and akn_type == "attachment" and not forzado
+            and self._bloque_abierto is not None and self._piso == self._piso_del_bloque
+            and any(n is self._bloque_abierto for _, n in self._pila)
+        ):
+            # Rule 29: an `ANEXO` the text of a labelled block prints (the code a
+            # resolution amends, whose chapters the API serves as blocks of
+            # their own after it) is the instrument's, not the block's: it closes
+            # the block's container and takes the chapters that follow.
+            self._piso = self._piso_del_bloque = None
+            self._bloque_abierto = None
+            return rango
         if forzado:
             self._piso = rango
         elif self._piso is not None and rango <= self._piso:
@@ -1283,6 +1698,14 @@ class _Constructor:
             self._piso = rango = rango_propio
         else:
             rango = self._rango(akn_type, campos.get("forzado", False))
+            if self._marcas and not campos.get("forzado") and campos.get("refers_to") == REFERS_TO_ANEXO:
+                # Rule 31 (review fix-4 of #291): an `ANEXO 1` the text of one block
+                # prints under the appendix before it (`APÉNDICE S30` and its annexes
+                # 1 to 7) is that appendix's, not a sibling whose number repeats
+                # the annexes of every other appendix.
+                abierto = next((e for e in reversed(self._pila) if e[1].akn_type == "attachment"), None)
+                if abierto is not None and abierto[1].refers_to == REFERS_TO_APENDICE:
+                    rango = max(rango, abierto[0] + 0.25)
         self._cierra_hasta(rango)
         refers_to = REFERS_TO_APARTADO if akn_type == "level" else campos.get("refers_to")
         nodo = self._nuevo_nodo(
@@ -1296,6 +1719,18 @@ class _Constructor:
         self._pendiente_epigrafe = None if campos.get("forzado") and nodo.heading else nodo
 
     def _bloque_articulo(self, bloque, campos):
+        if (
+            self._i in self._encabezados_de_leyenda and self._articulo is not None
+            and self._bloque_de_articulo.get(self._articulo.eId)
+            == self._encabezados_de_leyenda[self._i]
+        ):
+            # Rule 29: the heading line of an article already open at its caption.
+            self._extiende(self._articulo, bloque.end)
+            self._interior.agrega(bloque, es_marcador_estructural=True)
+            for m in ANOTACION_EN_LINEA.finditer(bloque.text.split("\n", 1)[0]):
+                if es_anotacion(m.group("cuerpo")):
+                    self._articulo.notes.append(parse_annotation(m.group(0), m.group("cuerpo")))
+            return
         self._cierra_articulo()
         num = campos["num"]
         if campos.get("alternativa") is not None:
@@ -1311,6 +1746,7 @@ class _Constructor:
         self._articulo = self._nuevo_nodo(
             "article", bloque.start, bloque.end, num=num,
         )
+        self._bloque_de_articulo[self._articulo.eId] = self._i
         self._interior = ConstructorDeArticulo(
             self._articulo, self._eids, self._node_span, self._doc, PREFIJO_EID,
             self._pendientes,
@@ -1360,6 +1796,11 @@ class _Constructor:
             # and end where it does -- no text heuristic needed.
             if self._en_considerandos:
                 return kind, campos
+            # Rule 31: the numbered boxes of a model certificate are its form
+            # fields, and the numbered paragraphs of the Mexican decree's own
+            # blocks are not provisions of the instrument either.
+            if self._en_formulario() or self._rol_actual in self.ROLES_SIN_SECCION:
+                return kind, campos
         elif kind == "contenido" and self._transitorios is None and CONSIDERANDO.match(linea):
             self._en_considerandos = True
             self._recien_abiertos = True
@@ -1371,7 +1812,10 @@ class _Constructor:
                 numero = campos["num"]
         elif kind == "contenido" and self._transitorios is None:
             m = NUMERAL_DECIMAL.match(linea)
-            if m:
+            if m and not (self._marcas and linea[m.end():].lstrip()[:1].islower()):
+                # A numeral followed by a lower-case word is a list item or a
+                # value (`1.1. cuando las propiedades ...`), never the opener of
+                # a provision (rule 31, review fix-4 of #291).
                 numero = _limpia(m.group("num"))
 
         if self._en_considerandos and self._recien_abiertos:
@@ -1392,6 +1836,16 @@ class _Constructor:
                     return kind, campos
                 self._en_considerandos = False
         if numero is None:
+            return kind, campos
+        if (
+            self._marcas and self._modo_sin_articulos == MODO_NUMERAL
+            and self._articulo is not None and self._articulo.num == numero
+        ):
+            # Rule 31 (review fix-4 of #291): a numeral that repeats the number of
+            # the provision directly above it is a paragraph of that provision,
+            # not a second one with its number: `1.1 De conformidad con ...`
+            # followed by `1.1 Las divisiones ...` (the SCJN prints `1.1` for what
+            # reads `1.1.1`). The text stays in the provision it continues.
             return kind, campos
         if REINICIO_ES_ITEM and self._modo_sin_articulos == MODO_NUMERAL and numero.isdigit():
             # Rule 18 (review fix-1 of #291): a whole numeral that starts over
@@ -1491,6 +1945,12 @@ class _Constructor:
         if self._pila or self._transitorios is not None or self.body is not None:
             destino = self._padre_contenedor(bloque.start)
             if self._transitorios is None and self._pila:
+                destino = self._intro_de(destino, bloque)
+            elif self._marcas and destino.akn_type not in ("act", "body"):
+                # Rule 29: the text a decree's transitorios section (or a
+                # division in one) opens with -- `SE TRANSCRIBEN ÚNICAMENTE LOS
+                # TRANSITORIOS DEL DECRETO...` -- is its introduction, like any
+                # container's, not text hanging loose from it.
                 destino = self._intro_de(destino, bloque)
             if es_fila_tabla(bloque):
                 self._agrega_fila_de_tabla(destino, bloque)
@@ -1652,6 +2112,31 @@ class _Constructor:
         cierra(self.act)
 
 
+#: How many times a document with outline markers is built again to place the
+#: divisions its repeated article numbers asked for (rule 31). Each pass can only
+#: add divisions, and the worst document measured needs three.
+MAX_PASADAS = 6
+
+
 def build(doc, meta, bloques) -> AknNode:
-    """`doc`'s law as a tree — the entry point `md2akn.segmenter` calls."""
-    return _Constructor(doc, meta, bloques).run()
+    """`doc`'s law as a tree — the entry point `md2akn.segmenter` calls.
+
+    A document that carries outline markers is built again, with the divisions
+    that separate its restarted numberings (rule 31), until no article has to
+    take a `_2` suffix or no division can still be added: the builder reads the
+    text in one pass, and where a series of numbers *restarts* is only known
+    once it has been read."""
+    divisiones: dict[int, tuple[str | None, str | None]] = {}
+    for _ in range(MAX_PASADAS):
+        constructor = _Constructor(doc, meta, bloques, divisiones)
+        act = constructor.run()
+        if not constructor._marcas or not constructor._eids.suffixed:
+            return act
+        nuevas = {
+            k: v for k, v in constructor.pide_divisiones().items()
+            if k not in constructor._divisiones
+        }
+        if not nuevas:
+            return act
+        divisiones.update(nuevas)
+    return act

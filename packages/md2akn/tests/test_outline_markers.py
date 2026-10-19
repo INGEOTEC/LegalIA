@@ -121,8 +121,10 @@ def test_a_decree_keeps_what_it_reprints():
     own = [n for n in _walk(body) if n.akn_type == "article" and n.eId.startswith("tit_")
            or n.akn_type == "article" and n.eId.startswith("art_")]
     # the instrument's own articles are not doubled by the reprint
+    # (the acuerdo's own `TERCERO` provision follows them: the API labels it a
+    # provision, and review fix-4 of #291 reads that as an article wherever it is)
     assert sorted(n.num for n in body.find("tit_PRIMERO").children[0].children
-                  if n.akn_type == "article") == ["1", "3"]
+                  if n.akn_type == "article") == ["1", "3", "TERCERO"]
     decree = body.find("sec_10_DE_NOVIEMBRE_DE_2023")
     assert decree.akn_type == "section" and decree.refers_to == "#transitorios"
     annex = decree.find("sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO")

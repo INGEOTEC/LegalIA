@@ -78,6 +78,10 @@ _CONTAINER_LABEL = {
     "chapter": "CAPÍTULO",
     "section": "SECCIÓN",
     "level": "APARTADO",
+    # Review fix-4 of #291 (rules 29 to 31): a labelled block or a division. Its
+    # label *is* its `num` (see `_container_label`), so this word is only the
+    # fallback for a division with no heading.
+    "hcontainer": "DIVISIÓN",
 }
 _CONTAINER_TYPES = frozenset(_CONTAINER_LABEL)
 
@@ -345,6 +349,8 @@ def _group_text(nodes: list[AknNode], ann_ranges: "_RangeIndex") -> str:
 
 
 def _container_label(node: AknNode) -> str:
+    if node.akn_type == "hcontainer":
+        return node.num or node.heading or _CONTAINER_LABEL["hcontainer"]
     if node.refers_to == REFERS_TO_TRANSITORIOS:
         label = "TRANSITORIOS"
         if node.num and node.num != "transitorios":
@@ -834,7 +840,7 @@ def _walk_container(
         elif child.akn_type == "toc":
             units.extend(_toc_units(child, child_path, ann_ranges, cap, split_over_cap))
             i += 1
-        elif _is_loose_leaf(child):
+        elif _is_loose_leaf(child) and child.akn_type != "hcontainer":
             j = i + 1
             while j < n and _is_loose_leaf(children[j]):
                 j += 1

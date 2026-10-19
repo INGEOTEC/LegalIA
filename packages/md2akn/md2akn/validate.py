@@ -39,15 +39,15 @@ ANIDAMIENTO: dict[str, frozenset[str]] = {
     # a chapter or a title.
     "body": frozenset(
         {"attachment", "part", "toc", "book", "title", "chapter", "section", "level",
-         "article", "content", "table"}
+         "article", "content", "table", "hcontainer"}
     ),
     "attachment": frozenset(
         {"intro", "toc", "part", "book", "title", "chapter", "section", "level", "article",
-         "content", "table"}
+         "content", "table", "hcontainer"}
     ),
     "part": frozenset(
         {"intro", "toc", "book", "title", "chapter", "section", "level", "article", "content",
-         "table"}
+         "table", "hcontainer"}
     ),
     "toc": frozenset(),
     # A container's `intro` (rule 12, issue #291) and the `table`s of rule 13
@@ -55,22 +55,22 @@ ANIDAMIENTO: dict[str, frozenset[str]] = {
     # tables of the text a container opens with.
     "book": frozenset(
         {"intro", "toc", "part", "title", "chapter", "section", "level", "article", "content",
-         "table"}
+         "table", "hcontainer"}
     ),
     "title": frozenset(
-        {"intro", "toc", "part", "chapter", "section", "level", "article", "content", "table"}
+        {"intro", "toc", "part", "chapter", "section", "level", "article", "content", "table", "hcontainer"}
     ),
     "chapter": frozenset(
-        {"intro", "toc", "part", "section", "level", "article", "content", "table"}
+        {"intro", "toc", "part", "section", "level", "article", "content", "table", "hcontainer"}
     ),
-    "section": frozenset({"intro", "toc", "level", "article", "content", "table"}),
+    "section": frozenset({"intro", "toc", "level", "article", "content", "table", "hcontainer"}),
     "intro": frozenset({"content", "table"}),
     # An apartado holds articles; an apartado *inside* an article holds that
     # article's own fracciones -- which is why `paragraph` is here too. And
     # `point`, because an apartado may go straight to incisos with no fracción
     # in between: article 122 B of the Constitution and article 32 J of the
     # LGIPE both do, and both are the document saying so, not a broken stack.
-    "level": frozenset({"intro", "article", "paragraph", "point", "content", "table"}),
+    "level": frozenset({"intro", "article", "paragraph", "point", "content", "table", "hcontainer"}),
     "article": frozenset({"level", "paragraph", "content"}),
     "paragraph": frozenset({"point", "content"}),
     "point": frozenset({"subpoint", "content"}),
@@ -78,6 +78,12 @@ ANIDAMIENTO: dict[str, frozenset[str]] = {
     "content": frozenset(),
     "table": frozenset(),
     "conclusions": frozenset(),
+    # Review fix-4 of #291 (rules 29 to 31): a labelled block or division holds
+    # whatever a container holds, divisions and further blocks included.
+    "hcontainer": frozenset(
+        {"intro", "toc", "part", "attachment", "book", "title", "chapter", "section", "level",
+         "hcontainer", "article", "content", "table"}
+    ),
 }
 
 

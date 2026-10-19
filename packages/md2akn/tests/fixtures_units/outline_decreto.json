@@ -10,7 +10,7 @@
     {
       "unit_type": "preamble",
       "eId": "preamble",
-      "piece": 1,
+      "piece": 0,
       "piece_eId": null,
       "akn_type": "preamble",
       "num": null,
@@ -19,23 +19,23 @@
       "text_sha1": "d49b3d1a588e897d7189eb189efe5e17d115d9f6"
     },
     {
-      "unit_type": "preamble",
-      "eId": "preamble",
-      "piece": 2,
-      "piece_eId": null,
-      "akn_type": "preamble",
-      "num": null,
+      "unit_type": "article_piece",
+      "eId": "art_PRIMERO",
+      "piece": 1,
+      "piece_eId": "art_PRIMERO__p_1",
+      "akn_type": "article",
+      "num": "PRIMERO",
       "path": [],
       "text": "**PRIMERO.** Se abroga el Reglamento de Procedimientos en Materia de Fiscalización, aprobado el 4 de julio de 2011 en sesión extraordinaria del Consejo General del entonces Instituto Federal Electoral mediante el Acuerdo CG199/2011.1",
       "text_sha1": "4df8588c70e02205c195ba93a9e834d0776b30ba"
     },
     {
-      "unit_type": "preamble",
-      "eId": "preamble",
-      "piece": 3,
+      "unit_type": "article",
+      "eId": "art_SEGUNDO",
+      "piece": 0,
       "piece_eId": null,
-      "akn_type": "preamble",
-      "num": null,
+      "akn_type": "article",
+      "num": "SEGUNDO",
       "path": [],
       "text": "**SEGUNDO.** Se expide el Reglamento de Procedimientos Sancionadores en Materia de Fiscalización, para quedar como sigue: **REGLAMENTO DE PROCEDIMIENTOS SANCIONADORES EN MATERIA DE FISCALIZACIÓN**",
       "text_sha1": "045ff39fdb5685283d3bfe32517d4122a0dbe29a"
@@ -191,32 +191,18 @@
       "text_sha1": "21fbccade3c3d8055e21cb06439e7910045acd87"
     },
     {
-      "unit_type": "loose",
-      "eId": "tit_PRIMERO__cap_I__p_content",
-      "piece": 1,
+      "unit_type": "article",
+      "eId": "tit_PRIMERO__cap_I__art_TERCERO",
+      "piece": 0,
       "piece_eId": null,
-      "akn_type": "content",
-      "num": null,
+      "akn_type": "article",
+      "num": "TERCERO",
       "path": [
         "TÍTULO PRIMERO Reglas Generales",
         "CAPÍTULO I Disposiciones Preliminares"
       ],
-      "text": "TÍTULO PRIMERO Reglas Generales > CAPÍTULO I Disposiciones Preliminares",
-      "text_sha1": "ba876b5ee3063bc3070d8839f678c9ea421767ee"
-    },
-    {
-      "unit_type": "loose",
-      "eId": "tit_PRIMERO__cap_I__p_content",
-      "piece": 2,
-      "piece_eId": null,
-      "akn_type": "content",
-      "num": null,
-      "path": [
-        "TÍTULO PRIMERO Reglas Generales",
-        "CAPÍTULO I Disposiciones Preliminares"
-      ],
-      "text": "TÍTULO PRIMERO Reglas Generales > CAPÍTULO I Disposiciones Preliminares **TERCERO.** El presente Reglamento entrará en vigor al día siguiente de su aprobación por el Consejo General del Instituto Nacional Electoral.",
-      "text_sha1": "4304b553db8336a4246e1532021de1fe5caaef71"
+      "text": "**TERCERO.** El presente Reglamento entrará en vigor al día siguiente de su aprobación por el Consejo General del Instituto Nacional Electoral.",
+      "text_sha1": "03e7fe80cc88c50671ae07e58e044ecd0b972f7d"
     },
     {
       "unit_type": "heading",
