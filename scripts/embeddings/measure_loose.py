@@ -34,6 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import export_instrument_files as X  # noqa: E402
 from measure_outline_repeats import newest  # noqa: E402
 from md2akn import parse_markdown, text_units  # noqa: E402
+from md2akn.outline import es_continuacion, rol_de_etiqueta  # noqa: E402
 from scjn.outline import parse_marker  # noqa: E402
 
 
@@ -79,14 +80,26 @@ def one(job):
 
 
 def other_labels(job):
+    """The labels of an instrument's `other` blocks (digits folded), and how many of
+    them rule 29 gives each role, or `continuation` when rule 30 folds the block
+    into the one before it."""
     collection, key, path = job
     out = collections.Counter()
+    roles = collections.Counter()
+    previous = ""
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         if line.startswith("<!-- scjn:block "):
             marker = parse_marker(line)
             if marker and marker.get("kind") == "other":
-                out[re.sub(r"\d+", "N", marker["label"]).strip()] += 1
-    return collection, key, out
+                label = marker["label"]
+                out[re.sub(r"\d+", "N", label).strip()] += 1
+                if es_continuacion(label, previous):
+                    roles["continuation"] += 1
+                else:
+                    roles[rol_de_etiqueta(label) or "generic"] += 1
+            previous = marker.get("label", "") if marker else ""
+    out["\0roles"] = 0
+    return collection, key, (out, roles)
 
 
 def summarise(rows):
@@ -147,13 +160,20 @@ def main(argv=None) -> int:
         if args.other_labels:
             table = collections.defaultdict(collections.Counter)
             where = collections.defaultdict(set)
-            for c, k, counter in pool.imap_unordered(other_labels, jobs, chunksize=8):
+            by_role = collections.defaultdict(collections.Counter)
+            for c, k, (counter, roles) in pool.imap_unordered(other_labels, jobs, chunksize=8):
+                counter.pop("\0roles", None)
                 for label, n in counter.items():
                     table[(c, label)][k] += n
                     where[(c, label)].add(k)
+                for role, n in roles.items():
+                    by_role[c][role] += n
             ranked = sorted(table.items(), key=lambda item: -len(item[1]))
             print(f"{len(ranked)} distinct (collection, label) shapes, "
                   f"{sum(sum(v.values()) for v in table.values())} blocks")
+            print("-- blocks by role of rule 29 (continuation = rule 30)")
+            for c in sorted(by_role):
+                print(f"{c:13} " + ", ".join(f"{r} {n}" for r, n in by_role[c].most_common()))
             for (c, label), per in ranked[: 120]:
                 print(f"{sum(per.values()):6} blocks {len(per):5} instruments  {c:12} {label[:80]}")
             return 0

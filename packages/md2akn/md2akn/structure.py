@@ -492,6 +492,11 @@ def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
             and len(bloques[fin_indice - 1].text) > MAX_ENCABEZADO_INDICE
         ):
             fin_indice -= 1
+        # Rule 29 (review fix-4 of #291): the marker line of the API block that
+        # holds the first repeated heading (`PRESENTACIÓN`) is that block's, not
+        # an entry of the index it follows.
+        while fin_indice - 1 > i and lee_marcador(bloques[fin_indice - 1].text) is not None:
+            fin_indice -= 1
         rangos[i] = fin_indice
         i = fin_indice
     return rangos
