@@ -644,6 +644,19 @@ def _quita_etiqueta(linea: str, etiqueta: str) -> tuple[bool, str | None]:
     return False, None
 
 
+_LETRA_DE_LISTA = re.compile(r"\(?[a-z]{1,2}[).]")
+
+
+def _es_valor_en_minuscula(resto: str) -> bool:
+    """Whether the text after a numeral starts with a lower-case word (`1.1.
+    cuando ...`) rather than with a capital, a list letter (`a)`) or nothing
+    (rule 31, review fix-4 of #291): ``" cuando las propiedades"`` is, ``" a) Por
+    el Grupo"`` and ``" Queda constituido"`` are not.
+    """
+    resto = resto.lstrip()
+    return resto[:1].islower() and _LETRA_DE_LISTA.match(resto) is None
+
+
 class _Constructor:
     """The single pass over the blocks that builds the tree.
 
@@ -1812,10 +1825,11 @@ class _Constructor:
                 numero = campos["num"]
         elif kind == "contenido" and self._transitorios is None:
             m = NUMERAL_DECIMAL.match(linea)
-            if m and not (self._marcas and linea[m.end():].lstrip()[:1].islower()):
+            if m and not (self._marcas and _es_valor_en_minuscula(linea[m.end():])):
                 # A numeral followed by a lower-case word is a list item or a
                 # value (`1.1. cuando las propiedades ...`), never the opener of
-                # a provision (rule 31, review fix-4 of #291).
+                # a provision (rule 31, review fix-4 of #291); `3. a) Por ...`
+                # is still a provision whose first paragraph is lettered.
                 numero = _limpia(m.group("num"))
 
         if self._en_considerandos and self._recien_abiertos:

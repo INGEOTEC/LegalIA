@@ -999,7 +999,38 @@ def text_units(
        23) is a text of its own -- an amending `RESOLUCIÓN MSC.411(97)` --
        and hangs from the body whatever was open: never inside the appendix,
        annex or chapter before it.
-    Rules 25 to 28 apply to a document with outline markers; one without
+    29. Every block the API marks `other` is a container of its own: an
+       `hcontainer` whose `num` is its label and whose eId is derived from it
+       (`hc_NOTA_EXPLICATIVA`). An explicit role table (`md2akn.outline.
+       ROLES_DE_ETIQUETA`) gives some a `refersTo`: `PARTE FINAL ...` is
+       `#conclusions`, `NOTA EXPLICATIVA` and `NOTAS` are `#note`, the steps of
+       the Mexican promulgation decree (`FIRMA`, `APROBACIÓN`, `RESERVA(S)`,
+       `RATIFICACIÓN Y DEPÓSITO`, `PROMULGACIÓN`, `CERTIFICACIÓN`,
+       `DECLARACIÓN ...`) are kept together under one `#promulgation`
+       container, and `RESOLUCIÓN ...` is the amending-resolution container of
+       rule 28. A label that only *starts* with one of those words
+       (`RESERVAS AL REGLAMENTO DE RADIOCOMUNICACIONES`) has no role. What the
+       block holds before its first article is its `intro` (rule 12). An API
+       `provision` block (`PRIMERO.-` of an acuerdo) is an article.
+    30. A block the API split in two -- a title (`ARTÍCULOS`) and a second
+       block labelled `CONTENIDO ARTICULOS` -- is one container.
+    31. A numbering that starts over *inside* one block opens a division
+       (`hcontainer`, `refersTo="#division"`; `#form` for a model certificate),
+       so an identifier is the same article or it is not repeated: the
+       `MODELO DE CERTIFICADO ...` of an appendix and the `SE CERTIFICA`
+       placeholder of the certificates that print no title, a heading such as
+       `A.II - VENTANAS` or `Artículos que se refieren al Comité Ejecutivo`.
+       The boxes of a form are not articles, a numeral followed by a lower-case
+       word (`1.1. cuando ...`) is a value and not an opener, and a numeral
+       equal to the number of the article just above is that article's
+       paragraph. A division needs a heading to open at: with none the repeat
+       stays, flagged on both claimants, and nothing is merged or renumbered.
+    32. The article-number grammar of the marker path reads `S5.43`/`5.43A`
+       (a radio-regulations provision, under its `ARTÍCULO S5` section and
+       `APÉNDICE S30` appendix), `Artículo Primero.-` with a mixed-case ordinal
+       inside transitorios, and the caption line the SCJN prints *before* an
+       article's heading (`Objeto`) as the start of that article.
+    Rules 25 to 32 apply to a document with outline markers; one without
     them is read, and its eIds written, as before.
 
     >>> import md2akn

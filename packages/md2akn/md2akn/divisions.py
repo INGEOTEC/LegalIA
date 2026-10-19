@@ -9,8 +9,8 @@ CONTRAINCENDIOS``, ``MODELO DE CERTIFICADO DE SEGURIDAD PARA BUQUE DE PASAJE``,
 ``Artículos que se refieren al Comité Ejecutivo`` -- starts a text of its own
 whose articles are numbered from 1 again, and an identifier is only ever the same
 identifier when it is the same article (rule 22). Two functions answer the two
-questions that needs: **where does a division start** (`encabezado_de_division`,
-which reads blocks) and **when is it needed** (`inicio_de_la_serie`, which reads a
+questions that needs: **where does a division start** (`encabezado_fuerte`/`encabezado_debil`,
+which read blocks) and **when is it needed** (`inicio_de_la_serie`, which reads a
 run of article numbers).
 
 This module reads text and numbers only; it has no notion of the tree.

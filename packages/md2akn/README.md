@@ -423,6 +423,20 @@ every machine has — rather than over a handful of fixtures; see its own module
   block the API marks `other` that opens a section of its own (an amending
   `RESOLUCIÓN MSC.411(97)`) hangs from the body, never inside the appendix
   before it.
+  **Review fix-4 of #291 (still 0.5.1):** the `loose` text and the last 7
+  repeats came from the blocks the API calls `other`. **Rule 29**, every such
+  block is an `hcontainer` (label-derived eId) with a role table — `PARTE FINAL`
+  is `#conclusions`, `NOTA EXPLICATIVA` `#note`, the steps of the promulgation
+  decree one `#promulgation` container, `RESOLUCIÓN ...` the resolution
+  container — and an API `provision` is an article; **rule 30**, a title block
+  and its `CONTENIDO <title>` block are one container; **rule 31**, a numbering
+  that restarts inside one block opens a division (`#division`, `#form` for the
+  boxes of a model certificate), so the same number is never two articles;
+  **rule 32**, `S5.43`/`5.43A`, `ARTÍCULO S5`, `APÉNDICE S30`, a mixed-case
+  `Artículo Primero.-` in transitorios and a caption before an article's heading
+  are read. Measured over the 2,677 Atlas instruments: `loose` excerpts 5,668 →
+  459 and repeated numbers 164 excerpts in 7 treaties → 0. No rule names an
+  instrument and a document with no marker is read as before.
 
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an

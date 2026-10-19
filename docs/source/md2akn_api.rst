@@ -273,13 +273,14 @@ on our fixture's first article:
 ------------------------------------------------------
 
 :py:class:`~md2akn.AknNode` and :py:class:`~md2akn.Annotation`, and the
-vocabulary their ``akn_type`` is drawn from — 19 Akoma Ntoso element names
+vocabulary their ``akn_type`` is drawn from — 20 Akoma Ntoso element names
 (``intro`` and ``table`` joined in 0.5.1, ``attachment``, ``part`` and ``toc``
-in review fix-1 of issue #291), in the rough order they nest:
+in review fix-1 of issue #291, ``hcontainer`` in review fix-4), in the rough
+order they nest:
 
 >>> from md2akn import AKN_TYPES, REFERS_TO_APARTADO, REFERS_TO_TRANSITORIOS
 >>> len(AKN_TYPES)
-19
+20
 >>> "article" in AKN_TYPES and "paragraph" in AKN_TYPES and "point" in AKN_TYPES
 True
 >>> REFERS_TO_APARTADO
@@ -631,6 +632,37 @@ appendix's running page header, not a further appendix. **Rule 28**: a block the
 API marks ``other`` that opens a section of its own (an amending resolution) hangs
 from the body, never inside the appendix before it. A document with no markers
 is read, and its eIds written, as before.
+
+Review fix-4 of the same issue made the remaining blocks the API calls ``other``
+structure too. **Rule 29**: each is an ``hcontainer`` named by its label, and an
+explicit role table (``md2akn.outline.ROLES_DE_ETIQUETA``) marks the closing
+formulas ``#conclusions``, the explanatory note ``#note``, the steps of the
+Mexican promulgation decree (kept together under one ``#promulgation``
+container) and an amending ``RESOLUCIÓN`` as the container of rule 28; an API
+``provision`` block is an article. **Rule 30**: a title block and the
+``CONTENIDO <title>`` block that follows it are one container. **Rule 31**: a
+numbering that starts over inside one block opens a division, so a number is
+repeated only when it is the same article; with no heading to open at, the repeat
+stays flagged. **Rule 32**: the number grammar of a radio-regulations text
+(``S5.43``, ``ARTÍCULO S5``, ``APÉNDICE S30``) and the mixed-case
+``Artículo Primero.-`` of transitorios are read.
+
+>>> from md2akn.outline import rol_de_etiqueta, es_continuacion
+>>> rol_de_etiqueta("PARTE FINAL DE LAS ACTAS"), rol_de_etiqueta("RATIFICACIÓN Y DEPÓSITO")
+('conclusions', 'promulgation')
+>>> rol_de_etiqueta("RESERVAS AL REGLAMENTO DE RADIOCOMUNICACIONES") is None
+True
+>>> es_continuacion("CONTENIDO ARTICULOS", "ARTÍCULOS")
+True
+>>> restarted = (
+...     '<!-- scjn:block orden=1 numero=0 kind=other label="ACUERDO" -->\n\n'
+...     "**Artículo 1.-** Uno.\n\n**Artículo 2.-** Dos.\n\n"
+...     "Artículos que se refieren al Comité Ejecutivo\n\n"
+...     "**Artículo 1.-** Uno otra vez.\n"
+... )
+>>> tree = md2akn.parse_markdown(restarted)
+>>> [(n.eId, n.repeated) for n in tree.walk() if n.akn_type == "article"]
+[('sec_ACUERDO__art_1', False), ('sec_ACUERDO__art_2', False), ('sec_ACUERDO__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_1', False)]
 
 >>> annexed = (
 ...     '<!-- scjn:block orden=1 numero=0 kind=container type=chapter num="2" label="CAPÍTULO 2" -->\n\n'
