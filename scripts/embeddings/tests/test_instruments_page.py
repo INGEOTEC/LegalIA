@@ -761,6 +761,39 @@ def test_the_outline_nests_an_annex_under_its_chapter_and_appendices_under_their
     page.close()
 
 
+def test_the_outline_names_every_labelled_block_by_its_role(browser, server):
+    """Review fix-4 of #291: a block the Court labels `other` is an `hcontainer` of the tree, and
+    the outline shows it, named in English by its `refersTo` (the promulgation decree's blocks
+    grouped under one entry, a note, the closing formulas) or by the Court's own label."""
+    page = open_page(browser, f"{server}?c=tratados&k=700")
+    wait_rendered(page)
+    outline = page.locator(".instruments-outline")
+    expand_outline(page)
+    names = [b.inner_text().strip() for b in outline.locator("button.instruments-outline-link").all()]
+    assert "Note: NOTA EXPLICATIVA" in names
+    assert "Block: RESERVAS AL TRATADO" in names
+    assert "Promulgation decree" in names
+    assert not any(n.startswith("hcontainer") for n in names)
+    # the two steps of the decree sit inside its one entry, each named by its own label
+    decree = outline_entry(outline, "Promulgation decree")
+    inner = [b.inner_text().strip() for b in decree.locator(
+        "xpath=./ul/li/button[contains(@class, 'instruments-outline-link')]").all()]
+    assert inner == ["Block: FIRMA", "Block: PROMULGACIÓN"]
+    # it folds like every container, and the document carries the same nesting
+    fold = decree.locator("xpath=./button[contains(@class, 'instruments-outline-fold')]")
+    nested = decree.locator("xpath=./ul")
+    assert nested.is_visible()
+    fold.click()
+    assert not nested.is_visible()
+    fold.click()
+    assert nested.is_visible()
+    node = page.locator('section[data-eid="hc_DECRETO_PROMULGATORIO"]')
+    assert node.get_attribute("data-type") == "hcontainer"
+    assert node.locator('section[data-eid="hc_DECRETO_PROMULGATORIO__hc_FIRMA"]').count() == 1
+    assert page.errors == []
+    page.close()
+
+
 def test_the_raw_button_of_a_node_shows_exactly_its_markdown(page):
     open_from_table(page, "alfa")
     document = read_file_of_toy(page, "alfa")

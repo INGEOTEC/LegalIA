@@ -48,7 +48,7 @@
   const HCONTAINER_NAMES = {
     "#promulgation": "Promulgation decree",
     "#note": "Note",
-    "#conclusions": "Closing provisions",
+    "#conclusions": "Closing formulas",
     "#form": "Form",
     "#division": "Division",
   };

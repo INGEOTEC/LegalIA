@@ -238,6 +238,22 @@ Texto del primer apéndice.
 **MODELO DE CERTIFICADO**
 
 Texto del segundo apéndice.
+
+<!-- scjn:block orden=10 numero=0 kind=other label="NOTA EXPLICATIVA" -->
+
+Las disposiciones marcadas modifican el Tratado.
+
+<!-- scjn:block orden=11 numero=0 kind=other label="RESERVAS AL TRATADO" -->
+
+Al firmar el presente texto, la delegación formula una reserva.
+
+<!-- scjn:block orden=12 numero=0 kind=other label="FIRMA" -->
+
+El Plenipotenciario firmó el Tratado.
+
+<!-- scjn:block orden=13 numero=0 kind=other label="PROMULGACIÓN" -->
+
+Por lo tanto, promulgo el presente Decreto.
 """
 
 #: `(coleccion, clave) -> (nombre, archivo, codNota, markdown)`, in the order
