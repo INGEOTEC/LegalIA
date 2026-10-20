@@ -647,6 +647,27 @@ stays flagged. **Rule 32**: the number grammar of a radio-regulations text
 (``S5.43``, ``ARTÍCULO S5``, ``APÉNDICE S30``) and the mixed-case
 ``Artículo Primero.-`` of transitorios are read.
 
+Review fix-5 of the same issue made an API block the root of its hierarchy.
+**Rule 33**: every ``RESOLUCIÓN`` block is a ``section``; the headings a block's
+text prints keep their order among themselves (an ``ANEXO`` holds the chapters
+printed after it, a chapter its parts, a bare ``APÉNDICE`` after the annex is
+inside it), the next marker closes everything the block opened, and the only
+annex that leaves its block is one with no container or article after its
+heading in the block's text, whose structure the API serves in the blocks that
+follow.
+
+>>> resolutions = (
+...     '<!-- scjn:block orden=1 numero=0 kind=other label="RESOLUCIÓN MSC.1(1)" -->\n\n'
+...     "**RESOLUCIÓN MSC.1(1)**\n\nEl Comité adopta las enmiendas.\n\n"
+...     "**ANEXO**\n\n**CAPÍTULO II-1**\n\n**CONSTRUCCIÓN**\n\n**PARTE A**\n\nUno.\n\n"
+...     "**CAPÍTULO II-2**\n\n**INCENDIOS**\n\n**PARTE A**\n\nDos.\n\n"
+...     '<!-- scjn:block orden=2 numero=0 kind=other label="RESOLUCIÓN MSC.2(2)" -->\n\n'
+...     "**RESOLUCIÓN MSC.2(2)**\n\nEl Comité adopta otras enmiendas.\n"
+... )
+>>> tree = md2akn.parse_markdown(resolutions)
+>>> [(n.akn_type, n.eId) for n in tree.walk() if n.akn_type in ("section", "attachment", "chapter", "part")]
+[('section', 'sec_RESOLUCIÓN_MSC.1(1)'), ('attachment', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment'), ('chapter', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1'), ('part', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1__part_A'), ('chapter', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'), ('part', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2__part_A'), ('section', 'sec_RESOLUCIÓN_MSC.2(2)')]
+
 >>> from md2akn.outline import rol_de_etiqueta, es_continuacion
 >>> rol_de_etiqueta("PARTE FINAL DE LAS ACTAS"), rol_de_etiqueta("RATIFICACIÓN Y DEPÓSITO")
 ('conclusions', 'promulgation')

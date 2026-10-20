@@ -780,6 +780,7 @@ class _Constructor:
         self._piso_del_bloque: float | None = None
         self._grupo: AknNode | None = None
         self._rol_actual: str | None = None
+        self._indice_marca = -1
         #: Rule 23: the implicit section open now, as (node, index of the block
         #: that ends it), or `None`.
         self._implicita: tuple[AknNode, int] | None = None
@@ -957,7 +958,7 @@ class _Constructor:
             while fin < len(indices) and self._marcas[indices[fin]].get("kind") == "article":
                 fin += 1
             siguientes = fin > ultimo + 1
-            if propio or siguientes:
+            if propio or siguientes or rol == "resolution":
                 self._aperturas[k] = indices[fin] if fin < len(indices) else len(self._bloques)
 
     def _busca_formularios(self, en_indice) -> None:
@@ -1130,6 +1131,7 @@ class _Constructor:
         which is what kept the text after a treaty's last article inside it),
         and its characters belong to the node the block it heads opens."""
         marca = self._marcas[self._i]
+        self._indice_marca = self._i
         if self._marca_inicio is None:
             self._marca_inicio = bloque.start
         self._decreto = False
@@ -1181,6 +1183,10 @@ class _Constructor:
             # put it: `DISPOSICIONES GENERALES` inside the chapter that holds it.)
             if any(n.akn_type == "attachment" for _, n in self._pila):
                 self._pila.clear()
+                self._transitorios = None
+            if self._rol_actual == "resolution":
+                # An amending resolution is a text of its own, not the tail of the
+                # transitorios before it (rule 29, whichever container it opens).
                 self._transitorios = None
             etiqueta = _limpia(marca.get("label", "")) or "section"
             nodo = self._nuevo_nodo("section", bloque.start, bloque.end, num=etiqueta)
@@ -1596,7 +1602,8 @@ class _Constructor:
         )
         self._extiende(nodo, ultimo.end)
 
-    def _rango(self, akn_type: str, forzado: bool = False):
+    def _rango(self, akn_type: str, forzado: bool = False, refers_to: str | None = None,
+               num: str | None = None):
         rango = (
             PRECEDENCIA_PARTE_EN_CAPITULO
             if akn_type == "part" and self._parte_en_capitulo
@@ -1604,23 +1611,83 @@ class _Constructor:
         )
         if (
             self._marcas and akn_type == "attachment" and not forzado
-            and self._bloque_abierto is not None and self._piso == self._piso_del_bloque
-            and any(n is self._bloque_abierto for _, n in self._pila)
+            and refers_to == REFERS_TO_ANEXO and self._es_codigo_de_resolucion()
         ):
-            # Rule 29: an `ANEXO` the text of a labelled block prints (the code a
-            # resolution amends, whose chapters the API serves as blocks of
-            # their own after it) is the instrument's, not the block's: it closes
-            # the block's container and takes the chapters that follow.
+            # Rule 29: an `ANEXO` a labelled block prints and whose structure the
+            # API serves as blocks of their own *after* it (the code a resolution
+            # amends, the reglamento an `ANEXO ÚNICO` approves) is the instrument's,
+            # not the block's: it ends the block's container and takes the blocks
+            # that follow. An annex whose structure is in the block's own text is
+            # the block's (rule 33).
             self._piso = self._piso_del_bloque = None
             self._bloque_abierto = None
+            self._implicita = None
             return rango
         if forzado:
             self._piso = rango
         elif self._piso is not None and rango <= self._piso:
-            # Rule 21: a heading the text of this API block contains nests
-            # under the container the API block itself opened.
-            return self._piso + 0.5
+            # Rules 21 and 33: a heading the text of this API block contains nests
+            # under the container the API block itself opened, and keeps its place
+            # among the other headings of the same text -- an annex holds the
+            # chapters printed after it, a chapter its parts (review fix-5 of #291;
+            # before it every such heading took the same rank and they were
+            # siblings).
+            return self._piso + self.RANGO_EN_BLOQUE + self._orden_en_bloque(akn_type, rango, refers_to, num)
         return rango
+
+    def _es_codigo_de_resolucion(self) -> bool:
+        """Whether the annex heading being read is the instrument's own and not
+        the labelled block's: the block's container is open, and nothing after the
+        heading in the block's text opens a container or an article -- the annex
+        is a title and the text it amends or introduces, and its structure (the
+        chapters of a code, the instrument an `ANEXO ÚNICO` approves) is what the
+        API serves in the blocks that follow."""
+        abierto = self._bloque_abierto
+        if abierto is None and self._implicita is not None:
+            abierto = self._implicita[0]
+        if abierto is None or self._piso != self._piso_del_bloque:
+            return False
+        if not any(n is abierto for _, n in self._pila):
+            return False
+        fin = self._siguiente_de_marca.get(self._indice_marca)
+        if fin is None or fin >= len(self._bloques) or self._rol_de.get(fin) in ("resolution", *self.ROLES_SIN_SECCION):
+            # Nothing follows, or what follows is a text of its own (the next
+            # resolution, the closing formulas): there is no structure to take.
+            return False
+        return not any(
+            self._clases[j][0] in ("contenedor", "articulo") for j in range(self._i + 1, fin)
+        )
+
+    #: Rule 33 (review fix-5 of #291): the first rank below the container an API
+    #: block opened, and how far the precedence of a heading the block's text
+    #: prints moves it down from there (`precedence / 100` stays below every
+    #: step of 0.25 and 0.5 the other rules use).
+    RANGO_EN_BLOQUE = 0.5
+
+    def _orden_en_bloque(self, akn_type: str, rango: float, refers_to: str | None,
+                         num: str | None) -> float:
+        """How far below `RANGO_EN_BLOQUE` a heading printed inside an API block
+        sits: its own precedence, scaled so the order among headings is kept. A bare
+        `APÉNDICE` printed after an annex of the same block is below the annex and
+        above every chapter; one that carries a number (`APÉNDICE III-A`, which
+        names the annex it belongs to) keeps the rank of any other attachment."""
+        if akn_type == "attachment" and refers_to == REFERS_TO_APENDICE and num is None and any(
+            n.akn_type == "attachment" and n.refers_to == REFERS_TO_ANEXO
+            for _, n in self._pila
+        ):
+            return 0.005
+        if (
+            akn_type == "attachment" and refers_to == REFERS_TO_ANEXO and num is None
+            and self._pila and self._pila[-1][1].akn_type == "attachment"
+            and self._pila[-1][1].refers_to == REFERS_TO_ANEXO
+            and not self._pila[-1][1].children
+        ):
+            # A bare `ANEXO` that follows another with nothing between them but its
+            # title (`ANEXO` / `ENMIENDAS AL PROTOCOLO` / `ANEXO` / `MODIFICACIONES
+            # Y ADICIONES AL ANEXO DEL CONVENIO`) is that annex's own text, the
+            # annex of the annex: the first is not left an empty node.
+            return 0.001
+        return rango / 100
 
     def _dueno_numerado(self, campos) -> tuple[float, AknNode] | None:
         """Rule 25 (review fix-3 of #291): the open container an annex or an
@@ -1715,7 +1782,8 @@ class _Constructor:
         if rango_propio is not None:
             self._piso = rango = rango_propio
         else:
-            rango = self._rango(akn_type, campos.get("forzado", False))
+            rango = self._rango(akn_type, campos.get("forzado", False), campos.get("refers_to"),
+                               campos.get("num"))
             if self._marcas and not campos.get("forzado") and campos.get("refers_to") == REFERS_TO_ANEXO:
                 # Rule 31 (review fix-4 of #291): an `ANEXO 1` the text of one block
                 # prints under the appendix before it (`APÉNDICE S30` and its annexes

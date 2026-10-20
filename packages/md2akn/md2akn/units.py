@@ -1030,7 +1030,20 @@ def text_units(
        `APÉNDICE S30` appendix), `Artículo Primero.-` with a mixed-case ordinal
        inside transitorios, and the caption line the SCJN prints *before* an
        article's heading (`Objeto`) as the start of that article.
-    Rules 25 to 32 apply to a document with outline markers; one without
+    33. An API block is the root of its hierarchy (review fix-5 of #291).
+       Every `RESOLUCIÓN ...` block is a `section`, whether or not its own text
+       has articles (it used to be an `hcontainer` when it had none). The
+       headings a block's text prints keep their order among themselves: an
+       `ANEXO` holds the chapters printed after it, a chapter its parts
+       (`PARTE A`, `B`, ...: the next chapter's `PARTE A` is its own, never
+       `part_A_2`), a bare `APÉNDICE` after the annex of the same block is
+       inside it, and the next marker closes the whole stack the block opened.
+       The one annex that leaves its block is the one with no container or
+       article after its heading in the block's text: the structure of the
+       code a resolution amends, or of the instrument an `ANEXO ÚNICO`
+       approves, is what the API serves in the blocks that follow, and they
+       belong to that annex.
+    Rules 25 to 33 apply to a document with outline markers; one without
     them is read, and its eIds written, as before.
 
     >>> import md2akn

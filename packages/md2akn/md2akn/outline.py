@@ -85,7 +85,8 @@ def pliega_etiqueta(etiqueta: str) -> str:
 #:   connectives only.
 #: - `note`: `NOTA EXPLICATIVA`, `NOTAS`.
 #: - `resolution`: `RESOLUCIÓN MSC.404(96)` -- an amending resolution is a text of
-#:   its own, the container rule 23 already gave one that holds articles.
+#:   its own, always a `section` (rule 33: the container rule 23 gave one that
+#:   holds articles, now every one, so sibling resolutions are of one type).
 #: - everything else has no role: a generic labelled container.
 _PASO = (
     r"(?:FIRMA|APROBACION|RESERVAS?|RATIFICACION|ACEPTACION|ADHESION|ADOPCION|DEPOSITO|"

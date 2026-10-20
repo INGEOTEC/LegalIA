@@ -437,6 +437,19 @@ every machine has — rather than over a handful of fixtures; see its own module
   are read. Measured over the 2,677 Atlas instruments: `loose` excerpts 5,668 →
   459 and repeated numbers 164 excerpts in 7 treaties → 0. No rule names an
   instrument and a document with no marker is read as before.
+  **Review fix-5 of #291 (still 0.5.1):** the SOLAS amendments (tratados 11293)
+  print each resolution as one API block with its own `ANEXO`, chapters and
+  parts, and the tree had them as siblings of the annex and of each other, one
+  resolution as an `hcontainer` among `section`s, and one annex escaped to the
+  body. **Rule 33**, an API block is the root of its hierarchy: every
+  `RESOLUCIÓN ...` block is a `section`; the headings a block's text prints keep
+  their order (an `ANEXO` holds the chapters after it, a chapter its parts, a bare
+  `APÉNDICE` after the annex is inside it) instead of all taking the block's one
+  rank, so no `part_A_2`; the next marker closes everything the block opened; and
+  the only annex that leaves its block is one with no container or article after
+  its heading in the block's text (the code a resolution amends, an `ANEXO ÚNICO`),
+  whose structure the API serves in the blocks that follow. No rule names an
+  instrument and a document with no marker is read as before.
 
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an

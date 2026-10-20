@@ -761,6 +761,31 @@ def test_the_outline_nests_an_annex_under_its_chapter_and_appendices_under_their
     page.close()
 
 
+def test_the_outline_nests_a_resolutions_annex_chapters_and_parts(browser, server):
+    """Review fix-5 of #291: a block is the root of its hierarchy. The toy treaty's resolution
+    shows its introduction and its annex; the annex holds its chapters and each chapter its
+    parts, and nothing of the block hangs from the instrument itself."""
+    page = open_page(browser, f"{server}?c=tratados&k=700")
+    wait_rendered(page)
+    outline = page.locator(".instruments-outline")
+    expand_outline(page)
+
+    def children_of(label):
+        item = outline_entry(outline, label)
+        return [b.inner_text().strip() for b in item.locator(
+            "xpath=./ul/li/button[contains(@class, 'instruments-outline-link')]").all()]
+
+    assert children_of("Sección RESOLUCIÓN MSC.1(1)") == ["Introduction", "Annex"]
+    assert children_of("Annex") == ["Capítulo II-1", "Capítulo II-2"]
+    assert children_of("Capítulo II-1") == ["Part A", "Part B"]
+    assert children_of("Capítulo II-2") == ["Part A"]
+    nested = page.locator('section[data-eid="sec_RESOLUCIÓN_MSC.1(1)__att_attachment"]')
+    assert nested.locator('section[data-eid="sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'
+                          '__part_A"]').count() == 1
+    assert page.errors == []
+    page.close()
+
+
 def test_the_outline_names_every_labelled_block_by_its_role(browser, server):
     """Review fix-4 of #291: a block the Court labels `other` is an `hcontainer` of the tree, and
     the outline shows it, named in English by its `refersTo` (the promulgation decree's blocks

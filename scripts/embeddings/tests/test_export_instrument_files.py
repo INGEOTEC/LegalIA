@@ -239,6 +239,36 @@ Texto del primer apéndice.
 
 Texto del segundo apéndice.
 
+<!-- scjn:block orden=14 numero=0 kind=other label="RESOLUCIÓN MSC.1(1)" -->
+
+**RESOLUCIÓN MSC.1(1)**
+
+El Comité adopta las enmiendas que figuran en el anexo.
+
+**ANEXO**
+
+**ENMIENDAS AL TRATADO**
+
+**CAPÍTULO II-1**
+
+**CONSTRUCCIÓN**
+
+**PARTE A**
+
+Generalidades de la construcción.
+
+**PARTE B**
+
+Compartimentado de la construcción.
+
+**CAPÍTULO II-2**
+
+**PREVENCIÓN DE INCENDIOS**
+
+**PARTE A**
+
+Generalidades de la prevención.
+
 <!-- scjn:block orden=10 numero=0 kind=other label="NOTA EXPLICATIVA" -->
 
 Las disposiciones marcadas modifican el Tratado.
@@ -625,6 +655,25 @@ def test_the_excerpt_flags_of_alfa(exported):
     counts = document["meta"]["flags"]
     assert counts == {"loose": 1, "duplicate_number": 2, "numbering_gap": 2,
                       "over_window": 1, "score": 6}
+
+
+def test_a_block_is_the_root_of_its_hierarchy_in_the_exported_tree(exported):
+    """Review fix-5 of #291: the toy treaty's resolution block prints its annex, chapters and
+    parts. The file's tree holds them in that order, inside the block, with no repeated
+    identifier -- the annex is not an empty node with its chapters as siblings, and a chapter's
+    `PARTE A` is its own."""
+    document = read_file(exported, "tratados", "700")
+    body = next(n for n in document["tree"]["c"] if n["t"] == "body")
+    resolution = next(n for n in body["c"] if n["e"] == "sec_RESOLUCIÓN_MSC.1(1)")
+    assert [(c["t"], c["e"]) for c in resolution["c"]] == [
+        ("intro", "sec_RESOLUCIÓN_MSC.1(1)__intro"),
+        ("attachment", "sec_RESOLUCIÓN_MSC.1(1)__att_attachment"),
+    ]
+    annex = resolution["c"][1]
+    assert [(c["t"], c["n"]) for c in annex["c"]] == [("chapter", "II-1"), ("chapter", "II-2")]
+    assert [[(p["t"], p["n"]) for p in c["c"] if p["t"] == "part"] for c in annex["c"]] == [
+        [("part", "A"), ("part", "B")], [("part", "A")]]
+    assert document["meta"]["flags"].get("duplicate_number", 0) == 0
 
 
 def test_the_instrument_flags(exported):
