@@ -52,10 +52,10 @@ promedia); cada texto truncado queda contado en `vectors-manifest.json`
 | De los cuales compartidos | 155 | 155 |
 | Tamaño | 9 MB | 23 MB |
 
-Corpus: 126 instrumentos, 6 242 unidades, **5 856 textos distintos**, `cap`
+Corpus: 126 instrumentos, 6 240 unidades, **5 854 textos distintos**, `cap`
 2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos decimales,
 las introducciones de contenedor y las tablas, y la revisión de los números de artículo repetidos:
-reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24, y revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32)).
+reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24, y revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32, y revisión fix-5 de #291: un bloque de la API es la raíz de su jerarquía, regla 33)).
 
 Los otros 37 instrumentos del release `scjn-lineamientos` no aparecen aquí:
 la SCJN los clasifica pero no sirve texto consolidado de ninguno
