@@ -4415,3 +4415,128 @@ cluster venv without `bm25s` on `PYTHONPATH=~/.cache/legalia-pylibs`): see the c
 (`emb-run-<c>-053/publish/PUBLICAR.md`, **regenerated**, leyes, reglamentos, lineamientos, tratados), the three `atlas-pairs`
 sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and
 `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).
+
+### Measured, an API block is the root of its hierarchy, 2026-10-20 (review fix-5 of issue #291)
+
+The repository owner reviewed the SOLAS treaty (`11293`, snapshot `27-04-2026`) on the Instruments page after fix-4:
+the publication agreement followed by fifteen amending resolutions, each **one API block** that prints its own recitals,
+an `ANEXO` and the chapters and parts of that annex. The owner's rule is that a block marker is the root of a hierarchy,
+that the next marker starts a new one at the same level, and that `ANEXO` is a label that groups everything below it, not
+`loose` text. The tree had four defects, all in the outline-marker path of `md2akn.structure` (`md2akn` and `scjn` stay
+0.5.1; no rule names an instrument and a document with no marker parses byte for byte as before):
+
+* **One rank for every heading of a block.** Rule 21 puts a heading the *text* of a block prints under the container the
+  block itself opened, and it did so by giving every such heading the *same* rank (`piso + 0.5`), so `ANEXO`, `CAPÍTULO II-1`
+  and `PARTE A` were siblings: an empty annex, chapters beside it, parts beside their chapter (and the next chapter's
+  `PARTE A` a `part_A_2`). Rule 33 keeps their order (`piso + 0.5 + precedence / 100`: annex, book, title, chapter, part
+  inside a chapter, section, level), so the annex holds its chapters and a chapter its parts.
+* **A resolution was an `hcontainer` or a `section` by an accident of its text.** Rule 23 gave a `section` to a block holding
+  articles; a resolution with none (`RESOLUCIÓN MSC.409(97)`) stayed an `hcontainer` and its `ANEXO` escaped to the body.
+  Every `RESOLUCIÓN ...` block (the role table's `resolution`) is a `section` now, so `MSC.404 ... MSC.550` are siblings of
+  one type (124 containers over the corpus changed from `hcontainer` to `section`, none the other way).
+* **An annex left its block whatever it held.** Rule 29's special case took any `ANEXO` a labelled block printed out of the
+  block, for the code a resolution amends whose chapters the API serves as blocks *of their own* after it (the gas carrier
+  code `96707`, the reglamento an `ANEXO ÚNICO` approves in `83225`, the lineamientos of `55816`). It is kept for exactly that
+  shape: an annex with **no container or article after its heading in the block's text**, a following marker that is not
+  another resolution or a closing role, and a block that is not the last. An annex whose structure is in the block's own text
+  (the 11293 shape) stays in the block, and the next marker closes everything the block opened.
+* **A bare `APÉNDICE` and a second bare `ANEXO` of one block.** `ANEXO` / title / `ANEXO` / title / `APÉNDICE` (MSC.497, 522,
+  533, 534) is an annex whose own text is the annex to the Convention, which holds the appendix: a bare `ANEXO` right after an
+  annex with nothing in it but its title is inside it (the first is not left an empty node), and a bare `APÉNDICE` after an
+  annex of the same block is inside it too. A *numbered* appendix (`APÉNDICE III-A` of the T-MEC) and a numbered annex
+  (`ANEXO 1`, `ANEXO 2`) keep the rank they had: `137355`, `114115` and `992` keep their annexes as siblings.
+
+**Over the 2,677 Atlas instruments** (`measure_trees.py`, `measure_loose.py`, the newest snapshot, before is the parser of
+`3b552204`):
+
+| collection | instruments | trees changed | units changed | `loose` excerpts before → after |
+|---|---:|---:|---:|---:|
+| leyes | 315 | 1 | 1 | 95 → 95 |
+| reglamentos | 864 | 3 | 3 | 104 → 116 |
+| lineamientos | 125 | 2 | 2 | 44 → 44 |
+| tratados | 1,373 | 38 | 38 | 205 → 175 |
+
+**448 → 430** `loose` excerpts (201 → 198 instruments), `duplicate_number` **0** in every collection before and after, and
+the nodes: `section` 12,533 → 12,657 and `hcontainer` 12,193 → 12,069 (the 124 resolutions), every other type (`attachment`
+948, `part` 523, `chapter` 16,587, `title` 3,765, `intro`, `article`) the same number. Identifiers that end in `_N` because the same
+one already stood under the parent (`measure`-style count, base id present): `part` 23 → 8, `attachment` 114 → 78, `chapter`
+78 → 60, `hcontainer` 1,022 → 1,045 (a label such as `SE CERTIFICA` or `PREÁMBULO` that used to hide in a different annex
+each time and is now a sibling of its twins), `section` 446 and `title` 26 unchanged; `11293` has none of `part_A_2`, `_3`
+(8 before) and three `hc_SE_CERTIFICA_N`, the boxes of a certificate. `loose` for `11293` is 19 → 0, `96707` 4 → 0 and
+`11345` 30 → 28. **Two reglamentos get worse, and it is the same class fix-4 left**: `71872` 2 → 6 and `96089` 2 → 10 are
+a list of `Título Primero` / `Capítulo Único` lines with nothing under them; each chapter is now inside its title (rank
+order kept), and a container with only its own heading line is `loose`, where the old tree had chapters beside the titles.
+The structures fix-3 and fix-4 protected: `96728`, `103948` and `137355` byte for byte; `114738` and `96707` change in the
+resolution's container type (`hcontainer` → `section`) and in the annexes of the resolutions that print their chapters (now
+inside the resolution, no `att_attachment_2`), and `44552` has its `APÉNDICE S17` parts and its `RESOLUCIONES Y RECOMENDACIONES`
+annex inside the container that holds them instead of beside it. The release sweep (`test_units_release_sweep.py`, four
+corpora): **15 passed in 40 minutes**.
+
+**Units and vectors.** `compare_units.py` against fix-4's own (`emb-run-<c>-053`, both `--no-split-articles`):
+
+| collection | rows before → after | instruments differing | with a new text | only relabelled | distinct new texts | encoded (not embedded by an earlier run) |
+|---|---|---:|---:|---:|---:|---:|
+| leyes | 68,794 → 68,794 | 1 | 1 | 0 | 11 | 11 |
+| reglamentos | 113,572 → 113,595 | 3 | 3 | 0 | 29 | 29 |
+| lineamientos | 6,242 → 6,240 | 2 | 2 | 0 | 9 | 3 |
+| tratados | 56,395 → 56,502 | 38 | 38 | 0 | 1,972 | 1,969 |
+
+Exactly the 44 instruments whose tree changed, nothing else: a heading's or an introduction's text carries the containers in
+front of it, so a container that moved changes the text of what is in it. 2,021 distinct new texts; the corpora were not
+re-crawled and nothing about the Markdown changed. `emb-run-<c>-054/` are copies of the `-053` directories with the old
+`shards.json`, `publish/` and `runs/*/manifest.json` removed first; one plan per collection for both models
+(`already_embedded()` equal between them), 1, 1, 1 and 3 shards (`first_shard_index` 27, 55, 10, 39) on `cemieredes`, both models,
+0 failed, `merge_shards.py` with `missing_vectors` 0, and `compare_merges.py` against `-053` is **clean for all eight runs**
+(0 texts with another vector, 0 non-finite, no file gained or lost; 1 of 316, 3 of 1,084, 2 of 127 and 40 of 1,374 files
+differ per model, one of them in `tratados` only because a text it owned alone is now shared). `package_vectors.py` wrote
+`emb-run-<c>-054/publish/PUBLICAR.md` (the same asset counts as before, 632, 2,168, 254 and 2,748 vector files in 1, 3, 1 and 3
+parts; 2, 6, 4 and 80 same-name changed files for the `--clobber` block; no stale asset on any live release), and the four
+`.github/scjn-*-vectors*.md` bodies carry the new counts (distinct texts 59,235, 103,480, 5,854 and 54,268) and name rule 33.
+`stage_vectors_cache.py` built `emb-run-vectors-054-cache/`, verified against the sums.
+
+**The Atlas chain**, from that cache (the previous work directories were moved to `emb-run-atlas*-prev` and deleted once the
+new ones had passed):
+
+| | fix-4 | now |
+|---|---:|---:|
+| instruments | 2,677 | 2,677 |
+| excerpts (`meta.provisions`) | 221,698 | 221,826 |
+| headings excluded | 32,989 | 33,043 |
+| transitory rows excluded | 22,477 | 22,481 |
+| word-for-word shared rows not counted (0.6B and 4B / BM25) | 2,438 / 2,865 | 2,439 / 2,848 |
+| counted rows (0.6B and 4B / BM25) | 163,794 / 163,360 | 163,863 / 163,446 |
+| distinct vector rows | 202,951 | 203,099 |
+
+The unique-instrument selection is unchanged and the three files list the same instruments in the same positions
+(`--instruments-as`, taken from the new 0.6B file: `p` moved for 20 instruments, so it cannot be the old one). The closest
+instrument is unchanged for **2,668 of 2,677** under the 0.6B, 2,667 under the 4B and 2,670 under BM25; `pc` changed for 24
+instruments (37 under BM25). The three `atlas-pairs` sets have 12,930, 12,909 and 12,939 files, as before. The BM25 pair set
+was built with `--tolerance 2e-6` (recorded in its manifest), as in fix-2: one pair (1130-1052) scored 23.9529400 on the login
+node and the matrix job on the cluster recorded 23.9529648 (a relative 1.04e-6, float32 summed in another order), and the first
+run stopped there; every pair, and the per-pair sums against the matrix, passed at the wider tolerance. The 4B's nearest
+texts: 166,302 searched unit rows, 166,148 distinct source texts, 830,740 rows, `agrees_with_nearest` true. The instrument
+files: 2,677 files, 350.2 MB (73.6 MB as the tarball), the re-parse equals the staged units for **all 2,677**, offsets
+included; the flags are `loose` 430 excerpts in 198 instruments (448 in 201 before), **`duplicate_number` none**,
+`numbering_gap` 157 in 31, `over_window` 1, `no_articles` 34 and `no_transitorios` 1,054. Timings on `cemieredes` and the login
+node: matrix jobs 219 s, 393 s and 951 s (0.6B, 4B, BM25), nearest texts 535 s, instrument files 1,443 s, pair sets 806 s,
+1,176 s and 829 s.
+
+**The evaluations were re-run** (`gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`): the gold is **exactly** fix-4's
+(A 162, B 172, 253 instruments, 277 links, 62 unresolved names, `links.md` byte-identical to `_gold-links.md`), signal C is the
+same (7,145 citations in 5,295 excerpts), the row-level tables (`evaluation-rows.md`) are identical to three decimals, and the
+strong-link tables moved in three bootstrap intervals of the page (A, 0.6B − BM25 `[−0.043, +0.006]` → `[−0.042, +0.006]`; A and
+B, 0.6B − 4B `[−0.022, +0.016]` → `[−0.022, +0.017]`, and 4B − BM25 `[−0.026, +0.017]` → `[−0.027, +0.016]`). **No conclusion
+changed.** The page's literals follow and say 20 October 2026 (the data box: 221,826 excerpts, 33,043 headings, 22,481 transitory
+articles, 2,439 shared, 163,863 counted; the treaty sentence: the closest instrument of 1,318 of 1,373 treaties is a treaty, and
+7 laws, 5 regulations and 1 guideline have a treaty as their closest). The topics (a draft page) were not regenerated.
+
+**The page.** The outline already mirrors the tree, so `11293` shows each resolution (a *Sección*) with its introduction and
+its *Annex*, the annex holding the chapters, each chapter its parts and the appendix: the toy treaty of the page's tests has a
+resolution with an annex, two chapters and their parts, and `test_the_outline_nests_a_resolutions_annex_chapters_and_parts`
+(and `test_a_block_is_the_root_of_its_hierarchy_in_the_exported_tree` for the exported file) pin it.
+
+**What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four corpora
+(`scripts/scjn/<c>-release/PUBLICAR.md`, unchanged by this fix), the four vectors releases
+(`emb-run-<c>-054/publish/PUBLICAR.md`, **regenerated**: leyes, reglamentos, lineamientos, tratados), the three `atlas-pairs`
+sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and
+`atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).

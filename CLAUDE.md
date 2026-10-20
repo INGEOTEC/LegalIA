@@ -1135,6 +1135,25 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   its role (`Promulgation decree`, `Note`, `Closing formulas`, `Form`, `Division`, else `Block: <label>`). The release sweep
   passes (15 in 39 minutes). **Nothing was published**; the human order is: the four corpora, the four vectors releases
   (`emb-run-<c>-053/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+- **An API block is the root of its hierarchy, rule 33 (review fix-5 of #291, found after the fact; the owner
+  reviewed the SOLAS treaty `11293`).** Each of its fifteen amending resolutions is one API block that prints its own
+  `ANEXO`, chapters and parts, and the tree had them as siblings: rule 21 gave every heading a block's text prints the same
+  rank, so the annex was an empty node beside its chapters, the chapters beside their parts (the next chapter's `PARTE A` a
+  `part_A_2`), one resolution an `hcontainer` among `section`s and its annex at body level. **Rule 33**: every `RESOLUCIÓN ...`
+  block is a `section`; the headings a block's text prints keep their order (`piso + 0.5 + precedence / 100`: an `ANEXO` holds
+  the chapters after it, a chapter its parts, a bare `APÉNDICE` after an annex of the block is inside it, a bare `ANEXO` right
+  after an annex with only its title is inside that one); the next marker closes everything the block opened; and the one annex
+  that still leaves its block is rule 29's original case, narrowed: no container or article after its heading in the block's
+  text, a next marker that is not a resolution or a closing role (the code a resolution amends in `96707`, the reglamento an
+  `ANEXO ÚNICO` approves in `83225`). A numbered appendix or annex keeps its rank (`137355`, `114115`, `992`). Result over the
+  2,677 instruments (`measure_trees.py`, `measure_loose.py`): **44 trees changed** (1 ley, 3 reglamentos, 2 lineamientos, 38
+  tratados), 124 resolutions `hcontainer` → `section`, `loose` 448 → 430 (`11293` 19 → 0; two index-like reglamentos get 12 more:
+  a container with only its heading line, the class fix-4 left), `duplicate_number` 0, `part`/`attachment` identifiers ending in
+  `_N` 23 → 8 and 114 → 78. 2,021 distinct new texts were encoded with both models (1, 1, 1 and 3 shards, `compare_merges`
+  clean for all eight runs), the Atlas chain rebuilt (closest instrument unchanged for 2,668 / 2,667 / 2,670 of 2,677), the
+  gold and the evaluations identical but for three intervals, the page's literals say 20 October 2026. `md2akn` and `scjn`
+  stay 0.5.1. **Nothing was published**; the human order is: the four corpora, the four vectors releases
+  (`emb-run-<c>-054/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 
