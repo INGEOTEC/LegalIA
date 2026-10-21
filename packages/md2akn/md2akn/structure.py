@@ -550,6 +550,11 @@ def _rango_conclusiones(bloques) -> int:
     return len(bloques)
 
 
+#: Rule 39 (review fix-6 of #291): the label of an `other` block that is a numbered
+#: provision the SCJN could not classify because the source misprints its number,
+#: `98 (SIC)`.
+_ETIQUETA_PROVISION_SIC = re.compile(r"^(?P<num>\d+[A-Za-z]?)[ \t]*\((?:sic|SIC)\)\.?$")
+
 _MARCA_ORDINAL = re.compile(r"(?<=\d)[oº°]")
 _SOLO_ALFANUMERICO = re.compile(r"[^0-9a-z]")
 
@@ -758,6 +763,10 @@ class _Constructor:
         #: The first block of each API block that is not an annotation: the
         #: one the marker's `kind` is about, ``{block index: attributes}``.
         self._primeros: dict[int, dict[str, str]] = {}
+        #: The block each marker's `_primeros` entry is at, ``{marker index: block}``.
+        self._destino_de_marca: dict[int, int] = {}
+        #: Rule 39: the markers (by identity) of the `other` blocks read as a provision.
+        self._provisiones_sic: set[int] = set()
         #: Rule 29: for an article whose caption comes before its heading line,
         #: ``{heading block index: first block index}``.
         self._encabezados_de_leyenda: dict[int, int] = {}
@@ -895,6 +904,7 @@ class _Constructor:
                             # container *before* it, the one the block closes.
                             self._clases[i] = ("encabezado_previo", {})
                 self._primeros[destino] = actual
+                self._destino_de_marca[inicio_de_marca] = destino
                 self._clases[destino] = self._clase_de_marca(
                     self._clases[destino], actual, self._bloques[destino]
                 )
@@ -994,6 +1004,8 @@ class _Constructor:
             rol = self._rol_de.get(k)
             if rol in self.ROLES_SIN_SECCION:
                 continue
+            if id(self._marcas[k]) in self._provisiones_sic:
+                continue  # rule 39: a provision printed `N (SIC)`, an article
             ultimo = n
             while ultimo + 1 < len(indices) and indices[ultimo + 1] in self._fusion:
                 ultimo += 1
@@ -1006,6 +1018,48 @@ class _Constructor:
             siguientes = fin > ultimo + 1
             if propio or siguientes or rol == "resolution":
                 self._aperturas[k] = indices[fin] if fin < len(indices) else len(self._bloques)
+        self._busca_articulos_de_encabezado(indices, siguiente)
+
+    #: Rule 38: how many heading-only article blocks a document needs, each followed
+    #: by provision blocks, before they are read as headings, and the longest a
+    #: heading block's lines are.
+    MIN_ENCABEZADOS_DE_ARTICULO = 3
+    MAX_LINEA_DE_ENCABEZADO = 160
+
+    def _busca_articulos_de_encabezado(self, indices, siguiente) -> None:
+        """Rule 38 (review fix-6 of #291): the Reglamento General de Infantería is
+        written `ARTICULO 1°. Generalidades` and, under it, `1.- La preparación ...`
+        to `5.- ...`, then `ARTICULO 2°` and `6.- ...`: the numbered provisions run
+        on across the articles, which are headings that group them. Read as
+        articles, the two numberings interleave (1, 5 then 2°, 6, 9 then 3°, 10 ...)
+        and 70 numbers look missing. An API `article` block whose text is only its
+        heading line and a caption, followed by `provision` blocks, opens a section
+        of those provisions (rule 23's machinery: it lasts to the next marker that is
+        neither a provision nor an `other` block) -- when the document does it three
+        times or more; one such block in a reglamento is an article whose numbered
+        paragraphs the API labelled provisions, and stays an article."""
+        candidatos = []
+        for n in range(len(indices) - 1):
+            k = indices[n]
+            if (self._marcas[k].get("kind") != "article"
+                    or self._marcas[indices[n + 1]].get("kind") != "provision"):
+                continue
+            texto = [i for i in range(k + 1, siguiente[k])
+                     if self._clases[i][0] not in ("anotacion", "nota_editorial")]
+            if 0 < len(texto) <= 2 and all(
+                len(self._bloques[i].text.strip()) <= self.MAX_LINEA_DE_ENCABEZADO
+                and "\n" not in self._bloques[i].text.strip() for i in texto
+            ):
+                candidatos.append((n, texto))
+        if len(candidatos) < self.MIN_ENCABEZADOS_DE_ARTICULO:
+            return
+        for n, texto in candidatos:
+            fin = n + 1
+            while fin < len(indices) and self._marcas[indices[fin]].get("kind") in ("provision", "other"):
+                fin += 1
+            self._aperturas[indices[n]] = indices[fin] if fin < len(indices) else len(self._bloques)
+            for i in texto:
+                self._clases[i] = ("encabezado_de_seccion", {})
 
     def _busca_formularios(self, en_indice) -> None:
         """Rule 31: the heading of a model certificate or form opens a division of
@@ -1118,6 +1172,10 @@ class _Constructor:
                 "numero": marca.get("numero"),
                 "tipo": marca["type"],
             }
+        if kind == "other" and self._es_provision_sic(marca, linea):
+            # Rule 39: `98 (SIC).- El pelotón es ...` is provision `98 (SIC)`.
+            self._provisiones_sic.add(id(marca))
+            return "articulo", {"num": _limpia(marca["label"])}
         if kind == "decree":
             return "transitorios_dof", {"num": _limpia(marca.get("num", "")), "forzado": True}
         if kind == "transitorios":
@@ -1162,6 +1220,18 @@ class _Constructor:
         return marca is not None and marca.get("kind") in (
             "decree", "recitals", "preamble", "header", "transitorios",
         )
+
+    @staticmethod
+    def _es_provision_sic(marca, linea: str) -> bool:
+        """Rule 39: whether an `other` block is a numbered provision whose number
+        the source prints with a `(SIC)` -- its label is `<number> (SIC)` and its
+        text opens with that number and goes on."""
+        m = _ETIQUETA_PROVISION_SIC.match(marca.get("label", "").strip())
+        if m is None:
+            return False
+        resto = linea.replace("**", "").strip()
+        return (resto.upper().startswith(marca["label"].strip().upper().rstrip(".")[:len(m.group("num"))])
+                and re.match(rf"{re.escape(m.group('num'))}[ \t]*\((?:sic|SIC)\)[.\-– \t]*\S", resto) is not None)
 
     def _toma_marca(self, inicio: int) -> int:
         """`inicio`, pulled back over the marker line still waiting for a node
@@ -1242,7 +1312,7 @@ class _Constructor:
             self._piso = self._piso_del_bloque = 5.0
             self._implicita = (nodo, self._aperturas[self._i])
         elif not continuacion and self._i + 1 < self._fin_cuerpo and (
-            marca.get("kind") == "other"
+            (marca.get("kind") == "other" and id(marca) not in self._provisiones_sic)
             or (marca.get("kind") in ("header", "preamble", "recitals")
                 and (self.body is not None or self._pila))
         ):
@@ -2272,6 +2342,15 @@ class _Constructor:
         # (201 laws' worth of `overlapping-siblings` in #162's first sweep).
         if self._articulo is not None:
             self._interior.marca_anotacion()
+
+    def _bloque_encabezado_de_seccion(self, bloque, campos):
+        # Rule 38: a line of the heading of the section the API block opened;
+        # the section's span grows over it and its heading is the lines' text.
+        nodo = self._implicita[0]
+        self._extiende(nodo, bloque.end)
+        linea = _limpia(bloque.text)
+        nodo.heading = f"{nodo.heading} {linea}" if nodo.heading else linea
+        self._tabla = None
 
     def _bloque_encabezado_previo(self, bloque, campos):
         # Rule 34: the lines that stand between an API block's marker and the
