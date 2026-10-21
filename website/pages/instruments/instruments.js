@@ -231,7 +231,16 @@
     const rows = blocks.map((block) => (IS_ROW.test(block.text) ? tableCells(block.text) : null));
     const width = Math.max(1, ...rows.map((cells) => (cells ? cells.length : 0)));
     const body = element("tbody");
+    // The blocks before the first row are the table's caption (`**A.** Tarifa para ...`,
+    // `**TARIFA**`, md2akn's rule 36): a `<caption>`, not rows of the table.
+    let first = 0;
+    while (first < blocks.length && !rows[first]) first++;
+    const caption = first > 0 && first < blocks.length
+      ? element("caption", { className: "instruments-table-caption" },
+          blocks.slice(0, first).map((block) => appendInline(element("span", { className: "instruments-table-caption-line" }), block.text)))
+      : null;
     blocks.forEach((block, n) => {
+      if (n < first && caption) return;
       const tr = element("tr", { className: rows[n] ? "instruments-table-row" : "instruments-table-label" });
       if (rows[n]) {
         rows[n].forEach((cell) => tr.append(appendInline(element("td"), cell)));
@@ -243,8 +252,40 @@
       body.append(tr);
     });
     return element("div", { className: "instruments-table-scroll" }, [
-      element("table", { className: "instruments-table" }, [body]),
+      element("table", { className: "instruments-table" }, caption ? [caption, body] : [body]),
     ]);
+  }
+
+  // The `<tr>` of one table row, bold kept; `width` cells at most are drawn as written.
+  function rowElement(cells) {
+    const tr = element("tr", { className: "instruments-table-row" });
+    cells.forEach((cell) => tr.append(appendInline(element("td"), cell)));
+    return tr;
+  }
+
+  // A table inside an article is not a node of md2akn's tree (the article is one
+  // excerpt, whatever it holds): each of its rows is a `content` leaf of the article.
+  // The page draws the run of such leaves as one HTML table, for display only -- the
+  // excerpt, its Raw text and the nearest texts are the article's, unchanged.
+  function appendRowTo(host, node, text) {
+    let group = host.lastElementChild;
+    if (!group || !group.classList.contains("instruments-table-group")) {
+      group = element("section", {
+        className: "instruments-node instruments-type-table-group instruments-table-group",
+        "data-type": "table",
+        "data-eid": node.e,
+        "data-eids": node.e,
+        "data-start": String(node.s),
+      }, [element("div", { className: "instruments-table-scroll" }, [
+        element("table", { className: "instruments-table" }, [element("tbody")]),
+      ])]);
+      host.append(group);
+    } else {
+      group.dataset.eids += ` ${node.e}`;
+    }
+    group.dataset.end = String(node.l);
+    group.querySelector("tbody").append(rowElement(tableCells(text)));
+    return group;
   }
 
   // The excerpt label of a nearest text, from its eId only (the file of the
@@ -1067,6 +1108,15 @@
           nodeEls.set(node.e, el);
           place(el);
           return;
+        }
+        if (node.t === "content" && !(node.c && node.c.length)) {
+          // A row of a table printed inside an article joins the table the row before it opened.
+          const body = nodeText(node).trim();
+          const host = parentNode === null ? documentEl : kidsOf.get(parentNode);
+          if (host && IS_ROW.test(body)) {
+            nodeEls.set(node.e, appendRowTo(host, node, body));
+            return;
+          }
         }
         const text = nodeText(node);
         if (text.trim()) el.append(element("div", { className: "instruments-text" }, [renderText(text)]));

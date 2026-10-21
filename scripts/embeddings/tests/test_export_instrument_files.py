@@ -77,6 +77,12 @@ II. Fracción dos.
 
 **Artículo 5.-** Texto larguísimo del quinto.
 
+| Tramo | Tasa |
+
+| Hasta 100 | **1.5** |
+
+| Más de 100 | 2 |
+
 **CAPÍTULO II**
 
 Introducción del segundo capítulo.

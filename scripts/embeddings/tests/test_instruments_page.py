@@ -569,6 +569,24 @@ def test_a_table_is_drawn_as_an_html_table_in_parsed_mode_with_its_rows_and_cell
     assert node.locator("pre.instruments-raw-text").inner_text().startswith("| Concepto | Cuota |")
 
 
+def test_a_table_inside_an_article_is_drawn_as_one_html_table_and_the_article_stays_one_excerpt(page):
+    """Review fix-6 of #291: a table an article prints is not a node of the tree (the article
+    is one excerpt whatever it holds), but its rows are not paragraphs either: the page draws
+    the run of rows as one HTML table, for display only."""
+    open_from_table(page, "alfa")
+    article = excerpt(page, f"{ALFA}art_5")
+    assert article.get_attribute("data-unit-type") == "article"
+    tables = article.locator("table.instruments-table")
+    assert tables.count() == 1
+    rows = tables.locator("tr")
+    assert rows.count() == 3
+    assert [c.inner_text() for c in rows.nth(0).locator("td").all()] == ["Tramo", "Tasa"]
+    assert rows.nth(1).locator("td").nth(1).locator("strong").inner_text() == "1.5"
+    # The rows are not also printed as paragraphs, and the article is still one excerpt.
+    assert article.locator("p.instruments-paragraph", has_text="Hasta 100").count() == 0
+    assert page.locator(f'.instruments-excerpt[data-excerpt^="{ALFA}art_5"]').count() == 1
+
+
 def test_a_long_table_is_one_html_table_per_excerpt_each_addressable_by_its_piece(browser, server):
     chapter = "tit_PRIMERO__cap_II__intro__table_1"
     page = open_page(browser, f"{server}?c=leyes&k=alfa#{chapter}.2")
