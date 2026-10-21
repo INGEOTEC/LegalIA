@@ -512,8 +512,13 @@ def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
             # repeat is the body, in the same block, and the index ends at the
             # repeat as before.
             marca = marcas_cruzadas[0]
+            # (A table row after the repeat is body text unless the index itself is
+            # written as rows.)
+            entradas_en_filas = any(es_fila_tabla(bloques[k]) for k in range(i + 1, repite))
             if repite > marca or all(
-                len(bloques[k].text) <= MAX_ENCABEZADO_INDICE for k in range(repite, marca)
+                len(bloques[k].text) <= MAX_ENCABEZADO_INDICE
+                and (entradas_en_filas or not es_fila_tabla(bloques[k]))
+                for k in range(repite, marca)
             ):
                 fin_indice = marca
                 if fin_indice - i - 1 < MIN_ENTRADAS_INDICE:
@@ -2187,6 +2192,11 @@ class _Constructor:
             self._interior.agrega(bloque, es_marcador_estructural)
             return
         if self._pila or self._transitorios is not None or self.body is not None:
+            if self._tabla is not None and es_fila_tabla(bloque):
+                # The next row of the table open now (it ends at the first block that
+                # is not a row, or at a marker): wherever it hangs, so do its rows.
+                self._extiende(self._tabla, bloque.end)
+                return
             destino = self._destino_de_contenido(bloque)
             if es_fila_tabla(bloque):
                 self._agrega_fila_de_tabla(destino, bloque)

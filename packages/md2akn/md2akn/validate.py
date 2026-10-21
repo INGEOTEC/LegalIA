@@ -64,7 +64,11 @@ ANIDAMIENTO: dict[str, frozenset[str]] = {
     "chapter": frozenset(
         {"intro", "toc", "part", "section", "level", "article", "content", "table", "hcontainer"}
     ),
-    "section": frozenset({"intro", "toc", "level", "article", "content", "table", "hcontainer"}),
+    # A section inside a section: the implicit section an API block opens (rule 23)
+    # inside the transitorios section of the decree that holds it (rule 34).
+    "section": frozenset(
+        {"intro", "toc", "level", "section", "article", "content", "table", "hcontainer"}
+    ),
     "intro": frozenset({"content", "table"}),
     # An apartado holds articles; an apartado *inside* an article holds that
     # article's own fracciones -- which is why `paragraph` is here too. And
