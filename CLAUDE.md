@@ -1154,6 +1154,30 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   gold and the evaluations identical but for three intervals, the page's literals say 20 October 2026. `md2akn` and `scjn`
   stay 0.5.1. **Nothing was published**; the human order is: the four corpora, the four vectors releases
   (`emb-run-<c>-054/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+- **The marker path as a whole, rules 34 to 39 (review fix-6 of #291, found after the fact; the owner asked for the
+  cause, not another patch).** An API block is the unit of ownership (**invariant I1**): everything up to the next marker
+  hangs from the node that block opened. The parser had never stated it and decided a line's place in five independent
+  spots (the class of the block's lines, the open-container stack, rule 23's implicit section, rule 29's `hcontainer`, the
+  "transitorios are open" latch), so a line went to whichever container was last open; fix-2 to fix-5 each patched one case.
+  Measured: 20,133 excerpts of the Atlas' instruments hung from a node that was not their block's root. **Rule 34**, a block's
+  root bounds its text (the transitorios latch no longer outranks a block root, an index ends at its API block's next marker,
+  the lines before a container's heading are the heading's, text after an index or a captioned table is a further `intro`);
+  **35**, a childless container is a `heading` unit, never `loose`; **36**, a caption and the notes under a table are the
+  table's; **37**, `Artículo N` before a lower-case word is a reference line; **38**, an API `article` block that holds only
+  a heading and is followed by `provision` blocks opens a section (gate: three per document; it removed 70 of reglamento
+  `952`'s gaps); **39**, an `other` block labelled `N (SIC)` is the article. `md2akn.validate._block_escapes` checks I1. Result:
+  `loose` 430 → **0** (the 299 outside the transitorios, which the matrix compares, included), `duplicate_number` 0,
+  `numbering_gap` 157 → 86 in 31 instruments, every one classified with raw evidence in
+  `packages/md2akn/tests/fixtures_units/genuine_gaps.json` (omitted articles of an amending text, the source's own `(SIC)`,
+  `10 O` read as an ordinal, API order, numbering across sibling sections, one unmarked index). The release sweep gained
+  `TestInvariantesDelBloque` (I1 ownership, I2 no `loose` outside transitorios, I3 `duplicate_number` 0, I4 every gap in the
+  fixture and every fixture entry a gap): 19 passed in 53 minutes. The Instruments page draws a table printed inside an
+  article as **one HTML table** (caption in `<caption>`); the article stays one excerpt and its vector does not change.
+  `md2akn` and `scjn` stay 0.5.1. No re-crawl: 1,288 distinct new texts (1,098 encoded) with both models, the four `-055` work
+  directories (`compare_merges` clean for all eight runs), the Atlas chain (2,677 instruments, closest instrument unchanged
+  for 2,673 / 2,672 / 2,663), the evaluations (gold exactly as before, no conclusion changed) and the page's literals (21
+  October 2026) were rebuilt. **Nothing was published**; the human order is: the four corpora, the four vectors releases
+  (`emb-run-<c>-055/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 

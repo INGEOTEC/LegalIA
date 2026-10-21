@@ -4540,3 +4540,140 @@ resolution with an annex, two chapters and their parts, and `test_the_outline_ne
 (`emb-run-<c>-054/publish/PUBLICAR.md`, **regenerated**: leyes, reglamentos, lineamientos, tratados), the three `atlas-pairs`
 sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and
 `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).
+
+### Measured, the marker path as a whole: `loose`, tables and numbering gaps, 2026-10-21 (review fix-6 of issue #291)
+
+The repository owner reviewed the output after fix-5 and found four things the previous fixes had not removed: a table printed
+inside an article was not a table on the Instruments page, 299 `loose` excerpts outside the transitorios still entered the
+Atlas matrix (`lfisan` and `lfd` are the ones a reader meets), 157 `numbering_gap` flags in 31 instruments (the reglamento
+`952` had 70) and no test that would have told. The owner asked for the *cause*, not another local patch. `md2akn` and `scjn`
+stay 0.5.1; no rule names an instrument; a document with no marker parses byte for byte as before.
+
+**The root cause.** An API block is the unit of ownership: everything between a marker and the next one is that block's, and
+a block hangs from the node it opened (invariant I1). The parser never *had* that rule. It decided where a line goes in
+five places that did not talk to one another (the class of the block's lines, the stack of open containers, rule 23's
+implicit section, rule 29's `hcontainer`, and the latch that says "transitorios are open"), so a line went to whichever
+container happened to be last open when it was read. Every fix since fix-2 patched one case of that. Measured on the 2,677
+instruments, **1,259 + 790 + 623 + 17,461 excerpts** (leyes, reglamentos, lineamientos, tratados) hung from a node that was
+not their block's root, in 59, 78, 28 and 95 instruments; the visible symptoms were:
+
+* a block's text hanging from the transitorios of the decree *before* it (`lfisan`: a decree block followed by an `other`
+  block with a caption, tables and a note, all read as transitorios text, `loose` and unreachable from their own heading);
+* an index (rule 15) ending where the *lines* stopped looking like an index and not where its API block ended, so the next
+  block's headings were swallowed, or the other way round;
+* the `[...]` lines the SCJN prints before a container's heading read as body text;
+* a caption (`**Tabla 1** ...`) and the table it names read as two things, and the notes under a table as `loose`;
+* a container with no text but its heading read as `loose` instead of as a heading;
+* `Artículo 5 de la Ley ...` at the head of a line read as an article opener, an API `article` block whose label is
+  the only line of a heading (`ARTÍCULO 1 ...`, reglamento `952`: 70 of the gaps) read as an article instead of as the
+  section that the `provision` blocks after it fill, and an `other` block labelled `98 (SIC)` read as a container.
+
+**Rules 34 to 39**, each applying only to a document with markers: **34**, a block's root bounds its text (the transitorios
+latch no longer outranks a block root; an index ends at its API block's next marker, a repeat across a marker must be a
+real repeat; the lines before a container's heading are its heading's; the text after an index or after a captioned table
+is a further `intro`); **35**, a container with no child and no text is a `heading` unit, never `loose`; **36**, a caption and
+the notes under a table belong to the table; **37**, `Artículo N` followed by a lower-case word is a reference line; **38**, an
+API `article` block that holds only a heading, followed by `provision` blocks, opens a section holding them (a gate of three
+such blocks per document); **39**, an `other` block labelled `N (SIC)` whose text opens with that article is the article.
+`md2akn.validate._block_escapes` (private) checks I1 on any tree.
+
+**The page.** A table printed inside an article was a run of `content` leaves, each drawn as a paragraph. The page now
+groups consecutive row leaves into **one HTML table** (`.instruments-table-group`) and puts the leading caption lines in a
+`<caption>`; the article stays one excerpt and its vector does not change. In the Atlas that is 20 articles in two
+instruments (`lfd` 19, the reglamento `61782` 1). Table *nodes* (rule 13) keep their own rendering.
+
+**The numbering gaps.** Every flagged article was classified against the API's own blocks
+(`scripts/embeddings/classify_numbering_gaps.py`, which reads the four `scjn.iter_current_*` corpora and writes the fixture
+`packages/md2akn/tests/fixtures_units/genuine_gaps.json`). 157 flags became **86 in 31 instruments** (the fixture has 89
+entries: three belong to a duplicate-name instrument the Atlas drops). Parse misses were fixed by rule (38 and 39 account for
+all of reglamento `952` and the `(SIC)` blocks); what is left is the source's:
+
+| class | entries | instruments | what it is |
+|---|---:|---:|---|
+| `source-omits-number` | 65 | 13 | the API serves no block between the two articles: an amending protocol or a list of the amended articles prints only those |
+| `source-sic` | 14 | 14 | the SCJN's own label carries `(SIC)`: the source skips or misprints a number |
+| `numbering-continues-across-containers` | 4 | 2 | the numbering goes on through sibling sections; the flag reads one container at a time |
+| `api-order` | 3 | 3 | the SCJN serves the articles out of order (`ARTÍCULO 1` after `4`) |
+| `letter-read-as-ordinal` | 2 | 1 | `10 O`, `42 O` are lettered articles; `integer_number` reads the capital letter as the ordinal mark, and the flag's definition is not touched |
+| `index-without-marker` | 1 | 1 | an index of the ITU Convention (`18141`) with no `Índice` word anywhere: rule 15 cannot see it |
+
+Each entry records the container, the previous and the flagged number and the raw evidence. Nothing is renumbered, merged or
+dropped, and no rule was written for a case that only one instrument shows.
+
+**The sweep.** `test_units_release_sweep.py` gained `TestInvariantesDelBloque` (one test per collection over the *whole* current
+corpus, 315 + 1,083 + 126 + 1,373 instruments): **I1** no excerpt escapes its block's root, **I2** no `loose` outside the
+transitorios (the failure prints instrument, snapshot, eId and the first 80 characters), **I3** `duplicate_number` stays 0,
+**I4** every `numbering_gap` is in the fixture and every fixture entry is still a gap. Fast unit tests pin each of them
+(`packages/md2akn/tests/test_block_root.py`, 17 tests, including an I1 negative test that re-parents a node). The release
+sweep passes: **19 passed in 53 minutes**. `scripts/embeddings/measure_invariants.py` measures the four over the Atlas'
+instruments (`--compare` between two runs).
+
+| over the Atlas' instruments | before | after |
+|---|---:|---:|
+| I1, excerpts outside their block's root (leyes / reglamentos / lineamientos / tratados) | 1,259 / 790 / 623 / 17,461 | 0 / 0 / 0 / 0 |
+| `loose` excerpts, all (leyes / reglamentos / lineamientos / tratados) | 95 / 116 / 44 / 175 = 430 | 0 / 0 / 0 / 0 |
+| `loose` outside the transitorios (these entered the matrix) | 49 / 70 / 21 / 159 = **299** | **0** |
+| `loose` inside the transitorios | 46 / 46 / 23 / 16 = 131 | 0 |
+| `duplicate_number` | 0 | 0 |
+| `numbering_gap` (reglamentos / lineamientos / tratados) | 82 / 2 / 73 = 157 in 31 instruments | 13 / 2 / 71 = 86 in 31 |
+
+No `loose` is excluded or relabelled by the matrix: each of the 430 either became part of the block that holds it, an
+`intro`, a `table` or a `heading` unit by placement, and none needed an individual explanation or a block.
+
+**Units and vectors.** `compare_units.py` against fix-5's own (`emb-run-<c>-054`, both `--no-split-articles`):
+
+| collection | rows before → after | instruments differing | with a new text | only relabelled | distinct new texts | encoded (not embedded by an earlier run) |
+|---|---|---:|---:|---:|---:|---:|
+| leyes | 68,794 → 68,756 | 24 | 16 | 6 | 214 | 209 |
+| reglamentos | 113,595 → 113,574 | 80 | 50 | 28 | 249 | 244 |
+| lineamientos | 6,240 → 6,241 | 24 | 16 | 4 | 59 | 57 |
+| tratados | 56,502 → 56,265 | 112 | 54 | 46 | 766 | 588 |
+
+1,288 distinct new texts for the four corpora, of which 1,098 were encoded (the rest, a text another run of the same corpus had
+already embedded, were not). `emb-run-<c>-055/` are copies of the
+`-054` directories with the old `shards.json`, `publish/` and `runs/*/manifest.json` removed first; one plan per collection for
+both models, 1, 1, 1 and 3 shards (`first_shard_index` 28, 56, 11, 42) on `cemieredes`, 0 failed, `merge_shards.py` with
+`missing_vectors` 0, and `compare_merges.py` against `-054` is **clean for all eight runs** (0 texts with another vector, 0
+non-finite, no file gained or lost; 20, 57, 19 and 58 of the files differ per model, 1, 3, 1 and 3 of them only because a
+text they owned alone is now shared). `package_vectors.py` wrote `emb-run-<c>-055/publish/PUBLICAR.md` (same asset counts as
+before; the `--clobber` block lists the changed same-name files, 40, 114, 38 and 116 over both models) and the four
+`.github/scjn-*-vectors*.md` bodies carry the new counts (distinct texts 59,194, 103,481, 5,864 and 53,990) and name rules
+34 to 39. `stage_vectors_cache.py` built `emb-run-vectors-055-cache/`, verified against the sums.
+
+**The Atlas chain**, from that cache (the previous work directories were moved to `emb-run-atlas*-prev` and deleted once the
+new ones had passed):
+
+| | fix-5 | now |
+|---|---:|---:|
+| instruments | 2,677 | 2,677 |
+| excerpts (`meta.provisions`) | 221,826 | 221,527 |
+| headings excluded | 33,043 | 33,500 |
+| transitory rows excluded | 22,481 | 22,436 |
+| word-for-word shared rows not counted (0.6B and 4B / BM25) | 2,439 / 2,848 | 2,408 / 2,836 |
+| counted rows (0.6B and 4B / BM25) | 163,863 / 163,446 | 163,183 / 162,752 |
+| distinct vector rows | 203,099 | 202,786 |
+
+**`loose` rows entering the matrix: 299 → 0**; the counted rows fell by 680 and the excluded headings rose by 457, because
+what used to be `loose` text outside a block's own container is now where its block put it (a heading, an introduction, a
+table or part of an article). The three files list the same instruments in the same
+positions (`--instruments-as`). The closest instrument is unchanged for **2,673 of 2,677** under the 0.6B, 2,672 under the
+4B and 2,663 under BM25; `p` changed for 121 instruments and `pc` for 164 (179 under BM25). The three `atlas-pairs` sets have
+12,929, 12,907 and 12,936 files; the BM25 set was built with `--tolerance 2e-6` (recorded in its manifest), as in fix-2 and fix-5. The
+4B's nearest texts: 165,591 searched unit rows, 165,465 distinct source texts, 827,325 rows, `agrees_with_nearest` true. The
+instrument files: 2,677 files, 349.6 MB (73.5 MB as the tarball), the re-parse equals the staged units for **all 2,677**,
+offsets included; the flags are `loose` none, **`duplicate_number` none**, `numbering_gap` 86 in 31, `over_window` 1,
+`no_articles` 34 and `no_transitorios` 1,054. Timings: matrix jobs 219 s, 396 s and 959 s (0.6B, 4B, BM25), nearest
+texts 526 s, instrument files 1,512 s, pair sets 864 s, 1,503 s and 1,207 s.
+
+**The evaluations were re-run** (`gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`): the gold is **exactly** fix-5's
+(253 instruments, 277 links, `links.md` byte-identical to `_gold-links.md`); signal C has 7,144 citations in 5,292 excerpts
+(7,145 in 5,295), 4,383 scored (4,387), 2,617 without the Constitution (2,621). The strong-link tables moved in a few
+cells (A and B: the closest is a gold instrument under BM25 130 → 131, mean reciprocal rank 0.626 → 0.627 and 0.633 → 0.636,
+and four intervals or p-values of the BM25 comparisons) and the row-level tables in the third decimal. **No conclusion
+changed.** The page's literals follow and say 21 October 2026.
+
+**What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four corpora
+(`scripts/scjn/<c>-release/PUBLICAR.md`, unchanged by this fix), the four vectors releases
+(`emb-run-<c>-055/publish/PUBLICAR.md`, **regenerated**: leyes, reglamentos, lineamientos, tratados), the three `atlas-pairs`
+sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and
+`atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).

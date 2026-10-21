@@ -1136,9 +1136,10 @@ def test_ligie_shows_its_section_introduction_and_its_tariff_as_html_tables(brow
     assert page.locator('div.instruments-excerpt[data-unit-type="table"]').count() == len(tables)
     cells = page.locator("table.instruments-table tr").first.locator("td").count()
     assert cells >= 2
-    # The tariff is no longer made of loose paragraphs: only the transitory text is loose.
-    assert page.locator('li[data-flag="loose"] button').inner_text() \
-        == str(document["meta"]["flags"]["loose"])
+    # The tariff is no longer made of loose paragraphs and, since review fix-6 of #291, no
+    # excerpt of the law is `loose` at all (the transitory text it used to leave is placed).
+    assert not document["meta"]["flags"].get("loose")
+    assert page.locator('li[data-flag="loose"] button').count() == 0   # a zero count is no link
     piece = next(u for u in tables if u.get("p", 0) == 2)
     page.goto(f"{real_server}?c=leyes&k=ligie-2022#{piece['e']}.2")
     wait_rendered(page)

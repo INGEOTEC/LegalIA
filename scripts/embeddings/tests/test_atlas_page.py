@@ -662,9 +662,9 @@ def test_the_qmd_has_the_evaluation_section_with_its_numbers():
     for table in (tables[0], tables[2]):
         header = table.splitlines()[0]
         assert "0.6B" in header and "4B" in header and "BM25" in header
-    for literal in ("162", "172", "253", "277", "62", "7,145", "5,295", "1,925", "326", "204",
-                    "4,570", "4,387", "1,766", "2,621", "0.286", "0.256", "0.260", "26", "35",
-                    "20 October 2026", "2,676", "2,677"):
+    for literal in ("162", "172", "253", "277", "62", "7,144", "5,292", "1,925", "326", "204",
+                    "4,566", "4,383", "1,766", "2,617", "0.286", "0.256", "0.260", "26", "35",
+                    "21 October 2026", "2,676", "2,677"):
         assert literal in flat, literal
     # Every collection is a source and a target, and an instrument never links to itself
     # (review fix-1: the gold used to start only in a regulation or a guideline).
@@ -758,7 +758,9 @@ def test_every_bold_measure_is_a_cell_of_a_table_and_the_weight_share_is_gone():
     text = QMD.read_text(encoding="utf-8")
     flat = " ".join(text.split())
     assert "share of the weight" not in flat and "weight share" not in flat
-    for literal in ("0.373", "0.400", "0.367", "0.283", "0.303", "0.279"):
+    # ("0.400" was one of these until review fix-6, when the BM25 recall without the
+    # Constitution became 0.400 itself.)
+    for literal in ("0.373", "0.367", "0.283", "0.303", "0.279"):
         assert literal not in text, literal
     section = text[text.index("## Checking the map against known links"):
                    text.index("::: {.atlas-data}")]
