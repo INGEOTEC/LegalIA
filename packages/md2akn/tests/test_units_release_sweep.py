@@ -33,6 +33,15 @@ snapshots: a cache that still holds the old `**Artículo 1.**1:` shape fails it
 by name until the seven treaties of that issue are re-downloaded -- not a
 reason to loosen the test.
 
+Review fix-6 of #291 adds four more invariants over every current instrument of the
+four collections (`TestInvariantesDelBloque`, one parse per instrument): **I1**
+`md2akn.validate._block_escapes` (what an API block's text holds hangs from what the
+block opened), **I2** no `loose` unit outside a transitorios section, **I3** no
+repeated article number outside transitorios, **I4** every `numbering_gap` is listed in
+`fixtures_units/genuine_gaps.json` with the raw evidence that it is the source's (and
+every entry of the fixture still is one). I2 prints instrument, snapshot, eId and the
+first 80 characters of what it finds, so the defect cannot come back silently.
+
 It makes no network request of its own — the releases have to already be
 cached (`nota2md download all` populates all four) — but at roughly 17
 minutes for the full sweep it is excluded from the routine run the same way
@@ -55,14 +64,18 @@ than failing collection for whoever installed `md2akn[test]` alone.
 """
 
 import importlib.util
+import json
 import re
+import sys
 import unittest
+from pathlib import Path
 
 from md2akn import coverage, max_unit_chars, parse_markdown, text_units
 from md2akn.outline import lee_marcador
 from md2akn.patterns import ARTICULO, FILA_TABLA
 from md2akn.segmenter import iter_blocks, split_frontmatter
 from md2akn.structure import modo_sin_articulos
+from md2akn.validate import _block_escapes
 
 _TIENE_SCJN = importlib.util.find_spec("scjn") is not None
 if _TIENE_SCJN:
@@ -76,6 +89,20 @@ if _TIENE_SCJN:
         local_slugs,
         local_tratados_ids,
     )
+
+# The two definitions I3 and I4 are stated in -- `duplicate_number` and `numbering_gap`
+# -- live with the instrument files' exporter (`scripts/embeddings/`), not in this package;
+# the sweep reads them from there, and skips those two invariants outside the monorepo.
+_SCRIPTS = Path(__file__).resolve().parents[3] / "scripts" / "embeddings"
+_GAPS = Path(__file__).resolve().parent / "fixtures_units" / "genuine_gaps.json"
+_EXPORTADOR = None
+if (_SCRIPTS / "export_instrument_files.py").exists():
+    sys.path.insert(0, str(_SCRIPTS))
+    try:
+        import export_instrument_files as _EXPORTADOR  # noqa: E402
+        import instrument_matrix as _MATRIZ  # noqa: E402
+    except ImportError:  # the `viz` dependencies are not installed
+        _EXPORTADOR = None
 
 _ROMANO = re.compile(r"[IVXLCDM]+")
 _NUMERO_DECIMAL = re.compile(r"\d+(?:\.\d+)+")
@@ -349,6 +376,85 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
             if modo is not None:
                 activadas.append((ley["slug"], modo))
         self.assertEqual(activadas, [], f"rule 8 switched on for {len(activadas)} laws")
+
+
+def _en_transitorios(path) -> bool:
+    return any(label == "TRANSITORIOS" or label.startswith("TRANSITORIOS ") for label in path)
+
+
+def _invariantes_del_bloque(instrumentos, clave):
+    """I1 to I3 and the flagged gaps of every instrument, one parse each:
+    ``(i1, i2, i3, gaps)`` with `i1` the `block-escape` violations, `i2` the `loose`
+    units outside a transitorios section (instrument, snapshot, eId, first 80
+    characters), `i3` the repeated article numbers and `gaps` the flagged articles as
+    ``(key, eId)`` pairs."""
+    i1, i2, i3, gaps = [], [], [], []
+    for instrumento in instrumentos:
+        markdown = instrumento["markdown"]
+        tree = parse_markdown(markdown)
+        units = text_units(tree, split_articles=False)
+        i1.extend((instrumento[clave], instrumento["archivo"], str(v)) for v in _block_escapes(tree))
+        i2.extend(
+            (instrumento[clave], instrumento["archivo"], u.eId, markdown[u.start_char:u.end_char][:80])
+            for u in units if u.unit_type == "loose" and not _en_transitorios(u.path)
+        )
+        if _EXPORTADOR is not None:
+            repeated = {n.eId for n in tree.walk() if n.repeated}
+            flags = _EXPORTADOR.excerpt_flags(units, set(), repeated)
+            for unit, names in zip(units, flags):
+                if "duplicate_number" in names:
+                    i3.append((instrumento[clave], instrumento["archivo"], unit.eId))
+                if "numbering_gap" in names:
+                    gaps.append((str(instrumento[clave]), unit.eId))
+    return i1, i2, i3, gaps
+
+
+@unittest.skipUnless(_TIENE_SCJN, "scjn is not installed")
+class TestInvariantesDelBloque(unittest.TestCase):
+    """Review fix-6 of #291: I1 to I4, over every current instrument of each collection."""
+
+    def _comprueba(self, coleccion, instrumentos, clave):
+        i1, i2, i3, gaps = _invariantes_del_bloque(instrumentos, clave)
+        self.assertEqual(i1, [], f"I1: {len(i1)} node(s) escape the API block they were built from")
+        self.assertEqual(i2, [], f"I2: {len(i2)} `loose` unit(s) outside transitorios")
+        if _EXPORTADOR is None:
+            self.skipTest("scripts/embeddings is not importable: I3 and I4 need its definitions")
+        self.assertEqual(i3, [], f"I3: {len(i3)} repeated article number(s) outside transitorios")
+        known = {
+            (e["key"], e["eId"]) for e in json.loads(_GAPS.read_text(encoding="utf-8"))
+            if e["collection"] == coleccion and e["evidence"]
+        }
+        self.assertEqual(
+            sorted(set(gaps) - known), [],
+            "I4: a numbering gap that is not in fixtures_units/genuine_gaps.json (a parse miss, "
+            "or a new instrument: classify it with scripts/embeddings/classify_numbering_gaps.py)",
+        )
+        self.assertEqual(
+            sorted(known - set(gaps)), [],
+            "I4: an entry of fixtures_units/genuine_gaps.json that is no longer a gap",
+        )
+
+    @unittest.skipUnless(_TIENE_SCJN and local_slugs(), "no scjn-leyes release cached locally")
+    def test_leyes(self):
+        self._comprueba("leyes", iter_current_federal_laws(), "slug")
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_reglamentos_ids(), "no scjn-reglamentos release cached locally"
+    )
+    def test_reglamentos(self):
+        self._comprueba("reglamentos", iter_current_reglamentos(), "id_ordenamiento")
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_lineamientos_ids(), "no scjn-lineamientos release cached locally"
+    )
+    def test_lineamientos(self):
+        self._comprueba("lineamientos", iter_current_lineamientos(), "id_ordenamiento")
+
+    @unittest.skipUnless(
+        _TIENE_SCJN and local_tratados_ids(), "no scjn-tratados release cached locally"
+    )
+    def test_tratados(self):
+        self._comprueba("tratados", iter_current_tratados(), "id_ordenamiento")
 
 
 if __name__ == "__main__":  # pragma: no cover
