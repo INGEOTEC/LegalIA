@@ -450,6 +450,27 @@ every machine has — rather than over a handful of fixtures; see its own module
   its heading in the block's text (the code a resolution amends, an `ANEXO ÚNICO`),
   whose structure the API serves in the blocks that follow. No rule names an
   instrument and a document with no marker is read as before.
+  **Review fix-6 of #291 (still 0.5.1):** the sixth review of the same family
+  of defects, answered by reading the whole marker path instead of patching a
+  case. Its root cause: `_padre_contenedor` returned the open transitorios
+  section *before* it looked at the stack, so the text of a `kind=other` block
+  that followed a reform decree (the LFISAN's `MODIFICACIONES AL ANEXO 15`) hung
+  from the decree and the block's own container held only its heading line;
+  and an index (rule 15) could run on across the next marker, swallowing a
+  decree header or the heading of the next block. **Rule 34**: a block's
+  container bounds all its text; an index ends with its API block; the lines
+  before a heading are the heading's; what a container holds after its index
+  is its `intro`. **Rule 35**: a heading-only container is a heading, not
+  `loose`. **Rule 36**: a table's caption (`**A.** Tarifa ...`) and notes
+  belong to it. **Rule 37**: `Artículo 8o. fracción II ...` is a reference.
+  **Rule 38**: a heading-only `article` block followed by `provision` blocks
+  opens a section of them. **Rule 39**: `98 (SIC)` is an article. Measured over
+  the 2,677 Atlas instruments, `loose` outside transitorios 299 → 0 (430 → 0 in
+  all), and four invariants are now swept over every current instrument of the
+  four collections (`test_units_release_sweep.py`): I1 `md2akn.validate._block_escapes`,
+  I2 no `loose` outside transitorios, I3 no repeated number, I4 every
+  `numbering_gap` classified in `tests/fixtures_units/genuine_gaps.json`.
+  No rule names an instrument and a document with no marker is read as before.
 
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an

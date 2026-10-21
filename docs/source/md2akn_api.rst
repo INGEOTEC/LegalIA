@@ -668,6 +668,33 @@ follow.
 >>> [(n.akn_type, n.eId) for n in tree.walk() if n.akn_type in ("section", "attachment", "chapter", "part")]
 [('section', 'sec_RESOLUCIÓN_MSC.1(1)'), ('attachment', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment'), ('chapter', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1'), ('part', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1__part_A'), ('chapter', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'), ('part', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2__part_A'), ('section', 'sec_RESOLUCIÓN_MSC.2(2)')]
 
+Review fix-6 of the same issue made the block the root of *all* its text. **Rule
+34**: whatever a block's text holds hangs from the container the block opened, also
+when the block follows a reform decree (the text used to hang from the decree and the
+block's container held only its heading); an index ends with the API block it starts
+in; the lines between a marker and its heading are the heading's; and what a
+container holds after its index is its ``intro``. **Rule 35**: a container with
+nothing under it is a ``heading`` unit, never ``loose``. **Rule 36**: the caption and
+the notes of a table belong to it. **Rules 37 to 39**: a line that names an article and
+goes on in lower case is a reference; a heading-only ``article`` block followed by
+``provision`` blocks opens a section of them; ``98 (SIC)`` is an article.
+
+>>> decree_block = (
+...     '<!-- scjn:block orden=1 numero=0 kind=decree num="9 DE ENERO DE 2008" '
+...     'label="D.O.F. 9 DE ENERO DE 2008" -->\n\n**D.O.F. 9 DE ENERO DE 2008.**\n\n'
+...     '<!-- scjn:block orden=2 numero=0 kind=other label="MODIFICACIONES AL ANEXO" -->\n\n'
+...     "**A.** Tarifa para vehículos nuevos\n\n| 0.01 | 3.0 |\n\n| 5.00 | 4.0 |\n\n"
+...     "Si el precio es superior se reducirá el impuesto.\n"
+... )
+>>> tree = md2akn.parse_markdown(decree_block)
+>>> [(n.akn_type, n.eId) for n in tree.walk() if n.akn_type in ("section", "hcontainer", "table")]
+[('section', 'sec_9_DE_ENERO_DE_2008'), ('hcontainer', 'sec_9_DE_ENERO_DE_2008__hc_MODIFICACIONES_AL_ANEXO'), ('table', 'sec_9_DE_ENERO_DE_2008__hc_MODIFICACIONES_AL_ANEXO__table_1')]
+>>> from md2akn.validate import _block_escapes
+>>> _block_escapes(tree)
+[]
+>>> [u.unit_type for u in md2akn.text_units(tree)]
+['heading', 'table']
+
 >>> from md2akn.outline import rol_de_etiqueta, es_continuacion
 >>> rol_de_etiqueta("PARTE FINAL DE LAS ACTAS"), rol_de_etiqueta("RATIFICACIÓN Y DEPÓSITO")
 ('conclusions', 'promulgation')

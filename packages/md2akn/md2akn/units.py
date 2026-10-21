@@ -1047,7 +1047,34 @@ def text_units(
        code a resolution amends, or of the instrument an `ANEXO ÚNICO`
        approves, is what the API serves in the blocks that follow, and they
        belong to that annex.
-    Rules 25 to 33 apply to a document with outline markers; one without
+    34. An API block is the root of *all* its text (review fix-6 of #291).
+       What a block's text holds hangs from the container the block opened,
+       whatever transitorios section is open around it (the text of an `other`
+       block after a reform decree used to hang from the decree: the block's
+       container held only its heading line); an index belongs to the API block
+       it starts in and ends at the next marker, never swallowing the heading
+       the next block opens with; the lines between a marker and the heading it
+       opens a container with (`[...]` before `Transitorios`, an institution's
+       name above `SEGUNDA PARTE`) are that heading's; and the text a
+       container (or the body) holds after its index, or after a captioned
+       table, is its `intro` too. `md2akn.validate._block_escapes` checks it.
+    35. A container with nothing under it -- an annex, a part, a chapter whose
+       text is only its heading line -- is a `heading` unit, never `loose`.
+    36. A table's caption belongs to it: one or two bold-led lines
+       (`**A.** Tarifa para ...`, `**TARIFA**`) straight before its rows are the
+       first lines of the `table` node (its `heading` is the first one), and the
+       plain paragraphs right after the rows are its notes, up to the next
+       caption. A table inside an article stays article text.
+    37. `**Artículo 8o. **fracción II primer párrafo: $179,017.26`, a line that
+       names an article and goes on in lower case, is a reference, not an
+       article opener, unless the API says the block is an article.
+    38. An API `article` block whose text is only its heading and a caption,
+       followed by `provision` blocks, opens a section of those provisions
+       (the numbered provisions of a regulation run on across its headed
+       articles): when a document does it three times or more.
+    39. A numbered provision the API could not classify because the source
+       misprints its number (`kind=other`, label `98 (SIC)`) is an article.
+    Rules 25 to 39 apply to a document with outline markers; one without
     them is read, and its eIds written, as before.
 
     >>> import md2akn
