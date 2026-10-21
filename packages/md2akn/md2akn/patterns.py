@@ -529,3 +529,8 @@ FILA_TABLA = re.compile(r"^\|.*\|$", re.DOTALL)
 #: other blocks measured between two rows (`Sub-Sector:`, `Tabla B`, a
 #: reform annotation) are *not* tolerated: they are a table's end.
 ETIQUETA_TABLA = re.compile(r"^\*{0,2}\([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ]{1,30}\)\*{0,2}$")
+
+#: Rule 36 (review fix-6 of #291): a table's caption -- a block that is bold
+#: from its first character (`**A.** Tarifa para determinar ...`, `**TARIFA**`),
+#: one line, short -- when the rows follow it straight away.
+LEYENDA_TABLA = re.compile(r"^\*\*[^\n]{1,100}?\*\*[^\n]{0,300}$")

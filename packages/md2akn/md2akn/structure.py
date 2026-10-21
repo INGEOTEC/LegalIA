@@ -85,6 +85,7 @@ from md2akn.patterns import (
     CONTENEDORES,
     DOF_TRANSITORIOS,
     ETIQUETA_TABLA,
+    LEYENDA_TABLA,
     FILA_TABLA,
     MARCADOR_DISPOSITIVO,
     MARCADOR_INDICE,
@@ -468,7 +469,17 @@ def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
             i += 1
             continue
         j = i + 1
+        marcas_cruzadas: list[int] = []
         while j < fin and _es_entrada_de_indice(bloques[j], clases[j][0]):
+            if lee_marcador(bloques[j].text) is not None:
+                # Rule 34 (review fix-6 of #291): a marker is a boundary. An index
+                # may reach into the next API block only up to the heading that
+                # block opens with (the `PRESENTACIÓN` below), never past two
+                # markers: a short decree header and a list of short lines in the
+                # next block are not entries of this block's index.
+                if len(marcas_cruzadas) == 1:
+                    break
+                marcas_cruzadas.append(j)
             j += 1
         # The first entries are what the body is expected to replay; an entry
         # written twice among them (`Véase el volumen 1`) identifies nothing.
@@ -480,6 +491,9 @@ def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
                 k for k in range(i + 1 + ventana, j)
                 if len(bloques[k].text) <= MAX_ENCABEZADO_INDICE
                 and _clave_de_entrada(bloques[k]) in candidatas
+                # Rule 34: across a marker, only the heading the next block opens
+                # with (the marker line, then at most an epigraph) repeats an entry.
+                and all(k <= m + 2 for m in marcas_cruzadas if m < k)
             ),
             None,
         ) if ventana >= MIN_ENTRADAS_INDICE else None
@@ -487,6 +501,24 @@ def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
             i += 1
             continue
         fin_indice = repite
+        if marcas_cruzadas:
+            # Rule 34 (review fix-6 of #291): an index belongs to the API block it
+            # starts in, so it ends at that block's end, the next marker, when
+            # the repeat lies beyond it (the heading line after the marker --
+            # `CAPITULO I`, then the epigraph -- belongs to the block that opens
+            # with it) or when nothing but heading-sized lines separates the
+            # repeat from the marker (an entry listed twice, a `Sección Primera`
+            # under two chapters, is not the body). A longer paragraph after the
+            # repeat is the body, in the same block, and the index ends at the
+            # repeat as before.
+            marca = marcas_cruzadas[0]
+            if repite > marca or all(
+                len(bloques[k].text) <= MAX_ENCABEZADO_INDICE for k in range(repite, marca)
+            ):
+                fin_indice = marca
+                if fin_indice - i - 1 < MIN_ENTRADAS_INDICE:
+                    i += 1
+                    continue
         while (
             fin_indice - 1 > i + MIN_ENTRADAS_INDICE
             and len(bloques[fin_indice - 1].text) > MAX_ENCABEZADO_INDICE
@@ -711,6 +743,9 @@ class _Constructor:
         #: long as the blocks that follow are still its rows; any other block
         #: ends it.
         self._tabla: AknNode | None = None
+        #: Rule 36 (review fix-6 of #291): the table opened at its caption, if
+        #: that is the one `_tabla` is.
+        self._tabla_con_leyenda: AknNode | None = None
         #: `clasifica` of every block, computed once: the table-of-contents
         #: scan, rule 8's gate, the rank of a `PARTE` and the pass itself all
         #: read it.
@@ -848,6 +883,17 @@ class _Constructor:
                         texto = self._bloques[i].text.strip().replace("**", "")
                         if texto.startswith("("):
                             self._clases[i] = ("anotacion", {"cuerpo": texto.strip("() ")})
+                        elif (actual.get("kind") != "article"
+                              and self._clases[destino][0] in (
+                                  "contenedor", "transitorios", "transitorios_dof")
+                              and self._clases[i][0] not in ("anotacion", "nota_editorial")):
+                            # Rule 34 (review fix-6 of #291): any other line before
+                            # the heading -- the court's elision `[...]` ahead of
+                            # `Transitorios`, the institution's name above `SEGUNDA
+                            # PARTE` -- is part of the heading of the container this
+                            # API block opens. It used to be placed as text of the
+                            # container *before* it, the one the block closes.
+                            self._clases[i] = ("encabezado_previo", {})
                 self._primeros[destino] = actual
                 self._clases[destino] = self._clase_de_marca(
                     self._clases[destino], actual, self._bloques[destino]
@@ -1325,10 +1371,25 @@ class _Constructor:
             # Rule 20: a reform decree's own containers nest under it.
             if self._decreto and self._pila:
                 return self._pila[-1][1]
+            # Rule 34 (review fix-6 of #291): so does everything the text of an
+            # API block that opened a container of its own holds. The block's
+            # container is the root of its text's hierarchy, whatever
+            # transitorios section is open around it.
+            if self._pila and self._raiz_de_bloque_en_pila():
+                return self._pila[-1][1]
             return self._transitorios
         if self._pila:
             return self._pila[-1][1]
         return self._asegura_body(inicio)
+
+    def _raiz_de_bloque_en_pila(self) -> bool:
+        """Whether the container the current API block opened (rules 23, 28,
+        29 and 31) is still open: while it is, it bounds where the block's own
+        text can hang."""
+        raices = [self._bloque_abierto, *self._nodos_division]
+        if self._implicita is not None:
+            raices.append(self._implicita[0])
+        return any(n is r for _, n in self._pila for r in raices if r is not None)
 
     def _cierra_hasta(self, rango: int):
         while self._pila and self._pila[-1][0] >= rango:
@@ -1397,7 +1458,10 @@ class _Constructor:
 
             # Rule 13 (issue #291): a table lasts exactly as long as its rows
             # do, plus one tolerated label block between two of them.
-            if self._tabla is not None and not es_fila_tabla(bloque):
+            if (self._tabla is not None and not es_fila_tabla(bloque)
+                    and not (self._marcas and kind == "contenido"
+                             and self._tabla_con_leyenda is self._tabla
+                             and self._es_nota_de_tabla(i))):
                 if (
                     kind == "contenido"
                     and es_etiqueta_de_tabla(bloque)
@@ -1415,6 +1479,19 @@ class _Constructor:
                 if _es_epigrafe(bloque, kind):
                     contenedor.heading = _limpia(bloque.text)
                     self._extiende(contenedor, bloque.end)
+                    i += 1
+                    continue
+
+            if self._marcas and self._articulo is None and kind == "contenido":
+                # Rule 36 (review fix-6 of #291): the caption of a table.
+                if self._tabla is None:
+                    fin = self._fin_de_leyenda(i)
+                    if fin is not None:
+                        self._abre_tabla_con_leyenda(i, fin)
+                        i = fin
+                        continue
+                elif self._tabla_con_leyenda is self._tabla and self._es_nota_de_tabla(i):
+                    self._extiende(self._tabla, bloque.end)
                     i += 1
                     continue
 
@@ -1452,6 +1529,16 @@ class _Constructor:
         blocks rule 24 reads as one text, the recitals or a Mexican decree's own
         blocks."""
         primera = self._primeros.get(self._i)
+        if kind == "articulo" and primera is None and not self._en_considerandos:
+            # Rule 37 (review fix-6 of #291): `**Artículo 8o. **fracción II primer
+            # párrafo: $179,017.26`, a line of a tariff that names the article it
+            # is a quantity of, is a reference and not an opener: no provision
+            # begins with a lower-case word after its number, and the API did not
+            # say this block is an article (an API article stays one).
+            linea = bloque.text.split("\n", 1)[0].replace("**", "")
+            m = ARTICULO.match(linea)
+            if m and linea[m.end():].lstrip()[:1].islower():
+                return "contenido", {}
         if (
             kind in ("contenido", "articulo_ordinal") and primera is not None
             and primera.get("kind") == "provision" and primera.get("num")
@@ -2030,15 +2117,7 @@ class _Constructor:
             self._interior.agrega(bloque, es_marcador_estructural)
             return
         if self._pila or self._transitorios is not None or self.body is not None:
-            destino = self._padre_contenedor(bloque.start)
-            if self._transitorios is None and self._pila:
-                destino = self._intro_de(destino, bloque)
-            elif self._marcas and destino.akn_type not in ("act", "body"):
-                # Rule 29: the text a decree's transitorios section (or a
-                # division in one) opens with -- `SE TRANSCRIBEN ÚNICAMENTE LOS
-                # TRANSITORIOS DEL DECRETO...` -- is its introduction, like any
-                # container's, not text hanging loose from it.
-                destino = self._intro_de(destino, bloque)
+            destino = self._destino_de_contenido(bloque)
             if es_fila_tabla(bloque):
                 self._agrega_fila_de_tabla(destino, bloque)
             elif destino.akn_type == "intro":
@@ -2059,6 +2138,22 @@ class _Constructor:
         else:
             self._extiende(self.preambulo, bloque.end)
 
+    def _destino_de_contenido(self, bloque) -> AknNode:
+        """The node a block of plain text (or a table row) hangs from when no
+        article is open."""
+        destino = self._padre_contenedor(bloque.start)
+        if self._transitorios is None and self._pila:
+            return self._intro_de(destino, bloque)
+        if self._marcas and destino.akn_type != "act":
+            # Rule 29: the text a decree's transitorios section (or a division in
+            # one) opens with -- `SE TRANSCRIBEN ÚNICAMENTE LOS TRANSITORIOS DEL
+            # DECRETO...` -- is its introduction, like any container's, not text
+            # hanging loose from it. Rule 34 (review fix-6 of #291): so is the
+            # text of the body itself that follows a table of contents (the rest
+            # of a header block, after its index).
+            return self._intro_de(destino, bloque)
+        return destino
+
     def _intro_de(self, contenedor: AknNode, bloque) -> AknNode:
         """Where a block that is neither an article nor a container goes when
         it falls straight under `contenedor` (rule 12, issue #291): the
@@ -2076,12 +2171,69 @@ class _Constructor:
         """
         if contenedor.children and contenedor.children[-1].akn_type == "intro":
             return contenedor.children[-1]
+        if (self._marcas and contenedor.children
+                and all(h.akn_type in ("intro", "toc", "table") for h in contenedor.children)):
+            # Rule 34 (review fix-6 of #291): what a container's own text holds
+            # after its table of contents, or after a captioned table (rule 36),
+            # is its introduction too -- neither is a child container or an
+            # article, which is what ends one.
+            n = 1 + sum(1 for h in contenedor.children if h.akn_type == "intro")
+            return self._nuevo_nodo(
+                "intro", bloque.start, bloque.end, padre=contenedor,
+                eid=f"{contenedor.eId}__intro_{n}",
+            )
         if contenedor.children:
             return contenedor
         return self._nuevo_nodo(
             "intro", bloque.start, bloque.end, padre=contenedor,
             eid=f"{contenedor.eId}__intro",
         )
+
+    #: Rule 36: the longest caption and note, in characters, a captioned table
+    #: takes with it.
+    MAX_LEYENDA = 400
+    MAX_NOTA_DE_TABLA = 1000
+
+    def _es_leyenda(self, k: int) -> bool:
+        bloque = self._bloques[k]
+        texto = bloque.text.strip()
+        return (self._clases[k][0] == "contenido" and k not in self._divisiones
+                and len(texto) <= self.MAX_LEYENDA and LEYENDA_TABLA.match(texto) is not None)
+
+    def _fin_de_leyenda(self, i: int) -> int | None:
+        """Rule 36 (review fix-6 of #291): if blocks `i` to `j - 1` (one or two,
+        each a bold-led line, `**A.** Tarifa para determinar ...` and `**TARIFA**`)
+        are the caption of the table whose first row is block `j`, `j`."""
+        j = i
+        while j < self._fin_cuerpo and j - i < 2 and self._es_leyenda(j):
+            j += 1
+        if j == i or j >= self._fin_cuerpo or j in self._marcas:
+            return None
+        return j if es_fila_tabla(self._bloques[j]) else None
+
+    def _es_nota_de_tabla(self, i: int) -> bool:
+        """A plain paragraph straight after the rows of a captioned table -- `Si el
+        precio del automóvil es superior a ... se reducirá ...` -- is that table's
+        note, unless it opens the next caption."""
+        bloque = self._bloques[i]
+        return (self._clases[i][0] == "contenido" and i not in self._marcas
+                and i not in self._divisiones
+                and len(bloque.text) <= self.MAX_NOTA_DE_TABLA
+                and not es_fila_tabla(bloque) and self._fin_de_leyenda(i) is None)
+
+    def _abre_tabla_con_leyenda(self, i: int, fin: int) -> None:
+        """Open a `table` at the caption blocks `i .. fin - 1`; the rows that
+        follow extend it (rule 13) and the caption is its heading."""
+        destino = self._padre_contenedor(self._bloques[i].start)
+        if self._transitorios is None and self._pila and not destino.children:
+            # A container whose first child this is has no introduction of its
+            # own to speak of: the table is the first thing it holds.
+            pass
+        self._agrega_fila_de_tabla(destino, self._bloques[i])
+        for k in range(i + 1, fin):
+            self._extiende(self._tabla, self._bloques[k].end)
+        self._tabla.heading = _limpia(self._bloques[i].text)
+        self._tabla_con_leyenda = self._tabla
 
     def _agrega_fila_de_tabla(self, destino: AknNode, bloque) -> None:
         """One table row (rule 13): the open table grows over it, or a new
@@ -2120,6 +2272,13 @@ class _Constructor:
         # (201 laws' worth of `overlapping-siblings` in #162's first sweep).
         if self._articulo is not None:
             self._interior.marca_anotacion()
+
+    def _bloque_encabezado_previo(self, bloque, campos):
+        # Rule 34: the lines that stand between an API block's marker and the
+        # heading it opens a container with. They create no node: the node the
+        # heading opens is pulled back over the marker (`_toma_marca`), and so
+        # over them, so they are that container's heading and nothing is lost.
+        self._tabla = None
 
     def _bloque_nota_editorial(self, bloque, campos):
         self._bloque_contenido(bloque, campos, es_marcador_estructural=True)

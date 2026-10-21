@@ -485,12 +485,12 @@
       "text_sha1": "e1fe45063d49f0fd0b3e16dd8afc918df4cfb10c"
     },
     {
-      "unit_type": "loose",
+      "unit_type": "heading",
       "eId": "sec_28_DE_NOVIEMBRE_DE_2023",
       "piece": 0,
       "piece_eId": null,
       "akn_type": "section",
-      "num": null,
+      "num": "28 DE NOVIEMBRE DE 2023",
       "path": [],
       "text": "**D.O.F. 28 DE NOVIEMBRE DE 2023.**",
       "text_sha1": "202518a751e1c9b44445366b3c623c0f1f9051dc"

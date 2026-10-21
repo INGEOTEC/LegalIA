@@ -626,7 +626,11 @@ def _article_units(
 
 
 def _is_loose_leaf(node: AknNode) -> bool:
-    return not node.children and node.akn_type not in ("article", "table", "toc")
+    # Rule 35 (review fix-6 of #291): a container with nothing under it -- an
+    # annex, a part, a chapter whose text is only its own heading line -- is a
+    # heading, not loose text; `_walk_container` emits it as one.
+    return (not node.children
+            and node.akn_type not in ("article", "table", "toc") + tuple(_CONTAINER_TYPES))
 
 
 def _loose_groups(leaves: list[AknNode], ann_ranges, cap: int) -> list[list[AknNode]]:
