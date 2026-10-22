@@ -1,0 +1,67 @@
+{
+  "generated": "2026-10-21T19:26:00+00:00",
+  "commit": "3403cf96",
+  "work_dir": "emb-run-atlas-4b",
+  "model": "Qwen/Qwen3-Embedding-4B",
+  "model_slug": "qwen3-4b",
+  "md2akn_version": "0.5.1",
+  "top": 5,
+  "instruments": 2677,
+  "files": 2677,
+  "units": 221527,
+  "searched": 165591,
+  "bytes": 349579125,
+  "largest": {
+    "file": "files/tratados/137355.json",
+    "bytes": 4384762,
+    "units": 2165
+  },
+  "flags": {
+    "numbering_gap": {
+      "instruments": 31,
+      "count": 86
+    },
+    "over_window": {
+      "instruments": 1,
+      "count": 1
+    },
+    "no_articles": {
+      "instruments": 34,
+      "count": 34
+    },
+    "no_transitorios": {
+      "instruments": 1054,
+      "count": 1054
+    }
+  },
+  "release": "atlas-instruments",
+  "asset": "atlas-instruments-qwen3-4b.tar.gz",
+  "manifest": "manifest-qwen3-4b.json",
+  "sums": "SHA256SUMS-qwen3-4b.txt",
+  "nearest_texts": {
+    "top": 5,
+    "sources": 165591,
+    "source_texts": 165465,
+    "rows_written": 827325,
+    "sources_short_of_top": 0,
+    "sources_without_rows": 0,
+    "agrees_with_nearest": true,
+    "tolerance": 1e-06,
+    "method": "dense",
+    "tolerance_relative": false,
+    "vector_rows": 202786,
+    "block_rows": 1024,
+    "threads": 32,
+    "node": "cemieredes",
+    "slurm_job_id": "1933",
+    "seconds": {
+      "load": 4.0,
+      "normalise": 1.1,
+      "sweep": 519.4,
+      "check": 0.5,
+      "write": 0.8
+    },
+    "seconds_total": 526.1,
+    "peak_rss_gb": 5.09
+  }
+}
