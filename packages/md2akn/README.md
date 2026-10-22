@@ -54,6 +54,11 @@ this package (it remains in git history if it is ever needed again).
 | Artículo N | `article` | |
 | fracción / inciso / subinciso | `paragraph` / `point` / `subpoint` | |
 | TRANSITORIOS | `section` | + `refers_to="#transitorios"` |
+| PARTE | `part` | above books and titles; rule 16 of `text_units` |
+| ANEXO / APÉNDICE | `attachment` | + `refers_to="#anexo"` / `"#apendice"`; rule 16 |
+| a table of contents | `toc` | eId `toc_N`; rule 15 of `text_units` |
+| a container's introductory text (the *Notas.* of a LIGIE chapter) | `intro` | eId `<container>__intro`; rule 12 of `text_units` |
+| consecutive `\| … \|` rows | `table` | eId `<parent>__table_N`; rule 13 of `text_units` |
 | a plain paragraph | `content` | numbered 1..n inside its parent (`art_1o__p_2`) |
 | the closing signatures | `conclusions` | |
 
@@ -347,6 +352,125 @@ over the whole cached SCJN corpus — `scjn-leyes`, `scjn-reglamentos`,
 every machine has — rather than over a handful of fixtures; see its own module docstring.
 
 ## Changelog
+
+- **0.5.1** — three parse errors fixed, bug fixes only (issue #291), as
+  **rules 11, 12 and 13** of `text_units`. All three are unconditional.
+  **Rule 11**: a decimal article number (`Artículo 1.1:`, `Artículo 12.3.-`)
+  is read whole — eId `art_1.1` — where the number used to stop at `1`, so
+  every `Artículo 1.N` of the T-MEC and six other treaties was article `1`
+  (`patterns.NUMERO_DECIMAL_ARTICULO`, tried before `NUM_ARTICULO` inside
+  `ARTICULO` only; rule 8's gate sees such an article, so it stays off).
+  **Rule 12**: a container's introductory text — every block between its
+  heading and its first child container or article — is its `intro` node
+  (`akn_type` `intro`, eId `<container>__intro`) and an `intro` unit, capped
+  and cut like `loose`; it used to be `loose` and glued to whatever followed.
+  **Rule 13**: consecutive `| … |` rows (what `scjn` has written one per
+  paragraph since #253) are one `table` node (eId `<parent>__table_N`, the
+  lone `**(ARANCEL)**` label of a LIGIE tariff tolerated between rows), and a
+  table outside an article yields `table` units cut at row boundaries up to
+  the cap, each piece after the first prefixed with the table's first row. A
+  table inside an article stays that article's own text. `AKN_TYPES` and
+  `UNIT_TYPES` gain `intro` and `table`; `validate`'s nesting table allows
+  them. Default output for a document with none of the three is unchanged;
+  how far they reach on the four published corpora is measured in
+  `scripts/embeddings/README.md`.
+  **Review fix-1 of #291 (a finding made after the fact), still 0.5.1:**
+  209 of the 2,676 Atlas instruments carried an article number more than
+  once, and five more unconditional rules fix what was `md2akn`'s part of it.
+  **Rule 14**: an article's number is read whole (`1o.-A BIS`, `3o.- Bis`,
+  `228 a`, `228 a BIS`; the `ARTÍCULO 1o.-**A` shape the `scjn` writer used to
+  produce is read too). **Rule 15**: a table of contents is one `toc` node
+  and `toc` units (`akn_type` and `unit_type` `toc`), never headings or
+  articles. **Rule 16**: `PARTE` is a container above the books, and
+  `ANEXO`/`APÉNDICE` an `attachment` (`akn_type` `part` and `attachment`;
+  `refers_to` `#anexo`/`#apendice`). **Rule 17**: the recitals under
+  `CONSIDERANDO` are not articles in an instrument whose provisions are
+  numbered the same way, and a `D.O.F.`-headed decree opens its own
+  transitorios. **Rule 18**: in rule 8's numeral mode, a whole numeral that
+  starts over is a list item of the provision above. `AKN_TYPES` gains
+  `attachment`, `part` and `toc`, `UNIT_TYPES` gains `toc`. The golden
+  fixture `acuerdo_ordinal.json` was regenerated, because it encoded the bug
+  (recitals read as articles). What no rule does, on purpose, is hide a
+  repeat the SCJN's own text makes (annexes with their own numbering, two
+  instruments in one file, an API row repeated): those are listed for the
+  repository owner in `scripts/embeddings/README.md`.
+  **Review fix-2 of #291 (found after the fact, still 0.5.1):** fix-1's
+  premise, that the repeats were the SCJN's own numbering, was wrong — the
+  API's `Articulos` blocks carry an outline (`referencia`, `numero`, `orden`)
+  that the `scjn` writer threw away, so `md2akn` guessed a structure from
+  flattened text. `scjn.api` now writes one marker line before each block
+  (`scjn.outline`) and `md2akn` reads it (`md2akn.outline`): **rule 19**,
+  markers are metadata and decide the class of a block's heading; **rule 20**,
+  a reform decree holds what follows it; **rule 21**, a container found in a
+  container's text nests below it; **rule 22**, a repeated identifier takes a
+  `_2` suffix and `AknNode.repeated` is true for both claimants (the flag the
+  Instruments page counts, `AknNode.modo` carries rule 8's mode); **rule 23**,
+  a block holding articles in its own text opens an implicit section;
+  **rule 24**, inside an article/header/preamble/recitals block nothing opens
+  structure. A document with no marker is read as before. Repeats over the
+  2,676 Atlas instruments: 36 → 0 in leyes, reglamentos and lineamientos, 7
+  treaties and 164 excerpts left (listed in `scripts/embeddings/README.md`).
+  **Review fix-3 of #291 (still 0.5.1):** the Instruments page's outline showed
+  two hierarchy errors under the markers, both fixed with rules that apply only
+  to a document that has them. **Rule 25**, an annex the API numbers after a
+  chapter (`numero` 2, `num` `2-A`) is a child of that chapter
+  (`cap_2__att_2-A`), so a chapter is never nested inside the annex before it;
+  **rule 26**, an appendix keeps `attachment`/`refersTo="#apendice"` but takes
+  the eId prefix `app` and nests in the annex it follows, after that annex's
+  chapters; **rule 27**, a bare `**APÉNDICE**` heading repeated under the
+  unnumbered appendix it repeats is that appendix's running page header (the
+  T-MEC's seven-page tariff appendix was seven appendices); **rule 28**, a
+  block the API marks `other` that opens a section of its own (an amending
+  `RESOLUCIÓN MSC.411(97)`) hangs from the body, never inside the appendix
+  before it.
+  **Review fix-4 of #291 (still 0.5.1):** the `loose` text and the last 7
+  repeats came from the blocks the API calls `other`. **Rule 29**, every such
+  block is an `hcontainer` (label-derived eId) with a role table — `PARTE FINAL`
+  is `#conclusions`, `NOTA EXPLICATIVA` `#note`, the steps of the promulgation
+  decree one `#promulgation` container, `RESOLUCIÓN ...` the resolution
+  container — and an API `provision` is an article; **rule 30**, a title block
+  and its `CONTENIDO <title>` block are one container; **rule 31**, a numbering
+  that restarts inside one block opens a division (`#division`, `#form` for the
+  boxes of a model certificate), so the same number is never two articles;
+  **rule 32**, `S5.43`/`5.43A`, `ARTÍCULO S5`, `APÉNDICE S30`, a mixed-case
+  `Artículo Primero.-` in transitorios and a caption before an article's heading
+  are read. Measured over the 2,677 Atlas instruments: `loose` excerpts 5,668 →
+  459 and repeated numbers 164 excerpts in 7 treaties → 0. No rule names an
+  instrument and a document with no marker is read as before.
+  **Review fix-5 of #291 (still 0.5.1):** the SOLAS amendments (tratados 11293)
+  print each resolution as one API block with its own `ANEXO`, chapters and
+  parts, and the tree had them as siblings of the annex and of each other, one
+  resolution as an `hcontainer` among `section`s, and one annex escaped to the
+  body. **Rule 33**, an API block is the root of its hierarchy: every
+  `RESOLUCIÓN ...` block is a `section`; the headings a block's text prints keep
+  their order (an `ANEXO` holds the chapters after it, a chapter its parts, a bare
+  `APÉNDICE` after the annex is inside it) instead of all taking the block's one
+  rank, so no `part_A_2`; the next marker closes everything the block opened; and
+  the only annex that leaves its block is one with no container or article after
+  its heading in the block's text (the code a resolution amends, an `ANEXO ÚNICO`),
+  whose structure the API serves in the blocks that follow. No rule names an
+  instrument and a document with no marker is read as before.
+  **Review fix-6 of #291 (still 0.5.1):** the sixth review of the same family
+  of defects, answered by reading the whole marker path instead of patching a
+  case. Its root cause: `_padre_contenedor` returned the open transitorios
+  section *before* it looked at the stack, so the text of a `kind=other` block
+  that followed a reform decree (the LFISAN's `MODIFICACIONES AL ANEXO 15`) hung
+  from the decree and the block's own container held only its heading line;
+  and an index (rule 15) could run on across the next marker, swallowing a
+  decree header or the heading of the next block. **Rule 34**: a block's
+  container bounds all its text; an index ends with its API block; the lines
+  before a heading are the heading's; what a container holds after its index
+  is its `intro`. **Rule 35**: a heading-only container is a heading, not
+  `loose`. **Rule 36**: a table's caption (`**A.** Tarifa ...`) and notes
+  belong to it. **Rule 37**: `Artículo 8o. fracción II ...` is a reference.
+  **Rule 38**: a heading-only `article` block followed by `provision` blocks
+  opens a section of them. **Rule 39**: `98 (SIC)` is an article. Measured over
+  the 2,677 Atlas instruments, `loose` outside transitorios 299 → 0 (430 → 0 in
+  all), and four invariants are now swept over every current instrument of the
+  four collections (`test_units_release_sweep.py`): I1 `md2akn.validate._block_escapes`,
+  I2 no `loose` outside transitorios, I3 no repeated number, I4 every
+  `numbering_gap` classified in `tests/fixtures_units/genuine_gaps.json`.
+  No rule names an instrument and a document with no marker is read as before.
 
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an

@@ -48,12 +48,14 @@ promedia); cada texto truncado queda contado en `vectors-manifest.json`
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | 8 747 | 8 747 |
-| De los cuales compartidos | 221 | 221 |
-| Tamaño | 14 MB | 33 MB |
+| Vectores | 5 856 | 5 856 |
+| De los cuales compartidos | 155 | 155 |
+| Tamaño | 9 MB | 23 MB |
 
-Corpus: 126 instrumentos, 9 314 unidades, **8 747 textos distintos**, `cap`
-2 000, plantilla `bare`, `md2akn` 0.3.0.
+Corpus: 126 instrumentos, 6 241 unidades, **5 864 textos distintos**, `cap`
+2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos decimales,
+las introducciones de contenedor y las tablas, y la revisión de los números de artículo repetidos:
+reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24, y revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32, revisión fix-5 de #291: un bloque de la API es la raíz de su jerarquía, regla 33, y revisión fix-6 de #291: cada bloque de la API acota su texto, un encabezado sin contenido es un encabezado, las leyendas y notas de una tabla son de la tabla, un artículo-encabezado abre una sección y `N (SIC)` es un artículo, reglas 34 a 39)).
 
 Los otros 37 instrumentos del release `scjn-lineamientos` no aparecen aquí:
 la SCJN los clasifica pero no sirve texto consolidado de ninguno
@@ -62,8 +64,8 @@ la SCJN los clasifica pero no sirve texto consolidado de ninguno
 ## El corpus que obligó a leer los acuerdos
 
 Un *lineamiento* casi siempre es un **acuerdo**, y un acuerdo no numera sus
-disposiciones con `Artículo N`: escribe `**PRIMERO.-**`, o `1.` / `2.1`. 89
-de los 126 instrumentos no tienen una sola línea de artículo. Antes de #227
+disposiciones con `Artículo N`: escribe `**PRIMERO.-**`, o `1.` / `2.1`. 77
+de los 126 instrumentos no numeran sus disposiciones con `Artículo N`. Antes de #227
 todo el texto de esos documentos caía en la única unidad que se traga lo que
 precede a la primera estructura reconocida — el `preamble`, de 51 246
 caracteres en el peor caso — y un vector de eso no sirve para recuperar
@@ -71,9 +73,8 @@ nada.
 
 La regla 8 de `md2akn` lee esas numeraciones como artículos, pero **sólo en
 un documento que no numera nada con `Artículo N`**, decidido una vez por
-documento. Medido sobre este corpus: 64 instrumentos se leen por ordinal, 19
-por numeral, y los 43 restantes ya tenían artículos o no usan ninguna de las
-dos formas. Las unidades pasaron de 5 273 a 9 314, la mediana del `preamble`
+documento. Medido sobre este corpus: 58 instrumentos se leen por ordinal, 19
+por numeral, y los 49 restantes ya tenían artículos. Las unidades pasaron de 5 273 a 9 314, la mediana del `preamble`
 de 3 692 a 1 673 caracteres y su máximo de 51 246 a 2 000.
 
 ## Advertencias

@@ -1,6 +1,6 @@
 ---
 title: "The Instruments of the Atlas, as md2akn Reads Them"
-subtitle: "315 laws, 863 regulations, 125 guidelines and 1,373 treaties, article by article"
+subtitle: "315 laws, 864 regulations, 125 guidelines and 1,373 treaties, article by article"
 page-layout: full
 toc: false
 number-sections: false
@@ -30,8 +30,20 @@ node was read from, and the *Raw* mode of the whole page shows the document once
 with every excerpt underlined and any character that belongs to no excerpt
 marked in red.
 
+The outline on the left follows the same hierarchy. An annex that the Court's
+text numbers after a chapter, such as *Annex 2-A* of chapter 2, is shown under
+that chapter, and an appendix under the annex or the instrument that it closes,
+each one named by its own kind, so that *Annex 2-A* and *Appendix 1* are never
+mistaken for each other.
+
 An excerpt is the piece of text that the Atlas compares, which is one article,
-one heading, one stretch of loose text or the preamble, each with its own vector.
+one heading, one introduction, one table, one stretch of loose text or the
+preamble, each with its own vector. An introduction is the text that a title,
+chapter or section opens with before its first article or its first subdivision.
+A table is a run of rows that the consolidated text carries outside any article,
+and the page draws it as a table; a long one is cut at a row boundary into
+several excerpts, each of which has its own address made of the table's
+identifier and the number of the part.
 Not every excerpt is compared with the rest of the corpus, because a heading
 and a transitory article say little about how two instruments relate, so only the
 remaining ones, called compared excerpts, carry nearest texts. Opening the
@@ -48,8 +60,8 @@ top ranks the instruments by their sum so that the likeliest problems come first
 ```{=html}
 <ul class="instruments-flag-meanings">
 <li><strong>Loose</strong> is text that no rule placed inside an article.</li>
-<li><strong>Repeated number</strong> is an article number that appears more than once outside the transitory section.</li>
-<li><strong>Number gap</strong> is an article whose number does not follow the previous one.</li>
+<li><strong>Repeated number</strong> marks two articles that ended up with the same identifier outside the transitory section, that is the same number in the same place of the outline, so that the second could only be kept apart with a suffix. The same number in two different containers, article 1 of Part 1 and of Part 2, is not a repeat.</li>
+<li><strong>Number gap</strong> is an article whose number does not follow the previous one in its own container.</li>
 <li><strong>Over window</strong> is an excerpt longer than the embedding model's window, whose vector was computed on a truncated text.</li>
 <li><strong>No articles</strong> means the instrument has no article at all.</li>
 <li><strong>Uncovered</strong> counts the characters of the document that fall in no excerpt, no annotation and no frontmatter.</li>

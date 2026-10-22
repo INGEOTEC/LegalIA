@@ -1,0 +1,176 @@
+{
+  "coverage": {
+    "total_chars": 857,
+    "frontmatter_chars": 0,
+    "annotation_chars": 0,
+    "covered_chars": 857,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "ACUERDO POR EL QUE SE MODIFICAN LOS LINEAMIENTOS GENERALES Y ESPECÍFICOS PARA EL PROYECTO",
+      "text_sha1": "dcf6dad40345118e3a2419e2470c2544b9b034c8"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "1",
+      "path": [],
+      "text": "1. Introducción. La Constitución Política de los Estados Unidos Mexicanos reconoce el derecho.",
+      "text_sha1": "24cf1dbb18ffd7d4c73591375975c7e8d01ba3c6"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_2",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "2",
+      "path": [],
+      "text": "2. Objetivos",
+      "text_sha1": "3be2b22903665135f929e288ebd44c9289c0b9f7"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_2.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "2.1",
+      "path": [],
+      "text": "2.1. Objetivo General Contribuir a que la población indígena acceda a la justicia.",
+      "text_sha1": "a5ca7fdc66d57f285793111a3200dcef133f34f9"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_2.2",
+      "piece": 1,
+      "piece_eId": "art_2.2__p_1",
+      "akn_type": "article",
+      "num": "2.2",
+      "path": [],
+      "text": "2.2. Objetivos Específicos",
+      "text_sha1": "1b85c86a32290f662b477548031acae3de7e710f"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_2.2",
+      "piece": 2,
+      "piece_eId": "art_2.2__p_2",
+      "akn_type": "article",
+      "num": "2.2",
+      "path": [],
+      "text": "1. Aplicar recursos económicos para garantizar la excarcelación.",
+      "text_sha1": "b8e1601ca9fae5ef2dcf746fb5dff13893f337da"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_2.2",
+      "piece": 3,
+      "piece_eId": "art_2.2__p_3",
+      "akn_type": "article",
+      "num": "2.2",
+      "path": [],
+      "text": "2. Proporcionar servicios de atención jurídica a las personas.",
+      "text_sha1": "3e177504084eda663d12f907aa8356c0c85e6cee"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_2.2",
+      "piece": 4,
+      "piece_eId": "art_2.2__p_4",
+      "akn_type": "article",
+      "num": "2.2",
+      "path": [],
+      "text": "3. Actualizar el Diagnóstico de la población indígena.",
+      "text_sha1": "ddcfe93705cc20adf9501e57af5afe47e771db21"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_2.2",
+      "piece": 5,
+      "piece_eId": "art_2.2__p_5",
+      "akn_type": "article",
+      "num": "2.2",
+      "path": [],
+      "text": "4. Apoyar a las personas indígenas involucradas en el proyecto.",
+      "text_sha1": "89a691ccb39623f44533155f98fceb6afc47ea84"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_3",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "3",
+      "path": [],
+      "text": "3. Lineamientos",
+      "text_sha1": "6b734f07f7afca679893e14a18064a3d5c98fe25"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_3.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "3.1",
+      "path": [],
+      "text": "3.1. Cobertura El Proyecto tiene cobertura nacional.",
+      "text_sha1": "e8380ac178c0da23b699b31dfddc20619246b3c6"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_4",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "4",
+      "path": [],
+      "text": "4. Mecánica Operativa.",
+      "text_sha1": "e6e596ce21099b0ca3c04dc97263939e4a65b969"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_4.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "4.1",
+      "path": [],
+      "text": "4.1. Proceso de Operación. 1.- Solicitud de apoyo. 2.- Copia del acuerdo emitido por la autoridad competente. 3.- Copia del escrito por el que se exhibe la garantía.",
+      "text_sha1": "5b58e1d370ec78b72e045523723495623f0dac90"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_5",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "5",
+      "path": [],
+      "text": "5. Seguimiento, Control y Auditoría. Los recursos que la Federación otorga para el proyecto se auditarán.",
+      "text_sha1": "0f6a227f4c5c9c41ca5c0f43f6819d8dfffba783"
+    },
+    {
+      "unit_type": "article",
+      "eId": "art_6",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "6",
+      "path": [],
+      "text": "6. Evaluación. Con el propósito de conocer los resultados de la operación del proyecto.",
+      "text_sha1": "155a5ba4a5332b3bd124962b0519de93c5b13320"
+    }
+  ]
+}

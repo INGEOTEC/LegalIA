@@ -477,7 +477,9 @@
 
 .instruments-type-book,
 .instruments-type-title { border-left-color: #6b6a65; }
-.instruments-type-chapter { border-left-color: #898781; }
+.instruments-type-chapter,
+.instruments-type-part,
+.instruments-type-attachment { border-left-color: #898781; }
 .instruments-type-section,
 .instruments-type-level { border-left-color: #b9b7ae; }
 .instruments-type-article { border-left-color: var(--instruments-ink); }
@@ -485,6 +487,8 @@
 .instruments-type-point { border-left-color: #6f9bd2; }
 .instruments-type-subpoint { border-left-color: #b4cde9; }
 .instruments-type-content { border-left-color: #e1e0d9; }
+.instruments-type-intro { border-left-color: #c9a227; }
+.instruments-type-table { border-left-color: #7a5ea8; }
 
 .instruments-node-head {
   display: flex;
@@ -548,6 +552,50 @@
 .instruments-excerpt[data-unit-type="loose"] {
   border-color: var(--instruments-warning);
   background: var(--instruments-warning-tint);
+}
+
+.instruments-excerpt[data-unit-type="intro"],
+.instruments-excerpt[data-unit-type="table"] {
+  border-style: solid;
+}
+
+/* A table node (md2akn's rule 13) drawn as an HTML table; a long one is several. */
+.instruments-table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.instruments-table {
+  border-collapse: collapse;
+  margin: 0.3rem 0;
+  font-size: 0.85em;
+}
+
+.instruments-table td {
+  border: 1px solid var(--instruments-rule);
+  padding: 0.15rem 0.45rem;
+  vertical-align: top;
+}
+
+/* The caption of a captioned table (md2akn's rule 36): bold-led lines above the rows. */
+.instruments-table-caption {
+  caption-side: top;
+  text-align: left;
+  padding: 0.1rem 0.2rem;
+}
+
+.instruments-table-caption-line {
+  display: block;
+}
+
+/* A table printed inside an article: the run of its rows, drawn as one table. */
+.instruments-table-group {
+  margin: 0.2rem 0;
+}
+
+.instruments-table-label td {
+  font-weight: 600;
+  background: var(--instruments-panel);
 }
 
 .instruments-excerpt-bar {

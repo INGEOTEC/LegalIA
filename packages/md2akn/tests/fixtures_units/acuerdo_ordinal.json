@@ -63,6 +63,61 @@
       "text_sha1": "ef7886249e35a8d2ec7890cf2930a3b1f27f4e6d"
     },
     {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 6,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**PRIMERO.** El artículo 127 del Reglamento Interior de la Suprema Corte de Justicia de la Nación prevé en sus fracciones XII y XXI que la Oficialía Mayor, tendrá como atribuciones apoyar al Ministro Presidente en su gestión administrativa coadyuvando a la eficiencia, eficacia y transparencia en el manejo de los recursos materiales y presupuestales;",
+      "text_sha1": "49307b1c5b6cd90c7049c59c994c8409d98e88e9"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 7,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**SEGUNDO.** El Comité de Gobierno y Administración de la Suprema Corte de Justicia de la Nación, en el punto Séptimo del Acuerdo General de Administración II/2007, en sesión celebrada el veintinueve de enero de dos mil siete, acordó optimizar los espacios de los inmuebles propiedad de este Alto Tribunal, con la finalidad de evitar la adquisición o arrendamiento de nuevos inmuebles, ello como parte de las medidas de carácter general en materia de racionalidad, austeridad y disciplina presupuestaria para el ejercicio fiscal de dos mil siete;",
+      "text_sha1": "bbb0265b4856cefaeb67b215aa53609c73b2e132"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 8,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**TERCERO.** Con la finalidad de coadyuvar a las medidas de racionalidad, austeridad y disciplina presupuestaria resulta conveniente emitir los presentes Lineamientos que regulen la optimización de espacios de los inmuebles propiedad de este Alto Tribunal;",
+      "text_sha1": "7fe1c775bd78dcfd01032d3d3d686e6bea9f8742"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 9,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**CUARTO.** En términos de lo previsto en el numeral 1 del punto vigésimo segundo del Acuerdo General de Administración II/2007, del Comité de Gobierno y Administración de la Suprema Corte de Justicia de la Nación, por el que se determinan las medidas de carácter general en materia de racionalidad, austeridad y disciplina presupuestaria para el ejercicio fiscal del dos mil siete, el Oficial Mayor, por conducto del Secretario de Administración, y en conjunto con el Secretario Ejecutivo de Asuntos Jurídicos, expedirán los lineamientos en los que se precisen las reglas que rijan el ejercicio de las partidas presupuestales que estarán sujetas a las medidas previstas en ese Acuerdo General.",
+      "text_sha1": "f9bd9a967844e4d33aa24879d3c6cda2c8bdd7c9"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 10,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Por lo expuesto, y con fundamento en la citada disposición legal, se expiden los siguientes: **LINEAMIENTOS:**",
+      "text_sha1": "1b1e7778e37103c8bbf527bd78f18e260b4cdaf0"
+    },
+    {
       "unit_type": "article_piece",
       "eId": "art_PRIMERO",
       "piece": 1,
@@ -70,8 +125,19 @@
       "akn_type": "article",
       "num": "PRIMERO",
       "path": [],
-      "text": "**PRIMERO.** El artículo 127 del Reglamento Interior de la Suprema Corte de Justicia de la Nación prevé en sus fracciones XII y XXI que la Oficialía Mayor, tendrá como atribuciones apoyar al Ministro Presidente en su gestión administrativa coadyuvando a la eficiencia, eficacia y transparencia en el manejo de los recursos materiales y presupuestales;",
-      "text_sha1": "49307b1c5b6cd90c7049c59c994c8409d98e88e9"
+      "text": "**PRIMERO.** El objeto de los presentes Lineamientos consiste en optimizar los espacios de los inmuebles propiedad de este Alto Tribunal, con la finalidad de evitar la adquisición o arrendamiento de nuevos inmuebles.",
+      "text_sha1": "8a606f9f25f91a2ee9e88b8edfbc89a0945c2f18"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "art_PRIMERO",
+      "piece": 2,
+      "piece_eId": "art_PRIMERO__p_2",
+      "akn_type": "article",
+      "num": "PRIMERO",
+      "path": [],
+      "text": "La Secretaría General de la Presidencia será la responsable de la administración de los espacios.",
+      "text_sha1": "08a61e1785e940eb89c8973780e44b2b91099114"
     },
     {
       "unit_type": "article_piece",
@@ -81,8 +147,8 @@
       "akn_type": "article",
       "num": "SEGUNDO",
       "path": [],
-      "text": "**SEGUNDO.** El Comité de Gobierno y Administración de la Suprema Corte de Justicia de la Nación, en el punto Séptimo del Acuerdo General de Administración II/2007, en sesión celebrada el veintinueve de enero de dos mil siete, acordó optimizar los espacios de los inmuebles propiedad de este Alto Tribunal, con la finalidad de evitar la adquisición o arrendamiento de nuevos inmuebles, ello como parte de las medidas de carácter general en materia de racionalidad, austeridad y disciplina presupuestaria para el ejercicio fiscal de dos mil siete;",
-      "text_sha1": "bbb0265b4856cefaeb67b215aa53609c73b2e132"
+      "text": "**SEGUNDO.** La Dirección General de Adquisiciones (sic) Servicios tendrá a su cargo la elaboración de un censo respecto de los inmuebles y de los espacios ociosos o subutilizados existentes en ellos, el cual deberá remitir al Oficial Mayor y al Secretario General de la Presidencia a más tardar en el mes de marzo.",
+      "text_sha1": "0abad1301fb5539707a4224a3c099a0fad972a2c"
     },
     {
       "unit_type": "article_piece",
@@ -92,91 +158,14 @@
       "akn_type": "article",
       "num": "TERCERO",
       "path": [],
-      "text": "**TERCERO.** Con la finalidad de coadyuvar a las medidas de racionalidad, austeridad y disciplina presupuestaria resulta conveniente emitir los presentes Lineamientos que regulen la optimización de espacios de los inmuebles propiedad de este Alto Tribunal;",
-      "text_sha1": "7fe1c775bd78dcfd01032d3d3d686e6bea9f8742"
+      "text": "**TERCERO.** Corresponderá a la Dirección General de Adquisiciones y Servicios, bajo la supervisión del Secretario Ejecutivo de Servicios, publicar y mantener actualizado el padrón inmobiliario de la Suprema Corte de Justicia de la Nación, incluyendo todos los inmuebles que ocupa, ya sean de la Federación o de un tercero.",
+      "text_sha1": "6724596584ce87f02b562f55aa7e2250e452641a"
     },
     {
       "unit_type": "article_piece",
       "eId": "art_CUARTO",
       "piece": 1,
       "piece_eId": "art_CUARTO__p_1",
-      "akn_type": "article",
-      "num": "CUARTO",
-      "path": [],
-      "text": "**CUARTO.** En términos de lo previsto en el numeral 1 del punto vigésimo segundo del Acuerdo General de Administración II/2007, del Comité de Gobierno y Administración de la Suprema Corte de Justicia de la Nación, por el que se determinan las medidas de carácter general en materia de racionalidad, austeridad y disciplina presupuestaria para el ejercicio fiscal del dos mil siete, el Oficial Mayor, por conducto del Secretario de Administración, y en conjunto con el Secretario Ejecutivo de Asuntos Jurídicos, expedirán los lineamientos en los que se precisen las reglas que rijan el ejercicio de las partidas presupuestales que estarán sujetas a las medidas previstas en ese Acuerdo General.",
-      "text_sha1": "f9bd9a967844e4d33aa24879d3c6cda2c8bdd7c9"
-    },
-    {
-      "unit_type": "article_piece",
-      "eId": "art_CUARTO",
-      "piece": 2,
-      "piece_eId": "art_CUARTO__p_2",
-      "akn_type": "article",
-      "num": "CUARTO",
-      "path": [],
-      "text": "Por lo expuesto, y con fundamento en la citada disposición legal, se expiden los siguientes:",
-      "text_sha1": "80071d87121cfafa9ce99a1df497aa453f7bdbd4"
-    },
-    {
-      "unit_type": "article_piece",
-      "eId": "art_CUARTO",
-      "piece": 3,
-      "piece_eId": "art_CUARTO__p_3",
-      "akn_type": "article",
-      "num": "CUARTO",
-      "path": [],
-      "text": "**LINEAMIENTOS:**",
-      "text_sha1": "d1875938ead38bf510b4f23abc5db985d6ea9dae"
-    },
-    {
-      "unit_type": "article_piece",
-      "eId": "art_PRIMERO_2",
-      "piece": 1,
-      "piece_eId": "art_PRIMERO_2__p_1",
-      "akn_type": "article",
-      "num": "PRIMERO",
-      "path": [],
-      "text": "**PRIMERO.** El objeto de los presentes Lineamientos consiste en optimizar los espacios de los inmuebles propiedad de este Alto Tribunal, con la finalidad de evitar la adquisición o arrendamiento de nuevos inmuebles.",
-      "text_sha1": "8a606f9f25f91a2ee9e88b8edfbc89a0945c2f18"
-    },
-    {
-      "unit_type": "article_piece",
-      "eId": "art_PRIMERO_2",
-      "piece": 2,
-      "piece_eId": "art_PRIMERO_2__p_2",
-      "akn_type": "article",
-      "num": "PRIMERO",
-      "path": [],
-      "text": "La Secretaría General de la Presidencia será la responsable de la administración de los espacios.",
-      "text_sha1": "08a61e1785e940eb89c8973780e44b2b91099114"
-    },
-    {
-      "unit_type": "article_piece",
-      "eId": "art_SEGUNDO_2",
-      "piece": 1,
-      "piece_eId": "art_SEGUNDO_2__p_1",
-      "akn_type": "article",
-      "num": "SEGUNDO",
-      "path": [],
-      "text": "**SEGUNDO.** La Dirección General de Adquisiciones (sic) Servicios tendrá a su cargo la elaboración de un censo respecto de los inmuebles y de los espacios ociosos o subutilizados existentes en ellos, el cual deberá remitir al Oficial Mayor y al Secretario General de la Presidencia a más tardar en el mes de marzo.",
-      "text_sha1": "0abad1301fb5539707a4224a3c099a0fad972a2c"
-    },
-    {
-      "unit_type": "article_piece",
-      "eId": "art_TERCERO_2",
-      "piece": 1,
-      "piece_eId": "art_TERCERO_2__p_1",
-      "akn_type": "article",
-      "num": "TERCERO",
-      "path": [],
-      "text": "**TERCERO.** Corresponderá a la Dirección General de Adquisiciones y Servicios, bajo la supervisión del Secretario Ejecutivo de Servicios, publicar y mantener actualizado el padrón inmobiliario de la Suprema Corte de Justicia de la Nación, incluyendo todos los inmuebles que ocupa, ya sean de la Federación o de un tercero.",
-      "text_sha1": "6724596584ce87f02b562f55aa7e2250e452641a"
-    },
-    {
-      "unit_type": "article_piece",
-      "eId": "art_CUARTO_2",
-      "piece": 1,
-      "piece_eId": "art_CUARTO_2__p_1",
       "akn_type": "article",
       "num": "CUARTO",
       "path": [],

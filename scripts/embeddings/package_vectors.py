@@ -225,12 +225,25 @@ def genera_publicar(
     repo: str,
     stale: dict[str, list[str]] | None = None,
     partition_changed: bool = False,
+    live_tags: set[str] | None = None,
+    changed_files: list[Path] | None = None,
 ) -> str:
     """`PUBLICAR.md` — the exact, copy-pasteable `gh` sequence, one
     `release create` + `upload` pair per part, with each part's body read
     from its own checked-in `.github/<tag>.md`, plus the `gh release
-    delete-asset` commands for `stale` (issue #256's in-place replace)."""
+    delete-asset` commands for `stale` (issue #256's in-place replace).
+
+    `live_tags` (issue #293) are the parts of the series that already exist on
+    GitHub: for those `gh release create` would fail on the existing tag, so the
+    block edits the body and uploads the metadata with `--clobber` instead, the
+    way the hand-edited `PUBLICAR.md` of #256 and #280 did. `changed_files` are
+    vector files that keep their name but whose content changed (an incremental
+    re-embedding): `upload_release_assets.py` skips an asset already on the
+    release at the same size, which cannot see that, so they are uploaded
+    explicitly with `--clobber`."""
     stale = stale or {}
+    live_tags = live_tags or set()
+    changed_files = changed_files or []
     lineas = [
         f"# Publicar `{TAGS[coleccion]}` — comandos generados, correr a mano",
         "",
@@ -268,15 +281,34 @@ def genera_publicar(
         titulo = f"LegalIA — vectores de {coleccion}"
         if len(partes) > 1:
             titulo += f" (parte {i} de {len(partes)})"
-        crear = f'gh release create {tag} --repo {repo} --title "{titulo}" ' \
-                f"--notes-file $REPO/.github/{tag}.md"
-        if i == 1:
-            crear += " " + " ".join(METADATOS)
-        lineas.append(crear)
+        if tag in live_tags:
+            lineas.append(
+                f"gh release edit {tag} --repo {repo} --notes-file $REPO/.github/{tag}.md"
+            )
+            if i == 1:
+                lineas.append(
+                    f"gh release upload {tag} --repo {repo} --clobber " + " ".join(METADATOS)
+                )
+        else:
+            crear = f'gh release create {tag} --repo {repo} --title "{titulo}" ' \
+                    f"--notes-file $REPO/.github/{tag}.md"
+            if i == 1:
+                crear += " " + " ".join(METADATOS)
+            lineas.append(crear)
         lineas.append(
             f"python $REPO/scripts/embeddings/upload_release_assets.py {tag} "
             f"parte-{i}.txt --repo {repo}"
         )
+        propios = [p for p in changed_files if p.name in {a.name for a in parte["assets"]}]
+        if propios and tag in live_tags:
+            lineas.append(
+                "# Mismo nombre, contenido distinto: upload_release_assets.py compara el "
+                "tamano y se los saltaria si no cambio (issue #293)."
+            )
+            lineas.append(f"gh release upload {tag} --repo {repo} --clobber \\")
+            for j, ruta in enumerate(propios):
+                fin = " \\" if j < len(propios) - 1 else ""
+                lineas.append(f"    {ruta}{fin}")
     if stale:
         lineas.append("")
         lineas.append(
@@ -317,6 +349,10 @@ def main(argv=None) -> int:
     parser.add_argument("--out-dir", type=Path, default=None,
                          help="Defaults to <work-dir>/publish.")
     parser.add_argument("--repo", default="INGEOTEC/LegalIA")
+    parser.add_argument("--changed-files", type=Path, action="append", default=[],
+                         help="Repeatable; a text file of vector file names whose content "
+                              "changed under an unchanged name (`compare_merges.py "
+                              "--changed-files-out`), uploaded explicitly with --clobber.")
     args = parser.parse_args(argv)
 
     work_dir = args.work_dir
@@ -340,7 +376,10 @@ def main(argv=None) -> int:
 
     sumas = [f"{sha256(p)}  {p.name}" for p in vectores]
     sumas += [
-        f"{sha256(out_dir / n)}  {n}" for n in METADATOS if (out_dir / n).exists()
+        # Never the sums file itself: on a second run it already exists and would
+        # list a digest of its own previous content (issue #294, found staging).
+        f"{sha256(out_dir / n)}  {n}" for n in METADATOS
+        if n != "SHA256SUMS.txt" and (out_dir / n).exists()
     ]
     (out_dir / "SHA256SUMS.txt").write_text("\n".join(sorted(sumas)) + "\n", encoding="utf-8")
 
@@ -350,8 +389,15 @@ def main(argv=None) -> int:
             "\n".join(str(p.resolve()) for p in parte["assets"]) + "\n", encoding="utf-8",
         )
     stale, partition_changed = stale_assets(args.coleccion, partes, args.repo)
+    live_tags = set(live_series_assets(TAGS[args.coleccion], args.repo))
+    nombres_cambiados = {
+        linea.strip() for lista in args.changed_files for linea in lista.read_text().splitlines()
+        if linea.strip()
+    }
+    cambiados = sorted(p.resolve() for p in vectores if p.name in nombres_cambiados)
     (out_dir / "PUBLICAR.md").write_text(
-        genera_publicar(args.coleccion, partes, out_dir, args.repo, stale, partition_changed),
+        genera_publicar(args.coleccion, partes, out_dir, args.repo, stale, partition_changed,
+                        live_tags, cambiados),
         encoding="utf-8",
     )
 

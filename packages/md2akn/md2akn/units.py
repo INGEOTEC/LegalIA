@@ -36,7 +36,8 @@ import hashlib
 import re
 from dataclasses import dataclass
 
-from md2akn.model import REFERS_TO_TRANSITORIOS, AknNode
+from md2akn.model import REFERS_TO_ANEXO, REFERS_TO_TRANSITORIOS, AknNode
+from md2akn.outline import MARCADORES_EN_TEXTO
 from md2akn.pipeline import parse_markdown
 
 #: The split threshold `text_units` uses when no `cap` is given: measured
@@ -68,11 +69,19 @@ _PARAGRAPH_BREAK = re.compile(r"\n[ \t]*\n")
 #: book/title/chapter/section/level without an article between them, so it
 #: never reaches this function as `node`.
 _CONTAINER_LABEL = {
+    # Review fix-1 of #291 (rule 16): a `PARTE`, and an `ANEXO`/`APÉNDICE` (its
+    # word is `refers_to`'s, see `_container_label`).
+    "attachment": "ANEXO",
+    "part": "PARTE",
     "book": "LIBRO",
     "title": "TÍTULO",
     "chapter": "CAPÍTULO",
     "section": "SECCIÓN",
     "level": "APARTADO",
+    # Review fix-4 of #291 (rules 29 to 31): a labelled block or a division. Its
+    # label *is* its `num` (see `_container_label`), so this word is only the
+    # fallback for a division with no heading.
+    "hcontainer": "DIVISIÓN",
 }
 _CONTAINER_TYPES = frozenset(_CONTAINER_LABEL)
 
@@ -85,6 +94,12 @@ UNIT_TYPES = (
     "heading",
     "loose",
     "conclusions",
+    # Issue #291's rules 12 and 13: a container's introductory text, and a
+    # table (cut at row boundaries).
+    "intro",
+    "table",
+    # Review fix-1 of #291's rule 15: a table of contents.
+    "toc",
 )
 
 #: The two templates `text_units` ships (issue #218 Fase 1, rule 7): whether
@@ -102,7 +117,8 @@ class TextUnit:
     model — `text` is already normalized, so it is what a caller would hash
     or embed with no further processing."""
 
-    #: `article | article_piece | preamble | heading | loose | conclusions`.
+    #: `article | article_piece | preamble | heading | loose | conclusions |
+    #: intro | table | toc` (see `UNIT_TYPES`).
     unit_type: str
     #: The anchor node's eId — the article's own, even for one of its pieces.
     eId: str
@@ -263,6 +279,12 @@ def _annotation_ranges(tree: AknNode, doc_text: str) -> list[tuple[int, int]]:
             continue
         ranges.append((idx, idx + len(note.raw)))
         cursor = idx + len(note.raw)
+    # An outline marker (rule 19) is metadata exactly like an annotation: it
+    # is no part of what gets embedded, and `coverage()` counts its
+    # characters as annotation.
+    if "<!-- scjn:block " in doc_text:
+        ranges.extend((m.start(), m.end()) for m in MARCADORES_EN_TEXTO.finditer(doc_text))
+        ranges.sort()
     return ranges
 
 
@@ -327,12 +349,16 @@ def _group_text(nodes: list[AknNode], ann_ranges: "_RangeIndex") -> str:
 
 
 def _container_label(node: AknNode) -> str:
+    if node.akn_type == "hcontainer":
+        return node.num or node.heading or _CONTAINER_LABEL["hcontainer"]
     if node.refers_to == REFERS_TO_TRANSITORIOS:
         label = "TRANSITORIOS"
         if node.num and node.num != "transitorios":
             label = f"{label} {node.num}"
         return label
     label = _CONTAINER_LABEL.get(node.akn_type, node.akn_type.upper())
+    if node.akn_type == "attachment" and node.refers_to != REFERS_TO_ANEXO:
+        label = "APÉNDICE"
     if node.num:
         label = f"{label} {node.num}"
     if node.heading:
@@ -347,6 +373,22 @@ def _with_context(raw_text: str, path: tuple[str, ...]) -> str:
         return normalize(raw_text)
     prefix = " > ".join(path)
     return normalize(f"{prefix}\n\n{raw_text}")
+
+
+def _unpipe_label_rows(raw_text: str) -> str:
+    """`raw_text` with every line written as a table row (`| CAPÍTULO II |  |`)
+    reduced to its cells joined by a space. The SCJN's own text puts a tab after
+    some container labels, which `scjn.api` reads as a two-cell row; in a
+    *heading* that row is the label, not a table (review fix-2 of #291: the
+    marker says it is the container's own heading block)."""
+    lines = []
+    for line in raw_text.split("\n"):
+        stripped = line.strip()
+        if len(stripped) > 1 and stripped.startswith("|") and stripped.endswith("|"):
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            line = " ".join(c for c in cells if c)
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def _with_article_template(raw_text: str, template: str, num: str | None, law_name: str | None) -> str:
@@ -584,7 +626,11 @@ def _article_units(
 
 
 def _is_loose_leaf(node: AknNode) -> bool:
-    return not node.children and node.akn_type != "article"
+    # Rule 35 (review fix-6 of #291): a container with nothing under it -- an
+    # annex, a part, a chapter whose text is only its own heading line -- is a
+    # heading, not loose text; `_walk_container` emits it as one.
+    return (not node.children
+            and node.akn_type not in ("article", "table", "toc") + tuple(_CONTAINER_TYPES))
 
 
 def _loose_groups(leaves: list[AknNode], ann_ranges, cap: int) -> list[list[AknNode]]:
@@ -626,6 +672,132 @@ def _loose_units(
     return units
 
 
+def _table_units(
+    table: AknNode,
+    path: tuple[str, ...],
+    ann_ranges,
+    cap: int,
+    split_over_cap: bool = True,
+) -> list[TextUnit]:
+    """Rule 13 (issue #291): one `table` node as `table` units, cut at row
+    boundaries.
+
+    A row is one paragraph of the table's span (`scjn.api` writes one row per
+    Markdown paragraph, issue #253). Rows are packed in order into the longest
+    run whose embedded text still fits `cap`, and **every piece after the
+    first is prefixed with the table's first row** -- its column header --
+    chapeau-style, the way rule 3 repeats an article's chapeau: without it the
+    pieces of a tariff would be rows of numbers with no column names. The
+    prefix is part of the embedded text only; a piece's `[start_char,
+    end_char)` is its own rows, so the pieces partition the table's span and
+    `coverage()` stays true. Like every unit it carries its ancestor `path`.
+
+    A single row over the cap is left whole -- rule 9 never cuts inside a
+    paragraph -- and so is a row whose header prefix pushes it over:
+    `max_unit_chars` counts both as unsplittable. `split_over_cap=False`
+    turns the cutting off and gives one unit per table.
+    """
+    doc_text = ann_ranges.doc_text
+    rows = _paragraph_spans(doc_text, table.start_char, table.end_char)
+    header_raw = _strip_ranges(doc_text, rows[0][0], rows[0][1], ann_ranges)
+
+    def text_of(start: int, end: int, first: bool) -> str:
+        raw = _strip_ranges(doc_text, start, end, ann_ranges)
+        return _with_context(raw if first else f"{header_raw}\n\n{raw}", path)
+
+    whole = text_of(table.start_char, table.end_char, True)
+    if not split_over_cap or len(whole) <= cap or len(rows) <= 1:
+        pieces = [(table.start_char, table.end_char, whole)]
+    else:
+        pieces = []
+        start, end = rows[0]
+        text = text_of(start, end, True)
+        for row_start, row_end in rows[1:]:
+            candidate = text_of(start, row_end, not pieces)
+            if len(candidate) > cap:
+                pieces.append((start, end, text))
+                start, end = row_start, row_end
+                text = text_of(start, end, False)
+            else:
+                end, text = row_end, candidate
+        pieces.append((start, end, text))
+    return _units_from_pieces(
+        pieces, unit_type="table", eId=table.eId, akn_type="table", num=None,
+        path=path, piece_eId=None,
+    )
+
+
+def _intro_units(
+    intro: AknNode,
+    path: tuple[str, ...],
+    ann_ranges,
+    cap: int,
+    split_over_cap: bool = True,
+) -> list[TextUnit]:
+    """Rules 12 and 13 (issue #291) for one container's `intro`: its plain
+    paragraphs as `intro` units, its tables as `table` units, in document
+    order.
+
+    The paragraphs between two tables (or before the first, or after the last)
+    are packed like `loose` leaves -- up to `cap`, then cut at paragraph
+    boundaries by rule 9 -- and all carry the intro's own `eId`: one piece is
+    the unit whole (`piece` 0), several are numbered `1..n` across the whole
+    intro, in document order. A table is never part of an `intro` unit: a
+    LIGIE chapter's *Nota.* paragraphs are one `intro` unit and its tariff is
+    one or more `table` units.
+    """
+    pieces: list[tuple[int, int, str]] = []
+    tables: list[TextUnit] = []
+    run: list[AknNode] = []
+
+    def flush() -> None:
+        for group in _loose_groups(run, ann_ranges, cap):
+            pieces.extend(_capped_pieces(
+                group[0].start_char, group[-1].end_char, ann_ranges, cap,
+                lambda raw: _with_context(raw, path), split_over_cap,
+            ))
+        run.clear()
+
+    for child in intro.children:
+        if child.akn_type == "table":
+            flush()
+            tables.extend(_table_units(child, path, ann_ranges, cap, split_over_cap))
+        else:
+            run.append(child)
+    flush()
+    units = _units_from_pieces(
+        pieces, unit_type="intro", eId=intro.eId, akn_type="intro", num=None,
+        path=path, piece_eId=None,
+    )
+    return sorted(units + tables, key=lambda unit: unit.start_char)
+
+
+def _toc_units(
+    toc: AknNode,
+    path: tuple[str, ...],
+    ann_ranges,
+    cap: int,
+    split_over_cap: bool = True,
+) -> list[TextUnit]:
+    """Rule 15 (review fix-1 of #291): one `toc` node as `toc` units.
+
+    A table of contents is text, and `coverage()` has to account for it, but it
+    is not law: it lists headings the document goes on to write. It is cut like
+    `loose` text (paragraph boundaries, up to `cap`) and carries its ancestor
+    `path`, and the matrix treats it like a heading -- neither a source nor a
+    candidate -- because what an index says is *where* a text is, not what it
+    says.
+    """
+    pieces = _capped_pieces(
+        toc.start_char, toc.end_char, ann_ranges, cap,
+        lambda raw: _with_context(raw, path), split_over_cap,
+    )
+    return _units_from_pieces(
+        pieces, unit_type="toc", eId=toc.eId, akn_type="toc", num=None, path=path,
+        piece_eId=None,
+    )
+
+
 def _walk_container(
     node: AknNode,
     path: tuple[str, ...],
@@ -644,7 +816,7 @@ def _walk_container(
         if normalize(heading_raw):
             pieces = _capped_pieces(
                 node.start_char, first_start, ann_ranges, cap,
-                lambda raw: _with_context(raw, path), split_over_cap,
+                lambda raw: _with_context(_unpipe_label_rows(raw), path), split_over_cap,
             )
             units.extend(_units_from_pieces(
                 pieces, unit_type="heading", eId=node.eId, akn_type=node.akn_type,
@@ -663,7 +835,16 @@ def _walk_container(
                 split_articles,
             ))
             i += 1
-        elif _is_loose_leaf(child):
+        elif child.akn_type == "intro":
+            units.extend(_intro_units(child, child_path, ann_ranges, cap, split_over_cap))
+            i += 1
+        elif child.akn_type == "table":
+            units.extend(_table_units(child, child_path, ann_ranges, cap, split_over_cap))
+            i += 1
+        elif child.akn_type == "toc":
+            units.extend(_toc_units(child, child_path, ann_ranges, cap, split_over_cap))
+            i += 1
+        elif _is_loose_leaf(child) and child.akn_type != "hcontainer":
             j = i + 1
             while j < n and _is_loose_leaf(children[j]):
                 j += 1
@@ -693,8 +874,9 @@ def text_units(
     (`md2akn.parse_markdown`'s return), so a caller who parsed for another
     reason does not pay to parse twice.
 
-    The ten rules — seven from issue #218's Fase 1, two added by #227, one by
-    #279, numbered into the same list rather than replacing any of them:
+    The twenty-four rules — seven from issue #218's Fase 1, two added by #227, one
+    by #279, three by #291 and eleven by its review fixes, numbered into the same list rather than
+    replacing any of them:
 
     1. Frontmatter and reform annotations are metadata, never embedded.
     2. An article no longer than `cap` (normalized) is one unit, whole. With
@@ -732,6 +914,168 @@ def text_units(
        (issue #279). Unconditional: a roman alternative in
        `patterns.NUM_ARTICULO`, so the gate of rule 8 sees it too and a
        roman-numbered treaty is never read as an *acuerdo*.
+    11. A decimal article number is read whole: `Artículo 1.1:` is article
+       `1.1` (eId `art_1.1`), not article `1`. How the T-MEC and six other
+       treaties number their articles (issue #291). Unconditional, and only
+       after the article word.
+    12. A container's introductory text -- every block between its heading
+       (epigraph included) and its first child container or article -- is
+       that container's `intro` node and a `intro` unit, not a `loose` one:
+       the *Notas.* of a LIGIE section or chapter (issue #291). Capped and cut
+       like `loose`, carrying the same ancestor `path`; text before any
+       container keeps its `preamble`/`loose` treatment.
+    13. Consecutive table rows (blocks opening and closing with `|`, as
+       `scjn.api` writes them since #253) are one `table` node, and a table
+       that is not inside an article yields `table` units cut at row
+       boundaries up to `cap`, each piece after the first prefixed with the
+       table's first row -- its column header. A table inside an article is
+       part of that article's own text. A table is never part of an `intro`
+       unit.
+    14. An article's number is read whole (review fix-1 of #291): `1o.-A BIS`,
+       `3o.- Bis`, `228 a`, `228 a BIS`, `Artículo 5 Bis 1` are each their own
+       number, not the base article's again. Unconditional, a widening of
+       `patterns.NUM_ARTICULO`; `scjn.api`'s writer bolds the same shapes.
+    15. A table of contents -- a run of short blocks after a marker (`Índice`,
+       `Contenido`) that the document then repeats as its own headings -- is
+       one `toc` node and `toc` units, never containers or articles. A marker
+       with no repeat after it is left alone.
+    16. `PARTE` is a container above the books and titles, and
+       `ANEXO`/`APÉNDICE` an `attachment` closing a container of its own: the
+       chapter `1.1` of Part 1 is not the chapter `1.1` of Part 2, and an
+       annex is its own text.
+    17. Recitals are not provisions: under `CONSIDERANDO`, numbered paragraphs
+       stay in the preamble, in an instrument whose provisions are numbered
+       the same way (rule 8); they end at a container, at the heading that
+       opens what is ordered, at transitorios or when their numbering starts
+       over. A `D.O.F.`-headed decree quoted in the text opens its own
+       transitorios instead of continuing the host's.
+    18. In rule 8's numeral mode a whole numeral that starts over (`1.` after
+       `3.`), or carries on a list that did, is a list item of the provision
+       above, not a further article. A dotted numeral (`2.1`) always opens one.
+    19. (review fix-2 of #291, again after the fact.) A snapshot written by
+       `scjn.api` since that fix carries the outline the SCJN's API states, one
+       `<!-- scjn:block ... -->` marker line before each block (`kind`:
+       header, recitals, preamble, toc, transitorios, decree, container,
+       article, provision, other). The markers are metadata, like rule 1's
+       frontmatter: never embedded, counted as annotation by `coverage()`.
+       Where one is present it decides the class of the block's heading (a
+       container with its type and number, an article with its number, the
+       index as a `toc`) and the text heuristics are used only inside a
+       block. A document with no marker is read exactly as before.
+    20. A reform decree the API marks (`kind=decree`, `D.O.F.` plus a date)
+       holds everything after it -- its own transitorios, an `ANEXO ÚNICO`
+       reprinting the instrument -- as one section, so none of it is the host
+       instrument's again.
+    21. A container found in the *text* of a container's block nests below
+       that container instead of beside it (`AknNode`'s floor): the `PARTE 1`
+       an annex's block contains is inside that annex.
+    22. An identifier is never silently reused: a second claimant of an eId
+       takes a `_2` suffix and `AknNode.repeated` is true for **both**
+       claimants, which is what the Instruments page's *repeated number* flag
+       counts. A number that restarts inside another container is a
+       different identifier and no repeat.
+    23. A block the API marks `other` (or a second `preamble`) that holds
+       articles in its own text, or is followed by article blocks, opens an
+       implicit `section` until the next non-article marker: a code's
+       `1 ÁMBITO` whose articles are `1.1`, `1.2`.
+    24. Inside a block the API marks `article`, `header`, `preamble` or
+       `recitals`, no line opens structure: an amendment article quoting
+       `ARTÍCULO 5.-` is that article's own text. An article's identity is
+       the number of its text when it equals or extends the API's label, the
+       label when it extends the text's, else the one consistent with the
+       API's own `numero`.
+    25. An annex the API numbers after a chapter (`numero` 2, `num` `2-A`:
+       the `N-` prefix is the fallback) is a child of the innermost open
+       container carrying that number -- `cap_2__att_2-A` -- and the next
+       container of the chapter's level or higher closes it, so a chapter is
+       never inside an annex. An annex with no owner stays at the top. Its
+       title is the text of its own label (`ANEXO 2-A:` is not annex `2`
+       titled `A`).
+    26. An appendix is an `attachment` whose `refersTo` is `#apendice` and
+       whose eId prefix is `app` (`app_1`), never `att`. One the API marks
+       with no owner nests in the annex that is open, after that annex's
+       chapters, or else in the instrument.
+    27. A bare `**APÉNDICE**` heading, with no number, directly under the
+       unnumbered appendix it repeats is that appendix's own running page
+       header (the T-MEC's tariff appendix of annex 2-C, over seven pages), not
+       a further appendix.
+    28. A block the API marks `other` that opens an implicit section (rule
+       23) is a text of its own -- an amending `RESOLUCIÓN MSC.411(97)` --
+       and hangs from the body whatever was open: never inside the appendix,
+       annex or chapter before it.
+    29. Every block the API marks `other` is a container of its own: an
+       `hcontainer` whose `num` is its label and whose eId is derived from it
+       (`hc_NOTA_EXPLICATIVA`). An explicit role table (`md2akn.outline.
+       ROLES_DE_ETIQUETA`) gives some a `refersTo`: `PARTE FINAL ...` is
+       `#conclusions`, `NOTA EXPLICATIVA` and `NOTAS` are `#note`, the steps of
+       the Mexican promulgation decree (`FIRMA`, `APROBACIÓN`, `RESERVA(S)`,
+       `RATIFICACIÓN Y DEPÓSITO`, `PROMULGACIÓN`, `CERTIFICACIÓN`,
+       `DECLARACIÓN ...`) are kept together under one `#promulgation`
+       container, and `RESOLUCIÓN ...` is the amending-resolution container of
+       rule 28. A label that only *starts* with one of those words
+       (`RESERVAS AL REGLAMENTO DE RADIOCOMUNICACIONES`) has no role. What the
+       block holds before its first article is its `intro` (rule 12). An API
+       `provision` block (`PRIMERO.-` of an acuerdo) is an article.
+    30. A block the API split in two -- a title (`ARTÍCULOS`) and a second
+       block labelled `CONTENIDO ARTICULOS` -- is one container.
+    31. A numbering that starts over *inside* one block opens a division
+       (`hcontainer`, `refersTo="#division"`; `#form` for a model certificate),
+       so an identifier is the same article or it is not repeated: the
+       `MODELO DE CERTIFICADO ...` of an appendix and the `SE CERTIFICA`
+       placeholder of the certificates that print no title, a heading such as
+       `A.II - VENTANAS` or `Artículos que se refieren al Comité Ejecutivo`.
+       The boxes of a form are not articles, a numeral followed by a lower-case
+       word (`1.1. cuando ...`) is a value and not an opener, and a numeral
+       equal to the number of the article just above is that article's
+       paragraph. A division needs a heading to open at: with none the repeat
+       stays, flagged on both claimants, and nothing is merged or renumbered.
+    32. The article-number grammar of the marker path reads `S5.43`/`5.43A`
+       (a radio-regulations provision, under its `ARTÍCULO S5` section and
+       `APÉNDICE S30` appendix), `Artículo Primero.-` with a mixed-case ordinal
+       inside transitorios, and the caption line the SCJN prints *before* an
+       article's heading (`Objeto`) as the start of that article.
+    33. An API block is the root of its hierarchy (review fix-5 of #291).
+       Every `RESOLUCIÓN ...` block is a `section`, whether or not its own text
+       has articles (it used to be an `hcontainer` when it had none). The
+       headings a block's text prints keep their order among themselves: an
+       `ANEXO` holds the chapters printed after it, a chapter its parts
+       (`PARTE A`, `B`, ...: the next chapter's `PARTE A` is its own, never
+       `part_A_2`), a bare `APÉNDICE` after the annex of the same block is
+       inside it, and the next marker closes the whole stack the block opened.
+       The one annex that leaves its block is the one with no container or
+       article after its heading in the block's text: the structure of the
+       code a resolution amends, or of the instrument an `ANEXO ÚNICO`
+       approves, is what the API serves in the blocks that follow, and they
+       belong to that annex.
+    34. An API block is the root of *all* its text (review fix-6 of #291).
+       What a block's text holds hangs from the container the block opened,
+       whatever transitorios section is open around it (the text of an `other`
+       block after a reform decree used to hang from the decree: the block's
+       container held only its heading line); an index belongs to the API block
+       it starts in and ends at the next marker, never swallowing the heading
+       the next block opens with; the lines between a marker and the heading it
+       opens a container with (`[...]` before `Transitorios`, an institution's
+       name above `SEGUNDA PARTE`) are that heading's; and the text a
+       container (or the body) holds after its index, or after a captioned
+       table, is its `intro` too. `md2akn.validate._block_escapes` checks it.
+    35. A container with nothing under it -- an annex, a part, a chapter whose
+       text is only its heading line -- is a `heading` unit, never `loose`.
+    36. A table's caption belongs to it: one or two bold-led lines
+       (`**A.** Tarifa para ...`, `**TARIFA**`) straight before its rows are the
+       first lines of the `table` node (its `heading` is the first one), and the
+       plain paragraphs right after the rows are its notes, up to the next
+       caption. A table inside an article stays article text.
+    37. `**Artículo 8o. **fracción II primer párrafo: $179,017.26`, a line that
+       names an article and goes on in lower case, is a reference, not an
+       article opener, unless the API says the block is an article.
+    38. An API `article` block whose text is only its heading and a caption,
+       followed by `provision` blocks, opens a section of those provisions
+       (the numbered provisions of a regulation run on across its headed
+       articles): when a document does it three times or more.
+    39. A numbered provision the API could not classify because the source
+       misprints its number (`kind=other`, label `98 (SIC)`) is an article.
+    Rules 25 to 39 apply to a document with outline markers; one without
+    them is read, and its eIds written, as before.
 
     >>> import md2akn
     >>> text = (

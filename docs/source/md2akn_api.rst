@@ -273,12 +273,14 @@ on our fixture's first article:
 ------------------------------------------------------
 
 :py:class:`~md2akn.AknNode` and :py:class:`~md2akn.Annotation`, and the
-vocabulary their ``akn_type`` is drawn from — 14 Akoma Ntoso element names,
-in the rough order they nest:
+vocabulary their ``akn_type`` is drawn from — 20 Akoma Ntoso element names
+(``intro`` and ``table`` joined in 0.5.1, ``attachment``, ``part`` and ``toc``
+in review fix-1 of issue #291, ``hcontainer`` in review fix-4), in the rough
+order they nest:
 
 >>> from md2akn import AKN_TYPES, REFERS_TO_APARTADO, REFERS_TO_TRANSITORIOS
 >>> len(AKN_TYPES)
-14
+20
 >>> "article" in AKN_TYPES and "paragraph" in AKN_TYPES and "point" in AKN_TYPES
 True
 >>> REFERS_TO_APARTADO
@@ -488,6 +490,240 @@ longer read as an *acuerdo*:
 >>> tratado = "**ARTÍCULO I**\n\n1. Uno.\n\n2. Dos.\n\n**ARTÍCULO II**\n\nTres.\n"
 >>> [(u.unit_type, u.num) for u in md2akn.text_units(tratado, split_articles=False)]
 [('article', 'I'), ('article', 'II')]
+
+Rules 11, 12 and 13: decimal articles, a container's intro, and tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Issue #291 found three parse errors while browsing the instruments, and fixed
+them as one patch release, ``md2akn`` 0.5.1 — bug fixes, no new parameter.
+None of the three has a gate: they are corrections, and the measurement in
+``scripts/embeddings/README.md`` says how far each one reaches.
+
+Rule 11 reads a **decimal article number** whole. The T-MEC and six other
+treaties write ``Artículo 1.1:`` (chapter 1, article 1); the number used to
+stop at ``1``, so every ``Artículo 1.N`` came out as article ``1``. The eId
+keeps the number as written:
+
+>>> tmec = "**Artículo 1.1**: Uno.\n\n**Artículo 1.2**: Dos.\n\n**Artículo 2.1**: Tres.\n"
+>>> [(u.unit_type, u.num, u.eId) for u in md2akn.text_units(tmec, split_articles=False)]
+[('article', '1.1', 'art_1.1'), ('article', '1.2', 'art_1.2'), ('article', '2.1', 'art_2.1')]
+
+Rule 12 makes **a container's introductory text** its ``intro``: every block
+between the container's heading (epigraph included) and its first child
+container or article. It used to be ``loose`` and was glued to whatever came
+next. Akoma Ntoso's own name for it is ``<intro>``; here it is a node
+(``akn_type == "intro"``, eId ``<container>__intro``) and a ``unit_type``,
+capped and cut like ``loose`` and carrying the same ancestor ``path``.
+
+Rule 13 reads **consecutive table rows** — blocks that open and close with
+``|``, which is how :py:mod:`scjn` writes one recovered row per paragraph — as
+one ``table`` node. A table that is not inside an article yields ``table``
+units cut at row boundaries up to the cap, and every piece after the first is
+prefixed with the table's first row, its column header, the way rule 3 repeats
+an article's chapeau. A table is never part of an ``intro`` unit, and a table
+inside an article stays that article's own text.
+
+>>> capitulo = (
+...     "**CAPÍTULO 01**\n\n**Animales vivos**\n\nNota.\n\n1. Este Capítulo comprende animales.\n\n"
+...     "| CÓDIGO | DESCRIPCIÓN |\n\n| 01.01 | Caballos |\n\n| 01.02 | Bovinos |\n\n"
+...     "**Artículo 1o.** Uno.\n"
+... )
+>>> [(u.unit_type, u.eId, u.piece) for u in md2akn.text_units(capitulo, split_articles=False)]
+[('heading', 'cap_01', 0), ('intro', 'cap_01__intro', 0), ('table', 'cap_01__intro__table_1', 0), ('article', 'cap_01__art_1o', 0)]
+>>> for u in md2akn.text_units(capitulo, cap=80, split_articles=False):
+...     if u.unit_type == "table":
+...         print(u.piece, u.text)
+1 CAPÍTULO 01 Animales vivos | CÓDIGO | DESCRIPCIÓN | | 01.01 | Caballos |
+2 CAPÍTULO 01 Animales vivos | CÓDIGO | DESCRIPCIÓN | | 01.02 | Bovinos |
+
+Rules 14 to 18: no repeated article number
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A review of the Atlas after issue #291 found that 209 of its 2,676 instruments
+carried an article number more than once. Each had its own cause, and each is
+fixed where it starts — five rules of ``md2akn`` here, and the ``scjn`` writer
+for the cause that is its own (``scjn.api``'s ``_LEAD_ARTICULO`` bolded only
+the part of a number it knew). None of them hides or renumbers a duplicate:
+where the SCJN's own answer repeats a number, it stays repeated and is listed
+for the repository owner in ``scripts/embeddings/README.md``.
+
+Rule 14 reads **an article's number whole**: ``1o.-A BIS`` (the LIVA and the
+LIEPS), ``3o.- Bis``, ``228 a`` and ``228 a BIS`` (the LGTOC) are different
+articles from ``1o``, ``3o`` and ``228``, not a second article with that number.
+A word after the number is not part of it:
+
+>>> leyes = (
+...     "**ARTICULO 228.-** Uno.\n\nARTICULO 228 a.- Dos.\n\n"
+...     "ARTICULO 228 a BIS.- Tres.\n\nARTICULO 5 a las personas.\n"
+... )
+>>> [u.num for u in md2akn.text_units(leyes, split_articles=False)]
+['228', '228 a', '228 a BIS', '5']
+
+Rule 15 reads **a table of contents** — the run of short blocks after a marker
+(``Índice``, ``Contenido``) that the document then repeats as its own headings —
+as one ``toc`` node and ``toc`` units, so an index entry is never a container or
+an article:
+
+>>> codigo = (
+...     "**ÍNDICE**\n\n**PARTE 1 DISPOSICIONES**\n\nCapítulo 1.1 Generales\n\n"
+...     "1.1.0 Nota\n\n1.1.1 Aplicación\n\n1.1.2 Convenios\n\n1.1.3 Prohibido\n\n"
+...     "**PARTE 1**\n\nCapítulo 1.1\n\n1.1.0 Nota\n\nTexto de la nota.\n\n"
+...     "1.1.1 Aplicación\n\nTexto.\n"
+... )
+>>> [(u.unit_type, u.eId) for u in md2akn.text_units(codigo, split_articles=False)][:4]
+[('toc', 'toc_1'), ('heading', 'part_1'), ('heading', 'part_1__cap_1.1'), ('intro', 'part_1__cap_1.1__intro')]
+
+Rule 16 reads ``PARTE`` as a container above books, titles and chapters, and
+``ANEXO``/``APÉNDICE`` as an ``attachment`` at the top of the body: an annex is
+its own text, and a chapter ``1.1`` of Part 1 is not the chapter ``1.1`` of
+Part 2. Rule 17 keeps the **recitals** — ``CONSIDERANDO`` and the numbered
+paragraphs under it — out of the articles in an instrument whose provisions are
+numbered the same way (``PRIMERO.-`` twice), and reads the heading of a decree
+quoted with its ``D.O.F.`` date as the decree's own opening. Rule 18 applies
+only where rule 8's numerals are in force: a whole numeral that starts over
+(``1.`` after ``3.``) or carries on a list that did is a list item of the
+provision above, not a further article:
+
+>>> acuerdo = (
+...     "1. Uno.\n\n2. Dos.\n\n2.1. Sub.\n\n1. Primero de la lista.\n\n"
+...     "2. Segundo.\n\n3. Tercero.\n\n4. Cuarto.\n\n3. Tres.\n\n4. Cuatro.\n"
+... )
+>>> [u.num for u in md2akn.text_units(acuerdo, split_articles=False)]
+['1', '2', '2.1', '3', '4']
+
+A second review of the same repeats found that the cause was neither the SCJN
+nor ``md2akn``'s rules alone: the SCJN's API states an outline for each block of
+a snapshot (its ``referencia``, ``numero`` and ``orden``) and the ``scjn`` writer
+discarded it. It now writes one marker line before every block
+(``<!-- scjn:block ... -->``, see :py:mod:`scjn.outline`), and ``md2akn`` reads
+it. **Rule 19**: the markers are metadata and decide the class of the block's
+heading — a container with its type and number, an article with its number, the
+index as a ``toc`` — while the text heuristics keep working inside a block.
+**Rule 20**: a reform decree the API marks holds everything after it. **Rule
+21**: a container found in a container's text nests below it. **Rule 22**: an
+identifier is never silently reused — a second claimant takes a ``_2`` suffix,
+and ``repeated`` is true on both nodes. **Rule 23**: a block holding articles in
+its own text opens an implicit section. **Rule 24**: inside an article, header,
+preamble or recitals block no line opens structure.
+
+>>> marked = (
+...     '<!-- scjn:block orden=1 numero=0 kind=container type=chapter num="I" label="CAPÍTULO I" -->\n\n'
+...     "**CAPÍTULO I**\n\n"
+...     '<!-- scjn:block orden=2 numero=1 kind=article num="1" label="ARTÍCULO 1" -->\n\n'
+...     "**Artículo 1.-** Uno.\n\n"
+...     '<!-- scjn:block orden=3 numero=1 kind=article num="1" label="ARTÍCULO 1" -->\n\n'
+...     "**Artículo 1.-** Otra vez.\n"
+... )
+>>> tree = md2akn.parse_markdown(marked)
+>>> [(n.eId, n.repeated) for n in tree.walk() if n.akn_type == "article"]
+[('cap_I__art_1', True), ('cap_I__art_1_2', True)]
+>>> [u.text for u in md2akn.text_units(marked, split_articles=False)]
+['**CAPÍTULO I**', '**Artículo 1.-** Uno.', '**Artículo 1.-** Otra vez.']
+
+Review fix-3 of the same issue found two hierarchy errors the markers could
+settle. **Rule 25**: an annex the API numbers after a chapter (its ``numero`` is
+the chapter's, and so is the ``N-`` prefix of its ``num``) is a child of that
+chapter, and the next chapter closes it — a chapter is never inside an annex.
+**Rule 26**: an appendix is an ``attachment`` with ``refersTo="#apendice"`` and
+the eId prefix ``app``, nested in the annex it follows (after that annex's
+chapters) or, with none open, in the instrument. **Rule 27**: a bare
+``**APÉNDICE**`` heading directly under the unnumbered appendix it repeats is that
+appendix's running page header, not a further appendix. **Rule 28**: a block the
+API marks ``other`` that opens a section of its own (an amending resolution) hangs
+from the body, never inside the appendix before it. A document with no markers
+is read, and its eIds written, as before.
+
+Review fix-4 of the same issue made the remaining blocks the API calls ``other``
+structure too. **Rule 29**: each is an ``hcontainer`` named by its label, and an
+explicit role table (``md2akn.outline.ROLES_DE_ETIQUETA``) marks the closing
+formulas ``#conclusions``, the explanatory note ``#note``, the steps of the
+Mexican promulgation decree (kept together under one ``#promulgation``
+container) and an amending ``RESOLUCIÓN`` as the container of rule 28; an API
+``provision`` block is an article. **Rule 30**: a title block and the
+``CONTENIDO <title>`` block that follows it are one container. **Rule 31**: a
+numbering that starts over inside one block opens a division, so a number is
+repeated only when it is the same article; with no heading to open at, the repeat
+stays flagged. **Rule 32**: the number grammar of a radio-regulations text
+(``S5.43``, ``ARTÍCULO S5``, ``APÉNDICE S30``) and the mixed-case
+``Artículo Primero.-`` of transitorios are read.
+
+Review fix-5 of the same issue made an API block the root of its hierarchy.
+**Rule 33**: every ``RESOLUCIÓN`` block is a ``section``; the headings a block's
+text prints keep their order among themselves (an ``ANEXO`` holds the chapters
+printed after it, a chapter its parts, a bare ``APÉNDICE`` after the annex is
+inside it), the next marker closes everything the block opened, and the only
+annex that leaves its block is one with no container or article after its
+heading in the block's text, whose structure the API serves in the blocks that
+follow.
+
+>>> resolutions = (
+...     '<!-- scjn:block orden=1 numero=0 kind=other label="RESOLUCIÓN MSC.1(1)" -->\n\n'
+...     "**RESOLUCIÓN MSC.1(1)**\n\nEl Comité adopta las enmiendas.\n\n"
+...     "**ANEXO**\n\n**CAPÍTULO II-1**\n\n**CONSTRUCCIÓN**\n\n**PARTE A**\n\nUno.\n\n"
+...     "**CAPÍTULO II-2**\n\n**INCENDIOS**\n\n**PARTE A**\n\nDos.\n\n"
+...     '<!-- scjn:block orden=2 numero=0 kind=other label="RESOLUCIÓN MSC.2(2)" -->\n\n'
+...     "**RESOLUCIÓN MSC.2(2)**\n\nEl Comité adopta otras enmiendas.\n"
+... )
+>>> tree = md2akn.parse_markdown(resolutions)
+>>> [(n.akn_type, n.eId) for n in tree.walk() if n.akn_type in ("section", "attachment", "chapter", "part")]
+[('section', 'sec_RESOLUCIÓN_MSC.1(1)'), ('attachment', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment'), ('chapter', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1'), ('part', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1__part_A'), ('chapter', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'), ('part', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2__part_A'), ('section', 'sec_RESOLUCIÓN_MSC.2(2)')]
+
+Review fix-6 of the same issue made the block the root of *all* its text. **Rule
+34**: whatever a block's text holds hangs from the container the block opened, also
+when the block follows a reform decree (the text used to hang from the decree and the
+block's container held only its heading); an index ends with the API block it starts
+in; the lines between a marker and its heading are the heading's; and what a
+container holds after its index is its ``intro``. **Rule 35**: a container with
+nothing under it is a ``heading`` unit, never ``loose``. **Rule 36**: the caption and
+the notes of a table belong to it. **Rules 37 to 39**: a line that names an article and
+goes on in lower case is a reference; a heading-only ``article`` block followed by
+``provision`` blocks opens a section of them; ``98 (SIC)`` is an article.
+
+>>> decree_block = (
+...     '<!-- scjn:block orden=1 numero=0 kind=decree num="9 DE ENERO DE 2008" '
+...     'label="D.O.F. 9 DE ENERO DE 2008" -->\n\n**D.O.F. 9 DE ENERO DE 2008.**\n\n'
+...     '<!-- scjn:block orden=2 numero=0 kind=other label="MODIFICACIONES AL ANEXO" -->\n\n'
+...     "**A.** Tarifa para vehículos nuevos\n\n| 0.01 | 3.0 |\n\n| 5.00 | 4.0 |\n\n"
+...     "Si el precio es superior se reducirá el impuesto.\n"
+... )
+>>> tree = md2akn.parse_markdown(decree_block)
+>>> [(n.akn_type, n.eId) for n in tree.walk() if n.akn_type in ("section", "hcontainer", "table")]
+[('section', 'sec_9_DE_ENERO_DE_2008'), ('hcontainer', 'sec_9_DE_ENERO_DE_2008__hc_MODIFICACIONES_AL_ANEXO'), ('table', 'sec_9_DE_ENERO_DE_2008__hc_MODIFICACIONES_AL_ANEXO__table_1')]
+>>> from md2akn.validate import _block_escapes
+>>> _block_escapes(tree)
+[]
+>>> [u.unit_type for u in md2akn.text_units(tree)]
+['heading', 'table']
+
+>>> from md2akn.outline import rol_de_etiqueta, es_continuacion
+>>> rol_de_etiqueta("PARTE FINAL DE LAS ACTAS"), rol_de_etiqueta("RATIFICACIÓN Y DEPÓSITO")
+('conclusions', 'promulgation')
+>>> rol_de_etiqueta("RESERVAS AL REGLAMENTO DE RADIOCOMUNICACIONES") is None
+True
+>>> es_continuacion("CONTENIDO ARTICULOS", "ARTÍCULOS")
+True
+>>> restarted = (
+...     '<!-- scjn:block orden=1 numero=0 kind=other label="ACUERDO" -->\n\n'
+...     "**Artículo 1.-** Uno.\n\n**Artículo 2.-** Dos.\n\n"
+...     "Artículos que se refieren al Comité Ejecutivo\n\n"
+...     "**Artículo 1.-** Uno otra vez.\n"
+... )
+>>> tree = md2akn.parse_markdown(restarted)
+>>> [(n.eId, n.repeated) for n in tree.walk() if n.akn_type == "article"]
+[('sec_ACUERDO__art_1', False), ('sec_ACUERDO__art_2', False), ('sec_ACUERDO__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_1', False)]
+
+>>> annexed = (
+...     '<!-- scjn:block orden=1 numero=0 kind=container type=chapter num="2" label="CAPÍTULO 2" -->\n\n'
+...     "**CAPÍTULO 2**\n\n"
+...     '<!-- scjn:block orden=2 numero=2 kind=container type=annex num="2-A" label="ANEXO 2-A" -->\n\n'
+...     "**ANEXO 2-A**\n\n**EXCEPCIONES**\n\n"
+...     '<!-- scjn:block orden=3 numero=0 kind=container type=chapter num="3" label="CAPÍTULO 3" -->\n\n'
+...     "**CAPÍTULO 3**\n\n"
+...     '<!-- scjn:block orden=4 numero=0 kind=container type=appendix num="1" label="APÉNDICE 1" -->\n\n'
+...     "**APÉNDICE 1**\n\n**FORMULARIO**\n"
+... )
+>>> [(n.eId, n.refers_to) for n in md2akn.parse_markdown(annexed).walk() if n.akn_type in ("chapter", "attachment")]
+[('cap_2', None), ('cap_2__att_2-A', '#anexo'), ('cap_3', None), ('app_1', '#apendice')]
 
 :py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
 where ``coverage()`` says nothing was lost, this says the units are usable.

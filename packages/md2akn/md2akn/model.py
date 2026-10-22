@@ -39,20 +39,45 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 #: has none for them: "transitorios" and "apartado". Both are expressed as an
 #: existing element plus `refers_to` (`section` + `#transitorios`, `level` +
 #: `#apartado`) instead. See #159 and #160.
+#:
+#: `part`, `attachment` and `toc` (review fix-1 of #291, rules 15 and 16) are
+#: Akoma Ntoso's own too: a `part` is a `PARTE` (above a book, or inside a
+#: chapter when the document puts its chapters first), an `attachment` an
+#: `ANEXO` or `APÉNDICE` (told apart by `refers_to`) and a `toc` a table of
+#: contents.
+#:
+#: `hcontainer` (review fix-4 of #291, rules 29 to 31) is Akoma Ntoso's generic
+#: hierarchical container: a block the SCJN's API labels with a name no
+#: container word covers (`NOTA EXPLICATIVA`, `FIRMA`, `PARTE FINAL DEL
+#: ACUERDO`), the group of blocks a Mexican promulgation decree is made of, and a
+#: division a restart of numbering opens (a model certificate, an appendix of
+#: amendments). What it is a division *of* is its `refers_to` (`#promulgation`,
+#: `#note`, `#conclusions`, `#form`) or, for a plain division, nothing.
+#:
+#: `intro` and `table` (issue #291) are Akoma Ntoso's own elements: `<intro>`
+#: is the text a container opens with before its first child, and a table is
+#: a block (`<table>`/`<tr>`/`<td>`) inside a container's intro or content --
+#: never a hierarchical unit, so a row is not a node of its own.
 AKN_TYPES = (
     "act",          # the whole document (the root)
     "preamble",     # "Al margen un sello...", the enacting formula
     "body",         # the normative body
+    "attachment",   # ANEXO / APÉNDICE, via refers_to (rule 16, review fix-1 of #291)
+    "part",         # PARTE (rule 16, review fix-1 of #291)
+    "toc",          # a table of contents (rule 15, review fix-1 of #291)
     "book",         # LIBRO
     "title",        # TÍTULO
     "chapter",      # CAPÍTULO
     "section",      # SECCIÓN, and TRANSITORIOS via refers_to
     "level",        # APARTADO A/B, via refers_to
+    "hcontainer",   # a labelled block or division (rules 29-31, review fix-4 of #291)
+    "intro",        # a container's introductory text (rule 12, issue #291)
     "article",      # Artículo N
     "paragraph",    # fracción
     "point",        # inciso
     "subpoint",     # subinciso / numeral
     "content",      # a plain paragraph
+    "table",        # consecutive `| ... |` rows (rule 13, issue #291)
     "conclusions",  # the closing signatures
 )
 
@@ -61,6 +86,17 @@ AKN_TYPES = (
 #: same way and a consumer can match on them.
 REFERS_TO_TRANSITORIOS = "#transitorios"
 REFERS_TO_APARTADO = "#apartado"
+#: An `attachment` is an `ANEXO` or an `APÉNDICE`; which one is `refers_to`
+#: (rule 16, review fix-1 of #291).
+REFERS_TO_ANEXO = "#anexo"
+REFERS_TO_APENDICE = "#apendice"
+#: What an `hcontainer` is (rules 29 and 31, review fix-4 of #291). A plain
+#: block or division carries no `refers_to`.
+REFERS_TO_PROMULGACION = "#promulgation"   # the Mexican decree's own blocks, grouped
+REFERS_TO_CONCLUSIONES = "#conclusions"    # `PARTE FINAL ...`
+REFERS_TO_NOTA = "#note"                   # `NOTA EXPLICATIVA`, `NOTAS`
+REFERS_TO_FORMULARIO = "#form"             # a model certificate or form
+REFERS_TO_DIVISION = "#division"           # a division a restart of numbering opened
 
 #: eId path separator, as Akoma Ntoso names them: an inciso a) of fracción II
 #: of article 27 is `art_27__para_II__point_a`.
@@ -93,6 +129,10 @@ class EIdAllocator:
 
     def __init__(self):
         self.used: set[str] = set()
+        #: The eIds that were handed out with a `_2`-style suffix, because the
+        #: proposed one was taken -- a *repeat* (review fix-2 of #291): two
+        #: provisions that came out with the same identifier.
+        self.suffixed: set[str] = set()
 
     def allocate(self, proposed: str) -> str:
         candidate = proposed
@@ -101,15 +141,23 @@ class EIdAllocator:
             candidate = f"{proposed}_{i}"
             i += 1
         self.used.add(candidate)
+        if candidate != proposed:
+            self.suffixed.add(candidate)
         return candidate
+
+    def propuesto(self, parent_eid: str, prefix: str, num: str) -> str:
+        """The eId a child would take under `parent_eid` if nothing else held
+        it: the parent's path and the child's own segment (the path is skipped
+        for the structural roots, which carry no number and would only add
+        noise to every path)."""
+        segment = eid_component(prefix, num)
+        return f"{parent_eid}{EID_SEPARATOR}{segment}" if parent_eid else segment
 
     def child(self, parent_eid: str, prefix: str, num: str) -> str:
         """A child's eId, scoped under `parent_eid` — the same allocation,
         with the parent's path prepended (skipped for the structural roots,
         which carry no number and would only add noise to every path)."""
-        segment = eid_component(prefix, num)
-        base = f"{parent_eid}{EID_SEPARATOR}{segment}" if parent_eid else segment
-        return self.allocate(base)
+        return self.allocate(self.propuesto(parent_eid, prefix, num))
 
 
 @dataclass
@@ -170,6 +218,17 @@ class AknNode:
     #: no tail, because there is nothing to interleave and nothing to choose.
     is_chapeau: bool = False
     is_tail: bool = False
+    #: Whether this node shares the identifier it proposed with another node,
+    #: so one of the two had to take a `_2`-style suffix: the definition of a
+    #: *repeated* number (review fix-2 of #291), true of both claimants. A
+    #: number is repeated only when it is the same identifier -- `1.1` of Part 1
+    #: and `1.1` of Part 2 have different eIds and are not -- so this is the one
+    #: place the question is answered, by construction.
+    repeated: bool = False
+    #: On the root `act` only: how the document numbers its provisions when it
+    #: never writes `Artículo N` -- rule 8's `"ordinal"` or `"numeral"`, or
+    #: `None` (the ordinary case) -- as the builder decided it.
+    modo: str | None = None
     parent: "AknNode | None" = field(default=None, repr=False)
     children: list["AknNode"] = field(default_factory=list, repr=False)
     notes: list[Annotation] = field(default_factory=list, repr=False)

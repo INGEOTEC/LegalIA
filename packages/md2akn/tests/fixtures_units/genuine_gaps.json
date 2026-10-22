@@ -1,0 +1,803 @@
+[
+ {
+  "collection": "reglamentos",
+  "key": "549",
+  "eId": "art_6o",
+  "after": 4,
+  "num": "6o",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO  QUINTO (SIC)', 'ARTÍCULO  QUINTO (SIC)', 'QUINTO (SIC)']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "878",
+  "eId": "cap_XVI__art_143",
+  "after": 141,
+  "num": "143",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO  152 (SIC)', 'ARTÍCULO  152 (SIC)', '152 (SIC)']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "eId": "tit_CUARTO__cap_I__art_99",
+  "after": 1,
+  "num": "99",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['98 (SIC)', '98 (SIC)']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "955",
+  "eId": "art_44",
+  "after": 42,
+  "num": "44",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['13 (SIC)', '13 (SIC)']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "962",
+  "eId": "tit_SEGUNDO__cap_III__art_19",
+  "after": 15,
+  "num": "19",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO  18 (SIC)', 'ARTÍCULO  18 (SIC)', '18 (SIC)']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "71871",
+  "eId": "tit_CUARTO__cap_CUARTO__sec_A._CONSIDERACIONES_GENERALES_2__art_93",
+  "after": 91,
+  "num": "93",
+  "kind": "numbering-continues-across-containers",
+  "evidence": "1 article block(s) of the API lie between the two, in other containers: ['92']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "71871",
+  "eId": "tit_CUARTO__cap_CUARTO__sec_B._ACTOS_DEL_PROCEDIMIENTO_2__art_95",
+  "after": 92,
+  "num": "95",
+  "kind": "numbering-continues-across-containers",
+  "evidence": "2 article block(s) of the API lie between the two, in other containers: ['93', '94']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "71871",
+  "eId": "tit_CUARTO__cap_CUARTO__sec_A._CONSIDERACIONES_GENERALES_3__art_96",
+  "after": 94,
+  "num": "96",
+  "kind": "numbering-continues-across-containers",
+  "evidence": "1 article block(s) of the API lie between the two, in other containers: ['95']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "83034",
+  "eId": "tit_PRIMERO__cap_I__art_19o",
+  "after": 16,
+  "num": "19o",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO  18 (SIC)', 'ARTÍCULO  18 (SIC)', '18 (SIC)']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "95146",
+  "eId": "tit_CUARTO__cap_ÚNICO__sec_II__art_70",
+  "after": 68,
+  "num": "70",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO 68 (SIC)', 'ARTÍCULO 68 (SIC)', '68 (SIC)']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "103359",
+  "eId": "tit_PRIMERO__cap_I__art_1",
+  "after": 4,
+  "num": "1",
+  "kind": "api-order",
+  "evidence": "the API serves article 1 after article 4"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "108392",
+  "eId": "tit_PRIMERO__art_7",
+  "after": 4,
+  "num": "7",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO 6 (SIC)', 'ARTÍCULO 6 (SIC)', '6 (SIC)']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "138012",
+  "eId": "tit_I__cap_III__art_15o",
+  "after": 13,
+  "num": "15o",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 13 and 15o"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "142090",
+  "eId": "tit_PRIMERO__cap_I__art_14",
+  "after": 12,
+  "num": "14",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO 13. DEROGADO (SIC)', 'ARTÍCULO 13. DEROGADO (SIC)', '13. DEROGADO (SIC)']"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "164838",
+  "eId": "cap_V__sec_I__art_10_O",
+  "after": 10,
+  "num": "10 O",
+  "kind": "letter-read-as-ordinal",
+  "evidence": "`10 O` is a lettered article; `integer_number` reads its letter as the ordinal mark and gets 10, the integer before it"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "164838",
+  "eId": "cap_V__sec_VI__art_42_O",
+  "after": 42,
+  "num": "42 O",
+  "kind": "letter-read-as-ordinal",
+  "evidence": "`42 O` is a lettered article; `integer_number` reads its letter as the ordinal mark and gets 42, the integer before it"
+ },
+ {
+  "collection": "lineamientos",
+  "key": "72769",
+  "eId": "art_62",
+  "after": 59,
+  "num": "62",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['61 (SIC)', '61 (SIC)']"
+ },
+ {
+  "collection": "lineamientos",
+  "key": "92842",
+  "eId": "sec_LINEAMIENTOS__art_16",
+  "after": 13,
+  "num": "16",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO  15 (SIC)', 'ARTÍCULO  15 (SIC)', '15 (SIC)']"
+ },
+ {
+  "collection": "tratados",
+  "key": "11208",
+  "eId": "sec_RESOLUCIÓN_290_(VII)__art_19",
+  "after": 16,
+  "num": "19",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 16 and 19"
+ },
+ {
+  "collection": "tratados",
+  "key": "11238",
+  "eId": "art_6",
+  "after": 4,
+  "num": "6",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO  (SIC)', 'ARTÍCULO  (SIC)', '(SIC)']"
+ },
+ {
+  "collection": "tratados",
+  "key": "14227",
+  "eId": "cap_II__art_7",
+  "after": 5,
+  "num": "7",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 5 and 7"
+ },
+ {
+  "collection": "tratados",
+  "key": "14227",
+  "eId": "cap_II__art_11",
+  "after": 7,
+  "num": "11",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 7 and 11"
+ },
+ {
+  "collection": "tratados",
+  "key": "14227",
+  "eId": "cap_II__art_14",
+  "after": 11,
+  "num": "14",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 11 and 14"
+ },
+ {
+  "collection": "tratados",
+  "key": "14227",
+  "eId": "cap_II__art_16",
+  "after": 14,
+  "num": "16",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 14 and 16"
+ },
+ {
+  "collection": "tratados",
+  "key": "14227",
+  "eId": "cap_II__art_19",
+  "after": 17,
+  "num": "19",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 17 and 19"
+ },
+ {
+  "collection": "tratados",
+  "key": "14227",
+  "eId": "cap_II__art_23",
+  "after": 21,
+  "num": "23",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 21 and 23"
+ },
+ {
+  "collection": "tratados",
+  "key": "14227",
+  "eId": "cap_II__art_34",
+  "after": 23,
+  "num": "34",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 23 and 34"
+ },
+ {
+  "collection": "tratados",
+  "key": "14227",
+  "eId": "cap_II__art_41",
+  "after": 35,
+  "num": "41",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 35 and 41"
+ },
+ {
+  "collection": "tratados",
+  "key": "18141",
+  "eId": "sec_FIRMAS__part_I__cap_I_-_Funcionamiento_de_la_Unión__art_23",
+  "after": 2,
+  "num": "23",
+  "kind": "index-without-marker",
+  "evidence": "the block `FIRMAS` lists the amended articles of the ITU Convention as an index (`PARTE I - Prefacio`, `ARTÍCULO 2 Elecciones...`, `4 El Consejo`, ...) with no `Índice` word, so rule 15 does not read it as one"
+ },
+ {
+  "collection": "tratados",
+  "key": "22834",
+  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__art_4",
+  "after": 2,
+  "num": "4",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 2 and 4"
+ },
+ {
+  "collection": "tratados",
+  "key": "22834",
+  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__art_18",
+  "after": 4,
+  "num": "18",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 4 and 18"
+ },
+ {
+  "collection": "tratados",
+  "key": "22834",
+  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__art_30",
+  "after": 18,
+  "num": "30",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 18 and 30"
+ },
+ {
+  "collection": "tratados",
+  "key": "22834",
+  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_9",
+  "after": 6,
+  "num": "9",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 6 and 9"
+ },
+ {
+  "collection": "tratados",
+  "key": "22834",
+  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_18",
+  "after": 10,
+  "num": "18",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 10 and 18"
+ },
+ {
+  "collection": "tratados",
+  "key": "22834",
+  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_21",
+  "after": 18,
+  "num": "21",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 18 and 21"
+ },
+ {
+  "collection": "tratados",
+  "key": "22834",
+  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_29",
+  "after": 24,
+  "num": "29",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 24 and 29"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__art_12",
+  "after": 3,
+  "num": "12",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 3 and 12"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__art_16",
+  "after": 12,
+  "num": "16",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 12 and 16"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__art_22",
+  "after": 16,
+  "num": "22",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 16 and 22"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__art_26",
+  "after": 22,
+  "num": "26",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 22 and 26"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Artículos_33_a_63_(numerados_del_43_al_73_en_virtud_de_la_Re__art_45",
+  "after": 43,
+  "num": "45",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 43 and 45"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Artículos_33_a_63_(numerados_del_43_al_73_en_virtud_de_la_Re__art_52",
+  "after": 45,
+  "num": "52",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 45 and 52"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_19",
+  "after": 9,
+  "num": "19",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 9 and 19"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_27",
+  "after": 19,
+  "num": "27",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 19 and 27"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_29",
+  "after": 27,
+  "num": "29",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 27 and 29"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_32",
+  "after": 29,
+  "num": "32",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 29 and 32"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_34",
+  "after": 32,
+  "num": "34",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 32 and 34"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_37",
+  "after": 34,
+  "num": "37",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 34 and 37"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_39",
+  "after": 37,
+  "num": "39",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 37 and 39"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_42",
+  "after": 39,
+  "num": "42",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 39 and 42"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_33",
+  "after": 42,
+  "num": "33",
+  "kind": "api-order",
+  "evidence": "the API serves article 33 after article 42"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_53",
+  "after": 33,
+  "num": "53",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 33 and 53"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_56",
+  "after": 54,
+  "num": "56",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 54 and 56"
+ },
+ {
+  "collection": "tratados",
+  "key": "23774",
+  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_58",
+  "after": 56,
+  "num": "58",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 56 and 58"
+ },
+ {
+  "collection": "tratados",
+  "key": "23803",
+  "eId": "art_19",
+  "after": 5,
+  "num": "19",
+  "kind": "numbering-continues-across-containers",
+  "evidence": "13 article block(s) of the API lie between the two, in other containers: ['6', '7', '8', '9', '10', '11', '12', '13']"
+ },
+ {
+  "collection": "tratados",
+  "key": "23817",
+  "eId": "art_4",
+  "after": 2,
+  "num": "4",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO  (SIC)', 'ARTÍCULO  (SIC)', '(SIC)']"
+ },
+ {
+  "collection": "tratados",
+  "key": "23957",
+  "eId": "cap_IV__sec_1__art_31",
+  "after": 28,
+  "num": "31",
+  "kind": "source-sic",
+  "evidence": "the SCJN's own label carries (SIC): ['ARTÍCULO  30 (SIC)', 'ARTÍCULO  30 (SIC)', '30 (SIC)']"
+ },
+ {
+  "collection": "tratados",
+  "key": "23989",
+  "eId": "art_18",
+  "after": 1,
+  "num": "18",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 1 and 18"
+ },
+ {
+  "collection": "tratados",
+  "key": "44552",
+  "eId": "sec_APÉNDICES__app_S30__art_10",
+  "after": 7,
+  "num": "10",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 7 and 10"
+ },
+ {
+  "collection": "tratados",
+  "key": "44552",
+  "eId": "sec_APÉNDICES__app_S30B__art_8",
+  "after": 6,
+  "num": "8",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 6 and 8"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_ARTÍCULOS__art_3",
+  "after": 1,
+  "num": "3",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 1 and 3"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales__art_7",
+  "after": 5,
+  "num": "7",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 5 and 7"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales__art_9",
+  "after": 7,
+  "num": "9",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 7 and 9"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales__art_11",
+  "after": 9,
+  "num": "11",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 9 and 11"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_ARTÍCULOS__sec_III_-_Estaciones_radiogoniométricas__art_31",
+  "after": 29,
+  "num": "31",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 29 and 31"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales_3__art_55",
+  "after": 11,
+  "num": "55",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 11 and 55"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales_3__art_57",
+  "after": 55,
+  "num": "57",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 55 and 57"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales_3__art_59",
+  "after": 57,
+  "num": "59",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 57 and 59"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_APÉNDICES__app_25__hc_ADD__art_4",
+  "after": 2,
+  "num": "4",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 2 and 4"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_APÉNDICES__app_25__hc_ADD__art_7",
+  "after": 5,
+  "num": "7",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 5 and 7"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_APÉNDICES__app_25__hc_ADD__art_9",
+  "after": 7,
+  "num": "9",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 7 and 9"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_APÉNDICES__att_7_2__hc_ADD__art_9",
+  "after": 7,
+  "num": "9",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 7 and 9"
+ },
+ {
+  "collection": "tratados",
+  "key": "47860",
+  "eId": "sec_APÉNDICES__app_30B__art_8",
+  "after": 6,
+  "num": "8",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 6 and 8"
+ },
+ {
+  "collection": "tratados",
+  "key": "49685",
+  "eId": "sec_PROTOCOLO__art_3",
+  "after": 1,
+  "num": "3",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 1 and 3"
+ },
+ {
+  "collection": "tratados",
+  "key": "50062",
+  "eId": "sec_PROTOCOLO__art_4",
+  "after": 1,
+  "num": "4",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 1 and 4"
+ },
+ {
+  "collection": "tratados",
+  "key": "50062",
+  "eId": "sec_PROTOCOLO__art_7",
+  "after": 4,
+  "num": "7",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 4 and 7"
+ },
+ {
+  "collection": "tratados",
+  "key": "67984",
+  "eId": "hc_PARTE_FINAL_DE_LA_CONVENCIÓN__art_7",
+  "after": 5,
+  "num": "7",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 5 and 7"
+ },
+ {
+  "collection": "tratados",
+  "key": "67984",
+  "eId": "hc_PARTE_FINAL_DE_LA_CONVENCIÓN__art_10",
+  "after": 8,
+  "num": "10",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 8 and 10"
+ },
+ {
+  "collection": "tratados",
+  "key": "67984",
+  "eId": "hc_PARTE_FINAL_DE_LA_CONVENCIÓN__art_13",
+  "after": 11,
+  "num": "13",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 11 and 13"
+ },
+ {
+  "collection": "tratados",
+  "key": "84855",
+  "eId": "att_2__app_19__art_4",
+  "after": 2,
+  "num": "4",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 2 and 4"
+ },
+ {
+  "collection": "tratados",
+  "key": "84855",
+  "eId": "att_2__app_19__art_10",
+  "after": 5,
+  "num": "10",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 5 and 10"
+ },
+ {
+  "collection": "tratados",
+  "key": "84855",
+  "eId": "att_2__att_5__art_4",
+  "after": 2,
+  "num": "4",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 2 and 4"
+ },
+ {
+  "collection": "tratados",
+  "key": "84855",
+  "eId": "att_2__att_5__art_9",
+  "after": 5,
+  "num": "9",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 5 and 9"
+ },
+ {
+  "collection": "tratados",
+  "key": "84855",
+  "eId": "att_3__app_30B__art_5",
+  "after": 2,
+  "num": "5",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 2 and 5"
+ },
+ {
+  "collection": "tratados",
+  "key": "161085",
+  "eId": "sec_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITAR_EL_INSTRUMENTO_DE_RATIFICACIÓN__art_0",
+  "after": 4,
+  "num": "0",
+  "kind": "api-order",
+  "evidence": "the API serves article 0 after article 4"
+ },
+ {
+  "collection": "tratados",
+  "key": "161085",
+  "eId": "sec_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITAR_EL_INSTRUMENTO_DE_RATIFICACIÓN__art_6",
+  "after": 0,
+  "num": "6",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 0 and 6"
+ },
+ {
+  "collection": "tratados",
+  "key": "161085",
+  "eId": "sec_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITAR_EL_INSTRUMENTO_DE_RATIFICACIÓN__art_11",
+  "after": 9,
+  "num": "11",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 9 and 11"
+ },
+ {
+  "collection": "tratados",
+  "key": "161085",
+  "eId": "sec_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITAR_EL_INSTRUMENTO_DE_RATIFICACIÓN__art_16",
+  "after": 14,
+  "num": "16",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 14 and 16"
+ },
+ {
+  "collection": "tratados",
+  "key": "161085",
+  "eId": "sec_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITAR_EL_INSTRUMENTO_DE_RATIFICACIÓN__art_35",
+  "after": 17,
+  "num": "35",
+  "kind": "source-omits-number",
+  "evidence": "no article block of the API between article 17 and 35"
+ }
+]

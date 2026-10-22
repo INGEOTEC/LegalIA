@@ -46,16 +46,18 @@ partir del hash — un archivo, no una copia del texto por instrumento.
 |---|---|---|
 | Modelo | `Qwen/Qwen3-Embedding-0.6B` | `Qwen/Qwen3-Embedding-4B` |
 | `K` | 1 024 | 2 560 |
-| Vectores | 59 178 | 59 178 |
-| De los cuales compartidos | 2 378 | 2 378 |
-| Tamaño | 88 MB | 214 MB |
-| Textos truncados | 1 | 1 |
+| Vectores | 59 235 | 59 235 |
+| De los cuales compartidos | 2 475 | 2 475 |
+| Tamaño | 91 MB | 224 MB |
+| Textos truncados | 2 | 2 |
 
-Corpus: 315 leyes, 68 581 unidades, **59 178 textos distintos**, `cap`
+Corpus: 315 leyes, 68 756 unidades, **59 194 textos distintos**, `cap`
 2 000 caracteres (rige para todo menos el artículo — ver abajo), plantilla
-`bare`, `md2akn` 0.4.0. El único texto truncado en ambos modelos es el mismo:
+`bare`, `md2akn` 0.5.1 (issue #291: los artículos decimales, las introducciones
+de contenedor y las tablas, y la revisión de los números de artículo repetidos:
+reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24; revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32, revisión fix-5 de #291: un bloque de la API es la raíz de su jerarquía, regla 33, y revisión fix-6 de #291: cada bloque de la API acota su texto, un encabezado sin contenido es un encabezado, las leyendas y notas de una tabla son de la tabla, un artículo-encabezado abre una sección y `N (SIC)` es un artículo, reglas 34 a 39)). Los dos textos truncados son los mismos en ambos modelos:
 el artículo 513 de la `lft`, la tabla de enfermedades de trabajo, 68 689
-tokens. Ambos modelos se publican
+tokens, y otro de 60 664 tokens. Ambos modelos se publican
 (#227, decisión 9): la evaluación por proxies de #217 no se ha corrido, así
 que nada se ha ganado el derecho de descartar al 4B. Y van en archivos
 separados (decisión 10): quien quiera el 0.6B no tiene por qué bajarse los

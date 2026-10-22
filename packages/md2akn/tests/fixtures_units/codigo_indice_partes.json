@@ -1,0 +1,224 @@
+{
+  "coverage": {
+    "total_chars": 838,
+    "frontmatter_chars": 0,
+    "annotation_chars": 0,
+    "covered_chars": 838,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**ACUERDO SECRETARIAL NÚM. 176/2026.** **CONSIDERANDO** Que la Autoridad Marítima Nacional, la ejerce el Ejecutivo Federal.",
+      "text_sha1": "2be9ac4914fb2c7472e4310aa135cb3daa664d39"
+    },
+    {
+      "unit_type": "toc",
+      "eId": "toc_1",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "toc",
+      "num": null,
+      "path": [],
+      "text": "**ÍNDICE** **PARTE 1 DISPOSICIONES GENERALES, DEFINICIONES Y CAPACITACIÓN** Capítulo 1.1 Disposiciones generales 1.1.0 Nota de introducción 1.1.1 Aplicación e implantación del Código 1.1.2 Convenios",
+      "text_sha1": "7a6c0400e955f87f0a24eab4cfa0f35ef22ceffb"
+    },
+    {
+      "unit_type": "toc",
+      "eId": "toc_1",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "toc",
+      "num": null,
+      "path": [],
+      "text": "1.1.3 Mercancías peligrosas cuyo transporte está prohibido **PARTE 2 CLASIFICACIÓN** Capítulo 2.1 Generalidades 2.1.0 Introducción **APÉNDICES**",
+      "text_sha1": "c481dbc57a0069790b0367690a63ead509fbd9fb"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "part_1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "part",
+      "num": "1",
+      "path": [],
+      "text": "**PARTE 1**",
+      "text_sha1": "dbed9773408835fb576f1b67a3fbbf7c90851ea2"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "part_1__cap_1.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "chapter",
+      "num": "1.1",
+      "path": [
+        "PARTE 1"
+      ],
+      "text": "PARTE 1 Capítulo 1.1",
+      "text_sha1": "b4fd6421709874b26cd1f2a9a360e9c4117e3a37"
+    },
+    {
+      "unit_type": "article",
+      "eId": "part_1__cap_1.1__art_1.1.0",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "1.1.0",
+      "path": [
+        "PARTE 1",
+        "CAPÍTULO 1.1"
+      ],
+      "text": "1.1.0 Nota de introducción Esta nota de introducción es el texto de la sección.",
+      "text_sha1": "c1f4d768674dca8a8205b4da7d7096a33320f82d"
+    },
+    {
+      "unit_type": "article",
+      "eId": "part_1__cap_1.1__art_1.1.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "1.1.1",
+      "path": [
+        "PARTE 1",
+        "CAPÍTULO 1.1"
+      ],
+      "text": "1.1.1 Aplicación e implantación del Código",
+      "text_sha1": "39e61084defe65c0cb3dd0cac6a033ca5b59eec4"
+    },
+    {
+      "unit_type": "article",
+      "eId": "part_1__cap_1.1__art_1.1.1.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "1.1.1.1",
+      "path": [
+        "PARTE 1",
+        "CAPÍTULO 1.1"
+      ],
+      "text": "1.1.1.1 Las disposiciones que figuran en el presente código son aplicables.",
+      "text_sha1": "467071b07e8d64af3fd3e4888ec1cd48f297a236"
+    },
+    {
+      "unit_type": "article",
+      "eId": "part_1__cap_1.1__art_1.1.2",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "1.1.2",
+      "path": [
+        "PARTE 1",
+        "CAPÍTULO 1.1"
+      ],
+      "text": "1.1.2 Convenios Texto de los convenios.",
+      "text_sha1": "5fd9eda666687d56e9b42ec6be07ba1a0b88f119"
+    },
+    {
+      "unit_type": "article",
+      "eId": "part_1__cap_1.1__art_1.1.3",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "1.1.3",
+      "path": [
+        "PARTE 1",
+        "CAPÍTULO 1.1"
+      ],
+      "text": "1.1.3 Mercancías peligrosas cuyo transporte está prohibido Texto de la prohibición.",
+      "text_sha1": "3ad9a45b144cb740d4ac5d78a9b0a514c1d1fdbf"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "part_2",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "part",
+      "num": "2",
+      "path": [],
+      "text": "**PARTE 2**",
+      "text_sha1": "ea7975d199f1ece5a39e03ba5bcc309cb6b72488"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "part_2__cap_2.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "chapter",
+      "num": "2.1",
+      "path": [
+        "PARTE 2"
+      ],
+      "text": "PARTE 2 Capítulo 2.1",
+      "text_sha1": "5dbb3861361ca2880cb9f3d5214294e3dd2b140d"
+    },
+    {
+      "unit_type": "article",
+      "eId": "part_2__cap_2.1__art_2.1.0",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "2.1.0",
+      "path": [
+        "PARTE 2",
+        "CAPÍTULO 2.1"
+      ],
+      "text": "2.1.0 Introducción Texto de la introducción de la clase.",
+      "text_sha1": "4cc12a1eb6493d894fd3946c7e0ee1bbaad1ed70"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "att_A",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "attachment",
+      "num": "A",
+      "path": [],
+      "text": "**APÉNDICE A**",
+      "text_sha1": "2b8283ead778e0a37faeb478fda8c5920200babb"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_A__intro",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "APÉNDICE A"
+      ],
+      "text": "APÉNDICE A Lista de cosas del apéndice.",
+      "text_sha1": "64f4b5f3fd73b138cf737815d692ea3f40edee7c"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "att_B",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "attachment",
+      "num": "B",
+      "path": [],
+      "text": "**APÉNDICE B**",
+      "text_sha1": "7d0b1a52b02609014574fb63e7a87f3bb730f43b"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_B__intro",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "APÉNDICE B"
+      ],
+      "text": "APÉNDICE B Otra lista.",
+      "text_sha1": "a866f1dc454a0015752cabf7261a245836899e5a"
+    }
+  ]
+}

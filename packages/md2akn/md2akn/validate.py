@@ -23,7 +23,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from md2akn.model import AknNode
+from md2akn.model import REFERS_TO_TRANSITORIOS, AknNode
+from md2akn.outline import MARCADORES_EN_TEXTO, es_continuacion, lee_marcador
 
 #: Which types may contain which. A tree that nests outside this table is
 #: broken, whatever the document said: it means the builder lost its stack,
@@ -32,25 +33,62 @@ from md2akn.model import AknNode
 ANIDAMIENTO: dict[str, frozenset[str]] = {
     "act": frozenset({"preamble", "body", "conclusions"}),
     "preamble": frozenset({"content"}),
+    # A `part` (`PARTE`), an `attachment` (`ANEXO`/`APÉNDICE`) and a `toc` are
+    # review fix-1 of #291's rules 15 and 16: an attachment closes every other
+    # container, so it sits straight under the body; a part sits under the
+    # body, an attachment or, in a document whose chapters come first, inside
+    # a chapter or a title.
     "body": frozenset(
-        {"book", "title", "chapter", "section", "level", "article", "content"}
+        {"attachment", "part", "toc", "intro", "book", "title", "chapter", "section", "level",
+         "article", "content", "table", "hcontainer"}
     ),
-    "book": frozenset({"title", "chapter", "section", "level", "article", "content"}),
-    "title": frozenset({"chapter", "section", "level", "article", "content"}),
-    "chapter": frozenset({"section", "level", "article", "content"}),
-    "section": frozenset({"level", "article", "content"}),
+    "attachment": frozenset(
+        {"intro", "toc", "part", "book", "title", "chapter", "section", "level", "article",
+         "content", "table", "hcontainer"}
+    ),
+    "part": frozenset(
+        {"intro", "toc", "book", "title", "chapter", "section", "level", "article", "content",
+         "table", "hcontainer"}
+    ),
+    "toc": frozenset(),
+    # A container's `intro` (rule 12, issue #291) and the `table`s of rule 13
+    # sit among its children; an `intro` holds the plain paragraphs and the
+    # tables of the text a container opens with.
+    "book": frozenset(
+        {"intro", "toc", "part", "title", "chapter", "section", "level", "article", "content",
+         "table", "hcontainer"}
+    ),
+    "title": frozenset(
+        {"intro", "toc", "part", "chapter", "section", "level", "article", "content", "table", "hcontainer"}
+    ),
+    "chapter": frozenset(
+        {"intro", "toc", "part", "section", "level", "article", "content", "table", "hcontainer"}
+    ),
+    # A section inside a section: the implicit section an API block opens (rule 23)
+    # inside the transitorios section of the decree that holds it (rule 34).
+    "section": frozenset(
+        {"intro", "toc", "level", "section", "article", "content", "table", "hcontainer"}
+    ),
+    "intro": frozenset({"content", "table"}),
     # An apartado holds articles; an apartado *inside* an article holds that
     # article's own fracciones -- which is why `paragraph` is here too. And
     # `point`, because an apartado may go straight to incisos with no fracción
     # in between: article 122 B of the Constitution and article 32 J of the
     # LGIPE both do, and both are the document saying so, not a broken stack.
-    "level": frozenset({"article", "paragraph", "point", "content"}),
+    "level": frozenset({"intro", "article", "paragraph", "point", "content", "table", "hcontainer"}),
     "article": frozenset({"level", "paragraph", "content"}),
     "paragraph": frozenset({"point", "content"}),
     "point": frozenset({"subpoint", "content"}),
     "subpoint": frozenset({"content"}),
     "content": frozenset(),
+    "table": frozenset(),
     "conclusions": frozenset(),
+    # Review fix-4 of #291 (rules 29 to 31): a labelled block or division holds
+    # whatever a container holds, divisions and further blocks included.
+    "hcontainer": frozenset(
+        {"intro", "toc", "part", "attachment", "book", "title", "chapter", "section", "level",
+         "hcontainer", "article", "content", "table"}
+    ),
 }
 
 
@@ -231,3 +269,110 @@ def validate(tree: AknNode, *, texto: str | None = None) -> Report:
         if reclamados[i] and not fuente[i].isspace()
     )
     return rep
+
+
+#: What can open a node of its own from the text of an API block: the types
+#: `_block_escapes` lets sit beside a block's article, because Akoma Ntoso has no
+#: article inside an article.
+_ESTRUCTURA_DE_TEXTO = frozenset(
+    {"article", "book", "title", "chapter", "section", "level", "part", "attachment", "hcontainer"}
+)
+
+
+def _block_escapes(tree: AknNode) -> list[Violation]:
+    """Invariant I1 (rule 34, review fix-6 of #291): what an API block's text
+    holds hangs from what the block opened.
+
+    A block is the characters from its marker to the next one. The nodes that
+    start inside it are read in document order, and the first, *the block's
+    root*, is what the block opened (a block that is the continuation of the one
+    before, `CONTENIDO ...`, has the earlier block's root). Then:
+
+    * a block whose root is a **container** (an `hcontainer`, a `section`, a
+      chapter, an annex ...) holds everything else of its text *inside* that
+      root -- not beside it, not in the container the block before opened --
+      except a transitorios section its own text opens (rule 20: it hangs from
+      the body);
+    * a block whose root is an **article**, or a leaf of an article opened
+      before it, may print further articles or headings (an article of a
+      treaty's `1.1.1` printing its `1.1.1.1`, a heading ahead of the next
+      article), which sit beside the root -- there is no article inside an
+      article -- but every leaf of text (`content`, `table`, `toc`, `intro`)
+      that comes after a node the block opened hangs from a node the block
+      opened, never from something older.
+
+    The preamble and the conclusions are not part of the hierarchy and are left
+    alone. A tree parsed from a document with no markers has no blocks and no
+    violations.
+    """
+    texto = tree.span.doc.text
+    encontradas = list(MARCADORES_EN_TEXTO.finditer(texto))
+    if not encontradas:
+        return []
+    # A block's range begins where the text before its marker ends: the blank
+    # lines between two blocks belong to the block that follows, and a node's
+    # span is pulled back over them.
+    marcas = [len(texto[: m.start()].rstrip()) if m.start() else 0 for m in encontradas]
+    etiquetas = [(lee_marcador(m.group(0)) or {}).get("label", "") for m in encontradas]
+    limites = [*marcas, len(texto) + 1]
+    nodos = [n for n in tree.walk() if n.akn_type not in ("act", "body", "preamble", "conclusions")]
+    violaciones: list[Violation] = []
+    raices_previas: list[AknNode] = []
+    j = 0
+    for k, inicio in enumerate(marcas):
+        fin = limites[k + 1]
+        while j < len(nodos) and nodos[j].start_char < inicio:
+            j += 1
+        dentro = []
+        m = j
+        while m < len(nodos) and nodos[m].start_char < fin:
+            dentro.append(nodos[m])
+            m += 1
+        if not dentro:
+            continue
+        continuacion = k > 0 and es_continuacion(etiquetas[k], etiquetas[k - 1]) and raices_previas
+        raices = list(raices_previas) if continuacion else [dentro[0]]
+        raiz = raices[0]
+        # A block whose first node is a leaf, an index or a table continues what is
+        # open already (the heading line of the article is the last line of the
+        # block before it): what it holds is siblings of that node, inside its parent.
+        hoja = not continuacion and raiz.akn_type not in _ESTRUCTURA_DE_TEXTO
+        propios = {id(n) for n in dentro}
+
+        def cuelga_de(nodo, candidatos):
+            while nodo is not None:
+                if any(nodo is c for c in candidatos):
+                    return True
+                nodo = nodo.parent
+            return False
+
+        abiertos = [] if continuacion else [dentro[0].parent if hoja else dentro[0]]
+        for nodo in dentro[0 if continuacion else 1:]:
+            if nodo.refers_to == REFERS_TO_TRANSITORIOS and nodo.akn_type == "section":
+                raices.append(nodo)
+                abiertos.append(nodo)
+                continue
+            if nodo.akn_type == "attachment" and nodo.parent is not None \
+                    and nodo.parent.akn_type == "body":
+                # Rule 16: an annex a text prints sits straight under the body,
+                # and what it holds is its own.
+                escapa = False
+                raices.append(nodo)
+                abiertos.append(nodo)
+            elif not hoja and raiz.akn_type in _ESTRUCTURA_DE_TEXTO and raiz.akn_type != "article":
+                escapa = not cuelga_de(nodo, raices)
+            elif nodo.akn_type in _ESTRUCTURA_DE_TEXTO:
+                escapa = False
+            else:
+                # A leaf that comes after something the block opened.
+                escapa = bool(abiertos) and not cuelga_de(nodo, abiertos)
+            if escapa:
+                violaciones.append(Violation(
+                    "block-escape", nodo.eId,
+                    f"starts in the block at {inicio} (root {raiz.eId}) but hangs "
+                    f"from {nodo.parent.eId if nodo.parent is not None else None}",
+                ))
+            if id(nodo) in propios:
+                abiertos.append(nodo)
+        raices_previas = raices
+    return violaciones

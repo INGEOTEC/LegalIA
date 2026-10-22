@@ -61,7 +61,7 @@ Un artículo es siempre una unidad entera, sin importar su longitud
 para el epígrafe de un capítulo, el preámbulo, el contenido suelto y las
 firmas. Un artículo más largo que la ventana del modelo se **trunca** a esa
 ventana (nunca se parte ni se promedia); cada texto truncado queda contado en
-`vectors-manifest.json` (`texts_truncated`, `max_tokens_embedded`): 10 textos en esta colección, todos
+`vectors-manifest.json` (`texts_truncated`, `max_tokens_embedded`): 11 textos en esta colección, todos
 más largos que la ventana de los dos modelos (de 41 360 a 115 193 tokens).
 
 ## Los números
@@ -69,12 +69,14 @@ más largos que la ventana de los dos modelos (de 41 360 a 115 193 tokens).
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | 39 668 | 39 668 |
-| De los cuales compartidos | 701 | 701 |
-| Tamaño | 65 MB | 151 MB |
+| Vectores | 54 141 | 54 141 |
+| De los cuales compartidos | 1 228 | 1 228 |
+| Tamaño | 88 MB | 210 MB |
 
-Corpus: 1 373 tratados, 41 335 unidades, **39 668 textos distintos**,
-`cap` 2 000, plantilla `bare`, `md2akn` 0.5.0. Los otros 82
+Corpus: 1 373 tratados, 56 265 unidades, **53 990 textos distintos**,
+`cap` 2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos
+decimales, las introducciones de contenedor y las tablas, y la revisión de los números de artículo repetidos:
+reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24, y revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32, revisión fix-5 de #291: un bloque de la API es la raíz de su jerarquía, regla 33, y revisión fix-6 de #291: cada bloque de la API acota su texto, un encabezado sin contenido es un encabezado, las leyendas y notas de una tabla son de la tabla, un artículo-encabezado abre una sección y `N (SIC)` es un artículo, reglas 34 a 39)). Los otros 82
 instrumentos del release `scjn-tratados` no aparecen: la SCJN los clasifica
 pero no sirve texto consolidado de ninguno (`snapshots: 0`, issue #222,
 decisión 6).
@@ -89,7 +91,7 @@ texto que un tratado comparte con una ley tiene un vector en cada release
   la SCJN; la oficial sigue siendo el DOF. Un vector no es citable.
 - **Texto vigente solamente**, sin historia y sin `codNota`: esta colección
   no está ligada al DOF (issue #277).
-- **53 tratados no tienen unidades de artículo**: son canjes de notas y
+- **44 tratados no tienen unidades de artículo**: son canjes de notas y
   protocolos en prosa, sin artículos romanos ni numerados que reconocer; su
   texto queda en unidades de preámbulo y contenido suelto.
 - **Nada de esto se publica solo** (issue #115, Hallazgo C).

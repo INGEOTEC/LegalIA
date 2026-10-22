@@ -922,3 +922,140 @@ class TestInstrumentMetadata(unittest.TestCase):
             instrument_metadata(cliente, "LEY", 410, paginas=2, tamanio_pagina=3)
         )
         self.assertEqual(len(sesion.llamadas), 2)
+
+
+class TestDecimalArticleLeads(unittest.TestCase):
+    """Issue #291: a treaty such as the T-MEC numbers its articles
+    `Artículo 1.1:` (chapter 1, article 1). The lead used to stop at `1.`,
+    writing `**Artículo 1.**1:` and making every `Artículo 1.N` read as
+    article 1 downstream."""
+
+    def _lead(self, parrafo):
+        from scjn.api import _formatea_parrafo
+
+        return _formatea_parrafo(parrafo)
+
+    def test_un_numero_decimal_con_dos_puntos_se_toma_completo(self):
+        self.assertEqual(
+            self._lead("Artículo 1.1: Establecimiento de una zona de libre comercio"),
+            "**Artículo 1.1**: Establecimiento de una zona de libre comercio",
+        )
+
+    def test_un_numero_decimal_con_separador_incluye_el_separador(self):
+        self.assertEqual(
+            self._lead("Artículo 12.3.- Texto del artículo."),
+            "**Artículo 12.3.-** Texto del artículo.",
+        )
+
+    def test_un_numero_con_dos_niveles_decimales(self):
+        self.assertEqual(self._lead("Artículo 3.2.1: Texto."), "**Artículo 3.2.1**: Texto.")
+
+    def test_los_numeros_sin_decimal_no_cambian(self):
+        self.assertEqual(self._lead("Artículo 1.- Texto."), "**Artículo 1.-** Texto.")
+        self.assertEqual(self._lead("Artículo 1o.- Texto."), "**Artículo 1o.-** Texto.")
+        self.assertEqual(self._lead("Artículo 27 Bis.- Texto."), "**Artículo 27 Bis.-** Texto.")
+        self.assertEqual(self._lead("Artículo Primero.- Texto."), "**Artículo Primero.-** Texto.")
+        self.assertEqual(self._lead("Artículo 5. Texto."), "**Artículo 5.** Texto.")
+
+    def test_un_articulo_decimal_en_un_bloque_con_tabulador_no_es_fila(self):
+        # the guard of `_paragraphs_from_tabbed_block` uses the same regex
+        from scjn.api import _LEAD_ARTICULO
+
+        self.assertTrue(_LEAD_ARTICULO.match("Artículo 1.1"))
+
+    def test_articulos_a_markdown_de_extremo_a_extremo(self):
+        from scjn.api import Articulo, articulos_a_markdown
+
+        arts = [
+            Articulo(1, 1, "ARTÍCULO 1.1", "Artículo 1.1: Establecimiento de una zona."),
+            Articulo(2, 2, "ARTÍCULO 1.2", "Artículo 1.2: Objetivos."),
+        ]
+        self.assertEqual(
+            articulos_a_markdown(arts),
+            "**Artículo 1.1**: Establecimiento de una zona.\n\n**Artículo 1.2**: Objetivos.\n",
+        )
+
+
+class TestWholeNumberLeads(unittest.TestCase):
+    """Review fix-1 of #291 (a finding made after the fact): the `Artículo`
+    lead covered digits, an ordinal marker and eight Latin suffixes, so every
+    other way of numbering an article was bolded only up to the part the
+    pattern knew and the rest of the number was left in the body -- 209
+    instruments of the Atlas then carried a repeated number. The fragments
+    are the first words of real rows of the SCJN's API answer."""
+
+    def _lead(self, parrafo):
+        from scjn.api import _formatea_parrafo
+
+        return _formatea_parrafo(parrafo)
+
+    def test_ordinal_con_letra_y_sufijo_latino_liva_y_lieps(self):
+        self.assertEqual(
+            self._lead("ARTICULO 1o.-A BIS.- Los contribuyentes."),
+            "**ARTICULO 1o.-A BIS.-** Los contribuyentes.",
+        )
+        self.assertEqual(
+            self._lead("Artículo 5o.-A BIS.- Las personas."),
+            "**Artículo 5o.-A BIS.-** Las personas.",
+        )
+
+    def test_ordinal_con_guion_y_sufijo_latino_en_reglamento_173(self):
+        self.assertEqual(
+            self._lead("ARTICULO 3o.- Bis. Las entidades."), "**ARTICULO 3o.- Bis.** Las entidades."
+        )
+
+    def test_letra_minuscula_lgtoc(self):
+        self.assertEqual(
+            self._lead("ARTICULO 228 a.- Los certificados."), "**ARTICULO 228 a.-** Los certificados."
+        )
+        self.assertEqual(
+            self._lead("ARTICULO 228 a BIS.- Los certificados."),
+            "**ARTICULO 228 a BIS.-** Los certificados.",
+        )
+
+    def test_letra_con_guion_numero_romano_y_serie_us(self):
+        self.assertEqual(self._lead("Artículo 27-A.- Texto."), "**Artículo 27-A.-** Texto.")
+        self.assertEqual(self._lead("ARTÍCULO IV.- Texto."), "**ARTÍCULO IV.-** Texto.")
+        self.assertEqual(self._lead("Artículo 12 Quintus.- Texto."), "**Artículo 12 Quintus.-** Texto.")
+        self.assertEqual(
+            self._lead("ARTICULO VIGÉSIMO CUARTO.- Texto."), "**ARTICULO VIGÉSIMO CUARTO.-** Texto."
+        )
+
+    def test_el_anexo_del_t_mec_toma_la_letra_entre_puntos(self):
+        self.assertEqual(self._lead("Artículo 2.A.1: Texto."), "**Artículo 2.A.1**: Texto.")
+
+    def test_una_frase_no_pierde_su_primera_palabra(self):
+        # `A` here is a word, not a letter of the number
+        self.assertEqual(
+            self._lead("Artículo 5 A las personas que..."), "**Artículo 5 **A las personas que..."
+        )
+
+    def test_el_espacio_de_las_negritas_no_cambia_donde_el_patron_no_se_equivocaba(self):
+        self.assertEqual(self._lead("Artículo 1o. La presente."), "**Artículo 1o. **La presente.")
+        self.assertEqual(self._lead("Artículo 1o.- La presente."), "**Artículo 1o.-** La presente.")
+
+    def test_variantes_de_sufijo_latino_del_corpus(self):
+        # LAC, LFPED, LGDNNA, LGV, reglamentos 11120 and 39766, LIEPS (first words
+        # of real rows of the API answer)
+        self.assertEqual(
+            self._lead("Artículo 78 Septdecies. La persona prestadora."),
+            "**Artículo 78 Septdecies.** La persona prestadora.",
+        )
+        self.assertEqual(
+            self._lead("Artículo 15 Novenus.- Las instancias."), "**Artículo 15 Novenus.-** Las instancias."
+        )
+        self.assertEqual(
+            self._lead("Artículo 135 Sexties. Las autoridades."), "**Artículo 135 Sexties.** Las autoridades."
+        )
+        self.assertEqual(self._lead("Artículo 84 Sexíes. La Junta."), "**Artículo 84 Sexíes.** La Junta.")
+        self.assertEqual(
+            self._lead("ARTÍCULO 41 QUARTER.- La Dirección."), "**ARTÍCULO 41 QUARTER.-** La Dirección."
+        )
+        self.assertEqual(
+            self._lead("ARTICULO VIGESIMO CUARTO BIS.- Si por causas."),
+            "**ARTICULO VIGESIMO CUARTO BIS.-** Si por causas.",
+        )
+        self.assertEqual(
+            self._lead("ARTICULO 18.-A.- Para los efectos de esta ley."),
+            "**ARTICULO 18.-A.-** Para los efectos de esta ley.",
+        )

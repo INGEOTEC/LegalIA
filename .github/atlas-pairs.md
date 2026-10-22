@@ -6,13 +6,13 @@ text they matched on the other side, and how much each one adds to the weight.
 
 | Asset | Contents |
 |---|---|
-| `atlas-pairs.tar.gz` | The **Qwen/Qwen3-Embedding-0.6B** set: `pairs/<i>-<j>.json`, one file per pair (12,002 files, 215 MB of JSON, 46 MB compressed), plus `manifest.json` |
+| `atlas-pairs.tar.gz` | The **Qwen/Qwen3-Embedding-0.6B** set: `pairs/<i>-<j>.json`, one file per pair (12,929 files, 215 MB of JSON, 47 MB compressed), plus `manifest.json` |
 | `manifest.json` | What produced the files: model, commit, matrix summary, tolerance, counts, sizes |
 | `SHA256SUMS.txt` | The digest of the two assets above |
-| `atlas-pairs-qwen3-4b.tar.gz` | The same, built from **Qwen/Qwen3-Embedding-4B** (K = 2560): `pairs/<i>-<j>.json` plus `manifest.json` (11,983 files, 228 MB of JSON, 49 MB compressed) |
+| `atlas-pairs-qwen3-4b.tar.gz` | The same, built from **Qwen/Qwen3-Embedding-4B** (K = 2560): `pairs/<i>-<j>.json` plus `manifest.json` (12,907 files, 229 MB of JSON, 50 MB compressed) |
 | `manifest-qwen3-4b.json` | The 4B set's manifest, the same file the tarball carries as `manifest.json` |
 | `SHA256SUMS-qwen3-4b.txt` | The digest of the two 4B assets above |
-| `atlas-pairs-bm25.tar.gz` | The same, scored by **BM25** instead of an embedding: `pairs/<i>-<j>.json` plus `manifest.json` (12,074 files, 236 MB of JSON, 49 MB compressed) |
+| `atlas-pairs-bm25.tar.gz` | The same, scored by **BM25** instead of an embedding: `pairs/<i>-<j>.json` plus `manifest.json` (12,936 files, 235 MB of JSON, 51 MB compressed) |
 | `manifest-bm25.json` | The BM25 set's manifest, the same file the tarball carries as `manifest.json` |
 | `SHA256SUMS-bm25.txt` | The digest of the two BM25 assets above |
 

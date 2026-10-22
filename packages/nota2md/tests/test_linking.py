@@ -665,3 +665,25 @@ class TestLocalizaYSnapshotDeCodNota(unittest.TestCase):
         linking.snapshot_de_codNota(4967917, cache_dir=self.tmp)
 
         mock_get.assert_not_called()
+
+
+class TestCuerpoDeSnapshotSinMarcadores(unittest.TestCase):
+    def test_los_marcadores_del_esquema_no_cuentan_como_texto_de_la_ley(self):
+        # Review fix-2 of #291: `scjn.api` writes one marker line before each
+        # block; a diff between two snapshots must not see them.
+        import tempfile
+        from pathlib import Path
+
+        from nota2md.linking import _cuerpo_de_snapshot
+
+        marcador = '<!-- scjn:block orden=1 numero=1 kind=article label="ARTÍCULO 1" -->'
+        with tempfile.TemporaryDirectory() as tmp:
+            archivo = Path(tmp) / "01-01-2020.md"
+            archivo.write_text(
+                f"---\nfuente: scjn\n---\n\n{marcador}\n\n**Artículo 1.** Texto.\n",
+                encoding="utf-8",
+            )
+            cuerpo = _cuerpo_de_snapshot(archivo)
+
+        self.assertNotIn("scjn:block", cuerpo)
+        self.assertIn("**Artículo 1.** Texto.", cuerpo)

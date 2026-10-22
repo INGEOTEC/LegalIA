@@ -31,13 +31,28 @@
     chapter: "capítulo",
     section: "sección",
     level: "apartado",
+    hcontainer: "bloque",
     article: "artículo",
     paragraph: "fracción",
     point: "inciso",
     subpoint: "subinciso",
     content: "texto",
   };
-  const CONTAINERS = new Set(["book", "title", "chapter", "section", "level"]);
+  // What an `attachment` is called, from its `refersTo` and never from its eId: md2akn
+  // types an annex and an appendix alike (Akoma Ntoso's `attachment`).
+  const ATTACHMENT_NAMES = { "#anexo": "Annex", "#apendice": "Appendix" };
+  // What an `hcontainer` is, from its `refersTo` (md2akn's rules 29 to 31): the Mexican
+  // promulgation decree's blocks grouped, a note, a closing formula, a model certificate or
+  // form, a division a restarted numbering opened, and any other block the Court labels
+  // (named by its own label).
+  const HCONTAINER_NAMES = {
+    "#promulgation": "Promulgation decree",
+    "#note": "Note",
+    "#conclusions": "Closing formulas",
+    "#form": "Form",
+    "#division": "Division",
+  };
+  const CONTAINERS = new Set(["book", "title", "chapter", "section", "level", "part", "attachment", "hcontainer"]);
   const FLAG_ORDER = [
     "loose",
     "duplicate_number",
@@ -142,36 +157,148 @@
 
   // md2akn's Markdown carries `**bold**` and little else: that is all this
   // renders. Everything else is text, never HTML; a blank line starts a paragraph.
+  function appendInline(node, text) {
+    const parts = text.split("**");
+    // An unpaired `**` stays as written.
+    if (parts.length % 2 === 0) {
+      const tail = parts.pop();
+      parts[parts.length - 1] += `**${tail}`;
+    }
+    parts.forEach((part, n) => {
+      if (part) node.append(n % 2 ? element("strong", { text: part }) : part);
+    });
+    return node;
+  }
+
   function renderText(text) {
     const fragment = document.createDocumentFragment();
     String(text || "")
       .split(/\n\s*\n/)
       .forEach((paragraph) => {
         if (!paragraph.trim()) return;
-        const parts = paragraph.trim().split("**");
-        // An unpaired `**` stays as written.
-        if (parts.length % 2 === 0) {
-          const tail = parts.pop();
-          parts[parts.length - 1] += `**${tail}`;
-        }
-        const node = element("p", { className: "instruments-paragraph" });
-        parts.forEach((part, n) => {
-          if (part) node.append(n % 2 ? element("strong", { text: part }) : part);
-        });
-        fragment.append(node);
+        fragment.append(appendInline(element("p", { className: "instruments-paragraph" }), paragraph.trim()));
       });
     return fragment;
   }
 
+  // A table node (md2akn's rule 13) is a run of `| a | b |` blocks, one block per row,
+  // with the odd label (`**(ARANCEL)**`) between two of them. This returns its blocks
+  // with the offset each starts at, so a row can be matched to the excerpt it lies in.
+  function tableBlocks(markdown, node) {
+    const text = markdown.slice(node.s, node.l);
+    const blocks = [];
+    const separator = /\n[ \t\r]*\n/g;
+    let from = 0;
+    const push = (end) => {
+      const raw = text.slice(from, end);
+      const body = raw.trim();
+      if (body) blocks.push({ s: node.s + from + (raw.length - raw.trimStart().length), text: body });
+    };
+    let match;
+    while ((match = separator.exec(text))) {
+      push(match.index);
+      from = match.index + match[0].length;
+    }
+    push(text.length);
+    return blocks;
+  }
+
+  // The cells of one row. scjn writes a literal pipe inside a cell as `\|`.
+  function tableCells(row) {
+    const cells = [];
+    let cell = "";
+    for (let q = 1; q < row.length - 1; q++) {
+      const ch = row[q];
+      if (ch === "\\" && row[q + 1] === "|") {
+        cell += "|";
+        q++;
+      } else if (ch === "|") {
+        cells.push(cell.trim());
+        cell = "";
+      } else {
+        cell += ch;
+      }
+    }
+    cells.push(cell.trim());
+    return cells;
+  }
+
+  const IS_ROW = /^\|[^]*\|$/;
+
+  // The HTML table of some blocks. A block that is not a row is a one-cell row that
+  // spans the table, so nothing md2akn put in the node is dropped from the page.
+  function renderTable(blocks) {
+    const rows = blocks.map((block) => (IS_ROW.test(block.text) ? tableCells(block.text) : null));
+    const width = Math.max(1, ...rows.map((cells) => (cells ? cells.length : 0)));
+    const body = element("tbody");
+    // The blocks before the first row are the table's caption (`**A.** Tarifa para ...`,
+    // `**TARIFA**`, md2akn's rule 36): a `<caption>`, not rows of the table.
+    let first = 0;
+    while (first < blocks.length && !rows[first]) first++;
+    const caption = first > 0 && first < blocks.length
+      ? element("caption", { className: "instruments-table-caption" },
+          blocks.slice(0, first).map((block) => appendInline(element("span", { className: "instruments-table-caption-line" }), block.text)))
+      : null;
+    blocks.forEach((block, n) => {
+      if (n < first && caption) return;
+      const tr = element("tr", { className: rows[n] ? "instruments-table-row" : "instruments-table-label" });
+      if (rows[n]) {
+        rows[n].forEach((cell) => tr.append(appendInline(element("td"), cell)));
+      } else {
+        const td = appendInline(element("td"), block.text);
+        td.colSpan = width;
+        tr.append(td);
+      }
+      body.append(tr);
+    });
+    return element("div", { className: "instruments-table-scroll" }, [
+      element("table", { className: "instruments-table" }, caption ? [caption, body] : [body]),
+    ]);
+  }
+
+  // The `<tr>` of one table row, bold kept; `width` cells at most are drawn as written.
+  function rowElement(cells) {
+    const tr = element("tr", { className: "instruments-table-row" });
+    cells.forEach((cell) => tr.append(appendInline(element("td"), cell)));
+    return tr;
+  }
+
+  // A table inside an article is not a node of md2akn's tree (the article is one
+  // excerpt, whatever it holds): each of its rows is a `content` leaf of the article.
+  // The page draws the run of such leaves as one HTML table, for display only -- the
+  // excerpt, its Raw text and the nearest texts are the article's, unchanged.
+  function appendRowTo(host, node, text) {
+    let group = host.lastElementChild;
+    if (!group || !group.classList.contains("instruments-table-group")) {
+      group = element("section", {
+        className: "instruments-node instruments-type-table-group instruments-table-group",
+        "data-type": "table",
+        "data-eid": node.e,
+        "data-eids": node.e,
+        "data-start": String(node.s),
+      }, [element("div", { className: "instruments-table-scroll" }, [
+        element("table", { className: "instruments-table" }, [element("tbody")]),
+      ])]);
+      host.append(group);
+    } else {
+      group.dataset.eids += ` ${node.e}`;
+    }
+    group.dataset.end = String(node.l);
+    group.querySelector("tbody").append(rowElement(tableCells(text)));
+    return group;
+  }
+
   // The excerpt label of a nearest text, from its eId only (the file of the
   // instrument it lives in is not loaded yet): "Article 27", "Preamble", "Loose
-  // text", with `, part 2` for a piece.
+  // text", "Introduction", "Table 1", with `, part 2` for a piece.
   function excerptLabel(eId, piece) {
     const last = String(eId).split("__").pop();
     const transitory = String(eId).startsWith("sec_transitorios");
     let label;
     if (last === "preamble") label = "Preamble";
     else if (last === "conclusions") label = "Closing";
+    else if (last === "intro") label = "Introduction";
+    else if (last.startsWith("table_")) label = `Table ${last.slice(6)}`;
     else if (last.startsWith("art_")) {
       const num = last.slice(4).split("_").join(" ");
       label = transitory ? `Transitory article ${num}` : `Article ${num}`;
@@ -634,9 +761,14 @@
       const markdown = doc.markdown;
       const unitsByExcerpt = new Map();
       const unitsByEid = new Map();
+      const tableUnits = new Map(); // a table node's eId -> its excerpts, one per piece
       const flagged = new Map();
       for (const unit of doc.units) {
         unitsByExcerpt.set(excerptId(unit), unit);
+        if (unit.u === "table") {
+          if (!tableUnits.has(unit.e)) tableUnits.set(unit.e, []);
+          tableUnits.get(unit.e).push(unit);
+        }
         // A heading and the text under it share an eId when a container carries
         // both; the first excerpt of a node (piece 0) is the one the node shows.
         if (!unitsByEid.has(unit.e)) unitsByEid.set(unit.e, unit);
@@ -782,15 +914,30 @@
 
       // the outline
       function outlineLabel(node) {
+        if (node.t === "intro") return "Introduction";
+        if (node.t === "table") return `Table ${node.n || ""}`.trim();
+        if (node.t === "hcontainer") {
+          // The group of decree blocks needs no label (its name says it); every other
+          // one is named by what it is and by the Court's own label, when it has one.
+          if (node.r === "#promulgation") return HCONTAINER_NAMES[node.r];
+          const kind = HCONTAINER_NAMES[node.r] || "Block";
+          return node.n ? `${kind}: ${node.n}` : kind;
+        }
         const term = TERMS[node.t] || node.t;
-        const name = node.r === "#transitorios" ? "Transitory section" : term.charAt(0).toUpperCase() + term.slice(1);
+        const name =
+          node.t === "attachment" && ATTACHMENT_NAMES[node.r]
+            ? ATTACHMENT_NAMES[node.r]
+            : node.r === "#transitorios"
+              ? "Transitory section"
+              : term.charAt(0).toUpperCase() + term.slice(1);
         const num = node.n && node.r !== "#transitorios" ? ` ${node.n}` : "";
         return `${name}${num}`;
       }
 
       function addOutline(parent, node, depth) {
         const outlineNode =
-          CONTAINERS.has(node.t) || node.t === "article" || node.t === "preamble" || node.t === "conclusions";
+          CONTAINERS.has(node.t) ||
+          ["article", "preamble", "conclusions", "intro", "table"].includes(node.t);
         if (!outlineNode) {
           for (const child of node.c || []) addOutline(parent, child, depth);
           return;
@@ -798,8 +945,8 @@
         const li = element("li", { className: "instruments-outline-item", "data-type": node.t });
         const go = element("button", { type: "button", className: "instruments-outline-link" });
         const unit = unitsByEid.get(node.e);
-        if (node.t === "article") {
-          go.textContent = node.n ? `Art. ${node.n}` : node.e;
+        if (node.t === "article" || node.t === "intro" || node.t === "table") {
+          go.textContent = node.t !== "article" ? outlineLabel(node) : node.n ? `Art. ${node.n}` : node.e;
           if (unit && unit.x) go.prepend(element("span", { className: "instruments-compared", title: "Compared excerpt", "aria-hidden": "true" }));
           if (unit && unit.f && unit.f.length) {
             go.append(element("span", { className: "instruments-mark", title: unit.f.map((f) => FLAG_LABELS[f] || f).join(", "), text: "⚑" }));
@@ -838,6 +985,10 @@
           }
         }
         parent.append(li);
+        // An introduction holds the tables that sit in it; they are outline entries of their own.
+        if (node.t === "intro") {
+          for (const child of node.c || []) if (child.t === "table") addOutline(parent, child, depth);
+        }
       }
       for (const child of doc.tree.c || []) addOutline(outlineList, child, 0);
       if (!outlineList.children.length) outline.hidden = true;
@@ -926,7 +1077,7 @@
           "data-start": String(node.s),
           "data-end": String(node.l),
         });
-        const term = TERMS[node.t] || node.t;
+        const term = node.t === "attachment" && ATTACHMENT_NAMES[node.r] ? ATTACHMENT_NAMES[node.r].toLowerCase() : TERMS[node.t] || node.t;
         const badge = element("span", {
           className: "instruments-badge",
           title: node.r === "#transitorios" ? `${term} — transitorios` : `${term}`,
@@ -945,6 +1096,28 @@
           }
           raw.setAttribute("aria-expanded", String(!rawPre.hidden));
         });
+        // Where this node's element goes: the document, or its parent's children.
+        const place = (attach) => {
+          if (parentNode === null) documentEl.append(attach);
+          else kidsOf.get(parentNode).append(attach);
+        };
+        if (node.t === "table") {
+          // Parsed mode draws a table as an HTML table, one per excerpt (a long table is cut
+          // at row boundaries into pieces, each its own excerpt and its own address).
+          el.append(tableBody(node));
+          nodeEls.set(node.e, el);
+          place(el);
+          return;
+        }
+        if (node.t === "content" && !(node.c && node.c.length)) {
+          // A row of a table printed inside an article joins the table the row before it opened.
+          const body = nodeText(node).trim();
+          const host = parentNode === null ? documentEl : kidsOf.get(parentNode);
+          if (host && IS_ROW.test(body)) {
+            nodeEls.set(node.e, appendRowTo(host, node, body));
+            return;
+          }
+        }
         const text = nodeText(node);
         if (text.trim()) el.append(element("div", { className: "instruments-text" }, [renderText(text)]));
         let kids = null;
@@ -972,8 +1145,36 @@
           excerptEls.set(excerptId(unit), wrap);
           attach = wrap;
         }
-        if (parentNode === null) documentEl.append(attach);
-        else kidsOf.get(parentNode).append(attach);
+        place(attach);
+      }
+
+      function tableBody(node) {
+        const pieces = tableUnits.get(node.e) || [];
+        const groups = [];
+        for (const block of tableBlocks(markdown, node)) {
+          const unit = pieces.find((piece) => piece.s <= block.s && block.s < piece.l) || null;
+          const last = groups[groups.length - 1];
+          if (last && last.unit === unit) last.blocks.push(block);
+          else groups.push({ unit, blocks: [block] });
+        }
+        const body = element("div", { className: "instruments-table-body" });
+        for (const { unit, blocks } of groups) {
+          const table = renderTable(blocks);
+          if (!unit) {
+            body.append(table);
+            continue;
+          }
+          const wrap = element("div", {
+            className: "instruments-excerpt",
+            "data-unit-type": unit.u,
+            "data-excerpt": excerptId(unit),
+          });
+          wrap.append(element("div", { className: "instruments-excerpt-bar" }, tagFor(unit)), table);
+          if (unit.x) wrap.append(nearDisclosure(unit));
+          excerptEls.set(excerptId(unit), wrap);
+          body.append(wrap);
+        }
+        return body;
       }
 
       function renderBatch(limit) {
@@ -1005,7 +1206,7 @@
       function jumpToExcerpt(id) {
         state.finish();
         setMode("parsed");
-        const el = excerptEls.get(id);
+        const el = excerptEls.get(id) || excerptEls.get(id.replace(/\.\d+$/, ""));
         if (el) mark(el);
       }
       function goTo(eId) {

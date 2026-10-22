@@ -319,7 +319,9 @@ def test_headings_are_neither_sources_nor_winners(prepared, cache):
     assert tied["similarity"] < 0.999
     assert matrix[index["b"], index["c"]] == 0
     summary = result["summary"]
-    assert summary["excluded_unit_types"] == ["heading"]
+    # A table of contents joined the headings in review fix-1 of #291 (md2akn's
+    # rule 15), so the recorded list says both.
+    assert summary["excluded_unit_types"] == ["heading", "toc"]
     assert summary["heading_rows_excluded"] == 3
     assert summary["unit_rows"] == 16
     assert summary["searched_rows"] == 13
@@ -1062,7 +1064,9 @@ def test_the_counts_and_the_identity(transitorio_work):
     assert summary["searched_rows"] == len(nearest) == 8
     assert (summary["searched_rows"] + summary["heading_rows_excluded"]
             + summary["transitorio_rows_excluded"]) == summary["unit_rows"]
-    assert summary["excluded_unit_types"] == ["heading"]
+    # A table of contents joined the headings in review fix-1 of #291 (md2akn's
+    # rule 15), so the recorded list says both.
+    assert summary["excluded_unit_types"] == ["heading", "toc"]
     assert summary["excluded_transitorios"] is True
     assert summary["identical_shared_dropped"] == 3
     assert summary["counted_rows"] == 5
@@ -1220,3 +1224,77 @@ def test_blocking_is_invisible_under_bm25(tmp_path, prepared, cache):
     (tmp_path / "bm25" / "instrument-matrix" / ".done").unlink()
     blocked = computed(tmp_path / "bm25", cache, block_rows=1)
     np.testing.assert_array_equal(whole["matrix"], blocked["matrix"])
+
+
+# -- a shared node (issue #294) ------------------------------------------------ #
+
+def test_shared_node_submits_through_the_cpu_wrapper_with_no_exclusivity(tmp_path):
+    command = instrument_matrix.sbatch_command(tmp_path, exclude="", shared_node=True,
+                                               cpus=16, mem="48G")
+    assert "--cpus-per-task=16" in command and "--mem=48G" in command
+    assert not any(part.startswith("--exclude") for part in command)
+    assert any(part.endswith("submit_cpu.sh") for part in command)
+    assert not any(part.endswith("submit_umap.sh") for part in command)
+    # The wrapper itself asks for no whole node, which is the point of it.
+    text = instrument_matrix.SUBMIT_SHARED_SH.read_text()
+    assert not [line for line in text.splitlines()
+                if line.startswith("#SBATCH") and "exclusive" in line]
+    assert "/.venvs/cluster/bin/python" in text
+
+
+def test_the_default_slurm_line_is_unchanged_by_the_shared_node_option(tmp_path):
+    command = instrument_matrix.sbatch_command(tmp_path)
+    assert "--exclude=geoint0" in command
+    assert any(part.endswith("submit_umap.sh") for part in command)
+    assert not any(part.startswith(("--cpus-per-task", "--mem")) for part in command)
+    assert "--cache-dir" not in command
+
+
+def test_the_cache_dir_is_forwarded_into_the_job_as_an_absolute_path(tmp_path, monkeypatch):
+    """Without it the job reads whatever cache *its* environment names, not the one the
+    work directory was prepared from -- units of one release against vectors of another."""
+    monkeypatch.chdir(tmp_path)
+    command = instrument_matrix.sbatch_command(tmp_path, cache_dir=Path("stage"))
+    assert command[command.index("--cache-dir") + 1] == str((tmp_path / "stage").resolve())
+
+
+def test_the_cli_drops_the_geoint_exclusion_on_a_shared_node(tmp_path):
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    (work_dir / "prepare.done").write_text("")
+    lines = []
+    original = instrument_matrix.submit
+
+    def spy(*args, **kwargs):
+        return original(*args, **kwargs, log=lines.append)
+
+    import unittest.mock as mock
+    with mock.patch.object(instrument_matrix, "submit", spy):
+        instrument_matrix.main(["--work-dir", str(work_dir), "--dry-run", "--shared-node",
+                                "--cache-dir", str(tmp_path / "stage")])
+    command = next(line for line in lines if line.startswith("sbatch"))
+    assert "--exclude" not in command and "submit_cpu.sh" in command
+    assert "--cpus-per-task=32" in command and "--mem=64G" in command
+    assert f"--cache-dir {(tmp_path / 'stage').resolve()}" in command
+
+
+def test_an_explicit_exclude_wins_on_a_shared_node():
+    parser = __import__("argparse").ArgumentParser()
+    instrument_matrix.add_slurm_arguments(parser)
+    assert instrument_matrix.resolve_exclude(parser.parse_args(["--shared-node"])) == ""
+    assert instrument_matrix.resolve_exclude(parser.parse_args([])) == "geoint0"
+    assert instrument_matrix.resolve_exclude(
+        parser.parse_args(["--shared-node", "--exclude", "hollow"])) == "hollow"
+
+
+def test_a_table_of_contents_is_never_searched():
+    # review fix-1 of #291: a `toc` unit lists headings, like a heading unit
+    import pandas as pd
+
+    from instrument_matrix import searched_mask
+
+    units = pd.DataFrame({
+        "unit_type": ["article", "heading", "toc", "article"],
+        "transitorio": [False, False, False, True],
+    })
+    assert searched_mask(units).tolist() == [True, False, False, False]

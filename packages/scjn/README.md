@@ -42,6 +42,41 @@ whatever is not there yet.
 
 ## Changelog
 
+- **0.5.1** — a bug fix (issue #291): `articulos_a_markdown` bolds a decimal
+  article lead whole. The T-MEC and six other treaties write `Artículo 1.1:`
+  (chapter 1, article 1), which used to come out `**Artículo 1.**1:` — so a
+  reader of the Markdown saw every `Artículo 1.N` as article 1. It is now
+  `**Artículo 1.1**:` (the `:` stays outside the bold). Every other lead
+  (`1.-`, `1o.`, `27 Bis`, an ordinal) is byte-identical to 0.5.0; a snapshot
+  written before this fix keeps its old shape until it is re-downloaded.
+  **Review fix-1 of #291 (a finding made after the fact), still 0.5.1:** the
+  lead takes the *whole* article number inside the bold — `**Artículo
+  18.-A.-**`, `**Artículo 10 Bis.-**`, a lowercase or ordinal letter, the
+  Latin suffixes up to `Novodecies`/`Novendecies`, a letter before `(SIC)` —
+  where it used to bold only the digits and leave the rest outside. `md2akn`
+  matches a block with the `**` stripped, so this was cosmetic for the parse
+  (the ablation of `scripts/embeddings/README.md`, "Measured, repeated
+  numbers", gives the writer a share of 0 of the repeated numbers); it makes
+  the Markdown itself say what the article number is. The grammar is a copy
+  of `md2akn`'s, since `scjn` imports nothing else of this monorepo, and
+  every previous lead stays byte-identical, blanks before the separator
+  included.
+  **Review fix-2 of #291 (found after the fact, still 0.5.1):** fix-1 had
+  concluded that the repeated article numbers were the SCJN's own. They were
+  not: the API's `Articulos` blocks carry an outline (`referencia`, `numero`,
+  `orden`) that the writer threw away, so `md2akn` guessed a structure from
+  flattened text. `articulos_a_markdown(..., outline=True)` — what `snapshot`
+  now passes — writes one marker line (`<!-- scjn:block orden=… numero=…
+  kind=… label="…" -->`, the new `scjn.outline`) before each block that yields
+  text; strip the markers (`scjn.outline.strip_markers`, or
+  `markdown_de_snapshot(..., outline=False)`) and the text is byte-identical
+  to before. `descarga_ordenamiento(..., raw_dir=...)` keeps what the API
+  answered, gzipped, so the writer can change without a second crawl
+  (`guarda_crudo`/`articulos_de_crudo`). A snapshot written before this keeps
+  its old shape until it is re-downloaded; the four corpora were re-crawled
+  with `scripts/recrawl_scjn_outline.py` (provenance headers kept verbatim, an
+  instrument swapped in only when every snapshot it had came back).
+
 - **0.5.0** — the fourth id-keyed collection, `scjn-tratados` (issue #277):
   every international treaty the SCJN serves (~1,456 instruments, members
   by the SCJN's *ámbito* `TRATADOS INTERNACIONALES`, any category).

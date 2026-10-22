@@ -28,8 +28,8 @@ signals, all offline, over the unique instruments of the Atlas
   negative.
 * **B -- the instrument's own "objeto" article.** "El presente Reglamento tiene
   por objeto reglamentar la Ley ..."; "La presente Ley tiene por objeto ...";
-  "Este Convenio tiene por objeto ...". Over the instrument's `article` and `loose`
-  unit rows that are not in a transitorios section
+  "Este Convenio tiene por objeto ...". Over the instrument's `article`, `loose` and
+  `intro` unit rows that are not in a transitorios section
   (`instrument_matrix.is_transitorio_path`), the sentences (split on `.` followed by
   whitespace) whose folded text matches `OBJECTO_PHRASE`; the targets are the
   instruments named **in that same sentence**, not anywhere in the unit, which keeps
@@ -104,7 +104,7 @@ COLLECTIONS = ("leyes", "reglamentos", "lineamientos", "tratados")
 #: objeto ..."), a commission's or programme's objeto ("la Comision tiene por
 #: objeto"), and definitions articles whose single run-on sentence contained the
 #: phrase far from any subject; it is why the subject is required and why only
-#: `article` and `loose` units are read (`SOURCE_UNIT_TYPES`).
+#: `article`, `loose` and `intro` units are read (`SOURCE_UNIT_TYPES`).
 SUBJECT_REACH = 120
 OBJECTO_PHRASE = re.compile(
     r"\b(?:presentes?|este|esta|estos|estas)\s+"
@@ -122,8 +122,11 @@ OBJECTO_PHRASE = re.compile(
 B_EXCLUDED_NAMES = ("constitucion politica de los estados unidos mexicanos",)
 
 #: The unit types signal B reads: a preamble, a conclusion or a heading is never
-#: the instrument's "objeto" article.
-SOURCE_UNIT_TYPES = ("article", "loose")
+#: the instrument's "objeto" article. `intro` is what `loose` text under a container
+#: became with md2akn 0.5.1 (rule 12, issue #291): an "objeto" sentence that opens a
+#: chapter is the same text as before, only labelled differently, so it is read as
+#: before (issue #294; without it the gold lost 6 links to a relabelling).
+SOURCE_UNIT_TYPES = ("article", "loose", "intro")
 
 #: A name that refers to one of these ("de la Ley ...", "del Tratado ...") and
 #: resolves to no instrument refers to one that is not in the corpus (abrogated):

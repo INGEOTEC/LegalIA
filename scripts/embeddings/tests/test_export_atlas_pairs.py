@@ -101,6 +101,9 @@ def test_unit_label_on_every_unit_type():
     assert label("loose", None, ["CAPÍTULO 41 Pieles"], 2) == "Loose text"
     assert label("preamble") == "Preamble"
     assert label("conclusions") == "Closing"
+    # md2akn 0.5.1's rules 12 and 13 (issue #294): the breadcrumb names the container.
+    assert label("intro", None, ["TÍTULO PRIMERO", "CAPÍTULO I"], 0) == "Introduction"
+    assert label("table", None, ["CAPÍTULO 41 Pieles"], 2) == "Table"
 
 
 def test_unit_label_names_a_transitory_article_by_its_block():

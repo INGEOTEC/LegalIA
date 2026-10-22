@@ -121,7 +121,7 @@ build on each other in this sequence.
   Akoma Ntoso XML anywhere: only the vocabulary is borrowed, and the earlier
   XML converter that lived in `nota2md` was removed (issue #168).
   `text_units()` (issue #218) is the retrieval-unit view the embedding work
-  builds on, under **ten** rules since issue #227 added two (and #279 a tenth, below): **rule 8**, an
+  builds on, under **thirteen** rules since issue #227 added two (#279 a tenth, #291 three more, below): **rule 8**, an
   instrument that never writes `Artículo N` numbers its provisions
   `**PRIMERO.-**` or `1.` / `2.1` instead, decided once per *document*
   (`md2akn.structure.modo_sin_articulos`) and therefore incapable of changing
@@ -948,6 +948,237 @@ went to 0.5.0 (never published on PyPI) — the same reasoning as 0.3.0 and
   roman-opener treaty has a roman-numbered `article` unit and that at most 53
   have none), ~17 minutes.
 
+## Decimal articles, intros and tables (issue #291, done)
+
+Browsing the Instruments page (#289, #290) turned up three parse errors under every
+vector, matrix and Atlas number; they are fixed as **rules 11, 12 and 13** of
+`md2akn.text_units`, `md2akn` **0.5.1** (a patch release: bug fixes only, never published on
+PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
+
+- **Rule 11, `Artículo 1.1:` is article `1.1`.** The T-MEC and six other treaties number
+  their articles chapter.article. `scjn.api._LEAD_ARTICULO` bolded only `**Artículo 1.**` and
+  left `1:` outside, so every `Artículo 1.N` read as article `1`; it now takes
+  `\d+(?:\.\d+)+` whole (`**Artículo 1.1**:`, the `:` outside the bold), and
+  `patterns.NUMERO_DECIMAL_ARTICULO` is tried before `NUM_ARTICULO` inside `ARTICULO` only (eId
+  `art_1.1`). Fixed at source and by re-downloading the seven treaties (#255's procedure; 76,
+  84349, 84350, 90408, 107392, 128585, 137355; `PUBLICAR.md` generated, not run), with no
+  `md2akn` shim for the broken `**Artículo 1.**1:` shape. **A second shape was not fixed there (fixed by review fix-1 below)**: annex
+  articles `Artículo 2.A.1:` still come out `**Artículo 2.**A.1:` (61 lines in the treaty
+  137355, 3 in the reglamento 145559); the T-MEC kept 59 repeated numbers (592 before); the annex lead is read whole since review fix-1 and the T-MEC has none.
+- **Rule 12, a container's introduction is its `intro`.** The blocks between a container's
+  heading (epigraph included) and its first child container or article are one `intro` node
+  (eId `<container>__intro`, children `content`/`table`) and `intro` units, capped and cut like
+  `loose` with the same ancestor `path`. Since an article takes every block after it until the
+  next container, container-level text was always exactly this leading run: the change relabels
+  it (`loose` → `intro`, same `text_sha1`), and splits it from the tables. Text before any
+  container keeps `preamble`/`loose`.
+- **Rule 13, a table is a node.** Consecutive blocks that open and close with `|` (what #253
+  writes) are one `table` node (eId `<parent>__table_N`); the lone `**(ARANCEL)**` label of a
+  LIGIE tariff is tolerated between two rows, any other block ends the table. A table outside an
+  article yields `table` units cut at row boundaries up to the cap, every piece after the first
+  prefixed with the table's first row; a table inside an article stays article text (and is not a
+  node: the article's interior is unchanged). A table is never part of an `intro` unit, and a
+  table row is no container's epigraph. `AKN_TYPES`/`UNIT_TYPES` gain `intro` and `table`;
+  `scripts/embeddings/build_umap_html.UNIT_TYPES` appends them so older codes keep their meaning.
+- **Measured against the published units (2026-10-14), `scripts/embeddings/compare_units.py`.**
+  The vectors have to be recomputed, for all four collections: 3,307 distinct new texts
+  (leyes 1,067 · reglamentos 46 · lineamientos 23 · tratados 2,171); 49 laws, 144 reglamentos,
+  28 lineamientos and 107 treaties change rows, most of them only relabelled. Re-embedded
+  incrementally with both models into `emb-run-<collection>-051/` (gitignored copies of the four
+  published work directories, which were not touched), 0 failed shards, `missing_vectors` 0.
+  Tables in `scripts/embeddings/README.md` ("Measured, md2akn 0.5.1 against the published units").
+  **Nothing was published.**
+- **The re-embedded merges, verified and packaged (issue #293, done).**
+  `scripts/embeddings/compare_merges.py` proves, per collection and model and from the two
+  work directories alone, that a rebuilt merge differs from the published one only in the files
+  whose set of owned texts changed (derived from both `units.parquet`, not from a list), gains or
+  loses a file only when an instrument does, keeps every unchanged text's vector bit for bit, holds
+  exactly each file's expected texts and has no non-finite vector; all eight runs are clean (5, 8, 4
+  and 35 + shared differing files, 0 texts with another vector, 0 non-finite). `package_vectors.py`
+  now writes `gh release edit` + `--clobber` for a part already live (it always wrote `gh release
+  create`) and, with `--changed-files`, an explicit `--clobber` block for same-name changed files,
+  because `upload_release_assets.py` skips an asset of the same size. The four release bodies were
+  updated to the rebuilt corpus. **Nothing was published**: the four `emb-run-<c>-051/publish/PUBLICAR.md`
+  are for a human (issue #115, Hallazgo C) and must run before the pull request merges; the Atlas
+  chain and the Instruments page are issue #294. Tables in `scripts/embeddings/README.md`
+  ("Measured, the re-embedded vectors against the published ones").
+- **The Atlas chain and the Instruments page on `md2akn` 0.5.1 (issue #294, done).** Everything
+  downstream of the excerpts was rebuilt from the re-embedded vectors **without publishing them**:
+  `scripts/embeddings/stage_vectors_cache.py` builds `emb-run-vectors-051-cache/` (a `legalvec`-shaped,
+  gitignored cache) from the four `emb-run-<c>-051/` merges, verified against their
+  `SHA256SUMS.txt`, and every script of the chain reads it through `--cache-dir`. The three work
+  directories (`emb-run-atlas`, `-4b`, `-bm25`) were rebuilt from scratch on `cemieredes`, the three
+  `atlas*.json` regenerated with `--instruments-as` (the same 2,676 instruments; 203,874 excerpts,
+  144,456 counted, 144,111 for BM25; the closest instrument unchanged for 2,659 of 2,676 under the 0.6B
+  and the 4B), the three `atlas-pairs` sets, the 4B's nearest texts (their winner-agreement proof
+  passed) and the instrument files (the re-parse equals the staged units for all 2,676) and
+  `instruments.json`. `instrument_matrix.py`/`nearest_texts.py` gained `--shared-node` (`submit_cpu.sh`:
+  no `--exclusive`, the cluster's own venv; the geoint line is unchanged without it) and now forward
+  `--cache-dir` into the job. `gold_links.py`'s signal B reads `intro` units too, since the text a chapter
+  opens with is what `loose` text became (it lost 6 links to the relabelling; the gold is again 251
+  instruments, 275 links). The evaluations were re-run: only last digits moved, no conclusion changed,
+  and the Atlas page's literals say 14 October 2026. **Nothing was published**: before the pull request
+  merges a human must run, in this order, the `scjn-tratados` re-package of #291
+  (`scripts/scjn/tratados-release/PUBLICAR.md`), the four vectors releases of #293
+  (`emb-run-<c>-051/publish/PUBLICAR.md`, leyes, reglamentos, lineamientos, tratados), the three
+  `atlas-pairs` sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`)
+  and `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, a first publish), or
+  `website.yml` fails or pairs the new JSON with old files. Tables in `scripts/embeddings/README.md`
+  ("Measured, the Atlas chain and the Instruments page under `md2akn` 0.5.1").
+- **Repeated article numbers, rules 14 to 18 (review fix-1 of #291, found after the fact).** 209 of the
+  Atlas' 2,676 instruments carried `duplicate_number` (the IMDG code `tratados/114738` 482). The origin was
+  evidenced per instrument by ablation (`scripts/embeddings/measure_repeated_numbers.py`): **the Markdown writer
+  accounts for 0 of the 4,598 repeats**; `md2akn` does. **Rule 14**, the whole article number (`18.-A.-`, `Bis`
+  after an ordinal, lowercase/ordinal letters, more Latin spellings, spaced and `DISPOSICIONES TRANSITORIAS`
+  markers, `(SIC)`; 948 excerpts); **rule 15**, a table of contents is a `toc` node and unit, never an article,
+  and outside rule 8's gate (1,374; `toc`, like a heading, is neither a source nor a candidate of the matrix);
+  **rule 16**, `PARTE`/`ANEXO`/`APÉNDICE` are `part`/`attachment` containers; **rule 17**, recitals under
+  `CONSIDERANDO` and D.O.F.-headed decrees are not articles (150); **rule 18**, in numeral mode a restarted whole
+  numeral is a list item (449; switch `structure.REINICIO_ES_ITEM`). `md2akn` and `scjn` stay 0.5.1; the writer's
+  lead regex takes the whole number too (cosmetic for the parse, pinned in `test_api.py`). The flag's definition,
+  `export_instrument_files.py`, is untouched and nothing hides, merges or renumbers a repeat: **73 instruments
+  (2,428 excerpts) still repeat**, all the SCJN's own numbering (annex/part restarts, `(SIC)` rows, a protocol
+  printed with its treaty), listed with raw API evidence as questions for the repository owner in
+  `scripts/embeddings/README.md` ("Measured, repeated numbers, 2026-10-15") and in the comment on #291. Five
+  instruments appear newly flagged because the old parse left them as one giant article. 32+1 leyes, 13
+  reglamentos and 24 tratados were re-downloaded and repackaged (a snapshot is adopted only when its bold/header
+  differ; 150 kept as published, because the fresh answer turns tab-indented text into table rows); the vectors
+  (122/55/2/29 new texts), the Atlas data sets, the pair sets, the instrument files and the evaluations were
+  rebuilt, the page's literals follow. **Nothing was published**: the human order is in the #291 comment.
+  **Corrected by review fix-2 below: the 73 were not the SCJN's own numbering.**
+- **The structure the SCJN states, rules 19 to 24 (review fix-2 of #291, found after the fact; corrects fix-1's
+  premise).** The SCJN's `Articulos` blocks carry an outline (`referencia`, `numero`, `orden`) that `scjn.api`
+  discarded, so `md2akn` guessed a structure from flattened text and fix-1 mistook the result for "the SCJN's own
+  numbering". The owner's rule: **a number is repeated only when it is the same identifier** (`1.1` of Part 1 is not
+  `1.1` of Part 2); the goal is zero repeats. `scjn.outline` (new) writes one marker line before each block,
+  `<!-- scjn:block orden=N numero=N kind=<kind> [type=] [num=] label="..." -->` (`kind`: header, recitals, preamble,
+  toc, transitorios, decree, container, article, provision, other; an HTML comment on purpose: invisible, no
+  character of the text changes, `strip_markers` returns it byte for byte, and `markdown_de_snapshot(...,
+  outline=False)` is what `nota2md` reads); `articulos_a_markdown(..., outline=True)` is what `snapshot` passes,
+  and the raw answer of every reform is kept gzipped (`raw_dir`, `guarda_crudo`, `scripts/scjn/raw-api/`, local
+  scratch) so the writer can change without a re-crawl (`scripts/rewrite_scjn_from_raw.py`). All four corpora were
+  re-crawled with `scripts/recrawl_scjn_outline.py` (provenance headers kept, an instrument swapped in only when
+  every snapshot it had came back, no `--reintenta`: 8,966 reform answers, 1,781,734 blocks, 0 failed; it also
+  picked up `cpeum` 07-10-2026, `ligie-2022` 13-10-2026, four reglamentos reforms and `189946`'s first text,
+  `17349`'s reform). `md2akn` (still 0.5.1; `md2akn.outline` reads the marker): **rule 19**, markers are metadata and
+  decide the class of a block's heading (a container with its type and number, an article with its number, the
+  index a `toc`); **rule 20**, a reform decree holds what follows it (its own transitorios, an `ANEXO ÚNICO`
+  reprinting the instrument); **rule 21**, a container found in a container's text nests below it; **rule 22**, a
+  second claimant of an identifier takes a `_2` suffix and `AknNode.repeated` is true on **both** (what
+  `export_instrument_files.excerpt_flags` now counts as `duplicate_number`; `AknNode.modo` carries rule 8's mode);
+  **rule 23**, a block holding articles in its own text opens an implicit section; **rule 24**, inside an
+  article, header, preamble or recitals block no line opens structure. What the data forced, each with a test: the
+  label can be wrong (the text's number wins when it equals or extends the label's, a roman numeral and an arabic one
+  of the same value are one number and the text's spelling is kept, else the one that agrees with `numero`), the
+  LIGIE's tariff chapters are served as `ARTÍCULO 83`/`84` (a text that says `Capítulo N` with the label's number is a
+  chapter), and a label followed by a tab (`| CAPÍTULO II |  |`) is the heading, not a table. No rule is keyed to an
+  instrument, a document with no marker is read as before, and `nota2md` strips the markers on the SCJN path.
+  Result (`scripts/embeddings/measure_outline_repeats.py`, markers stripped against kept, same parser): **7
+  instruments and 164 excerpts repeat, from 36 and 356** (leyes, reglamentos and lineamientos 0), all seven treaties
+  with the repeat inside a single API block that serves a whole document under one label (`96728` PARTE 3, `11293`
+  two IMO resolutions, `23774`, `44552`, `47860`, `22834`, `96707`), listed with their raw API block as a question
+  for the owner in `scripts/embeddings/README.md` ("Measured, the structure the SCJN states, 2026-10-16"). The four
+  corpora, the four vectors releases (3, 6, 2 and 8 shards, 0 new texts on the later rebuilds, `compare_merges` clean
+  for all eight runs), the Atlas data sets (**2,677 instruments**: `189946` is a reglamento the SCJN serves a text for
+  now; 214,294 excerpts, 156,448 counted), the three pair sets, the nearest texts, the 2,677 instrument files, the
+  gold (253 instruments, 277 links), the evaluations and the topics (Louvain 1.5, 40 topics) were rebuilt and the
+  pages' literals follow; no conclusion of the evaluations changed. `export_instrument_files.py` and the page's flag
+  prose changed with the flag's definition. **Nothing was published**; before the pull request merges a human runs,
+  in this order, the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`), the four vectors releases
+  (`emb-run-<c>-052/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, or `website.yml`
+  fails or pairs the new JSON with old files.
+- **Annexes under their chapter, appendices as appendices, rules 25 to 28 (review fix-3 of #291, found after the
+  fact).** The Instruments page's outline showed two hierarchy errors under the markers: the T-MEC (`137355`) built every
+  `ANEXO 2-A` ... as a sibling of the chapters and nested the next chapter inside the annex before it, and the gas carrier
+  code (`96707`) made its `APÉNDICE 1` to `5` five bare top-level attachments with the amending resolutions inside appendix 5.
+  Every rule applies only to a document with outline markers (one without them parses, and writes its eIds, as before), and no
+  rule names an instrument. **Rule 25**, an annex whose API `numero` (or the `N-` prefix of its `num`, against books, titles,
+  chapters and parts only) is the number of an open container is that container's child (`cap_2__att_2-A`), a quarter of a rank
+  below it so the next chapter closes it; its title is what follows its own label (`ANEXO 2-A:` read by the text was annex `2`
+  titled `A`). **Rule 26**, an appendix keeps `attachment`/`refersTo="#apendice"` and takes the eId prefix `app` (`app_1`),
+  nested in the annex that is open, after its chapters, else in the instrument. **Rule 27**, a bare `**APÉNDICE**` directly under
+  the unnumbered appendix it repeats is that appendix's running page header (the T-MEC's seven-page tariff appendix was seven
+  appendices). **Rule 28**, a block the API marks `other` that opens a section (rule 23) while an annex or appendix is open hangs
+  from the body, a sibling of the instrument's parts; unguarded it also moved the Código Civil Federal's `DISPOSICIONES
+  GENERALES` out of its chapter, which the before/after tree comparison caught and a test pins. `instruments.js` shows `part`
+  and `attachment` in the outline, each named by its own kind from `refersTo`, never from the eId (*Annex 2-A*, *Appendix 1*).
+  No re-crawl: **51 of 2,897 trees changed** (2 leyes, 3 reglamentos, 2 lineamientos, 44 tratados; 20 only by `att_` -> `app_`),
+  repeats unchanged at 7 / 164, and 1,614 unit rows have a new `text_sha1` (a heading or intro carries the containers in front of
+  it), so 3, 17, 1 and 1,528 texts were encoded with both models, the four `-052` work directories re-merged (`compare_merges`
+  clean for all eight runs), the Atlas chain, the instrument files, the evaluations and the page's literals rebuilt (only last
+  digits moved; the closest instrument of 1,303 of 1,373 treaties is a treaty, 7 laws and 6 regulations and no guideline have a
+  treaty as their closest). The release sweep passes (15 in 40 minutes). **Nothing was published**; the publish order is the one
+  above, with the four vectors releases, the three `atlas-pairs` sets and `atlas-instruments` regenerated.
+- **The blocks the API calls `other`, divisions and radio-regulations numbering, rules 29 to 32 (review fix-4 of #291,
+  found after the fact; fix-2's "the SCJN's own numbering" was still wrong for the last 7).** The 164 repeated-number
+  excerpts of 7 treaties and 5,668 `loose` excerpts all came from the API blocks the SCJN labels `kind=other`, where a whole text
+  (a model certificate, the Radio Regulations, an amending resolution) is served under one label. **Rule 29**, every such block
+  is an `hcontainer` (new `AKN_TYPES` member, eId derived from the label, its leading text its `intro`) with an explicit,
+  tested role table (`md2akn.outline.ROLES_DE_ETIQUETA`, matched on the *whole* folded label): `PARTE FINAL ...`
+  `#conclusions`, `NOTA EXPLICATIVA`/`NOTAS` `#note`, the steps of the Mexican promulgation decree kept together under one
+  `#promulgation`, `RESOLUCIÓN ...` rule 28's container; an API `provision` is an article; the whole `other` vocabulary (10,919
+  blocks, 1,968 shapes) is tabulated in `scripts/embeddings/README.md`. **Rule 30**, `ARTÍCULOS` + `CONTENIDO ARTICULOS` is one
+  container. **Rule 31**, a numbering that starts over *inside* one block opens a division (`#division`, `#form` for the
+  boxes of a model certificate) at the nearest heading that reads as one, strong before weak, and **with none there is no
+  division and the repeat stays**: nothing is merged, dropped or renumbered afterwards; a numeral before a lower-case word
+  is a value, and one equal to the article above is that article's paragraph. **Rule 32**, `S5.43`/`5.43A`, `ARTÍCULO S5`,
+  `APÉNDICE S30`, a mixed-case `Artículo Primero.-` in transitorios and the caption line before an article's heading.
+  Every rule applies only to a document with outline markers; no rule names an instrument; `md2akn` and `scjn` stay 0.5.1.
+  Result over the 2,677 instruments (`scripts/embeddings/measure_loose.py`, `measure_trees.py`): `loose` 5,668 → 448 excerpts,
+  repeats 164 → **0** (all seven treaties resolved, each cause recorded in the README), 4 treaties lose articles and every
+  loss is explained. What stays `loose` is a container with only its own heading lines, an index printed inside an `other`
+  block, a decree's dated headings with nothing under them and a lettered table in a decree's transitorios. The four
+  corpora's units, the four vectors releases (445, 2,115, 1,377 and 14,246 new texts, 3/3/3/6 shards, 0 failed,
+  `compare_merges` clean for all eight runs), the Atlas data sets, the three pair sets, the nearest texts, the 2,677 instrument
+  files, the evaluations (no conclusion changed) and the page's literals were rebuilt without re-crawling; the closest instrument
+  moved for 300 of 2,677 under the 0.6B (7,413 more excerpts). The Instruments page's outline names every labelled block by
+  its role (`Promulgation decree`, `Note`, `Closing formulas`, `Form`, `Division`, else `Block: <label>`). The release sweep
+  passes (15 in 39 minutes). **Nothing was published**; the human order is: the four corpora, the four vectors releases
+  (`emb-run-<c>-053/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+- **An API block is the root of its hierarchy, rule 33 (review fix-5 of #291, found after the fact; the owner
+  reviewed the SOLAS treaty `11293`).** Each of its fifteen amending resolutions is one API block that prints its own
+  `ANEXO`, chapters and parts, and the tree had them as siblings: rule 21 gave every heading a block's text prints the same
+  rank, so the annex was an empty node beside its chapters, the chapters beside their parts (the next chapter's `PARTE A` a
+  `part_A_2`), one resolution an `hcontainer` among `section`s and its annex at body level. **Rule 33**: every `RESOLUCIÓN ...`
+  block is a `section`; the headings a block's text prints keep their order (`piso + 0.5 + precedence / 100`: an `ANEXO` holds
+  the chapters after it, a chapter its parts, a bare `APÉNDICE` after an annex of the block is inside it, a bare `ANEXO` right
+  after an annex with only its title is inside that one); the next marker closes everything the block opened; and the one annex
+  that still leaves its block is rule 29's original case, narrowed: no container or article after its heading in the block's
+  text, a next marker that is not a resolution or a closing role (the code a resolution amends in `96707`, the reglamento an
+  `ANEXO ÚNICO` approves in `83225`). A numbered appendix or annex keeps its rank (`137355`, `114115`, `992`). Result over the
+  2,677 instruments (`measure_trees.py`, `measure_loose.py`): **44 trees changed** (1 ley, 3 reglamentos, 2 lineamientos, 38
+  tratados), 124 resolutions `hcontainer` → `section`, `loose` 448 → 430 (`11293` 19 → 0; two index-like reglamentos get 12 more:
+  a container with only its heading line, the class fix-4 left), `duplicate_number` 0, `part`/`attachment` identifiers ending in
+  `_N` 23 → 8 and 114 → 78. 2,021 distinct new texts were encoded with both models (1, 1, 1 and 3 shards, `compare_merges`
+  clean for all eight runs), the Atlas chain rebuilt (closest instrument unchanged for 2,668 / 2,667 / 2,670 of 2,677), the
+  gold and the evaluations identical but for three intervals, the page's literals say 20 October 2026. `md2akn` and `scjn`
+  stay 0.5.1. **Nothing was published**; the human order is: the four corpora, the four vectors releases
+  (`emb-run-<c>-054/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+- **The marker path as a whole, rules 34 to 39 (review fix-6 of #291, found after the fact; the owner asked for the
+  cause, not another patch).** An API block is the unit of ownership (**invariant I1**): everything up to the next marker
+  hangs from the node that block opened. The parser had never stated it and decided a line's place in five independent
+  spots (the class of the block's lines, the open-container stack, rule 23's implicit section, rule 29's `hcontainer`, the
+  "transitorios are open" latch), so a line went to whichever container was last open; fix-2 to fix-5 each patched one case.
+  Measured: 20,133 excerpts of the Atlas' instruments hung from a node that was not their block's root. **Rule 34**, a block's
+  root bounds its text (the transitorios latch no longer outranks a block root, an index ends at its API block's next marker,
+  the lines before a container's heading are the heading's, text after an index or a captioned table is a further `intro`);
+  **35**, a childless container is a `heading` unit, never `loose`; **36**, a caption and the notes under a table are the
+  table's; **37**, `Artículo N` before a lower-case word is a reference line; **38**, an API `article` block that holds only
+  a heading and is followed by `provision` blocks opens a section (gate: three per document; it removed 70 of reglamento
+  `952`'s gaps); **39**, an `other` block labelled `N (SIC)` is the article. `md2akn.validate._block_escapes` checks I1. Result:
+  `loose` 430 → **0** (the 299 outside the transitorios, which the matrix compares, included), `duplicate_number` 0,
+  `numbering_gap` 157 → 86 in 31 instruments, every one classified with raw evidence in
+  `packages/md2akn/tests/fixtures_units/genuine_gaps.json` (omitted articles of an amending text, the source's own `(SIC)`,
+  `10 O` read as an ordinal, API order, numbering across sibling sections, one unmarked index). The release sweep gained
+  `TestInvariantesDelBloque` (I1 ownership, I2 no `loose` outside transitorios, I3 `duplicate_number` 0, I4 every gap in the
+  fixture and every fixture entry a gap): 19 passed in 53 minutes. The Instruments page draws a table printed inside an
+  article as **one HTML table** (caption in `<caption>`); the article stays one excerpt and its vector does not change.
+  `md2akn` and `scjn` stay 0.5.1. No re-crawl: 1,288 distinct new texts (1,098 encoded) with both models, the four `-055` work
+  directories (`compare_merges` clean for all eight runs), the Atlas chain (2,677 instruments, closest instrument unchanged
+  for 2,673 / 2,672 / 2,663), the evaluations (gold exactly as before, no conclusion changed) and the page's literals (21
+  October 2026) were rebuilt. **Nothing was published**; the human order is: the four corpora, the four vectors releases
+  (`emb-run-<c>-055/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 
 The website's **Atlas** (`website/pages/atlas.qmd`, navbar entry *Atlas*
@@ -1395,6 +1626,15 @@ reads it, with, on every searched excerpt, its closest texts of other instrument
   **Publish posture:** the `atlas-instruments` release of #289's `PUBLICAR.md` must exist
   before this reaches `master`; until then `website.yml`'s *Fetch the instrument files* step
   fails, as intended. Nothing was published and no PR was opened.
+- **Introductions and tables (issue #294, done).** `intro` and `table` (`md2akn` 0.5.1's rules
+  12 and 13) are nodes of the page like any other: badge, outline entry (*Introduction*, *Table N*),
+  excerpt wrapper and nearest texts. In *Parsed* mode a table node is drawn as an HTML table, **one per
+  excerpt**: a long table is cut at row boundaries into pieces (numbered from 1; a table that fits is
+  piece 0), each wrapped as its own excerpt and addressable as `#<eId>.<piece>`; a cell's `\|` is a
+  pipe, `**bold**` is kept, and a block that is not a row (the `**(ARANCEL)**` label) is a one-cell row
+  spanning the table. *Raw* mode is unchanged. The prose says *introduction* and *table*, never *unit*.
+  The real data is covered by browser tests that need no Quarto (`ligie-2022` shows `sec_I__intro` and its
+  tariff as tables, `137355` shows `art_1.1`); `export_atlas_pairs.py` labels the new excerpt types.
 
 ## Tables in SCJN snapshots (issue #253, done)
 

@@ -1,0 +1,1198 @@
+{
+  "coverage": {
+    "total_chars": 11246,
+    "frontmatter_chars": 37,
+    "annotation_chars": 543,
+    "covered_chars": 10666,
+    "uncovered_chars": 0
+  },
+  "units": [
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**ACUERDO POR EL QUE SE DA A CONOCER EL CÓDIGO INTERNACIONAL PARA LA APLICACIÓN DE PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO, 2010 (CÓDIGO PEF 2010)** **TEXTO ORIGINAL**",
+      "text_sha1": "ce534ef419b7d5073c0426394817dae27e619637"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Acuerdo publicado en la Segunda y Tercera Sección del Diario Oficial de la Federación, el viernes 29 de noviembre de 2013.",
+      "text_sha1": "cbcaf0d7f14a6235c75d97405e4bb404df5e2848"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 3,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "## Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Secretaría de Relaciones Exteriores.",
+      "text_sha1": "3407e9116845bac7f131411020080d4e2e66180c"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 4,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "JOSÉ ANTONIO MEADE KURIBREÑA y GERARDO RUIZ ESPARZA, Secretarios de Relaciones Exteriores y de Comunicaciones y Transportes, respectivamente, con fundamento en lo dispuesto por los artículos 2 fracción I, 12, 14, 26, 28 fracciones I y XII y 36 fracciones I, XIV, XVI, XVII, XXVI y XXVII de la Ley Orgánica de la Administración Pública Federal; 4 de la Ley Federal de Procedimiento Administrativo; 2 y 3 fracciones III, IV y VI de la Ley del Diario Oficial de la Federación y Gacetas Gubernamentales; 7 del Reglamento Interior de la Secretaría de Relaciones Exteriores, y 4 párrafo primero y 5 del Reglamento Interior de la Secretaría de Comunicaciones y Transportes, y",
+      "text_sha1": "dd0ea30f5de3ac2d410c07f4b5dacbbbe33eb742"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 5,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "**CONSIDERANDO**",
+      "text_sha1": "ef1e078f1c11b28485a2b6d5330b4c0b2e74377a"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 6,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Que el Convenio Internacional para la Seguridad de la Vida Humana en el Mar, 1974 (Convenio SOLAS/74) fue aprobado por la Cámara de Senadores del H. Congreso de la Unión el 27 de diciembre de 1976, según Decreto publicado en el Diario Oficial de la Federación del 20 de enero de 1977;",
+      "text_sha1": "42aa3ba8d206a15f4af123e997c750848a085029"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 7,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Que el Gobierno de los Estados Unidos Mexicanos depositó su instrumento de adhesión al Convenio SOLAS/74, ante el Secretario General de la entonces Organización Consultiva Marítima Intergubernamental (ahora Organización Marítima Internacional), el 28 de marzo de 1977;",
+      "text_sha1": "f025c75392e1f2b1db9004daa96db4a47a0c1f07"
+    },
+    {
+      "unit_type": "preamble",
+      "eId": "preamble",
+      "piece": 8,
+      "piece_eId": null,
+      "akn_type": "preamble",
+      "num": null,
+      "path": [],
+      "text": "Que el Convenio SOLAS/74 fue publicado en el Diario Oficial de la Federación del 9 de mayo de 1977;",
+      "text_sha1": "2b9092938368f548bae0a0f28f657839c41630c1"
+    },
+    {
+      "unit_type": "toc",
+      "eId": "toc_1",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "toc",
+      "num": null,
+      "path": [],
+      "text": "**ANEXO** **CÓDIGO INTERNACIONAL PARA LA APLICACIÓN DE PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO, 2010 (CÓDIGO PEF 2010)** Índice **1 ÁMBITO** **2 APLICACIÓN** **3 DEFINICIONES**",
+      "text_sha1": "cdb842a8e99538744e6d5461c70cb50b2df85d7f"
+    },
+    {
+      "unit_type": "toc",
+      "eId": "toc_1",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "toc",
+      "num": null,
+      "path": [],
+      "text": "**4 REALIZACIÓN DE LOS ENSAYOS** 4.1 Procedimientos de ensayo de exposición al fuego 4.2 Laboratorios de ensayo 4.3 Informes sobre los ensayos **5 APROBACIÓN** 5.1 Generalidades 5.2 Homologación",
+      "text_sha1": "2ab8acdc337cee86bfa05813d528f386cac2ccd2"
+    },
+    {
+      "unit_type": "toc",
+      "eId": "toc_1",
+      "piece": 3,
+      "piece_eId": null,
+      "akn_type": "toc",
+      "num": null,
+      "path": [],
+      "text": "5.3 Aprobación en casos particulares **6 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN** **7 UTILIZACIÓN DE EQUIVALENCIAS Y TECNOLOGÍA MODERNA**",
+      "text_sha1": "e2fb425cb6e706efdf70a349b471721541d2db9c"
+    },
+    {
+      "unit_type": "toc",
+      "eId": "toc_1",
+      "piece": 4,
+      "piece_eId": null,
+      "akn_type": "toc",
+      "num": null,
+      "path": [],
+      "text": "**8 PERIODO DE GRACIA PARA LAS HOMOLOGACIONES EXPEDIDAS EN VIRTUD DEL CÓDIGO PEF PREVIO** **9 LISTA DE REFERENCIAS** **ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO** **PREÁMBULO**",
+      "text_sha1": "661fb4f86900dd8d4405136bb3f293735fdaac6b"
+    },
+    {
+      "unit_type": "toc",
+      "eId": "toc_1",
+      "piece": 5,
+      "piece_eId": null,
+      "akn_type": "toc",
+      "num": null,
+      "path": [],
+      "text": "PARTE 1 Ensayo de incombustibilidad Apéndice - Procedimiento de ensayo de exposición al fuego para determinar la incombustibilidad",
+      "text_sha1": "9eb6f049c3d4aef9769867a964ef6bcfd1e03ad7"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "sec_1_ÁMBITO__intro",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "SECCIÓN 1 ÁMBITO"
+      ],
+      "text": "SECCIÓN 1 ÁMBITO **1 ÁMBITO**",
+      "text_sha1": "f99c5c392e9e5d0f3082f193db168d59b6a2e1fd"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "sec_1_ÁMBITO__art_1.1",
+      "piece": 1,
+      "piece_eId": "sec_1_ÁMBITO__art_1.1__p_1",
+      "akn_type": "article",
+      "num": "1.1",
+      "path": [
+        "SECCIÓN 1 ÁMBITO"
+      ],
+      "text": "1.1 El presente Código está destinado a que lo utilicen la Administración y la autoridad competente del Estado de abanderamiento cuando aprueben productos que se vayan a instalar en buques que enarbolen el pabellón del Estado de abanderamiento, de conformidad con las prescripciones de seguridad contra incendios del Convenio internacional para la seguridad de la vida humana en el mar, 1974, enmendado.",
+      "text_sha1": "12db7b26ca28c5e292518df9ffa63cecdf37a6eb"
+    },
+    {
+      "unit_type": "article",
+      "eId": "sec_1_ÁMBITO__art_1.2",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "SECCIÓN 1 ÁMBITO"
+      ],
+      "text": "1.2 El Código será utilizado por los laboratorios de ensayo cuando sometan a ensayo y evalúen productos con arreglo a lo dispuesto en el mismo.",
+      "text_sha1": "8db9a6aba0d5569980ec32574d7c32bfae8cb7ae"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "att_1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "attachment",
+      "num": "1",
+      "path": [],
+      "text": "**ANEXO 1** **PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO**",
+      "text_sha1": "8839a0c8bec1170e151851f1ad0663b4ca5a9f9e"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__intro",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO **PREÁMBULO**",
+      "text_sha1": "843ee92e4679c4f001661e0290b9a301fe6a8072"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__intro",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO 1 El presente anexo contiene los procedimientos de ensayo de exposición al fuego que se utilizarán para verificar que los productos cumplen las prescripciones aplicables. Por lo que respecta a otros procedimientos de ensayo, se aplicarán las disposiciones de los párrafos 7 y 8.2 del Código.",
+      "text_sha1": "b08b6cf5f3353edcbe85c342302a9cba31c60771"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__intro",
+      "piece": 3,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO 2 Se hará referencia a los procedimientos de ensayo del presente anexo (por ejemplo, en el informe sobre el ensayo y el certificado de homologación) indicando el número o los números de las partes pertinentes, según se muestra a continuación:",
+      "text_sha1": "7802d52874691582ae2526b9f96ef38bc59ffa95"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__intro",
+      "piece": 4,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO Ejemplo: Cuando un revestimiento primario de cubierta se haya sometido a ensayo de conformidad con las partes 2 y 5 del anexo 1, se hará referencia a las \"partes 2 y 5 del Código PEF 2010 de la OMI\".",
+      "text_sha1": "73e9e440ca966b16cf2492c8d88a5de9444c9b53"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__intro",
+      "piece": 5,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO 3 Algunos productos o sus componentes se deben someter a ensayo de conformidad con más de un procedimiento. Con este fin, en algunas partes del presente anexo se hace referencia a otras partes. Tales referencias se incluyen aquí solo como información, y las orientaciones aplicables se buscarán en las prescripciones pertinentes del Convenio.",
+      "text_sha1": "4ad7824779d6494e420a61a109507bfbb3b2b41f"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__intro",
+      "piece": 6,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO 4 Los productos que se pueden instalar sin ser objeto de ensayo y/o aprobación se tratan en el anexo 2 del Código.",
+      "text_sha1": "44bf7386ca5c5d7878b6972d7b5bb9d57acbcd7a"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "att_1__part_1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "part",
+      "num": "1",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO PARTE 1- ENSAYO DE INCOMBUSTIBILlDAD",
+      "text_sha1": "61a99cb05d49843365288cce1507f0f1ac32f8ca"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__part_1__intro",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO > PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD **1 APLICACIÓN**",
+      "text_sha1": "a143584ab200471daa039e826da24814366c6f5e"
+    },
+    {
+      "unit_type": "article",
+      "eId": "att_1__part_1__art_1.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "1.1",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "1.1 Cuando se requiera que un material sea incombustible, tal propiedad se verificará de conformidad con lo dispuesto en la presente parte.",
+      "text_sha1": "ee8dbef4e7b9fff5665be97f3d8f946f0045014a"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 1,
+      "piece_eId": "att_1__part_1__art_1.2__p_1",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "1.2 Si un material satisface los requisitos del ensayo especificado en el párrafo 3, se considerará como \"incombustible\" incluso si contiene una mezcla de sustancias orgánicas e inorgánicas.",
+      "text_sha1": "8d4373f7dab5b447818294a9d56ee042f1f5307f"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 2,
+      "piece_eId": "att_1__part_1__art_1.2__p_2",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "**2 PROCEDIMIENTO DE ENSAYO DE EXPOSICIÓN AL FUEGO**",
+      "text_sha1": "6ec1e141592e747597b2f6aa27aa055faba0f944"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 3,
+      "piece_eId": "att_1__part_1__art_1.2__p_3",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "La incombustibilidad se verificará siguiendo el procedimiento de ensayo indicado en el apéndice de esta parte (ISO 1182). No obstante, no es necesario que la exposición del ensayo supere los 30 minutos.",
+      "text_sha1": "30dfd148d184fb1688619a65dbba326d3b53d20a"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 4,
+      "piece_eId": "att_1__part_1__art_1.2__p_4",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "3 CRITERIOS DE ACEPTACIÓN DE INCOMBUSTIBILlDAD",
+      "text_sha1": "dd738204dba1a986f05e6518d4beaa81e54e6d6b"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 5,
+      "piece_eId": "att_1__part_1__art_1.2__p_5",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "Los materiales que se clasifiquen como incombustibles cumplirán los siguientes criterios:",
+      "text_sha1": "38404646fca17ef131df7593e6736a08edb4a955"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 6,
+      "piece_eId": "att_1__part_1__art_1.2__p_6",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": ".1 el aumento medio de la temperatura del termopar del horno, calculado según lo dispuesto en los párrafos 8.4 y 8.5 del apéndice, no debe exceder de 30°C;",
+      "text_sha1": "135a20955aa736c80bdc490c32346052ab82a2cf"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 7,
+      "piece_eId": "att_1__part_1__art_1.2__p_7",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": ".2 el aumento medio de la temperatura del termopar de la superficie de la muestra, calculado según lo dispuesto en los párrafos 8.4 y 8.5 del apéndice, no debe exceder de 30°C;",
+      "text_sha1": "af03e68b34123848b4427d6076acf4117ff86c85"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 8,
+      "piece_eId": "att_1__part_1__art_1.2__p_8",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": ".3 la duración media de la producción continua de llamas, calculada según lo dispuesto en el párrafo 8.3 del apéndice, no debe exceder de 10 segundos; y",
+      "text_sha1": "219f89c1d2c59c0823cc486c9b58d0d3b4c45290"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 9,
+      "piece_eId": "att_1__part_1__art_1.2__p_9",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": ".4 la pérdida media de masa, calculada según lo dispuesto en el párrafo 8.2 del apéndice, no debe exceder del 50%.",
+      "text_sha1": "9fa36da6ef117c0dca022acd9ee721d86814116e"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 10,
+      "piece_eId": "att_1__part_1__art_1.2__p_10",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "**4 INFORME SOBRE EL ENSAYO**",
+      "text_sha1": "4120181e279ca80d8d425f85e318ffc5f82eb615"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 11,
+      "piece_eId": "att_1__part_1__art_1.2__p_11",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "El informe sobre el ensayo incluirá la información estipulada en el párrafo 9 del apéndice y la clasificación del material de conformidad con los criterios de ensayo especificados en el párrafo 3 supra.",
+      "text_sha1": "81a9617cd005ec00a8cd8ebe607e4daeef38dc0b"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 12,
+      "piece_eId": "att_1__part_1__art_1.2__p_12",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "**5 DOCUMENTO DE REFERENCIA**",
+      "text_sha1": "bbb3b2c6518d3f7ca7b0700b94bceb6ac9c4157d"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_1__art_1.2",
+      "piece": 13,
+      "piece_eId": "att_1__part_1__art_1.2__p_13",
+      "akn_type": "article",
+      "num": "1.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "ISO 1182, Reaction to fire tests for products - Non-combustibility test.",
+      "text_sha1": "0dea8c4a03829ab4d907ae5adc692c216aeb88bf"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "att_1__part_1__app_attachment",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "attachment",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO > PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD **APÉNDICE** PROCEDIMIENTO DE ENSAYO DE EXPOSICIÓN AL FUEGO PARA DETERMINAR LA INCOMBUSTIBILlDAD",
+      "text_sha1": "0af4ecb7ab4f5935b68abe30b83f19ab91bbacd0"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__part_1__app_attachment__intro",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD",
+        "APÉNDICE PROCEDIMIENTO DE ENSAYO DE EXPOSICIÓN AL FUEGO PARA DETERMINAR LA INCOMBUSTIBILlDAD"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO > PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD > APÉNDICE PROCEDIMIENTO DE ENSAYO DE EXPOSICIÓN AL FUEGO PARA DETERMINAR LA INCOMBUSTIBILlDAD Introducción",
+      "text_sha1": "a2c25c166ccc71ff1cff8fb76e62a61c4956f6e4"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__part_1__app_attachment__intro",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD",
+        "APÉNDICE PROCEDIMIENTO DE ENSAYO DE EXPOSICIÓN AL FUEGO PARA DETERMINAR LA INCOMBUSTIBILlDAD"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO > PARTE 1 ENSAYO DE INCOMBUSTIBILlDAD > APÉNDICE PROCEDIMIENTO DE ENSAYO DE EXPOSICIÓN AL FUEGO PARA DETERMINAR LA INCOMBUSTIBILlDAD Este ensayo de exposición al fuego sirve para identificar a los productos que solamente generan una cantidad muy reducida de calor y llamas cuando se exponen a temperaturas de aproximadamente 750°C.",
+      "text_sha1": "069e70768b507b1cb4559d74fe05d5820bc2c191"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "att_1__part_2",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "part",
+      "num": "2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO **PARTE 2 - ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD**",
+      "text_sha1": "33a65b73daa4707773f0e52e324b588636f55e08"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__part_2__intro",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO > PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD **1 APLICACIÓN**",
+      "text_sha1": "0461c433fff118fdb71a13925c6fc04c55967604"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__part_2__intro",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO > PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD Cuando se requiera que un material no libere cantidades excesivas de humo ni de sustancias tóxicas y que no presente riesgos tóxicos a temperaturas elevadas, cumplirá lo dispuesto en la presente parte.",
+      "text_sha1": "20be3d41db49e720d9e9df4f7bcf49075bcfd9bb"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_1__part_2__intro",
+      "piece": 3,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO > PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD **2 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO**",
+      "text_sha1": "de3f4b0919d96f8ae18ed69625377a11c8683af9"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_2__art_2.1",
+      "piece": 1,
+      "piece_eId": "att_1__part_2__art_2.1__p_1",
+      "akn_type": "article",
+      "num": "2.1",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "2.1 Generalidades",
+      "text_sha1": "03067f43cfd40799c8745e3886904bd527477305"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_2__art_2.1",
+      "piece": 2,
+      "piece_eId": "att_1__part_2__art_2.1__p_2",
+      "akn_type": "article",
+      "num": "2.1",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "Los ensayos de producción de humo se realizarán con arreglo a lo dispuesto en el apéndice 1 y el método de la medición de gases se ajustará a lo dispuesto en el apéndice 2 de la presente parte, así como a los procedimientos adicionales de ensayo descritos en la presente parte del Código. Con el fin de llevar a cabo los ensayos de conformidad con esta parte, de ser necesario se modificarán las instalaciones y los procedimientos de la norma ISO 5659-2 para efectos de la medición de los gases tóxicos.",
+      "text_sha1": "edb6ae5b1046e23c6343afb96e348b87d4c21066"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_2__art_2.2",
+      "piece": 1,
+      "piece_eId": "att_1__part_2__art_2.2__p_1",
+      "akn_type": "article",
+      "num": "2.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "2.2 Muestra de ensayo",
+      "text_sha1": "35b24b3d112646a9d0352e26831f5db1dea2c576"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_2__art_2.2",
+      "piece": 2,
+      "piece_eId": "att_1__part_2__art_2.2__p_2",
+      "akn_type": "article",
+      "num": "2.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "La muestra de ensayo se preparará conforme a lo especificado en el apéndice 4 de la parte 5 del Código. Si el producto tiene dos caras y es probable que cualquiera de ellas se vea expuesta al fuego durante su uso, se evaluarán ambas caras.",
+      "text_sha1": "8eefd3f00af3a05ecdeff237216bed46686c8bdc"
+    },
+    {
+      "unit_type": "article",
+      "eId": "att_1__part_2__art_2.3",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "2.3",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "2.3 Resultados del ensayo",
+      "text_sha1": "44af60970824fb7d240f47408ffa3cb1d5779ace"
+    },
+    {
+      "unit_type": "article",
+      "eId": "att_1__part_2__art_2.3.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "2.3.1",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "2.3.1 Se medirá la densidad óptica específica máxima del humo (Ds max) en cada ensayo, de conformidad con lo dispuesto en el párrafo 9 del apéndice 1 de la presente parte.",
+      "text_sha1": "1559c1c2348af31d0a956a34b0f37194cc35c043"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_2__art_2.3.2",
+      "piece": 1,
+      "piece_eId": "att_1__part_2__art_2.3.2__p_1",
+      "akn_type": "article",
+      "num": "2.3.2",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "2.3.2 Al efectuar mediciones de toxicidad, la toma de muestras de las emanaciones se realizará al someter a ensayo la segunda y la tercera muestras en cada una de las condiciones de ensayo, desde el centro geométrico de la cámara y en el momento en que se alcance la densidad óptica específica máxima del humo. La concentración de cada uno de los gases tóxicos se determinará en partes por millón (ppm) del volumen de la cámara.",
+      "text_sha1": "ae97ecfbf109933b16cc5d4a7158eb95cf5b987e"
+    },
+    {
+      "unit_type": "article",
+      "eId": "att_1__part_2__art_2.4",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "2.4",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "2.4 Criterios de clasificación",
+      "text_sha1": "f7fc8799dd4234081e4a876239a2f123a1de0ed9"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_2__art_2.4.1",
+      "piece": 1,
+      "piece_eId": "att_1__part_2__art_2.4.1__p_1",
+      "akn_type": "article",
+      "num": "2.4.1",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "2.4.1 Humo",
+      "text_sha1": "5d1ee113d45034a95058925e96ed89e6ef15fa03"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_2__art_2.4.1",
+      "piece": 2,
+      "piece_eId": "att_1__part_2__art_2.4.1__p_2",
+      "akn_type": "article",
+      "num": "2.4.1",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": "Se calculará el promedio (Dm) de la densidad óptica específica máxima del humo (Ds max) de tres ensayos realizados en cada una de las condiciones de ensayo estipuladas en el párrafo 8.8.1 del apéndice:",
+      "text_sha1": "75695870164585ea7407b929951fd3e2a6fff4e0"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_1__part_2__art_2.4.1",
+      "piece": 3,
+      "piece_eId": "att_1__part_2__art_2.4.1__p_3",
+      "akn_type": "article",
+      "num": "2.4.1",
+      "path": [
+        "ANEXO 1 PROCEDIMIENTOS DE ENSAYO DE EXPOSICIÓN AL FUEGO",
+        "PARTE 2 ENSAYO DE PRODUCCIÓN DE HUMO Y TOXICIDAD"
+      ],
+      "text": ".1 en el caso de materiales utilizados como superficie de mamparos, revestimientos o cielos rasos, Dm no será superior a 200 en ninguna de las condiciones de ensayo;",
+      "text_sha1": "84be2ef219e6a41ac917359d73b8046fc50a9eed"
+    },
+    {
+      "unit_type": "heading",
+      "eId": "att_2",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "attachment",
+      "num": "2",
+      "path": [],
+      "text": "**ANEXO 2** **PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN**",
+      "text_sha1": "7d7f753e119bfda67739cd2f564abde583c63eb5"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_2__intro",
+      "piece": 1,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN **GENERALIDADES**",
+      "text_sha1": "6d7f535909f72e0ce2886124d6394916dd8c3b03"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_2__intro",
+      "piece": 2,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN En general, se considera que los productos y grupos de productos enumerados en el presente apéndice tienen las características de seguridad contra incendios indicadas a continuación, y que se pueden instalar sin necesidad de superar los ensayos ni obtener la aprobación requeridos en virtud de los procedimientos específicos de ensayo de exposición al fuego del presente Código por lo que respecta a las características específicas de seguridad del producto.",
+      "text_sha1": "21f3d8eff94909c8113d0667ee1a65f701228c97"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_2__intro",
+      "piece": 3,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN Los siguientes párrafos tienen el mismo número que las partes correspondientes del anexo 1 en que figuran las respectivas prescripciones de ensayo.",
+      "text_sha1": "7eda820b99d583aaf39587f8220f3e2f557f99b3"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_2__intro",
+      "piece": 4,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN **1 MATERIALES INCOMBUSTIBLES**",
+      "text_sha1": "17a7116229a8ef95416e790312f61331e153e480"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_2__intro",
+      "piece": 5,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN En general, se considera que los productos fabricados únicamente con vidrio, cemento, materiales cerámicos, piedra natural, unidades de mampostería y metales comunes o aleaciones son incombustibles y pueden instalarse sin ser objeto de ensayo y aprobación.",
+      "text_sha1": "4346e6389a9ba4dec1d93c09ed29c40757b0d504"
+    },
+    {
+      "unit_type": "intro",
+      "eId": "att_2__intro",
+      "piece": 6,
+      "piece_eId": null,
+      "akn_type": "intro",
+      "num": null,
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN **2 MATERIALES QUE NO DESPRENDEN CANTIDADES EXCESIVAS DE HUMO NI PRODUCTOS TÓXICOS EN CASO DE INCENDIO**",
+      "text_sha1": "d67a692d7beacf66fae3b1cc6e9c65cc896e0819"
+    },
+    {
+      "unit_type": "article",
+      "eId": "att_2__art_2.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "2.1",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "2.1 En general, se considera que los materiales incombustibles cumplen lo dispuesto en la parte 2 del anexo 1 sin que sea necesario efectuar ensayos adicionales.",
+      "text_sha1": "5543dd085f77273eaf3985b74c9bf22d8e62261f"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_2.2",
+      "piece": 1,
+      "piece_eId": "att_2__art_2.2__p_1",
+      "akn_type": "article",
+      "num": "2.2",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "2.2 En general, se considera que los materiales de superficie y los revestimientos primarios de cubierta en los que el desprendimiento total de calor (Qt) no sea superior a 0,2 MJ y el régimen máximo de desprendimiento de calor (Qp) no sea superior a 1 kW (ambos valores determinados de conformidad con la parte 5 del anexo 1) cumplen lo dispuesto en la parte 2 del anexo 1 sin que sea necesario efectuar ensayos adícionales.",
+      "text_sha1": "50519126c6c8b9bf3405cd667503e05bfda98e3e"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_2.3",
+      "piece": 1,
+      "piece_eId": "att_2__art_2.3__p_1",
+      "akn_type": "article",
+      "num": "2.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "2.3 Los materiales que satisfacen lo dispuesto en 2.2 supra están exentos de la necesidad de someterse a los ensayos de la norma ISO 1716. Se espera de ellos que satisfagan una prescripción relativa a un valor calorífico bruto máximo (por ejemplo, 45 MJ/m2) sin necesidad de efectuar' ensayos adicionales.",
+      "text_sha1": "7c138cebc3747387b1f959132188361cb5ad4d8e"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_2.4",
+      "piece": 1,
+      "piece_eId": "att_2__art_2.4__p_1",
+      "akn_type": "article",
+      "num": "2.4",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "2.4 En las naves de gran velocidad se considerará que los materiales pirorrestrictivos cumplen lo dispuesto en la parte 2 del anexo 1 sin que sea necesario efectuar ensayos adicionales.",
+      "text_sha1": "294906dad0a0462e8209a75be220d3dc70d6d187"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_2.4",
+      "piece": 2,
+      "piece_eId": "att_2__art_2.4__p_2",
+      "akn_type": "article",
+      "num": "2.4",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "3 DIVISIONES DE CLASES \"A\", \"B\" y \"F\"",
+      "text_sha1": "228acda62ba5e960b7071690d4e47976be40cef7"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_3.1",
+      "piece": 1,
+      "piece_eId": "att_2__art_3.1__p_1",
+      "akn_type": "article",
+      "num": "3.1",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "3.1 Los siguientes productos podrán instalarse sin necesidad de ensayo o aprobación:",
+      "text_sha1": "56112ee4cd171179edbb55c040abffa8eaa4cab2"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_3.1",
+      "piece": 2,
+      "piece_eId": "att_2__art_3.1__p_2",
+      "akn_type": "article",
+      "num": "3.1",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "Clasificación Descripción del producto",
+      "text_sha1": "12ed9a8fe3332eab88837b8c82fb88cdd1684796"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_3.1",
+      "piece": 3,
+      "piece_eId": "att_2__art_3.1__p_3",
+      "akn_type": "article",
+      "num": "3.1",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "Mamparo de clase \"A-0\" Mamparo de acero cuyas dimensiones no son inferiores a las dimensiones mínimas que figuran a continuación:",
+      "text_sha1": "e45475bd48adafaafcbbf364d7de820b31b70b1b"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_3.1",
+      "piece": 4,
+      "piece_eId": "att_2__art_3.1__p_4",
+      "akn_type": "article",
+      "num": "3.1",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "- espesor de las planchas: 4 mm",
+      "text_sha1": "5286ccdac72b147ce24fc0c86235223cd8a9e21b"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_3.1",
+      "piece": 5,
+      "piece_eId": "att_2__art_3.1__p_5",
+      "akn_type": "article",
+      "num": "3.1",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "- refuerzos de 60 x 60 x 5 mm espaciados a intervalos de 600 mm o una estructura equivalente.",
+      "text_sha1": "e053da1ac38c5ee808c109bf0fb29e9a9bd25e84"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_3.2",
+      "piece": 1,
+      "piece_eId": "att_2__art_3.2__p_1",
+      "akn_type": "article",
+      "num": "3.2",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "3.2 No obstante lo dispuesto en 3.1 supra, si se requiere que los materiales utilizados en divisiones de clases \"A\", \"B\" y \"F\" tengan otras características específicas (por ejemplo, incombustibilidad, débil propagación de la llama, etc.), cumplirán lo dispuesto en las partes correspondientes del anexo 1 del presente Código.",
+      "text_sha1": "397e23bb8822d30d7b33751d4020fb3db20be3ae"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_3.2",
+      "piece": 2,
+      "piece_eId": "att_2__art_3.2__p_2",
+      "akn_type": "article",
+      "num": "3.2",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "**4 SISTEMAS DE CONTROL DE LAS PUERTAS CONTRAINCENDIOS**",
+      "text_sha1": "28da2f7733d42671c80f5598e1c146cda2c419dd"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_3.2",
+      "piece": 3,
+      "piece_eId": "att_2__art_3.2__p_3",
+      "akn_type": "article",
+      "num": "3.2",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "(sin anotaciones)",
+      "text_sha1": "08ea54398d8794a05680344e43b74b0f0487e47e"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_3.2",
+      "piece": 4,
+      "piece_eId": "att_2__art_3.2__p_4",
+      "akn_type": "article",
+      "num": "3.2",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "**5 SUPERFICIES CON CARACTERISTICAS DE DÉBIL PROPAGACIÓN DE LA LLAMA**",
+      "text_sha1": "fbb21bb343c2ea63d5517d8a2ec0f460de09ac04"
+    },
+    {
+      "unit_type": "article",
+      "eId": "att_2__art_5.1",
+      "piece": 0,
+      "piece_eId": null,
+      "akn_type": "article",
+      "num": "5.1",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "5.1 Se considera que los materiales incombustibles cumplen lo dispuesto en la parte 5 del anexo 1. Sin embargo, se prestará la debida atención al método de aplicación y fijación (por ejemplo, cola).",
+      "text_sha1": "ee6e3dea886cbb04faad79d7c9cdf8f2150314c2"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.2",
+      "piece": 1,
+      "piece_eId": "att_2__art_5.2__p_1",
+      "akn_type": "article",
+      "num": "5.2",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "5.2 Se considera que los revestimientos primarios de cubierta clasificados como no fácilmente inflamables de conformidad con lo dispuesto en la parte 5 del anexo 1 cumplen lo dispuesto en relación con los revestimientos del piso.",
+      "text_sha1": "558d872221fa8b6727f706c102a6864d4c96707b"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 1,
+      "piece_eId": "att_2__art_5.3__p_1",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "5.3 En las naves de gran velocidad se considerará que las superficies y los materiales clasificados como materiales pirorrestrictivos cumplen lo dispuesto en la parte 5 del anexo 1 sin que sea necesario efectuar un ensayo adicional.",
+      "text_sha1": "2adf6fad1f6c8291f2daf4a552d8f88432dbe597"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 2,
+      "piece_eId": "att_2__art_5.3__p_2",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "6 TEXTILES y PELÍCULAS COLOCADOS VERTICALMENTE",
+      "text_sha1": "f75fa717f76fc8778ecfa74140b97c29ba93bd88"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 3,
+      "piece_eId": "att_2__art_5.3__p_3",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "(sin anotaciones)",
+      "text_sha1": "08ea54398d8794a05680344e43b74b0f0487e47e"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 4,
+      "piece_eId": "att_2__art_5.3__p_4",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "**7 MOBILIARIO TAPIZADO**",
+      "text_sha1": "b77c4c18ec332e3771a51345c6bca611845f881f"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 5,
+      "piece_eId": "att_2__art_5.3__p_5",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "(sin anotaciones)",
+      "text_sha1": "08ea54398d8794a05680344e43b74b0f0487e47e"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 6,
+      "piece_eId": "att_2__art_5.3__p_6",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "**8 ARTÍCULOS DE CAMA**",
+      "text_sha1": "04e09f237fa8e81e320a25cd33ee60720ca49e3d"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 7,
+      "piece_eId": "att_2__art_5.3__p_7",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "(sin anotaciones)",
+      "text_sha1": "08ea54398d8794a05680344e43b74b0f0487e47e"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 8,
+      "piece_eId": "att_2__art_5.3__p_8",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "**9 MATERIALES PIRORRESTRICTIVOS PARA NAVES DE GRAN VELOCIDAD**",
+      "text_sha1": "35f6924fb6ebfb4392320cdb58be823905f12ac9"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 9,
+      "piece_eId": "att_2__art_5.3__p_9",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "(sin anotaciones)",
+      "text_sha1": "08ea54398d8794a05680344e43b74b0f0487e47e"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 10,
+      "piece_eId": "att_2__art_5.3__p_10",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "**10 DIVISIONES PIRORRESISTENTES DE LAS NAVES DE GRAN VELOCIDAD**",
+      "text_sha1": "eef441ac3f8ec2da3709b1b44f922e2900914104"
+    },
+    {
+      "unit_type": "article_piece",
+      "eId": "att_2__art_5.3",
+      "piece": 11,
+      "piece_eId": "att_2__art_5.3__p_11",
+      "akn_type": "article",
+      "num": "5.3",
+      "path": [
+        "ANEXO 2 PRODUCTOS QUE SE PUEDEN INSTALAR SIN SER OBJETO DE ENSAYO Y/O APROBACIÓN"
+      ],
+      "text": "(sin anotaciones)",
+      "text_sha1": "08ea54398d8794a05680344e43b74b0f0487e47e"
+    }
+  ]
+}

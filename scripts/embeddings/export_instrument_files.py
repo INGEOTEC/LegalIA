@@ -94,8 +94,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import md2akn  # noqa: E402
 from md2akn import coverage, parse_markdown, text_units  # noqa: E402
-from md2akn.segmenter import iter_blocks, split_frontmatter  # noqa: E402
-from md2akn.structure import modo_sin_articulos  # noqa: E402
 
 import build_umap_html as html  # noqa: E402
 import instrument_matrix  # noqa: E402
@@ -120,12 +118,16 @@ SCORED_INSTRUMENT_FLAGS = ("no_articles", "uncovered")
 
 FLAG_MEANINGS = {
     "loose": "Text that no rule placed inside an article (an excerpt of type loose).",
-    "duplicate_number": "An article number that appears more than once in the "
-                        "instrument (outside the transitory provisions); every "
-                        "article carrying it is flagged.",
+    "duplicate_number": "Two articles that ended up with the same identifier "
+                        "(outside the transitory provisions): the same number in the "
+                        "same place of the outline, so the second could only be kept "
+                        "apart with a suffix. The same number in two different "
+                        "containers (article 1 of Part 1 and of Part 2) is not one; "
+                        "both articles of a collision are flagged.",
     "numbering_gap": "An article whose integer number is not the previous integer "
-                     "number plus one (outside the transitory provisions; numbers "
-                     "such as 4 Bis or roman numerals are skipped).",
+                     "number plus one within its own container (outside the "
+                     "transitory provisions; numbers such as 4 Bis or roman numerals "
+                     "are skipped, and a container that starts over at 1 is not a gap).",
     "over_window": "An excerpt longer than the embedding model's window: its vector "
                    "was computed on a truncated text.",
     "no_articles": "The instrument has no article excerpt at all.",
@@ -230,30 +232,31 @@ def is_roman(num) -> bool:
     return bool(num is not None and _ROMAN_NUM.match(str(num)))
 
 
-def excerpt_flags(units, truncated: set) -> list[list[str]]:
+def excerpt_flags(units, truncated: set, repeated: frozenset | set = frozenset()) -> list[list[str]]:
     """Per excerpt (a `TextUnit`), its excerpt-level flag names, in `FLAGS` order.
 
-    `duplicate_number`/`numbering_gap` read only the `article` excerpts outside
-    a transitorios section, in document order: a number that appears more than
-    once flags each of its articles; an article whose integer number is not the
-    previous integer number plus one is a gap (the first integer-numbered article
-    never is)."""
+    `repeated` is the set of eIds of the nodes `md2akn` marks `repeated` (two
+    provisions that ended up with one identifier, review fix-2 of #291): an
+    `article` excerpt outside a transitorios section whose eId is in it is
+    `duplicate_number`. `numbering_gap` reads the same articles in document
+    order, one container at a time (its `path`): an article whose integer
+    number is not the previous integer number *of its own container* plus one
+    is a gap, so a Part that starts over at 1 is not one (the first
+    integer-numbered article of a container never is)."""
     transitory = [instrument_matrix.is_transitorio_path(unit.path) for unit in units]
     numbered = [(position, unit) for position, unit in enumerate(units)
                 if unit.unit_type == "article" and not transitory[position]
                 and unit.num is not None]
-    counts: dict[str, int] = {}
-    for _, unit in numbered:
-        counts[str(unit.num).strip()] = counts.get(str(unit.num).strip(), 0) + 1
-    duplicated = {position for position, unit in numbered if counts[str(unit.num).strip()] > 1}
-    gaps, previous = set(), None
+    duplicated = {position for position, unit in numbered if unit.eId in repeated}
+    gaps, previous = set(), {}
     for position, unit in numbered:
         value = integer_number(unit.num)
         if value is None:
             continue
-        if previous is not None and value != previous + 1:
+        before = previous.get(unit.path)
+        if before is not None and value != before + 1:
             gaps.add(position)
-        previous = value
+        previous[unit.path] = value
     flags = []
     for position, unit in enumerate(units):
         names = []
@@ -485,10 +488,9 @@ def instrument_document(i: int, data: dict, markdown: str, owners: dict, lookup:
     parsed = text_units(tree, split_articles=False)
     compare_with_released(label, parsed, released)
 
-    _frontmatter, end = split_frontmatter(markdown)
-    mode = modo_sin_articulos(list(iter_blocks(markdown, end))) or "articulo"
+    mode = tree.modo or "articulo"
     utf16 = Utf16(markdown)
-    flags = excerpt_flags(parsed, truncated)
+    flags = excerpt_flags(parsed, truncated, {n.eId for n in tree.walk() if n.repeated})
     instrument_level = instrument_flags(tree, parsed, coverage(tree, parsed).uncovered_chars)
     counts = flag_counts(flags, instrument_level)
 

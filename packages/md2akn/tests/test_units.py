@@ -68,6 +68,10 @@ class TestCoverageInvariant(unittest.TestCase):
                 cov = coverage(tree, text_units(text))
                 raw_notes = [n.raw for node in tree.walk() if node is not tree for n in node.notes]
                 raw_notes += [n.raw for n in tree.notes]
+                # An outline marker line (rule 19) is metadata like a note.
+                raw_notes += [
+                    line for line in text.splitlines() if line.startswith("<!-- scjn:block ")
+                ]
                 annotation_chars_from_notes = sum(
                     sum(1 for c in raw if not c.isspace()) for raw in raw_notes
                 )
@@ -135,13 +139,20 @@ class TestTemplate(unittest.TestCase):
         self.assertIn("LEY DE PRUEBA", articulo.text)
         self.assertIn("1o", articulo.text)
 
-    def test_heading_y_loose_siempre_llevan_el_camino(self):
-        # Rule 7: unconditional for heading/loose, regardless of template.
-        text = "**CAPITULO I**\n\nUna fila suelta.\n\n**Articulo 1o.** Uno.\n"
+    def test_heading_intro_y_loose_siempre_llevan_el_camino(self):
+        # Rule 7: unconditional for heading/intro/loose, regardless of
+        # template. A container's own loose text is an `intro` since issue
+        # #291 (rule 12); `loose` is what is left under the transitorios.
+        text = (
+            "**CAPITULO I**\n\nUna fila suelta.\n\n**Articulo 1o.** Uno.\n\n"
+            "## Transitorios\n\nOtra fila suelta.\n\n**Primero.** Uno.\n"
+        )
         for template in ("bare", "contextual"):
             units = text_units(text, template=template)
+            intro = next(u for u in units if u.unit_type == "intro")
+            self.assertIn("CAPÍTULO I", intro.text)
             loose = next(u for u in units if u.unit_type == "loose")
-            self.assertIn("CAPÍTULO I", loose.text)
+            self.assertIn("TRANSITORIOS", loose.text)
 
     def test_template_desconocido_es_un_error(self):
         with self.assertRaises(ValueError):

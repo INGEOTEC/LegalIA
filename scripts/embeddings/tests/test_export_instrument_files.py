@@ -59,6 +59,12 @@ PREÁMBULO de la ley 😀 alfa.
 
 Texto suelto antes de los artículos.
 
+| Concepto | Cuota |
+
+| Uno | 1.5 |
+
+| Dos \\| con barra | **2.5** |
+
 **Artículo 1.-** Texto compartido del primero.
 
 **Artículo 2.-** Texto 𝔘 del segundo:
@@ -71,7 +77,79 @@ II. Fracción dos.
 
 **Artículo 5.-** Texto larguísimo del quinto.
 
+| Tramo | Tasa |
+
+| Hasta 100 | **1.5** |
+
+| Más de 100 | 2 |
+
+**CAPÍTULO II**
+
+Introducción del segundo capítulo.
+
+| fila 01 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 02 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 03 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 04 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 05 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 06 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 07 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 08 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 09 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 10 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 11 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 12 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 13 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 14 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 15 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 16 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 17 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 18 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 19 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 20 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 21 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 22 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 23 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 24 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 25 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 26 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 27 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 28 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 29 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
+| fila 30 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
+
 **TRANSITORIOS**
+
+Texto suelto de los transitorios.
 
 **PRIMERO.-** Entra en vigor.
 """
@@ -120,6 +198,98 @@ Las Partes cooperarán entre sí.
 **ARTÍCULO II**
 
 Este Tratado entrará en vigor.
+
+<!-- scjn:block orden=3 numero=0 kind=container type=chapter num="3" label="CAPÍTULO 3" -->
+
+**CAPÍTULO 3**
+
+**COMERCIO**
+
+<!-- scjn:block orden=4 numero=3 kind=container type=annex num="3-A" label="ANEXO 3-A" -->
+
+**ANEXO 3-A**
+
+**LISTA DE MERCANCÍAS**
+
+Las mercancías de la lista.
+
+<!-- scjn:block orden=5 numero=3 kind=container type=annex num="3-B" label="ANEXO 3-B" -->
+
+**ANEXO 3-B**
+
+**LISTA DE SERVICIOS**
+
+Los servicios de la lista.
+
+<!-- scjn:block orden=7 numero=0 kind=container type=annex num="I" label="ANEXO I" -->
+
+**ANEXO I**
+
+**FORMULARIOS**
+
+Los formularios del Tratado.
+
+<!-- scjn:block orden=8 numero=0 kind=container type=appendix num="1" label="APÉNDICE 1" -->
+
+**APÉNDICE 1**
+
+**FORMULARIO DE NOTIFICACIÓN**
+
+Texto del primer apéndice.
+
+<!-- scjn:block orden=9 numero=0 kind=container type=appendix num="2" label="APÉNDICE 2" -->
+
+**APÉNDICE 2**
+
+**MODELO DE CERTIFICADO**
+
+Texto del segundo apéndice.
+
+<!-- scjn:block orden=14 numero=0 kind=other label="RESOLUCIÓN MSC.1(1)" -->
+
+**RESOLUCIÓN MSC.1(1)**
+
+El Comité adopta las enmiendas que figuran en el anexo.
+
+**ANEXO**
+
+**ENMIENDAS AL TRATADO**
+
+**CAPÍTULO II-1**
+
+**CONSTRUCCIÓN**
+
+**PARTE A**
+
+Generalidades de la construcción.
+
+**PARTE B**
+
+Compartimentado de la construcción.
+
+**CAPÍTULO II-2**
+
+**PREVENCIÓN DE INCENDIOS**
+
+**PARTE A**
+
+Generalidades de la prevención.
+
+<!-- scjn:block orden=10 numero=0 kind=other label="NOTA EXPLICATIVA" -->
+
+Las disposiciones marcadas modifican el Tratado.
+
+<!-- scjn:block orden=11 numero=0 kind=other label="RESERVAS AL TRATADO" -->
+
+Al firmar el presente texto, la delegación formula una reserva.
+
+<!-- scjn:block orden=12 numero=0 kind=other label="FIRMA" -->
+
+El Plenipotenciario firmó el Tratado.
+
+<!-- scjn:block orden=13 numero=0 kind=other label="PROMULGACIÓN" -->
+
+Por lo tanto, promulgo el presente Decreto.
 """
 
 #: `(coleccion, clave) -> (nombre, archivo, codNota, markdown)`, in the order
@@ -279,8 +449,8 @@ def test_the_file_shape_and_every_key(exported):
     assert (meta["model"], meta["model_slug"], meta["top"]) == (MODEL, SLUG, 5)
     assert meta["generated"] == "2026-10-13T12:00:00+00:00" and meta["commit"]
     assert meta["numbering"] == {"mode": "articulo", "roman_articles": 0}
-    assert meta["units"] == len(document["units"]) == 10
-    assert meta["searched"] == sum(1 for u in document["units"] if u.get("x")) == 6
+    assert meta["units"] == len(document["units"]) == 16
+    assert meta["searched"] == sum(1 for u in document["units"] if u.get("x")) == 10
     assert document["markdown"] == ALFA
     assert read_file(exported, "lineamientos", "900")["meta"]["numbering"]["mode"] == "ordinal"
     treaty = read_file(exported, "tratados", "700")["meta"]["numbering"]
@@ -393,7 +563,7 @@ def test_a_doctored_released_row_stops_the_export_naming_the_instrument_and_posi
         exporter.export(world["work_dir"], out_dir=world["tmp"] / "bad", cache_dir=cache,
                         snapshot_reader=reader_for, now=NOW, log=quiet)
     message = str(error.value)
-    assert "leyes/alfa" in message and "excerpt 7 differs" in message
+    assert "leyes/alfa" in message and "excerpt 8 differs" in message
     assert not (world["tmp"] / "bad" / ".done").exists()
 
 
@@ -477,7 +647,11 @@ def test_every_flag_is_named_and_explained():
 def test_the_excerpt_flags_of_alfa(exported):
     document = read_file(exported, "leyes", "alfa")
     flags = {u["e"]: u.get("f", []) for u in document["units"]}
-    assert flags["tit_PRIMERO__cap_I__p_content"] == ["loose"]
+    # A container's own opening text is an `intro` since md2akn 0.5.1 (rule 12,
+    # issue #291), not a `loose` excerpt; `loose` is what is left under the
+    # transitorios.
+    assert flags["tit_PRIMERO__cap_I__intro"] == []
+    assert flags["sec_transitorios__p_content"] == ["loose"]
     assert flags["tit_PRIMERO__cap_I__art_2"] == ["duplicate_number"]
     # A repeated number is also "not the previous number plus one".
     assert flags["tit_PRIMERO__cap_I__art_2_2"] == ["duplicate_number", "numbering_gap"]
@@ -487,6 +661,25 @@ def test_the_excerpt_flags_of_alfa(exported):
     counts = document["meta"]["flags"]
     assert counts == {"loose": 1, "duplicate_number": 2, "numbering_gap": 2,
                       "over_window": 1, "score": 6}
+
+
+def test_a_block_is_the_root_of_its_hierarchy_in_the_exported_tree(exported):
+    """Review fix-5 of #291: the toy treaty's resolution block prints its annex, chapters and
+    parts. The file's tree holds them in that order, inside the block, with no repeated
+    identifier -- the annex is not an empty node with its chapters as siblings, and a chapter's
+    `PARTE A` is its own."""
+    document = read_file(exported, "tratados", "700")
+    body = next(n for n in document["tree"]["c"] if n["t"] == "body")
+    resolution = next(n for n in body["c"] if n["e"] == "sec_RESOLUCIÓN_MSC.1(1)")
+    assert [(c["t"], c["e"]) for c in resolution["c"]] == [
+        ("intro", "sec_RESOLUCIÓN_MSC.1(1)__intro"),
+        ("attachment", "sec_RESOLUCIÓN_MSC.1(1)__att_attachment"),
+    ]
+    annex = resolution["c"][1]
+    assert [(c["t"], c["n"]) for c in annex["c"]] == [("chapter", "II-1"), ("chapter", "II-2")]
+    assert [[(p["t"], p["n"]) for p in c["c"] if p["t"] == "part"] for c in annex["c"]] == [
+        [("part", "A"), ("part", "B")], [("part", "A")]]
+    assert document["meta"]["flags"].get("duplicate_number", 0) == 0
 
 
 def test_the_instrument_flags(exported):
@@ -521,6 +714,44 @@ def test_an_uncovered_document_is_flagged(world, monkeypatch):
     assert manifest["flags"]["uncovered"] == {"instruments": 1, "count": 3}
 
 
+def test_an_introduction_and_a_table_are_nodes_with_their_own_excerpts(exported):
+    """md2akn 0.5.1's rules 12 and 13 (issues #291, #294): a container's opening text is an
+    `intro` node, a run of `| ... |` rows a `table` node, and a long table is cut into
+    pieces, one excerpt each, whose offsets still index the raw document."""
+    document = read_file(exported, "leyes", "alfa")
+    markdown = document["markdown"]
+
+    def nodes(node):
+        yield node
+        for child in node.get("c", []):
+            yield from nodes(child)
+
+    by_eid = {n["e"]: n for n in nodes(document["tree"])}
+    intro = by_eid["tit_PRIMERO__cap_I__intro"]
+    assert intro["t"] == "intro" and [c["t"] for c in intro["c"]] == ["content", "table"]
+    table = by_eid["tit_PRIMERO__cap_I__intro__table_1"]
+    assert table["t"] == "table" and table["n"] == "1"
+    # Offsets are UTF-16 code units (an astral character precedes the table).
+    text = js_slice(markdown, table["s"], table["l"])
+    assert text.startswith("| Concepto | Cuota |")
+    assert text.rstrip().endswith("| Dos \\| con barra | **2.5** |")
+
+    units = {(u["e"], u.get("p", 0)): u for u in document["units"]}
+    assert units[("tit_PRIMERO__cap_I__intro", 0)]["u"] == "intro"
+    assert units[("tit_PRIMERO__cap_I__intro__table_1", 0)]["u"] == "table"
+    # The small table is one piece; the long one is cut at row boundaries.
+    big = [u for u in document["units"] if u["e"] == "tit_PRIMERO__cap_II__intro__table_1"]
+    assert [u.get("p", 0) for u in big] == [1, 2] and {u["u"] for u in big} == {"table"}
+    first, second = big
+    assert first["l"] == second["s"]
+    assert js_slice(markdown, first["s"], first["l"]).startswith("| fila 01 |")
+    assert js_slice(markdown, second["s"], second["l"]).startswith("| fila ")
+    # An introduction and a table are searched, so they carry nearest texts; the
+    # flags that existed for loose text do not apply to them.
+    for unit in (units[("tit_PRIMERO__cap_I__intro", 0)], first, second):
+        assert unit["x"] is True and "near" in unit and "f" not in unit
+
+
 def test_the_numbering_helpers():
     assert [exporter.integer_number(n) for n in ("27", "1º", "1o.", "4 Bis", "I", "Primero", "2,3",
                                                   None)] == [27, 1, 1, None, None, None, None, None]
@@ -540,7 +771,7 @@ def test_the_index_and_its_totals(exported):
     assert meta["model_slug"] == SLUG and meta["md2akn_version"] == md2akn.__version__
     alfa = next(e for e in index["instruments"] if e["k"] == "alfa")
     assert alfa == {"c": "leyes", "k": "alfa", "n": "LEY ALFA", "archivo": "01-02-2020.md",
-                    "u": 10, "x": 6, "a": 5,
+                    "u": 16, "x": 10, "a": 5,
                     "f": {"loose": 1, "duplicate_number": 2, "numbering_gap": 2,
                           "over_window": 1}, "s": 6}
     assert meta["units"] == sum(e["u"] for e in index["instruments"])

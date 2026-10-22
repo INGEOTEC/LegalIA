@@ -417,7 +417,9 @@ def _scjn_a_cache(cod_nota, instrumento, cache_dir, refrescar):
     destino = cache.directorio_de_salida(cache_dir, *cache.SUBDIR_MD_SCJN) / f"{slug}-{archivo}"
     if destino.exists() and not refrescar:
         return destino
-    markdown = markdown_de_snapshot(slug, archivo, cache_dir=_cache_dir_scjn(cache_dir))
+    markdown = markdown_de_snapshot(
+        slug, archivo, cache_dir=_cache_dir_scjn(cache_dir), outline=False
+    )
     return cache.escribe_texto(destino, markdown)
 
 
