@@ -2,13 +2,15 @@
 
 [![Documentation Status](https://readthedocs.org/projects/legalia/badge/?version=latest)](https://legalia.readthedocs.io/en/latest/nota2md_api.html)
 
-> **Review fix-2 of #291 (found after the fact), no version change:** a
+> **v0.5.1 (unreleased; review fix-2 of #291):** a
 > snapshot `scjn` writes now carries the outline the SCJN's API states, one
 > `<!-- scjn:block ... -->` marker line before each block (`scjn.outline`). `nota2md`
 > reads the text, not the outline, so `legal_provisions`' SCJN path and the
 > `codNota` linking read the snapshot with the markers taken out
 > (`markdown_de_snapshot(..., outline=False)`, `scjn.outline.strip_markers`) and
-> return exactly what they always did.
+> return exactly what they always did. Both are new in `scjn` 0.5.1, so the
+> `scjn>=` floor is now `0.5.1`, and `scjn` 0.5.1 must reach PyPI before or
+> together with this release.
 >
 > **v0.5.0 (still unreleased) also makes `nota2md download all` mean *all*
 > five releases** (issues #225, #277): `international-treaties`, a third such

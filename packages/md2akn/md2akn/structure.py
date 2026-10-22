@@ -630,6 +630,7 @@ def _numero_de_articulo(texto: str | None, etiqueta: str, numero: str | None = N
     labels 915 and 916), and failing that the label, which is the one that is
     not repeated.
 
+    >>> from md2akn.structure import _numero_de_articulo
     >>> _numero_de_articulo("1o", "1")
     '1o'
     >>> _numero_de_articulo("82 BIS", "82")

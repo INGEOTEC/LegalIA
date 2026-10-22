@@ -30,8 +30,10 @@ dependencies = [
     "requests>=2.31",
     # The SCJN side of this project (transport, catalogue, crawl state,
     # provenance header) moved to its own package (issue #206/#207);
-    # nota2md depends on it, never the reverse.
-    "scjn>=0.5.0",
+    # nota2md depends on it, never the reverse. 0.5.1 is the floor because
+    # the SCJN path strips the outline markers with `scjn.outline` and
+    # `markdown_de_snapshot(..., outline=False)`, both new in 0.5.1 (#291).
+    "scjn>=0.5.1",
 ]
 dynamic = ['version']
 
