@@ -8,6 +8,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # The three network test files list this repository's releases through
+    # api.github.com, where an unauthenticated runner IP gets 60 requests an
+    # hour and a busy one runs out (pull request #298, `test (scjn, 3.12)`,
+    # `403 rate limit exceeded`). The packages send the token only when it is
+    # set -- see `_github_api_headers` in dofjson.titulos, legalvec.cache and
+    # scjn.release -- so this is a CI convenience, not a requirement.
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
@@ -43,6 +51,10 @@ jobs:
   # #195, Docs Phase 0).
   docs-doctest:
     runs-on: ubuntu-latest
+    # Same token as the `test` job: the download steps and the doctests list
+    # the releases through api.github.com.
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

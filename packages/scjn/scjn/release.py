@@ -23,6 +23,7 @@ that layer, keeping the dependency direction one-way (see `test_boundary.py`).
 import gzip
 import io
 import json
+import os
 import tarfile
 from collections.abc import Iterator
 from pathlib import Path
@@ -39,6 +40,34 @@ from scjn.state import ARCHIVO_ESTADO
 #: network this module does (the SCJN crawl itself lives in `scjn.api`, with
 #: its own headers).
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LegalIA-scjn/1.0)"}
+
+#: Environment variables a GitHub token is read from, the first one set wins
+#: -- `GH_TOKEN` before `GITHUB_TOKEN`, the `gh` CLI's own precedence.
+_TOKEN_VARIABLES = ("GH_TOKEN", "GITHUB_TOKEN")
+
+
+def _github_api_headers() -> dict:
+    """`_HEADERS` plus `Authorization: Bearer <token>` when `GH_TOKEN` or
+    `GITHUB_TOKEN` is set in the environment, for the one request this module
+    makes to the GitHub REST API (the release's asset listing).
+
+    Unauthenticated, GitHub allows 60 API requests an hour per IP address,
+    which a shared CI runner exhausts: pull request #298's `test (scjn, 3.12)`
+    cell failed with `403 rate limit exceeded` on this very lookup while the
+    3.10 and 3.11 cells of the same run passed. Authenticated with a runner's
+    own `GITHUB_TOKEN` the quota is per repository and three orders of
+    magnitude higher. Without a token nothing changes -- an installed package
+    never needs one -- and the asset downloads themselves go through
+    `github.com/<owner>/<repo>/releases/download/`, which is outside this
+    quota, so they keep the plain `_HEADERS`.
+    """
+    headers = dict(_HEADERS)
+    for variable in _TOKEN_VARIABLES:
+        token = os.environ.get(variable, "").strip()
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+            break
+    return headers
 
 #: GitHub's own cap on a release's asset count -- its 422 error text is
 #: "file_count limited to 1000 assets per release", hit publishing
@@ -208,7 +237,7 @@ def _assets_de_release(tag: str, timeout: int) -> dict[str, str] | None:
     rate limit (403) or an outage (5xx) is never mistaken for "no more
     parts" (issue #223)."""
     url = f"https://api.github.com/repos/INGEOTEC/LegalIA/releases/tags/{tag}"
-    response = requests.get(url, headers=_HEADERS, timeout=timeout)
+    response = requests.get(url, headers=_github_api_headers(), timeout=timeout)
     if response.status_code == 404:
         return None
     response.raise_for_status()

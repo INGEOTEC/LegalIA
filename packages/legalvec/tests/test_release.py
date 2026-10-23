@@ -9,10 +9,11 @@ way `packages/scjn/tests/test_release.py` does for the corpus releases.
 """
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pyarrow as pa
@@ -249,6 +250,49 @@ class TestSerieDePartes(unittest.TestCase):
                 cache.assets_of_series("scjn-leyes-vectors")
 
         self.assertIn("no se han publicado", str(ctx.exception))
+
+
+class TestTokenDeGitHub(unittest.TestCase):
+    """`_assets_of_release` is the one request against api.github.com, where
+    an unauthenticated IP gets 60 requests an hour: a token in the
+    environment (`GH_TOKEN`, else `GITHUB_TOKEN`) authenticates it, and
+    without one the headers are exactly `_HEADERS` -- an installed package
+    never needs a token."""
+
+    def _get(self):
+        respuesta = Mock(status_code=200)
+        respuesta.json.return_value = {"assets": []}
+        return patch("legalvec.cache.requests.get", return_value=respuesta)
+
+    def test_con_token_manda_bearer(self):
+        with self._get() as mock_get, \
+                patch.dict(os.environ, {"GH_TOKEN": "", "GITHUB_TOKEN": "secreto"}):
+            cache._assets_of_release("scjn-leyes-vectors", 30)
+        headers = mock_get.call_args.kwargs["headers"]
+        self.assertEqual(headers["Authorization"], "Bearer secreto")
+        self.assertEqual({k: v for k, v in headers.items() if k != "Authorization"},
+                         cache._HEADERS)
+
+    def test_gh_token_gana_sobre_github_token(self):
+        with self._get() as mock_get, \
+                patch.dict(os.environ, {"GH_TOKEN": "gh", "GITHUB_TOKEN": "github"}):
+            cache._assets_of_release("scjn-leyes-vectors", 30)
+        self.assertEqual(mock_get.call_args.kwargs["headers"]["Authorization"], "Bearer gh")
+
+    def test_sin_token_no_manda_authorization(self):
+        with self._get() as mock_get, \
+                patch.dict(os.environ, {"GH_TOKEN": "", "GITHUB_TOKEN": " "}):
+            cache._assets_of_release("scjn-leyes-vectors", 30)
+        self.assertEqual(mock_get.call_args.kwargs["headers"], cache._HEADERS)
+
+    def test_la_descarga_de_un_asset_no_lleva_el_token(self):
+        # browser_download_url lives outside the API quota and redirects to
+        # another host; it keeps the plain headers, token or not.
+        respuesta = Mock(content=b"x")
+        with patch("legalvec.cache.requests.get", return_value=respuesta) as mock_get, \
+                patch.dict(os.environ, {"GH_TOKEN": "gh"}):
+            cache.download("https://github.com/INGEOTEC/LegalIA/releases/download/t/a", 30)
+        self.assertEqual(mock_get.call_args.kwargs["headers"], cache._HEADERS)
 
 
 class TestCacheDir(unittest.TestCase):

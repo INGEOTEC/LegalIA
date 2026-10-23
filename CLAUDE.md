@@ -1949,8 +1949,14 @@ section bolted onto `website/`.
 
 Three test files make real network calls and are excluded from routine runs
 (CI's `test.yml` does include them by default — check before assuming a
-failure there is unrelated). Since issue #209 moved the `scjn-leyes` release
-readers into the `scjn` package, two of the three now live there:
+failure there is unrelated). Their GitHub API calls carry the runner's token
+when `GH_TOKEN` is set (`test.yml` sets it on the `test` and `docs-doctest`
+jobs; `_github_api_headers` in `dofjson.titulos`, `legalvec.cache` and
+`scjn.release` adds the header only then): unauthenticated, a shared runner
+IP's 60 requests an hour ran out on pull request #298 and one matrix cell
+failed with `403 rate limit exceeded` while the other two passed. Since issue
+#209 moved the `scjn-leyes` release readers into the `scjn` package, two of
+the three now live there:
 
 ```bash
 pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py
