@@ -1,14 +1,17 @@
-/* The Instruments page (issue #290): every instrument of the Atlas, read the way
-   md2akn segmented it. One IIFE, no library, no build step; it reads only the
-   `data-*` attributes of its mount (the index, the folder of per-instrument files,
-   the repository to report problems to). The files are the ones
-   scripts/embeddings/export_instrument_files.py writes (issue #289): the raw
-   document once, md2akn's tree and its excerpts as UTF-16 offsets into it, parse
-   flags and, on every compared excerpt, its nearest texts.
+/* The Instruments page (issues #290, #297): every instrument of the Atlas, read one
+   by one at the text its map was built from. One IIFE, no library, no build step; it
+   reads only the `data-*` attributes of its mount (the index and the folder of
+   per-instrument files). The mount also carries `data-repo`, which this script no
+   longer uses: the page once linked each node to a prefilled report (issue #290's review
+   apparatus, removed in issue #297; see git history at 0f8b5d6) and the attribute stays
+   in the mount block because the block is pinned verbatim by the tests. The files are the
+   ones scripts/embeddings/export_instrument_files.py writes (issue #289): the raw
+   document once, md2akn's tree and its excerpts as UTF-16 offsets into it and, on every
+   compared excerpt, its nearest texts. Their parse flags are in the data and are not
+   shown.
 
-   The Atlas' combobox and segmented control are rebuilt here on purpose, not
-   shared: both pages are build-less scripts and a shared one would couple the
-   Atlas' pinned script tags to this page. */
+   The Atlas' combobox is rebuilt here on purpose, not shared: both pages are build-less
+   scripts and a shared one would couple the Atlas' pinned script tags to this page. */
 (function () {
   "use strict";
 
@@ -20,7 +23,7 @@
     lineamientos: { color: "#e87ba4", one: "Guideline", many: "guidelines" },
     tratados: { color: "#eda100", one: "Treaty", many: "treaties" },
   };
-  // md2akn's Akoma Ntoso vocabulary and the Mexican term for each type.
+  // The Mexican term for each node type of md2akn's tree; it names the outline's entries.
   const TERMS = {
     act: "instrumento",
     preamble: "preámbulo",
@@ -53,24 +56,6 @@
     "#division": "Division",
   };
   const CONTAINERS = new Set(["book", "title", "chapter", "section", "level", "part", "attachment", "hcontainer"]);
-  const FLAG_ORDER = [
-    "loose",
-    "duplicate_number",
-    "numbering_gap",
-    "over_window",
-    "no_articles",
-    "uncovered",
-    "no_transitorios",
-  ];
-  const FLAG_LABELS = {
-    loose: "Loose",
-    duplicate_number: "Repeated number",
-    numbering_gap: "Number gap",
-    over_window: "Over window",
-    no_articles: "No articles",
-    uncovered: "Uncovered",
-    no_transitorios: "No transitory section",
-  };
   const SUGGESTIONS = 8;
   const PAGE_SIZE = 50;
   const BATCH = 300;
@@ -82,7 +67,6 @@
 
   const INDEX_URL = new URL(mount.dataset.index || "instruments/instruments.json", document.baseURI);
   const FILES_URL = new URL(mount.dataset.files || "instruments/files/", document.baseURI);
-  const REPO = (mount.dataset.repo || "https://github.com/INGEOTEC/LegalIA").replace(/\/+$/, "");
 
   // Accents and case never decide a match: "constitucion" finds "CONSTITUCIÓN".
   function fold(text) {
@@ -112,46 +96,31 @@
     });
   }
 
-  // A segmented control: one `role="radiogroup"` of `role="radio"` buttons with a
-  // roving tabindex and arrow-key handling (the Atlas' pattern).
-  function radiogroup({ labelId, options, checked, onSelect }) {
-    const node = element("div", {
-      className: "instruments-segmented",
-      role: "radiogroup",
-      "aria-labelledby": labelId,
-    });
-    const buttons = options.map(({ value, text }) =>
-      element("button", {
-        type: "button",
-        role: "radio",
-        className: "instruments-segment",
-        "data-value": value,
-        "aria-checked": String(value === checked),
-        tabindex: value === checked ? "0" : "-1",
-        text,
-      })
-    );
-    node.append(...buttons);
-    buttons.forEach((button, n) => {
-      button.addEventListener("click", () => onSelect(button.dataset.value));
-      button.addEventListener("keydown", (event) => {
-        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
-        if (!step) return;
-        event.preventDefault();
-        const next = buttons[(n + step + buttons.length) % buttons.length];
-        next.focus();
-        onSelect(next.dataset.value);
-      });
-    });
+  // The SCJN's outline marker lines (`<!-- scjn:block orden=4 numero=0 kind=other
+  // label="..." -->`, one before each API block) are metadata for md2akn and never text for
+  // a reader. This expression is a copy of `scjn.outline.MARKER` on purpose: the page is
+  // build-less and reads the files as published, so a change to the marker grammar is a
+  // change here too. A line that is a marker goes, and the line break after it. It is
+  // display only: the `s`/`l` offsets and `data-start`/`data-end` are never adjusted.
+  const MARKER_LINE = /^<!-- scjn:block .*? -->[ \t]*$(?:\r?\n)?/gm;
+
+  function stripMarkers(text) {
+    return String(text || "").replace(MARKER_LINE, "");
+  }
+
+  const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August",
+    "September", "October", "November", "December"];
+
+  // `14-11-2025` or `14-11-2025.md` -> { time, text: "14 November 2025" }; anything else is
+  // shown as written and sorts first.
+  function readDate(value) {
+    const found = /^(\d{2})-(\d{2})-(\d{4})/.exec(String(value || ""));
+    if (!found) return { time: 0, text: String(value || "") };
+    const [, day, month, year] = found;
+    const name = MONTHS[Number(month) - 1];
     return {
-      node,
-      check(value) {
-        buttons.forEach((button) => {
-          const on = button.dataset.value === value;
-          button.setAttribute("aria-checked", String(on));
-          button.tabIndex = on ? 0 : -1;
-        });
-      },
+      time: Date.UTC(Number(year), Number(month) - 1, Number(day)),
+      text: name ? `${Number(day)} ${name} ${year}` : String(value),
     };
   }
 
@@ -172,7 +141,7 @@
 
   function renderText(text) {
     const fragment = document.createDocumentFragment();
-    String(text || "")
+    stripMarkers(text)
       .split(/\n\s*\n/)
       .forEach((paragraph) => {
         if (!paragraph.trim()) return;
@@ -191,7 +160,8 @@
     let from = 0;
     const push = (end) => {
       const raw = text.slice(from, end);
-      const body = raw.trim();
+      // A block that is only a marker line is nothing to draw.
+      const body = stripMarkers(raw).trim();
       if (body) blocks.push({ s: node.s + from + (raw.length - raw.trimStart().length), text: body });
     };
     let match;
@@ -256,7 +226,7 @@
     ]);
   }
 
-  // The `<tr>` of one table row, bold kept; `width` cells at most are drawn as written.
+  // The `<tr>` of one table row, bold kept.
   function rowElement(cells) {
     const tr = element("tr", { className: "instruments-table-row" });
     cells.forEach((cell) => tr.append(appendInline(element("td"), cell)));
@@ -266,7 +236,7 @@
   // A table inside an article is not a node of md2akn's tree (the article is one
   // excerpt, whatever it holds): each of its rows is a `content` leaf of the article.
   // The page draws the run of such leaves as one HTML table, for display only -- the
-  // excerpt, its Raw text and the nearest texts are the article's, unchanged.
+  // excerpt and its nearest texts are the article's, unchanged.
   function appendRowTo(host, node, text) {
     let group = host.lastElementChild;
     if (!group || !group.classList.contains("instruments-table-group")) {
@@ -303,7 +273,7 @@
       const num = last.slice(4).split("_").join(" ");
       label = transitory ? `Transitory article ${num}` : `Article ${num}`;
     } else if (last.startsWith("p_")) label = transitory ? "Transitory text" : "Loose text";
-    else label = last;
+    else label = "Text";
     return piece ? `${label}, part ${piece}` : label;
   }
 
@@ -323,6 +293,7 @@
       n: d.n,
       folded: fold(d.n),
       foldedKey: fold(String(d.k)),
+      date: readDate(d.archivo),
     }));
     for (const item of items) {
       if (!COLLECTIONS[item.c]) {
@@ -330,7 +301,6 @@
       }
     }
     const byKey = new Map(items.map((item) => [`${item.c}/${item.k}`, item]));
-    const flagMeanings = meta.flag_meanings || {};
     const files = new Map();
 
     mount.replaceChildren();
@@ -379,19 +349,12 @@
     // -- the landing view: the corpus table ------------------------------------ //
     const COLUMNS = [
       { key: "n", label: "Instrument", text: true },
-      { key: "u", label: "Excerpts" },
-      { key: "x", label: "Compared" },
+      { key: "c", label: "Collection", text: true },
+      { key: "t", label: "Text as of" },
       { key: "a", label: "Articles" },
-      ...FLAG_ORDER.map((flag) => ({
-        key: flag,
-        label: FLAG_LABELS[flag],
-        title: flagMeanings[flag] || "",
-        flag,
-      })),
-      { key: "s", label: "Score", title: "Flagged excerpts, plus one for each of no articles and uncovered" },
     ];
-    let sortKey = "s";
-    let sortDirection = -1;
+    let sortKey = "n";
+    let sortDirection = 1;
     let filter = null;
     let shown = PAGE_SIZE;
 
@@ -417,17 +380,14 @@
     filters.append(...filterButtons);
     const caption = element("p", {
       className: "instruments-caption",
-      text:
-        `${number(meta.instruments)} instruments, ${number(meta.units)} excerpts, ` +
-        `${number(meta.searched)} of them compared with the rest of the corpus. ` +
-        "Click a column to sort; a name opens the instrument.",
+      text: `${number(meta.instruments)} instruments. Click a column to sort; a name opens the instrument.`,
     });
     const head = element("tr");
     const headerButtons = COLUMNS.map((column) => {
       const button = element("button", { type: "button", className: "instruments-sort", text: column.label });
-      if (column.title) button.setAttribute("title", column.title);
       const cell = element("th", { scope: "col", "data-key": column.key, "aria-sort": "none" }, [button]);
       if (!column.text) cell.className = "instruments-number";
+      else if (column.key === "c") cell.className = "instruments-kind";
       button.addEventListener("click", () => {
         if (sortKey === column.key) sortDirection = -sortDirection;
         else {
@@ -455,8 +415,8 @@
 
     function valueOf(item, key) {
       if (key === "n") return item.n;
-      if (key === "s") return item.d.s;
-      if (FLAG_ORDER.includes(key)) return item.d.f[key] || 0;
+      if (key === "c") return COLLECTIONS[item.c].one;
+      if (key === "t") return item.date.time;
       return item.d[key];
     }
 
@@ -467,7 +427,7 @@
         const y = valueOf(b, sortKey);
         const order =
           typeof x === "string" ? x.localeCompare(y) * sortDirection : (x - y) * sortDirection;
-        return order || b.d.s - a.d.s || a.i - b.i;
+        return order || a.i - b.i;
       });
       headerButtons.forEach((cell) =>
         cell.setAttribute(
@@ -481,16 +441,9 @@
         open.addEventListener("click", () => openInstrument(item.c, item.k, { push: true }));
         const row = element("tr", { "data-collection": item.c, "data-key": item.k }, [
           element("td", { className: "instruments-name" }, [dot(item.c), open]),
-          element("td", { className: "instruments-number", text: number(item.d.u) }),
-          element("td", { className: "instruments-number", text: number(item.d.x) }),
+          element("td", { className: "instruments-kind", text: COLLECTIONS[item.c].one }),
+          element("td", { className: "instruments-number", text: item.date.text }),
           element("td", { className: "instruments-number", text: number(item.d.a) }),
-          ...FLAG_ORDER.map((flag) =>
-            element("td", {
-              className: "instruments-number",
-              text: item.d.f[flag] ? number(item.d.f[flag]) : "",
-            })
-          ),
-          element("td", { className: "instruments-number instruments-score", text: number(item.d.s) }),
         ]);
         body.append(row);
       });
@@ -524,7 +477,7 @@
         const rank = item.folded.startsWith(folded) || item.foldedKey === folded ? 0 : inName ? 1 : 2;
         found.push({ item, rank });
       }
-      found.sort((a, b) => a.rank - b.rank || b.item.d.u - a.item.d.u || a.item.i - b.item.i);
+      found.sort((a, b) => a.rank - b.rank || b.item.d.a - a.item.d.a || a.item.i - b.item.i);
       return found.slice(0, SUGGESTIONS).map((entry) => entry.item);
     }
 
@@ -652,40 +605,6 @@
     let current = null; // the instrument on screen: { item, doc, ... }
     let opening = 0; // which request the view is waiting for
 
-    function reportUrl(doc, eId) {
-      const m = doc.meta;
-      const page =
-        `${location.origin}${location.pathname}?c=${encodeURIComponent(m.c)}` +
-        `&k=${encodeURIComponent(m.k)}${eId ? `#${encodeURIComponent(eId)}` : ""}`;
-      const title = `md2akn: ${m.k} ${m.archivo}${eId ? ` ${eId}` : ""}`;
-      const lines = [
-        `Collection: ${m.c}`,
-        `Key: ${m.k}`,
-        `Name: ${m.n}`,
-        `Snapshot: ${m.archivo}`,
-        `md2akn version: ${m.md2akn_version}`,
-      ];
-      if (eId) lines.push(`Excerpt or node: ${eId}`);
-      lines.push(`Page: ${page}`, "", "What is wrong:", "");
-      return `${REPO}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(lines.join("\n"))}`;
-    }
-
-    function reportLink(doc, eId) {
-      return element(
-        "a",
-        {
-          className: "instruments-report",
-          href: reportUrl(doc, eId),
-          title: "Report a parsing problem",
-          "aria-label": "Report a parsing problem",
-          target: "_blank",
-          rel: "noopener",
-          text: "!",
-        },
-        []
-      );
-    }
-
     function url(c, k, hash) {
       const base = `${location.pathname}?c=${encodeURIComponent(c)}&k=${encodeURIComponent(k)}`;
       return hash ? `${base}#${encodeURIComponent(hash)}` : base;
@@ -762,7 +681,6 @@
       const unitsByExcerpt = new Map();
       const unitsByEid = new Map();
       const tableUnits = new Map(); // a table node's eId -> its excerpts, one per piece
-      const flagged = new Map();
       for (const unit of doc.units) {
         unitsByExcerpt.set(excerptId(unit), unit);
         if (unit.u === "table") {
@@ -772,14 +690,10 @@
         // A heading and the text under it share an eId when a container carries
         // both; the first excerpt of a node (piece 0) is the one the node shows.
         if (!unitsByEid.has(unit.e)) unitsByEid.set(unit.e, unit);
-        for (const flag of unit.f || []) {
-          if (!flagged.has(flag)) flagged.set(flag, []);
-          flagged.get(flag).push(excerptId(unit));
-        }
       }
       const excerptEls = new Map(); // excerpt id -> the element to scroll to
       const nodeEls = new Map(); // eId -> the node element
-      const state = { excerptEls, nodeEls, done: false, flagged };
+      const state = { excerptEls, nodeEls, done: false };
 
       // -- header ----------------------------------------------------------------- //
       const info = COLLECTIONS[m.c];
@@ -789,6 +703,7 @@
           : ["SCJN id", m.k];
       const back = element("button", { type: "button", className: "instruments-back", text: "← All instruments" });
       back.addEventListener("click", backToTable);
+      const when = readDate(m.fecha_publicacion);
       const header = element("header", { className: "instruments-head" }, [
         back,
         element("div", { className: "instruments-head-line" }, [
@@ -796,84 +711,14 @@
             "span",
             { className: "instruments-collection", style: `background:${info.color}`, text: info.one }
           ),
-          reportLink(doc, ""),
         ]),
         element("h2", { className: "instruments-title", text: m.n }),
         element("p", { className: "instruments-facts" }, [
           `${identifier[0]} `,
           element("strong", { text: m.k }),
-          ` · snapshot ${m.fecha_publicacion} (`,
-          element("code", { text: m.archivo }),
-          `) · md2akn ${m.md2akn_version} · ${number(m.units)} excerpts, ${number(m.searched)} compared`,
+          ` · text as of ${when.text} · ${number(item.d.a)} articles`,
         ]),
       ]);
-
-      // -- summary of the parse ---------------------------------------------------- //
-      const summary = element("div", { className: "instruments-summary" });
-      summary.append(
-        element("p", {
-          className: "instruments-numbering",
-          text:
-            `Numbering: ${m.numbering.mode}` +
-            (m.numbering.roman_articles ? `, ${number(m.numbering.roman_articles)} roman-numbered articles` : ""),
-        })
-      );
-      const flagList = element("ul", { className: "instruments-flags" });
-      for (const flag of FLAG_ORDER) {
-        const count = (m.flags && m.flags[flag]) || 0;
-        const li = element("li", { className: "instruments-flag-row", "data-flag": flag });
-        const label = element("span", { className: "instruments-flag-name", text: FLAG_LABELS[flag], title: flagMeanings[flag] || "" });
-        li.append(label);
-        const targets = flagged.get(flag) || [];
-        if (!count) {
-          li.append(element("span", { className: "instruments-flag-none", text: "none" }));
-        } else if (targets.length) {
-          let at = -1;
-          const button = element("button", {
-            type: "button",
-            className: "instruments-flag-button",
-            title: `Go to the first excerpt with this flag; click again for the next`,
-            text: `${number(count)}`,
-          });
-          const position = element("span", { className: "instruments-flag-position" });
-          button.addEventListener("click", () => {
-            at = (at + 1) % targets.length;
-            position.textContent = `${at + 1} of ${targets.length}`;
-            jumpToExcerpt(targets[at]);
-          });
-          li.append(button, position);
-        } else if (flag === "uncovered") {
-          const button = element("button", {
-            type: "button",
-            className: "instruments-flag-button",
-            title: "Show the raw document at the first uncovered characters",
-            text: `${number(count)} characters`,
-          });
-          button.addEventListener("click", () => {
-            setMode("raw");
-            const first = rawEl.querySelector(".instruments-uncovered");
-            if (first) first.scrollIntoView({ block: "center" });
-          });
-          li.append(button);
-        } else {
-          li.append(element("span", { className: "instruments-flag-yes", text: "yes" }));
-        }
-        flagList.append(li);
-      }
-      summary.append(flagList);
-
-      // -- the mode control ----------------------------------------------------------- //
-      const modeLabel = element("span", { id: "instruments-mode-label", className: "instruments-control-label", text: "Show" });
-      const mode = radiogroup({
-        labelId: "instruments-mode-label",
-        options: [
-          { value: "parsed", text: "Parsed" },
-          { value: "raw", text: "Raw" },
-        ],
-        checked: "parsed",
-        onSelect: (value) => setMode(value),
-      });
-      const modeBox = element("div", { className: "instruments-mode" }, [modeLabel, mode.node]);
 
       // -- the outline and the document ------------------------------------------------ //
       const outlineList = element("ul", { className: "instruments-outline-list" });
@@ -893,24 +738,9 @@
         outlineToggle.setAttribute("aria-expanded", String(open));
       });
       const documentEl = element("div", { className: "instruments-document", "data-rendered": "false" });
-      const rawEl = element("pre", { className: "instruments-rawdoc", hidden: "" });
-      const reading = element("div", { className: "instruments-reading" }, [documentEl, rawEl]);
+      const reading = element("div", { className: "instruments-reading" }, [documentEl]);
       const layout = element("div", { className: "instruments-layout" }, [outline, reading]);
-      view.append(header, summary, modeBox, layout);
-
-      let rawBuilt = false;
-      function setMode(value) {
-        mode.check(value);
-        const raw = value === "raw";
-        documentEl.hidden = raw;
-        rawEl.hidden = !raw;
-        view.dataset.mode = value;
-        if (raw && !rawBuilt) {
-          rawBuilt = true;
-          rawEl.append(buildRaw(doc));
-        }
-      }
-      setMode("parsed");
+      view.append(header, layout);
 
       // the outline
       function outlineLabel(node) {
@@ -944,24 +774,19 @@
         }
         const li = element("li", { className: "instruments-outline-item", "data-type": node.t });
         const go = element("button", { type: "button", className: "instruments-outline-link" });
-        const unit = unitsByEid.get(node.e);
         if (node.t === "article" || node.t === "intro" || node.t === "table") {
-          go.textContent = node.t !== "article" ? outlineLabel(node) : node.n ? `Art. ${node.n}` : node.e;
-          if (unit && unit.x) go.prepend(element("span", { className: "instruments-compared", title: "Compared excerpt", "aria-hidden": "true" }));
-          if (unit && unit.f && unit.f.length) {
-            go.append(element("span", { className: "instruments-mark", title: unit.f.map((f) => FLAG_LABELS[f] || f).join(", "), text: "⚑" }));
-          }
+          go.textContent = node.t !== "article" ? outlineLabel(node) : node.n ? `Art. ${node.n}` : "Article";
         } else {
           go.textContent = outlineLabel(node);
         }
-        go.setAttribute("title", node.h ? `${outlineLabel(node)} — ${node.h}` : node.e);
+        go.setAttribute("title", node.h ? `${outlineLabel(node)} — ${node.h}` : outlineLabel(node));
         go.addEventListener("click", () => {
           goTo(node.e);
           outline.dataset.open = "false";
           outlineToggle.setAttribute("aria-expanded", "false");
         });
         li.append(go);
-        const children = (node.c || []).filter(() => true);
+        const children = node.c || [];
         if (CONTAINERS.has(node.t)) {
           const inner = element("ul", { className: "instruments-outline-list" });
           for (const child of children) addOutline(inner, child, depth + 1);
@@ -1013,17 +838,6 @@
         return markdown.slice(node.s, first === null ? node.l : Math.max(node.s, first));
       }
 
-      function tagFor(unit) {
-        const tags = [element("span", { className: "instruments-tag", text: unit.u })];
-        if (unit.p) tags.push(element("span", { className: "instruments-tag", text: `part ${unit.p}` }));
-        for (const flag of unit.f || []) {
-          tags.push(
-            element("span", { className: "instruments-flag-tag", "data-flag": flag, title: flagMeanings[flag] || "", text: FLAG_LABELS[flag] || flag })
-          );
-        }
-        return tags;
-      }
-
       function nearDisclosure(unit) {
         const near = unit.near || [];
         const details = element("details", { className: "instruments-near" }, [
@@ -1044,7 +858,7 @@
                   href: nearHref(target.c, target.k, targetEid, targetPiece),
                   "data-target-key": target.k,
                   "data-target-eid": targetPiece ? `${targetEid}.${targetPiece}` : targetEid,
-                  title: targetEid,
+                  title: excerptLabel(targetEid, targetPiece),
                 },
                 [dot(target.c), element("span", { text: `${target.n} — ${excerptLabel(targetEid, targetPiece)}` })]
               );
@@ -1069,6 +883,42 @@
         return details;
       }
 
+      // A container's own first line is a heading: `<h3>` for a child of the instrument, one
+      // level deeper per container above it, `<h6>` at most. `**bold**` is kept, a line
+      // break between lines of the heading is a line break, nothing else is read.
+      function headingFor(text, level) {
+        const heading = element("h" + String(level), { className: "instruments-heading" });
+        text
+          .split(/\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .forEach((line, n) => {
+            if (n) heading.append(element("br"));
+            appendInline(heading, line);
+          });
+        return heading;
+      }
+
+      const depthOf = new Map(); // a node -> how many containers hold it
+      function containerDepth(node, parentNode) {
+        const depth = parentNode === null ? 0 : (depthOf.get(parentNode) || 0) + (CONTAINERS.has(parentNode.t) ? 1 : 0);
+        depthOf.set(node, depth);
+        return depth;
+      }
+
+      // An excerpt: the text the Atlas holds one vector for. A compared one is marked and
+      // lists its nearest texts; any other is only addressable (`#<eId>` scrolls to it).
+      function excerptWrap(unit, content) {
+        const wrap = element("div", { className: "instruments-excerpt", "data-excerpt": excerptId(unit) });
+        wrap.append(content);
+        if (unit.x) {
+          wrap.dataset.compared = "true";
+          wrap.append(nearDisclosure(unit));
+        }
+        excerptEls.set(excerptId(unit), wrap);
+        return wrap;
+      }
+
       function makeNode(node, parentNode) {
         const el = element("section", {
           className: `instruments-node instruments-type-${node.t}`,
@@ -1077,32 +927,14 @@
           "data-start": String(node.s),
           "data-end": String(node.l),
         });
-        const term = node.t === "attachment" && ATTACHMENT_NAMES[node.r] ? ATTACHMENT_NAMES[node.r].toLowerCase() : TERMS[node.t] || node.t;
-        const badge = element("span", {
-          className: "instruments-badge",
-          title: node.r === "#transitorios" ? `${term} — transitorios` : `${term}`,
-          text: [node.t, node.e, node.n].filter((part) => part !== undefined && part !== "").join(" · "),
-        });
-        const raw = element("button", { type: "button", className: "instruments-raw-toggle", "aria-expanded": "false", text: "Raw" });
-        const nodeHead = element("div", { className: "instruments-node-head" }, [badge, raw, reportLink(doc, node.e)]);
-        el.append(nodeHead);
-        let rawPre = null;
-        raw.addEventListener("click", () => {
-          if (!rawPre) {
-            rawPre = element("pre", { className: "instruments-raw-text", text: markdown.slice(node.s, node.l) });
-            nodeHead.after(rawPre);
-          } else {
-            rawPre.hidden = !rawPre.hidden;
-          }
-          raw.setAttribute("aria-expanded", String(!rawPre.hidden));
-        });
+        const depth = containerDepth(node, parentNode);
         // Where this node's element goes: the document, or its parent's children.
         const place = (attach) => {
           if (parentNode === null) documentEl.append(attach);
           else kidsOf.get(parentNode).append(attach);
         };
         if (node.t === "table") {
-          // Parsed mode draws a table as an HTML table, one per excerpt (a long table is cut
+          // A table node is drawn as an HTML table, one per excerpt (a long table is cut
           // at row boundaries into pieces, each its own excerpt and its own address).
           el.append(tableBody(node));
           nodeEls.set(node.e, el);
@@ -1111,41 +943,34 @@
         }
         if (node.t === "content" && !(node.c && node.c.length)) {
           // A row of a table printed inside an article joins the table the row before it opened.
-          const body = nodeText(node).trim();
+          const body = stripMarkers(nodeText(node)).trim();
           const host = parentNode === null ? documentEl : kidsOf.get(parentNode);
           if (host && IS_ROW.test(body)) {
             nodeEls.set(node.e, appendRowTo(host, node, body));
             return;
           }
         }
-        const text = nodeText(node);
+        const unit = unitsByEid.get(node.e);
+        let text = stripMarkers(nodeText(node));
+        if (unit && unit.u === "heading") {
+          // The heading unit is the container's own first line, not the container; whatever
+          // the node holds after it is ordinary text.
+          const own = stripMarkers(markdown.slice(unit.s, unit.l));
+          const at = text.indexOf(own.trim());
+          const level = Math.min(6, 3 + depth);
+          const heading = headingFor(own, level);
+          el.append(heading);
+          excerptEls.set(excerptId(unit), heading);
+          if (at >= 0) text = text.slice(at + own.trim().length);
+        }
         if (text.trim()) el.append(element("div", { className: "instruments-text" }, [renderText(text)]));
-        let kids = null;
         if (node.c && node.c.length) {
-          kids = element("div", { className: "instruments-children" });
+          const kids = element("div", { className: "instruments-children" });
           el.append(kids);
           kidsOf.set(node, kids);
         }
         nodeEls.set(node.e, el);
-
-        const unit = unitsByEid.get(node.e);
-        let attach = el;
-        if (unit && unit.u === "heading") {
-          // A heading is the container's own first line, not the container.
-          nodeHead.append(...tagFor(unit));
-          excerptEls.set(excerptId(unit), nodeHead);
-        } else if (unit) {
-          const wrap = element("div", {
-            className: "instruments-excerpt",
-            "data-unit-type": unit.u,
-            "data-excerpt": excerptId(unit),
-          });
-          wrap.append(element("div", { className: "instruments-excerpt-bar" }, tagFor(unit)), el);
-          if (unit.x) wrap.append(nearDisclosure(unit));
-          excerptEls.set(excerptId(unit), wrap);
-          attach = wrap;
-        }
-        place(attach);
+        place(unit && unit.u !== "heading" ? excerptWrap(unit, el) : el);
       }
 
       function tableBody(node) {
@@ -1164,15 +989,7 @@
             body.append(table);
             continue;
           }
-          const wrap = element("div", {
-            className: "instruments-excerpt",
-            "data-unit-type": unit.u,
-            "data-excerpt": excerptId(unit),
-          });
-          wrap.append(element("div", { className: "instruments-excerpt-bar" }, tagFor(unit)), table);
-          if (unit.x) wrap.append(nearDisclosure(unit));
-          excerptEls.set(excerptId(unit), wrap);
-          body.append(wrap);
+          body.append(excerptWrap(unit, table));
         }
         return body;
       }
@@ -1200,82 +1017,19 @@
       function mark(el) {
         view.querySelectorAll(".instruments-target").forEach((other) => other.classList.remove("instruments-target"));
         el.classList.add("instruments-target");
-        el.scrollIntoView({ block: "center" });
+        // The start of the target goes to the top of the viewport. Centring it (the review
+        // page's choice, where the target was a badge) leaves the middle of an article taller
+        // than the screen in view and the reader cannot tell where it begins (review fix-1 of #297).
+        el.scrollIntoView({ block: "start" });
       }
       state.mark = mark;
-      function jumpToExcerpt(id) {
-        state.finish();
-        setMode("parsed");
-        const el = excerptEls.get(id) || excerptEls.get(id.replace(/\.\d+$/, ""));
-        if (el) mark(el);
-      }
       function goTo(eId) {
         state.finish();
-        setMode("parsed");
         const el = nodeEls.get(eId);
         if (el) mark(el);
       }
-      state.jumpToExcerpt = jumpToExcerpt;
       state.goTo = goTo;
       return state;
-    }
-
-    // -- the whole document, raw ---------------------------------------------------------- //
-    function buildRaw(doc) {
-      const markdown = doc.markdown;
-      const fragment = document.createDocumentFragment();
-      const raws = [];
-      (function collect(node) {
-        for (const note of node.a || []) raws.push(note.raw);
-        for (const child of node.c || []) collect(child);
-      })(doc.tree);
-      const ranges = doc.units
-        .map((unit) => ({ s: unit.s, l: unit.l, unit }))
-        .sort((a, b) => a.s - b.s || a.l - b.l);
-
-      function gap(text) {
-        if (!text) return;
-        if (!text.trim()) {
-          fragment.append(text);
-          return;
-        }
-        let rest = text;
-        for (const raw of raws) rest = rest.split(raw).join("");
-        fragment.append(
-          element("span", {
-            className: rest.trim() ? "instruments-uncovered" : "instruments-annotation",
-            title: rest.trim() ? "Not in any excerpt" : "A reform annotation",
-            text,
-          })
-        );
-      }
-
-      let position = 0;
-      const front = doc.tree.s || 0;
-      if (front > 0) {
-        fragment.append(element("span", { className: "instruments-frontmatter", text: markdown.slice(0, front) }));
-        position = front;
-      }
-      for (const range of ranges) {
-        if (range.s > position) gap(markdown.slice(position, range.s));
-        const start = Math.max(range.s, position);
-        if (range.l > start) {
-          const id = excerptId(range.unit);
-          fragment.append(
-            element("span", {
-              className: "instruments-range",
-              "data-unit-type": range.unit.u,
-              "data-excerpt": id,
-              "data-label": id,
-              title: id,
-              text: markdown.slice(start, range.l),
-            })
-          );
-          position = range.l;
-        }
-      }
-      gap(markdown.slice(position));
-      return fragment;
     }
 
     // -- the address ---------------------------------------------------------------------- //

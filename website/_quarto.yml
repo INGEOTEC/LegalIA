@@ -14,11 +14,10 @@ project:
   #
   # The Instruments page (issue #290) is the same kind of page: its index, JS and CSS
   # are copied from pages/instruments/. The per-instrument files under files/ are
-  # not in the tree: website.yml unpacks the `atlas-instruments` release there. It has
-  # no navbar entry by decision of the repository owner on 2026-10-13 (review fix-1,
-  # while the page is used to find parse errors): the end of the Atlas page links to it,
-  # and it still renders and is searchable. Restoring the entry means putting
-  # `pages/instruments.qmd` / `Instruments` right after Atlas in the navbar.
+  # not in the tree: website.yml unpacks the `atlas-instruments` release there. It is in
+  # the navbar right after Atlas since 2026-10-22 (issue #297, decision of the repository
+  # owner): the page had served its purpose as a review tool for the parse and became a
+  # reading page. The Atlas page's last paragraph links to it as well.
   resources:
     - "pages/atlas/**"
     - "pages/instruments/**"
@@ -61,6 +60,8 @@ website:
         text: Federal Laws
       - href: pages/atlas.qmd
         text: Atlas
+      - href: pages/instruments.qmd
+        text: Instruments
       - href: pages/titles.ipynb
         text: DOF Titles
       - href: pages/document2md.ipynb

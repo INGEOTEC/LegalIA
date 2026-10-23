@@ -33,7 +33,18 @@ dev = [
     "dofjson[test]",
     "legalvec[test]",
     "md2akn[test]",
-    "nota2md[ocr,test]",
+    "nota2md[test]",
+    # ...everywhere except an Intel Mac. The `ocr` extra reaches mineru, which
+    # requires onnxruntime, whose last macOS x86_64 wheel was 1.23.2 (every
+    # release mineru accepts is arm64-only there). Listing it unconditionally
+    # made `uv sync` -- and therefore *every* `uv run <anything>`, including
+    # `uv run legalvec download` -- fail outright on that platform with
+    # "onnxruntime ... doesn't have a source distribution or wheel for the
+    # current platform". The marker trades the OCR path, which cannot run on
+    # an Intel Mac anyway, for a workspace that installs: the four nota2md
+    # tests that patch `document2md.converter.*` skip themselves there, and
+    # CI (Linux) installs the package explicitly and still runs them.
+    "nota2md[ocr]; sys_platform != 'darwin' or platform_machine != 'x86_64'",
     "scjn[test]",
 ]
 # The exploratory-analysis group (issue #241): what `scripts/embeddings/`'s
