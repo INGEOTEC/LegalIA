@@ -1974,6 +1974,15 @@ repository's `.venv`, from PyPI via `nota2md`'s `ocr` extra (issue #235
 removed the pinned-git bridge), because
 `packages/nota2md/tests/test_builder.py` patches `document2md.converter.*`.
 
+**Except on an Intel Mac**, where the root `pyproject.toml`'s dev group
+markers that extra out (`sys_platform != 'darwin' or platform_machine !=
+'x86_64'`): `document2md` reaches `mineru`, which requires `onnxruntime`,
+whose last macOS x86_64 wheel was 1.23.2. Listing it unconditionally there
+did not merely skip the OCR path — it made `uv sync`, and therefore *every*
+`uv run <anything>`, fail to resolve at all. The four `test_builder.py` tests
+that patch `document2md.converter.*` skip themselves when the import is
+missing; CI (Linux) installs the package and still runs them.
+
 The website's notebooks are committed without their outputs, via an
 `nbstripout` clean filter (`.gitattributes` maps `*.ipynb` to it). The filter
 itself lives in `.git/config`, which is not versioned. The devcontainer

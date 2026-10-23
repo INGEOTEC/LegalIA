@@ -16,6 +16,22 @@ from nota2md.builder import (
 )
 from nota2md.html_converter import html_to_markdown
 
+try:  # document2md is nota2md's optional `ocr` extra, imported lazily.
+    import document2md  # noqa: F401
+
+    _HAS_DOCUMENT2MD = True
+except ImportError:  # pragma: no cover -- platform-dependent
+    _HAS_DOCUMENT2MD = False
+
+# The OCR backend reaches mineru, which requires onnxruntime, whose last
+# macOS x86_64 wheel was 1.23.2 -- so the extra cannot be installed on an
+# Intel Mac at all (see the root pyproject.toml's dev group, which markers it
+# out there). CI installs it and runs these; a machine that cannot skips
+# them instead of failing on the patch target's import.
+requires_document2md = unittest.skipUnless(
+    _HAS_DOCUMENT2MD, "requires document2md (nota2md's `ocr` extra)"
+)
+
 HTML_NOTA = {
     "codNota": 5793655,
     "titulo": "Convenio de Coordinación...",
@@ -198,6 +214,7 @@ class TestLegalProvisions(unittest.TestCase):
         with self.assertRaises(ValueError):
             legal_provisions(1, self.outdir, source="html", nota=nota)
 
+    @requires_document2md
     @patch("document2md.converter.convert_images_to_markdown")
     @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_image_path_ocrs_and_cuts_to_the_note(self, mock_download, mock_convert):
@@ -239,6 +256,7 @@ class TestLegalProvisions(unittest.TestCase):
         self.assertNotIn("tail de la nota anterior", text)
         self.assertNotIn("SUP 036", text)
 
+    @requires_document2md
     @patch("document2md.converter.convert_to_markdown")
     @patch("nota2md.builder.dofjson.download_nota_pdf")
     def test_pdf_path_ocrs_note_pdf_and_cuts(self, mock_download_pdf, mock_convert):
@@ -310,6 +328,7 @@ class TestLegalProvisions(unittest.TestCase):
                     )
                 self.assertIn(dofjson.FUENTE_WEB, str(ctx.exception))
 
+    @requires_document2md
     @patch("document2md.converter.convert_images_to_markdown")
     @patch("nota2md.builder.dofjson.download_nota_imagenes")
     def test_keep_pages_writes_full_uncut_copy(self, mock_download, mock_convert):
@@ -333,6 +352,7 @@ class TestLegalProvisions(unittest.TestCase):
             "full page text",
         )
 
+    @requires_document2md
     @patch("document2md.converter.convert_images_to_markdown")
     @patch("nota2md.builder.dofjson.get_notas")
     @patch("nota2md.builder.dofjson.download_nota_imagenes")
