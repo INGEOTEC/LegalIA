@@ -1659,6 +1659,8 @@ reads it, with, on every searched excerpt, its closest texts of other instrument
   --with bm25s --with networkx pytest ...`; the local Quarto is 1.6.40 and one pre-existing Atlas test
   (`test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references`, a collapsed-callout class) fails
   there with or without this change, CI's 1.9.38 being what it pins.
+  **Review fix-1 of #297:** `mark` scrolls with `block: "start"` (not `"center"`, which left the middle of an
+  article taller than the window on screen), with a `scroll-margin-top` of 1rem on nodes, excerpts and headings.
 
 ## Tables in SCJN snapshots (issue #253, done)
 

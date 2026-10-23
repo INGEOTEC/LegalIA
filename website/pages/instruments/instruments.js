@@ -1017,7 +1017,10 @@
       function mark(el) {
         view.querySelectorAll(".instruments-target").forEach((other) => other.classList.remove("instruments-target"));
         el.classList.add("instruments-target");
-        el.scrollIntoView({ block: "center" });
+        // The start of the target goes to the top of the viewport. Centring it (the review
+        // page's choice, where the target was a badge) leaves the middle of an article taller
+        // than the screen in view and the reader cannot tell where it begins (review fix-1 of #297).
+        el.scrollIntoView({ block: "start" });
       }
       state.mark = mark;
       function goTo(eId) {

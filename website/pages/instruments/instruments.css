@@ -461,6 +461,15 @@
   background: var(--instruments-panel);
 }
 
+/* What `mark` scrolls to starts at the top of the viewport (review fix-1 of #297); the margin
+   keeps the target's outline (3px, offset 2px) and a little air visible above the text instead
+   of cut at the window edge. The site's navbar is not fixed, so none of it is reserved. */
+.instruments-node,
+.instruments-excerpt,
+.instruments-heading {
+  scroll-margin-top: 1rem;
+}
+
 .instruments-target {
   outline: 3px solid var(--instruments-link);
   outline-offset: 2px;

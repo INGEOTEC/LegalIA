@@ -743,6 +743,37 @@ def test_following_a_nearest_text_opens_the_other_instrument_at_that_excerpt(pag
     page.wait_for_function("document.querySelector('h2.instruments-title')?.textContent === 'LEY ALFA'")
 
 
+def test_a_navigation_puts_the_start_of_its_target_at_the_top_of_the_window(browser, server):
+    """Review fix-1 of #297: `mark` used to centre its target, which leaves the middle of an
+    element taller than the window on screen; the start of the target is what must land at the top
+    (with a small scroll margin for its outline), for the outline and for a deep link alike."""
+    page = open_page(browser, f"{server}?c=leyes&k=alfa", height=400)
+    wait_rendered(page)
+    expand_outline(page)
+    page.locator(".instruments-outline button.instruments-outline-link",
+                 has_text="Art. 5").click()
+    target = page.locator(".instruments-target")
+    assert target.get_attribute("data-eid") == f"{ALFA}art_5"
+    page.wait_for_timeout(100)
+    top = target.bounding_box()["y"]
+    assert 0 <= top <= 40, top
+    # A node near the end of the document, well below the fold from the top.
+    page.evaluate("window.scrollTo(0, 0)")
+    page.locator(".instruments-outline button.instruments-outline-link",
+                 has_text="Capítulo").last.click()
+    last = page.locator(".instruments-target")
+    assert last.get_attribute("data-eid").startswith("tit_")
+    assert 0 <= last.bounding_box()["y"] <= 40
+    # A deep link opens at the same place.
+    deep = open_page(browser, f"{server}?c=leyes&k=alfa#{ALFA}art_5", height=400)
+    deep.wait_for_selector('.instruments-document[data-rendered="true"]')
+    deep.wait_for_timeout(100)
+    assert 0 <= deep.locator(".instruments-target").bounding_box()["y"] <= 40
+    assert page.errors == [] and deep.errors == []
+    deep.close()
+    page.close()
+
+
 def test_a_deep_link_opens_the_instrument_and_highlights_the_excerpt(browser, server):
     page = open_page(browser, f"{server}?c=leyes&k=alfa#{ALFA}art_5")
     page.wait_for_selector('.instruments-document[data-rendered="true"]')
