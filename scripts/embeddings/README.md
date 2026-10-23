@@ -1786,58 +1786,72 @@ tarball and its sums, `PUBLICAR.md`, `--install`, `.done`/`--force`, and the
 static wiring (the workflow step before publishing, the `.gitignore` line, the
 release body and the committed index against `atlas-qwen3-4b.json`).
 
-### The Instruments page (issue #290)
+### The Instruments page (issues #290, #297)
 
 `website/pages/instruments.qmd` is a
 hand-written, library-free page over #289's outputs: `website/pages/instruments/instruments.js`
 and `instruments.css`, mounted by the qmd's `<!-- instruments:app -->` block, which reads
-only that block's `data-*` attributes (the index, the folder of files, the repository to
-report to, and a `data-models` list with the one entry the 4B). `_quarto.yml`'s
-`project.resources` ships `pages/instruments/**`; the page has no code cell and no freeze
-entry.
+the block's `data-index` and `data-files` (and carries `data-repo` and a `data-models` list
+with the one entry the 4B, which the script no longer reads: the block is pinned verbatim).
+`_quarto.yml`'s `project.resources` ships `pages/instruments/**`; the page has no code cell and
+no freeze entry.
 
-- **No navbar entry (review fix-1 of #290).** By decision of the repository owner on
-  2026-10-13, while the page is used to find parse errors, it is reached through the
-  paragraph that ends the Atlas page, not from the navbar. It still renders, is in the search
-  index and ships its folder, and the workflow step is unchanged. Re-enabling the entry takes
-  restoring `Instruments` right after `Atlas` in `_quarto.yml`'s navbar and the six-name pins
-  in the three test files.
-- **What it shows.** A landing with a search box and the corpus table (every instrument,
-  its excerpts, compared excerpts, articles, one column per flag and the score; sortable,
-  filterable by collection, 50 rows at a time). Opening an instrument shows its header, a
-  summary of the parse (numbering mode and each flag as a button that jumps to the first
-  flagged excerpt and then cycles), an outline of its containers and articles, and the
-  document as `md2akn` tree: one nested block per node with a badge
-  `akn_type · eId · num` (the Mexican term is its hover text), the node's text rendered with
-  paragraphs and bold only, every excerpt wrapped with its `unit_type` and flags, a per-node
-  *Raw* button, and on every compared excerpt a *Nearest texts* disclosure. The *Raw* mode of
-  the whole page shows the document once, each excerpt as a span
-  (`span.instruments-range[data-unit-type]`) and any character in no excerpt, annotation or
-  frontmatter as `span.instruments-uncovered`. The document is rendered in chunks of a few
-  hundred nodes per animation frame (outline first), so a 3,589-article code opens at once;
-  `data-rendered="true"` marks the end. The whole interface says *excerpt*, *compared excerpt*,
-  *nearest texts* and *parse*.
+- **A reading page for an end user, in the navbar after the Atlas (issue #297, decision of
+  the repository owner on 2026-10-22).** #290 built the page as a tool to check, by eye, how
+  `md2akn` segments every instrument; it did that job through the six review passes of #291
+  and was then turned into a page for a reader, titled *The Instruments of the Atlas* and
+  listed as *Instruments* right after *Atlas* (the Atlas page's last paragraph links to it as
+  well). The review apparatus was **removed, not hidden**: the parse summary and its flag
+  buttons, the *Parsed/Raw* mode and the raw document, the badge on every node, the per-node
+  *Raw* button, the report links to a prefilled GitHub issue, the excerpt bar and its tags, the
+  outline's compared dot and ⚑ and the amber warning colour. There is no developer mode, no
+  toggle and no second page; the old page is readable in git history at `0f8b5d6`. The flags
+  are still in the index and in every file (#289's data is unchanged), for the maintainers'
+  own measurements in the *Measured* sections below.
+- **What it shows.** A landing with a search box, the collection buttons and a plain table
+  of every instrument by name: **Instrument**, **Collection**, **Text as of** (the snapshot's
+  date, `14 November 2025`, from the index's `archivo`) and **Articles**; sortable (a second
+  click reverses), 50 rows at a time. Opening an instrument shows its header (collection chip,
+  name, and one line: `Abbreviation ccf` for a law or `SCJN id 137355` otherwise, the date of
+  the text and the number of articles), an outline of its containers and articles without
+  marks, and the document: every container's own first line as a heading (`<h3>` for a child
+  of the instrument, one level deeper per container above it, `<h6>` at most), articles and
+  their fracciones, incisos and subincisos as paragraphs, tables as HTML tables, reform
+  annotations left in the text (they are part of the Court's consolidated text). The nested
+  `section[data-eid][data-type]` elements stay, because deep links, the outline and the tests
+  rely on them, but no identifier or node type is printed anywhere.
+- **Compared excerpts.** An excerpt that the Atlas compares (`x` true in the file) is wrapped in
+  `div.instruments-excerpt[data-compared="true"]`, which the stylesheet draws as a quiet grey
+  rule on the left with a small *Compared* label at its top right, and carries the lazy
+  *Nearest texts (5)* disclosure after the text: instrument, excerpt label and similarity to
+  three places for each, `also carried by ...` for a text several instruments share. An
+  excerpt that is not compared (a heading is an element of its node, a transitory article a
+  plain wrapper) has no mark and no list, and every excerpt stays addressable.
+- **The marker lines are stripped on display.** The files' `markdown` is the snapshot as `scjn`
+  writes it, with one `<!-- scjn:block ... -->` line before each API block (`scjn.outline.MARKER`,
+  review fix-2 of #291); `md2akn` reads them and a reader must not. `stripMarkers` in
+  `instruments.js` removes every such line and the line break after it from each text the page
+  prints, with a documented **copy** of the expression (the page is build-less and reads the
+  files as published, so a change to the marker grammar is a change there too; a test compares
+  the two). It is display only: the `s`/`l` offsets and `data-start`/`data-end` are untouched,
+  and no files were regenerated or republished for it.
 - **Addresses.** `instruments.html?c=<collection>&k=<key>` opens an instrument and
   `#<eId>` (or `#<eId>.<piece>`) an excerpt; the page pushes history on every navigation and
   restores it on `popstate`, so the back button returns to the previous instrument or
   excerpt. An unknown instrument is a status line over the landing. A nearest text is an
   ordinary query-relative link that the page also intercepts, so it opens in a new tab as
-  well; its label (*Article 27*, *Preamble*, *Loose text*, *part 2*) is derived from the
-  eId alone, with the eId as hover text, because the target's file is not loaded yet.
+  well; its label (*Article 27*, *Preamble*, *part 2*) is derived from the eId alone and is
+  also its hover text, because the target's file is not loaded yet.
 - **Failure is a message, never a broken page.** A file that does not exist says *This
   instrument's file is not available.*, a file whose `meta.k` or collection differs from the
   index's says it was built from *a different version of the data*, a failed index sets
   `data-ready="error"`, and in every case the page stays usable and a second click retries.
-- **Reporting a parse.** Every badge and the header carry a link to
-  `<repo>/issues/new` with the title `md2akn: <key> <archivo> <eId>` and a body naming the
-  collection, key, name, snapshot, `md2akn` version, eId, the page address with its hash and
-  an empty *What is wrong:* line. It is the only way the page reaches GitHub.
-- **Colours.** The collections keep the Atlas' categorical colours; a node type has a fixed,
-  quiet tint (containers greys, article ink, paragraph/point/subpoint stepped blues) and one
-  warning amber is used for parse flags only, all documented in `instruments.css`.
-- **The numbering column of the corpus table was left out**: the committed index does not
-  carry it (it is in each file's `meta.numbering`, which the instrument view shows), and
-  adding it would have changed #289's data.
+  The document is rendered in chunks of a few hundred nodes per animation frame (outline
+  first), so a 3,589-article code opens at once; `data-rendered="true"` marks the end.
+- **Colours.** The collections keep the Atlas' categorical colours; nothing else in the
+  document is coloured (documented in `instruments.css`).
+- **Why the table has no numbering column**: the committed index does not carry it (it is in
+  each file's `meta.numbering`), and adding it would have changed #289's data.
 
 ```bash
 uv run --group viz pytest scripts/embeddings/tests/test_instruments_page.py -q
@@ -1849,11 +1863,13 @@ resource, `fix_citation_links.py` untouched) always run. The browser tests drive
 Chromium over a *toy site*: the five-instrument corpus of `test_export_instrument_files.py`
 exported by the real exporter into a temporary `pages/` directory with the real script and
 stylesheet and the qmd's own app block, one test per behaviour (landing, sorting, filter,
-*Show more*, search, deep link, back button, nearest texts and their failure messages, flags,
-outline, *Raw*, report links, the 375 px layout), writing `output/instruments-alfa.png`. The
+*Show more*, search, deep link, back button, nearest texts and their failure messages, headings,
+compared marks, the absence of every piece of review apparatus and of marker lines and
+identifiers, outline, the 375 px layout), writing `output/instruments-alfa.png`. The
 rendered tests render the qmd with Quarto into the gitignored `website/_site/` and drive it;
-one opens the real Civil Code when `website/pages/instruments/files/` was installed
-(`export_instrument_files.py --install website/pages/instruments/files`).
+those over the real Civil Code and a real treaty with promulgation-decree blocks run when
+`website/pages/instruments/files/` holds the `atlas-instruments` release (unpacked as
+`website.yml` does: `gh release download atlas-instruments`, verify, untar, move `files/`).
 
 ### Tests
 

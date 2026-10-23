@@ -1616,13 +1616,10 @@ reads it, with, on every searched excerpt, its closest texts of other instrument
   `scripts/embeddings/tests/test_instruments_page.py` (static checks; headless Chromium over
   a toy site built by the real exporter; the rendered page through Quarto, plus the real Civil
   Code when the files are installed). The README's "The Instruments page" has the details.
-  **No navbar entry (review fix-1, decision of the repository owner on
-  2026-10-13):** while the page is used to find parse errors it is reached through the
-  paragraph that ends the Atlas page, not from the navbar; it still renders, is in
-  `search.json`, ships `pages/instruments/**` and keeps `website.yml`'s workflow step, and
-  it is neither a draft nor excluded from `project.render`. Re-enabling the entry takes
-  restoring `Instruments` right after `Atlas` in `_quarto.yml`'s navbar and the six-name
-  pins in `test_atlas_page.py`, `test_topics_page.py` and `test_instruments_page.py`.
+  **The navbar entry (issue #297, below) replaced the owner's decision of 2026-10-13 not to
+  have one:** `Instruments` is listed right after `Atlas`, the page is neither a draft nor excluded
+  from `project.render`, and the six-name pins in `test_atlas_page.py`, `test_topics_page.py` and
+  `test_instruments_page.py` now include it.
   **Publish posture:** the `atlas-instruments` release of #289's `PUBLICAR.md` must exist
   before this reaches `master`; until then `website.yml`'s *Fetch the instrument files* step
   fails, as intended. Nothing was published and no PR was opened.
@@ -1635,6 +1632,33 @@ reads it, with, on every searched excerpt, its closest texts of other instrument
   spanning the table. *Raw* mode is unchanged. The prose says *introduction* and *table*, never *unit*.
   The real data is covered by browser tests that need no Quarto (`ligie-2022` shows `sec_I__intro` and its
   tariff as tables, `137355` shows `art_1.1`); `export_atlas_pairs.py` labels the new excerpt types.
+
+- **The reader's page (issue #297, done).** The owner decided on 2026-10-22 that the page, which had
+  served its purpose as a review tool for how `md2akn` segments every instrument (#291's six passes),
+  becomes a **reading page for an end user**: title *The Instruments of the Atlas*, navbar entry
+  *Instruments* right after *Atlas*, and the Atlas page's last paragraph reworded to match. The review
+  apparatus was removed from `instruments.js`/`instruments.css` rather than hidden, with no developer
+  mode, toggle or second page (the old page is in git history at `0f8b5d6`): the parse summary and flag
+  buttons, the *Parsed/Raw* mode, per-node badges and *Raw* buttons, the report links, the excerpt bar
+  and tags, the outline's compared dot and ⚑, the amber colour, and the flag/score/excerpt columns of the
+  landing, which is now *Instrument*, *Collection*, *Text as of* (`14 November 2025`) and *Articles*,
+  sorted by name. An opened instrument shows an outline without marks and the document as headings
+  (`h3` to `h6` by container depth), paragraphs and tables, reform annotations kept; a **compared
+  excerpt** carries `data-compared="true"` (a quiet left rule and a small *Compared* label in CSS) and
+  its *Nearest texts (5)* list with similarity to three places, any other excerpt neither; no eId,
+  `unit_type` or flag is printed. **The `<!-- scjn:block ... -->` marker lines of the files' `markdown`
+  are stripped on display** by `stripMarkers`, a documented *copy* of `scjn.outline.MARKER` (the page is
+  build-less; a test compares the two), display only: offsets are untouched, and the index, the files,
+  the exporter and the `atlas-instruments` release are unchanged and nothing was published. The flags
+  stay in the data for the maintainers' measurements. `data-repo` stays in the pinned mount block, unread.
+  Tests turned around accordingly (`test_instruments_page.py` asserts the absence of every piece of
+  apparatus, of marker lines and of eIds, over the toy site, the rendered page and, with the release
+  installed, the real Civil Code and a real treaty with decree blocks). On the Intel Mac the `viz` group
+  does not resolve (`llvmlite` fails to build for `pynndescent`), so the three website test files were run
+  with `uv run --with playwright --with pytest --with pandas --with pyarrow --with numpy --with scipy
+  --with bm25s --with networkx pytest ...`; the local Quarto is 1.6.40 and one pre-existing Atlas test
+  (`test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references`, a collapsed-callout class) fails
+  there with or without this change, CI's 1.9.38 being what it pins.
 
 ## Tables in SCJN snapshots (issue #253, done)
 

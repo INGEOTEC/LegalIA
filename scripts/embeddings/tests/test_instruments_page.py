@@ -1,4 +1,4 @@
-"""The website's Instruments page (issue #290), in a real browser.
+"""The website's Instruments page (issues #290, #297), in a real browser.
 
     uv run --group viz playwright install chromium     # once
     uv run --group viz pytest scripts/embeddings/tests/test_instruments_page.py -q
@@ -10,7 +10,10 @@ and the per-instrument files of issue #289, wrapped by `website/pages/instrument
 Three layers, like `test_atlas_page.py`, whose helpers this module imports:
 
 * static checks, always run: front matter, the mount block, the prose, the navbar,
-  the committed index against the Atlas' own data;
+  the committed index against the Atlas' own data. Since issue #297 the page is a reading
+  page for an end user: none of the review apparatus of #290 (parse flags, badges, *Raw*
+  mode, report links, excerpt tags, outline marks, marker lines) may come back, and these
+  tests assert its absence;
 * browser tests over a **toy site**: the five-instrument corpus of
   `test_export_instrument_files.py`, exported by the real exporter into a temporary
   directory laid out like `website/pages/`, with the real `instruments.js` and
@@ -22,8 +25,8 @@ Three layers, like `test_atlas_page.py`, whose helpers this module imports:
   stylesheet, which is how issue #247 reached the Atlas unseen).
 
 The browser tests skip, with the reason, when Playwright or its Chromium is missing;
-the rendered ones also skip without a Quarto binary; the one that opens a real
-3,589-article document skips when `website/pages/instruments/files/` was not installed.
+the rendered ones also skip without a Quarto binary; the ones that open a real
+document skip when `website/pages/instruments/files/` was not installed.
 """
 
 import functools
@@ -58,7 +61,7 @@ ATLAS_4B = PAGES / "atlas" / "atlas-qwen3-4b.json"
 SCREENSHOT = REPO / "output" / "instruments-alfa.png"
 RENDERED_SCREENSHOT = REPO / "output" / "instruments-rendered.png"
 
-TITLE = "The Instruments of the Atlas, as md2akn Reads Them"
+TITLE = "The Instruments of the Atlas"
 REPO_URL = "https://github.com/INGEOTEC/LegalIA"
 NOT_AVAILABLE = "This instrument's file is not available."
 OTHER_VERSION = "a different version of the data"
@@ -121,14 +124,15 @@ def test_the_prose_says_what_the_page_is_and_nothing_forbidden():
     assert "UMAP" not in prose
     assert lead_phrases_in(prose) == []
     flat = " ".join(prose.split())
-    for needle in ("fracción", "inciso", "apartado", "one introduction", "one table",
-                   "compared excerpts", "Nearest texts",
-                   "Qwen3 Embedding 4B", "atlas-instruments", "Raw"):
+    for needle in ("compared excerpts", "Nearest texts", "Compared", "Qwen3 Embedding 4B",
+                   "atlas-instruments", "instruments.html?c=leyes&k=ccf#art_1",
+                   "Diario Oficial de la Federación", "back button"):
         assert needle in flat, needle
-    # One sentence per flag, under the label the page prints.
-    for label in ("Loose", "Repeated number", "Number gap", "Over window", "No articles",
-                  "Uncovered", "No transitory section"):
-        assert f"<strong>{label}</strong>" in prose, label
+    # Nothing of the review apparatus of issue #290 is explained to the reader any more.
+    for word in ("flag", "Raw", "Akoma Ntoso", "badge", "parse", "md2akn", "Loose",
+                 "Repeated number", "Number gap", "Over window"):
+        assert word.lower() not in flat.lower(), word
+    assert "<strong>" not in prose and "instruments-flag-meanings" not in prose
 
 
 def test_the_application_files_say_nothing_forbidden_in_what_they_print():
@@ -148,10 +152,13 @@ def test_the_application_files_say_nothing_forbidden_in_what_they_print():
 
 def test_the_script_hard_codes_no_path_and_reads_only_its_mount():
     js = APP_JS.read_text(encoding="utf-8")
-    for attribute in ("dataset.index", "dataset.files", "dataset.repo"):
+    for attribute in ("dataset.index", "dataset.files"):
         assert attribute in js
     assert "instruments/instruments.json" in js           # only as the documented default
-    assert "https://github.com/INGEOTEC/LegalIA" in js
+    # `data-repo` stays in the mount block (pinned verbatim) and is no longer read: the
+    # reports it fed were removed in issue #297, and the file comment says so.
+    assert "dataset.repo" not in js and "data-repo" in js
+    assert "https://github.com/INGEOTEC/LegalIA" not in js
 
 
 def test_the_css_documents_its_palette_and_resets_quartos_grid_rules():
@@ -165,17 +172,46 @@ def test_the_css_documents_its_palette_and_resets_quartos_grid_rules():
     assert "max-width: 100%" in prose and "overflow-x: auto" in prose
     block = css[css.index(".instruments-prose {"):].split("}")[0]
     assert "max-width" not in block
-    assert "warning" in css and "#b45309" in css
+    assert "warning" not in css and "#b45309" not in css       # no parse flag, no amber
+    assert 'data-compared="true"' in css and "Compared" in css
 
 
-def test_the_navbar_has_no_instruments_entry_but_the_page_still_renders_and_ships(tmp_path):
-    # By decision of the repository owner on 2026-10-13 (review fix-1 of #290) the page is
-    # reached through the link at the end of the Atlas page, not from the navbar; it is
-    # neither a draft nor excluded from the render.
+def test_the_review_apparatus_of_issue_290_is_gone_from_the_script_and_the_stylesheet():
+    js = APP_JS.read_text(encoding="utf-8")
+    css = APP_CSS.read_text(encoding="utf-8")
+    for name in ("instruments-badge", "instruments-raw-toggle", "instruments-raw-text",
+                 "instruments-rawdoc", "instruments-report", "instruments-summary",
+                 "instruments-numbering", "instruments-flag", "instruments-tag",
+                 "instruments-excerpt-bar", "instruments-mode", "instruments-mark",
+                 "instruments-compared", "instruments-segment", "instruments-uncovered",
+                 "instruments-range", "instruments-annotation", "instruments-frontmatter"):
+        assert name not in js and name not in css, name
+    for name in ("FLAG_ORDER", "FLAG_LABELS", "reportUrl", "reportLink", "setMode", "buildRaw",
+                 "tagFor", "radiogroup", "flag_meanings", "data-unit-type"):
+        assert name not in js, name
+    # The marker lines are stripped on display with a documented copy of `scjn.outline.MARKER`.
+    assert "stripMarkers" in js and "scjn.outline.MARKER" in js
+    assert r"/^<!-- scjn:block .*? -->[ \t]*$(?:\r?\n)?/gm" in js
+
+
+def test_the_marker_expression_is_a_copy_of_the_one_scjn_writes():
+    """The page is build-less, so its regular expression is a copy of `scjn.outline.MARKER`:
+    the same line grammar, with the attributes group made anonymous."""
+    scjn_outline = pytest.importorskip("scjn.outline")
+    line = '<!-- scjn:block orden=4 numero=0 kind=other label="RATIFICACIÓN Y DEPÓSITO" -->'
+    assert scjn_outline.MARKER.match(line)
+    copy = scjn_outline.MARKER.pattern.replace("(?P<attrs>.*?)", ".*?")
+    assert f"/{copy}(?:" in APP_JS.read_text(encoding="utf-8")
+
+
+def test_the_navbar_lists_the_instruments_page_right_after_the_atlas_and_the_page_ships(tmp_path):
+    # By decision of the repository owner on 2026-10-22 (issue #297) the page, which had served
+    # its purpose as a review tool for the parse, is a reading page listed after the Atlas.
     text = (WEBSITE / "_quarto.yml").read_text(encoding="utf-8")
     entries = re.findall(r"- href: (\S+)\n\s+text: (.+)", text)
-    assert "pages/instruments.qmd" not in [href for href, _ in entries]
-    assert "Instruments" not in [name.strip() for _, name in entries]
+    names = [name.strip() for _, name in entries]
+    assert names.index("Instruments") == names.index("Atlas") + 1
+    assert ("pages/instruments.qmd", "Instruments") in [(h, n.strip()) for h, n in entries]
     resources = re.search(r"resources:\s*\n((?:\s+(?:-|#).*\n)+)", text).group(1)
     listed = [line.strip().lstrip("- ").strip('"') for line in resources.splitlines()
               if not line.strip().startswith("#")]
@@ -184,6 +220,7 @@ def test_the_navbar_has_no_instruments_entry_but_the_page_still_renders_and_ship
               if line.strip().startswith("-")]
     assert render and not any("instruments" in line for line in render)
     assert "draft" not in front_matter(QMD.read_text(encoding="utf-8"))
+    assert "no navbar entry" not in text
 
 
 def test_the_atlas_page_ends_with_a_link_to_the_instruments_page():
@@ -195,7 +232,8 @@ def test_the_atlas_page_ends_with_a_link_to_the_instruments_page():
     tail = atlas[link:]
     assert tail.rstrip().endswith(":::") and tail.count("\n:::") == 1      # inside .atlas-prose
     paragraph = atlas[:link].rsplit("\n\n", 1)[1] + tail.split("\n\n", 1)[0]
-    assert "excerpts" in paragraph and "parse" in paragraph
+    assert "article by article" in paragraph and "nearest texts" in paragraph
+    assert "parse" not in paragraph and "find the places" not in paragraph
     assert forbidden_in(paragraph) == []
     assert lead_phrases_in(paragraph) == []
 
@@ -311,41 +349,40 @@ ALFA = "tit_PRIMERO__cap_I__"
 
 # -- the landing view ----------------------------------------------------------------- #
 
-def test_the_landing_lists_every_instrument_ranked_by_score_with_its_totals(page):
+def test_the_landing_lists_every_instrument_by_name_with_collection_date_and_articles(page):
     assert page.locator("#instruments").get_attribute("data-view") == "landing"
     rows = page.locator("table.instruments-ranking tbody tr")
     assert rows.count() == 5
-    # Default order: score, highest first; `alfa` carries the five flagged excerpts.
-    assert rows.first.get_attribute("data-key") == "alfa"
     caption = page.locator(".instruments-caption").inner_text()
-    assert "5 instruments" in caption
+    assert "5 instruments" in caption and "name opens" in caption
     headers = page.locator("table.instruments-ranking thead th").all_inner_texts()
-    assert headers[:4] == ["Instrument", "Excerpts", "Compared", "Articles"]
-    assert headers[-1] == "Score"
-    for label in ("Loose", "Repeated number", "Number gap", "Over window", "No articles",
-                  "Uncovered", "No transitory section"):
-        assert label in headers
-    assert page.locator('th[data-key="s"]').get_attribute("aria-sort") == "descending"
+    assert headers == ["Instrument", "Collection", "Text as of", "Articles"]
+    # By name, ascending: no flag, score, excerpt or compared column.
+    assert page.locator('th[data-key="n"]').get_attribute("aria-sort") == "ascending"
+    names = [e.inner_text() for e in page.locator("tbody td.instruments-name").all()]
+    assert names == sorted(names)
     first = rows.first.locator("td").all_inner_texts()
-    assert first[0] == "LEY ALFA"
+    assert first == ["LEY ALFA", "Law", "1 February 2020", first[3]]
+    assert first[3].replace(",", "").isdigit()
     assert not page.locator(".instruments-view").is_visible()
 
 
 def test_a_header_sorts_and_a_second_click_reverses_it(page):
     name = page.locator('th[data-key="n"] button')
-    name.click()
-    keys = lambda: [e.get_attribute("data-key")  # noqa: E731
-                    for e in page.locator("table.instruments-ranking tbody tr").all()]
-    names = [e.inner_text() for e in page.locator("tbody td.instruments-name").all()]
-    assert names == sorted(names, key=str.casefold) or names == sorted(names)
-    assert page.locator('th[data-key="n"]').get_attribute("aria-sort") == "ascending"
+    names = lambda: [e.inner_text() for e in page.locator("tbody td.instruments-name").all()]  # noqa: E731
+    ascending = names()
     name.click()
     assert page.locator('th[data-key="n"]').get_attribute("aria-sort") == "descending"
-    assert keys()[0] != ""
-    page.locator('th[data-key="u"] button').click()
+    assert names() == ascending[::-1]
+    page.locator('th[data-key="a"] button').click()
     counts = [int(e.inner_text().replace(",", ""))
-              for e in page.locator("tbody tr td:nth-child(2)").all()]
+              for e in page.locator("tbody tr td:nth-child(4)").all()]
     assert counts == sorted(counts, reverse=True)
+    page.locator('th[data-key="t"] button').click()
+    assert page.locator('th[data-key="t"]').get_attribute("aria-sort") == "descending"
+    page.locator('th[data-key="c"] button').click()
+    kinds = [e.inner_text() for e in page.locator("tbody tr td:nth-child(2)").all()]
+    assert kinds == sorted(kinds)
 
 
 def test_a_collection_button_filters_the_table_and_pressing_it_again_clears_it(page):
@@ -467,78 +504,106 @@ def test_escape_closes_the_list_and_then_clears_the_search(page):
 
 # -- one instrument -------------------------------------------------------------------- #
 
-def test_opening_an_instrument_shows_its_header_summary_outline_and_document(page):
+def test_opening_an_instrument_shows_its_header_outline_and_document(page):
     open_from_table(page, "alfa")
     assert page.url.endswith("?c=leyes&k=alfa")
     assert title(page) == "LEY ALFA"
     head = page.locator("header.instruments-head")
     facts = head.locator(".instruments-facts").inner_text()
-    assert "alfa" in facts and "01-02-2020" in facts and "md2akn" in facts
+    document = read_file_of_toy(page, "alfa")
+    assert facts.startswith("Abbreviation alfa")
+    assert "text as of 1 February 2020" in facts and facts.rstrip().endswith("articles")
+    # No snapshot file name, no parser version, no counts of excerpts.
+    for word in ("01-02-2020", "md2akn", "excerpts", "compared", ".md"):
+        assert word not in facts, word
     assert head.locator(".instruments-collection").inner_text() == "Law"
     assert not page.locator(".instruments-ranking").is_visible()
-    summary = page.locator("div.instruments-summary")
-    assert "Numbering: articulo" in summary.inner_text()
-    flags = summary.locator("li.instruments-flag-row")
-    assert flags.count() == 7
-    assert flags.filter(has_text="Loose").locator("button").inner_text() == "1"
-    assert flags.filter(has_text="Repeated number").locator("button").inner_text() == "2"
-    assert flags.filter(has_text="No articles").locator(".instruments-flag-none").count() == 1
+    assert page.locator(".instruments-summary, .instruments-mode").count() == 0
     outline = page.locator('div[role="complementary"].instruments-outline')
     assert outline.is_visible()
     links = outline.locator("button.instruments-outline-link")
     assert links.count() >= 6
     assert page.locator(".instruments-document section[data-eid]").count() >= 10
+    assert document["meta"]["k"] == "alfa"
 
 
-def test_every_node_has_a_badge_with_its_type_identifier_and_number(page):
+def test_the_facts_of_a_treaty_name_the_scjn_id(browser, server):
+    page = open_page(browser, f"{server}?c=tratados&k=700")
+    wait_rendered(page)
+    facts = page.locator(".instruments-facts").inner_text()
+    assert facts.startswith("SCJN id 700") and "text as of" in facts
+    assert page.locator(".instruments-collection").inner_text() == "Treaty"
+    page.close()
+
+
+def test_containers_are_headings_and_articles_are_paragraphs_under_them(page):
     open_from_table(page, "alfa")
+    title_node = page.locator('section[data-eid="tit_PRIMERO"]')
+    assert title_node.get_attribute("data-type") == "title"
+    heading = title_node.locator("> h3.instruments-heading")
+    assert heading.count() == 1 and heading.inner_text().strip()
+    chapter = page.locator('section[data-eid="tit_PRIMERO__cap_I"]')
+    assert chapter.locator("> h4.instruments-heading").count() == 1
+    # Every container the toy law has opens with a heading element h3 to h6, never a paragraph.
+    for node in page.locator('section[data-type="title"], section[data-type="chapter"]').all():
+        assert node.locator("> h3, > h4, > h5, > h6").count() == 1
     article = page.locator(f'section[data-eid="{ALFA}art_1"]')
     assert article.get_attribute("data-type") == "article"
-    badge = article.locator("> .instruments-node-head .instruments-badge")
-    assert badge.inner_text() == f"article · {ALFA}art_1 · 1"
-    assert badge.get_attribute("title") == "artículo"
-    chapter = page.locator('section[data-eid="tit_PRIMERO__cap_I"]')
-    assert chapter.get_attribute("data-type") == "chapter"
-    assert chapter.locator("> .instruments-node-head .instruments-badge").get_attribute(
-        "title") == "capítulo"
-    paragraph = page.locator('section[data-type="paragraph"]').first
-    assert paragraph.locator(".instruments-badge").first.get_attribute("title") == "fracción"
     # The text is the Markdown rendered with bold only.
     assert "Texto compartido del primero." in article.inner_text()
     assert article.locator("strong").first.inner_text().startswith("Artículo 1")
+    assert article.locator("h3, h4, h5, h6").count() == 0
+    paragraph = page.locator('section[data-type="paragraph"]').first
+    assert paragraph.inner_text().strip()
+    # Under the root a heading is an h3, and none is deeper than an h6.
+    assert page.locator(".instruments-document h1, .instruments-document h2, "
+                        ".instruments-document h7").count() == 0
 
 
-def test_each_excerpt_is_wrapped_with_its_type_and_the_flagged_ones_say_why(page):
+def test_no_review_apparatus_is_on_an_opened_instrument(page):
     open_from_table(page, "alfa")
-    # A container's opening text is an introduction since md2akn 0.5.1; what stays loose is
-    # the text under the transitory section.
-    loose = excerpt(page, "sec_transitorios__p_content")
-    assert loose.get_attribute("data-unit-type") == "loose"
-    assert loose.locator(".instruments-flag-tag").first.inner_text() == "Loose"
-    assert loose.locator(".instruments-flag-tag").first.get_attribute("title").startswith(
-        "Text that no rule placed")
-    big = excerpt(page, f"{ALFA}art_5")
-    assert [t.inner_text() for t in big.locator(".instruments-flag-tag").all()] == [
-        "Number gap", "Over window"]
-    assert excerpt(page, "preamble").get_attribute("data-unit-type") == "preamble"
+    for name in ("badge", "raw-toggle", "raw-text", "rawdoc", "report", "summary", "flag",
+                 "flag-tag", "tag", "excerpt-bar", "mode", "mark", "compared", "segmented",
+                 "uncovered", "range", "node-head"):
+        assert page.locator(f".instruments-{name}").count() == 0, name
+    assert page.locator("a[href*='issues/new']").count() == 0
+    assert page.locator("[data-unit-type]").count() == 0
+    text = page.inner_text("#instruments")
+    for word in ("Raw", "Loose", "Repeated number", "Number gap", "Over window", "Score",
+                 "md2akn", "Akoma", "report"):
+        assert word not in text, word
 
 
-def test_an_introduction_is_a_node_with_a_badge_an_excerpt_an_outline_entry_and_nearest_texts(page):
+def test_no_marker_line_and_no_identifier_is_visible_in_an_instrument(browser, server):
+    page = open_page(browser, f"{server}?c=tratados&k=700")
+    wait_rendered(page)
+    document = read_file_of_toy(page, "700", "tratados")
+    assert "<!-- scjn:block" in document["markdown"]            # the file keeps them
+    shown = page.locator(".instruments-document").text_content()
+    assert "<!--" not in shown and "scjn:block" not in shown
+    for eid in ("hc_DECRETO_PROMULGATORIO", "cap_3__att_3-A", "att_I__app_1", "sec_RESOLUCI"):
+        assert eid not in shown, eid
+    assert "El Plenipotenciario firmó el Tratado." in shown     # the text of the blocks stays
+    assert "<!--" not in page.locator(".instruments-outline").text_content()
+    titles = [b.get_attribute("title") or ""
+              for b in page.locator(".instruments-outline button.instruments-outline-link").all()]
+    assert titles and not any("__" in t or "art_" in t or "hc_" in t for t in titles)
+    assert page.errors == []
+    page.close()
+
+
+def test_an_introduction_is_a_compared_excerpt_with_an_outline_entry_and_nearest_texts(page):
     open_from_table(page, "alfa")
     intro = page.locator(f'section[data-eid="{ALFA}intro"]')
     assert intro.get_attribute("data-type") == "intro"
-    badge = intro.locator("> .instruments-node-head .instruments-badge")
-    assert badge.inner_text() == f"intro · {ALFA}intro"
     wrapper = excerpt(page, f"{ALFA}intro")
-    assert wrapper.get_attribute("data-unit-type") == "intro"
-    assert wrapper.locator(".instruments-tag").first.inner_text() == "intro"
+    assert wrapper.get_attribute("data-compared") == "true"
     assert "Texto suelto antes de los artículos." in wrapper.inner_text()
-    assert wrapper.locator("> details.instruments-near").count() == 1      # a compared excerpt
-    assert wrapper.locator(".instruments-flag-tag").count() == 0           # nothing is loose about it
+    assert wrapper.locator("> details.instruments-near").count() == 1
     expand_outline(page)
     link = page.locator(".instruments-outline button.instruments-outline-link",
                         has_text="Introduction").first
-    assert link.locator(".instruments-compared").count() == 1
+    assert link.locator("*").count() == 0                       # no mark, no dot
     link.click()
     assert page.locator(".instruments-target").get_attribute("data-eid").endswith("__intro")
 
@@ -547,8 +612,6 @@ def test_a_table_is_drawn_as_an_html_table_in_parsed_mode_with_its_rows_and_cell
     open_from_table(page, "alfa")
     node = page.locator(f'section[data-eid="{ALFA}intro__table_1"]')
     assert node.get_attribute("data-type") == "table"
-    assert node.locator("> .instruments-node-head .instruments-badge").inner_text() \
-        == f"table · {ALFA}intro__table_1 · 1"
     table = node.locator("table.instruments-table")
     assert table.count() == 1
     rows = table.locator("tr")
@@ -562,11 +625,8 @@ def test_a_table_is_drawn_as_an_html_table_in_parsed_mode_with_its_rows_and_cell
     # The markdown rows are not also printed as paragraphs.
     assert node.locator("p.instruments-paragraph").count() == 0
     wrapper = excerpt(page, f"{ALFA}intro__table_1")
-    assert wrapper.get_attribute("data-unit-type") == "table"
+    assert wrapper.get_attribute("data-compared") == "true"
     assert wrapper.locator("> details.instruments-near").count() == 1
-    # Raw still shows exactly what md2akn read.
-    node.locator("> .instruments-node-head button.instruments-raw-toggle").click()
-    assert node.locator("pre.instruments-raw-text").inner_text().startswith("| Concepto | Cuota |")
 
 
 def test_a_table_inside_an_article_is_drawn_as_one_html_table_and_the_article_stays_one_excerpt(page):
@@ -575,7 +635,7 @@ def test_a_table_inside_an_article_is_drawn_as_one_html_table_and_the_article_st
     the run of rows as one HTML table, for display only."""
     open_from_table(page, "alfa")
     article = excerpt(page, f"{ALFA}art_5")
-    assert article.get_attribute("data-unit-type") == "article"
+    assert article.get_attribute("data-compared") == "true"
     tables = article.locator("table.instruments-table")
     assert tables.count() == 1
     rows = tables.locator("tr")
@@ -595,11 +655,9 @@ def test_a_long_table_is_one_html_table_per_excerpt_each_addressable_by_its_piec
     first, second = excerpt(page, f"{chapter}.1"), excerpt(page, f"{chapter}.2")
     assert first.count() == second.count() == 1
     for piece in (first, second):
-        assert piece.get_attribute("data-unit-type") == "table"
+        assert piece.get_attribute("data-compared") == "true"
         assert piece.locator("table.instruments-table").count() == 1
         assert piece.locator("> details.instruments-near").count() == 1
-    assert [t.inner_text() for t in first.locator(".instruments-tag").all()] == ["table", "part 1"]
-    assert [t.inner_text() for t in second.locator(".instruments-tag").all()] == ["table", "part 2"]
     # Every one of the thirty rows is on the page exactly once, in order.
     labels = [c.inner_text() for c in node.locator("tr td:first-child").all()]
     assert labels == [f"fila {n:02d}" for n in range(1, 31)]
@@ -611,33 +669,41 @@ def test_a_long_table_is_one_html_table_per_excerpt_each_addressable_by_its_piec
     page.close()
 
 
-def test_the_flags_still_find_the_excerpts_that_are_pieces_of_a_table(browser, server):
+def test_every_unit_of_the_toy_file_is_addressable_once_it_is_rendered(browser, server):
     page = open_page(browser, f"{server}?c=leyes&k=alfa")
     wait_rendered(page)
-    summary = page.locator("div.instruments-summary")
-    # Nothing but the transitory text is loose any more, and raw mode is untouched.
-    assert summary.locator('li[data-flag="loose"] button').inner_text() == "1"
-    page.locator("button.instruments-segment", has_text="Raw").click()
-    ranges = page.locator(".instruments-rawdoc .instruments-range")
     document = read_file_of_toy(page, "alfa")
-    assert ranges.count() == sum(1 for u in document["units"] if u["l"] > u["s"])
+    ids = {(f"{u['e']}.{u['p']}" if u.get("p") else u["e"]) for u in document["units"]}
+    # An excerpt is a wrapper, or a heading element addressed through its node.
+    present = set(page.evaluate(
+        "Array.from(document.querySelectorAll('[data-excerpt]'), e => e.dataset.excerpt)"))
+    nodes = set(page.evaluate(
+        "Array.from(document.querySelectorAll('section[data-eid]'), e => e.dataset.eid)"))
+    assert {i for i in ids if i not in present} <= nodes
     assert page.locator(
-        f'.instruments-range[data-excerpt="tit_PRIMERO__cap_II__intro__table_1.2"]').count() == 1
+        '.instruments-excerpt[data-excerpt="tit_PRIMERO__cap_II__intro__table_1.2"]').count() == 1
     assert page.errors == []
     page.close()
 
 
-def test_only_compared_excerpts_carry_nearest_texts(page):
+def test_only_compared_excerpts_are_marked_and_carry_nearest_texts(page):
     open_from_table(page, "alfa")
     document = read_file_of_toy(page, "alfa")
     searched = sum(1 for u in document["units"] if u.get("x"))
+    assert searched > 5
+    assert page.locator('[data-compared="true"]').count() == searched
     assert page.locator("details.instruments-near").count() == searched
+    # Every marked excerpt carries the disclosure, and nothing else does.
+    assert page.locator('[data-compared="true"] > details.instruments-near').count() == searched
+    assert page.locator('div.instruments-excerpt:not([data-compared]) details').count() == 0
     transitory = excerpt(page, "sec_transitorios__art_PRIMERO")
     assert transitory.count() == 1 and transitory.locator("details").count() == 0
-    # A heading is not an excerpt wrapper: its tag sits in the node's own head.
-    heading = page.locator('section[data-eid="tit_PRIMERO"] > .instruments-node-head')
-    assert "heading" in heading.inner_text()
-    assert page.locator('div.instruments-excerpt[data-unit-type="heading"]').count() == 0
+    assert transitory.get_attribute("data-compared") is None
+    # A heading is not an excerpt wrapper: it is an element of its node, with no mark.
+    assert page.locator('section[data-eid="tit_PRIMERO"] > h3').count() == 1
+    assert page.locator('div.instruments-excerpt[data-excerpt="tit_PRIMERO"]').count() == 0
+    summary = page.locator('[data-compared="true"]').first.locator("> details.instruments-near summary")
+    assert re.fullmatch(r"Nearest texts \(\d+\)", summary.inner_text())
 
 
 def test_nearest_texts_open_lazily_and_each_entry_names_instrument_label_and_similarity(page):
@@ -652,7 +718,7 @@ def test_nearest_texts_open_lazily_and_each_entry_names_instrument_label_and_sim
     link = first.locator("a.instruments-near-link").first
     assert "LEY BETA" in link.inner_text() and "Article 1" in link.inner_text()
     assert link.get_attribute("href") == "?c=leyes&k=beta#art_1"
-    assert link.get_attribute("title") == "art_1"
+    assert link.get_attribute("title") == "Article 1"            # a label, never the eId
     assert first.locator(".instruments-similarity").inner_text() == "1.000"
     assert link.locator(".instruments-dot").get_attribute("style").startswith("background:#2a78d6")
 
@@ -699,28 +765,14 @@ def test_an_unknown_instrument_in_the_address_says_so_and_shows_the_landing(brow
     page.close()
 
 
-def test_a_flag_count_jumps_to_the_first_flagged_excerpt_and_cycles(page):
-    open_from_table(page, "alfa")
-    button = page.locator('li[data-flag="duplicate_number"] button')
-    position = page.locator('li[data-flag="duplicate_number"] .instruments-flag-position')
-    button.click()
-    assert position.inner_text() == "1 of 2"
-    assert page.locator(".instruments-target").get_attribute("data-excerpt") == f"{ALFA}art_2"
-    button.click()
-    assert position.inner_text() == "2 of 2"
-    assert page.locator(".instruments-target").get_attribute("data-excerpt") == f"{ALFA}art_2_2"
-    button.click()
-    assert position.inner_text() == "1 of 2"
-
-
-def test_the_outline_scrolls_to_a_node_and_marks_compared_and_flagged_articles(page):
+def test_the_outline_scrolls_to_a_node_and_has_no_marks(page):
     open_from_table(page, "alfa")
     outline = page.locator(".instruments-outline")
     link = outline.locator("button.instruments-outline-link", has_text="Art. 5")
     assert not link.is_visible()                                  # below the first level: folded
     expand_outline(page)
-    assert link.locator(".instruments-compared").count() == 1
-    assert link.locator(".instruments-mark").count() == 1
+    assert link.locator("*").count() == 0 and "⚑" not in outline.inner_text()
+    assert link.get_attribute("title") == "Artículo 5"       # a label, never the eId
     link.click()
     assert page.locator(".instruments-target").get_attribute("data-eid") == f"{ALFA}art_5"
     chapter = outline.locator("button.instruments-outline-link", has_text="Capítulo")
@@ -772,9 +824,8 @@ def test_the_outline_nests_an_annex_under_its_chapter_and_appendices_under_their
     # the document carries the same nesting and the same kinds
     nested = page.locator('section[data-eid="cap_3__att_3-A"]')
     assert nested.get_attribute("data-type") == "attachment"
-    assert nested.locator("> .instruments-node-head .instruments-badge").get_attribute("title") == "annex"
     app = page.locator('section[data-eid="att_I__app_1"]')
-    assert app.locator("> .instruments-node-head .instruments-badge").get_attribute("title") == "appendix"
+    assert app.get_attribute("data-type") == "attachment"
     assert page.errors == []
     page.close()
 
@@ -834,79 +885,6 @@ def test_the_outline_names_every_labelled_block_by_its_role(browser, server):
     assert node.get_attribute("data-type") == "hcontainer"
     assert node.locator('section[data-eid="hc_DECRETO_PROMULGATORIO__hc_FIRMA"]').count() == 1
     assert page.errors == []
-    page.close()
-
-
-def test_the_raw_button_of_a_node_shows_exactly_its_markdown(page):
-    open_from_table(page, "alfa")
-    document = read_file_of_toy(page, "alfa")
-    node = page.locator(f'section[data-eid="{ALFA}art_2"]')
-    button = node.locator("> .instruments-node-head button.instruments-raw-toggle")
-    assert node.locator("pre").count() == 0
-    button.click()
-    shown = node.locator("> pre.instruments-raw-text").inner_text()
-    start = int(node.get_attribute("data-start"))
-    end = int(node.get_attribute("data-end"))
-    assert shown == js_slice(document["markdown"], start, end)
-    assert "Fracción uno" in shown
-    button.click()
-    assert not node.locator("> pre.instruments-raw-text").is_visible()
-
-
-def test_the_report_link_names_the_instrument_snapshot_version_and_excerpt(page):
-    open_from_table(page, "alfa")
-    link = page.locator(f'section[data-eid="{ALFA}art_1"] > .instruments-node-head a.instruments-report')
-    assert link.get_attribute("title") == "Report a parsing problem"
-    href = link.get_attribute("href")
-    assert href.startswith(f"{REPO_URL}/issues/new?")
-    query = parse_qs(urlparse(href).query)
-    assert query["title"] == [f"md2akn: alfa 01-02-2020.md {ALFA}art_1"]
-    body = query["body"][0]
-    for line in ("Collection: leyes", "Key: alfa", "Name: LEY ALFA", "Snapshot: 01-02-2020.md",
-                 "md2akn version: ", f"{ALFA}art_1", "What is wrong:"):
-        assert line in body, line
-    assert "?c=leyes&k=alfa#" + ALFA + "art_1" in unquote(body)
-    assert " " not in href
-    header = page.locator("header.instruments-head a.instruments-report").get_attribute("href")
-    assert f"md2akn: alfa 01-02-2020.md" in unquote(header)
-    assert page.locator("a.instruments-report").count() > 10
-
-
-def test_raw_mode_shows_the_whole_document_with_every_excerpt_marked(page):
-    open_from_table(page, "alfa")
-    document = read_file_of_toy(page, "alfa")
-    mode = page.locator('[role="radiogroup"][aria-labelledby="instruments-mode-label"]')
-    assert mode.locator('[role="radio"][aria-checked="true"]').inner_text() == "Parsed"
-    mode.locator('[role="radio"]', has_text="Raw").click()
-    raw = page.locator("pre.instruments-rawdoc")
-    assert raw.is_visible() and not page.locator(".instruments-document").is_visible()
-    assert raw.inner_text().replace("\r", "") == document["markdown"]
-    ranges = raw.locator("span.instruments-range")
-    assert ranges.count() == len(document["units"])
-    kinds = {r.get_attribute("data-unit-type") for r in ranges.all()}
-    assert {"article", "heading", "loose", "preamble"} <= kinds
-    assert ranges.first.get_attribute("data-excerpt")
-    assert raw.locator("span.instruments-uncovered").count() == 0
-    mode.locator('[role="radio"]', has_text="Parsed").click()
-    assert page.locator(".instruments-document").is_visible() and not raw.is_visible()
-    # Arrow keys move the radio like the Atlas' control.
-    mode.locator('[role="radio"][aria-checked="true"]').press("ArrowRight")
-    assert page.locator("pre.instruments-rawdoc").is_visible()
-
-
-def test_a_character_in_no_excerpt_is_marked_uncovered_in_the_raw_view(browser, server):
-    def doctor(page):
-        def handler(route):
-            response = route.fetch()
-            data = response.json()
-            data["markdown"] += "\n\nTEXT NOBODY OWNS\n"
-            route.fulfill(response=response, json=data)
-        page.route("**/files/leyes/beta.json", handler)
-
-    page = open_page(browser, f"{server}?c=leyes&k=beta", before=doctor)
-    page.wait_for_selector('.instruments-document[data-rendered="true"]')
-    page.locator('[role="radio"]', has_text="Raw").click()
-    assert "TEXT NOBODY OWNS" in page.locator("span.instruments-uncovered").first.inner_text()
     page.close()
 
 
@@ -985,8 +963,6 @@ def test_the_visible_page_says_nothing_forbidden(page):
     excerpt(page, f"{ALFA}art_1").locator("details.instruments-near summary").click()
     text = page.inner_text("#instruments")
     assert forbidden_in(text) == []
-    page.locator('[role="radio"]', has_text="Raw").click()
-    assert forbidden_in(page.inner_text("#instruments")) == []
 
 
 @pytest.mark.parametrize("width", [1280, 375])
@@ -1009,8 +985,6 @@ def test_the_page_fits_the_width_and_the_outline_collapses_on_a_phone(browser, s
         assert not links.is_visible()
         reading = page.locator(".instruments-reading").bounding_box()
         assert reading["width"] <= width
-        page.locator('[role="radio"]', has_text="Raw").click()
-        assert fits()
     else:
         assert not toggle.is_visible() and links.is_visible()
         box, document = outline.bounding_box(), page.locator(".instruments-document").bounding_box()
@@ -1022,10 +996,10 @@ def test_the_page_fits_the_width_and_the_outline_collapses_on_a_phone(browser, s
     page.close()
 
 
-def read_file_of_toy(page, key):
+def read_file_of_toy(page, key, collection="leyes"):
     """The toy file of `key` as the page fetched it (served by the harness server)."""
     base = page.url.split("/harness.html")[0]
-    response = page.request.get(f"{base}/instruments/files/leyes/{key}.json")
+    response = page.request.get(f"{base}/instruments/files/{collection}/{key}.json")
     assert response.ok
     return response.json()
 
@@ -1051,12 +1025,13 @@ def rendered_site():
     httpd.server_close()
 
 
-def test_the_rendered_page_has_no_navbar_entry_but_is_in_the_search_index_and_linked_from_the_atlas(
+def test_the_rendered_page_is_in_the_navbar_after_the_atlas_the_search_index_and_the_atlas_links_it(
         rendered_site):
     html = (SITE / "pages" / "instruments.html").read_text(encoding="utf-8")
     navbar = html[html.index('<nav class="navbar'):html.index("</nav>")]
-    assert 'href="../pages/atlas.html"' in navbar
-    assert "instruments.html" not in navbar and "Instruments" not in navbar
+    links = re.findall(r'<a class="nav-link[^"]*" href="([^"]+)"', navbar)
+    assert links.index("../pages/instruments.html") == links.index("../pages/atlas.html") + 1
+    assert "Instruments" in navbar
     search_index = json.loads((SITE / "search.json").read_text(encoding="utf-8"))
     assert any(entry["href"].startswith("pages/instruments.html") for entry in search_index)
     # Rendering the Atlas is cheap next to the browser tests and proves the link opens it.
@@ -1126,20 +1101,22 @@ def test_ligie_shows_its_section_introduction_and_its_tariff_as_html_tables(brow
     wait_rendered(page)
     intro = page.locator('section[data-eid="sec_I__intro"]')
     assert intro.get_attribute("data-type") == "intro"
-    assert excerpt(page, "sec_I__intro").get_attribute("data-unit-type") == "intro"
+    assert excerpt(page, "sec_I__intro").get_attribute("data-compared") == "true"
     assert page.locator(".instruments-target").get_attribute("data-excerpt") == "sec_I__intro"
     document = json.loads((FILES / "leyes" / "ligie-2022.json").read_text(encoding="utf-8"))
     tables = [u for u in document["units"] if u["u"] == "table"]
     assert len(tables) > 100
     assert page.locator("section.instruments-type-table").count() \
         == len({u["e"] for u in tables})
-    assert page.locator('div.instruments-excerpt[data-unit-type="table"]').count() == len(tables)
+    wanted = {f"{u['e']}.{u['p']}" if u.get("p") else u["e"] for u in tables}
+    present = set(page.evaluate(
+        "Array.from(document.querySelectorAll('div.instruments-excerpt'), e => e.dataset.excerpt)"))
+    assert wanted <= present
     cells = page.locator("table.instruments-table tr").first.locator("td").count()
     assert cells >= 2
     # The tariff is no longer made of loose paragraphs and, since review fix-6 of #291, no
     # excerpt of the law is `loose` at all (the transitory text it used to leave is placed).
     assert not document["meta"]["flags"].get("loose")
-    assert page.locator('li[data-flag="loose"] button').count() == 0   # a zero count is no link
     piece = next(u for u in tables if u.get("p", 0) == 2)
     page.goto(f"{real_server}?c=leyes&k=ligie-2022#{piece['e']}.2")
     wait_rendered(page)
@@ -1160,8 +1137,8 @@ def test_the_tmec_shows_decimal_article_numbers_and_no_repeated_number_from_a_sp
     eids = [u["e"] for u in document["units"] if u["u"] == "article"]
     assert [e.split("__")[-1] for e in eids if "__art_1." in e][:3] == ["art_1.1", "art_1.2", "art_1.3"]
     article = page.locator('section[data-eid="cap_1__sec_A__art_1.1"]')
-    assert article.locator("> .instruments-node-head .instruments-badge").inner_text() \
-        == "article · cap_1__sec_A__art_1.1 · 1.1"
+    assert article.get_attribute("data-type") == "article"
+    assert "1.1" in article.inner_text()
     assert page.locator(".instruments-target").count() == 1
     # Review fix-1 of #291: the annex articles (`Artículo 2.A.1`) are read whole too now (the
     # writer used to bold only `Artículo 2.`), so no article of the treaty carries the repeated
@@ -1175,7 +1152,7 @@ def test_the_tmec_shows_decimal_article_numbers_and_no_repeated_number_from_a_sp
 
 @pytest.mark.skipif(not (FILES / "leyes" / "ccf.json").exists(),
                     reason="website/pages/instruments/files/ has not been installed")
-def test_a_real_3589_article_document_renders_in_chunks_with_a_visible_outline(browser, rendered_site):
+def test_the_real_civil_code_reads_as_a_document_with_nearest_texts(browser, rendered_site):
     page = open_page(browser, f"{rendered_site}?c=leyes&k=ccf#tit_PRIMERO__cap_I__art_1")
     page.wait_for_selector('.instruments-document[data-rendered="true"]', timeout=120000)
     outline = page.locator(".instruments-outline").bounding_box()
@@ -1183,5 +1160,51 @@ def test_a_real_3589_article_document_renders_in_chunks_with_a_visible_outline(b
     assert outline["width"] > 200 and document["width"] > 400      # Quarto's grid rule (#247)
     assert page.locator("div.instruments-excerpt").count() > 3000
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    facts = page.locator(".instruments-facts").inner_text()
+    assert facts.startswith("Abbreviation ccf") and "14 November 2025" in facts
+    assert re.search(r"[\d,]+ articles$", facts.strip())
+    assert_reads_as_a_document(page)
+    first = page.locator('[data-compared="true"]').first
+    summary = first.locator("> details.instruments-near summary")
+    assert summary.inner_text() == "Nearest texts (5)"
+    summary.click()
+    items = first.locator("li.instruments-near-item")
+    items.first.wait_for()
+    assert items.count() == 5
+    for item in items.all():
+        assert re.fullmatch(r"\d\.\d{3}", item.locator(".instruments-similarity").inner_text())
+        assert " — " in item.locator("a.instruments-near-link").first.inner_text()
+    assert page.errors == []
+    page.close()
+
+
+def assert_reads_as_a_document(page):
+    """No review apparatus, no marker line and no identifier in a fully rendered instrument."""
+    for name in ("badge", "raw-toggle", "report", "summary", "flag", "tag", "excerpt-bar",
+                 "mode", "mark", "compared"):
+        assert page.locator(f".instruments-{name}").count() == 0, name
+    shown = page.locator(".instruments-document").text_content()
+    assert "<!--" not in shown and "scjn:block" not in shown
+    assert not re.search(r"\b(?:art|cap|tit|sec|hc|att|app)_[\w.-]+__", shown)
+    assert page.locator(".instruments-document h3").count() > 0
+
+
+def a_treaty_with_decree_blocks():
+    for path in sorted((FILES / "tratados").glob("*.json")):
+        if '"hc_DECRETO_PROMULGATORIO"' in path.read_text(encoding="utf-8"):
+            return path.stem
+    return None
+
+
+@pytest.mark.skipif(not (FILES / "tratados").exists() or a_treaty_with_decree_blocks() is None,
+                    reason="website/pages/instruments/files/ has not been installed")
+def test_a_real_treaty_with_promulgation_decree_blocks_shows_no_marker_line(browser, real_server):
+    key = a_treaty_with_decree_blocks()
+    page = open_page(browser, f"{real_server}?c=tratados&k={key}")
+    page.wait_for_selector('.instruments-document[data-rendered="true"]', timeout=120000)
+    assert page.locator('section[data-eid="hc_DECRETO_PROMULGATORIO"]').count() == 1
+    assert_reads_as_a_document(page)
+    markdown = json.loads((FILES / "tratados" / f"{key}.json").read_text(encoding="utf-8"))["markdown"]
+    assert "<!-- scjn:block" in markdown                            # the file keeps its markers
     assert page.errors == []
     page.close()

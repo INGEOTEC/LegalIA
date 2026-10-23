@@ -508,8 +508,8 @@ def test_the_site_does_not_list_or_ship_the_topics_page():
     entries = re.findall(r"- href: (\S+)\n\s+text: (.+)", config)
     assert "pages/topics.qmd" not in [href for href, _ in entries]
     assert "Topics" not in [name.strip() for _, name in entries]
-    assert [name.strip() for _, name in entries][:5] == [
-        "Home", "Archive", "Federal Laws", "Atlas", "DOF Titles"]
+    assert [name.strip() for _, name in entries][:6] == [
+        "Home", "Archive", "Federal Laws", "Atlas", "Instruments", "DOF Titles"]
     resources = re.search(r"resources:\s*\n((?:\s+(?:-|#).*\n)+)", config).group(1)
     assert "pages/topics/**" not in [line.strip().lstrip("- ").strip('"') for line in resources.splitlines()
                                      if not line.strip().startswith("#")]
