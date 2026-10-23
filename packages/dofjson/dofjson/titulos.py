@@ -41,6 +41,7 @@ cached date without a SIDOF/dofweb request at all.
 import datetime as dt
 import io
 import json
+import os
 import re
 import tarfile
 from pathlib import Path
@@ -53,6 +54,34 @@ _HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; DOF-JSON-Client/1.0)",
     "Accept": "application/vnd.github+json",
 }
+
+#: Environment variables a GitHub token is read from, the first one set wins
+#: -- `GH_TOKEN` before `GITHUB_TOKEN`, the `gh` CLI's own precedence.
+_TOKEN_VARIABLES = ("GH_TOKEN", "GITHUB_TOKEN")
+
+
+def _github_api_headers() -> dict:
+    """`_HEADERS` plus `Authorization: Bearer <token>` when `GH_TOKEN` or
+    `GITHUB_TOKEN` is set in the environment, for the one request this module
+    makes to the GitHub REST API (the release's asset listing).
+
+    Unauthenticated, GitHub allows 60 API requests an hour per IP address,
+    which a shared CI runner exhausts: pull request #298's `test (scjn, 3.12)`
+    cell failed with `403 rate limit exceeded` on this very lookup while the
+    3.10 and 3.11 cells of the same run passed. Authenticated with a runner's
+    own `GITHUB_TOKEN` the quota is per repository and three orders of
+    magnitude higher. Without a token nothing changes -- an installed package
+    never needs one -- and the asset downloads themselves go through
+    `github.com/<owner>/<repo>/releases/download/`, which is outside this
+    quota, so they keep the plain `_HEADERS`.
+    """
+    headers = dict(_HEADERS)
+    for variable in _TOKEN_VARIABLES:
+        token = os.environ.get(variable, "").strip()
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+            break
+    return headers
 _LISTAS_NOTAS = ("NotasMatutinas", "NotasVespertinas", "NotasExtraordinarias")
 
 #: Source a note is assumed to come from when its day carries no `fuente`.
@@ -108,7 +137,7 @@ def resuelve_cache_dir(cache_dir) -> Path | None:
 
 def listar_assets(timeout: int = 30) -> list[dict]:
     """`.tgz` assets (name + download URL) of the notas-archivo release."""
-    response = requests.get(RELEASES_API, headers=_HEADERS, timeout=timeout)
+    response = requests.get(RELEASES_API, headers=_github_api_headers(), timeout=timeout)
     response.raise_for_status()
     return [
         {"name": asset["name"], "url": asset["browser_download_url"]}

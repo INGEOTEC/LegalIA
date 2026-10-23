@@ -7,6 +7,7 @@ every reader still answers with `requests.get` monkeypatched to raise."""
 import gzip
 import io
 import json
+import os
 import tarfile
 import unittest
 from pathlib import Path
@@ -1194,6 +1195,35 @@ class TestAssetsDePartes(unittest.TestCase):
 
         with self.assertRaises(requests.HTTPError):
             release._assets_de_partes("base")
+
+    # The series probe is the one request against api.github.com, where an
+    # unauthenticated IP gets 60 requests an hour (pull request #298's
+    # `test (scjn, 3.12)` ran out): a token in the environment authenticates
+    # it, and without one the headers are exactly `_HEADERS`.
+    @patch("requests.get")
+    def test_con_token_en_el_entorno_manda_bearer(self, mock_get):
+        mock_get.return_value = _FakeResponse(200, _pagina_assets({}))
+        with patch.dict(os.environ, {"GH_TOKEN": "", "GITHUB_TOKEN": "secreto"}):
+            release._assets_de_release("base", 30)
+        headers = mock_get.call_args.kwargs["headers"]
+        self.assertEqual(headers["Authorization"], "Bearer secreto")
+        self.assertEqual({k: v for k, v in headers.items() if k != "Authorization"},
+                         release._HEADERS)
+
+    @patch("requests.get")
+    def test_gh_token_gana_sobre_github_token(self, mock_get):
+        mock_get.return_value = _FakeResponse(200, _pagina_assets({}))
+        with patch.dict(os.environ, {"GH_TOKEN": "gh", "GITHUB_TOKEN": "github"}):
+            release._assets_de_release("base", 30)
+        self.assertEqual(mock_get.call_args.kwargs["headers"]["Authorization"], "Bearer gh")
+
+    @patch("requests.get")
+    def test_sin_token_no_manda_authorization(self, mock_get):
+        mock_get.return_value = _FakeResponse(200, _pagina_assets({}))
+        with patch.dict(os.environ, {"GH_TOKEN": "", "GITHUB_TOKEN": " "}):
+            release._assets_de_release("base", 30)
+        self.assertEqual(mock_get.call_args.kwargs["headers"], release._HEADERS)
+        self.assertNotIn("Authorization", release._HEADERS)
 
     @patch("requests.get")
     def test_nombre_duplicado_entre_partes_gana_la_mas_baja(self, mock_get):

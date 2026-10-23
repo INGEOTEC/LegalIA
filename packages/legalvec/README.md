@@ -38,7 +38,10 @@ Disk-first, the posture `scjn` took in issue #209: every reader raises
 `AssetNotCached` rather than downloading, and `download_vectors_assets` is
 the only thing that talks to the network. The cache is its own directory —
 `$LEGALVEC_CACHE_DIR`, `~/.cache/legalvec` by default — separate from
-`scjn`'s and `nota2md`'s.
+`scjn`'s and `nota2md`'s. Resolving a release series asks the GitHub API,
+where an unauthenticated address gets 60 requests an hour; when `GH_TOKEN`
+(or `GITHUB_TOKEN`) is set, those requests carry it as a bearer token, and
+without one nothing changes.
 
 Both models stay live: `Qwen/Qwen3-Embedding-0.6B` at K=1,024 and
 `Qwen/Qwen3-Embedding-4B` at K=2,560, in separate files. Issue #217's proxy

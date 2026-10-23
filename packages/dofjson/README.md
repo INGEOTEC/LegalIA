@@ -295,6 +295,11 @@ cache once and every pass afterwards is local:
 nota2md download gazette-metadata   # or: python -c "import dofjson; dofjson.download_dof_assets()"
 ```
 
+Listing the release's assets is one request to the GitHub API, where an
+unauthenticated address gets 60 requests an hour; when `GH_TOKEN` (or
+`GITHUB_TOKEN`) is set, that request carries it as a bearer token, and
+without one nothing changes.
+
 ```python
 import dofjson
 

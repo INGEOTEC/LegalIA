@@ -38,7 +38,10 @@ described as the right one (issue #115, Hallazgo C).
 
 puts the release on disk; every reader in `scjn.release` then reads off it
 with no network request at all, raising `scjn.release.AssetNotCached` for
-whatever is not there yet.
+whatever is not there yet. Resolving a release's parts asks the GitHub API,
+where an unauthenticated address gets 60 requests an hour; when `GH_TOKEN`
+(or `GITHUB_TOKEN`) is set, those requests carry it as a bearer token, and
+without one nothing changes.
 
 ## Changelog
 

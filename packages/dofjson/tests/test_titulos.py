@@ -2,6 +2,7 @@ import datetime as dt
 import gzip
 import io
 import json
+import os
 import tarfile
 import tempfile
 import unittest
@@ -51,6 +52,34 @@ class TestListarAssets(unittest.TestCase):
 
         self.assertEqual(assets, [{"name": "notas-1980.tgz", "url": "https://x/1980.tgz"}])
         mock_get.return_value.raise_for_status.assert_called_once()
+
+    # The release listing is the one request against api.github.com, where an
+    # unauthenticated IP gets 60 requests an hour; a token in the environment
+    # authenticates it, and without one the headers are exactly `_HEADERS`.
+    @patch("dofjson.titulos.requests.get")
+    def test_sends_a_bearer_token_from_the_environment(self, mock_get):
+        mock_get.return_value = Mock(json=lambda: {"assets": []})
+        with patch.dict(os.environ, {"GH_TOKEN": "", "GITHUB_TOKEN": "secreto"}):
+            titulos.listar_assets()
+        headers = mock_get.call_args.kwargs["headers"]
+        self.assertEqual(headers["Authorization"], "Bearer secreto")
+        self.assertEqual({k: v for k, v in headers.items() if k != "Authorization"},
+                         titulos._HEADERS)
+
+    @patch("dofjson.titulos.requests.get")
+    def test_gh_token_wins_over_github_token(self, mock_get):
+        mock_get.return_value = Mock(json=lambda: {"assets": []})
+        with patch.dict(os.environ, {"GH_TOKEN": "gh", "GITHUB_TOKEN": "github"}):
+            titulos.listar_assets()
+        self.assertEqual(mock_get.call_args.kwargs["headers"]["Authorization"], "Bearer gh")
+
+    @patch("dofjson.titulos.requests.get")
+    def test_sends_no_authorization_without_a_token(self, mock_get):
+        mock_get.return_value = Mock(json=lambda: {"assets": []})
+        with patch.dict(os.environ, {"GH_TOKEN": "", "GITHUB_TOKEN": " "}):
+            titulos.listar_assets()
+        self.assertEqual(mock_get.call_args.kwargs["headers"], titulos._HEADERS)
+        self.assertNotIn("Authorization", titulos._HEADERS)
 
 
 class TestDownloadDofAssets(unittest.TestCase):
