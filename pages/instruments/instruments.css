@@ -1,4 +1,4 @@
-/* The Instruments page (issue #290). The site's own colours
+/* The Instruments page (issues #290, #297). The site's own colours
    (website/style.scss): ink #1f1e1b, muted #52514e / #898781, rules #e1e0d9,
    link #1c5cab, panels #f9f8f4. Controls use system-ui; headings keep the
    site's serif (Palatino).
@@ -6,11 +6,8 @@
    Colours, so that one means the same thing everywhere:
    - a collection has the site's categorical colour (laws #2a78d6, regulations
      #008300, guidelines #e87ba4, treaties #eda100), as on the Atlas;
-   - a node type has a fixed, quiet tint: containers are greys that darken with
-     depth of meaning (book to level), an article is ink, and a paragraph, a
-     point and a subpoint are stepped tints of the link blue;
-   - the warning tone #b45309 (amber) is used for one thing only: a parse flag
-     (`loose` text and every flag tag, mark and count). */
+   - a compared excerpt is marked by a quiet grey rule and a small "Compared" label,
+     and nothing else in the document is coloured. */
 
 .instruments {
   --instruments-ink: #1f1e1b;
@@ -19,8 +16,6 @@
   --instruments-rule: #e1e0d9;
   --instruments-link: #1c5cab;
   --instruments-panel: #f9f8f4;
-  --instruments-warning: #b45309;
-  --instruments-warning-tint: #fdf3e7;
   --instruments-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
   --instruments-serif: "Palatino Linotype", Palatino, "URW Palladio L", Georgia, serif;
   color: var(--instruments-ink);
@@ -46,7 +41,7 @@
 }
 
 .instruments-error {
-  color: var(--instruments-warning);
+  color: var(--instruments-muted);
 }
 
 .instruments-status {
@@ -194,12 +189,22 @@
   min-width: 18rem;
 }
 
-.instruments-ranking td.instruments-name > * {
-  vertical-align: middle;
+/* A long name wraps beside its dot, not under it. */
+.instruments-ranking td.instruments-name > .instruments-dot {
+  vertical-align: top;
+  margin-top: 0.35rem;
 }
 
-.instruments-ranking tbody td:nth-child(n + 5):not(.instruments-score) {
-  color: var(--instruments-warning);
+.instruments-ranking td.instruments-name > .instruments-open {
+  display: inline-block;
+  max-width: calc(100% - 1.3rem);
+  vertical-align: top;
+}
+
+.instruments-ranking th.instruments-kind,
+.instruments-ranking td.instruments-kind {
+  white-space: nowrap;
+  color: var(--instruments-muted);
 }
 
 .instruments-sort {
@@ -279,107 +284,6 @@
   margin: 0 0 0.9rem;
 }
 
-.instruments-report {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.2rem;
-  height: 1.2rem;
-  border: 1px solid var(--instruments-warning);
-  border-radius: 50%;
-  color: var(--instruments-warning);
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1;
-  text-decoration: none;
-  opacity: 0.55;
-}
-
-.instruments-report:hover,
-.instruments-report:focus {
-  opacity: 1;
-}
-
-.instruments-summary {
-  border: 1px solid var(--instruments-rule);
-  background: var(--instruments-panel);
-  border-radius: 6px;
-  padding: 0.7rem 1rem;
-  margin-bottom: 0.9rem;
-}
-
-.instruments-numbering {
-  margin: 0 0 0.4rem;
-}
-
-.instruments-flags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 1.6rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.instruments-flag-row {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.4rem;
-}
-
-.instruments-flag-name {
-  color: var(--instruments-muted);
-}
-
-.instruments-flag-none,
-.instruments-flag-position {
-  color: var(--instruments-faint);
-  font-size: 0.9em;
-}
-
-.instruments-flag-button {
-  border: 1px solid var(--instruments-warning);
-  border-radius: 4px;
-  background: var(--instruments-warning-tint);
-  color: var(--instruments-warning);
-  padding: 0 0.5rem;
-  cursor: pointer;
-}
-
-.instruments-mode {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.9rem;
-}
-
-.instruments-control-label {
-  color: var(--instruments-muted);
-}
-
-.instruments-segmented {
-  display: inline-flex;
-  border: 1px solid #c9c7be;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.instruments-segment {
-  border: 0;
-  background: #fff;
-  padding: 0.3rem 0.9rem;
-  cursor: pointer;
-}
-
-.instruments-segment + .instruments-segment {
-  border-left: 1px solid #c9c7be;
-}
-
-.instruments-segment[aria-checked="true"] {
-  background: var(--instruments-ink);
-  color: #fff;
-}
-
 /* Quarto's page CSS sends `aside` to the margin and gives h2/h3 a rule and
    padding; the outline is a plain div and every child of the grid resets its
    column, as on the Atlas (issue #247). */
@@ -449,114 +353,73 @@
   color: var(--instruments-faint);
 }
 
-.instruments-compared {
-  display: inline-block;
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--instruments-link);
-  margin-right: 0.3rem;
-}
-
-.instruments-mark {
-  color: var(--instruments-warning);
-  margin-left: 0.3rem;
-}
-
 /* -- the document ------------------------------------------------------------------ */
 
 .instruments-reading {
   min-width: 0;
+  font-family: var(--instruments-serif);
+  font-size: 1.02rem;
+  line-height: 1.55;
 }
 
 .instruments-node {
   margin: 0.35rem 0;
-  padding-left: 0.7rem;
-  border-left: 3px solid var(--instruments-rule);
 }
 
-.instruments-type-book,
-.instruments-type-title { border-left-color: #6b6a65; }
-.instruments-type-chapter,
-.instruments-type-part,
-.instruments-type-attachment { border-left-color: #898781; }
-.instruments-type-section,
-.instruments-type-level { border-left-color: #b9b7ae; }
-.instruments-type-article { border-left-color: var(--instruments-ink); }
-.instruments-type-paragraph { border-left-color: #1c5cab; }
-.instruments-type-point { border-left-color: #6f9bd2; }
-.instruments-type-subpoint { border-left-color: #b4cde9; }
-.instruments-type-content { border-left-color: #e1e0d9; }
-.instruments-type-intro { border-left-color: #c9a227; }
-.instruments-type-table { border-left-color: #7a5ea8; }
-
-.instruments-node-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8em;
-  color: var(--instruments-muted);
+/* Quarto gives h3 and below a rule and a margin of its own; a heading of the instrument
+   is plain, in the site's serif, and steps down with the depth of its container. */
+.instruments-document .instruments-heading {
+  font-family: var(--instruments-serif);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.6rem 0 0.5rem;
+  padding-bottom: 0;
+  border-bottom: 0;
+  text-align: left;
 }
 
-.instruments-badge {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  background: var(--instruments-panel);
-  border: 1px solid var(--instruments-rule);
-  border-radius: 4px;
-  padding: 0 0.4rem;
-  word-break: break-all;
-}
-
-.instruments-raw-toggle {
-  border: 1px solid var(--instruments-rule);
-  border-radius: 4px;
-  background: #fff;
-  padding: 0 0.5rem;
-  cursor: pointer;
-  font-size: 0.95em;
-}
-
-.instruments-raw-toggle[aria-expanded="true"] {
-  background: var(--instruments-ink);
-  color: #fff;
-}
+.instruments-document h3.instruments-heading { font-size: 1.35rem; }
+.instruments-document h4.instruments-heading { font-size: 1.2rem; }
+.instruments-document h5.instruments-heading { font-size: 1.08rem; }
+.instruments-document h6.instruments-heading { font-size: 1rem; font-style: italic; }
 
 .instruments-text {
   margin: 0.2rem 0;
 }
 
 .instruments-paragraph {
-  margin: 0.25rem 0;
+  margin: 0.45rem 0;
 }
 
-.instruments-raw-text,
-.instruments-rawdoc {
-  white-space: pre-wrap;
-  word-break: break-word;
-  background: var(--instruments-panel);
-  border: 1px solid var(--instruments-rule);
-  border-radius: 4px;
-  padding: 0.5rem 0.7rem;
-  font-size: 0.85em;
-  margin: 0.3rem 0;
+/* A fraction, an inciso and a subinciso sit in from the article that holds them. */
+.instruments-type-paragraph,
+.instruments-type-point,
+.instruments-type-subpoint {
+  margin-left: 1.1rem;
 }
 
+/* A compared excerpt: the text the Atlas holds a vector for, so that its nearest texts
+   can be listed under it. */
 .instruments-excerpt {
-  margin: 0.5rem 0;
-  padding: 0.3rem 0.5rem;
-  border: 1px dashed var(--instruments-rule);
-  border-radius: 6px;
+  position: relative;
+  margin: 0.6rem 0;
 }
 
-.instruments-excerpt[data-unit-type="loose"] {
-  border-color: var(--instruments-warning);
-  background: var(--instruments-warning-tint);
+.instruments-excerpt[data-compared="true"] {
+  padding: 0.1rem 0 0.2rem 0.8rem;
+  border-left: 3px solid #c9c7be;
 }
 
-.instruments-excerpt[data-unit-type="intro"],
-.instruments-excerpt[data-unit-type="table"] {
-  border-style: solid;
+.instruments-excerpt[data-compared="true"]::after {
+  content: "Compared";
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-family: var(--instruments-sans);
+  font-size: 0.68rem;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: var(--instruments-faint);
 }
 
 /* A table node (md2akn's rule 13) drawn as an HTML table; a long one is several. */
@@ -598,27 +461,13 @@
   background: var(--instruments-panel);
 }
 
-.instruments-excerpt-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-bottom: 0.1rem;
-}
-
-.instruments-tag,
-.instruments-flag-tag {
-  font-size: 0.72em;
-  border-radius: 4px;
-  padding: 0 0.4rem;
-  border: 1px solid var(--instruments-rule);
-  color: var(--instruments-muted);
-  background: #fff;
-}
-
-.instruments-flag-tag {
-  border-color: var(--instruments-warning);
-  color: var(--instruments-warning);
-  background: var(--instruments-warning-tint);
+/* What `mark` scrolls to starts at the top of the viewport (review fix-1 of #297); the margin
+   keeps the target's outline (3px, offset 2px) and a little air visible above the text instead
+   of cut at the window edge. The site's navbar is not fixed, so none of it is reserved. */
+.instruments-node,
+.instruments-excerpt,
+.instruments-heading {
+  scroll-margin-top: 1rem;
 }
 
 .instruments-target {
@@ -632,9 +481,30 @@
   font-size: 0.88em;
 }
 
+.instruments-near {
+  font-family: var(--instruments-sans);
+}
+
 .instruments-near summary {
   cursor: pointer;
   color: var(--instruments-link);
+  list-style: none;
+}
+
+.instruments-near summary::-webkit-details-marker {
+  display: none;
+}
+
+.instruments-near summary::before {
+  content: "▸ ";
+}
+
+.instruments-near[open] summary::before {
+  content: "▾ ";
+}
+
+.instruments-near summary:hover {
+  text-decoration: underline;
 }
 
 .instruments-near-list {
@@ -665,28 +535,6 @@
   display: block;
   color: var(--instruments-muted);
   font-size: 0.92em;
-}
-
-/* -- the raw document ----------------------------------------------------------------- */
-
-.instruments-range {
-  border-bottom: 2px solid #b4cde9;
-}
-
-.instruments-range[data-unit-type="heading"] { border-bottom-color: #b9b7ae; }
-.instruments-range[data-unit-type="article"] { border-bottom-color: var(--instruments-ink); }
-.instruments-range[data-unit-type="loose"] { border-bottom-color: var(--instruments-warning); }
-
-.instruments-uncovered {
-  background: #fbd9d0;
-}
-
-.instruments-annotation {
-  color: var(--instruments-faint);
-}
-
-.instruments-frontmatter {
-  color: var(--instruments-faint);
 }
 
 /* -- phones ---------------------------------------------------------------------------- */
@@ -722,8 +570,10 @@
     font-size: 1.3rem;
   }
 
-  .instruments-flags {
-    flex-direction: column;
+  .instruments-type-paragraph,
+  .instruments-type-point,
+  .instruments-type-subpoint {
+    margin-left: 0.7rem;
   }
 }
 

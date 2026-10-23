@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>The Instruments of the Atlas, as md2akn Reads Them – LegalIA</title>
+<title>The Instruments of the Atlas – LegalIA</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -108,6 +108,10 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Atlas</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link active" href="../pages/instruments.html" aria-current="page"> 
+<span class="menu-text">Instruments</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../pages/titles.html"> 
 <span class="menu-text">DOF Titles</span></a>
   </li>  
@@ -151,7 +155,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">The Instruments of the Atlas, as md2akn Reads Them</h1>
+<h1 class="title">The Instruments of the Atlas</h1>
 <p class="subtitle lead">315 laws, 864 regulations, 125 guidelines and 1,373 treaties, article by article</p>
 </div>
 
@@ -177,21 +181,11 @@ ul.task-list li input[type="checkbox"] {
 <script src="instruments/instruments.js"></script>
 <!-- /instruments:app -->
 <div class="instruments-prose">
-<p>This page opens every instrument of the <a href="../pages/atlas.html">Atlas</a> at the single snapshot its vectors were built from and shows it the way the project reads it, where the consolidated text is cut into a hierarchy of books, titles, chapters and articles, and each article into its paragraphs, points and subpoints, and every node carries a small badge with its type, its identifier and its number. The aim is to let anyone check that reading by eye, to find the places where it goes wrong, and to report them from the page itself.</p>
-<p>A badge names a node in the vocabulary of Akoma Ntoso, a standard for legal documents, and hovering over it gives the Mexican term for it. What the vocabulary calls a paragraph is a <em>fracción</em> in a Mexican law, a point is an <em>inciso</em>, and a level is an <em>apartado</em>. The <em>Raw</em> button of any node shows the exact Markdown that node was read from, and the <em>Raw</em> mode of the whole page shows the document once, with every excerpt underlined and any character that belongs to no excerpt marked in red.</p>
-<p>The outline on the left follows the same hierarchy. An annex that the Court’s text numbers after a chapter, such as <em>Annex 2-A</em> of chapter 2, is shown under that chapter, and an appendix under the annex or the instrument that it closes, each one named by its own kind, so that <em>Annex 2-A</em> and <em>Appendix 1</em> are never mistaken for each other.</p>
-<p>An excerpt is the piece of text that the Atlas compares, which is one article, one heading, one introduction, one table, one stretch of loose text or the preamble, each with its own vector. An introduction is the text that a title, chapter or section opens with before its first article or its first subdivision. A table is a run of rows that the consolidated text carries outside any article, and the page draws it as a table; a long one is cut at a row boundary into several excerpts, each of which has its own address made of the table’s identifier and the number of the part. Not every excerpt is compared with the rest of the corpus, because a heading and a transitory article say little about how two instruments relate, so only the remaining ones, called compared excerpts, carry nearest texts. Opening the <em>Nearest texts</em> of one lists the five closest texts that live in other instruments, each with its similarity, and a text that several instruments share appears once with the others named under it. The similarity is the one given by the Qwen3 Embedding 4B model, the <em>4B</em> option of the Atlas, and following a link opens that other instrument at the excerpt in question.</p>
-<p>Seven flags describe what the reading found. A flag is a count and never a judgement, since many of them are legitimate in a given law, and the table at the top ranks the instruments by their sum so that the likeliest problems come first.</p>
-<ul class="instruments-flag-meanings">
-<li><strong>Loose</strong> is text that no rule placed inside an article.</li>
-<li><strong>Repeated number</strong> marks two articles that ended up with the same identifier outside the transitory section, that is the same number in the same place of the outline, so that the second could only be kept apart with a suffix. The same number in two different containers, article 1 of Part 1 and of Part 2, is not a repeat.</li>
-<li><strong>Number gap</strong> is an article whose number does not follow the previous one in its own container.</li>
-<li><strong>Over window</strong> is an excerpt longer than the embedding model's window, whose vector was computed on a truncated text.</li>
-<li><strong>No articles</strong> means the instrument has no article at all.</li>
-<li><strong>Uncovered</strong> counts the characters of the document that fall in no excerpt, no annotation and no frontmatter.</li>
-<li><strong>No transitory section</strong> says only that the instrument has none.</li>
-</ul>
-<p>The documents themselves are not part of the site’s source. They are the <code>atlas-instruments</code> release of the repository, which the publishing workflow downloads and unpacks next to this page, and the page fetches one file only when an instrument is opened. An address such as <code>instruments.html?c=leyes&amp;k=ccf#art_1</code> opens an instrument and an excerpt directly, and the browser’s back button returns to the previous one.</p>
+<p>This page opens every instrument of the <a href="../pages/atlas.html">Atlas</a>, one by one, at the text its map was built from. A law, a regulation, a guideline or a treaty is shown as a consolidated document, with its books, titles, chapters and sections as headings, its articles as paragraphs and its tables as tables, so that it can be read from the first line to the last or entered at any article.</p>
+<p>The search box finds an instrument by name or by abbreviation, and it ignores accents and case, so that <em>constitucion</em> finds the Constitution. The buttons above the table keep one collection only, a click on a column heading sorts the table by it and a second click reverses the order, and a name opens the instrument. The outline on the left follows the document, a fold hides the contents of a title or a chapter, and a click on any entry goes to that place.</p>
+<p>An article, an introduction, a table or the preamble is what the Atlas calls an excerpt, the piece of text that it compares with the rest of the corpus. A heading and a transitory article say little about how two instruments relate, so they are left out, and the remaining ones are called compared excerpts. Each of them is marked in the margin of the document with a thin rule and the word <em>Compared</em>, and it carries a <em>Nearest texts</em> line. Opening it lists the five closest texts that live in other instruments, each with its similarity as the Qwen3 Embedding 4B model measures it, which is the <em>4B</em> option of the Atlas. A text that several instruments share appears once, with the others named under it. Following a link opens that other instrument at the excerpt in question, highlighted, and the browser’s back button returns to where the reading was.</p>
+<p>Every instrument and every excerpt has an address, so that a link can point at it. An address such as <code>instruments.html?c=leyes&amp;k=ccf#art_1</code> opens the Federal Civil Code at its first article.</p>
+<p>The text is the consolidated snapshot of the Supreme Court of Justice of the Nation from which the vectors were built, and its date is shown under the name of each instrument. The documents themselves are not part of the site’s source, being the <code>atlas-instruments</code> release of the repository, which the publishing workflow downloads and unpacks next to this page, and the page fetches one file only when an instrument is opened. The Diario Oficial de la Federación remains the official source of legal text.</p>
 </div>
 
 
