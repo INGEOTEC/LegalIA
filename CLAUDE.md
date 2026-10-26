@@ -1261,6 +1261,16 @@ missing `orden` are `CONTENIDO` blocks the API serves today.
   53 to 56 missing, the transitorios). The last two answered the same on every retry and on
   a second pass, with `tamanio` agreeing with the rows served: the API's own data lacks
   those `orden`, which no client can restore. A second resumed pass did not change any of them.
+- **The release sweep passes** (19 tests: `TestInvariantesDelBloque` I1 to I4 included; run
+  whole once, then its two failing treaty tests again after the two parser fixes above). I4 found 22
+  numbering gaps new to the fixture in 7 treaties (16189, 18141, 23943, 24031, 84855, 84858): all texts
+  that print only the amended articles of a text (the CAMR-92 and WRC-2012 revisions of the Radio
+  Regulations, the ITU amendments, a UPU corrigendum), each classified in
+  `fixtures_units/genuine_gaps.json` (now 111 entries) with the raw evidence of the API block: which
+  article openers its own text prints and that none of the skipped numbers is among them (the
+  classifier's `source-omits-number` used to rest on "no article *block* between", which proves nothing
+  when one `CONTENIDO` block holds a whole text; 20 existing entries moved to
+  `numbering-continues-across-containers` on the same evidence).
 - **Packaged, not published**: `scripts/scjn/<c>-release/PUBLICAR.md` for the four corpora
   (for `reglamentos` and `tratados`, whose `partes.json` was seeded from the live releases
   with a read-only `gh release view`; part 1 holds 997 tarballs plus 3 metadata assets; only
