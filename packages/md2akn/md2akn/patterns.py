@@ -176,6 +176,11 @@ _COMPONENTE_ARTICULO = (
     # it, never before a plain word (`Artículo 5 a las personas`).
     rf"|[ \t]+[a-zñ](?=[.\-–]|[ \t]+(?i:{SUFIJO_LATINO})\b)"
     rf"|[ \t]+[A-ZÁÉÍÓÚÑ](?=[ \t]+(?i:{SUFIJO_LATINO})\b)"
+    # A space-separated capital letter that is the whole rest of the line
+    # (`Artículo 11 A`, a treaty's `**Artículo 11 **A` once the bold is
+    # stripped, issue #300: article 11 A, not a second 11). `Y` is left out, a
+    # conjunction; a letter with text after it stays a sentence.
+    r"|[ \t]+[A-XZÁÉÍÓÚÑ](?=[ \t]*$)"
     # An adjacent capital letter (`4B.-`, `3A`) ends the heading or is followed
     # by a separator.
     r"|(?<=\d)[A-ZÁÉÍÓÚÑ](?=[ \t]*[.\-–:]|[ \t]*$)"

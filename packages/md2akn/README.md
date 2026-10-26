@@ -481,6 +481,10 @@ every machine has — rather than over a handful of fixtures; see its own module
   (`outline.es_contenido_suelto`, read from the marker and the text before it, also
   by `validate`'s invariant I1). One after a block with text of its own, such as
   the index of reglamento 138214 after its `CONSIDERANDO`, is read as before.
+  **Rule 41**, found by the release sweep over the restored text: a running head `Art. 8`
+  straight before `**ARTICULO 8**` is not an article (markers only), and
+  `NUM_ARTICULO` takes a capital letter that closes the line (`Artículo 11 A`; it
+  reaches 5 lines of one treaty, 23895, in the whole corpus).
 
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an

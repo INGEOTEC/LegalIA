@@ -133,3 +133,59 @@ def test_a_document_with_no_markers_parses_as_before():
     )
     tree = parse_markdown(plain)
     assert [n.num for n in _walk(tree) if n.akn_type == "article"] == ["1", "2"]
+
+
+# -- two more parse errors the re-crawl's restored text showed (issue #300) -------
+
+
+def test_a_running_head_art_n_before_the_article_with_the_same_number_is_no_article():
+    # The Radio Regulations the CAMR-92 Final Acts reprint print `Art. 8` above
+    # each article's own heading (rule 41).
+    doc = _doc(
+        _marker(1, "ENCABEZADO", "header"),
+        "**ACTAS FINALES**",
+        _marker(2, "ANEXO", "container", " type=annex"),
+        "**ANEXO**",
+        _marker(3, "CONTENIDO"),
+        "ARTICULO 7\n\nDisposiciones previas.",
+        "Art. 8",
+        "**ARTICULO 8**\n\nAtribución de bandas de frecuencias.",
+        "**ARTICULO 9**\n\nOtras disposiciones.",
+    )
+    tree = parse_markdown(doc)
+    assert [n.num for n in _walk(tree) if n.akn_type == "article"] == ["7", "8", "9"]
+    assert not [n for n in _walk(tree) if n.repeated]
+    assert validate(tree).ok
+
+
+def test_a_lone_art_n_line_stays_an_article():
+    doc = _doc(
+        _marker(1, "ENCABEZADO", "header"),
+        "**LEY**",
+        _marker(2, "ARTÍCULO 1", "article", " numero=1"),
+        "Art. 8",
+    )
+    tree = parse_markdown(doc)
+    assert [n.num for n in _walk(tree) if n.akn_type == "article"] == ["8"]
+
+
+def test_an_article_number_may_end_with_a_capital_letter_that_closes_the_line():
+    # `**Artículo 11 **A` (a treaty's amendment inserting articles 11A and 11B)
+    # was read as a second article 11.
+    doc = _doc(
+        _marker(1, "ENCABEZADO", "header"),
+        "**ENMIENDA**",
+        _marker(2, "ENMIENDA A LA CONVENCIÓN"),
+        "**ENMIENDA A LA CONVENCIÓN**",
+        _marker(3, "CONTENIDO"),
+        "**Artículo 11 **\n\nTexto del artículo once.",
+        "**Artículo 11 **A\n\nTexto del once A.",
+        "**Artículo 11 **B\n\nTexto del once B.",
+    )
+    tree = parse_markdown(doc)
+    assert [n.num for n in _walk(tree) if n.akn_type == "article"] == ["11", "11 A", "11 B"]
+    assert not [n for n in _walk(tree) if n.repeated]
+    # a letter with text after it on the line is still a sentence
+    from md2akn.patterns import ARTICULO
+
+    assert ARTICULO.match("Artículo 5 A las personas").group("num") == "5"

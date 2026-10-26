@@ -785,6 +785,7 @@ class _Constructor:
         #: node's span is pulled back over it (the way an annotation's is).
         self._marca_inicio: int | None = None
         self._lee_marcas()
+        self._lee_encabezados_repetidos()
         #: Rule 15 (review fix-1 of #291): the tables of contents, as
         #: ``{marker block index: first block index after it}``. Rule 19: a
         #: block the SCJN labels `ÍNDICE` is one, whatever its text says.
@@ -948,6 +949,28 @@ class _Constructor:
             self._de_marca[k] = actual
         self._indices_de_marca = indices
         self._siguiente_de_marca = siguiente
+
+    def _lee_encabezados_repetidos(self) -> None:
+        """Rule 41 (issue #300): a heading line that is only `Art. 8`, straight
+        before the block `**ARTICULO 8**` with the same number, is a running head and
+        not an article of its own. The Radio Regulations the CAMR-92 Final Acts
+        reprint print `Art. 8` above each article's own heading; read as an article it
+        left an empty `art_8` beside the real one and the number repeated. Only in a
+        document with outline markers, and only when the next block opens an article of
+        the same number: a lone `Art. 8` line stays what it was."""
+        if not self._marcas:
+            return
+        for i in range(len(self._bloques) - 1):
+            kind, campos = self._clases[i]
+            siguiente_kind, siguiente = self._clases[i + 1]
+            if kind != "articulo" or siguiente_kind != "articulo":
+                continue
+            if campos.get("num") != siguiente.get("num"):
+                continue
+            texto = self._bloques[i].text.replace("**", "")
+            m = ARTICULO.match(texto.split("\n", 1)[0])
+            if m and "\n" not in texto.strip() and not texto[m.end():].strip():
+                self._clases[i] = ("contenido", {})
 
     def _abre_articulos(self, i: int) -> bool:
         """Whether block `i` opens an article, as the pass will read it: by its

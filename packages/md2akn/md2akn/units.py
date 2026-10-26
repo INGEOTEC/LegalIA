@@ -1079,7 +1079,11 @@ def text_units(
        and `CONTENIDO` -- is that block's content, as rule 30 reads `ARTÍCULOS` and
        `CONTENIDO ARTICULOS` (issue #300). One that follows a block with text of
        its own (an index after a `CONSIDERANDO`) is read by the other rules.
-    Rules 25 to 40 apply to a document with outline markers; one without
+    41. A heading line that is only `Art. 8`, straight before the block `**ARTICULO 8**`
+       with the same number, is a running head and not an article (the Radio
+       Regulations a treaty reprints); and an article number may end with a capital
+       letter that closes the line (`Artículo 11 A`, issue #300).
+    Rules 25 to 41 apply to a document with outline markers; one without
     them is read, and its eIds written, as before.
 
     >>> import md2akn
