@@ -48,33 +48,47 @@ ESPERA_DEFAULT = 0.5
 REINTENTOS_DEFAULT = 3
 
 # A page size the API honours *exactly*, which is what makes "a short page is
-# the last page" a safe stop condition — and that condition is the only safe
+# the last page" a safe stop condition -- and that condition is the only safe
 # one here, because two things are true of this API at once (issue #178, found
 # while auditing why `lfd` had 92 snapshots against the 98 reforms its own
 # detail page lists):
 #
 #   - Asking for a page past the end answers HTTP 500, not an empty page.
-#   - `tamanio` can overcount what the endpoint will ever return: `lfd`
-#     reforma 99 reports `tamanio` 995 and serves 991 articles, complete,
-#     spanning `orden` 1..995 (4 `orden` values simply do not exist).
+#   - `tamanio` can exceed the rows one answer carries: `lfd` reforma 99
+#     reported `tamanio` 995 and served 991 articles spanning `orden`
+#     1..995, with 4 `orden` values missing.
 #
 # Together those made a `len(filas) >= tamanio` stop condition fail closed: it
-# never came true for such a reform, so a second page was always requested, it
-# answered 500, and the whole reform was discarded as unavailable. That is
+# never came true for such an answer, so a second page was always requested,
+# it answered 500, and the whole reform was discarded as unavailable. That is
 # what produced ~106 of the 231 "the SCJN cannot serve this" reports of the
-# first full crawl — a bug here, not a defect there. Above 500 the endpoint
-# also stops honouring the requested size (a ~1.7 MB payload cap), which would
-# make a short page ambiguous between "last page" and "truncated"; at 500 it
-# does not.
+# first full crawl. Above 500 the endpoint also stops honouring the requested
+# size (a ~1.7 MB payload cap), which would make a short page ambiguous
+# between "last page" and "truncated"; at 500 it does not.
 #
-# So *both* stop conditions are needed, and neither alone is enough:
+# So *both* stop conditions are needed to stop paging, and neither alone is
+# enough:
 #
-#   - a page shorter than requested is the last one (covers the overcounting
-#     `tamanio`, e.g. `lfd` reforma 99);
+#   - a page shorter than requested is the last one (covers a `tamanio` above
+#     what the endpoint serves, e.g. `lfd` reforma 99);
 #   - having collected `tamanio` rows is also the end, even on a full page
-#     (covers a count that is an exact multiple of the page size — `lss`
+#     (covers a count that is an exact multiple of the page size -- `lss`
 #     reforma 42 declares exactly 500 and serves exactly 500, and asking for
 #     its page 2 answers 500 too).
+#
+# Issue #178 then drew the wrong conclusion from `lfd` reforma 99: it called
+# the 991-row answer "complete" and `tamanio` an overcount. It was the other
+# way round (issue #300). `tamanio` was right and the answer was *incomplete*:
+# the 4 missing `orden` values (934, 937, 940, 942) are `CONTENIDO` blocks the
+# API serves today (reform 99 now answers all 995), and the API had left them
+# out while still reserving their `orden` numbers. The same happened to
+# `tratados/24031`, whose four `CONTENIDO` blocks held the whole Radio
+# Regulations revision (254 k characters) and were missing from the published
+# snapshot. 367 snapshots of 240 instruments had such a gap on disk. Neither
+# stop condition detects it -- they only decide when to stop *asking* -- so
+# `articulos_of_reforma` also checks the answer: `orden` must be exactly
+# `1..N` and the rows must reach `tamanio`, else the whole reform is asked
+# again and finally refused (`ScjnApiIncompleteError`).
 TAMANIO_PAGINA_ARTICULOS = 500
 TAMANIO_PAGINA_REFORMAS = 500
 
@@ -85,6 +99,14 @@ class ScjnApiError(RuntimeError):
     """The API did not answer usefully — an HTTP status, a `codigo` other
     than 200 in the body, or a non-JSON answer (a WAF challenge page). Kept
     distinct from an empty result, which is a legitimate answer."""
+
+
+class ScjnApiIncompleteError(ScjnApiError):
+    """The API answered, but the answer is known to be partial: its `orden`
+    values are not exactly `1..N`, or it carries fewer rows than the `tamanio`
+    it declares (issue #300). A `ScjnApiError` on purpose, so a crawl treats
+    the reform like any other it cannot get -- logged, skipped, never written
+    as a snapshot that is known to miss text."""
 
 
 class ScjnApiWafError(ScjnApiError):
@@ -327,6 +349,24 @@ class ScjnApi:
         reforms 7 and 9 of the same law answer fine (issue #173, question 5).
         A crawl logs it and skips that one reform; it never aborts the
         instrument over it."""
+        for intento in range(self.reintentos + 1):
+            filas, total = self._articulos_una_vez(id_ordenamiento, id_reforma)
+            faltan = _orden_faltante(filas, total)
+            if faltan is None:
+                return filas
+            if intento < self.reintentos:
+                time.sleep(self.espera)
+        raise ScjnApiIncompleteError(
+            f"idOrdenamiento={id_ordenamiento} idReforma={id_reforma}: "
+            f"incomplete answer after {self.reintentos + 1} attempt(s), "
+            f"{len(filas)} rows for tamanio {total}; {faltan}"
+        )
+
+    def _articulos_una_vez(
+        self, id_ordenamiento: str | int, id_reforma: int | str
+    ) -> tuple[list[Articulo], int]:
+        """Every page of one reform's `Articulos`, and the `tamanio` the API
+        declared for it. Completeness is `articulos_of_reforma`'s to judge."""
         filas: list[Articulo] = []
         pagina = 1
         while True:
@@ -354,8 +394,27 @@ class ScjnApi:
             # so is a full page that already covers every declared article.
             total = datos.get("tamanio") or 0
             if len(lote) < TAMANIO_PAGINA_ARTICULOS or len(filas) >= total:
-                return filas
+                return filas, total
             pagina += 1
+
+
+def _orden_faltante(filas: list["Articulo"], total: int) -> str | None:
+    """Why an `Articulos` answer is incomplete, or None when it is not
+    (issue #300). Complete means both: `orden` is exactly `1..max` with no
+    gap, and there are at least `tamanio` rows. Either alone misses a case: a
+    gap in the middle leaves the count short only when `tamanio` counts the
+    reserved numbers, and a block dropped at the *end* leaves no gap at all.
+    Rows with no `orden` cannot be checked for contiguity; the count still is.
+    """
+    problemas = []
+    ordenes = {f.orden for f in filas if f.orden is not None}
+    if ordenes:
+        faltan = sorted(set(range(1, max(ordenes) + 1)) - ordenes)
+        if faltan:
+            problemas.append(f"missing orden {faltan[:20]}{' ...' if len(faltan) > 20 else ''}")
+    if len(filas) < total:
+        problemas.append(f"{len(filas)} rows is fewer than tamanio {total}")
+    return "; ".join(problemas) or None
 
 
 # --- Markdown writer (issue #175) ----------------------------------------
