@@ -141,3 +141,56 @@ def es_continuacion(etiqueta: str, anterior: str) -> bool:
     """
     m = _CONTENIDO.fullmatch(pliega_etiqueta(etiqueta))
     return m is not None and m.group("resto") == pliega_etiqueta(anterior)
+
+
+#: The longest single line a block can be and still be only a title (rule 40),
+#: the same bound rule 38 uses for a heading block's lines.
+MAX_LINEA_DE_TITULO = 160
+
+
+def es_solo_titulo(texto: str) -> bool:
+    """Rule 40: whether the text of an API block (its marker line left out) is
+    only a title -- one short line, bold or not, with no body. Reform
+    annotations (`(REFORMADO, D.O.F. ...)`) do not count as text.
+
+    >>> es_solo_titulo("**ANEXO**")
+    True
+    >>> es_solo_titulo("ANEXO A LA RESOLUCION No. 46 (CAMR-92)")
+    True
+    >>> es_solo_titulo("**TÍTULO**\\n\\nArtículo 1.- Texto.")
+    False
+    >>> es_solo_titulo("")
+    False
+    """
+    lineas = [
+        linea.replace("**", "").strip()
+        for linea in texto.splitlines()
+        if linea.strip()
+    ]
+    lineas = [linea for linea in lineas if not linea.startswith("(")]
+    return len(lineas) == 1 and len(lineas[0]) <= MAX_LINEA_DE_TITULO
+
+
+def es_contenido_suelto(etiqueta: str, kind: str, texto_anterior: str) -> bool:
+    """Rule 40 (issue #300): whether an API block is the bare `CONTENIDO` the
+    SCJN serves as the body of the block before it, when that block holds only
+    its own title (`ANEXO`, `ANEXO 4`, `PROTOCOLO`). The second half of a split
+    block like rule 30's, but with no label after `CONTENIDO`, so rule 30 does
+    not recognise it. A `CONTENIDO` after a block that has text of its own (a
+    `CONSIDERANDO` followed by an index) is not this one.
+
+    >>> es_contenido_suelto("CONTENIDO", "other", "**ANEXO**")
+    True
+    >>> es_contenido_suelto("CONTENIDO", "other", "Considerando que ...")
+    False
+    >>> es_contenido_suelto("CONTENIDO", "container", "**ANEXO**")
+    False
+    >>> es_contenido_suelto("CONTENIDO ARTICULOS", "other", "**ANEXO**")
+    False
+    """
+    return (
+        kind == "other"
+        and pliega_etiqueta(etiqueta) == "CONTENIDO"
+        and es_solo_titulo(texto_anterior)
+    )
+

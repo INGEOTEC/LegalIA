@@ -472,6 +472,16 @@ every machine has — rather than over a handful of fixtures; see its own module
   `numbering_gap` classified in `tests/fixtures_units/genuine_gaps.json`.
   No rule names an instrument and a document with no marker is read as before.
 
+  **Issue #300 (still 0.5.1):** **rule 40**. The SCJN serves some treaties as a
+  title-only block (`ANEXO`, `ANEXO 4`, `PROTOCOLO`) followed by a block labelled
+  just `CONTENIDO` that holds the text -- rule 30's split with nothing after the
+  word, so rule 30 never fired, and the text opened a section beside the annex.
+  A `kind=other` block whose folded label is exactly `CONTENIDO` and that follows a
+  block whose text is one short line is now that block's content
+  (`outline.es_contenido_suelto`, read from the marker and the text before it, also
+  by `validate`'s invariant I1). One after a block with text of its own, such as
+  the index of reglamento 138214 after its `CONSIDERANDO`, is read as before.
+
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an
   article, the way an international treaty numbers its own articles. It is a

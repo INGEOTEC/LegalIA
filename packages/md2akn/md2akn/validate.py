@@ -24,7 +24,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from md2akn.model import REFERS_TO_TRANSITORIOS, AknNode
-from md2akn.outline import MARCADORES_EN_TEXTO, es_continuacion, lee_marcador
+from md2akn.outline import (
+    MARCADORES_EN_TEXTO,
+    es_continuacion,
+    es_contenido_suelto,
+    lee_marcador,
+)
 
 #: Which types may contain which. A tree that nests outside this table is
 #: broken, whatever the document said: it means the builder lost its stack,
@@ -314,6 +319,7 @@ def _block_escapes(tree: AknNode) -> list[Violation]:
     # span is pulled back over them.
     marcas = [len(texto[: m.start()].rstrip()) if m.start() else 0 for m in encontradas]
     etiquetas = [(lee_marcador(m.group(0)) or {}).get("label", "") for m in encontradas]
+    clases = [(lee_marcador(m.group(0)) or {}).get("kind", "") for m in encontradas]
     limites = [*marcas, len(texto) + 1]
     nodos = [n for n in tree.walk() if n.akn_type not in ("act", "body", "preamble", "conclusions")]
     violaciones: list[Violation] = []
@@ -330,7 +336,13 @@ def _block_escapes(tree: AknNode) -> list[Violation]:
             m += 1
         if not dentro:
             continue
-        continuacion = k > 0 and es_continuacion(etiquetas[k], etiquetas[k - 1]) and raices_previas
+        continuacion = k > 0 and raices_previas and (
+            es_continuacion(etiquetas[k], etiquetas[k - 1])
+            # Rule 40 (issue #300): a bare `CONTENIDO` after a title-only block.
+            or es_contenido_suelto(
+                etiquetas[k], clases[k], texto[encontradas[k - 1].end():encontradas[k].start()]
+            )
+        )
         raices = list(raices_previas) if continuacion else [dentro[0]]
         raiz = raices[0]
         # A block whose first node is a leaf, an index or a table continues what is

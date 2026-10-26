@@ -57,7 +57,12 @@ from md2akn.divisions import (
     es_encabezado_de_formulario,
     inicio_de_la_serie,
 )
-from md2akn.outline import es_continuacion, lee_marcador, rol_de_etiqueta
+from md2akn.outline import (
+    es_continuacion,
+    es_contenido_suelto,
+    lee_marcador,
+    rol_de_etiqueta,
+)
 from md2akn.model import (
     REFERS_TO_ANEXO,
     REFERS_TO_APARTADO,
@@ -984,13 +989,25 @@ class _Constructor:
         Rule 30: a block labelled `CONTENIDO <label of the block before>` (`ARTÍCULOS`
         and `CONTENIDO ARTICULOS`) is the content of that block, not a new one:
         it opens nothing, and the container the first opened goes on through it.
+
+        Rule 40 (issue #300): so is a bare `CONTENIDO` (a `kind=other` block with no
+        label after the word) that follows a block holding only its own title -- `ANEXO`
+        and `CONTENIDO`, `PROTOCOLO` and `CONTENIDO`. The decision reads the marker and
+        the text of the block before it, never an instrument.
         """
         self._aperturas: dict[int, int] = {}
         self._fusion: set[int] = set()
         for n in range(1, len(indices)):
             marca, anterior = self._marcas[indices[n]], self._marcas[indices[n - 1]]
-            if marca.get("kind") == "other" and es_continuacion(
-                marca.get("label", ""), anterior.get("label", "")
+            if marca.get("kind") == "other" and (
+                es_continuacion(marca.get("label", ""), anterior.get("label", ""))
+                or es_contenido_suelto(
+                    marca.get("label", ""), marca.get("kind", ""),
+                    "\n\n".join(
+                        self._bloques[i].text
+                        for i in range(indices[n - 1] + 1, indices[n])
+                    ),
+                )
             ):
                 self._fusion.add(indices[n])
         #: The role of each `other` block, by marker index.

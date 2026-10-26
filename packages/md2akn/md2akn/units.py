@@ -1074,7 +1074,12 @@ def text_units(
        articles): when a document does it three times or more.
     39. A numbered provision the API could not classify because the source
        misprints its number (`kind=other`, label `98 (SIC)`) is an article.
-    Rules 25 to 39 apply to a document with outline markers; one without
+    40. A bare `CONTENIDO` block (`kind=other`, no label after the word) that follows a
+       block holding only its own title -- `ANEXO` and `CONTENIDO`, `PROTOCOLO`
+       and `CONTENIDO` -- is that block's content, as rule 30 reads `ARTÍCULOS` and
+       `CONTENIDO ARTICULOS` (issue #300). One that follows a block with text of
+       its own (an index after a `CONSIDERANDO`) is read by the other rules.
+    Rules 25 to 40 apply to a document with outline markers; one without
     them is read, and its eIds written, as before.
 
     >>> import md2akn
