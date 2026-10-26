@@ -353,7 +353,7 @@ class ScjnApi:
             filas, total = self._articulos_una_vez(id_ordenamiento, id_reforma)
             faltan = _orden_faltante(filas, total)
             if faltan is None:
-                return filas
+                return _sin_filas_repetidas(filas)
             if intento < self.reintentos:
                 time.sleep(self.espera)
         raise ScjnApiIncompleteError(
@@ -396,6 +396,28 @@ class ScjnApi:
             if len(lote) < TAMANIO_PAGINA_ARTICULOS or len(filas) >= total:
                 return filas, total
             pagina += 1
+
+
+def _sin_filas_repetidas(filas: list["Articulo"]) -> list["Articulo"]:
+    """`filas` without the rows the API sent twice, the first of each kept.
+
+    Seen on 2026-10-26 while re-crawling for issue #300: an `Articulos` answer
+    can repeat a row *exactly* (same `orden`, `numero`, `referencia` and
+    `contenido` -- `cpf` 08-05-2023 came back with 1,007 rows over 893
+    distinct blocks, `pef-2026` 21-11-2025 with 8 more than it has), and
+    `tamanio` counts the repeats. Written as they came, the snapshot would
+    print an article twice. Only an *identical* row is dropped: two different
+    blocks sharing an `orden` are real (`lissste` reform 27-05-2011 gives
+    `orden` 322 to a `D.O.F.` line and to a `CONTENIDO` block;
+    reglamento 166758 too) and both are kept."""
+    vistas: set[tuple] = set()
+    unicas = []
+    for fila in filas:
+        llave = (fila.orden, fila.numero, fila.referencia, fila.contenido)
+        if llave not in vistas:
+            vistas.add(llave)
+            unicas.append(fila)
+    return unicas
 
 
 def _orden_faltante(filas: list["Articulo"], total: int) -> str | None:

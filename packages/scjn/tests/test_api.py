@@ -1127,6 +1127,39 @@ class TestCompletitud(unittest.TestCase):
             cliente.articulos_of_reforma(24031, 1)
         self.assertIn("3 rows is fewer than tamanio 4", str(ctx.exception))
 
+    def test_una_fila_repetida_exacta_se_descarta_y_orden_distinto_con_mismo_orden_no(self):
+        # 2026-10-26: the API repeated rows verbatim (`tamanio` counts them);
+        # two *different* blocks that share an `orden` are real and both stay.
+        fila = lambda orden, ref, texto: {
+            "numero": 0, "orden": orden, "referencia": ref, "contenido": texto,
+        }
+        filas = [
+            fila(1, "A", "uno"), fila(2, "B", "dos"), fila(2, "B", "dos"),
+            fila(3, "C", "tres"), fila(3, "CONTENIDO", "otro bloque"),
+        ]
+        cliente, _ = self.cliente(
+            [RespuestaFalsa({"codigo": 200, "tamanio": len(filas), "articulos": filas})]
+        )
+        arts = cliente.articulos_of_reforma(1, 1)
+        self.assertEqual([(a.orden, a.referencia) for a in arts],
+                         [(1, "A"), (2, "B"), (3, "C"), (3, "CONTENIDO")])
+
+    def test_repetidas_que_enmascaran_un_hueco_siguen_siendo_incompletas(self):
+        # lft reforma 61 on 2026-10-26: 1,433 rows for `tamanio` 1,433, but 174
+        # of them repeats and 191 `orden` values missing.
+        from scjn.api import ScjnApiIncompleteError
+
+        filas = [
+            {"numero": 0, "orden": o, "referencia": f"R{o}", "contenido": "x"}
+            for o in (1, 2, 2, 4)
+        ]
+        cliente, _ = self.cliente(
+            [RespuestaFalsa({"codigo": 200, "tamanio": 4, "articulos": filas})] * 3
+        )
+        with self.assertRaises(ScjnApiIncompleteError) as ctx:
+            cliente.articulos_of_reforma(410, 61)
+        self.assertIn("missing orden [3]", str(ctx.exception))
+
     def test_una_respuesta_completa_pide_una_sola_vez(self):
         cliente, sesion = self.cliente([self.respuesta([1, 2, 3], 3)])
         self.assertEqual(len(cliente.articulos_of_reforma(1, 1)), 3)

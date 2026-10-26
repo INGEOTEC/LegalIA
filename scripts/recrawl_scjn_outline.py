@@ -27,7 +27,7 @@ under ``--raw-dir`` (default ``<outdir>/raw-api``), so the writer can change
 again without a second crawl: ``scripts/rewrite_scjn_from_raw.py``.
 
     ./scripts/recrawl_scjn_outline.py --coleccion tratados --limit 50
-    ./scripts/recrawl_scjn_outline.py --coleccion leyes --instrumento ccom
+    ./scripts/recrawl_scjn_outline.py --coleccion leyes --instrumento ccom   # again, even if done
 
 Since issue #300 the API client refuses an incomplete answer (`orden` gap, fewer
 rows than `tamanio`), so a reform that still comes back partial after its
@@ -167,6 +167,8 @@ def main(argv=None) -> int:
     seen = done_keys(base, args.ledger)
     if args.instrumento:
         todo = [t for t in todo if t[0] in set(args.instrumento)]
+        # Naming an instrument asks for it again, whatever the ledger says.
+        seen -= set(args.instrumento)
     api = scjn_api.ScjnApi(espera=args.espera)
     attempted = failed = 0
     started = time.time()
