@@ -24,7 +24,7 @@ una reforma del anterior, así que cualquier clave derivada del título choca
 
 | Asset | Contenido |
 |---|---|
-| `units.parquet` | Cada unidad de texto que se embebió: `clave`, `unit_type`, `eId`, `num`, `path`, el texto normalizado y su `text_sha1` |
+| `units.parquet` | Cada unidad de texto que se embebió: `clave`, `unit_type`, `eId`, `num`, `path`, el texto normalizado, su `text_sha1` y `envelope` (issue #301) |
 | `leaves.parquet` | Cada hoja del árbol (`eId`) y la unidad que carga su texto |
 | `corpus-manifest.json` | Cómo se construyeron las unidades |
 | `vectors-manifest.json` | Cómo se construyeron los vectores |
@@ -48,14 +48,14 @@ promedia); cada texto truncado queda contado en `vectors-manifest.json`
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | 5 856 | 5 856 |
-| De los cuales compartidos | 155 | 155 |
+| Vectores | 5 876 | 5 876 |
+| De los cuales compartidos | 150 | 150 |
 | Tamaño | 9 MB | 23 MB |
 
-Corpus: 126 instrumentos, 6 241 unidades, **5 864 textos distintos**, `cap`
+Corpus: 126 instrumentos, 6 253 unidades, **5 876 textos distintos**, `cap`
 2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos decimales,
 las introducciones de contenedor y las tablas, y la revisión de los números de artículo repetidos:
-reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24, y revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32, revisión fix-5 de #291: un bloque de la API es la raíz de su jerarquía, regla 33, y revisión fix-6 de #291: cada bloque de la API acota su texto, un encabezado sin contenido es un encabezado, las leyendas y notas de una tabla son de la tabla, un artículo-encabezado abre una sección y `N (SIC)` es un artículo, reglas 34 a 39)).
+reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24, y revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32, revisión fix-5 de #291: un bloque de la API es la raíz de su jerarquía, regla 33, y revisión fix-6 de #291: cada bloque de la API acota su texto, un encabezado sin contenido es un encabezado, las leyendas y notas de una tabla son de la tabla, un artículo-encabezado abre una sección y `N (SIC)` es un artículo, reglas 34 a 39)). Issue #300 añadió los bloques que la API de la SCJN omitía y la regla 40. Issue #301 añade a `units.parquet` la columna `envelope`, verdadera para la cabecera de la SCJN, el decreto de promulgación y las fórmulas de cierre: es parte del corpus y se vectoriza como cualquier otra unidad, pero el Atlas no la compara.
 
 Los otros 37 instrumentos del release `scjn-lineamientos` no aparecen aquí:
 la SCJN los clasifica pero no sirve texto consolidado de ninguno

@@ -22,7 +22,7 @@ unidades = legalvec.load_units("leyes")   # text_sha1 -> el texto, el artículo,
 
 | Asset | Contenido |
 |---|---|
-| `units.parquet` | Cada unidad de texto que se embebió: `clave`, `unit_type`, `eId`, `num`, `path`, el texto normalizado y su `text_sha1` |
+| `units.parquet` | Cada unidad de texto que se embebió: `clave`, `unit_type`, `eId`, `num`, `path`, el texto normalizado, su `text_sha1` y `envelope` (issue #301) |
 | `leaves.parquet` | Cada hoja del árbol (`eId`) y la unidad que carga su texto |
 | `corpus-manifest.json` | Cómo se construyeron las unidades: `cap`, plantilla, versión de `md2akn`, conteos |
 | `vectors-manifest.json` | Cómo se construyeron los vectores: modelo, `K`, dtype, pooling |
@@ -46,16 +46,16 @@ partir del hash — un archivo, no una copia del texto por instrumento.
 |---|---|---|
 | Modelo | `Qwen/Qwen3-Embedding-0.6B` | `Qwen/Qwen3-Embedding-4B` |
 | `K` | 1 024 | 2 560 |
-| Vectores | 59 235 | 59 235 |
-| De los cuales compartidos | 2 475 | 2 475 |
+| Vectores | 59 251 | 59 251 |
+| De los cuales compartidos | 2 479 | 2 479 |
 | Tamaño | 91 MB | 224 MB |
 | Textos truncados | 2 | 2 |
 
-Corpus: 315 leyes, 68 756 unidades, **59 194 textos distintos**, `cap`
+Corpus: 315 leyes, 68 843 unidades, **59 251 textos distintos**, `cap`
 2 000 caracteres (rige para todo menos el artículo — ver abajo), plantilla
 `bare`, `md2akn` 0.5.1 (issue #291: los artículos decimales, las introducciones
 de contenedor y las tablas, y la revisión de los números de artículo repetidos:
-reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24; revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32, revisión fix-5 de #291: un bloque de la API es la raíz de su jerarquía, regla 33, y revisión fix-6 de #291: cada bloque de la API acota su texto, un encabezado sin contenido es un encabezado, las leyendas y notas de una tabla son de la tabla, un artículo-encabezado abre una sección y `N (SIC)` es un artículo, reglas 34 a 39)). Los dos textos truncados son los mismos en ambos modelos:
+reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24; revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32, revisión fix-5 de #291: un bloque de la API es la raíz de su jerarquía, regla 33, y revisión fix-6 de #291: cada bloque de la API acota su texto, un encabezado sin contenido es un encabezado, las leyendas y notas de una tabla son de la tabla, un artículo-encabezado abre una sección y `N (SIC)` es un artículo, reglas 34 a 39)). Issue #300 añadió los bloques que la API de la SCJN omitía y la regla 40. Issue #301 añade a `units.parquet` la columna `envelope`, verdadera para la cabecera de la SCJN, el decreto de promulgación y las fórmulas de cierre: es parte del corpus y se vectoriza como cualquier otra unidad, pero el Atlas no la compara. Los dos textos truncados son los mismos en ambos modelos:
 el artículo 513 de la `lft`, la tabla de enfermedades de trabajo, 68 689
 tokens, y otro de 60 664 tokens. Ambos modelos se publican
 (#227, decisión 9): la evaluación por proxies de #217 no se ha corrido, así
