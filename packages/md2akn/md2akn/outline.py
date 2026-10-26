@@ -202,3 +202,57 @@ def es_contenido_suelto(
         and es_solo_titulo(texto_anterior)
     )
 
+
+#: The folded label of the block that closes a Mexican promulgation decree (rule 29's
+#: `conclusions` role, narrowed): a treaty's *own* closing clause (`PARTE FINAL DEL
+#: ESTATUTO`, `PARTE FINAL DE LAS ACTAS`) is part of the instrument and is not it.
+ETIQUETA_PARTE_FINAL_DEL_DECRETO = "PARTE FINAL DEL DECRETO PROMULGATORIO"
+
+
+def es_bloque_de_envoltura(attrs: dict[str, str]) -> bool:
+    """Issue #301: whether an API block belongs to an instrument's *envelope*, the
+    formulaic text the Mexican publication wraps around it -- the title block
+    (`kind=header`, the `ENCABEZADO`), the steps of the promulgation decree (rule 29's
+    `promulgation` role, wherever they hang) and the decree's closing certification
+    (`PARTE FINAL DEL DECRETO PROMULGATORIO`). Read from the marker alone: no eId, no
+    `path`, no instrument.
+
+    >>> es_bloque_de_envoltura({"kind": "header", "label": "ENCABEZADO"})
+    True
+    >>> es_bloque_de_envoltura({"kind": "other", "label": "RATIFICACIÓN Y DEPÓSITO"})
+    True
+    >>> es_bloque_de_envoltura({"kind": "other", "label": "PARTE FINAL DEL DECRETO PROMULGATORIO"})
+    True
+    >>> es_bloque_de_envoltura({"kind": "other", "label": "PARTE FINAL DEL ESTATUTO"})
+    False
+    >>> es_bloque_de_envoltura({"kind": "preamble", "label": "PREÁMBULO"})
+    False
+    """
+    kind = attrs.get("kind")
+    if kind == "header":
+        return True
+    if kind != "other":
+        return False
+    etiqueta = attrs.get("label", "")
+    return (
+        rol_de_etiqueta(etiqueta) == "promulgation"
+        or pliega_etiqueta(etiqueta) == ETIQUETA_PARTE_FINAL_DEL_DECRETO
+    )
+
+
+def rangos_de_envoltura(texto: str) -> list[tuple[int, int]]:
+    """The character ranges of `texto` that are envelope blocks, as `(start, end)`.
+
+    A block runs from where the text before its marker ends (the blank lines between
+    two blocks belong to the block that follows, the way `validate` reads them) to the
+    next block's start. A document with no markers has none.
+    """
+    encontradas = list(MARCADORES_EN_TEXTO.finditer(texto))
+    inicios = [len(texto[: m.start()].rstrip()) if m.start() else 0 for m in encontradas]
+    fines = [*inicios[1:], len(texto) + 1]
+    return [
+        (inicio, fin)
+        for m, inicio, fin in zip(encontradas, inicios, fines)
+        if es_bloque_de_envoltura(lee_marcador(m.group(0)) or {})
+    ]
+

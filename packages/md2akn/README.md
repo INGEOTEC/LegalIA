@@ -486,6 +486,14 @@ every machine has — rather than over a handful of fixtures; see its own module
   `NUM_ARTICULO` takes a capital letter that closes the line (`Artículo 11 A`; it
   reaches 5 lines of one treaty, 23895, in the whole corpus).
 
+  **Issue #301 (still 0.5.1):** `TextUnit` gains a last field, `envelope`, true for
+  the units of an instrument's envelope: the SCJN header block, the Mexican
+  promulgation decree (rule 29's `#promulgation` role) and the decree's closing
+  certification (`outline.es_bloque_de_envoltura`, `rangos_de_envoltura`). It is read from
+  the outline markers alone, so it is false everywhere in a document with none, and it
+  changes no other field (`text`, `text_sha1`, eIds). Nothing is dropped from `text_units`:
+  the consumers (the Atlas matrix) decide that an envelope is neither a source nor a candidate.
+
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an
   article, the way an international treaty numbers its own articles. It is a

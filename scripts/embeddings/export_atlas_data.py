@@ -44,7 +44,7 @@ loudly when the matrix is missing, and is a no-op once `umap.parquet` exists
   integer, at least 1, and the `pc` add up to `meta.counted_rows`. `pc` is per
   model (BM25 differs from the embeddings in 197 instruments), so unlike `p` it
   is **not** part of the `--instruments-as` comparison. `meta` carries the totals (`heading_rows_excluded`,
-  `transitorio_rows_excluded`, `identical_shared_dropped`, `counted_rows`).
+  `transitorio_rows_excluded`, `envelope_rows_excluded`, `identical_shared_dropped`, `counted_rows`).
 * **Unique instruments only** (issue #259). A work directory prepared without
   `prepare_umap_input.py --unique-names` is refused, and `meta` records
   `unique_names` and `duplicates_dropped` per collection.
@@ -311,6 +311,8 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
         "provisions": provisions,
         "heading_rows_excluded": int(summary["heading_rows_excluded"]),
         "transitorio_rows_excluded": int(summary["transitorio_rows_excluded"]),
+        # issue #301; a matrix.json written before it has no envelope rows to report
+        "envelope_rows_excluded": int(summary.get("envelope_rows_excluded", 0)),
         "identical_shared_dropped": int(summary["identical_shared_dropped"]),
         "counted_rows": int(summary["counted_rows"]),
         "distinct_texts": int(summary["vector_rows"]),

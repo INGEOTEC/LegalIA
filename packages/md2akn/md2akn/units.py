@@ -32,12 +32,13 @@ first, ahead of the walk order.
 from __future__ import annotations
 
 import bisect
+import dataclasses
 import hashlib
 import re
 from dataclasses import dataclass
 
 from md2akn.model import REFERS_TO_ANEXO, REFERS_TO_TRANSITORIOS, AknNode
-from md2akn.outline import MARCADORES_EN_TEXTO
+from md2akn.outline import MARCADORES_EN_TEXTO, rangos_de_envoltura
 from md2akn.pipeline import parse_markdown
 
 #: The split threshold `text_units` uses when no `cap` is given: measured
@@ -143,6 +144,12 @@ class TextUnit:
     #: Normalized — exactly what gets embedded.
     text: str
     text_sha1: str
+    #: Issue #301: the unit's text comes from the instrument's *envelope* -- the API's
+    #: title block, the steps of the promulgation decree or the decree's closing
+    #: certification (`md2akn.outline.es_bloque_de_envoltura`). Decided from the outline
+    #: markers alone, so it is `False` everywhere in a document that has none, and it
+    #: changes no other field: not `text`, not `text_sha1`, not the eId.
+    envelope: bool = False
 
 
 @dataclass(frozen=True)
@@ -1126,7 +1133,21 @@ def text_units(
     if conclusions is not None:
         units.extend(_leaf_units("conclusions", conclusions, ann_ranges, cap, split_over_cap))
 
-    return units
+    return _mark_envelope(units, doc_text)
+
+
+def _mark_envelope(units: list[TextUnit], doc_text: str) -> list[TextUnit]:
+    """Set `envelope` on every unit that starts inside an envelope API block (issue #301)."""
+    ranges = rangos_de_envoltura(doc_text)
+    if not ranges:
+        return units
+    starts = [a for a, _ in ranges]
+    marked = []
+    for unit in units:
+        k = bisect.bisect_right(starts, unit.start_char) - 1
+        inside = k >= 0 and unit.start_char < ranges[k][1]
+        marked.append(dataclasses.replace(unit, envelope=True) if inside else unit)
+    return marked
 
 
 def leaf_map(tree: AknNode, units: list[TextUnit]) -> list[LeafRef]:

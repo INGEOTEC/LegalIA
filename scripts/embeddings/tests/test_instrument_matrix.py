@@ -192,8 +192,9 @@ def test_the_join_is_build_umap_htmls_own(prepared, cache):
                                         cache_dir=cache, log=lambda *a: None)
     assert len(units) == 16
     assert list(units.columns) == ["i", "coleccion", "clave", "unit_type", "eId", "row",
-                                   "transitorio"]
+                                   "transitorio", "envelope"]
     assert not units["transitorio"].any()      # the toy table has no `path`
+    assert not units["envelope"].any()         # nor an `envelope` column (issue #301)
     assert sorted(units["coleccion"].unique()) == ["leyes", "lineamientos"]
     assert sorted(units["clave"].unique()) == ["900", "901", "902", "a", "b", "c"]
     assert sorted(units["unit_type"].unique()) == ["article", "heading"]

@@ -113,8 +113,8 @@ def candidate_texts(work_dir: Path, *, collections, cache_dir=None, log=print):
 
     The text is read off the first searched unit carrying the row (every unit of
     a vector row has the same `text_sha1`). Headings and transitorios are left
-    out through `instrument_matrix.searched_mask`, so a text only they carry has
-    no document at all.
+    out through `instrument_matrix.searched_mask` (so is an instrument's envelope,
+    issue #301), so a text only they carry has no document at all.
     """
     import numpy as np
     import pandas as pd
@@ -123,11 +123,12 @@ def candidate_texts(work_dir: Path, *, collections, cache_dir=None, log=print):
     import instrument_matrix
 
     points, _ = html.load_frames(work_dir, [], neighbors=0, collections=collections,
-                                 cache_dir=cache_dir, extra_columns=("path", "text"), log=log)
+                                 cache_dir=cache_dir, extra_columns=("path", "text", "envelope"), log=log)
     names = dict(enumerate(html.UNIT_TYPES))
     units = pd.DataFrame({
         "unit_type": points["u"].map(names),
         "transitorio": [instrument_matrix.is_transitorio_path(path) for path in points["path"]],
+        "envelope": instrument_matrix.envelope_flags(points)[0],
     })
     searched = instrument_matrix.searched_mask(units)
     rows = points["v"].to_numpy()[searched]

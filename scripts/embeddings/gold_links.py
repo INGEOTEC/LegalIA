@@ -442,20 +442,25 @@ def manifest_hashes(cache_dir, collections) -> dict:
 
 def source_units(coleccion: str, keys: set, cache_dir) -> dict[str, list[tuple]]:
     """`{clave: [(eId, unit_type, text, text_sha1), ...]}` of the unit rows that
-    are neither a heading nor in a transitorios section (`instrument_matrix`'s own
-    rule) of the Atlas instruments `keys` of one collection, read from
-    `legalvec`'s cached `units.parquet`."""
+    are neither a heading, nor in a transitorios section, nor part of the instrument's
+    envelope (`instrument_matrix`'s own rule, `searched_mask`; the envelope since issue
+    #301) of the Atlas instruments `keys` of one collection, read from `legalvec`'s
+    cached `units.parquet`."""
     import legalvec
 
     table = legalvec.load_units(coleccion, cache_dir=cache_dir)
     columns = ["clave", "unit_type", "eId", "text", "text_sha1"]
     if "path" in table.column_names:
         columns.append("path")
+    if "envelope" in table.column_names:
+        columns.append("envelope")
     frame = table.select(columns).to_pandas()
     frame = frame[frame["clave"].astype(str).isin(keys)
                   & ~frame["unit_type"].isin(EXCLUDED_UNIT_TYPES)]
     if "path" in frame.columns:
         frame = frame[[not is_transitorio_path(path) for path in frame["path"]]]
+    if "envelope" in frame.columns:
+        frame = frame[~frame["envelope"].fillna(False).astype(bool)]
     units: dict[str, list[tuple]] = {}
     for clave, e_id, unit_type, text, sha1 in zip(frame["clave"].astype(str), frame["eId"],
                                                   frame["unit_type"], frame["text"],
