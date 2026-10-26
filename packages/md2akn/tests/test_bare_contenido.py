@@ -60,6 +60,8 @@ def test_predicates():
     assert es_contenido_suelto("Contenido.", "other", "**ANEXO 4**")
     assert not es_contenido_suelto("CONTENIDO", "other", "CONSIDERANDO\n\nQue el decreto.")
     assert not es_contenido_suelto("CONTENIDO", "container", "**ANEXO**")
+    assert es_contenido_suelto("CONTENIDO", "other", "**ANEXO**", "container")
+    assert not es_contenido_suelto("CONTENIDO", "other", "**CONSIDERANDO**", "recitals")
     assert not es_contenido_suelto("CONTENIDO ARTICULOS", "other", "**ARTÍCULOS**")  # rule 30's
 
 

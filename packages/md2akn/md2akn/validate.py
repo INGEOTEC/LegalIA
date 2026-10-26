@@ -340,7 +340,8 @@ def _block_escapes(tree: AknNode) -> list[Violation]:
             es_continuacion(etiquetas[k], etiquetas[k - 1])
             # Rule 40 (issue #300): a bare `CONTENIDO` after a title-only block.
             or es_contenido_suelto(
-                etiquetas[k], clases[k], texto[encontradas[k - 1].end():encontradas[k].start()]
+                etiquetas[k], clases[k], texto[encontradas[k - 1].end():encontradas[k].start()],
+                clases[k - 1],
             )
         )
         raices = list(raices_previas) if continuacion else [dentro[0]]

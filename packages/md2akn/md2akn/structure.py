@@ -1007,6 +1007,7 @@ class _Constructor:
                         self._bloques[i].text
                         for i in range(indices[n - 1] + 1, indices[n])
                     ),
+                    anterior.get("kind", ""),
                 )
             ):
                 self._fusion.add(indices[n])

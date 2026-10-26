@@ -171,17 +171,24 @@ def es_solo_titulo(texto: str) -> bool:
     return len(lineas) == 1 and len(lineas[0]) <= MAX_LINEA_DE_TITULO
 
 
-def es_contenido_suelto(etiqueta: str, kind: str, texto_anterior: str) -> bool:
+def es_contenido_suelto(
+    etiqueta: str, kind: str, texto_anterior: str, kind_anterior: str = "other"
+) -> bool:
     """Rule 40 (issue #300): whether an API block is the bare `CONTENIDO` the
     SCJN serves as the body of the block before it, when that block holds only
     its own title (`ANEXO`, `ANEXO 4`, `PROTOCOLO`). The second half of a split
     block like rule 30's, but with no label after `CONTENIDO`, so rule 30 does
     not recognise it. A `CONTENIDO` after a block that has text of its own (a
-    `CONSIDERANDO` followed by an index) is not this one.
+    `CONSIDERANDO` followed by an index), or after a header, recitals, preamble or
+    article block, is not this one.
 
     >>> es_contenido_suelto("CONTENIDO", "other", "**ANEXO**")
     True
-    >>> es_contenido_suelto("CONTENIDO", "other", "Considerando que ...")
+    >>> es_contenido_suelto("CONTENIDO", "other", "**ANEXO**", "container")
+    True
+    >>> es_contenido_suelto("CONTENIDO", "other", "**CONSIDERANDO**", "recitals")
+    False
+    >>> es_contenido_suelto("CONTENIDO", "other", "CONSIDERANDO\\n\\nQue el decreto.")
     False
     >>> es_contenido_suelto("CONTENIDO", "container", "**ANEXO**")
     False
@@ -190,6 +197,7 @@ def es_contenido_suelto(etiqueta: str, kind: str, texto_anterior: str) -> bool:
     """
     return (
         kind == "other"
+        and kind_anterior in ("other", "container")
         and pliega_etiqueta(etiqueta) == "CONTENIDO"
         and es_solo_titulo(texto_anterior)
     )
