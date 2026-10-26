@@ -79,6 +79,18 @@ without one nothing changes.
   its old shape until it is re-downloaded; the four corpora were re-crawled
   with `scripts/recrawl_scjn_outline.py` (provenance headers kept verbatim, an
   instrument swapped in only when every snapshot it had came back).
+  **Issue #300 (still 0.5.1):** `ScjnApi.articulos_of_reforma` checks that an
+  `Articulos` answer is complete -- `orden` exactly `1..max` and at least
+  `tamanio` rows -- asks again, and then raises the new
+  `scjn.api.ScjnApiIncompleteError` (a `ScjnApiError`, so `descarga_ordenamiento`
+  records the reform as failed and writes nothing for it). The API had been
+  omitting whole blocks (the `CONTENIDO` ones, which hold the text of a
+  treaty's annexes) while still reserving their `orden`, and issue #178's comment
+  had taken such an answer for a complete one. An *identical* repeated row is
+  dropped from the answer (the API also repeats rows; `tamanio` counts them);
+  two different blocks that share an `orden` are both kept. 367 snapshots of
+  240 instruments had a gap on disk; all four corpora were re-crawled with the
+  guarded client (`scripts/recrawl_scjn_outline.py --ledger`).
 
 - **0.5.0** — the fourth id-keyed collection, `scjn-tratados` (issue #277):
   every international treaty the SCJN serves (~1,456 instruments, members

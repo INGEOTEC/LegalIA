@@ -1179,6 +1179,94 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   October 2026) were rebuilt. **Nothing was published**; the human order is: the four corpora, the four vectors releases
   (`emb-run-<c>-055/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
 
+## Blocks the API omitted (issue #300, done)
+
+Browsing the Instruments page, the treaty `tratados/24031` (the CAMR-92 Final Acts)
+compared only its envelope: its four annexes came out empty. **The text of the treaty
+was not in the corpus.** The SCOW API serves 16 blocks for it today; the snapshot on
+disk (and the published `scjn-tratados` tarball) held 12. The four missing ones
+(`orden` 9, 11, 13, 15, all labelled `CONTENIDO`: 174,692 + 15,675 + 77,203 + 25,887
+characters) are the partial revision of the Radio Regulations and two annexes. The
+writer was not at fault: **the API itself omitted the blocks when we crawled, and
+still reserved their `orden` numbers.** Issue #178's comment above
+`TAMANIO_PAGINA_ARTICULOS` had called such an answer ("`lfd` reforma 99 reports
+`tamanio` 995 and serves 991 articles") complete; it was incomplete, and the four
+missing `orden` are `CONTENIDO` blocks the API serves today.
+
+- **The guard (`scjn.api.articulos_of_reforma`).** An answer is complete when its
+  `orden` values are exactly `1..max` *and* it carries at least `tamanio` rows; either
+  alone missed a case (a hole in the middle versus a block dropped at the end). An
+  incomplete answer is requested again (`self.reintentos`, `self.espera`) and then
+  refused with `ScjnApiIncompleteError(ScjnApiError)`, which names the reform, the
+  missing `orden` and `tamanio`; being a `ScjnApiError`, `descarga_ordenamiento`
+  already counts the reform as failed and writes no file for it. The two stop
+  conditions of the paging loop are untouched (`_articulos_una_vez`).
+- **What the re-crawl taught the guard (2026-10-26, same issue).** Re-crawling
+  all four corpora showed three more shapes of the same unreliability, each pinned by a
+  test: (1) the API **repeats a row verbatim** (`cpf` 08-05-2023 came back as 1,007 rows
+  over 893 distinct blocks, `pef-2026` 21-11-2025 with 8 repeats; `tamanio` counts the
+  repeats), which would have printed an article twice, so an *identical* row
+  (`orden`, `numero`, `referencia`, `contenido`) is dropped, first kept
+  (`_sin_filas_repetidas`); (2) two *different* blocks sharing an `orden` are real
+  (`lissste` 27-05-2011 gives 322 to a `D.O.F.` line and to a 44 k-character `CONTENIDO`
+  block; reglamento 166758 too) and both stay; (3) an answer can be **short and
+  `tamanio` short with it**: `lft` today answers 1,433 rows for `tamanio` 1,433 with 174
+  repeats and 191 `orden` missing among 1..1,450, in 53 of its 55 reforms, where the raw
+  answer kept on 15 October had 1,450 distinct rows. The `orden` check is what catches
+  those; a block dropped at the very end of an answer whose `tamanio` also dropped
+  cannot be caught by any client-side check (four `cpeum` snapshots on the same day,
+  03-02-1983 `-2` and three more, lost or gained one trailing `D.O.F.` decree block
+  between the previous crawl and this one: the SCJN's own answers moved, and the fresh
+  answer was taken, as every re-crawl does).
+- **Rule 40 of `md2akn`** (`outline.es_contenido_suelto`, structure rule 30's sibling):
+  a bare `CONTENIDO` block (`kind=other`, no label after the word) that follows a block
+  whose text is one short line (`ANEXO`, `ANEXO 4`, `PROTOCOLO`; the block before is
+  `other` or `container`) is that block's content. Before it, 24031's `CONTENIDO` opened a
+  `section` beside the annex, so the annex was empty; now the articles hang from the annex
+  (`validate`'s invariant I1 reads the same predicate). A `CONTENIDO` after a block with text
+  of its own (reglamento 138214's index after its `CONSIDERANDO`) is read as before: it is
+  not an article or `loose` (`test_bare_contenido.py`). A document with no markers is read as
+  before; `md2akn` and `scjn` stay 0.5.1, unpublished.
+- **The re-crawl** (`scripts/recrawl_scjn_outline.py --ledger .recrawl-contenido.jsonl`,
+  a fresh ledger name so the #291 ledgers stay as their record; `--instrumento` now re-crawls
+  the keys it names whatever the ledger says): 315 + 1,087 + 163 + 1,455 instruments, ~2.2
+  hours wall clock with seven processes, raw answers in `scripts/scjn/raw-api/`. No
+  reform was new, so nothing needed DOF linking. Against the snapshots published until
+  now: leyes 8 instruments changed (`cpeum`, `lacp`, `lfd`, `lgcs`, `lgipe`, `lgpp`,
+  `lissste`, `ltpcpimcp`), reglamentos 21, lineamientos 6, treaties 199; the others
+  are byte-identical (the tarballs are byte-reproducible, so the unchanged ones were
+  checked against the cache by hash). 107 leyes, 40 reglamentos, 9 lineamientos and 214
+  treaty snapshots **gained blocks**, 4 `cpeum` ones lost one (above), 18 changed text
+  only (an upstream edit: `lgcs`, `lgipe`, `lgpp`, ...).
+- **Measured, `scripts/measure_block_gaps.py`** (counts the snapshots whose `orden`
+  markers have a gap; a gap is *explained* when the kept raw answer holds the missing
+  `orden`: a block whose whole text is an editorial `N. DE E.` aside yields no text and
+  so no marker). Before (the issue, on-disk markers, not separating the explained ones): 367 snapshots of
+  240 instruments with 843 missing blocks (leyes 80 / 4 instruments, reglamentos 38 / 19, lineamientos 10 / 7,
+  tratados 239 / 210). After: **0 unexplained gaps in leyes, lineamientos and tratados**; explained, 6, 1
+  and 55 snapshots (6, 1 and 73 blocks); the two `incomplete` reglamentos below keep their old files and
+  their 2 snapshots (5 blocks) with the gap. `tratados/24031/29-08-1994.md` is 259,942 characters, 16 markers,
+  four `ARTICULO 1`, and its tree holds the articles under the annex.
+- **Incomplete instruments, listed because the guard refuses them** (3 of 2,920, never
+  more than 1 % of a collection): `leyes/lft` (53 of its 55 snapshots, the API's corrupt
+  answer above; the 2 that pass after dropping repeats are not swapped in either, an instrument
+  is swapped in whole or not at all; its old files, whose markers have no gap, stay);
+  `reglamentos/81587` (29-05-2015, reformaId 3: 214 rows for `tamanio` 214, `orden` 214
+  missing); `reglamentos/67602` (17-08-2015, reformaId 2: 53 rows for `tamanio` 53, `orden`
+  53 to 56 missing, the transitorios). The last two answered the same on every retry and on
+  a second pass, with `tamanio` agreeing with the rows served: the API's own data lacks
+  those `orden`, which no client can restore. A second resumed pass did not change any of them.
+- **Packaged, not published**: `scripts/scjn/<c>-release/PUBLICAR.md` for the four corpora
+  (for `reglamentos` and `tratados`, whose `partes.json` was seeded from the live releases
+  with a read-only `gh release view`; part 1 holds 997 tarballs plus 3 metadata assets; only
+  the changed tarballs, listed above, need `--clobber`, plus `indice-global.json.gz`,
+  `SHA256SUMS.txt` and `MANIFEST.md`). The release sweep ran over the refreshed
+  snapshots staged into `~/.cache/scjn` (the changed tarballs and each `indice-global.json.gz`
+  copied from the release directories), never published.
+  **The publish order for a human: the four corpora first** (leyes, reglamentos, lineamientos,
+  tratados), then everything derived from them, which is the follow-up issue's work (vectors,
+  Atlas, pairs, instrument files, evaluations); nothing was published here (issue #115, Hallazgo C).
+
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 
 The website's **Atlas** (`website/pages/atlas.qmd`, navbar entry *Atlas*
