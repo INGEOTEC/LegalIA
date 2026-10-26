@@ -1226,7 +1226,12 @@ missing `orden` are `CONTENIDO` blocks the API serves today.
   (`validate`'s invariant I1 reads the same predicate). A `CONTENIDO` after a block with text
   of its own (reglamento 138214's index after its `CONSIDERANDO`) is read as before: it is
   not an article or `loose` (`test_bare_contenido.py`). A document with no markers is read as
-  before; `md2akn` and `scjn` stay 0.5.1, unpublished.
+  before; `md2akn` and `scjn` stay 0.5.1, unpublished. The release sweep's I3 (no repeated
+  number) then caught two more parse errors in the restored text, fixed in the parser
+  and not listed: **rule 41**, a running head `Art. 8` straight before `**ARTICULO 8**`
+  (the Radio Regulations 24031 reprints) is no article, and `NUM_ARTICULO` takes a capital
+  letter that closes the line, `**Artículo 11 **A` being article `11 A` (treaty 23895's
+  amendment inserting 11A and 11B; it changes 5 heading lines in the whole corpus).
 - **The re-crawl** (`scripts/recrawl_scjn_outline.py --ledger .recrawl-contenido.jsonl`,
   a fresh ledger name so the #291 ledgers stay as their record; `--instrumento` now re-crawls
   the keys it names whatever the ledger says): 315 + 1,087 + 163 + 1,455 instruments, ~2.2
