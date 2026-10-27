@@ -247,10 +247,27 @@ def es_etiqueta_de_decreto(etiqueta: str) -> bool:
     return rol_de_etiqueta(etiqueta) == "promulgation" or PARTE_FINAL_DE_DECRETO.fullmatch(plano) is not None
 
 
+#: The labels of the blocks a promulgation decree interleaves between its named steps
+#: and that the role table does not know (`CANJE DE NOTAS`, `NOTIFICACIÓN`, `INTERCAMBIO
+#: DE NOTIFICACIONES`, `SUSCRIPCIÓN`, `RATIFICACIÓN Y CONFIRMACIÓN`, `TRANSITORIO DEL
+#: DECRETO`), as the words they *start* with, matched on the folded label. The measurement
+#: of review fix-1 of #301 is why this is a vocabulary and not "any block between two
+#: steps": the unrestricted reading swallowed 500,000 characters of a treaty's own text
+#: (a bare `CONTENIDO`, the sections `MANDATO`, `OBJETIVO`, `FUNCIONES` of an
+#: organisation's mandate that sit between the decree and its `RESERVAS`).
+ETAPAS_DEL_DECRETO = re.compile(
+    r"(?:CANJE|CAMBIO|INTERCAMBIO|NOTIFICACION|SUSCRIPCION|FORMALIZACION|CELEBRACION|"
+    r"RATIFICACION(?:ES)?|RATIFIACION|APROBACION|ENTRADA EN VIGOR|CONCLUSION|ADOPCION|ACEPTACION|ADHESION|DEPOSITO|"
+    r"CONFIRMACION|DECLARACION|CERTIFI|PROMULGACION|PUBLICACION|"
+    r"NOTAS? CAMBIADAS|INSTRUMENTOS? ADOPTADOS?|TRANSITORIOS? DEL DECRETO)\b.*"
+)
+
+
 def bloques_de_decreto(marcas: list[dict[str, str]]) -> dict[int, str]:
     """Review fix-1 of #301: which API blocks, by position in `marcas` (the markers of
     one document in order), are the Mexican promulgation decree wrapped around the
-    instrument, as ``{index: "leading" | "trailing"}``.
+    instrument, as ``{index: "leading" | "trailing" | "closing"}`` (`closing`: the
+    decree's certification where a treaty's annexes follow it).
 
     A label alone does not decide it (a treaty's own testimonium is labelled `FIRMA`;
     the decree's opening may be labelled anything). The decree is a *run* of blocks at
@@ -263,6 +280,10 @@ def bloques_de_decreto(marcas: list[dict[str, str]]) -> dict[int, str]:
       the decree interleaves them. A block after the last decree step is the
       instrument's own; so is a block with a role of its own (`PARTE FINAL DEL ACTA`,
       `NOTA`, `RESOLUCIÓN ...`) or any other kind (a preamble, an article, a container).
+      A block between two steps stays in a run only when its label starts with a word of
+      the decree's own procedure (`ETAPAS_DEL_DECRETO`) or is the decree's own transitorios
+      block: an own section that happens to sit between two decree-step labels
+      (`MANDATO`, a bare `CONTENIDO`) is not swallowed.
     * the **trailing run** is the same read backwards from the last block, down to
       where the leading run ended.
 
@@ -287,8 +308,18 @@ def bloques_de_decreto(marcas: list[dict[str, str]]) -> dict[int, str]:
     def decreto(k):
         return tipo(k) == "other" and es_etiqueta_de_decreto(marcas[k].get("label", ""))
 
-    def generico(k):
-        return tipo(k) == "other" and rol_de_etiqueta(marcas[k].get("label", "")) is None
+    def generico(k, encontrados):
+        # A decree prints its own `TRANSITORIO` *between* two of its steps (treaty 76:
+        # `PROMULGACIÓN`, `TRANSITORIO`, `CERTIFICACIÓN`); one at the edge of a run is the
+        # instrument's own (a guideline's `CERTIFICACIÓN` is followed by its transitorios).
+        if tipo(k) == "transitorios":
+            return bool(encontrados)
+        etiqueta = marcas[k].get("label", "")
+        return (
+            tipo(k) == "other"
+            and rol_de_etiqueta(etiqueta) is None
+            and ETAPAS_DEL_DECRETO.fullmatch(pliega_etiqueta(etiqueta)) is not None
+        )
 
     resultado: dict[int, str] = {}
 
@@ -300,7 +331,7 @@ def bloques_de_decreto(marcas: list[dict[str, str]]) -> dict[int, str]:
                 encontrados.update({p: nombre for p in pendientes})
                 encontrados[k] = nombre
                 pendientes = []
-            elif generico(k) and encontrados:
+            elif generico(k, encontrados):
                 pendientes.append(k)
             else:
                 break
@@ -312,7 +343,32 @@ def bloques_de_decreto(marcas: list[dict[str, str]]) -> dict[int, str]:
     delante = corre(range(inicio, n), "leading")
     resultado.update(delante)
     limite = max(delante, default=inicio - 1) + 1
-    resultado.update(corre(range(n - 1, limite - 1, -1), "trailing"))
+    # (a bare `CONTENIDO` that ends the document after a decree step is that step's body)
+    fin = n - 1
+    while fin > limite and pliega_etiqueta(marcas[fin].get("label", "")) == "CONTENIDO" \
+            and tipo(fin) == "other":
+        fin -= 1
+    resultado.update(corre(range(fin, limite - 1, -1), "trailing"))
+    # A bare `CONTENIDO` straight after a block of a run is that block's own body (rule 40:
+    # the SCJN serves the body of a title-only block as a block of its own, treaty 19345's
+    # `PROMULGACIÓN` and `CONTENIDO`).
+    cambio = True
+    while cambio:
+        cambio = False
+        for k in range(1, n):
+            if (k not in resultado and k - 1 in resultado and tipo(k) == "other"
+                    and pliega_etiqueta(marcas[k].get("label", "")) == "CONTENIDO"
+                    and resultado[k - 1] != "closing"):
+                resultado[k] = resultado[k - 1]
+                cambio = True
+    # The closing certification of the decree is the decree's wherever it stands: a
+    # treaty may print annexes after it (`CUADRO DE RUTAS`, `CANJE DE NOTA`), which makes
+    # no run of it but leaves the label as unambiguous as ever.
+    for k in range(n):
+        if k not in resultado and tipo(k) == "other" and PARTE_FINAL_DE_DECRETO.fullmatch(
+            pliega_etiqueta(marcas[k].get("label", ""))
+        ):
+            resultado[k] = "closing"
     return resultado
 
 

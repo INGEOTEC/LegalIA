@@ -181,6 +181,36 @@ def test_a_generic_block_between_decree_steps_belongs_to_the_decree():
     assert len([n for n in tree.walk() if n.refers_to == "#promulgation"]) == 1
 
 
+def test_the_decrees_own_transitorio_is_envelope_and_an_instruments_own_is_not():
+    treaty = {"kind": "other", "label": "PROMULGACIÓN"}, {"kind": "transitorios", "label": "TRANSITORIO"}
+    blocks = [{"kind": "header"}, {"kind": "other", "label": "FIRMA"}, *treaty,
+              {"kind": "other", "label": "CERTIFICACIÓN"}, {"kind": "preamble"}]
+    assert bloques_de_decreto(blocks) == {1: "leading", 2: "leading", 3: "leading", 4: "leading"}
+    # a guideline's certification followed by its own transitorios: the instrument's own
+    # block ends the trailing run, so the certification is not a decree's
+    blocks = [{"kind": "header"}, {"kind": "other", "label": "INTRODUCCIÓN"},
+              {"kind": "other", "label": "CERTIFICACIÓN"}, {"kind": "transitorios", "label": "TRANSITORIOS"}]
+    assert bloques_de_decreto(blocks) == {}
+
+
+def test_a_bare_contenido_after_a_decree_step_is_its_body_and_an_own_one_is_not_swallowed():
+    blocks = [{"kind": "header"}, {"kind": "article"}, {"kind": "other", "label": "APROBACIÓN"},
+              {"kind": "other", "label": "PROMULGACIÓN"}, {"kind": "other", "label": "CONTENIDO"}]
+    assert bloques_de_decreto(blocks) == {2: "trailing", 3: "trailing", 4: "trailing"}
+    # the reservations a treaty lists, then its own bare CONTENIDO, between decree steps
+    blocks = [{"kind": "header"}, {"kind": "article"}, {"kind": "other", "label": "RESERVAS"},
+              {"kind": "other", "label": "CONTENIDO"}, {"kind": "other", "label": "APROBACIÓN"},
+              {"kind": "other", "label": "PROMULGACIÓN"}]
+    assert bloques_de_decreto(blocks) == {4: "trailing", 5: "trailing"}
+
+
+def test_a_decree_closing_is_envelope_even_when_annexes_follow_it():
+    blocks = [{"kind": "header"}, {"kind": "article"},
+              {"kind": "other", "label": "PARTE FINAL DEL DECRETO PROMULGATORIO"},
+              {"kind": "other", "label": "CUADRO DE RUTAS"}]
+    assert bloques_de_decreto(blocks) == {2: "closing"}
+
+
 def test_own_blocks_after_a_generic_leading_block_are_not_swallowed():
     # an instrument that opens with a generic `other` block and has no decree step
     markdown = _doc(
