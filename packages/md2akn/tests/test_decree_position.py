@@ -209,6 +209,42 @@ def test_a_bare_contenido_is_never_read_as_the_decrees():
     assert bloques_de_decreto(blocks) == {4: "trailing", 5: "trailing"}
 
 
+def test_the_decrees_leading_run_ends_at_its_certification():
+    blocks = [{"kind": "header"}, {"kind": "other", "label": "FIRMA"},
+              {"kind": "other", "label": "CERTIFICACIÓN"},
+              {"kind": "other", "label": "INTERCAMBIO DE CARTAS"},
+              {"kind": "other", "label": "PARTE FINAL DEL DECRETO PROMULGATORIO"}]
+    # the exchange of letters between the certification and the decree's closing is the instrument's
+    assert bloques_de_decreto(blocks) == {1: "leading", 2: "leading", 4: "trailing"}
+
+
+def test_an_instrument_that_is_nothing_but_its_envelope_marks_none_of_it():
+    only_the_decree = _doc(
+        _marker(1, "ENCABEZADO", "header"),
+        "**INSTRUMENTOS ADOPTADOS POR EL CONGRESO**",
+        _marker(2, "FIRMA"),
+        "El Plenipotenciario firmó los instrumentos.",
+        _marker(3, "PROMULGACIÓN"),
+        "Promulgo el presente Decreto.",
+    )
+    units = _units(only_the_decree)
+    assert units and not any(u.envelope for u in units)
+    # one own article is enough to bring the envelope back
+    with_an_article = only_the_decree + "\n" + "\n\n".join(_article(4, 1)) + "\n"
+    units = _units(with_an_article)
+    assert [u.envelope for u in _by_text(units, "Promulgo")] == [True]
+    # headings and transitorios are not text of its own: still nothing but the envelope
+    with_transitorios = _doc(
+        _marker(1, "ENCABEZADO", "header"),
+        "**DECRETO**",
+        _marker(2, "FIRMA"),
+        "El Plenipotenciario firmó.",
+        _marker(3, "TRANSITORIOS", "transitorios"),
+        "**TRANSITORIOS**\n\n**ÚNICO.-** Entra en vigor.",
+    )
+    assert not any(u.envelope for u in _units(with_transitorios))
+
+
 def test_a_decree_closing_is_envelope_even_when_annexes_follow_it():
     blocks = [{"kind": "header"}, {"kind": "article"},
               {"kind": "other", "label": "PARTE FINAL DEL DECRETO PROMULGATORIO"},

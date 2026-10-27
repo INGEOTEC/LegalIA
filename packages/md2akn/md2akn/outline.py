@@ -336,6 +336,14 @@ def bloques_de_decreto(marcas: list[dict[str, str]]) -> dict[int, str]:
                 encontrados.update({p: nombre for p in pendientes})
                 encontrados[k] = nombre
                 pendientes = []
+                if nombre == "leading" and pliega_etiqueta(
+                    marcas[k].get("label", "")
+                ).startswith("CERTIFICACION"):
+                    # The certification is the last step of the decree that opens a
+                    # document: what follows it (treaty 149202's `INTERCAMBIO DE CARTAS`,
+                    # 24062's `CANJE DE NOTAS ALEMANIA`) is the instrument's own text,
+                    # even when a closing certification of the decree comes after it.
+                    break
             elif generico(k, encontrados):
                 pendientes.append(k)
             else:

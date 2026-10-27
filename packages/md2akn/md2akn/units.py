@@ -1167,6 +1167,18 @@ def _mark_envelope(units: list[TextUnit], doc_text: str) -> list[TextUnit]:
         k = bisect.bisect_right(starts, unit.start_char) - 1
         inside = k >= 0 and unit.start_char < ranges[k][1]
         marked.append(dataclasses.replace(unit, envelope=True) if inside else unit)
+    if not any(
+        not unit.envelope and unit.unit_type not in ("heading", "toc")
+        and not any(label == "TRANSITORIOS" or label.startswith("TRANSITORIOS ")
+                    for label in unit.path)
+        for unit in marked
+    ):
+        # Review fix-1 of #301: an instrument that is nothing *but* its envelope (the
+        # Court prints only the decree and the list of what it promulgates: treaties
+        # 23815, 23891, 23892, 55686) has no other text to compare, so none of it is
+        # marked. Otherwise the comparison would be left with an instrument that has no
+        # row at all.
+        return units
     return marked
 
 
