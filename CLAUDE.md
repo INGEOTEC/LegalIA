@@ -1292,8 +1292,8 @@ it compared that is not the instrument's own text: its **envelope**.
   decree and its closing certification are the formulaic wrapper of the Mexican publication: the same decree,
   word for word, wraps every treaty promulgated the same day (701 of the 7,661 envelope units of the treaties
   cite "artículo 89" of the Constitution, against 45 outside it). `md2akn.outline.es_bloque_de_envoltura` /
-  `rangos_de_envoltura` read it from the outline markers alone (a `kind=header` block, an `other` block whose
-  label is rule 29's `#promulgation` role, and the "PARTE FINAL DEL DECRETO PROMULGATORIO" certification);
+  `rangos_de_envoltura` read it from the outline markers alone (**by label at first, by position since review
+  fix-1 below**: the `kind=header` blocks plus the leading and trailing runs of decree blocks, `bloques_de_decreto`);
   `TextUnit.envelope` is the last field, `units.parquet` has an `envelope` column, and
   `instrument_matrix.searched_mask` makes an envelope unit neither a source nor a candidate, exactly like a heading
   or a transitorio (headings are counted first, then transitorios, then the envelope: `matrix.json`'s
@@ -1306,7 +1306,8 @@ it compared that is not the instrument's own text: its **envelope**.
   collections with and without it is a `SystemExit`.
 - **Rebuilt, nothing published.** The four vectors work directories `-056` (59, 60, 12 and 4,291 new texts,
   `compare_merges` clean for all eight runs), the staged cache `emb-run-vectors-056-cache/`, the three Atlas
-  work directories, `atlas*.json` (226,010 excerpts, 158,361 counted; 9,165 envelope rows out), the three pair sets,
+  work directories, `atlas*.json` (226,010 excerpts, 158,361 counted; 9,165 envelope rows out; **superseded by
+  review fix-1 below**), the three pair sets,
   the 4B's nearest texts, the 2,677 instrument files, the gold (unchanged: 253 instruments, 277 links), the
   evaluations, the topics (Louvain 1.0, 30 topics: the rule's choice moved from 1.5) and the pages' literals (26
   October 2026). **Two conclusions moved**: BM25 is no longer tied with the 0.6B everywhere (better on the five closest
@@ -1316,8 +1317,50 @@ it compared that is not the instrument's own text: its **envelope**.
   release sweep passes (19 in 56 minutes). Tables in `scripts/embeddings/README.md` ("Measured, the envelope left
   out and the complete corpora, 2026-10-26").
   The publish order for a human: the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, issue #300), the four
-  vectors releases (`emb-run-<c>-056/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`,
+  vectors releases (`emb-run-<c>-057/publish/PUBLICAR.md`, **`-057` since review fix-1; the `-056` ones are
+  superseded**), the three `atlas-pairs` sets and `atlas-instruments`,
   or `website.yml` fails or pairs the new JSON with old files (issue #115, Hallazgo C).
+- **The envelope by position, and preamble and conclusions inside their API block, rules 42 and 43 (review fix-1 of
+  #300 and #301, found after the fact).** Reading the Instruments page against the Atlas showed two decisions taken
+  from a label alone that failed both ways. `md2akn`'s `preamble` ran to the first container, so for 649 treaties, 118
+  reglamentos, 67 lineamientos and 9 laws it swallowed the blocks after `ENCABEZADO` (the decree, a certification,
+  a `CONSIDERANDO`), and `conclusions` was the last four blocks matching `CONCLUSIONES` across any marker; and the
+  envelope was an `other` block whose label was a few decree words, so a treaty's own `FIRMA` (`11374`) was
+  excluded while a decree step nobody had listed (`CANJE DE NOTAS`, the decree's `TRANSITORIO`) was compared.
+  **Rule 42**: `preamble` is exactly the `ENCABEZADO` block, `conclusions` never crosses a marker, a `header`
+  after the first node and `preamble`/`recitals` blocks open an `hcontainer` (rule 29), an `ÍNDICE` marker closes
+  the previous container, and `md2akn.validate._block_escapes` (invariant I1) has no `preamble`/`conclusions`
+  exemption left. **Rule 43**: the envelope is the `header` blocks, the leading run of decree blocks after them
+  (it ends right after a `CERTIFICACIÓN…` block) and the trailing run, `md2akn.outline.bloques_de_decreto`; a block
+  of a run is a decree step by its label (`_PASO`, widened only where measured; a lone `DECLARACIÓN` is not one) or,
+  only when sandwiched between two decree labels, by the vocabulary `ETAPAS_DEL_DECRETO`; a decree label inside the
+  instrument's own text is not envelope; a bare `CONTENIDO` never is; an instrument that is only its envelope marks
+  none (`units._mark_envelope`). Both apply only to a document with markers (no-marker output is byte-identical),
+  no rule names an instrument, `md2akn` and `scjn` stay 0.5.1.
+  `scripts/embeddings/measure_envelope.py` records it (envelope units by label, crossing units, the run blocks with
+  no decree-role label: `TRANSITORIO` 265 treaties, `CANJE DE NOTAS` 239, `NOTIFICACIÓN` 143 ..., and the reverse
+  list): crossing 0 in all four collections (9 / 118 / 67 / 649 instruments before), envelope units 324 → 319,
+  1,030 → 1,024, 182 → 178 and 7,661 → 9,185, 14 / 129 / 75 / 891 trees changed. The Instruments page draws a
+  node that has a label and no heading of its own with that label as a heading, once. **Three treaties have no
+  counted excerpt**: `tratados/11151`, `16145` and `23742` are one treaty published three times, and with the decree
+  out of their preamble every compared excerpt is a text the three own word for word (the `m > 1` rule), so their
+  matrix rows are zero in all three models (before, a preamble that swallowed the decree was the only text of each
+  that was not shared). `build_instrument_umap_html.normalise_rows` returns a non-zero mask instead of refusing
+  (the old docstring's "it cannot exist" was false), `project` fits only the non-zero rows and draws the three at the
+  centre, `export_atlas_data` exports them with `pc` 0 and no targets, and the topics label them noise ("Instruments
+  in no topic"); nothing in the rule was loosened. Rebuilt without re-crawling: the four `emb-run-<c>-057`
+  work directories (16, 426, 253 and 2,281 texts new against the published merge, only 4 of them never embedded
+  before; `compare_merges` clean for all eight runs, 0 texts with another vector), the staged cache
+  `emb-run-vectors-057-cache/`, the three Atlas work directories and `atlas*.json` (226,425 excerpts, 157,689
+  counted, 10,132 envelope rows out; the closest instrument unchanged for 2,573 / 2,566 / 2,551 of 2,677), the three
+  pair sets, the 4B's nearest texts (agreement proved), the 2,677 instrument files, the gold (unchanged, 253
+  instruments and 277 links), the evaluations (signal C 5,191 citations in 3,816 excerpts; the 4B is now better than
+  BM25 on three row-level measures and BM25 better than the 0.6B on one; no conclusion changed), the topics (a draft
+  page: Louvain 1.0, 31 topics, 3 instruments in none) and the pages' literals (27 October 2026). The sweep's I4
+  fixture lost one entry (`tratados/23803` `art_19`, now inside its `RESERVAS` section). Tables in
+  `scripts/embeddings/README.md` ("Measured, the envelope by position, 2026-10-27"). **Nothing was published**; the
+  human order is: the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, issue #300), the four vectors releases
+  (`emb-run-<c>-057/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
 
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 
