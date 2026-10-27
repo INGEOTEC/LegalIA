@@ -514,15 +514,6 @@
  },
  {
   "collection": "tratados",
-  "key": "23803",
-  "eId": "art_19",
-  "after": 5,
-  "num": "19",
-  "kind": "numbering-continues-across-containers",
-  "evidence": "13 article block(s) of the API lie between the two, in other containers: ['6', '7', '8', '9', '10', '11', '12', '13']"
- },
- {
-  "collection": "tratados",
   "key": "23817",
   "eId": "art_4",
   "after": 2,
