@@ -8,11 +8,13 @@ For the newest snapshot of every instrument of the Atlas this records
   API block they sit in;
 * the `preamble` and `conclusions` units that **cross a marker**: a unit whose
   characters hold the start of an API block other than the one it starts in;
-* the **leading run**, the blocks after the title block that the envelope reads as the
-  decree's opening, listing every one whose label has no role in the decree
-  (`md2akn.outline.rol_de_etiqueta`) -- the blocks a positional rule reads as envelope
-  by position alone, which a person has to inspect so that an instrument's own text is
-  not swallowed.
+* every block of the decree's runs (`md2akn.outline.bloques_de_decreto`) whose label is
+  **not** a decree step (`es_etiqueta_de_decreto`): what the positional rule reads as
+  envelope by position alone (`CANJE DE NOTAS`, the decree's own `TRANSITORIO`, a bare
+  `CONTENIDO` after a step), which a person has to inspect so that an instrument's own
+  text is not swallowed (``--leading`` lists them);
+* the reverse: every block *labelled* as a decree step that is **not** envelope, because
+  it stands inside the instrument's own text (``--mid`` lists them).
 
 ``--json PATH`` writes the record; ``--compare BEFORE AFTER`` prints the two side by
 side. Read-only, no network. Run it with the parser before a change and again after.
@@ -32,7 +34,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from measure_outline_repeats import newest  # noqa: E402
 from md2akn import parse_markdown, text_units  # noqa: E402
-from md2akn.outline import MARCADORES_EN_TEXTO, lee_marcador, rol_de_etiqueta  # noqa: E402
+from md2akn.outline import (  # noqa: E402
+    MARCADORES_EN_TEXTO,
+    bloques_de_decreto,
+    es_etiqueta_de_decreto,
+    lee_marcador,
+)
 
 
 def blocks(text: str):
@@ -63,24 +70,19 @@ def digest(markdown: str) -> dict:
                 crossed = [attrs[j].get("label", "") for j in range(k + 1, len(starts))
                            if starts[j] < unit.end_char]
                 crossing.append([unit.unit_type, unit.eId, *crossed[:6]])
-    leading = []
-    seen_header = False
-    for start, a in zip(starts, attrs):
-        if a.get("kind") == "header":
-            seen_header = True
-            continue
-        if not seen_header and not leading and a.get("kind") != "other":
-            break
-        if a.get("kind") != "other":
-            break
-        if rol_de_etiqueta(a.get("label", "")) != "promulgation":
-            leading.append(a.get("label", ""))
+    decree = bloques_de_decreto(attrs)
+    leading = [attrs[k].get("label", "") for k in sorted(decree)
+               if not es_etiqueta_de_decreto(attrs[k].get("label", ""))]
+    mid = [attrs[k].get("label", "") for k, a in enumerate(attrs)
+           if a.get("kind") == "other" and k not in decree
+           and es_etiqueta_de_decreto(a.get("label", ""))]
     return {
         "envelope": dict(envelope),
         "envelope_units": sum(envelope.values()),
         "units": len(units),
         "crossing": crossing,
         "leading_without_role": leading,
+        "decree_label_not_envelope": mid,
     }
 
 
@@ -126,12 +128,12 @@ def compare(before: Path, after: Path, top: int) -> None:
             print(f"    {before_n:>6} -> {after_n:>6}  {label[:70]}")
 
 
-def leading_listing(path: Path) -> None:
+def leading_listing(path: Path, field: str = "leading_without_role") -> None:
     rows = json.loads(path.read_text(encoding="utf-8"))
     per = collections.Counter()
     where = collections.defaultdict(list)
     for r in rows:
-        for label in r["leading_without_role"]:
+        for label in r[field]:
             per[(r["c"], label)] += 1
             where[(r["c"], label)].append(r["k"])
     for (c, label), n in per.most_common():
@@ -148,7 +150,9 @@ def main(argv=None) -> int:
     p.add_argument("--jobs", type=int, default=8)
     p.add_argument("--compare", nargs=2, type=Path, metavar=("BEFORE", "AFTER"))
     p.add_argument("--leading", type=Path, metavar="JSON",
-                   help="list the leading-run blocks with no role, from a record")
+                   help="list the run blocks that are not decree-step labels, from a record")
+    p.add_argument("--mid", type=Path, metavar="JSON",
+                   help="list the decree-step labels that are not envelope, from a record")
     p.add_argument("--top", type=int, default=15)
     args = p.parse_args(argv)
     if args.compare:
@@ -156,6 +160,9 @@ def main(argv=None) -> int:
         return 0
     if args.leading:
         leading_listing(args.leading)
+        return 0
+    if args.mid:
+        leading_listing(args.mid, "decree_label_not_envelope")
         return 0
     atlas = json.loads(args.index.read_text(encoding="utf-8"))["instruments"]
     jobs = [(e["c"], e["k"], str(newest(args.scjn_dir / e["c"] / e["k"]))) for e in atlas]

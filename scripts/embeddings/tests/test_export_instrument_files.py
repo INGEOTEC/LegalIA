@@ -283,6 +283,16 @@ Las disposiciones marcadas modifican el Tratado.
 
 Al firmar el presente texto, la delegación formula una reserva.
 
+<!-- scjn:block orden=15 numero=0 kind=other label="ARREGLO PROVISIONAL" -->
+
+El arreglo provisional que las Partes aplican mientras el Tratado entra en vigor.
+
+<!-- scjn:block orden=16 numero=0 kind=recitals label="CONSIDERANDO" -->
+
+**CONSIDERANDO**
+
+Que las Partes desean aplicar el Tratado cuanto antes.
+
 <!-- scjn:block orden=12 numero=0 kind=other label="FIRMA" -->
 
 El Plenipotenciario firmó el Tratado.

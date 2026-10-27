@@ -919,6 +919,38 @@ def test_the_outline_names_every_labelled_block_by_its_role(browser, server):
     page.close()
 
 
+def test_a_block_the_court_labels_but_prints_no_heading_for_shows_its_label_once(browser, server):
+    """Review fix-1 of #301: some nodes get their name only from the Court's outline marker
+    (`ARREGLO PROVISIONAL`, `FIRMA`), with no heading line of their own in the text. The
+    document draws that label as a heading at the node's depth, styled as an editorial label
+    with a `title`; a node whose own text already starts with its heading line (a
+    `CONSIDERANDO` block that prints `**CONSIDERANDO**`, a chapter) is not given a second one,
+    and the group of decree blocks, whose name is ours, gets none."""
+    page = open_page(browser, f"{server}?c=tratados&k=700")
+    wait_rendered(page)
+    labels = page.locator(".instruments-document .instruments-label")
+    shown = [label.inner_text().strip() for label in labels.all()]
+    assert "ARREGLO PROVISIONAL" in shown
+    for expected in ("RESERVAS AL TRATADO", "FIRMA", "PROMULGACIÓN", "NOTA EXPLICATIVA"):
+        assert expected in shown, expected
+    assert "CONSIDERANDO" not in shown            # its own first line is already that heading
+    assert "DECRETO PROMULGATORIO" not in shown   # the group's name is md2akn's, not the Court's
+    assert len(shown) == len(set(shown))          # once each
+    first = labels.filter(has_text="ARREGLO PROVISIONAL").first
+    assert first.get_attribute("title") == "Section label from the SCJN's database"
+    assert first.evaluate("e => e.tagName") in {"H3", "H4", "H5", "H6"}
+    # the label heads its node, ahead of the text that follows it
+    node = page.locator('section[data-eid="hc_ARREGLO_PROVISIONAL"]')
+    assert node.locator(":scope > .instruments-label").count() == 1
+    assert "El arreglo provisional que las Partes aplican" in node.inner_text()
+    # no label heading repeats a heading the text itself prints
+    texts = [t.strip() for t in page.locator(".instruments-document .instruments-heading").all_inner_texts()]
+    assert len([t for t in texts if t == "CAPÍTULO 3"]) <= 1
+    assert "<!--" not in page.locator(".instruments-document").inner_text()
+    assert page.errors == []
+    page.close()
+
+
 def test_a_missing_file_is_a_message_and_the_page_stays_usable_and_retryable(browser, server):
     state = {"fail": True}
 
