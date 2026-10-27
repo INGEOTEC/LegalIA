@@ -58,11 +58,13 @@ def test_annex_holds_its_parts_and_each_part_its_appendix():
     tree = parse_markdown(_read("outline_tratado.md"))
     body = next(c for c in tree.children if c.akn_type == "body")
     top = [(c.akn_type, c.num) for c in body.children if c.akn_type not in ("article", "content")]
+    # the recitals block is a container of its own (rule 42, review fix-1 of #301);
     # the index is a toc, not containers; the block that holds articles `1.1`
     # and `1.2` in its own text is an implicit section (rule 23); ANEXO 1 and
     # ANEXO 2 are siblings
     assert top == [
-        ("toc", "1"), ("section", "1 ÁMBITO"), ("attachment", "1"), ("attachment", "2"),
+        ("hcontainer", "CONSIDERANDO"), ("toc", "1"), ("section", "1 ÁMBITO"),
+        ("attachment", "1"), ("attachment", "2"),
     ]
     anexo1 = body.find("att_1")
     assert [(c.akn_type, c.num) for c in anexo1.children if c.akn_type == "part"] == [

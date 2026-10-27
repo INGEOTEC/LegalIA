@@ -58,6 +58,7 @@ from md2akn.divisions import (
     inicio_de_la_serie,
 )
 from md2akn.outline import (
+    bloques_de_decreto,
     es_continuacion,
     es_contenido_suelto,
     lee_marcador,
@@ -556,6 +557,14 @@ def _rango_conclusiones(bloques) -> int:
     inicio = max(0, len(bloques) - CONCLUSIONES_ULTIMOS_BLOQUES)
     for i in range(inicio, len(bloques)):
         if CONCLUSIONES.search(bloques[i].text):
+            if any(lee_marcador(b.text) is not None for b in bloques[i + 1:]):
+                # Rule 42 (review fix-1 of #301, a correction found after the fact):
+                # on a snapshot with outline markers the closing signatures never
+                # cross an API block. A dated closing line followed by another API
+                # block (the decree's certification after a treaty's own `PARTE FINAL
+                # DEL ACTA`) is not the end of the document: that block and every
+                # one after it keep their own nodes, by their own role (rule 29).
+                return len(bloques)
             return i
     return len(bloques)
 
@@ -1034,11 +1043,23 @@ class _Constructor:
                 )
             ):
                 self._fusion.add(indices[n])
-        #: The role of each `other` block, by marker index.
-        self._rol_de: dict[int, str | None] = {
-            k: rol_de_etiqueta(self._marcas[k].get("label", ""))
-            for k in indices if self._marcas[k].get("kind") == "other"
-        }
+        #: The role of each `other` block, by marker index. Rule 43 (review fix-1 of
+        #: #301): a decree step is read by *position*. Only a block in the decree's
+        #: leading or trailing run (`bloques_de_decreto`) has the `promulgation` role
+        #: -- a block there with no role of its own (`APROBACIÓN DE INSTRUMENTOS`,
+        #: `CANJE DE NOTAS`) included -- and a decree-step label inside the
+        #: instrument's own text (a treaty's testimonium, `FIRMA`) has none.
+        decreto = bloques_de_decreto([self._marcas[k] for k in indices])
+        self._rol_de: dict[int, str | None] = {}
+        for n, k in enumerate(indices):
+            if self._marcas[k].get("kind") != "other":
+                continue
+            rol = rol_de_etiqueta(self._marcas[k].get("label", ""))
+            if n in decreto and rol in (None, "promulgation"):
+                rol = "promulgation"
+            elif rol == "promulgation":
+                rol = None
+            self._rol_de[k] = rol
         preambulos = 0
         for n, k in enumerate(indices):
             kind = self._marcas[k].get("kind")
@@ -1360,13 +1381,18 @@ class _Constructor:
             self._implicita = (nodo, self._aperturas[self._i])
         elif not continuacion and self._i + 1 < self._fin_cuerpo and (
             (marca.get("kind") == "other" and id(marca) not in self._provisiones_sic)
-            or (marca.get("kind") in ("header", "preamble", "recitals")
-                and (self.body is not None or self._pila))
+            or marca.get("kind") in ("preamble", "recitals")
+            or (marca.get("kind") == "header"
+                and (self.preambulo is not None or self.body is not None or self._pila))
         ):
             # Rule 29. A title block, a preamble or recitals that come after the
             # instrument's own text began (a treaty's preamble after the
             # promulgation decree that precedes it) are a text of their own: a
             # labelled container, not loose text of the body.
+            # Rule 42 (review fix-1 of #301): so is a preamble or recitals block that
+            # follows the title block straight away (`CONSIDERANDO`, a treaty's own
+            # `PREÁMBULO`): the document's `preamble` is exactly the title block, and it
+            # used to swallow whatever API block came next until a container opened.
             self._abre_bloque_otro(bloque, marca)
 
     # -- blocks the API labels `other` (rules 29-31, review fix-4 of #291) --
@@ -1563,6 +1589,12 @@ class _Constructor:
                 continue
             if i in self._indices:
                 fin = self._indices[i]
+                if i in self._marcas:
+                    # Rule 42 (review fix-1 of #301): an index the SCJN labels `ÍNDICE`
+                    # is an API block like any other, and its marker ends the block
+                    # before it (the `CONSIDERANDO` that precedes it is not its parent).
+                    self._i = i
+                    self._bloque_marcador(self._bloques[i], None)
                 self._bloque_indice(self._bloques[i], self._bloques[fin - 1])
                 i = fin
                 continue

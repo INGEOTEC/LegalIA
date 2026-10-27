@@ -21,6 +21,7 @@ where that bar lives.
 
 from __future__ import annotations
 
+import bisect
 from dataclasses import dataclass, field
 
 from md2akn.model import REFERS_TO_TRANSITORIOS, AknNode
@@ -306,9 +307,10 @@ def _block_escapes(tree: AknNode) -> list[Violation]:
       that comes after a node the block opened hangs from a node the block
       opened, never from something older.
 
-    The preamble and the conclusions are not part of the hierarchy and are left
-    alone. A tree parsed from a document with no markers has no blocks and no
-    violations.
+    The preamble and the conclusions are not part of the hierarchy, but since review
+    fix-1 of #301 they may not cross an API block either (they used to, and the check
+    was exempt): each stays inside the block it starts in. A tree parsed from a
+    document with no markers has no blocks and no violations.
     """
     texto = tree.span.doc.text
     encontradas = list(MARCADORES_EN_TEXTO.finditer(texto))
@@ -323,6 +325,15 @@ def _block_escapes(tree: AknNode) -> list[Violation]:
     limites = [*marcas, len(texto) + 1]
     nodos = [n for n in tree.walk() if n.akn_type not in ("act", "body", "preamble", "conclusions")]
     violaciones: list[Violation] = []
+    for nodo in tree.children:
+        if nodo.akn_type not in ("preamble", "conclusions"):
+            continue
+        k = bisect.bisect_right(marcas, nodo.start_char) - 1
+        if k + 1 < len(marcas) and nodo.end_char > marcas[k + 1]:
+            violaciones.append(Violation(
+                "block-escape", nodo.eId,
+                f"starts in the block at {marcas[k]} and reaches into the block at {marcas[k + 1]}",
+            ))
     raices_previas: list[AknNode] = []
     j = 0
     for k, inicio in enumerate(marcas):

@@ -52,48 +52,56 @@
       "text_sha1": "dd0ea30f5de3ac2d410c07f4b5dacbbbe33eb742"
     },
     {
-      "unit_type": "preamble",
-      "eId": "preamble",
-      "piece": 5,
+      "unit_type": "intro",
+      "eId": "hc_CONSIDERANDO__intro",
+      "piece": 1,
       "piece_eId": null,
-      "akn_type": "preamble",
+      "akn_type": "intro",
       "num": null,
-      "path": [],
-      "text": "**CONSIDERANDO**",
-      "text_sha1": "ef1e078f1c11b28485a2b6d5330b4c0b2e74377a"
+      "path": [
+        "CONSIDERANDO"
+      ],
+      "text": "CONSIDERANDO **CONSIDERANDO**",
+      "text_sha1": "9d165c934f7bc33fa6db38d63901f0efcffe72ec"
     },
     {
-      "unit_type": "preamble",
-      "eId": "preamble",
-      "piece": 6,
+      "unit_type": "intro",
+      "eId": "hc_CONSIDERANDO__intro",
+      "piece": 2,
       "piece_eId": null,
-      "akn_type": "preamble",
+      "akn_type": "intro",
       "num": null,
-      "path": [],
-      "text": "Que el Convenio Internacional para la Seguridad de la Vida Humana en el Mar, 1974 (Convenio SOLAS/74) fue aprobado por la Cámara de Senadores del H. Congreso de la Unión el 27 de diciembre de 1976, según Decreto publicado en el Diario Oficial de la Federación del 20 de enero de 1977;",
-      "text_sha1": "42aa3ba8d206a15f4af123e997c750848a085029"
+      "path": [
+        "CONSIDERANDO"
+      ],
+      "text": "CONSIDERANDO Que el Convenio Internacional para la Seguridad de la Vida Humana en el Mar, 1974 (Convenio SOLAS/74) fue aprobado por la Cámara de Senadores del H. Congreso de la Unión el 27 de diciembre de 1976, según Decreto publicado en el Diario Oficial de la Federación del 20 de enero de 1977;",
+      "text_sha1": "0fc3fe9b334c4e681d63e8acb8909043ff831e9f"
     },
     {
-      "unit_type": "preamble",
-      "eId": "preamble",
-      "piece": 7,
+      "unit_type": "intro",
+      "eId": "hc_CONSIDERANDO__intro",
+      "piece": 3,
       "piece_eId": null,
-      "akn_type": "preamble",
+      "akn_type": "intro",
       "num": null,
-      "path": [],
-      "text": "Que el Gobierno de los Estados Unidos Mexicanos depositó su instrumento de adhesión al Convenio SOLAS/74, ante el Secretario General de la entonces Organización Consultiva Marítima Intergubernamental (ahora Organización Marítima Internacional), el 28 de marzo de 1977;",
-      "text_sha1": "f025c75392e1f2b1db9004daa96db4a47a0c1f07"
+      "path": [
+        "CONSIDERANDO"
+      ],
+      "text": "CONSIDERANDO Que el Gobierno de los Estados Unidos Mexicanos depositó su instrumento de adhesión al Convenio SOLAS/74, ante el Secretario General de la entonces Organización Consultiva Marítima Intergubernamental (ahora Organización Marítima Internacional), el 28 de marzo de 1977;",
+      "text_sha1": "eed841a3e7df2e9cce4e2a7ed96b4682ad4e46ab"
     },
     {
-      "unit_type": "preamble",
-      "eId": "preamble",
-      "piece": 8,
+      "unit_type": "intro",
+      "eId": "hc_CONSIDERANDO__intro",
+      "piece": 4,
       "piece_eId": null,
-      "akn_type": "preamble",
+      "akn_type": "intro",
       "num": null,
-      "path": [],
-      "text": "Que el Convenio SOLAS/74 fue publicado en el Diario Oficial de la Federación del 9 de mayo de 1977;",
-      "text_sha1": "2b9092938368f548bae0a0f28f657839c41630c1"
+      "path": [
+        "CONSIDERANDO"
+      ],
+      "text": "CONSIDERANDO Que el Convenio SOLAS/74 fue publicado en el Diario Oficial de la Federación del 9 de mayo de 1977;",
+      "text_sha1": "ca3a2112f9397bbc351436592ac6edcb4e699580"
     },
     {
       "unit_type": "toc",

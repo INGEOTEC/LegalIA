@@ -88,15 +88,23 @@ def pliega_etiqueta(etiqueta: str) -> str:
 #:   its own, always a `section` (rule 33: the container rule 23 gave one that
 #:   holds articles, now every one, so sibling resolutions are of one type).
 #: - everything else has no role: a generic labelled container.
+#: Review fix-1 of #301 widened this only where the measurement showed a decree step
+#: missed: `DECLARACIÓN`/`DECLARACIONES` as the second step of `APROBACIÓN Y DECLARACIÓN`
+#: (and the labels listed in the `promulgation` pattern below). `APROBACION` followed by
+#: anything else is *not* a step (`SECCIÓN 5 APROBACIÓN`, an annex title naming an
+#: approval): only the whole labels match. The blocks of the decree that have no such
+#: label (`CANJE DE NOTAS`) are read by position, not by label (`bloques_de_decreto`).
 _PASO = (
     r"(?:FIRMA|APROBACION|RESERVAS?|RATIFICACION|ACEPTACION|ADHESION|ADOPCION|DEPOSITO|"
-    r"NOTIFICACIONES?|PROMULGACION|CERTIFICACION)"
+    r"NOTIFICACIONES?|PROMULGACION|CERTIFICACION|DECLARACION(?:ES)?)"
 )
 ROLES_DE_ETIQUETA: tuple[tuple[str, "re.Pattern[str]"], ...] = (
     ("conclusions", re.compile(r"PARTE FINAL(?: .*)?")),
     ("promulgation", re.compile(
         rf"{_PASO}(?:(?:,| Y) {_PASO})*|DECLARACIONES?(?: .*)?|"
-        r"INSTRUMENTO DE (?:RATIFICACION|ACEPTACION|ADHESION|APROBACION)"
+        r"INSTRUMENTO DE (?:RATIFICACION|ACEPTACION|ADHESION|APROBACION)|"
+        r"APROBACION (?:DEL PROYECTO|DE INSTRUMENTOS|DE LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS)|"
+        r"APROBACION, RATIFICACION Y CANJE DE RATIFICACIONES"
     )),
     ("note", re.compile(r"NOTAS?(?: EXPLICATIVAS?)?")),
     ("resolution", re.compile(r"RESOLUCION(?: .*)?")),
@@ -205,54 +213,139 @@ def es_contenido_suelto(
 
 #: The folded label of the block that closes a Mexican promulgation decree (rule 29's
 #: `conclusions` role, narrowed): a treaty's *own* closing clause (`PARTE FINAL DEL
-#: ESTATUTO`, `PARTE FINAL DE LAS ACTAS`) is part of the instrument and is not it.
+#: ESTATUTO`, `PARTE FINAL DE LAS ACTAS`) is part of the instrument and is not it, and
+#: neither is the closing of a decree that is itself the instrument (`PARTE FINAL DEL
+#: DECRETO`, a treaty entry that is only a decree). Review fix-1 of #301 admits the
+#: spellings of the same closing that the measurement found (`PARTE FINAL DE DECRETO
+#: PROMULGATORIO`, `... DEL DECRETO DE PROMULGACIÓN`, `... DE LA CERTIFICACIÓN`).
 ETIQUETA_PARTE_FINAL_DEL_DECRETO = "PARTE FINAL DEL DECRETO PROMULGATORIO"
+PARTE_FINAL_DE_DECRETO = re.compile(
+    r"PARTE FINAL DE(?:L| LA)? (?:DECRETO PROMULGATORIO|DECRETO DE PROMULGACION|"
+    r"PROMULGACION|CERTIFICACION)"
+)
+
+
+def es_etiqueta_de_decreto(etiqueta: str) -> bool:
+    """Whether a label names a step of the Mexican promulgation decree or its closing
+    certification, *wherever the block stands* -- position decides whether it is
+    envelope (`bloques_de_decreto`).
+
+    >>> es_etiqueta_de_decreto("PROMULGACIÓN")
+    True
+    >>> es_etiqueta_de_decreto("PARTE FINAL DEL DECRETO PROMULGATORIO")
+    True
+    >>> es_etiqueta_de_decreto("APROBACIÓN DE INSTRUMENTOS")
+    True
+    >>> es_etiqueta_de_decreto("SECCIÓN 5 APROBACIÓN")
+    False
+    >>> es_etiqueta_de_decreto("PARTE FINAL DEL ACTA")
+    False
+    >>> es_etiqueta_de_decreto("PARTE FINAL DEL DECRETO")
+    False
+    """
+    plano = pliega_etiqueta(etiqueta)
+    return rol_de_etiqueta(etiqueta) == "promulgation" or PARTE_FINAL_DE_DECRETO.fullmatch(plano) is not None
+
+
+def bloques_de_decreto(marcas: list[dict[str, str]]) -> dict[int, str]:
+    """Review fix-1 of #301: which API blocks, by position in `marcas` (the markers of
+    one document in order), are the Mexican promulgation decree wrapped around the
+    instrument, as ``{index: "leading" | "trailing"}``.
+
+    A label alone does not decide it (a treaty's own testimonium is labelled `FIRMA`;
+    the decree's opening may be labelled anything). The decree is a *run* of blocks at
+    one end of the document:
+
+    * the **leading run** starts right after the title block(s) and goes on while the
+      blocks are `kind=other`; it must open with a block whose label names a decree
+      step (`es_etiqueta_de_decreto`), and a block with no role at all (`CANJE DE
+      NOTAS`, `NOTIFICACIÓN`) stays in it when a decree step comes after it, because
+      the decree interleaves them. A block after the last decree step is the
+      instrument's own; so is a block with a role of its own (`PARTE FINAL DEL ACTA`,
+      `NOTA`, `RESOLUCIÓN ...`) or any other kind (a preamble, an article, a container).
+    * the **trailing run** is the same read backwards from the last block, down to
+      where the leading run ended.
+
+    A decree step *between* the instrument's own blocks is its own text and is in
+    neither run.
+
+    >>> blocks = [{"kind": "header"}, {"kind": "other", "label": "FIRMA"},
+    ...           {"kind": "other", "label": "CANJE DE NOTAS"},
+    ...           {"kind": "other", "label": "PROMULGACIÓN"}, {"kind": "preamble"}]
+    >>> bloques_de_decreto(blocks)
+    {1: 'leading', 2: 'leading', 3: 'leading'}
+    >>> blocks = [{"kind": "header"}, {"kind": "preamble"}, {"kind": "article"},
+    ...           {"kind": "other", "label": "FIRMA"}, {"kind": "other", "label": "PARTE FINAL DEL ACTA"}]
+    >>> bloques_de_decreto(blocks)
+    {}
+    """
+    n = len(marcas)
+
+    def tipo(k):
+        return marcas[k].get("kind")
+
+    def decreto(k):
+        return tipo(k) == "other" and es_etiqueta_de_decreto(marcas[k].get("label", ""))
+
+    def generico(k):
+        return tipo(k) == "other" and rol_de_etiqueta(marcas[k].get("label", "")) is None
+
+    resultado: dict[int, str] = {}
+
+    def corre(indices, nombre):
+        pendientes: list[int] = []
+        encontrados: dict[int, str] = {}
+        for k in indices:
+            if decreto(k):
+                encontrados.update({p: nombre for p in pendientes})
+                encontrados[k] = nombre
+                pendientes = []
+            elif generico(k) and encontrados:
+                pendientes.append(k)
+            else:
+                break
+        return encontrados
+
+    inicio = 0
+    while inicio < n and tipo(inicio) == "header":
+        inicio += 1
+    delante = corre(range(inicio, n), "leading")
+    resultado.update(delante)
+    limite = max(delante, default=inicio - 1) + 1
+    resultado.update(corre(range(n - 1, limite - 1, -1), "trailing"))
+    return resultado
 
 
 def es_bloque_de_envoltura(attrs: dict[str, str]) -> bool:
-    """Issue #301: whether an API block belongs to an instrument's *envelope*, the
-    formulaic text the Mexican publication wraps around it -- the title block
-    (`kind=header`, the `ENCABEZADO`), the steps of the promulgation decree (rule 29's
-    `promulgation` role, wherever they hang) and the decree's closing certification
-    (`PARTE FINAL DEL DECRETO PROMULGATORIO`). Read from the marker alone: no eId, no
-    `path`, no instrument.
+    """Issue #301, kept for a block read alone: whether it is a title block. Whether a
+    decree block is envelope depends on its position (`bloques_de_decreto`, review fix-1
+    of #301), so `rangos_de_envoltura` reads the whole document.
 
     >>> es_bloque_de_envoltura({"kind": "header", "label": "ENCABEZADO"})
     True
     >>> es_bloque_de_envoltura({"kind": "other", "label": "RATIFICACIÓN Y DEPÓSITO"})
-    True
-    >>> es_bloque_de_envoltura({"kind": "other", "label": "PARTE FINAL DEL DECRETO PROMULGATORIO"})
-    True
-    >>> es_bloque_de_envoltura({"kind": "other", "label": "PARTE FINAL DEL ESTATUTO"})
-    False
-    >>> es_bloque_de_envoltura({"kind": "preamble", "label": "PREÁMBULO"})
     False
     """
-    kind = attrs.get("kind")
-    if kind == "header":
-        return True
-    if kind != "other":
-        return False
-    etiqueta = attrs.get("label", "")
-    return (
-        rol_de_etiqueta(etiqueta) == "promulgation"
-        or pliega_etiqueta(etiqueta) == ETIQUETA_PARTE_FINAL_DEL_DECRETO
-    )
+    return attrs.get("kind") == "header"
 
 
 def rangos_de_envoltura(texto: str) -> list[tuple[int, int]]:
     """The character ranges of `texto` that are envelope blocks, as `(start, end)`.
 
-    A block runs from where the text before its marker ends (the blank lines between
-    two blocks belong to the block that follows, the way `validate` reads them) to the
-    next block's start. A document with no markers has none.
+    The envelope (issue #301, by position since review fix-1) is the title block, the
+    decree's leading run and its trailing run (`bloques_de_decreto`), read from the
+    markers alone: no eId, no `path`, no instrument. A block runs from where the text
+    before its marker ends (the blank lines between two blocks belong to the block that
+    follows, the way `validate` reads them) to the next block's start. A document with no
+    markers has none.
     """
     encontradas = list(MARCADORES_EN_TEXTO.finditer(texto))
     inicios = [len(texto[: m.start()].rstrip()) if m.start() else 0 for m in encontradas]
     fines = [*inicios[1:], len(texto) + 1]
+    marcas = [lee_marcador(m.group(0)) or {} for m in encontradas]
+    decreto = bloques_de_decreto(marcas)
     return [
         (inicio, fin)
-        for m, inicio, fin in zip(encontradas, inicios, fines)
-        if es_bloque_de_envoltura(lee_marcador(m.group(0)) or {})
+        for k, (inicio, fin) in enumerate(zip(inicios, fines))
+        if k in decreto or es_bloque_de_envoltura(marcas[k])
     ]
-

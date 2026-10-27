@@ -37,10 +37,10 @@ def _treaty():
     )
 
 
-def test_predicate_reads_the_marker_and_the_rule_29_role():
+def test_a_title_block_is_envelope_by_its_marker_and_a_decree_step_by_position():
+    # review fix-1 of #301: a decree block is envelope by where it stands
+    # (`bloques_de_decreto`, see `test_decree_position.py`), not by its label alone
     assert es_bloque_de_envoltura({"kind": "header", "label": "ENCABEZADO"})
-    assert es_bloque_de_envoltura({"kind": "other", "label": "APROBACIÓN Y RESERVA"})
-    assert es_bloque_de_envoltura({"kind": "other", "label": "Parte final del decreto promulgatorio"})
     assert not es_bloque_de_envoltura({"kind": "other", "label": "PARTE FINAL DE LAS ACTAS"})
     assert not es_bloque_de_envoltura({"kind": "preamble", "label": "PREÁMBULO"})
     assert not es_bloque_de_envoltura({"kind": "article", "label": "ARTÍCULO 1"})
