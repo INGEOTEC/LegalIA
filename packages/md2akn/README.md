@@ -493,6 +493,13 @@ every machine has — rather than over a handful of fixtures; see its own module
   the outline markers alone, so it is false everywhere in a document with none, and it
   changes no other field (`text`, `text_sha1`, eIds). Nothing is dropped from `text_units`:
   the consumers (the Atlas matrix) decide that an envelope is neither a source nor a candidate.
+  **Review fix-1 of #301 (still 0.5.1; rules 42 and 43):** on a snapshot with outline markers
+  `preamble` is exactly the title block and `conclusions` never crosses an API block (both used to
+  be built from text heuristics, and `validate`'s invariant I1 exempted them); and the envelope is
+  read by *position* (`outline.bloques_de_decreto`): the decree is a run of blocks after the title
+  block or at the end of the document, so a decree-step label inside the instrument's own text (a
+  treaty's testimonium `FIRMA`) is not envelope and a decree's opening the label table did not know
+  (`APROBACIÓN DE INSTRUMENTOS`) is. A document without markers is read as before.
 
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an

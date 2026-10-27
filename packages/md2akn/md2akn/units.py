@@ -1090,7 +1090,27 @@ def text_units(
        with the same number, is a running head and not an article (the Radio
        Regulations a treaty reprints); and an article number may end with a capital
        letter that closes the line (`Artículo 11 A`, issue #300).
-    Rules 25 to 41 apply to a document with outline markers; one without
+    42. On a snapshot with outline markers `preamble` is exactly the title block
+       (`kind=header`) and `conclusions` never crosses an API block (review fix-1
+       of #301, found after the fact: both used to be built from text heuristics
+       that ignored the blocks, and the validator exempted them). A recitals or
+       preamble block that follows the title block (`CONSIDERANDO`, a treaty's own
+       `PREÁMBULO`) is a labelled container of its own, an index the SCJN labels is
+       an API block whose marker ends the block before it, and a dated closing line
+       (`Lima, a los ... Rúbricas.`) followed by another API block leaves no
+       `conclusions` node: that block and the ones after it keep their own nodes by
+       their own role.
+    43. Whether a promulgation-decree block is the *envelope* (`TextUnit.envelope`) is
+       read from its position (`md2akn.outline.bloques_de_decreto`): a run of decree
+       blocks right after the title block, or at the end of the document, made of blocks
+       labelled as a step of the decree (`es_etiqueta_de_decreto`) and of the blocks it
+       interleaves between two steps (`CANJE DE NOTAS`, `NOTIFICACIÓN`, its own
+       `TRANSITORIO`, a bare `CONTENIDO` after a step). A decree-step label inside the
+       instrument's own text (a treaty's testimonium `FIRMA`) is not envelope and is
+       not part of the `DECRETO PROMULGATORIO` group; a `PARTE FINAL DEL DECRETO
+       PROMULGATORIO` is envelope wherever it stands. Read from markers and positions,
+       never from an instrument or an eId.
+    Rules 25 to 43 apply to a document with outline markers; one without
     them is read, and its eIds written, as before.
 
     >>> import md2akn
