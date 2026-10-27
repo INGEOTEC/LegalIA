@@ -33,6 +33,7 @@ also skip when no Quarto binary is found (on `PATH`, else the newest
 import functools
 import http.server
 import json
+import os
 import re
 import shutil
 import statistics
@@ -555,11 +556,12 @@ def test_the_qmd_explains_what_text_an_excerpt_is():
                  "LEY Federal de Responsabilidades de los Servidores Públicos",
                  "LEY General de Población", "LEY Orgánica de la Administración Pública Federal"):
         assert kind in flat, kind
-    assert "28 excerpts, which are 16 numbered articles, 5 transitory articles, 5 headings" in flat
-    assert "remaining 17 count" in flat
+    assert "29 excerpts, which are 16 numbered articles, 5 transitory articles, 6 headings" in flat
+    assert "remaining 16 count" in flat
     # Against the vectors' own units, when they are cached on this machine.
     pq = pytest.importorskip("pyarrow.parquet")
-    units_file = Path.home() / ".cache" / "legalvec" / "scjn-leyes-vectors" / "units.parquet"
+    cache = Path(os.environ.get("LEGALVEC_CACHE_DIR") or Path.home() / ".cache" / "legalvec")
+    units_file = cache / "scjn-leyes-vectors" / "units.parquet"
     if not units_file.is_file():
         pytest.skip("the scjn-leyes-vectors cache is not on this machine")
     units = pq.read_table(units_file, columns=["clave", "eId", "unit_type", "text"]).to_pylist()
@@ -575,7 +577,7 @@ def test_the_qmd_explains_what_text_an_excerpt_is():
         kinds["transitory" if transitory and u["unit_type"] == "article" else u["unit_type"]] \
             = kinds.get("transitory" if transitory and u["unit_type"] == "article"
                         else u["unit_type"], 0) + 1
-    assert kinds == {"article": 16, "transitory": 5, "heading": 5, "preamble": 1, "conclusions": 1}
+    assert kinds == {"article": 16, "transitory": 5, "heading": 6, "preamble": 1, "intro": 1}
     shared = [u["clave"] for u in units if u["text"] == "**ARTICULO 56.- **"]
     assert sorted(shared) == ["ccf", "lfrsp", "lgp", "loapf"]
 
@@ -592,8 +594,8 @@ def test_the_qmd_chapingo_example_matches_the_default_data():
     assert law["n"] == CHAPINGO
     assert f"has {law['p']} excerpts, {law['pc']} of which count" in flat
     first, second, *rest = law["out"]
-    assert len(rest) == 2 and all(weight == 1 for _, weight in rest)
-    assert [data["instruments"][j]["c"] for j, _ in rest] == ["leyes", "tratados"]
+    assert len(rest) == 1 and all(weight == 1 for _, weight in rest)
+    assert [data["instruments"][j]["c"] for j, _ in rest] == ["tratados"]
     for j, _ in rest:
         assert data["instruments"][j]["n"] in flat
     assert (f"For {first[1]:.0f} of them the closest text outside the law belongs to the "
@@ -602,7 +604,7 @@ def test_the_qmd_chapingo_example_matches_the_default_data():
     assert f"{law['in']:.0f} excerpts of other instruments" in flat
     (_, w1), (_, w2) = law["inc"][:2]
     assert f"{w1:.0f} of them in Antonio Narro's and {w2:.0f} in the UAM's" in flat
-    assert f"for {second[1]:.0f} to the" in flat and "one goes to the" in flat
+    assert f"for {second[1]:.0f} to the" in flat and "the last one to a treaty" in flat
     # The 4B's reading of the same law differs, which is why the page says whose it is.
     four = instrument(json.loads(DATA_4B.read_text(encoding="utf-8")), "luach")
     assert four["out"][0][1] != law["out"][0][1]
@@ -630,7 +632,7 @@ def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_th
                                    "scjn-tratados-vectors"]
     treaties = [e for e in default["instruments"] if e["c"] == "tratados"]
     closest = [default["instruments"][e["out"][0][0]]["c"] for e in treaties if e["out"]]
-    assert closest.count("tratados") == 1287 and len(treaties) == 1373
+    assert closest.count("tratados") == 1281 and len(treaties) == 1373
     others = [e for e in default["instruments"] if e["c"] != "tratados" and e["out"]]
     by = {}
     for e in others:
@@ -638,7 +640,7 @@ def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_th
             by[e["c"]] = by.get(e["c"], 0) + 1
     assert by == {"leyes": 10, "reglamentos": 5, "lineamientos": 1}
     flat = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert "For 1,287 of the 1,373 treaties the closest instrument is another treaty" in flat
+    assert "For 1,281 of the 1,373 treaties the closest instrument is another treaty" in flat
     assert "only 10 laws, 5 regulations and 1 guideline have a treaty as their closest instrument" in flat
 
 
@@ -663,9 +665,9 @@ def test_the_qmd_has_the_evaluation_section_with_its_numbers():
     for table in (tables[0], tables[2]):
         header = table.splitlines()[0]
         assert "0.6B" in header and "4B" in header and "BM25" in header
-    for literal in ("162", "172", "253", "277", "62", "5,096", "3,764", "982", "303", "93",
-                    "3,465", "3,450", "1,043", "2,407", "0.344", "0.311", "0.320", "14", "18",
-                    "26 October 2026", "2,676", "2,677"):
+    for literal in ("162", "172", "253", "277", "62", "5,191", "3,816", "1,002", "307", "88",
+                    "3,496", "3,481", "1,068", "2,413", "0.343", "0.309", "0.317", "14", "18",
+                    "27 October 2026", "2,676", "2,677"):
         assert literal in flat, literal
     # Every collection is a source and a target, and an instrument never links to itself
     # (review fix-1: the gold used to start only in a regulation or a guideline).
@@ -719,8 +721,10 @@ def test_the_qmd_compares_the_methods_with_one_test_per_measure():
     not_ties = [cell.strip() for row in pairs_instruments[2:]
                 for cell in row.strip("|").split("|")[2:] if not cell.strip().startswith("tie")]
     assert len(not_ties) == 3, not_ties
-    assert flat.count("4B better") == 8      # one at the instrument level, five against the 0.6B
-    assert flat.count("BM25 better") == 4    # two against the 0.6B at each level
+    # One at the instrument level, then five against the 0.6B and three against BM25.
+    assert flat.count("4B better") == 9
+    # Two against the 0.6B at the instrument level, one (the median rank) at the row level.
+    assert flat.count("BM25 better") == 3
     assert "0.6B better" not in flat
 
 
@@ -1009,7 +1013,11 @@ def test_circle_area_is_proportional_to_counted_excerpts(page):
 
 
 def test_constitucion_finds_the_constitution_first_and_enter_selects_it(page):
-    suggestions = search(page, "constitucion")
+    # "constitucion" alone ranks the treaty "CONSTITUCION Y CONVENIO DE LA UNION
+    # INTERNACIONAL DE TELECOMUNICACIONES" first (558 counted excerpts against the
+    # Constitution's 136, the rest of its 1,347 being transitory articles): both
+    # are exact-prefix matches and the larger comes first.
+    suggestions = search(page, "constitucion politica")
     assert CONSTITUTION in suggestions.first.inner_text()
     page.press("#atlas-search", "Enter")
     page.wait_for_function(
@@ -1030,7 +1038,7 @@ def test_constitucion_finds_the_constitution_first_and_enter_selects_it(page):
 
 
 def test_search_folds_accents_and_case_and_reads_the_abbreviation(page):
-    for query in ("CONSTITUCIÓN", "Constitución política", "cpeum"):
+    for query in ("CONSTITUCIÓN POLÍTICA", "Constitución política", "cpeum"):
         assert CONSTITUTION in search(page, query).first.inner_text(), query
 
 

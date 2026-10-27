@@ -188,10 +188,11 @@ Públicos*, of the *LEY General de Población* and of the *LEY Orgánica de la
 Administración Pública Federal*, so that the match says nothing about any one of
 them.
 
-The Chapingo law accordingly has 28 excerpts, which are 16 numbered articles, 5
-transitory articles, 5 headings (its four chapters and the heading of the
-transitory articles), the title block and the closing text. The 5 headings, the
-5 transitory articles and the title block are not compared, and the remaining 17
+The Chapingo law accordingly has 29 excerpts, which are 16 numbered articles, 5
+transitory articles, 6 headings (its four chapters, the heading of the
+transitory articles and the dated heading of the decree), the title block and
+the closing text of the decree. The 6 headings, the 5 transitory articles, the
+title block and the closing text are not compared, and the remaining 16
 count, as the example below shows.
 
 ## An example
@@ -199,15 +200,14 @@ count, as the example below shows.
 The two examples below describe the map as it opens, which is drawn from the
 0.6B model, so that a reader who has switched to the 4B or to BM25 may see
 slightly different numbers in the panel. The *LEY que crea la Universidad
-Autónoma Chapingo* has 28 excerpts, 17 of which count, the other eleven being
-headings, transitory articles and the title block, which are not compared. For 9 of them the
+Autónoma Chapingo* has 29 excerpts, 16 of which count, the other thirteen being
+headings, transitory articles, the title block and the closing text, which are not compared. For 9 of them the
 closest text outside the law belongs to the *LEY Orgánica de la Universidad
 Autónoma Metropolitana*, for 6 to the *LEY Orgánica de la Universidad Autónoma
-Agraria Antonio Narro*, one goes to the *LEY Orgánica del Instituto Politécnico
-Nacional*, and the last one to a treaty, the *CONVENIO INTERNACIONAL PARA EL
+Agraria Antonio Narro*, and the last one to a treaty, the *CONVENIO INTERNACIONAL PARA EL
 ESTABLECIMIENTO DE LA UNIVERSIDAD PARA LA PAZ Y CARTA DE LA UNIVERSIDAD PARA LA PAZ
-(MULTILATERAL, 1980)*. On the map the law sits among the organic laws of Antonio
-Narro, the UNAM, the UAM and the IPN. The relation is directed, since 19
+(MULTILATERAL, 1980)*. On the map the law sits among the organic laws of the UAM, Antonio
+Narro and the UNAM, beside that treaty. The relation is directed, since 18
 excerpts of other instruments have their closest text in Chapingo's law, 7 of
 them in Antonio Narro's and 7 in the UAM's.
 
@@ -218,14 +218,16 @@ behind that weight lists 14 excerpts, every one a whole 1, among them articles
 41, 51 to 56, 58 to 60 and 63 on elections and Congress, and articles 115 and 116 on the states. The closest of them,
 article 96, is matched to article 494 of that law at a similarity of 0.86, and
 the weakest, article 58, to its article 10 at 0.67. The next closest
-instruments are the *LEY Orgánica del Poder Judicial de la Federación* at 9.0
-and the *LEY Orgánica del Congreso General de los Estados Unidos Mexicanos* at
+instruments are the *LEY Orgánica del Congreso General de los Estados Unidos
+Mexicanos* and the *LEY Orgánica del Poder Judicial de la Federación*, both at
 8.0, and a treaty, the *Convención Americana sobre Derechos Humanos*, is among
 the five closest at 5.0.
 
-Treaties mostly resemble one another. For 1,287 of the 1,373 treaties the closest
+Treaties mostly resemble one another. For 1,281 of the 1,373 treaties the closest
 instrument is another treaty, and only 10 laws, 5 regulations and 1 guideline have a
-treaty as their closest instrument.
+treaty as their closest instrument. Three treaties have no closest instrument at all,
+since each of them is word for word the text of the other two, and no excerpt of theirs
+counts.
 
 ## The neighbourhood size
 
@@ -330,18 +332,18 @@ The third signal, C, works on single excerpts instead of whole instruments. An
 excerpt that cites "artículo 38 Bis de la Ley General del Equilibrio Ecológico
 y la Protección al Ambiente" names the instrument it is about, and the same
 three data sets can be asked where that instrument ranks for that one excerpt.
-The corpus holds 5,096 such citations, in 3,764 distinct excerpts of 982
-instruments that cite 303 different instruments, once the 93 citations of an
-instrument to itself have been set aside. Of those excerpts, 3,465 cite
+The corpus holds 5,191 such citations, in 3,816 distinct excerpts of 1,002
+instruments that cite 307 different instruments, once the 88 citations of an
+instrument to itself have been set aside. Of those excerpts, 3,496 cite
 exactly one instrument. An excerpt that cites two or more instruments is
 counted but not scored, because it has no single right answer, and 15 more are
 removed because at least one of the methods does not count them, because
 their text is word for word the text of several instruments.
-The 3,450 excerpts that remain are scored, and 1,043 of them cite the
+The 3,481 excerpts that remain are scored, and 1,068 of them cite the
 Constitution, which every kind of instrument cites. Laws, regulations,
 guidelines and treaties all appear among the instruments that cite, and a
-treaty cites a law more often than another treaty, with 88 pairs of an
-excerpt and a cited law against 57 of a cited treaty.
+treaty cites a law more often than another treaty, with 96 pairs of an
+excerpt and a cited law against 59 of a cited treaty.
 
 ### What is measured
 
@@ -387,7 +389,7 @@ tied.
 
 ### The instruments
 
-The measures below were taken on 26 October 2026, over the 162 instruments of
+The measures below were taken on 27 October 2026, over the 162 instruments of
 signal A alone and over the 253 of signals A and B together.
 
 | Gold links | Measure | 0.6B | 4B | BM25 |
@@ -395,9 +397,9 @@ signal A alone and over the 253 of signals A and B together.
 | A (162) | closest is a gold instrument | 99 | 101 | 102 |
 | A (162) | a gold instrument among the five closest | 129 | 134 | 136 |
 | A (162) | mean reciprocal rank | 0.696 | 0.717 | 0.722 |
-| A and B (253) | closest is a gold instrument | 125 | 129 | 130 |
-| A and B (253) | a gold instrument among the five closest | 193 | 202 | 198 |
-| A and B (253) | mean reciprocal rank | 0.615 | 0.630 | 0.631 |
+| A and B (253) | closest is a gold instrument | 125 | 129 | 129 |
+| A and B (253) | a gold instrument among the five closest | 193 | 202 | 196 |
+| A and B (253) | mean reciprocal rank | 0.614 | 0.630 | 0.628 |
 
 The methods are then compared two at a time. Each difference is the first method
 minus the second, and each cell gives the verdict and, in parentheses, the
@@ -409,9 +411,9 @@ of the bootstrap for the others.
 | A (162) | 0.6B − 4B | tie (p = 0.73) | tie (p = 0.125) | tie ([−0.045, +0.000]) |
 | A (162) | 0.6B − BM25 | tie (p = 0.55) | BM25 better (p = 0.016) | BM25 better ([−0.052, −0.003]) |
 | A (162) | 4B − BM25 | tie (p = 1.00) | tie (p = 0.69) | tie ([−0.032, +0.020]) |
-| A and B (253) | 0.6B − 4B | tie (p = 0.45) | 4B better (p = 0.035) | tie ([−0.035, +0.003]) |
-| A and B (253) | 0.6B − BM25 | tie (p = 0.40) | tie (p = 0.38) | tie ([−0.040, +0.007]) |
-| A and B (253) | 4B − BM25 | tie (p = 1.00) | tie (p = 0.50) | tie ([−0.023, +0.022]) |
+| A and B (253) | 0.6B − 4B | tie (p = 0.45) | 4B better (p = 0.035) | tie ([−0.036, +0.003]) |
+| A and B (253) | 0.6B − BM25 | tie (p = 0.52) | tie (p = 0.68) | tie ([−0.038, +0.009]) |
+| A and B (253) | 4B − BM25 | tie (p = 1.00) | tie (p = 0.29) | tie ([−0.020, +0.025]) |
 
 On what the map shows, which is the closest instrument and the five closest, the
 three methods are nearly indistinguishable. Of the eighteen comparisons, fifteen
@@ -429,19 +431,19 @@ from one method to the next.
 
 ### The excerpts
 
-The same three data sets were then scored one excerpt at a time over the 3,450
-excerpts that cite exactly one instrument and are scored, and again over the 2,407 excerpts
+The same three data sets were then scored one excerpt at a time over the 3,481
+excerpts that cite exactly one instrument and are scored, and again over the 2,413 excerpts
 that remain once those citing the Constitution are set aside.
 
 | Measure | 0.6B | 4B | BM25 |
 |---|---|---|---|
-| cited instrument first | 0.117 | 0.130 | 0.119 |
-| among the five closest | 0.311 | 0.344 | 0.320 |
-| among the ten closest | 0.417 | 0.450 | 0.437 |
-| mean reciprocal rank | 0.217 | 0.238 | 0.223 |
+| cited instrument first | 0.114 | 0.128 | 0.120 |
+| among the five closest | 0.309 | 0.343 | 0.317 |
+| among the ten closest | 0.415 | 0.449 | 0.430 |
+| mean reciprocal rank | 0.214 | 0.236 | 0.222 |
 | median rank | 18 | 14 | 15 |
-| among the five closest, without the Constitution | 0.393 | 0.422 | 0.419 |
-| mean reciprocal rank, without the Constitution | 0.275 | 0.291 | 0.289 |
+| among the five closest, without the Constitution | 0.392 | 0.422 | 0.417 |
+| mean reciprocal rank, without the Constitution | 0.273 | 0.290 | 0.290 |
 | median rank, without the Constitution | 9 | 8 | 8 |
 
 The pairs are compared in the same way, the median rank being given with the
@@ -449,27 +451,27 @@ interval of its difference in ranks.
 
 | Pair | cited instrument first | among the five closest | among the ten closest | mean reciprocal rank | median rank |
 |---|---|---|---|---|---|
-| 0.6B − 4B | 4B better (p = 0.004) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([−0.027, −0.014]) | 4B better ([+2.5, +5]) |
-| 0.6B − BM25 | tie (p = 0.75) | tie (p = 0.25) | BM25 better (p = 0.018) | tie ([−0.015, +0.004]) | BM25 better ([+1, +5]) |
-| 4B − BM25 | tie (p = 0.054) | 4B better (p = 0.001) | tie (p = 0.099) | 4B better ([+0.006, +0.024]) | tie ([−2, +0]) |
+| 0.6B − 4B | 4B better (p = 0.002) | 4B better (p < 0.001) | 4B better (p < 0.001) | 4B better ([−0.028, −0.016]) | 4B better ([+3, +6]) |
+| 0.6B − BM25 | tie (p = 0.32) | tie (p = 0.28) | tie (p = 0.055) | tie ([−0.017, +0.001]) | BM25 better ([+1, +5]) |
+| 4B − BM25 | tie (p = 0.15) | 4B better (p < 0.001) | 4B better (p = 0.020) | 4B better ([+0.005, +0.023]) | tie ([−2, +0]) |
 
 At this level the methods are no longer tied. The 4B is better than the 0.6B on
-all five measures, and better than BM25 on two of them, the share of excerpts whose
-cited instrument is among the five closest and the mean reciprocal rank, while the
-two cannot be told apart on the other three. BM25 is better than the 0.6B on two,
-the share among the ten closest and the median rank, 15 against 18, and the two
-are tied on the other three. The differences are
+all five measures, and better than BM25 on three of them, the shares of excerpts whose
+cited instrument is among the five and among the ten closest and the mean reciprocal
+rank, while the two cannot be told apart on the other two. BM25 is better than the
+0.6B on one, the median rank, 15 against 18, and the two are tied on the other
+four. The differences are
 small, two to three points of recall, but they are not noise. The absolute level
 is low because an excerpt that cites an article of a law is usually about
 something other than the rest of that law, and the Constitution, which is cited
-by 1,043 of the excerpts, drags it down further. The order of the three is the
+by 1,068 of the excerpts, drags it down further. The order of the three is the
 same without the Constitution.
 
 The level depends on who cites. The cited instrument is among the five closest
-for 35 %, 40 % and 37 % of the 1,490 excerpts of laws under the 0.6B, the 4B and
-BM25, for 29 %, 31 % and 28 % of the 1,687 excerpts of regulations, and for 29 %,
-36 % and 31 % of the 140 excerpts of guidelines. For the 133 excerpts of treaties
-it is 20 %, 22 % and 20 %, with a median rank of 90, 57 and 87, the lowest level
+for 35 %, 40 % and 37 % of the 1,485 excerpts of laws under the 0.6B, the 4B and
+BM25, for 29 %, 31 % and 28 % of the 1,689 excerpts of regulations, and for 26 %,
+32 % and 27 % of the 164 excerpts of guidelines. For the 143 excerpts of treaties
+it is 20 %, 22 % and 18 %, with a median rank of 137, 82 and 92, the lowest level
 of the four collections. A
 treaty that cites an article of a Mexican law mentions it in passing, inside an
 agreement about something else, so that the law's own text is probably far from
@@ -485,7 +487,7 @@ and this is the one measured reason for switching to it. BM25 is not beaten
 everywhere. Among the ten most cited instruments it is the best on the *Código
 Fiscal de la Federación*, where the cited instrument is among the five closest
 for 79.7 % of the 172 excerpts against 44.8 % for the 4B, and the lowest of the
-three on the Constitution, with 9.1 % of 1,043 excerpts against 16.4 % for the
+three on the Constitution, with 9.0 % of 1,068 excerpts against 16.3 % for the
 4B. These checks look at the instrument and not at the article, so they say
 nothing about whether the right article of that instrument ranks first.
 
@@ -502,14 +504,14 @@ and the treaties
 They are divided into excerpts and embedded with `Qwen/Qwen3-Embedding-0.6B`,
 the default of the map, and with `Qwen/Qwen3-Embedding-4B`, to which the
 similarity control switches, as it does to BM25, a lexical baseline computed
-from the same excerpts. Of the 226,010 excerpts, 33,904 are headings, 22,536
-are transitory articles and 9,165 belong to the envelope of an instrument,
-none of which is compared, and 2,044 are
+from the same excerpts. Of the 226,425 excerpts, 33,948 are headings, 22,609
+are transitory articles and 10,132 belong to the envelope of an instrument,
+none of which is compared, and 2,047 are
 word-for-word texts shared by several instruments, which are matched but not
-counted, so that 158,361 count. The map
+counted, so that 157,689 count. The map
 is a UMAP projection with the cosine metric of each instrument's matches. The
 Diario Oficial de la Federación remains the official source of legal text. Map
-data generated on <span data-atlas-generated>26 October 2026</span>.
+data generated on <span data-atlas-generated>27 October 2026</span>.
 
 *Read more.* The division of instruments into excerpts is described in
 [`md2akn`](https://legalia.readthedocs.io/en/latest/md2akn_api.html), the way
