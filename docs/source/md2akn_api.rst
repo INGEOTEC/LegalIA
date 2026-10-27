@@ -727,11 +727,15 @@ True
 
 The *envelope* of an instrument (issue #301) is the wrapper of its publication: the
 title block the SCJN prints above the text and, in a treaty, the promulgation decree and
-its closing certification (:py:func:`md2akn.outline.es_bloque_de_envoltura`). It says who
-published the text and when, not what the text says, so a unit inside it carries
-``TextUnit.envelope == True`` and a consumer that compares the texts of different
-instruments leaves it out. Nothing is dropped from ``text_units``, and a document with no
-outline marker has no envelope.
+its closing certification. It says who published the text and when, not what the text
+says, so a unit inside it carries ``TextUnit.envelope == True`` and a consumer that compares
+the texts of different instruments leaves it out. Nothing is dropped from ``text_units``, and
+a document with no outline marker has no envelope. Whether a decree block is envelope is
+read from its *position* (:py:func:`md2akn.outline.bloques_de_decreto`, review fix-1 of
+#301): the decree is a run of blocks right after the title block or at the end of the
+document, so a decree-step label inside the instrument's own text (a treaty's testimonium,
+``FIRMA``) is not envelope, and the opening of a decree the label table does not know
+(``APROBACIÓN DE INSTRUMENTOS``) is.
 
 >>> wrapped = (
 ...     '<!-- scjn:block orden=1 numero=0 kind=header -->\n\n**LEY DE PRUEBA**\n\n'
@@ -741,6 +745,16 @@ outline marker has no envelope.
 [('preamble', True), ('article', False)]
 >>> [(u.unit_type, u.envelope) for u in md2akn.text_units("**Artículo 1.-** Uno.\n")]
 [('article', False)]
+>>> treaty = (
+...     '<!-- scjn:block orden=1 numero=0 kind=header label="ENCABEZADO" -->\n\n**TRATADO**\n\n'
+...     '<!-- scjn:block orden=2 numero=0 kind=other label="APROBACIÓN DE INSTRUMENTOS" -->\n\n'
+...     'Que se aprobaron los instrumentos siguientes.\n\n'
+...     '<!-- scjn:block orden=3 numero=1 kind=article label="ARTÍCULO 1" -->\n\n**Artículo 1.-** Uno.\n\n'
+...     '<!-- scjn:block orden=4 numero=0 kind=other label="FIRMA" -->\n\nEn fe de lo cual, firman.\n\n'
+...     '<!-- scjn:block orden=5 numero=0 kind=other label="PARTE FINAL DEL ACTA" -->\n\nHecho en la sede.\n'
+... )
+>>> [(u.unit_type, u.envelope) for u in md2akn.text_units(treaty)]
+[('preamble', True), ('intro', True), ('article', False), ('intro', False), ('intro', False)]
 
 :py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
 where ``coverage()`` says nothing was lost, this says the units are usable.
