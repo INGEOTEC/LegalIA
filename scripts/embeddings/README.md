@@ -4977,7 +4977,7 @@ excerpts, 16 counted, three targets and 18 incoming, the Constitution's next clo
 1,373 treaties have another treaty as their closest instrument (three have none).
 
 **The release sweep** (`test_units_release_sweep.py`, over the four cached corpora refreshed from `scripts/scjn/`, I1 with the
-`preamble`/`conclusions` check in force): SWEEP_RESULT
+`preamble`/`conclusions` check in force): 19 tests in 69 minutes on the final parser: 18 passed at once and `TestInvariantesDelBloque.test_tratados` failed only on I4's "an entry of `genuine_gaps.json` that is no longer a gap" (`tratados/23803` `art_19`, above); with that entry removed it passes (225 s). No I1 (every node inside its API block, `preamble` and `conclusions` included), I2 (`loose`), I3 (`duplicate_number`) or new I4 failure in any of the four corpora.
 
 **What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four corpora
 (`scripts/scjn/<c>-release/PUBLICAR.md`, from issue #300), the four vectors releases

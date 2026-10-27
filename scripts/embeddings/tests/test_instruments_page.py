@@ -1271,3 +1271,28 @@ def test_a_real_treaty_with_promulgation_decree_blocks_shows_no_marker_line(brow
     assert "<!-- scjn:block" in markdown                            # the file keeps its markers
     assert page.errors == []
     page.close()
+
+
+def treaty_11374_is_read_by_position():
+    path = FILES / "tratados" / "11374.json"
+    return path.exists() and "hc_DECRETO_PROMULGATORIO__hc_APROBACI" in path.read_text(encoding="utf-8")
+
+
+@pytest.mark.skipif(not treaty_11374_is_read_by_position(),
+                    reason="website/pages/instruments/files/ has not been rebuilt for review fix-1 of #301")
+def test_the_real_treaty_11374_shows_the_courts_labels_once(browser, real_server):
+    """Review fix-1 of #301: the labels of 11374's blocks -- the decree's opening, its own
+    preamble, the testimonium `FIRMA`, the closing clause and the provisional arrangement --
+    are shown in the document, each once, and the group of decree blocks gets none."""
+    page = open_page(browser, f"{real_server}?c=tratados&k=11374")
+    page.wait_for_selector('.instruments-document[data-rendered="true"]', timeout=120000)
+    shown = [label.inner_text().strip()
+             for label in page.locator(".instruments-document .instruments-label").all()]
+    for expected in ("APROBACIÓN DE INSTRUMENTOS", "PREÁMBULO", "FIRMA", "PARTE FINAL DEL ACTA",
+                     "ARREGLO PROVISIONAL"):
+        assert expected in shown, expected
+    assert "DECRETO PROMULGATORIO" not in shown
+    assert len([t for t in shown if t == "FIRMA"]) == 1
+    assert_reads_as_a_document(page)
+    assert page.errors == []
+    page.close()
