@@ -89,19 +89,23 @@ def pliega_etiqueta(etiqueta: str) -> str:
 #:   holds articles, now every one, so sibling resolutions are of one type).
 #: - everything else has no role: a generic labelled container.
 #: Review fix-1 of #301 widened this only where the measurement showed a decree step
-#: missed: `DECLARACIÓN`/`DECLARACIONES` as the second step of `APROBACIÓN Y DECLARACIÓN`
-#: (and the labels listed in the `promulgation` pattern below). `APROBACION` followed by
+#: missed: `DECLARACIÓN`/`DECLARACIONES` as a later step of a combined label (`APROBACIÓN Y
+#: DECLARACIÓN`) and the labels listed in the `promulgation` pattern below. `APROBACION` followed by
 #: anything else is *not* a step (`SECCIÓN 5 APROBACIÓN`, an annex title naming an
 #: approval): only the whole labels match. The blocks of the decree that have no such
 #: label (`CANJE DE NOTAS`) are read by position, not by label (`bloques_de_decreto`).
 _PASO = (
     r"(?:FIRMA|APROBACION|RESERVAS?|RATIFICACION|ACEPTACION|ADHESION|ADOPCION|DEPOSITO|"
-    r"NOTIFICACIONES?|PROMULGACION|CERTIFICACION|DECLARACION(?:ES)?)"
+    r"NOTIFICACIONES?|PROMULGACION|CERTIFICACION)"
 )
+#: A step that may only *follow* another one in a combined label (`APROBACIÓN Y
+#: DECLARACIÓN`, `RATIFICACIÓN, DEPÓSITO Y DECLARACIÓN`): a block labelled just `DECLARACIÓN`
+#: is a treaty's own annex far more often than a decree's step.
+_PASO_SIGUIENTE = rf"(?:{_PASO}|DECLARACION(?:ES)?)"
 ROLES_DE_ETIQUETA: tuple[tuple[str, "re.Pattern[str]"], ...] = (
     ("conclusions", re.compile(r"PARTE FINAL(?: .*)?")),
     ("promulgation", re.compile(
-        rf"{_PASO}(?:(?:,| Y) {_PASO})*|DECLARACIONES?(?: .*)?|"
+        rf"{_PASO}(?:(?:,| Y) {_PASO_SIGUIENTE})*|DECLARACIONES?(?: .*)?|"
         r"INSTRUMENTO DE (?:RATIFICACION|ACEPTACION|ADHESION|APROBACION)|"
         r"APROBACION (?:DEL PROYECTO|DE INSTRUMENTOS|DE LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS)|"
         r"APROBACION, RATIFICACION Y CANJE DE RATIFICACIONES"
@@ -258,7 +262,7 @@ def es_etiqueta_de_decreto(etiqueta: str) -> bool:
 ETAPAS_DEL_DECRETO = re.compile(
     r"(?:CANJE|CAMBIO|INTERCAMBIO|NOTIFICACION|SUSCRIPCION|FORMALIZACION|CELEBRACION|"
     r"RATIFICACION(?:ES)?|RATIFIACION|APROBACION|ENTRADA EN VIGOR|CONCLUSION|ADOPCION|ACEPTACION|ADHESION|DEPOSITO|"
-    r"CONFIRMACION|DECLARACION|CERTIFI|PROMULGACION|PUBLICACION|"
+    r"CONFIRMACION|CERTIFI|PROMULGACION|PUBLICACION|"
     r"NOTAS? CAMBIADAS|INSTRUMENTOS? ADOPTADOS?|TRANSITORIOS? DEL DECRETO)\b.*"
 )
 
