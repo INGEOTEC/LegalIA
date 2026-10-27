@@ -34,6 +34,10 @@ the `id_ordenamiento` of a reglamento, a lineamiento or a treaty, and it is what
 every published file, so a reader never branches. `slug` and `codNota` are
 null for the id-keyed collections, which have no DOF link at all (#220).
 
+It also carries `envelope` (issue #301, `md2akn`'s `TextUnit.envelope`): true for a unit of the instrument's
+envelope, the title block and a treaty's promulgation decree. It is vectorised like any other unit, and the Atlas'
+matrix, nearest texts and the evaluations leave it out (see "Measured, the envelope left out" below).
+
 ## The work directory
 
 Everything lives under one directory per run, on `/home` (`--work-dir`, or
@@ -4693,3 +4697,171 @@ changed.** The page's literals follow and say 21 October 2026.
 (`emb-run-<c>-055/publish/PUBLICAR.md`, **regenerated**: leyes, reglamentos, lineamientos, tratados), the three `atlas-pairs`
 sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and
 `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).
+
+
+## Measured, the envelope left out and the complete corpora, 2026-10-26 (issue #301)
+
+Issue #300 restored the blocks the SCJN API had omitted and re-crawled the four corpora, so every vector set,
+the Atlas and the Instruments page were stale. This issue rebuilds the whole chain on the complete corpora and
+adds one rule to it: **the envelope of an instrument is neither a source nor a candidate.**
+
+**The envelope.** The Atlas compared the formulaic wrapper of the Mexican publication with the text it wraps:
+the title block the SCJN prints above every instrument and, in a treaty, the promulgation decree and its
+closing certification. The same decree, word for word, wraps every treaty promulgated on the same day, and 701
+of the 7,661 envelope units of the treaties cite "artículo 89" of the Constitution (the President's power to
+promulgate), against 45 units outside the envelope. `md2akn.outline.es_bloque_de_envoltura` reads it from the
+outline markers alone: a `kind=header` block, an `other` block whose label is rule 29's `#promulgation` role, and
+the "PARTE FINAL DEL DECRETO PROMULGATORIO" certification. `TextUnit.envelope` (the last field, so a positional
+construction is unchanged), the `envelope` column of `units.parquet` and `instrument_matrix.searched_mask` carry
+it, and every consumer that builds its own frame (`prepare_bm25_input`, `cluster_instruments`,
+`export_instrument_files`, `gold_links`, which drops an envelope row from signal C) does too; a units file with
+no such column compares everything and `matrix.json` records `envelope_column: false`, while a mixture of the
+two is refused. A treaty's own preamble (`hc_PREÁMBULO`) and a law's closing text stay compared. Envelope
+units per corpus (`corpus-manifest.json`, `envelope_units`): 324 of 68,843 leyes, 1,265 of 113,643
+reglamentos, 183 of 6,253 lineamientos and 7,661 of 60,599 tratados; in the leyes they are the title block
+(318 `preamble`, 6 `intro`), in the treaties 5,608 `intro`, 1,375 `preamble`, 603 `conclusions`, 62 `table`,
+7 `article` and 6 `heading` (the reservations a promulgation decree prints, and its own transitory article).
+`md2akn` stays 0.5.1; nothing about a text or its hash changed, so no vector depends on the rule.
+
+**The vectors, `-056`.** `emb-run-<c>-056/` are copies of the `-055` directories (old `shards.json`, `publish/`
+and `runs/*/manifest.json` removed), `build_units.py --no-split-articles`, one plan per collection for both
+models (`first_shard_index` 29, 57, 12 and 45): 59, 60, 12 and 4,291 texts in 1, 1, 1 and 3 shards, 0 failed,
+`merge_shards.py` with `missing_vectors` 0, `already_embedded()` equal between the models in every collection.
+`compare_merges.py` against `-055` is **clean for all eight runs** (0 texts with another vector, 0 non-finite,
+no file gained or lost; 59, 60, 12 and 4,322 new texts and 2, 5, 0 and 123 dropped; 5, 6, 21 and 146 differing
+files per model). Distinct texts now 59,251, 103,536, 5,876 and 58,189, in 632, 2,168, 254 and 2,748 vector
+files (1, 3, 1 and 3 parts, no stale asset). `package_vectors.py` wrote `emb-run-<c>-056/publish/PUBLICAR.md` with
+both models' changed files in the `--clobber` block, the four `.github/scjn-*-vectors*.md` bodies carry the new
+counts and the `envelope` column, and `stage_vectors_cache.py` built `emb-run-vectors-056-cache/`. The release sweep
+passed (19 tests, 56 minutes).
+
+**The Atlas chain**, from that cache (the previous work directories were moved to `emb-run-atlas*-prev` and are
+deleted once this commit is final):
+
+| | before | now |
+|---|---:|---:|
+| instruments | 2,677 | 2,677 |
+| excerpts (`meta.provisions`) | 221,527 | 226,010 |
+| headings excluded | 33,500 | 33,904 |
+| transitory rows excluded | 22,436 | 22,536 |
+| envelope rows excluded | not a rule | 9,165 |
+| word-for-word shared rows not counted (0.6B and 4B / BM25) | 2,408 / 2,836 | 2,044 / 2,435 |
+| counted rows (0.6B and 4B / BM25) | 163,183 / 162,752 | 158,361 / 157,967 |
+| distinct vector rows | 202,786 | 207,096 |
+
+`meta.envelope_rows_excluded` is a new key of the three `atlas*.json` (headings are counted first, then
+transitorios, then the envelope, so a unit is counted once). The unique-instrument selection is unchanged
+(315 + 864 + 125 + 1,373). The closest instrument is unchanged for **2,302 of 2,677** under the 0.6B, 2,300
+under the 4B and 2,318 under BM25: the corpora gained text (4,483 more excerpts) and the envelope is out. `p`
+changed for 155 instruments and `pc` for 2,659 (2,636 under BM25), because nearly every instrument had a title
+block that counted. The three files list the same instruments in the same positions (`--instruments-as`). The
+three `atlas-pairs` sets have 12,720, 12,715 and 12,684 files (12,929, 12,907 and 12,936 before); this time the
+BM25 set needed no `--tolerance 2e-6`. The 4B's nearest texts: 160,405 searched unit rows, 160,203 distinct
+source texts, 801,015 rows, `agrees_with_nearest` true. The instrument files: 2,677 files, 356.0 MB (74.8 MB as the
+tarball), the re-parse equals the staged units for all 2,677, flags `loose` none, `duplicate_number` none,
+`numbering_gap` 108 in 35 instruments (the restored text; every one is in `genuine_gaps.json`, and the release
+sweep's I4 passed), `over_window` 1, `no_articles` 27 and `no_transitorios` 1,054; an envelope excerpt carries no
+nearest texts and the page does not mark it *Compared*. Timings: matrix jobs 219, 392 and 955 s (0.6B, 4B, BM25),
+nearest texts 526 s, instrument files 2,083 s, pair sets 2,278, 2,712 and 1,548 s (the three ran beside one
+another and beside the instrument files). The BM25 index was built with `bm25s` 0.3.11 (the pinned version).
+
+**The evaluations were re-run** (`gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`). The gold is
+**exactly** the earlier one (253 instruments, 277 links: A 162, B 196 links over 172 instruments;
+`links.md` byte-identical to `_gold-links.md`) because it is built from names and opening sentences. **Signal C is
+not**: 5,096 citations in 3,764 excerpts of 982 instruments, 3,450 scored and 2,407 without the Constitution
+(7,144, 5,292, 1,925, 4,383 and 2,617 before). The 1,528 excerpts that left were mostly the envelope's: a promulgation decree
+that cites the Constitution's article 89 was counted as a text that cites the Constitution (1,766 → 1,043 scored
+excerpts citing it) and as a treaty's own text (751 → 133 scored excerpts of treaties). Instrument level, A and B
+together: the closest is a gold instrument for 125, 129 and 130 of 253 (0.6B, 4B, BM25); a gold instrument is among
+the five closest for 193, 202 and 198; the mean reciprocal rank is 0.615, 0.630 and 0.631. Of the eighteen
+comparisons **fifteen are ties**; the three that are not: the 4B against the 0.6B on the five closest (A and B,
+p = 0.035), and BM25 against the 0.6B on the five closest (136 against 129, p = 0.016) and on the mean reciprocal
+rank (A alone). The 4B and BM25 never differ. Row level: recall@5 0.311, 0.344 and 0.320, median rank 18, 14 and 15; the
+4B is better than the 0.6B on all five measures, **better than BM25 on two** (the five closest and the mean
+reciprocal rank; four before) and BM25 is better than the 0.6B on two (the ten closest and the median rank; none
+before). **Two conclusions moved, the others did not:** BM25 is no longer tied with the 0.6B everywhere, and the
+4B's lead over BM25 is narrower; the 4B is still the better model on a single excerpt. The treaties' own level, with
+the envelope out, is 20 to 22 % of the cited instruments among the five closest, against 4 % before. The Atlas
+page's literals, the Instruments page's prose and `test_atlas_page.py`'s pins follow, and say 26 October 2026.
+
+### Measured, topics, the 4B, 2026-10-26 (issue #301)
+
+The topics were run again over the new 4B matrix (`Qwen/Qwen3-Embedding-4B`, 2,677 × 2,677, 0 zero rows) and
+the 277 strong links of the (unchanged) gold; every configuration finished (22 of 22), same sweeps, gates,
+rule, c-TF-IDF parameters and stopword list. Per configuration, in `comparison.md`:
+
+| algorithm | parameter | clusters | noise | largest | silhouette | co-membership | gates | chosen |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| hdbscan_umap | min_cluster_size 5 | 160 | 19.8% | 2.2% | 0.152 | 0.412 | fail: 160 clusters, outside 20-80; noise 19.8% over 15% |  |
+| hdbscan_umap | min_cluster_size 10 | 80 | 21.9% | 4.8% | 0.111 | 0.437 | fail: noise 21.9% over 15% |  |
+| hdbscan_umap | min_cluster_size 15 | 53 | 28.0% | 3.5% | 0.093 | 0.444 | fail: noise 28.0% over 15% |  |
+| hdbscan_umap | min_cluster_size 20 | 42 | 33.9% | 3.6% | 0.088 | 0.455 | fail: noise 33.9% over 15% |  |
+| hdbscan_umap | min_cluster_size 30 | 26 | 35.4% | 10.0% | 0.066 | 0.321 | fail: noise 35.4% over 15% |  |
+| agglomerative | n_clusters 20 | 20 | 0.0% | 66.8% | 0.023 | 0.708 | fail: largest cluster 66.8% over 25% |  |
+| agglomerative | n_clusters 30 | 30 | 0.0% | 56.5% | 0.033 | 0.643 | fail: largest cluster 56.5% over 25% |  |
+| agglomerative | n_clusters 40 | 40 | 0.0% | 51.9% | 0.042 | 0.606 | fail: largest cluster 51.9% over 25% |  |
+| agglomerative | n_clusters 50 | 50 | 0.0% | 49.1% | 0.050 | 0.574 | fail: largest cluster 49.1% over 25% |  |
+| agglomerative | n_clusters 60 | 60 | 0.0% | 42.8% | 0.057 | 0.534 | fail: largest cluster 42.8% over 25% |  |
+| agglomerative | n_clusters 80 | 80 | 0.0% | 32.3% | 0.069 | 0.462 | fail: largest cluster 32.3% over 25% |  |
+| kmeans | n_clusters 20 | 20 | 0.0% | 54.6% | 0.031 | 0.621 | fail: largest cluster 54.6% over 25% |  |
+| kmeans | n_clusters 30 | 30 | 0.0% | 45.1% | 0.041 | 0.596 | fail: largest cluster 45.1% over 25% |  |
+| kmeans | n_clusters 40 | 40 | 0.0% | 37.9% | 0.048 | 0.509 | fail: largest cluster 37.9% over 25% |  |
+| kmeans | n_clusters 50 | 50 | 0.0% | 31.9% | 0.056 | 0.509 | fail: largest cluster 31.9% over 25% |  |
+| kmeans | n_clusters 60 | 60 | 0.0% | 35.9% | 0.061 | 0.458 | fail: largest cluster 35.9% over 25% |  |
+| kmeans | n_clusters 80 | 80 | 0.0% | 28.4% | 0.071 | 0.415 | fail: largest cluster 28.4% over 25% |  |
+| louvain | resolution 0.5 | 15 | 0.0% | 32.3% | 0.016 | 0.834 | fail: 15 clusters, outside 20-80; largest cluster 32.3% over 25% |  |
+| louvain | resolution 1.0 | 30 | 0.0% | 14.7% | 0.025 | 0.830 | pass | **yes** |
+| louvain | resolution 1.5 | 42 | 0.0% | 11.9% | 0.039 | 0.798 | pass |  |
+| louvain | resolution 2.0 | 49 | 0.0% | 13.1% | 0.043 | 0.794 | pass |  |
+| louvain | resolution 3.0 | 65 | 0.0% | 8.5% | 0.054 | 0.805 | pass |  |
+
+
+Four configurations pass the gates, all of them Louvain; `resolution` 0.5 gives 15 communities, under 20. Ward
+and *k*-means leave a topic of 28.4 to 66.8 % of the instruments in every configuration, HDBSCAN leaves 19.8 to
+35.4 % of them in no dense region. The rule picks **`louvain` `resolution` 1.0**: 30 topics, no noise, the largest
+with 393 instruments (14.7 %), silhouette 0.025 and co-membership 0.830 (230 of the 277 strong links stay together).
+The 2026-10-16 run chose resolution 1.5 (40 topics, 0.841); with the envelope out the highest co-membership among
+the four that pass is at 1.0 (1.0: 0.830; 1.5: 0.798; 2.0: 0.794; 3.0: 0.805). The lottery regulations are again a
+topic of their own (page topic 18, 42 instruments, 2 laws and 40 regulations).
+
+The 30 topics of the chosen configuration, by size (`topics.json`, numbered from 1 as the page numbers them; the
+terms are the first five of ten):
+
+| id | size | collections | top 5 terms |
+|---:|---:|---|---|
+| 1 | 393 | leyes 13, reglamentos 7, tratados 373 | ex, parte, partes, presente, kg |
+| 2 | 352 | leyes 3, reglamentos 5, tratados 344 | partes, cooperación, convenio, presente, articulo |
+| 3 | 253 | leyes 29, lineamientos 80, reglamentos 144 | artículo, información, tribunal, ley, general |
+| 4 | 218 | leyes 58, lineamientos 11, reglamentos 102, tratados 47 | secretaría, unidades, artículo, nacional, administrativas |
+| 5 | 179 | tratados 179 | contratante, estado, estado contratante, otro estado, otro |
+| 6 | 163 | leyes 11, lineamientos 5, reglamentos 87, tratados 60 | trabajo, instituto, trabajadores, artículo, servicios |
+| 7 | 139 | leyes 3, tratados 136 | parte, parte requerida, requerida, requirente, parte requirente |
+| 8 | 126 | leyes 15, lineamientos 3, reglamentos 108 | personal, militar, escuela, artículo, plantel |
+| 9 | 120 | leyes 30, lineamientos 3, reglamentos 37, tratados 50 | articulo, artículo, salud, caso, ley |
+| 10 | 77 | leyes 31, lineamientos 10, reglamentos 36 | artículo, ley, fiscal, refiere, impuesto |
+| 11 | 75 | leyes 19, reglamentos 54, tratados 2 | artículo, secretaría, comisión, ley, energía |
+| 12 | 75 | leyes 5, lineamientos 1, reglamentos 15, tratados 54 | carga, buques, anexo, buque, código |
+| 13 | 69 | leyes 33, reglamentos 36 | comisión, ley, artículo, sociedades, sociedad |
+| 14 | 59 | leyes 19, reglamentos 35, tratados 5 | secretaría, artículo, ley, forestales, residuos |
+| 15 | 58 | leyes 4, lineamientos 2, reglamentos 51, tratados 1 | 2023, electoral, partidos, electorales, instituto |
+| 16 | 58 | leyes 1, reglamentos 2, tratados 55 | unión, cmr, servicio, postal, banda |
+| 17 | 44 | leyes 8, reglamentos 10, tratados 26 | artículo, registro, presente, solicitud, internacional |
+| 18 | 42 | leyes 2, reglamentos 40 | sorteo, pronósticos, premios, sorteos, números |
+| 19 | 39 | leyes 12, lineamientos 7, reglamentos 19, tratados 1 | artículo, centro, adolescentes, persona, niñas |
+| 20 | 25 | leyes 5, reglamentos 14, tratados 6 | agencia, persona, vuelo, aviación, aviación civil |
+| 21 | 19 | leyes 5, lineamientos 2, reglamentos 10, tratados 2 | contrato, artículo, contratación, caso, licitación |
+| 22 | 19 | leyes 1, reglamentos 18 | pasantes, prácticas, naval, examen profesional, prácticas profesionales |
+| 23 | 15 | leyes 2, lineamientos 1, tratados 12 | estado, tratado, consular, estado receptor, receptor |
+| 24 | 11 | leyes 4, reglamentos 7 | cámara, mesa, presidente, comisiones, diputados |
+| 25 | 11 | leyes 1, reglamentos 1, tratados 9 | potencia, prisioneros, guerra, cuyo poder, conflicto |
+| 26 | 11 | reglamentos 11 | beca, becas, conacyt, becaria, persona becaria |
+| 27 | 9 | leyes 1, reglamentos 8 | turísticos, secretaría, turística, turismo, turístico |
+| 28 | 9 | tratados 9 | sen, único aprueba, 2014 sen, andrade presidente, cervantes andrade |
+| 29 | 7 | reglamentos 7 | conamed, médica, queja, artículo, comité |
+| 30 | 2 | tratados 2 | postal universal, universal, postal, acuerdo relativo, unión postal |
+
+**What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four
+corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, from issue #300), the four vectors releases
+(`emb-run-<c>-056/publish/PUBLICAR.md`, **regenerated**: leyes, reglamentos, lineamientos, tratados), the three
+`atlas-pairs` sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`,
+regenerated) and `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).

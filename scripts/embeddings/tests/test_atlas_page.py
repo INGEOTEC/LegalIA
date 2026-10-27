@@ -438,7 +438,7 @@ def test_the_qmd_describes_the_explanation_and_its_example():
     # transitory articles are not compared at all, and the counts are the data's.
     data_box = " ".join(text[text.index("::: {.atlas-data}"):].split())
     for number in ("provisions", "heading_rows_excluded", "transitorio_rows_excluded",
-                   "identical_shared_dropped", "counted_rows"):
+                   "envelope_rows_excluded", "identical_shared_dropped", "counted_rows"):
         assert f"{meta[number]:,}" in data_box, number
     cards = text[text.index("### The numbers"):text.index("Searching for an instrument")]
     assert "Two kinds of excerpt" not in cards     # the cut third card (the topic has its own section)
@@ -546,16 +546,17 @@ def test_the_qmd_explains_what_text_an_excerpt_is():
     for method in ("Qwen3-Embedding model", "1,024", "2,560", "cosine", "BM25",
                    "lowercase words", "No instruction, title or law name is added"):
         assert method in flat, method
-    for kind in ("Two kinds of excerpt are not compared at all", "the heading", "the transitory article",
+    for kind in ("Three kinds of excerpt are not compared at all", "the heading", "the transitory article",
+                 "the envelope of an instrument",
                  "**PRIMERO.-** Esta Ley entrará en vigor a los quince días de la fecha de su "
                  'publicación en el "Diario Oficial" de la Federación.',
-                 "The preamble and the closing text, on the other hand, are compared",
+                 "A treaty's own preamble and a law's closing text, on the other hand, are compared",
                  "matched but not counted", "**ARTICULO 56.-**", "CÓDIGO Civil Federal",
                  "LEY Federal de Responsabilidades de los Servidores Públicos",
                  "LEY General de Población", "LEY Orgánica de la Administración Pública Federal"):
         assert kind in flat, kind
     assert "28 excerpts, which are 16 numbered articles, 5 transitory articles, 5 headings" in flat
-    assert "remaining 18 count" in flat
+    assert "remaining 17 count" in flat
     # Against the vectors' own units, when they are cached on this machine.
     pq = pytest.importorskip("pyarrow.parquet")
     units_file = Path.home() / ".cache" / "legalvec" / "scjn-leyes-vectors" / "units.parquet"
@@ -629,16 +630,16 @@ def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_th
                                    "scjn-tratados-vectors"]
     treaties = [e for e in default["instruments"] if e["c"] == "tratados"]
     closest = [default["instruments"][e["out"][0][0]]["c"] for e in treaties if e["out"]]
-    assert closest.count("tratados") == 1318 and len(treaties) == 1373
+    assert closest.count("tratados") == 1287 and len(treaties) == 1373
     others = [e for e in default["instruments"] if e["c"] != "tratados" and e["out"]]
     by = {}
     for e in others:
         if default["instruments"][e["out"][0][0]]["c"] == "tratados":
             by[e["c"]] = by.get(e["c"], 0) + 1
-    assert by == {"leyes": 7, "reglamentos": 5, "lineamientos": 1}
+    assert by == {"leyes": 10, "reglamentos": 5, "lineamientos": 1}
     flat = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert "For 1,318 of the 1,373 treaties the closest instrument is another treaty" in flat
-    assert "only 7 laws, 5 regulations and 1 guideline have a treaty as their closest instrument" in flat
+    assert "For 1,287 of the 1,373 treaties the closest instrument is another treaty" in flat
+    assert "only 10 laws, 5 regulations and 1 guideline have a treaty as their closest instrument" in flat
 
 
 def test_the_qmd_has_the_evaluation_section_with_its_numbers():
@@ -662,9 +663,9 @@ def test_the_qmd_has_the_evaluation_section_with_its_numbers():
     for table in (tables[0], tables[2]):
         header = table.splitlines()[0]
         assert "0.6B" in header and "4B" in header and "BM25" in header
-    for literal in ("162", "172", "253", "277", "62", "7,144", "5,292", "1,925", "326", "204",
-                    "4,566", "4,383", "1,766", "2,617", "0.286", "0.256", "0.260", "26", "35",
-                    "21 October 2026", "2,676", "2,677"):
+    for literal in ("162", "172", "253", "277", "62", "5,096", "3,764", "982", "303", "93",
+                    "3,465", "3,450", "1,043", "2,407", "0.344", "0.311", "0.320", "14", "18",
+                    "26 October 2026", "2,676", "2,677"):
         assert literal in flat, literal
     # Every collection is a source and a target, and an instrument never links to itself
     # (review fix-1: the gold used to start only in a regulation or a guideline).
@@ -713,11 +714,14 @@ def test_the_qmd_compares_the_methods_with_one_test_per_measure():
     # The yes-or-no measures carry a p-value, the others an interval.
     body = pairs_excerpts[2].strip("|").split("|")
     assert "(p " in body[1] and "[" in body[4] and "[" in body[5]
-    # The verdicts the README reports, read off the two evaluation files (review fix-1).
-    assert all(cell.strip().startswith("tie") for row in pairs_instruments[2:]
-               for cell in row.strip("|").split("|")[2:])
-    assert flat.count("4B better") == 9      # five measures against the 0.6B, four against BM25
-    assert "BM25 better" not in flat and "0.6B better" not in flat
+    # The verdicts the README reports, read off the two evaluation files (issue #301: with
+    # the envelope left out three of the eighteen instrument-level comparisons are not ties).
+    not_ties = [cell.strip() for row in pairs_instruments[2:]
+                for cell in row.strip("|").split("|")[2:] if not cell.strip().startswith("tie")]
+    assert len(not_ties) == 3, not_ties
+    assert flat.count("4B better") == 8      # one at the instrument level, five against the 0.6B
+    assert flat.count("BM25 better") == 4    # two against the 0.6B at each level
+    assert "0.6B better" not in flat
 
 
 def test_the_bib_has_the_atlas_citations():

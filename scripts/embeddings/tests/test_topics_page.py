@@ -363,7 +363,7 @@ def test_the_qmd_literals_agree_with_the_committed_data(committed):
     meta = committed["meta"]
     measures = meta["measures"]
     assert (meta["algorithm"], meta["parameter_name"], meta["parameter"]) == (
-        "louvain", "resolution", 1.5)
+        "louvain", "resolution", 1.0)
     assert meta["selection"] == {"mode": "rule", "finished": 22, "passing_the_gates": 4}
     gates = meta["gates"]
     assert f"between {gates['min_clusters']} and {gates['max_clusters']} topics" in text
@@ -387,10 +387,10 @@ def test_the_qmd_literals_agree_with_the_committed_data(committed):
     assert f"the same {meta['instruments']:,} unique instruments" in text
     assert f"The table lists the {meta['topics']} topics" in text and (
         f"add up to the {meta['instruments']:,} instruments" in text)
-    assert measures["clusters"] == meta["topics"] == 40
+    assert measures["clusters"] == meta["topics"] == 30
 
 
-FOUR_B_SECTION = "### Measured, topics, the 4B, 2026-10-16"
+FOUR_B_SECTION = "### Measured, topics, the 4B, 2026-10-26 (issue #301)"
 
 
 def four_b_rows() -> list[dict]:
@@ -408,16 +408,16 @@ def four_b_rows() -> list[dict]:
 
 
 def test_the_qmd_comparison_claims_agree_with_the_4b_sweeps(committed):
-    """Ward and k-means left a topic of 30 % to 77 % of the instruments; the
-    density-based runs left 19 % to 37 % in no topic over a minimum of 5 to 30; only
+    """Ward and k-means left a topic of 28 % to 67 % of the instruments; the
+    density-based runs left 20 % to 35 % in no topic over a minimum of 5 to 30; only
     Louvain passed."""
     rows = four_b_rows()
     assert len(rows) == 22
     ward_kmeans = [r["largest"] for r in rows if r["algorithm"] in ("agglomerative", "kmeans")]
-    assert 29 <= min(ward_kmeans) <= 31 and 76 <= max(ward_kmeans) <= 78     # 30 % to 77 %
+    assert 28 <= min(ward_kmeans) <= 29 and 66 <= max(ward_kmeans) <= 67     # 28 % to 67 %
     density = [r for r in rows if r["algorithm"] == "hdbscan_umap"]
     noise = [r["noise"] for r in density]
-    assert len(noise) == 5 and 18 <= min(noise) <= 19 and 37 <= max(noise) <= 38   # 19 % to 37 %
+    assert len(noise) == 5 and 19 <= min(noise) <= 20 and 35 <= max(noise) <= 36   # 20 % to 35 %
     passing = [r for r in rows if r["gates"] == "pass"]
     assert {r["algorithm"] for r in passing} == {"louvain"} and len(passing) == 4
     meta = committed["meta"]
@@ -429,8 +429,8 @@ def test_the_qmd_comparison_claims_agree_with_the_4b_sweeps(committed):
         measures["clusters"], f"{measures['silhouette']:.3f}", f"{measures['comembership']:.3f}")
     assert chosen["largest"] == round(measures["largest"] * 100, 1)
     text = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert "from 30 % to 77 % of the instruments" in text
-    assert "from 19 % to 37 % of the instruments in no topic" in text
+    assert "from 28 % to 67 % of the instruments" in text
+    assert "from 20 % to 35 % of the instruments in no topic" in text
     assert "from 5 to 30 instruments" in text
 
 
@@ -462,10 +462,10 @@ def test_the_qmd_worked_example_is_a_topic_of_the_committed_data(committed):
     topic = topic_by_term(committed, "sorteo")
     instruments = committed["instruments"]
     text = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert topic["id"] == 27 and topic["size"] == 43
-    assert topic["by"] == {"leyes": 2, "reglamentos": 41}
+    assert topic["id"] == 18 and topic["size"] == 42
+    assert topic["by"] == {"leyes": 2, "reglamentos": 40}
     assert topic["terms"][:3] == ["sorteo", "pronósticos", "premios"]
-    assert ("Topic 27 holds 43 instruments, 2 laws and 41 regulations, and its leading terms "
+    assert ("Topic 18 holds 42 instruments, 2 laws and 40 regulations, and its leading terms "
             "are `sorteo`, `pronósticos` and `premios`") in text
     names = [instruments[i][2] for i in topic["reps"]]
     assert all(part in " ".join(names) for part in ("GANA GATO", "TRIS", "PRONOSTICOS RAPIDOS"))
@@ -476,10 +476,10 @@ def test_the_qmd_worked_example_is_a_topic_of_the_committed_data(committed):
 
 
 def test_the_qmd_remark_on_the_two_spellings_is_true_of_the_data(committed):
-    led = next(t for t in committed["topics"] if t["id"] == 18)
+    led = next(t for t in committed["topics"] if t["id"] == 9)
     assert {"artículo", "articulo"} <= set(led["terms"][:3])
     text = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert "`artículo` and `articulo`" in text and "topic 18 is led by both" in text
+    assert "`artículo` and `articulo`" in text and "topic 9 is led by both" in text
     # The page no longer says two topics share their leading terms: none does.
     leading = [tuple(t["terms"][:3]) for t in committed["topics"]]
     assert len(leading) == len(set(leading))

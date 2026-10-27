@@ -444,7 +444,7 @@ def instrument_documents(work_dir: Path, instruments, *, collections, cache_dir=
                       index=points["i"].to_numpy()[searched])
     joined = texts.groupby(level=0).agg("\n".join)
     log(f"{int(searched.sum())} searched unit rows of {joined.shape[0]} instruments "
-        f"({len(points) - int(searched.sum())} headings and transitorios left out)")
+        f"({len(points) - int(searched.sum())} headings, transitorios and envelope left out)")
     return [joined.get(int(i), "") for i in instruments["i"]]
 
 

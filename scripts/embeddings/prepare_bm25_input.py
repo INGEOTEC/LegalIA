@@ -136,7 +136,7 @@ def candidate_texts(work_dir: Path, *, collections, cache_dir=None, log=print):
     first = pd.Series(texts).groupby(rows).first()
     ordered_rows = first.index.to_numpy(dtype=np.int64)
     log(f"{int(searched.sum())} searched unit rows carry {len(ordered_rows)} distinct texts "
-        f"({len(points) - int(searched.sum())} headings and transitorios left out)")
+        f"({len(points) - int(searched.sum())} headings, transitorios and envelope left out)")
     return ordered_rows, [("" if text is None or text != text else str(text))
                           for text in first.to_numpy()]
 

@@ -725,6 +725,23 @@ True
 >>> [(n.eId, n.refers_to) for n in md2akn.parse_markdown(annexed).walk() if n.akn_type in ("chapter", "attachment")]
 [('cap_2', None), ('cap_2__att_2-A', '#anexo'), ('cap_3', None), ('app_1', '#apendice')]
 
+The *envelope* of an instrument (issue #301) is the wrapper of its publication: the
+title block the SCJN prints above the text and, in a treaty, the promulgation decree and
+its closing certification (:py:func:`md2akn.outline.es_bloque_de_envoltura`). It says who
+published the text and when, not what the text says, so a unit inside it carries
+``TextUnit.envelope == True`` and a consumer that compares the texts of different
+instruments leaves it out. Nothing is dropped from ``text_units``, and a document with no
+outline marker has no envelope.
+
+>>> wrapped = (
+...     '<!-- scjn:block orden=1 numero=0 kind=header -->\n\n**LEY DE PRUEBA**\n\n'
+...     '<!-- scjn:block orden=2 numero=1 kind=article -->\n\n**Artículo 1.-** Uno.\n'
+... )
+>>> [(u.unit_type, u.envelope) for u in md2akn.text_units(wrapped)]
+[('preamble', True), ('article', False)]
+>>> [(u.unit_type, u.envelope) for u in md2akn.text_units("**Artículo 1.-** Uno.\n")]
+[('article', False)]
+
 :py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
 where ``coverage()`` says nothing was lost, this says the units are usable.
 ``splittable == 0`` is the invariant a corpus build asserts; ``unsplittable``
