@@ -104,17 +104,20 @@ def counted_excerpts(row_sum: float, index: int, clave: str) -> int:
     """An instrument's counted excerpts: its matrix row sum as an integer.
 
     Under the `1/m` rule a row sums to a whole number of counted unit rows
-    (`row_sums_equal_counted_rows`); a sum further than 1e-3 from an integer, or
-    below 1, means `matrix.npy` is not the one `instrument_matrix.py` writes.
+    (`row_sums_equal_counted_rows`); a sum further than 1e-3 from an integer
+    means `matrix.npy` is not the one `instrument_matrix.py` writes. A sum of
+    exactly zero is legitimate: every excerpt of an instrument can be a text
+    several instruments own word for word, which the `m > 1` rule does not
+    count (the same treaty published three times, review fix-1 of #301).
     """
     value = float(row_sum)
     if abs(value - round(value)) > 1e-3:
         raise SystemExit(f"instrument {index} ({clave}) has a matrix row sum of {value:.4f}, "
                          "not a whole number of counted excerpts: matrix.npy is not the one "
                          "instrument_matrix.py writes")
-    if round(value) < 1:
-        raise SystemExit(f"instrument {index} ({clave}) has no counted excerpt (row sum "
-                         f"{value:.4f}): matrix.npy is not the one instrument_matrix.py writes")
+    if value < 0:
+        raise SystemExit(f"instrument {index} ({clave}) has a negative row sum "
+                         f"({value:.4f}): matrix.npy is not the one instrument_matrix.py writes")
     return int(round(value))
 
 
@@ -254,7 +257,7 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
     instruments = []
     for i, row in enumerate(table.itertuples(index=False)):
         out = weighted_targets(matrix, i, top)
-        if not out:
+        if not out and counted[i] > 0:
             raise SystemExit(f"instrument {i} ({row.clave}) points nowhere: "
                              "matrix.npy is not the one instrument_matrix.py writes")
         instruments.append({

@@ -229,14 +229,32 @@ def test_a_missing_matrix_is_a_system_exit_naming_instrument_matrix(
     assert not (tmp_path / "atlas.json").exists()
 
 
-def test_an_instrument_that_points_nowhere_is_a_system_exit(with_matrix, stub_umap,
-                                                           tmp_path):
+def test_an_instrument_with_no_counted_excerpt_exports_pc_zero_and_no_targets(
+        with_matrix, stub_umap, tmp_path):
+    # Review fix-1 of #301: every excerpt of an instrument can be a text several
+    # instruments own word for word, which the matrix does not count.
+    build_instrument_umap_html.project(with_matrix, log=lambda *a: None)
+    out_dir = instrument_matrix.output_dir(with_matrix)
+    matrix = np.load(out_dir / "matrix.npy")
+    removed = float(matrix[1].sum())
+    matrix[1] = 0
+    np.save(out_dir / "matrix.npy", matrix)
+    record = json.loads((out_dir / "matrix.json").read_text(encoding="utf-8"))
+    record["counted_rows"] = int(record["counted_rows"] - round(removed))
+    (out_dir / "matrix.json").write_text(json.dumps(record), encoding="utf-8")
+    export_atlas_data.export(with_matrix, tmp_path / "atlas.json", log=lambda *a: None)
+    entry = json.loads((tmp_path / "atlas.json").read_text(encoding="utf-8"))["instruments"][1]
+    assert entry["pc"] == 0 and entry["out"] == []
+
+
+def test_a_matrix_that_does_not_add_up_to_its_record_is_a_system_exit(
+        with_matrix, stub_umap, tmp_path):
     build_instrument_umap_html.project(with_matrix, log=lambda *a: None)
     path = instrument_matrix.output_dir(with_matrix) / "matrix.npy"
     matrix = np.load(path)
     matrix[1] = 0
     np.save(path, matrix)
-    with pytest.raises(SystemExit, match="points nowhere"):
+    with pytest.raises(SystemExit, match="matrix.json counted"):
         export_atlas_data.export(with_matrix, tmp_path / "atlas.json", log=lambda *a: None)
 
 
