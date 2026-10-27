@@ -193,10 +193,15 @@ def test_the_decrees_own_transitorio_is_envelope_and_an_instruments_own_is_not()
     assert bloques_de_decreto(blocks) == {}
 
 
-def test_a_bare_contenido_after_a_decree_step_is_its_body_and_an_own_one_is_not_swallowed():
+def test_a_bare_contenido_is_never_read_as_the_decrees():
+    # treaty 24128's `CONTENIDO` after the `CERTIFICACIÓN` is the exchange of notes itself
+    blocks = [{"kind": "header"}, {"kind": "other", "label": "FIRMA"},
+              {"kind": "other", "label": "CERTIFICACIÓN"}, {"kind": "other", "label": "CONTENIDO"},
+              {"kind": "other", "label": "PARTE FINAL DEL DECRETO PROMULGATORIO"}]
+    assert bloques_de_decreto(blocks) == {1: "leading", 2: "leading", 4: "trailing"}
     blocks = [{"kind": "header"}, {"kind": "article"}, {"kind": "other", "label": "APROBACIÓN"},
               {"kind": "other", "label": "PROMULGACIÓN"}, {"kind": "other", "label": "CONTENIDO"}]
-    assert bloques_de_decreto(blocks) == {2: "trailing", 3: "trailing", 4: "trailing"}
+    assert bloques_de_decreto(blocks) == {}
     # the reservations a treaty lists, then its own bare CONTENIDO, between decree steps
     blocks = [{"kind": "header"}, {"kind": "article"}, {"kind": "other", "label": "RESERVAS"},
               {"kind": "other", "label": "CONTENIDO"}, {"kind": "other", "label": "APROBACIÓN"},

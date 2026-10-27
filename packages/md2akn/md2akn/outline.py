@@ -283,7 +283,8 @@ def bloques_de_decreto(marcas: list[dict[str, str]]) -> dict[int, str]:
       A block between two steps stays in a run only when its label starts with a word of
       the decree's own procedure (`ETAPAS_DEL_DECRETO`) or is the decree's own transitorios
       block: an own section that happens to sit between two decree-step labels
-      (`MANDATO`, a bare `CONTENIDO`) is not swallowed.
+      (`MANDATO`, a bare `CONTENIDO`) is not swallowed, and a bare `CONTENIDO` is never
+      read as the decree's (treaty 24128's `CONTENIDO` is the exchange of notes itself).
     * the **trailing run** is the same read backwards from the last block, down to
       where the leading run ended.
 
@@ -343,24 +344,7 @@ def bloques_de_decreto(marcas: list[dict[str, str]]) -> dict[int, str]:
     delante = corre(range(inicio, n), "leading")
     resultado.update(delante)
     limite = max(delante, default=inicio - 1) + 1
-    # (a bare `CONTENIDO` that ends the document after a decree step is that step's body)
-    fin = n - 1
-    while fin > limite and pliega_etiqueta(marcas[fin].get("label", "")) == "CONTENIDO" \
-            and tipo(fin) == "other":
-        fin -= 1
-    resultado.update(corre(range(fin, limite - 1, -1), "trailing"))
-    # A bare `CONTENIDO` straight after a block of a run is that block's own body (rule 40:
-    # the SCJN serves the body of a title-only block as a block of its own, treaty 19345's
-    # `PROMULGACIÓN` and `CONTENIDO`).
-    cambio = True
-    while cambio:
-        cambio = False
-        for k in range(1, n):
-            if (k not in resultado and k - 1 in resultado and tipo(k) == "other"
-                    and pliega_etiqueta(marcas[k].get("label", "")) == "CONTENIDO"
-                    and resultado[k - 1] != "closing"):
-                resultado[k] = resultado[k - 1]
-                cambio = True
+    resultado.update(corre(range(n - 1, limite - 1, -1), "trailing"))
     # The closing certification of the decree is the decree's wherever it stands: a
     # treaty may print annexes after it (`CUADRO DE RUTAS`, `CANJE DE NOTA`), which makes
     # no run of it but leaves the label as unambiguous as ever.
