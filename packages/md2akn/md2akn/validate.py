@@ -649,12 +649,12 @@ def block_conformance(tree: AknNode) -> list[Disagreement]:
         else:
             permitidos = None
         if permitidos is not None and raiz.akn_type not in permitidos:
-            if kind == "article" and raiz.akn_type in ("chapter", "section", "part", "book", "title"):
-                informa("documented-article-served-as-chapter", raiz,
-                        f"root is a {raiz.akn_type} numbered {raiz.num!r}")
-            elif kind == "article" and raiz.akn_type in ("hcontainer", "section") \
+            if kind == "article" and raiz.akn_type in ("hcontainer", "section") \
                     and siguiente_kind == "provision":
                 informa("documented-article-heading", raiz, f"root is a {raiz.akn_type}")
+            elif kind == "article" and raiz.akn_type in ("chapter", "section", "part", "book", "title"):
+                informa("documented-article-served-as-chapter", raiz,
+                        f"root is a {raiz.akn_type} numbered {raiz.num!r}")
             elif kind == "transitorios" and raiz.akn_type == "conclusions":
                 informa("documented-closing-signature", raiz, "the block is only the signatures")
             else:

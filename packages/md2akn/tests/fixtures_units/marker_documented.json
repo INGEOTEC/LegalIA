@@ -1,0 +1,515 @@
+[
+ {
+  "collection": "leyes",
+  "key": "lfsv",
+  "orden": "80",
+  "class": "documented-number-label-repeated",
+  "eId": "tit_SEGUNDO_BIS__cap_ÚNICO__art_47-K",
+  "detail": "node '47-K', marker num '47-J' (repeated)",
+  "evidence": "<!-- scjn:block orden=80 numero=47 kind=article num=\"47-J\" label=\"ARTÍCULO 47-J\" --> | first line: **(ADICIONADO, D.O.F. 26 DE DICIEMBRE DE 2017)**"
+ },
+ {
+  "collection": "leyes",
+  "key": "ligie-2022",
+  "orden": "81",
+  "class": "documented-article-served-as-chapter",
+  "eId": "cap_67",
+  "detail": "root is a chapter numbered '67'",
+  "evidence": "<!-- scjn:block orden=81 numero=67 kind=article num=\"67\" label=\"ARTÍCULO 67\" --> | first line: Capítulo 67"
+ },
+ {
+  "collection": "leyes",
+  "key": "ligie-2022",
+  "orden": "83",
+  "class": "documented-article-served-as-chapter",
+  "eId": "cap_68",
+  "detail": "root is a chapter numbered '68'",
+  "evidence": "<!-- scjn:block orden=83 numero=68 kind=article num=\"68\" label=\"ARTÍCULO 68\" --> | first line: Capítulo 68"
+ },
+ {
+  "collection": "leyes",
+  "key": "ligie-2022",
+  "orden": "99",
+  "class": "documented-article-served-as-chapter",
+  "eId": "cap_83",
+  "detail": "root is a chapter numbered '83'",
+  "evidence": "<!-- scjn:block orden=99 numero=83 kind=article num=\"83\" label=\"ARTÍCULO 83\" --> | first line: Capítulo 83"
+ },
+ {
+  "collection": "leyes",
+  "key": "ligie-2022",
+  "orden": "101",
+  "class": "documented-article-served-as-chapter",
+  "eId": "cap_84",
+  "detail": "root is a chapter numbered '84'",
+  "evidence": "<!-- scjn:block orden=101 numero=84 kind=article num=\"84\" label=\"ARTÍCULO 84\" --> | first line: Capítulo 84"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "4",
+  "class": "documented-article-heading",
+  "eId": "tit_PRIMERO__cap_UNO__sec_ARTÍCULO_1",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=4 numero=0 kind=article num=\"1\" label=\"ARTÍCULO 1\" --> | first line: **ARTICULO 1°.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "10",
+  "class": "documented-article-heading",
+  "eId": "tit_PRIMERO__cap_UNO__sec_ARTÍCULO_2",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=10 numero=0 kind=article num=\"2\" label=\"ARTÍCULO 2\" --> | first line: **ARTICULO 2°.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "15",
+  "class": "documented-article-heading",
+  "eId": "tit_PRIMERO__cap_UNO__sec_ARTÍCULO_3",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=15 numero=0 kind=article num=\"3\" label=\"ARTÍCULO 3\" --> | first line: **ARTICULO 3º.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "27",
+  "class": "documented-article-heading",
+  "eId": "tit_PRIMERO__cap_UNO__sec_ARTÍCULO_4",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=27 numero=0 kind=article num=\"4\" label=\"ARTÍCULO 4\" --> | first line: **ARTICULO 4º.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "35",
+  "class": "documented-article-heading",
+  "eId": "tit_PRIMERO__cap_UNO__sec_ARTÍCULO_5",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=35 numero=0 kind=article num=\"5\" label=\"ARTÍCULO 5\" --> | first line: **ARTICULO 5º.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "37",
+  "class": "documented-article-heading",
+  "eId": "tit_PRIMERO__cap_UNO__sec_ARTÍCULO_6",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=37 numero=0 kind=article num=\"6\" label=\"ARTÍCULO 6\" --> | first line: **ARTICULO 6º.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "41",
+  "class": "documented-article-heading",
+  "eId": "tit_SEGUNDO__cap_ÚNICO__sec_ARTÍCULO_1",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=41 numero=0 kind=article num=\"1\" label=\"ARTÍCULO 1\" --> | first line: **ARTICULO 1º.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "43",
+  "class": "documented-article-heading",
+  "eId": "tit_SEGUNDO__cap_ÚNICO__sec_ARTÍCULO_2",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=43 numero=0 kind=article num=\"2\" label=\"ARTÍCULO 2\" --> | first line: **ARTICULO 2°.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "45",
+  "class": "documented-article-heading",
+  "eId": "tit_SEGUNDO__cap_ÚNICO__sec_ARTÍCULO_3",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=45 numero=0 kind=article num=\"3\" label=\"ARTÍCULO 3\" --> | first line: **ARTICULO 3º.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "47",
+  "class": "documented-article-heading",
+  "eId": "tit_SEGUNDO__cap_ÚNICO__sec_ARTÍCULO_4",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=47 numero=0 kind=article num=\"4\" label=\"ARTÍCULO 4\" --> | first line: **ARTICULO 4º.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "49",
+  "class": "documented-article-heading",
+  "eId": "tit_SEGUNDO__cap_ÚNICO__sec_ARTÍCULO_5",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=49 numero=0 kind=article num=\"5\" label=\"ARTÍCULO 5\" --> | first line: **ARTICULO 5º.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "51",
+  "class": "documented-article-heading",
+  "eId": "tit_SEGUNDO__cap_ÚNICO__sec_ARTÍCULO_6",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=51 numero=0 kind=article num=\"6\" label=\"ARTÍCULO 6\" --> | first line: **ARTICULO 6º.**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "55",
+  "class": "documented-article-heading",
+  "eId": "tit_TERCERO__cap_I__sec_ARTÍCULO_ÚNICO",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=55 numero=0 kind=article num=\"ÚNICO\" label=\"ARTÍCULO ÚNICO\" --> | first line: **ARTICULO UNICO**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "59",
+  "class": "documented-article-heading",
+  "eId": "tit_TERCERO__cap_II__sec_ARTÍCULO_1",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=59 numero=0 kind=article num=\"1\" label=\"ARTÍCULO 1\" --> | first line: **ARTICULO 1º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "69",
+  "class": "documented-article-heading",
+  "eId": "tit_TERCERO__cap_II__sec_ARTÍCULO_2",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=69 numero=0 kind=article num=\"2\" label=\"ARTÍCULO 2\" --> | first line: **ARTICULO 2º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "84",
+  "class": "documented-article-heading",
+  "eId": "tit_TERCERO__cap_II__sec_ARTÍCULO_3",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=84 numero=0 kind=article num=\"3\" label=\"ARTÍCULO 3\" --> | first line: **ARTICULO 3º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "92",
+  "class": "documented-article-heading",
+  "eId": "tit_TERCERO__cap_III__sec_ARTÍCULO_1",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=92 numero=0 kind=article num=\"1\" label=\"ARTÍCULO 1\" --> | first line: **ARTICULO 1º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "96",
+  "class": "documented-article-heading",
+  "eId": "tit_TERCERO__cap_III__sec_ARTÍCULO_2",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=96 numero=0 kind=article num=\"2\" label=\"ARTÍCULO 2\" --> | first line: **ARTICULO 2º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "124",
+  "class": "documented-article-heading",
+  "eId": "tit_TERCERO__cap_III__sec_ARTÍCULO_3",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=124 numero=0 kind=article num=\"3\" label=\"ARTÍCULO 3\" --> | first line: **ARTICULO 3º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "140",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_I__sec_ARTÍCULO_2",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=140 numero=0 kind=article num=\"2\" label=\"ARTÍCULO 2\" --> | first line: **ARTICULO 2º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "154",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_I__sec_ARTÍCULO_3",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=154 numero=0 kind=article num=\"3\" label=\"ARTÍCULO 3\" --> | first line: **ARTICULO 3º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "160",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_I__sec_ARTÍCULO_4",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=160 numero=0 kind=article num=\"4\" label=\"ARTÍCULO 4\" --> | first line: **ARTICULO 4º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "166",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_II__sec_ARTÍCULO_1",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=166 numero=0 kind=article num=\"1\" label=\"ARTÍCULO 1\" --> | first line: **ARTICULO 1º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "168",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_II__sec_ARTÍCULO_2",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=168 numero=0 kind=article num=\"2\" label=\"ARTÍCULO 2\" --> | first line: **ARTICULO 2º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "182",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_II__sec_ARTÍCULO_3",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=182 numero=0 kind=article num=\"3\" label=\"ARTÍCULO 3\" --> | first line: **ARTICULO 3º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "188",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_II__sec_ARTÍCULO_4",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=188 numero=0 kind=article num=\"4\" label=\"ARTÍCULO 4\" --> | first line: **ARTICULO 4º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "192",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_III__sec_ARTÍCULO_1",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=192 numero=0 kind=article num=\"1\" label=\"ARTÍCULO 1\" --> | first line: **ARTICULO 1º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "194",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_III__sec_ARTÍCULO_2",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=194 numero=0 kind=article num=\"2\" label=\"ARTÍCULO 2\" --> | first line: **ARTICULO 2º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "206",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_III__sec_ARTÍCULO_3",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=206 numero=0 kind=article num=\"3\" label=\"ARTÍCULO 3\" --> | first line: **ARTICULO 3º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "211",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_III__sec_ARTÍCULO_4",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=211 numero=0 kind=article num=\"4\" label=\"ARTÍCULO 4\" --> | first line: **ARTICULO 4º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "214",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_IV__sec_ARTÍCULO_1",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=214 numero=0 kind=article num=\"1\" label=\"ARTÍCULO 1\" --> | first line: **ARTICULO 1º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "218",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_IV__sec_ARTÍCULO_2",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=218 numero=0 kind=article num=\"2\" label=\"ARTÍCULO 2\" --> | first line: **ARTICULO 2º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "230",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_IV__sec_ARTÍCULO_3",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=230 numero=0 kind=article num=\"3\" label=\"ARTÍCULO 3\" --> | first line: **ARTICULO 3º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "238",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_IV__sec_ARTÍCULO_4",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=238 numero=0 kind=article num=\"4\" label=\"ARTÍCULO 4\" --> | first line: **ARTICULO 4º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "242",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_V__sec_ARTÍCULO_1",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=242 numero=0 kind=article num=\"1\" label=\"ARTÍCULO 1\" --> | first line: **ARTICULO 1º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "244",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_V__sec_ARTÍCULO_2",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=244 numero=0 kind=article num=\"2\" label=\"ARTÍCULO 2\" --> | first line: **ARTICULO 2º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "265",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_V__sec_ARTÍCULO_3",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=265 numero=0 kind=article num=\"3\" label=\"ARTÍCULO 3\" --> | first line: **ARTICULO 3º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "278",
+  "class": "documented-article-heading",
+  "eId": "tit_CUARTO__cap_V__sec_ARTÍCULO_4",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=278 numero=0 kind=article num=\"4\" label=\"ARTÍCULO 4\" --> | first line: **ARTICULO 4º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "282",
+  "class": "documented-article-heading",
+  "eId": "tit_QUINTO__cap_I__sec_ARTÍCULO_ÚNICO",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=282 numero=0 kind=article num=\"ÚNICO\" label=\"ARTÍCULO ÚNICO\" --> | first line: **ARTICULO UNICO**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "286",
+  "class": "documented-article-heading",
+  "eId": "tit_QUINTO__cap_II__sec_ARTÍCULO_1",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=286 numero=0 kind=article num=\"1\" label=\"ARTÍCULO 1\" --> | first line: **ARTICULO 1º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "952",
+  "orden": "299",
+  "class": "documented-article-heading",
+  "eId": "tit_QUINTO__cap_II__sec_ARTÍCULO_2",
+  "detail": "root is a section",
+  "evidence": "<!-- scjn:block orden=299 numero=0 kind=article num=\"2\" label=\"ARTÍCULO 2\" --> | first line: **ARTICULO 2º**"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "8656",
+  "orden": "21",
+  "class": "documented-number-label-repeated",
+  "eId": "cap_TERCERO__art_17",
+  "detail": "node '17', marker num '16' (repeated)",
+  "evidence": "<!-- scjn:block orden=21 numero=16 kind=article num=\"16\" label=\"ARTÍCULO  16\" --> | first line: **ARTICULO 17.** Son facultades del Presidente del Consejo:"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "11722",
+  "orden": "10",
+  "class": "documented-number-label-repeated",
+  "eId": "tit_SEGUNDO__art_7",
+  "detail": "node '7', marker num '6' (repeated)",
+  "evidence": "<!-- scjn:block orden=10 numero=6 kind=article num=\"6\" label=\"ARTÍCULO  6\" --> | first line: **ARTICULO 7.-** Las Dependencias y Entidades tendrán las siguientes obligaciones:"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "37613",
+  "orden": "22",
+  "class": "documented-closing-signature",
+  "eId": "conclusions",
+  "detail": "the block is only the signatures",
+  "evidence": "<!-- scjn:block orden=22 numero=0 kind=transitorios label=\"TRANSITORIO\" --> | first line: Ciudad de México, a veintisiete de febrero de dos mil cuatro.- El Secretario de Agricultura, Ganadería, Desarrollo Rural, Pesca y Alimentaci"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "100710",
+  "orden": "123",
+  "class": "documented-number-by-numero",
+  "eId": "cap_XVI__sec_II__art_102",
+  "detail": "node '102', marker num '1025', numero 102",
+  "evidence": "<!-- scjn:block orden=123 numero=102 kind=article num=\"1025\" label=\"ARTÍCULO 1025\" --> | first line: **Artículo 102.** Los solicitantes de las declaratorias de Emergencia o de Desastre natural, además de cumplir con lo previsto por el artícu"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "102403",
+  "orden": "45",
+  "class": "documented-number-by-numero",
+  "eId": "cap_CUARTO__art_35",
+  "detail": "node '35', marker num '36', numero 35",
+  "evidence": "<!-- scjn:block orden=45 numero=35 kind=article num=\"36\" label=\"ARTÍCULO 36\" --> | first line: **Artículo 35.-** El Centro Nacional fomentará la comunicación directa con las personas, las comunidades, las organizaciones de la sociedad "
+ },
+ {
+  "collection": "reglamentos",
+  "key": "119002",
+  "orden": "226",
+  "class": "documented-number-label-repeated",
+  "eId": "tit_SEXTO__cap_ÚNICO__hc_F._DE_LAS_PENAS_CONVENCIONALES__art_131",
+  "detail": "node '131', marker num '130' (repeated)",
+  "evidence": "<!-- scjn:block orden=226 numero=130 kind=article num=\"130\" label=\"ARTÍCULO 130\" --> | first line: **Artículo 131.** Las estimaciones de los trabajos ejecutados se deberán formular con una periodicidad no mayor a 30 (treinta) días naturale"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "137111",
+  "orden": "117",
+  "class": "documented-number-by-numero",
+  "eId": "tit_TERCERO__cap_II__art_94",
+  "detail": "node '94', marker num '97', numero 94",
+  "evidence": "<!-- scjn:block orden=117 numero=94 kind=article num=\"97\" label=\"ARTÍCULO 97\" --> | first line: **Artículo 94.** Para participar en los concursos de promoción, para ascender al grado jerárquico inmediato, los Oficiales deberán cumplir c"
+ },
+ {
+  "collection": "reglamentos",
+  "key": "189709",
+  "orden": "63",
+  "class": "documented-number-by-numero",
+  "eId": "tit_SEXTO__cap_I__art_37",
+  "detail": "node '37', marker num '36', numero 37",
+  "evidence": "<!-- scjn:block orden=63 numero=37 kind=article num=\"36\" label=\"ARTÍCULO 36\" --> | first line: **Artículo 37.** Las calificaciones obtenidas en las evaluaciones académicas deberán asentarse en las actas, registros o instrumentos de con"
+ },
+ {
+  "collection": "tratados",
+  "key": "22680",
+  "orden": "40",
+  "class": "documented-number-by-numero",
+  "eId": "art_XXXVII",
+  "detail": "node 'XXXVII', marker num 'XXVII', numero 37",
+  "evidence": "<!-- scjn:block orden=40 numero=37 kind=article num=\"XXVII\" label=\"ARTICULO XXVII\" --> | first line: **ARTICULO XXXVII**"
+ },
+ {
+  "collection": "tratados",
+  "key": "89657",
+  "orden": "143",
+  "class": "documented-number-by-numero",
+  "eId": "tit_III__cap_IV_2__sec_I__art_111",
+  "detail": "node '111', marker num '110', numero 111",
+  "evidence": "<!-- scjn:block orden=143 numero=111 kind=article num=\"110\" label=\"ARTÍCULO  110\" --> | first line: **ARTICULO 111.-** La potencia en cuyo poder se hallen los prisioneros, la potencia de quien éstos dependa y una potencia neutral aprobada p"
+ },
+ {
+  "collection": "tratados",
+  "key": "89658",
+  "orden": "58",
+  "class": "documented-number-by-numero",
+  "eId": "tit_III__sec_II__art_46",
+  "detail": "node '46', marker num '45', numero 46",
+  "evidence": "<!-- scjn:block orden=58 numero=46 kind=article num=\"45\" label=\"ARTÍCULO  45\" --> | first line: **ARTICULO 46.-** Si no hubiesen quedado en suspenso anteriormente, las medidas de carácter restrictivo promulgadas respecto a las personas "
+ }
+]

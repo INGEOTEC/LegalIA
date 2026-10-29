@@ -21,6 +21,7 @@ Read-only apart from `--write`; no network.
 import argparse
 import json
 import sys
+from multiprocessing import Pool
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -58,25 +59,37 @@ def raw_block(markdown: str, orden: str) -> tuple[str, str]:
     return "", ""
 
 
+def classify(job):
+    """The disagreements of one instrument, as ``(documented entries, real ones)``."""
+    collection, key, instrument = job
+    tree = parse_markdown(instrument["markdown"])
+    entries, real = [], []
+    for d in block_conformance(tree):
+        if not d.documented:
+            real.append((collection, instrument[key], str(d)))
+            continue
+        marker, first = raw_block(instrument["markdown"], d.orden)
+        entries.append({
+            "collection": collection, "key": str(instrument[key]), "orden": d.orden,
+            "class": d.klass, "eId": d.eId, "detail": d.detail,
+            "evidence": f"{marker} | first line: {first}",
+        })
+    return entries, real
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--write", action="store_true")
+    p.add_argument("--jobs", type=int, default=6)
     args = p.parse_args(argv)
     entries, real = [], []
-    for collection, iterate, key in COLLECTIONS:
-        for instrument in iterate():
-            tree = parse_markdown(instrument["markdown"])
-            for d in block_conformance(tree):
-                if not d.documented:
-                    real.append((collection, instrument[key], str(d)))
-                    continue
-                marker, first = raw_block(instrument["markdown"], d.orden)
-                entries.append({
-                    "collection": collection, "key": str(instrument[key]), "orden": d.orden,
-                    "class": d.klass, "eId": d.eId, "detail": d.detail,
-                    "evidence": f"{marker} | first line: {first}",
-                })
+    jobs = ((collection, key, instrument)
+            for collection, iterate, key in COLLECTIONS for instrument in iterate())
+    with Pool(args.jobs) as pool:
+        for found, bad in pool.imap(classify, jobs, chunksize=2):
+            entries.extend(found)
+            real.extend(bad)
     for klass, why in CLASES_DOCUMENTADAS.items():
         n = [e for e in entries if e["class"] == klass]
         print(f"{klass}: {len(n)} blocks in {len({(e['collection'], e['key']) for e in n})} instruments")
