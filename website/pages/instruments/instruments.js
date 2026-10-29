@@ -473,11 +473,14 @@
         }
         if (!ok) continue;
         // Exact-prefix name matches first, then a name that contains every word,
-        // then an abbreviation or id.
+        // then an abbreviation or id. Among names of one kind the one the query
+        // covers most of comes first (the Atlas page ranks the same way).
         const rank = item.folded.startsWith(folded) || item.foldedKey === folded ? 0 : inName ? 1 : 2;
-        found.push({ item, rank });
+        const coverage = rank === 2 ? 0 : folded.length / item.folded.length;
+        found.push({ item, rank, coverage });
       }
-      found.sort((a, b) => a.rank - b.rank || b.item.d.a - a.item.d.a || a.item.i - b.item.i);
+      found.sort((a, b) => a.rank - b.rank || b.coverage - a.coverage || b.item.d.a - a.item.d.a
+        || a.item.i - b.item.i);
       return found.slice(0, SUGGESTIONS).map((entry) => entry.item);
     }
 

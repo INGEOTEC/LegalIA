@@ -1013,11 +1013,10 @@ def test_circle_area_is_proportional_to_counted_excerpts(page):
 
 
 def test_constitucion_finds_the_constitution_first_and_enter_selects_it(page):
-    # "constitucion" alone ranks the treaty "CONSTITUCION Y CONVENIO DE LA UNION
-    # INTERNACIONAL DE TELECOMUNICACIONES" first (558 counted excerpts against the
-    # Constitution's 136, the rest of its 1,347 being transitory articles): both
-    # are exact-prefix matches and the larger comes first.
-    suggestions = search(page, "constitucion politica")
+    # Both the Constitution and the treaty "CONSTITUCION Y CONVENIO DE LA UNION
+    # INTERNACIONAL DE TELECOMUNICACIONES" start with the query, and the treaty counts more
+    # excerpts: the name the query covers most of comes first (review fix-2 of #300 and #301).
+    suggestions = search(page, "constitucion")
     assert CONSTITUTION in suggestions.first.inner_text()
     page.press("#atlas-search", "Enter")
     page.wait_for_function(
@@ -1038,7 +1037,7 @@ def test_constitucion_finds_the_constitution_first_and_enter_selects_it(page):
 
 
 def test_search_folds_accents_and_case_and_reads_the_abbreviation(page):
-    for query in ("CONSTITUCIÓN POLÍTICA", "Constitución política", "cpeum"):
+    for query in ("CONSTITUCIÓN", "Constitución política", "cpeum"):
         assert CONSTITUTION in search(page, query).first.inner_text(), query
 
 
