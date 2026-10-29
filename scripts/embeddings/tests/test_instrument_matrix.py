@@ -666,35 +666,17 @@ def with_matrix(prepared, cache):
 
 def test_rows_are_l2_normalised(with_matrix):
     matrix = np.load(instrument_matrix.output_dir(with_matrix) / "matrix.npy")
-    normalised, nonzero = build_instrument_umap_html.normalise_rows(matrix)
-    assert nonzero.all()
+    normalised = build_instrument_umap_html.normalise_rows(matrix)
     assert normalised.dtype == np.float32
     np.testing.assert_allclose(np.linalg.norm(normalised, axis=1),
                                np.ones(matrix.shape[0]), rtol=1e-6)
 
 
-def test_a_zero_row_is_reported_and_stays_zero_never_a_nan(with_matrix):
-    # An instrument whose every compared excerpt is a text several instruments own
-    # word for word has no counted excerpt (review fix-1 of #301).
+def test_a_zero_row_is_a_failure_not_a_nan(with_matrix):
     matrix = np.load(instrument_matrix.output_dir(with_matrix) / "matrix.npy")
     matrix[2] = 0
-    normalised, nonzero = build_instrument_umap_html.normalise_rows(matrix)
-    assert nonzero.tolist() == [i != 2 for i in range(matrix.shape[0])]
-    assert not normalised[2].any() and np.isfinite(normalised).all()
-
-
-def test_an_instrument_with_no_counted_excerpt_is_drawn_at_the_centre(
-        with_matrix, stub_umap):
-    path = instrument_matrix.output_dir(with_matrix) / "matrix.npy"
-    matrix = np.load(path)
-    matrix[2] = 0
-    np.save(path, matrix)
-    summary = build_instrument_umap_html.project(with_matrix, log=lambda *a: None)
-    table = pq.read_table(
-        instrument_matrix.output_dir(with_matrix) / "umap.parquet").to_pandas()
-    assert summary["without_counted_excerpts"] == [2]
-    assert len(table) == 6
-    assert table.loc[2, ["x4", "y4", "x32", "y32"]].tolist() == [0.5] * 4
+    with pytest.raises(SystemExit):
+        build_instrument_umap_html.normalise_rows(matrix)
 
 
 def test_the_four_projections_are_scaled_into_the_unit_square(with_matrix, stub_umap):

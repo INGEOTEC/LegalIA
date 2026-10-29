@@ -228,5 +228,7 @@ def test_a_section_of_its_own_stays_in_its_chapter_when_no_attachment_is_open():
         "**Artículo 178.-** Uno.\n"
     )
     tree = parse_markdown(text)
-    section = next(n for n in _walk(tree) if n.akn_type == "section")
+    section = next(n for n in _walk(tree) if n.num == "DISPOSICIONES GENERALES")
+    # Rule 44: a block the API labels `other` is an `hcontainer`, not a `section`.
+    assert section.akn_type == "hcontainer"
     assert section.parent.eId == "cap_IV"

@@ -1,0 +1,72 @@
+{
+ "annotations.md": {
+  "tree": "3f3804eca2f0161781501f63714708cbf8813777",
+  "units": "0fce7fa5af29886b9845e05edfaee8e411867c0e",
+  "nodes": 11
+ },
+ "apartados.md": {
+  "tree": "111281b033bff5c130dce636f51fba099065158e",
+  "units": "99cd05f0ab84c137290b9e960d748ca55f72c05b",
+  "nodes": 10
+ },
+ "containers.md": {
+  "tree": "9638755161af2d50a5466322a41a7b903e75ffd9",
+  "units": "e961592ca64291600d1abb71a7d86dd08247b6b5",
+  "nodes": 18
+ },
+ "lists.md": {
+  "tree": "7d11bc8c23cb6891405c7ba91d1bfdafcc506cbf",
+  "units": "feb694a2ef8b2ffbb1a1c4a28363264f997bbe75",
+  "nodes": 15
+ },
+ "acuerdo_considerando_ordinal.md": {
+  "tree": "4ce39bce98ec3e3a2b6ac7ca137fe977fc40ab19",
+  "units": "42601928f4a2aa61a826601900a08bc248b5dcec",
+  "nodes": 13
+ },
+ "acuerdo_numeral.md": {
+  "tree": "2b77d0d2a4131dec485f6970a1f6d22f9e08e9be",
+  "units": "47220acfef4da1ab1695ee047708743fbfd38938",
+  "nodes": 23
+ },
+ "acuerdo_ordinal.md": {
+  "tree": "35f09c5b4c415e468c017dfd3629ac6e14a27c9e",
+  "units": "81516646a21bbe5408a3fe7c96b47169d7554887",
+  "nodes": 18
+ },
+ "acuerdo_sin_numeracion.md": {
+  "tree": "ae7815512d4211a1e93b57134d16366d1c3b1c3e",
+  "units": "c817b2841316fd73ac9b753206e5e53f2aa5abc9",
+  "nodes": 4
+ },
+ "apartado_container.md": {
+  "tree": "35cdca8885092361f4ac81dc6b43560bf2456c83",
+  "units": "474455f054a73f08395b47d4d170291032fdfd4f",
+  "nodes": 13
+ },
+ "codigo_indice_partes.md": {
+  "tree": "96ab66a1a10f63385ed333dd4390bab97fdb89a8",
+  "units": "18ed1f1012a131e26c4bc177cdfff19bd8c17855",
+  "nodes": 30
+ },
+ "full_law.md": {
+  "tree": "ed7af9e8683e3ccd4bf0611ecca398a94c153751",
+  "units": "cda73831ddad85913c4bfee3930c9177f043664d",
+  "nodes": 16
+ },
+ "lineamientos_numerales_reinicio.md": {
+  "tree": "419a72401ad83c828170a2c394725c7ec729c638",
+  "units": "fa7b00f271ecc5b7cf8b82992c05a3b7e52d1149",
+  "nodes": 35
+ },
+ "split_article.md": {
+  "tree": "a9619eaa8ff02626a722c69832c81978547f6183",
+  "units": "5260330fb01a2d78ed2b53a15ef2e1287963c336",
+  "nodes": 10
+ },
+ "tratado_romano.md": {
+  "tree": "0a6c93dc14849ba1609089ab344870fda4b932aa",
+  "units": "340b85189c50593dd820ea5860939c7065067492",
+  "nodes": 30
+ }
+}

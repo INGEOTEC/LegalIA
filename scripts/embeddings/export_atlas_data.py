@@ -47,7 +47,9 @@ loudly when the matrix is missing, and is a no-op once `umap.parquet` exists
   `transitorio_rows_excluded`, `envelope_rows_excluded`, `identical_shared_dropped`, `counted_rows`).
 * **Unique instruments only** (issue #259). A work directory prepared without
   `prepare_umap_input.py --unique-names` is refused, and `meta` records
-  `unique_names` and `duplicates_dropped` per collection.
+  `unique_names` and `duplicates_dropped` per collection, and (review fix-2 of #300 and
+  #301) `identical_text_dropped`: the instruments left out because another instrument of
+  the collection has the same compared text.
 * **Short keys** (`c`, `k`, `n`, `p`, `pc`, `in`, `out`, `inc`) because there are
   over a thousand of each; `meta` spells everything out.
 
@@ -104,20 +106,17 @@ def counted_excerpts(row_sum: float, index: int, clave: str) -> int:
     """An instrument's counted excerpts: its matrix row sum as an integer.
 
     Under the `1/m` rule a row sums to a whole number of counted unit rows
-    (`row_sums_equal_counted_rows`); a sum further than 1e-3 from an integer
-    means `matrix.npy` is not the one `instrument_matrix.py` writes. A sum of
-    exactly zero is legitimate: every excerpt of an instrument can be a text
-    several instruments own word for word, which the `m > 1` rule does not
-    count (the same treaty published three times, review fix-1 of #301).
+    (`row_sums_equal_counted_rows`); a sum further than 1e-3 from an integer, or
+    below 1, means `matrix.npy` is not the one `instrument_matrix.py` writes.
     """
     value = float(row_sum)
     if abs(value - round(value)) > 1e-3:
         raise SystemExit(f"instrument {index} ({clave}) has a matrix row sum of {value:.4f}, "
                          "not a whole number of counted excerpts: matrix.npy is not the one "
                          "instrument_matrix.py writes")
-    if value < 0:
-        raise SystemExit(f"instrument {index} ({clave}) has a negative row sum "
-                         f"({value:.4f}): matrix.npy is not the one instrument_matrix.py writes")
+    if round(value) < 1:
+        raise SystemExit(f"instrument {index} ({clave}) has no counted excerpt (row sum "
+                         f"{value:.4f}): matrix.npy is not the one instrument_matrix.py writes")
     return int(round(value))
 
 
@@ -180,8 +179,26 @@ def duplicates_dropped(work_dir: Path) -> dict:
             if (coleccion, str(dropped["clave"])) in present:
                 raise SystemExit(f"{coleccion} {dropped['clave']} is listed as dropped in "
                                  f"{UNIQUE_REPORT} but is in instruments.parquet")
-    return {name: int(entry["dropped"]) for name, entry in report.items()
-            if name in GROUPED_COLLECTIONS}
+    # The same-name rule's drops (issue #259); the identical-text rule's are
+    # `identical_text_dropped`, so this figure keeps the meaning it always had.
+    return {name: sum(1 for d in entry["dropped_instruments"] if d.get("reason") != "identical-text")
+            for name, entry in report.items() if name in GROUPED_COLLECTIONS}
+
+
+def identical_text_dropped(work_dir: Path) -> dict:
+    """The instruments `prepare_umap_input.py --unique-names` dropped because another
+    instrument of the collection has the same compared text (review fix-2 of #300 and
+    #301): ``{collection: [{"k": key, "replaced_by": kept key}]}``, only for the
+    collections that dropped any. The kept one is the instrument whose original
+    publication is that text (`unique_instruments.select_identical`)."""
+    report = json.loads((Path(work_dir) / UNIQUE_REPORT).read_text(encoding="utf-8"))
+    out = {}
+    for name, entry in report.items():
+        rows = [{"k": str(d["clave"]), "replaced_by": str(d["replaced_by"])}
+                for d in entry["dropped_instruments"] if d.get("reason") == "identical-text"]
+        if rows:
+            out[name] = rows
+    return out
 
 
 #: The instrument fields whose position-by-position agreement between two
@@ -257,7 +274,7 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
     instruments = []
     for i, row in enumerate(table.itertuples(index=False)):
         out = weighted_targets(matrix, i, top)
-        if not out and counted[i] > 0:
+        if not out:
             raise SystemExit(f"instrument {i} ({row.clave}) points nowhere: "
                              "matrix.npy is not the one instrument_matrix.py writes")
         instruments.append({
@@ -322,6 +339,7 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
         "collections": collections,
         "unique_names": True,
         "duplicates_dropped": dropped,
+        "identical_text_dropped": identical_text_dropped(work_dir),
         "n_neighbors": n_neighbors,
         "default_n_neighbors": (DEFAULT_RADIO_VALUE if DEFAULT_RADIO_VALUE in n_neighbors
                                 else n_neighbors[len(n_neighbors) // 2]),

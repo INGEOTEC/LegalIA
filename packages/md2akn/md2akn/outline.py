@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 
 #: A marker line, whole. Matched against a block's text (a marker is a block of
 #: its own: the writer puts a blank line on each side) and, with `MULTILINE`,
@@ -401,3 +402,36 @@ def rangos_de_envoltura(texto: str) -> list[tuple[int, int]]:
         for k, (inicio, fin) in enumerate(zip(inicios, fines))
         if k in decreto or es_bloque_de_envoltura(marcas[k])
     ]
+
+
+_SOLO_ALFANUM = re.compile(r"[^0-9a-z]")
+_NUMERO_INICIAL = re.compile(r"^\s*(?:[IVXLCDM]+|\d+)[.)\-–]\s*", re.IGNORECASE)
+_ORDINAL = re.compile(r"(?<=\d)[oº°]", re.IGNORECASE)
+
+
+def _plano(texto: str) -> str:
+    """`texto` reduced to its letters and digits: no case, accents, bold, punctuation,
+    spaces or ordinal indicator (`1º.-A BIS` is `1abis`)."""
+    sin = unicodedata.normalize("NFKD", _ORDINAL.sub("", texto.replace("**", "")))
+    return _SOLO_ALFANUM.sub("", sin.encode("ascii", "ignore").decode().lower())
+
+
+def es_linea_de_etiqueta(linea: str, etiqueta: str) -> bool:
+    """Whether `linea`, a block's first line of text, is only the block's own `etiqueta`:
+    the same letters and digits, ignoring case, accents, bold, `:`, `.` and spacing, and a
+    leading numeral (`III. CONSIDERANDOS` under the label `CONSIDERANDOS`).
+
+    >>> es_linea_de_etiqueta("**DISPOSICIONES PRELIMINARES**", "DISPOSICIONES PRELIMINARES")
+    True
+    >>> es_linea_de_etiqueta("**III. CONSIDERANDOS**", "CONSIDERANDOS")
+    True
+    >>> es_linea_de_etiqueta("Finalidad. Esta norma", "Finalidad.")
+    False
+    """
+    objetivo = _plano(etiqueta)
+    if not objetivo:
+        return False
+    candidatas = [linea, _NUMERO_INICIAL.sub("", linea.replace("**", ""), count=1)]
+    return any(_plano(c) == objetivo for c in candidatas)
+
+

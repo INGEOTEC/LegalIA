@@ -91,26 +91,25 @@ COLLECTION_COLORS = {"leyes": "#4c78a8", "reglamentos": "#f58518",
 
 
 def normalise_rows(matrix):
-    """`(rows, nonzero)`: `A` with every row on the unit sphere, as `float32`, and
-    the boolean mask of the rows that are not all zero (a zero row stays zero).
+    """`A` with every row on the unit sphere, as `float32`.
 
-    An instrument can have no counted excerpt at all: when every one of its
-    compared excerpts is a word-for-word text that several instruments own (the
-    same treaty published under three `idOrdenamiento`, e.g. `tratados/11151`,
-    `16145`, `23742` since review fix-1 of #301 stopped its decree text from
-    counting), the `m > 1` rule counts none of them. Its row is zero, it has no
-    direction to place, and dividing it would reach UMAP as `nan`; so it is
-    reported by `nonzero` and left out of the fit (`project`), the way
-    `cluster_instruments.normalised_rows` leaves it out of every clustering.
+    An instrument with no counts at all would divide by zero and reach UMAP
+    as `nan`; it also cannot exist, since every unit row credits at least one
+    of the 1,522 other instruments. So it is a failure to report, not a case
+    to handle.
     """
     import numpy as np
 
     matrix = np.asarray(matrix, dtype=np.float32)
     norms = np.linalg.norm(matrix, axis=1)
-    nonzero = norms > 0
-    rows = np.zeros_like(matrix)
-    rows[nonzero] = matrix[nonzero] / norms[nonzero, None]
-    return rows, nonzero
+    empty = np.flatnonzero(norms == 0)
+    if empty.size:
+        raise SystemExit(
+            f"{empty.size} instrument(s) have an all-zero row ({empty[:10].tolist()}): "
+            "no unit of theirs found a foreign neighbour, which means the matrix is "
+            "not the one instrument_matrix.py writes"
+        )
+    return (matrix / norms[:, None]).astype(np.float32)
 
 
 def fit_one(rows, n_neighbors: int, *, min_dist: float = 0.1, metric: str = "cosine",
@@ -158,25 +157,19 @@ def project(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, force: bool = Fa
         log(f"{table_path} exists, kept -- pass --force to refit")
         return json.loads(summary_path.read_text(encoding="utf-8"))
 
-    rows, nonzero = normalise_rows(np.load(matrix_path))
-    empty = np.flatnonzero(~nonzero)
-    log(f"{rows.shape[0]} instruments x {rows.shape[1]} targets, rows L2-normalised"
-        + (f"; {empty.size} with no counted excerpt left out of the fit and drawn at "
-           f"the centre ({empty[:10].tolist()})" if empty.size else ""))
+    rows = normalise_rows(np.load(matrix_path))
+    log(f"{rows.shape[0]} instruments x {rows.shape[1]} targets, rows L2-normalised")
 
     columns = {"i": pa.array(range(rows.shape[0]), type=pa.int32())}
     fits = []
     for k in n_neighbors:
-        coordinates, fit = fit_one(rows[nonzero], k, log=log)
-        placed = np.full((rows.shape[0], 2), 0.5, dtype=np.float32)
-        placed[nonzero] = coordinates
-        columns[f"x{k}"] = pa.array(placed[:, 0], type=pa.float32())
-        columns[f"y{k}"] = pa.array(placed[:, 1], type=pa.float32())
+        coordinates, fit = fit_one(rows, k, log=log)
+        columns[f"x{k}"] = pa.array(coordinates[:, 0], type=pa.float32())
+        columns[f"y{k}"] = pa.array(coordinates[:, 1], type=pa.float32())
         fits.append(fit)
 
     atomic_write_table(table_path, pa.table(columns))
     summary = {"instruments": int(rows.shape[0]), "n_neighbors": list(n_neighbors),
-               "without_counted_excerpts": [int(i) for i in empty],
                "fits": fits, "seconds_total": round(sum(f["seconds"] for f in fits), 1)}
     atomic_write_text(summary_path,
                       json.dumps(summary, indent=2, ensure_ascii=False) + "\n")

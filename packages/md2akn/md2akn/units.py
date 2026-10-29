@@ -1110,7 +1110,40 @@ def text_units(
        not part of the `DECRETO PROMULGATORIO` group; a `PARTE FINAL DEL DECRETO
        PROMULGATORIO` is envelope wherever it stands. Read from markers and positions,
        never from an instrument or an eId.
-    Rules 25 to 43 apply to a document with outline markers; one without
+    44. The outline governs first (review fix-2 of #300 and #301, found after the fact:
+       the text rules used to overrule the SCJN's own markers). A block labelled
+       `other` is an `hcontainer` named by its label, never a `section` because
+       articles follow it (rule 23's implicit section: `SECCIÓN` is what the SCJN says
+       when it says a section, `type=section`), and holds the article blocks that follow
+       it; and when the block opens with a line that is only its own label
+       (`**DISPOSICIONES PRELIMINARES**`, `**III. CONSIDERANDOS**`, `Finalidad.`,
+       compared without case, accents, bold, `:` or `.`, a leading numeral allowed)
+       that line is the **heading** of the node -- a `heading` unit, neither source nor
+       candidate -- never an `intro` unit that is only a title. The `(NOTA: ...)` and
+       `(REFORMADO, ...)` lines printed above it describe that heading.
+    45. A part the SCJN labels (`type=part`) whose very next marker opens a book, a
+       title or a chapter holds it and ranks just above that type (the Código Civil
+       Federal's `PRIMERA PARTE` holds its titles inside the fourth book; a treaty's
+       `SEGUNDA PARTE` holds the chapters VIII to XIII, closing the chapter open before
+       it); a part is a sibling of the part before it. Any other part keeps the
+       document-wide reading (SOLAS: `Parte A` inside `Capítulo II-2`).
+    46. An annotation read after the last text of an API block and before the next
+       marker (`(DEROGADO SEGUNDO PÁRRAFO, ...)` after an article's last paragraph)
+       belongs to that block. It used to wait for "the next node", whose span then began
+       before its own marker.
+    47. A block the API labels `provision` is one text, like an `article` block (rule
+       24): a line inside it that reads like an annex or a chapter heading (the IMDG
+       Code's `1.1.2 Convenios`, which lists SOLAS and MARPOL with their own `Capítulo`
+       and `Anexo` lines) opens nothing.
+    Invariant I5 (`md2akn.validate.block_conformance`): for every API block the node it
+    opened is typed as its marker says (`kind`/`type`), numbered as its `num`, has the
+    block's own label line as its heading, has no leaf reaching into the next block and
+    hangs from the container the markers' order implies. The disagreements the parser
+    takes on purpose have a `documented-` class (`CLASES_DOCUMENTADAS`): the label of a
+    block disagreeing with its own `numero` or repeating an earlier label (rule 19),
+    the LIGIE's tariff chapters served as `ARTÍCULO N`, rule 38's heading-only article
+    blocks and a closing signature the API labels `transitorios`.
+    Rules 25 to 47 apply to a document with outline markers; one without
     them is read, and its eIds written, as before.
 
     >>> import md2akn
