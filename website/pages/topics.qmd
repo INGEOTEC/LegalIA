@@ -1,6 +1,6 @@
 ---
 title: "Topics of the Atlas of Mexican Federal Law"
-subtitle: "2,677 instruments in 31 topics, named by the words that distinguish their excerpts"
+subtitle: "2,670 instruments in 31 topics, named by the words that distinguish their excerpts"
 page-layout: article
 toc: true
 toc-depth: 3
@@ -8,7 +8,7 @@ number-sections: false
 draft: true
 ---
 
-Every instrument of the [Atlas](atlas.qmd) but three belongs on this page to exactly one
+Every instrument of the [Atlas](atlas.qmd) belongs on this page to exactly one
 topic. A topic gathers instruments whose excerpts have their closest texts in the
 same places, and it is named by the words that set its excerpts apart from those of
 the other topics, so that a reader can see at a glance what a group of laws,
@@ -22,8 +22,8 @@ instruments that own the text nearest to each of them, and the headings, the
 transitory articles and the envelope of an instrument are left out of the comparison. The topics use the same matrix, in
 the version that the 4B embedding model gives, which is the option the Atlas page
 offers as *4B* and which was chosen because its evaluation row by row on that page is
-the better of the three, for the same 2,677 unique instruments, which are 315 laws, 864 regulations, 125
-guidelines and 1,373 treaties, and they group the instruments by whom they resemble,
+the better of the three, for the same 2,670 unique instruments, which are 314 laws, 864 regulations, 125
+guidelines and 1,367 treaties, and they group the instruments by whom they resemble,
 which is what the map draws, so that a topic is a region of the map.
 
 Four families of clustering algorithms were run, each over a fixed sweep of its one
@@ -40,14 +40,12 @@ its opening sentence, the instrument it develops, as the evaluation on the
 [Atlas page](atlas.qmd) explains.
 
 Only the Louvain communities passed. Ward clustering and k-means left a topic
-holding from 28 % to 62 % of the instruments. The density-based clustering
-left from 17 % to 36 % of the instruments in no topic over the five settings of its
+holding from 27 % to 74 % of the instruments. The density-based clustering
+left from 17 % to 40 % of the instruments in no topic over the five settings of its
 smallest topic, from 5 to 30 instruments. The rule chose Louvain communities with a
-resolution of 1.0, which gives 31 topics and leaves three instruments outside a topic,
-which are three treaties that are word for word the same text and therefore have no counted
-excerpt to place them. The
-largest topic has 366 instruments, 13.7 % of the total, and 224 of the 277 strong links,
-80.9 %, have both ends in the same topic. The silhouette of the partition is 0.032, close
+resolution of 1.0, which gives 31 topics and leaves no instrument outside a topic. The
+largest topic has 344 instruments, 12.9 % of the total, and 227 of the 277 strong links,
+81.9 %, have both ends in the same topic. The silhouette of the partition is 0.032, close
 to zero, which says that the instruments do not fall into well separated clouds in the
 space of their rows. The topics are communities of a densely connected graph and not
 compact balls, and the borders between neighbouring topics are soft.
@@ -65,7 +63,7 @@ not head every topic. Only the excerpts that the Atlas compares are read, which
 leaves out headings, transitory articles and the envelope of an instrument.
 
 The terms are kept as the corpus spells them, so that `artículo` and `articulo`, which
-the corpus writes both ways, are two terms, and topics 6, 7 and 15 list both.
+the corpus writes both ways, are two terms, and topics 6 and 7 list both.
 
 ## How to read a topic
 
@@ -82,7 +80,7 @@ that the Court gives it otherwise.
 
 ## An example
 
-Topic 20 holds 44 instruments, 2 laws and 42 regulations, and its leading terms are
+Topic 20 holds 42 instruments, 2 laws and 40 regulations, and its leading terms are
 `sorteo`, `pronósticos` and `premios`. Its three most representative instruments are
 the regulations of the Gana Gato, Tris and Pronósticos Rápidos draws of
 Pronósticos para la Asistencia Pública, so that the topic is the rules of lotteries and
@@ -92,7 +90,7 @@ not a guarantee that every member shares its subject.
 
 ## The topics
 
-The table lists the 31 topics with a link to each, and the sizes in it, with the three
-instruments in no topic, add up to the 2,677 instruments.
+The table lists the 31 topics with a link to each, and the sizes in it add up to the
+2,670 instruments.
 
 {{< include topics/_topics.md >}}

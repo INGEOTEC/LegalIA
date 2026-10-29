@@ -333,7 +333,7 @@ def test_the_4b_data_lists_the_same_instruments_as_the_default():
     assert second["meta"]["unique_names"] is True
     assert list(second["projections"]) == ["4", "8", "16", "32"]
     assert list(second) == list(default) and list(second["meta"]) == list(default["meta"])
-    assert len(second["instruments"]) == len(default["instruments"]) == 2677
+    assert len(second["instruments"]) == len(default["instruments"]) == 2670
     for position, (mine, theirs) in enumerate(zip(second["instruments"],
                                                   default["instruments"])):
         assert all(mine[key] == theirs[key] for key in ("c", "k", "n", "p")), position
@@ -342,7 +342,7 @@ def test_the_4b_data_lists_the_same_instruments_as_the_default():
                 "collections", "duplicates_dropped", "n_neighbors"):
         assert second["meta"][key] == default["meta"][key], key
     for layout, points in second["projections"].items():
-        assert len(points) == 2677 and layout in default["projections"]
+        assert len(points) == 2670 and layout in default["projections"]
 
 
 @pytest.mark.skipif(not PAIRS_4B.is_dir(), reason="website/pages/atlas/pairs-qwen3-4b/ "
@@ -395,7 +395,7 @@ def test_the_bm25_data_lists_the_same_instruments_as_the_default():
     assert second["meta"]["unique_names"] is True
     assert list(second["projections"]) == ["4", "8", "16", "32"]
     assert list(second) == list(default)
-    assert len(second["instruments"]) == len(default["instruments"]) == 2677
+    assert len(second["instruments"]) == len(default["instruments"]) == 2670
     for position, (mine, theirs) in enumerate(zip(second["instruments"],
                                                   default["instruments"])):
         assert all(mine[key] == theirs[key] for key in ("c", "k", "n", "p")), position
@@ -405,7 +405,7 @@ def test_the_bm25_data_lists_the_same_instruments_as_the_default():
                 "n_neighbors"):
         assert second["meta"][key] == default["meta"][key], key
     for layout, points in second["projections"].items():
-        assert len(points) == 2677 and layout in default["projections"]
+        assert len(points) == 2670 and layout in default["projections"]
 
 
 @pytest.mark.skipif(not PAIRS_BM25.is_dir(), reason="website/pages/atlas/pairs-bm25/ "
@@ -455,7 +455,7 @@ def test_the_qmd_describes_the_explanation_and_its_example():
 
 def test_the_qmd_opens_with_where_the_instruments_come_from():
     """Review fix-5: the page begins by saying how the three corpora were found,
-    which text of each the map uses and how the 2,677 instruments were selected."""
+    which text of each the map uses and how the 2,670 instruments were selected."""
     text = QMD.read_text(encoding="utf-8")
     lead_end = text.index(":::", text.index("::: {.atlas-lead}") + 5)
     assert text[lead_end:].lstrip(": \n").startswith("## Where the instruments come from")
@@ -506,6 +506,12 @@ def test_the_qmd_opens_with_where_the_instruments_come_from():
             f"and {n['tratados']:,} treaties") in flat
     assert f"{data['meta']['instruments']:,} instruments once {sum(dropped.values())} have been dropped" in flat
     assert f"({dropped['reglamentos']} regulations and {dropped['lineamientos']} guideline)" in flat
+    # Review fix-2 of #300 and #301: instruments whose compared excerpts are word for word
+    # the same are one, in every collection.
+    identical = data["meta"]["identical_text_dropped"]
+    assert (f"for their names and {sum(len(v) for v in identical.values())} more "
+            f"({len(identical['leyes'])} law and {len(identical['tratados'])} treaties) for their text") in flat
+    assert "the map keeps the one whose original publication is that text" in flat
     for literal in ("3,707", "1,087", "163", "5 regulations and 37 guidelines",
                     "6 regulations and 4 guidelines"):
         assert literal in flat, literal
@@ -611,7 +617,7 @@ def test_the_qmd_chapingo_example_matches_the_default_data():
 
 
 def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_the_prose():
-    """Issue #283: every file lists the same 2,677 instruments, treaties last,
+    """Issue #283: every file lists the same 2,670 instruments, treaties last,
     `sum(pc)` is the counted rows, and the sentence about treaties resembling one
     another is read off `atlas.json`."""
     default = atlas_data()
@@ -619,9 +625,9 @@ def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_th
         data = json.loads(path.read_text(encoding="utf-8"))
         meta = data["meta"]
         assert list(meta["collections"]) == ["leyes", "reglamentos", "lineamientos", "tratados"]
-        assert meta["collections"] == {"leyes": 315, "reglamentos": 864, "lineamientos": 125,
-                                       "tratados": 1373}
-        assert meta["instruments"] == len(data["instruments"]) == 2677
+        assert meta["collections"] == {"leyes": 314, "reglamentos": 864, "lineamientos": 125,
+                                       "tratados": 1367}
+        assert meta["instruments"] == len(data["instruments"]) == 2670
         assert sum(entry["pc"] for entry in data["instruments"]) == meta["counted_rows"]
         assert [e["c"] for e in data["instruments"]] == [e["c"] for e in default["instruments"]]
         assert {e["c"] for e in data["instruments"]} == set(PALETTE)
@@ -632,7 +638,7 @@ def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_th
                                    "scjn-tratados-vectors"]
     treaties = [e for e in default["instruments"] if e["c"] == "tratados"]
     closest = [default["instruments"][e["out"][0][0]]["c"] for e in treaties if e["out"]]
-    assert closest.count("tratados") == 1281 and len(treaties) == 1373
+    assert closest.count("tratados") == 1279 and len(treaties) == 1367 and len(closest) == len(treaties)
     others = [e for e in default["instruments"] if e["c"] != "tratados" and e["out"]]
     by = {}
     for e in others:
@@ -640,7 +646,7 @@ def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_th
             by[e["c"]] = by.get(e["c"], 0) + 1
     assert by == {"leyes": 10, "reglamentos": 5, "lineamientos": 1}
     flat = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert "For 1,281 of the 1,373 treaties the closest instrument is another treaty" in flat
+    assert "For 1,279 of the 1,367 treaties the closest instrument is another treaty" in flat
     assert "only 10 laws, 5 regulations and 1 guideline have a treaty as their closest instrument" in flat
 
 
@@ -665,9 +671,9 @@ def test_the_qmd_has_the_evaluation_section_with_its_numbers():
     for table in (tables[0], tables[2]):
         header = table.splitlines()[0]
         assert "0.6B" in header and "4B" in header and "BM25" in header
-    for literal in ("162", "172", "253", "277", "62", "5,191", "3,816", "1,002", "307", "88",
-                    "3,496", "3,481", "1,068", "2,413", "0.343", "0.309", "0.317", "14", "18",
-                    "27 October 2026", "2,676", "2,677"):
+    for literal in ("162", "172", "253", "277", "62", "5,186", "3,814", "1,001", "307", "88",
+                    "3,495", "3,480", "1,067", "2,413", "0.342", "0.309", "0.317", "14", "18",
+                    "28 October 2026", "2,669", "2,670"):
         assert literal in flat, literal
     # Every collection is a source and a target, and an instrument never links to itself
     # (review fix-1: the gold used to start only in a regulation or a guideline).
@@ -717,12 +723,13 @@ def test_the_qmd_compares_the_methods_with_one_test_per_measure():
     body = pairs_excerpts[2].strip("|").split("|")
     assert "(p " in body[1] and "[" in body[4] and "[" in body[5]
     # The verdicts the README reports, read off the two evaluation files (issue #301: with
-    # the envelope left out three of the eighteen instrument-level comparisons are not ties).
+    # the envelope left out three of the eighteen instrument-level comparisons were not ties;
+    # review fix-2 of #300 and #301: two are not, both on the narrow gold standard).
     not_ties = [cell.strip() for row in pairs_instruments[2:]
                 for cell in row.strip("|").split("|")[2:] if not cell.strip().startswith("tie")]
-    assert len(not_ties) == 3, not_ties
-    # One at the instrument level, then five against the 0.6B and three against BM25.
-    assert flat.count("4B better") == 9
+    assert len(not_ties) == 2, not_ties
+    # Five against the 0.6B and three against BM25, all at the row level.
+    assert flat.count("4B better") == 8
     # Two against the 0.6B at the instrument level, one (the median rank) at the row level.
     assert flat.count("BM25 better") == 3
     assert "0.6B better" not in flat
