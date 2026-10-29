@@ -875,12 +875,12 @@ def test_the_outline_nests_a_resolutions_annex_chapters_and_parts(browser, serve
         return [b.inner_text().strip() for b in item.locator(
             "xpath=./ul/li/button[contains(@class, 'instruments-outline-link')]").all()]
 
-    assert children_of("Sección RESOLUCIÓN MSC.1(1)") == ["Introduction", "Annex"]
+    assert children_of("Block: RESOLUCIÓN MSC.1(1)") == ["Introduction", "Annex"]
     assert children_of("Annex") == ["Capítulo II-1", "Capítulo II-2"]
     assert children_of("Capítulo II-1") == ["Part A", "Part B"]
     assert children_of("Capítulo II-2") == ["Part A"]
-    nested = page.locator('section[data-eid="sec_RESOLUCIÓN_MSC.1(1)__att_attachment"]')
-    assert nested.locator('section[data-eid="sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'
+    nested = page.locator('section[data-eid="hc_RESOLUCIÓN_MSC.1(1)__att_attachment"]')
+    assert nested.locator('section[data-eid="hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'
                           '__part_A"]').count() == 1
     assert page.errors == []
     page.close()

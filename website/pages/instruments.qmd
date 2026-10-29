@@ -1,6 +1,6 @@
 ---
 title: "The Instruments of the Atlas"
-subtitle: "315 laws, 864 regulations, 125 guidelines and 1,373 treaties, article by article"
+subtitle: "314 laws, 864 regulations, 125 guidelines and 1,367 treaties, article by article"
 page-layout: full
 toc: false
 number-sections: false
