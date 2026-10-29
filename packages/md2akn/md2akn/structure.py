@@ -968,7 +968,7 @@ class _Constructor:
                     # amendment quoting the text it amends, an alternative
                     # wording, a list of the articles that follow), not a
                     # further one.
-                    desde = destino + 1 if actual["kind"] == "article" else k
+                    desde = destino + 1 if actual["kind"] in ("article", "provision") else k
                     for i in range(desde, siguiente[inicio_de_marca]):
                         if self._clases[i][0] in self.APERTURAS_DE_ESTRUCTURA:
                             self._clases[i] = ("contenido", {})
@@ -1337,6 +1337,12 @@ class _Constructor:
         if not self._pendientes.notas or self._ultimo_nodo is None:
             return
         nodo = self._ultimo_nodo
+        # The deepest last descendant: the notes of a node are read before its
+        # children's, so one at the tail of an article held by the article itself
+        # would be read before the annotations of the paragraphs it follows, and
+        # `units._annotation_ranges`' left-to-right search would skip past them.
+        while nodo.children:
+            nodo = nodo.children[-1]
         _, notas = self._pendientes.toma(fin)
         nodo.notes.extend(notas)
         self._extiende(nodo, len(self._doc.text[:fin].rstrip()))

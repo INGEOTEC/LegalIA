@@ -47,7 +47,7 @@
  {
   "collection": "reglamentos",
   "key": "71871",
-  "eId": "tit_CUARTO__cap_CUARTO__sec_A._CONSIDERACIONES_GENERALES_2__art_93",
+  "eId": "tit_CUARTO__cap_CUARTO__hc_A._CONSIDERACIONES_GENERALES_2__art_93",
   "after": 91,
   "num": "93",
   "kind": "numbering-continues-across-containers",
@@ -56,7 +56,7 @@
  {
   "collection": "reglamentos",
   "key": "71871",
-  "eId": "tit_CUARTO__cap_CUARTO__sec_B._ACTOS_DEL_PROCEDIMIENTO_2__art_95",
+  "eId": "tit_CUARTO__cap_CUARTO__hc_B._ACTOS_DEL_PROCEDIMIENTO_2__art_95",
   "after": 92,
   "num": "95",
   "kind": "numbering-continues-across-containers",
@@ -65,7 +65,7 @@
  {
   "collection": "reglamentos",
   "key": "71871",
-  "eId": "tit_CUARTO__cap_CUARTO__sec_A._CONSIDERACIONES_GENERALES_3__art_96",
+  "eId": "tit_CUARTO__cap_CUARTO__hc_A._CONSIDERACIONES_GENERALES_3__art_96",
   "after": 94,
   "num": "96",
   "kind": "numbering-continues-across-containers",
@@ -155,7 +155,7 @@
  {
   "collection": "lineamientos",
   "key": "92842",
-  "eId": "sec_LINEAMIENTOS__art_16",
+  "eId": "hc_LINEAMIENTOS__art_16",
   "after": 13,
   "num": "16",
   "kind": "source-sic",
@@ -164,7 +164,7 @@
  {
   "collection": "tratados",
   "key": "11208",
-  "eId": "sec_RESOLUCIÓN_290_(VII)__art_19",
+  "eId": "hc_RESOLUCIÓN_290_(VII)__art_19",
   "after": 16,
   "num": "19",
   "kind": "source-omits-number",
@@ -181,78 +181,6 @@
  },
  {
   "collection": "tratados",
-  "key": "14227",
-  "eId": "cap_II__art_7",
-  "after": 5,
-  "num": "7",
-  "kind": "source-omits-number",
-  "evidence": "the API block `PRIMERO` prints article openers [4, 5, 7, 11, 14, 16, 17, 19, 20, 21, 23, 34] and none of the skipped 6..6"
- },
- {
-  "collection": "tratados",
-  "key": "14227",
-  "eId": "cap_II__art_11",
-  "after": 7,
-  "num": "11",
-  "kind": "source-omits-number",
-  "evidence": "the API block `PRIMERO` prints article openers [4, 5, 7, 11, 14, 16, 17, 19, 20, 21, 23, 34] and none of the skipped 8..10"
- },
- {
-  "collection": "tratados",
-  "key": "14227",
-  "eId": "cap_II__art_14",
-  "after": 11,
-  "num": "14",
-  "kind": "source-omits-number",
-  "evidence": "the API block `PRIMERO` prints article openers [4, 5, 7, 11, 14, 16, 17, 19, 20, 21, 23, 34] and none of the skipped 12..13"
- },
- {
-  "collection": "tratados",
-  "key": "14227",
-  "eId": "cap_II__art_16",
-  "after": 14,
-  "num": "16",
-  "kind": "source-omits-number",
-  "evidence": "the API block `PRIMERO` prints article openers [4, 5, 7, 11, 14, 16, 17, 19, 20, 21, 23, 34] and none of the skipped 15..15"
- },
- {
-  "collection": "tratados",
-  "key": "14227",
-  "eId": "cap_II__art_19",
-  "after": 17,
-  "num": "19",
-  "kind": "source-omits-number",
-  "evidence": "the API block `PRIMERO` prints article openers [4, 5, 7, 11, 14, 16, 17, 19, 20, 21, 23, 34] and none of the skipped 18..18"
- },
- {
-  "collection": "tratados",
-  "key": "14227",
-  "eId": "cap_II__art_23",
-  "after": 21,
-  "num": "23",
-  "kind": "source-omits-number",
-  "evidence": "the API block `PRIMERO` prints article openers [4, 5, 7, 11, 14, 16, 17, 19, 20, 21, 23, 34] and none of the skipped 22..22"
- },
- {
-  "collection": "tratados",
-  "key": "14227",
-  "eId": "cap_II__art_34",
-  "after": 23,
-  "num": "34",
-  "kind": "source-omits-number",
-  "evidence": "the API block `PRIMERO` prints article openers [4, 5, 7, 11, 14, 16, 17, 19, 20, 21, 23, 34] and none of the skipped 24..33"
- },
- {
-  "collection": "tratados",
-  "key": "14227",
-  "eId": "cap_II__art_41",
-  "after": 35,
-  "num": "41",
-  "kind": "source-omits-number",
-  "evidence": "the API block `PRIMERO` prints article openers [4, 5, 7, 11, 14, 16, 17, 19, 20, 21, 23, 34] and none of the skipped 36..40"
- },
- {
-  "collection": "tratados",
   "key": "16189",
   "eId": "att_attachment__art_20",
   "after": 4,
@@ -263,7 +191,7 @@
  {
   "collection": "tratados",
   "key": "18141",
-  "eId": "sec_FIRMAS__part_I__cap_I_-_Funcionamiento_de_la_Unión__art_23",
+  "eId": "hc_FIRMAS__part_I__cap_I_-_Funcionamiento_de_la_Unión__art_23",
   "after": 2,
   "num": "23",
   "kind": "index-without-marker",
@@ -272,7 +200,7 @@
  {
   "collection": "tratados",
   "key": "18141",
-  "eId": "sec_INSTRUMENTOS_DE_ENMIENDA__part_I_2__cap_I__sec_7__art_18",
+  "eId": "hc_INSTRUMENTOS_DE_ENMIENDA__part_I_2__cap_I__sec_7__art_18",
   "after": 16,
   "num": "18",
   "kind": "index-without-marker",
@@ -281,7 +209,7 @@
  {
   "collection": "tratados",
   "key": "18141",
-  "eId": "sec_INSTRUMENTOS_DE_ENMIENDA__part_I_2__cap_I__sec_8__art_21",
+  "eId": "hc_INSTRUMENTOS_DE_ENMIENDA__part_I_2__cap_I__sec_8__art_21",
   "after": 19,
   "num": "21",
   "kind": "index-without-marker",
@@ -290,7 +218,7 @@
  {
   "collection": "tratados",
   "key": "22834",
-  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__art_4",
+  "eId": "hc_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__art_4",
   "after": 2,
   "num": "4",
   "kind": "source-omits-number",
@@ -299,7 +227,7 @@
  {
   "collection": "tratados",
   "key": "22834",
-  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__art_18",
+  "eId": "hc_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__art_18",
   "after": 4,
   "num": "18",
   "kind": "numbering-continues-across-containers",
@@ -308,7 +236,7 @@
  {
   "collection": "tratados",
   "key": "22834",
-  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__art_30",
+  "eId": "hc_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__art_30",
   "after": 18,
   "num": "30",
   "kind": "numbering-continues-across-containers",
@@ -317,7 +245,7 @@
  {
   "collection": "tratados",
   "key": "22834",
-  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_9",
+  "eId": "hc_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_9",
   "after": 6,
   "num": "9",
   "kind": "source-omits-number",
@@ -326,7 +254,7 @@
  {
   "collection": "tratados",
   "key": "22834",
-  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_18",
+  "eId": "hc_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_18",
   "after": 10,
   "num": "18",
   "kind": "source-omits-number",
@@ -335,7 +263,7 @@
  {
   "collection": "tratados",
   "key": "22834",
-  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_21",
+  "eId": "hc_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_21",
   "after": 18,
   "num": "21",
   "kind": "source-omits-number",
@@ -344,7 +272,7 @@
  {
   "collection": "tratados",
   "key": "22834",
-  "eId": "sec_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_29",
+  "eId": "hc_LISTA_DE_ENMIENDAS_PROPUESTAS_A_LA_CONSTITUCIÓN__att_attachment__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_29",
   "after": 24,
   "num": "29",
   "kind": "source-omits-number",
@@ -353,7 +281,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__art_12",
+  "eId": "hc_ENMIENDAS_DE_1977__art_12",
   "after": 3,
   "num": "12",
   "kind": "numbering-continues-across-containers",
@@ -362,7 +290,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__art_16",
+  "eId": "hc_ENMIENDAS_DE_1977__art_16",
   "after": 12,
   "num": "16",
   "kind": "source-omits-number",
@@ -371,7 +299,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__art_22",
+  "eId": "hc_ENMIENDAS_DE_1977__art_22",
   "after": 16,
   "num": "22",
   "kind": "numbering-continues-across-containers",
@@ -380,7 +308,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__art_26",
+  "eId": "hc_ENMIENDAS_DE_1977__art_26",
   "after": 22,
   "num": "26",
   "kind": "source-omits-number",
@@ -389,7 +317,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Artículos_33_a_63_(numerados_del_43_al_73_en_virtud_de_la_Re__art_45",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Artículos_33_a_63_(numerados_del_43_al_73_en_virtud_de_la_Re__art_45",
   "after": 43,
   "num": "45",
   "kind": "numbering-continues-across-containers",
@@ -398,7 +326,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Artículos_33_a_63_(numerados_del_43_al_73_en_virtud_de_la_Re__art_52",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Artículos_33_a_63_(numerados_del_43_al_73_en_virtud_de_la_Re__art_52",
   "after": 45,
   "num": "52",
   "kind": "numbering-continues-across-containers",
@@ -407,7 +335,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_19",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_19",
   "after": 9,
   "num": "19",
   "kind": "numbering-continues-across-containers",
@@ -416,7 +344,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_27",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_27",
   "after": 19,
   "num": "27",
   "kind": "numbering-continues-across-containers",
@@ -425,7 +353,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_29",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_29",
   "after": 27,
   "num": "29",
   "kind": "source-omits-number",
@@ -434,7 +362,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_32",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_32",
   "after": 29,
   "num": "32",
   "kind": "source-omits-number",
@@ -443,7 +371,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_34",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_34",
   "after": 32,
   "num": "34",
   "kind": "numbering-continues-across-containers",
@@ -452,7 +380,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_37",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_37",
   "after": 34,
   "num": "37",
   "kind": "source-omits-number",
@@ -461,7 +389,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_39",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_39",
   "after": 37,
   "num": "39",
   "kind": "source-omits-number",
@@ -470,7 +398,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_42",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_42",
   "after": 39,
   "num": "42",
   "kind": "source-omits-number",
@@ -479,7 +407,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_33",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_33",
   "after": 42,
   "num": "33",
   "kind": "api-order",
@@ -488,7 +416,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_53",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_53",
   "after": 33,
   "num": "53",
   "kind": "numbering-continues-across-containers",
@@ -497,7 +425,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_56",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_56",
   "after": 54,
   "num": "56",
   "kind": "source-omits-number",
@@ -506,7 +434,7 @@
  {
   "collection": "tratados",
   "key": "23774",
-  "eId": "sec_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_58",
+  "eId": "hc_ENMIENDAS_DE_1977__part_X__hc_Los_Artículos_a_que_se_hace_referencia_en_los_Artículos_sigu__art_58",
   "after": 56,
   "num": "58",
   "kind": "source-omits-number",
@@ -587,7 +515,7 @@
  {
   "collection": "tratados",
   "key": "44552",
-  "eId": "sec_APÉNDICES__app_S30__art_10",
+  "eId": "hc_APÉNDICES__app_S30__art_10",
   "after": 7,
   "num": "10",
   "kind": "numbering-continues-across-containers",
@@ -596,7 +524,7 @@
  {
   "collection": "tratados",
   "key": "44552",
-  "eId": "sec_APÉNDICES__app_S30B__art_8",
+  "eId": "hc_APÉNDICES__app_S30B__art_8",
   "after": 6,
   "num": "8",
   "kind": "numbering-continues-across-containers",
@@ -605,7 +533,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_ARTÍCULOS__art_3",
+  "eId": "hc_ARTÍCULOS__art_3",
   "after": 1,
   "num": "3",
   "kind": "source-omits-number",
@@ -614,7 +542,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales__art_7",
+  "eId": "hc_ARTÍCULOS__sec_I_-_Disposiciones_generales__art_7",
   "after": 5,
   "num": "7",
   "kind": "source-omits-number",
@@ -623,7 +551,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales__art_9",
+  "eId": "hc_ARTÍCULOS__sec_I_-_Disposiciones_generales__art_9",
   "after": 7,
   "num": "9",
   "kind": "source-omits-number",
@@ -632,7 +560,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales__art_11",
+  "eId": "hc_ARTÍCULOS__sec_I_-_Disposiciones_generales__art_11",
   "after": 9,
   "num": "11",
   "kind": "source-omits-number",
@@ -641,7 +569,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_ARTÍCULOS__sec_III_-_Estaciones_radiogoniométricas__art_31",
+  "eId": "hc_ARTÍCULOS__sec_III_-_Estaciones_radiogoniométricas__art_31",
   "after": 29,
   "num": "31",
   "kind": "source-omits-number",
@@ -650,7 +578,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales_3__art_55",
+  "eId": "hc_ARTÍCULOS__sec_I_-_Disposiciones_generales_3__art_55",
   "after": 11,
   "num": "55",
   "kind": "numbering-continues-across-containers",
@@ -659,7 +587,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales_3__art_57",
+  "eId": "hc_ARTÍCULOS__sec_I_-_Disposiciones_generales_3__art_57",
   "after": 55,
   "num": "57",
   "kind": "source-omits-number",
@@ -668,7 +596,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales_3__art_59",
+  "eId": "hc_ARTÍCULOS__sec_I_-_Disposiciones_generales_3__art_59",
   "after": 57,
   "num": "59",
   "kind": "source-omits-number",
@@ -677,7 +605,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_APÉNDICES__app_25__hc_ADD__art_4",
+  "eId": "hc_APÉNDICES__app_25__hc_ADD__art_4",
   "after": 2,
   "num": "4",
   "kind": "numbering-continues-across-containers",
@@ -686,7 +614,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_APÉNDICES__app_25__hc_ADD__art_7",
+  "eId": "hc_APÉNDICES__app_25__hc_ADD__art_7",
   "after": 5,
   "num": "7",
   "kind": "numbering-continues-across-containers",
@@ -695,7 +623,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_APÉNDICES__app_25__hc_ADD__art_9",
+  "eId": "hc_APÉNDICES__app_25__hc_ADD__art_9",
   "after": 7,
   "num": "9",
   "kind": "numbering-continues-across-containers",
@@ -704,7 +632,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_APÉNDICES__att_7_2__hc_ADD__art_9",
+  "eId": "hc_APÉNDICES__att_7_2__hc_ADD__art_9",
   "after": 7,
   "num": "9",
   "kind": "numbering-continues-across-containers",
@@ -713,7 +641,7 @@
  {
   "collection": "tratados",
   "key": "47860",
-  "eId": "sec_APÉNDICES__app_30B__art_8",
+  "eId": "hc_APÉNDICES__app_30B__art_8",
   "after": 6,
   "num": "8",
   "kind": "numbering-continues-across-containers",
@@ -722,7 +650,7 @@
  {
   "collection": "tratados",
   "key": "49685",
-  "eId": "sec_PROTOCOLO__art_3",
+  "eId": "hc_PROTOCOLO__art_3",
   "after": 1,
   "num": "3",
   "kind": "source-omits-number",
@@ -731,7 +659,7 @@
  {
   "collection": "tratados",
   "key": "50062",
-  "eId": "sec_PROTOCOLO__art_4",
+  "eId": "hc_PROTOCOLO__art_4",
   "after": 1,
   "num": "4",
   "kind": "source-omits-number",
@@ -740,7 +668,7 @@
  {
   "collection": "tratados",
   "key": "50062",
-  "eId": "sec_PROTOCOLO__art_7",
+  "eId": "hc_PROTOCOLO__art_7",
   "after": 4,
   "num": "7",
   "kind": "source-omits-number",
@@ -776,7 +704,7 @@
  {
   "collection": "tratados",
   "key": "84855",
-  "eId": "sec_ARTÍCULOS__art_4",
+  "eId": "hc_ARTÍCULOS__art_4",
   "after": 2,
   "num": "4",
   "kind": "source-omits-number",
@@ -785,7 +713,7 @@
  {
   "collection": "tratados",
   "key": "84855",
-  "eId": "sec_ARTÍCULOS__sec_I_-_Regiones_y_Zonas__art_11",
+  "eId": "hc_ARTÍCULOS__sec_I_-_Regiones_y_Zonas__art_11",
   "after": 9,
   "num": "11",
   "kind": "source-omits-number",
@@ -794,7 +722,7 @@
  {
   "collection": "tratados",
   "key": "84855",
-  "eId": "sec_ARTÍCULOS__sec_I_-_Notificación__art_19",
+  "eId": "hc_ARTÍCULOS__sec_I_-_Notificación__art_19",
   "after": 16,
   "num": "19",
   "kind": "source-omits-number",
@@ -803,7 +731,7 @@
  {
   "collection": "tratados",
   "key": "84855",
-  "eId": "sec_ARTÍCULOS__sec_I_-_Notificación__art_28",
+  "eId": "hc_ARTÍCULOS__sec_I_-_Notificación__art_28",
   "after": 22,
   "num": "28",
   "kind": "source-omits-number",
@@ -812,7 +740,7 @@
  {
   "collection": "tratados",
   "key": "84855",
-  "eId": "sec_ARTÍCULOS__sec_I_-_Disposiciones_generales_2__art_30",
+  "eId": "hc_ARTÍCULOS__sec_I_-_Disposiciones_generales_2__art_30",
   "after": 5,
   "num": "30",
   "kind": "numbering-continues-across-containers",
@@ -821,7 +749,7 @@
  {
   "collection": "tratados",
   "key": "84855",
-  "eId": "sec_ARTÍCULOS__sec_VIII_-_Consejos_médicos__art_41",
+  "eId": "hc_ARTÍCULOS__sec_VIII_-_Consejos_médicos__art_41",
   "after": 34,
   "num": "41",
   "kind": "source-omits-number",
@@ -830,7 +758,7 @@
  {
   "collection": "tratados",
   "key": "84855",
-  "eId": "sec_ARTÍCULOS__sec_VIII_-_Consejos_médicos__art_47",
+  "eId": "hc_ARTÍCULOS__sec_VIII_-_Consejos_médicos__art_47",
   "after": 41,
   "num": "47",
   "kind": "source-omits-number",
@@ -839,7 +767,7 @@
  {
   "collection": "tratados",
   "key": "84855",
-  "eId": "sec_ARTÍCULOS__sec_II__art_59",
+  "eId": "hc_ARTÍCULOS__sec_II__art_59",
   "after": 57,
   "num": "59",
   "kind": "source-omits-number",
@@ -893,7 +821,7 @@
  {
   "collection": "tratados",
   "key": "84858",
-  "eId": "sec_CONTENIDO__art_8",
+  "eId": "hc_CONTENIDO__art_8",
   "after": 126,
   "num": "8",
   "kind": "api-order",
@@ -902,7 +830,7 @@
  {
   "collection": "tratados",
   "key": "84858",
-  "eId": "sec_CONTENIDO__art_2",
+  "eId": "hc_CONTENIDO__art_2",
   "after": 8,
   "num": "2",
   "kind": "api-order",
@@ -911,7 +839,7 @@
  {
   "collection": "tratados",
   "key": "84858",
-  "eId": "sec_CONTENIDO__art_6",
+  "eId": "hc_CONTENIDO__art_6",
   "after": 2,
   "num": "6",
   "kind": "source-omits-number",
@@ -920,7 +848,7 @@
  {
   "collection": "tratados",
   "key": "84858",
-  "eId": "sec_CONTENIDO__art_10",
+  "eId": "hc_CONTENIDO__art_10",
   "after": 6,
   "num": "10",
   "kind": "numbering-continues-across-containers",
@@ -929,7 +857,7 @@
  {
   "collection": "tratados",
   "key": "84858",
-  "eId": "sec_CONTENIDO__art_16",
+  "eId": "hc_CONTENIDO__art_16",
   "after": 10,
   "num": "16",
   "kind": "source-omits-number",
@@ -938,7 +866,7 @@
  {
   "collection": "tratados",
   "key": "84858",
-  "eId": "sec_CONTENIDO__art_27",
+  "eId": "hc_CONTENIDO__art_27",
   "after": 16,
   "num": "27",
   "kind": "source-omits-number",
@@ -947,7 +875,7 @@
  {
   "collection": "tratados",
   "key": "161085",
-  "eId": "sec_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITAR_EL_INSTRUMENTO_DE_RATIFICACIÓN__art_0",
+  "eId": "hc_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITA__art_0",
   "after": 4,
   "num": "0",
   "kind": "api-order",
@@ -956,7 +884,7 @@
  {
   "collection": "tratados",
   "key": "161085",
-  "eId": "sec_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITAR_EL_INSTRUMENTO_DE_RATIFICACIÓN__art_6",
+  "eId": "hc_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITA__art_6",
   "after": 0,
   "num": "6",
   "kind": "source-omits-number",
@@ -965,7 +893,7 @@
  {
   "collection": "tratados",
   "key": "161085",
-  "eId": "sec_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITAR_EL_INSTRUMENTO_DE_RATIFICACIÓN__art_11",
+  "eId": "hc_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITA__art_11",
   "after": 9,
   "num": "11",
   "kind": "source-omits-number",
@@ -974,7 +902,7 @@
  {
   "collection": "tratados",
   "key": "161085",
-  "eId": "sec_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITAR_EL_INSTRUMENTO_DE_RATIFICACIÓN__art_16",
+  "eId": "hc_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITA__art_16",
   "after": 14,
   "num": "16",
   "kind": "source-omits-number",
@@ -983,7 +911,7 @@
  {
   "collection": "tratados",
   "key": "161085",
-  "eId": "sec_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITAR_EL_INSTRUMENTO_DE_RATIFICACIÓN__art_35",
+  "eId": "hc_ESTATUS_DE_LA_LISTA_DE_RESERVAS_Y_NOTIFICACIONES_AL_DEPOSITA__art_35",
   "after": 17,
   "num": "35",
   "kind": "source-omits-number",

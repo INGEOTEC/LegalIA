@@ -163,7 +163,12 @@ def test_a_trailing_annotation_belongs_to_the_block_it_was_read_in():
     tree = parse_markdown(text)
     doc = tree.span.doc.text
     a187, a188 = (n for n in _walk(tree) if n.akn_type == "article")
-    assert len(a187.notes) == 2 and len(a188.notes) == 1
+    # (the trailing annotation hangs from the deepest last node of the block, so that
+    # the notes of the document are still read in the order they are printed)
+    def notes_of(nodo):
+        return len(nodo.notes) + sum(notes_of(hijo) for hijo in nodo.children)
+
+    assert notes_of(a187) == 2 and notes_of(a188) == 1
     assert a188.start_char >= doc.index("orden=2 ") - 20
     assert a187.end_char <= doc.index(f"{M}orden=2") + 1
     assert _block_escapes(tree) == [] and block_conformance(tree) == []
@@ -349,3 +354,50 @@ def test_real_labels_are_headings():
         assert not [u for u in units if u.unit_type == "intro" and u.text.strip().upper().endswith(label.upper())
                     and len(u.text) < len(label) + 80 + sum(len(p) for p in u.path)], (key, label)
         assert _real(block_conformance(tree)) == [], key
+
+
+def test_every_annotation_of_an_article_is_covered_in_document_order():
+    """Rule 46's tail annotation (the Código Fiscal's articles 18 and 18-A): the notes of a
+    node are read before its children's, so one held by the article itself at the end of its
+    block was read before the annotations of the paragraphs it follows, and the left-to-right
+    search of `coverage()` skipped past the next annotation. It hangs from the deepest last
+    node of the block instead."""
+    from md2akn.units import coverage
+
+    text = (
+        f'{M}orden=1 numero=18 kind=article num="18" label="ARTÍCULO 18" -->\n\n'
+        "**Artículo 18.** Texto uno.\n\n"
+        "**(REFORMADO PRIMER PÁRRAFO, D.O.F. 28 DE JUNIO DE 2006)**\n\n"
+        "Texto dos.\n\n"
+        "**(DEROGADO OCTAVO PÁRRAFO, D.O.F. 9 DE DICIEMBRE DE 2013)**\n\n"
+        f'{M}orden=2 numero=19 kind=article num="18-A" label="ARTÍCULO 18-A" -->\n\n'
+        "**(REFORMADO PRIMER PÁRRAFO, D.O.F. 28 DE JUNIO DE 2006)**\n\n"
+        "**Artículo 18-A.** Texto de dieciocho.\n\n"
+        "Más texto.\n"
+    )
+    tree = parse_markdown(text)
+    assert coverage(tree, text_units(tree, split_articles=False)).uncovered_chars == 0
+
+
+def test_a_provision_block_keeps_its_own_ordinal_opener():
+    """Rule 47 stops a heading *inside* a provision block from opening structure, not the
+    block's own first line (lineamiento 109466: an acuerdo's `**PRIMERO.-**` and the
+    guidelines' own `**Primero.**`): the second is a different provision, because the
+    document is still read in rule 8's ordinal mode and the text's spelling wins."""
+    text = (
+        f'{M}orden=1 numero=0 kind=provision num="PRIMERO" label="PRIMERO" -->\n\n'
+        "**PRIMERO.-** Se aprueban los Lineamientos.\n\n"
+        f'{M}orden=2 numero=1 kind=provision num="PRIMERO" label="PRIMERO" -->\n\n'
+        "**Primero.** Los presentes Lineamientos son de orden público.\n\n"
+        f'{M}orden=3 numero=2 kind=provision num="SEGUNDO" label="SEGUNDO" -->\n\n'
+        "**Segundo.** Los aspectos a considerar son los siguientes:\n\n"
+        "**Anexo I**\n\n"
+        "Texto del anexo citado.\n\n"
+        f'{M}orden=4 numero=0 kind=provision num="SEGUNDO" label="SEGUNDO" -->\n\n'
+        "**SEGUNDO.-** Se aprueban los anexos.\n"
+    )
+    tree = parse_markdown(text)
+    articles = [n.eId for n in _walk(tree) if n.akn_type == "article"]
+    assert articles == ["art_PRIMERO", "art_Primero", "art_Segundo", "art_SEGUNDO"]
+    assert not [n for n in _walk(tree) if n.akn_type == "attachment"]
+    assert not [n for n in _walk(tree) if n.repeated]

@@ -65,11 +65,11 @@ promedia); cada texto truncado queda contado en `vectors-manifest.json`
 | | 0.6B | 4B |
 |---|---|---|
 | `K` | 1 024 | 2 560 |
-| Vectores | 103 704 | 103 704 |
-| De los cuales compartidos | 4 512 | 4 512 |
+| Vectores | 103 699 | 103 699 |
+| De los cuales compartidos | 4 513 | 4 513 |
 | Tamaño | 163 MB | 395 MB |
 
-Corpus: 1 083 reglamentos, 114 033 unidades, **103 704 textos distintos**,
+Corpus: 1 083 reglamentos, 114 033 unidades, **103 699 textos distintos**,
 `cap` 2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos
 decimales, las introducciones de contenedor y las tablas, y la revisión de los números
 de artículo repetidos: reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24, y revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32, revisión fix-5 de #291: un bloque de la API es la raíz de su jerarquía, regla 33, y revisión fix-6 de #291: cada bloque de la API acota su texto, un encabezado sin contenido es un encabezado, las leyendas y notas de una tabla son de la tabla, un artículo-encabezado abre una sección y `N (SIC)` es un artículo, reglas 34 a 39). Issue #300 añadió los bloques que la API de la SCJN omitía y la regla 40. Issue #301 añade a `units.parquet` la columna `envelope`, verdadera para la cabecera de la SCJN, el decreto de promulgación y las fórmulas de cierre: es parte del corpus y se vectoriza como cualquier otra unidad, pero el Atlas no la compara. La revisión fix-1 de #301 corrige cómo se lee esa envoltura y el preámbulo: el preámbulo es sólo el bloque de cabecera, las conclusiones nunca cruzan un bloque de la API y el decreto de promulgación se reconoce por su posición (reglas 42 y 43). La revisión fix-2 de #300 y #301 hace que la estructura que declara la API gobierne primero: el texto sólo afina dentro de un bloque y el rótulo de un bloque es su encabezado, no un fragmento comparado (reglas 44 a 47, invariante I5). Los 30 artículos romanos del

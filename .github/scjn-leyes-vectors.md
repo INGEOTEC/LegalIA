@@ -46,12 +46,12 @@ partir del hash — un archivo, no una copia del texto por instrumento.
 |---|---|---|
 | Modelo | `Qwen/Qwen3-Embedding-0.6B` | `Qwen/Qwen3-Embedding-4B` |
 | `K` | 1 024 | 2 560 |
-| Vectores | 59 252 | 59 252 |
-| De los cuales compartidos | 2 478 | 2 478 |
+| Vectores | 59 246 | 59 246 |
+| De los cuales compartidos | 2 480 | 2 480 |
 | Tamaño | 91 MB | 224 MB |
 | Textos truncados | 2 | 2 |
 
-Corpus: 315 leyes, 68 854 unidades, **59 252 textos distintos**, `cap`
+Corpus: 315 leyes, 68 854 unidades, **59 246 textos distintos**, `cap`
 2 000 caracteres (rige para todo menos el artículo — ver abajo), plantilla
 `bare`, `md2akn` 0.5.1 (issue #291: los artículos decimales, las introducciones
 de contenedor y las tablas, y la revisión de los números de artículo repetidos:
