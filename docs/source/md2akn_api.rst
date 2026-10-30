@@ -656,6 +656,12 @@ annex that leaves its block is one with no container or article after its
 heading in the block's text, whose structure the API serves in the blocks that
 follow.
 
+Review fix-2 of issues #300 and #301 let the outline govern first. **Rule 44**: a
+block the API marks ``other`` is an ``hcontainer`` named by its label, never a
+``section`` (an amending ``RESOLUCIÓN`` included, so its eId prefix is ``hc_``),
+and its own label line is its heading, not text to compare. Rule 33's ordering
+of the headings a block prints is unchanged.
+
 >>> resolutions = (
 ...     '<!-- scjn:block orden=1 numero=0 kind=other label="RESOLUCIÓN MSC.1(1)" -->\n\n'
 ...     "**RESOLUCIÓN MSC.1(1)**\n\nEl Comité adopta las enmiendas.\n\n"
@@ -665,8 +671,8 @@ follow.
 ...     "**RESOLUCIÓN MSC.2(2)**\n\nEl Comité adopta otras enmiendas.\n"
 ... )
 >>> tree = md2akn.parse_markdown(resolutions)
->>> [(n.akn_type, n.eId) for n in tree.walk() if n.akn_type in ("section", "attachment", "chapter", "part")]
-[('section', 'sec_RESOLUCIÓN_MSC.1(1)'), ('attachment', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment'), ('chapter', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1'), ('part', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1__part_A'), ('chapter', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'), ('part', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2__part_A'), ('section', 'sec_RESOLUCIÓN_MSC.2(2)')]
+>>> [(n.akn_type, n.eId) for n in tree.walk() if n.akn_type in ("hcontainer", "attachment", "chapter", "part")]
+[('hcontainer', 'hc_RESOLUCIÓN_MSC.1(1)'), ('attachment', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment'), ('chapter', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1'), ('part', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1__part_A'), ('chapter', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'), ('part', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2__part_A'), ('hcontainer', 'hc_RESOLUCIÓN_MSC.2(2)')]
 
 Review fix-6 of the same issue made the block the root of *all* its text. **Rule
 34**: whatever a block's text holds hangs from the container the block opened, also
@@ -710,7 +716,7 @@ True
 ... )
 >>> tree = md2akn.parse_markdown(restarted)
 >>> [(n.eId, n.repeated) for n in tree.walk() if n.akn_type == "article"]
-[('sec_ACUERDO__art_1', False), ('sec_ACUERDO__art_2', False), ('sec_ACUERDO__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_1', False)]
+[('hc_ACUERDO__art_1', False), ('hc_ACUERDO__art_2', False), ('hc_ACUERDO__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_1', False)]
 
 >>> annexed = (
 ...     '<!-- scjn:block orden=1 numero=0 kind=container type=chapter num="2" label="CAPÍTULO 2" -->\n\n'
