@@ -1,37 +1,37 @@
 {
-  "generated": "2026-10-21T19:26:00+00:00",
-  "commit": "3403cf96",
+  "generated": "2026-10-29T04:50:48+00:00",
+  "commit": "838a42e45",
   "work_dir": "emb-run-atlas-4b",
   "model": "Qwen/Qwen3-Embedding-4B",
   "model_slug": "qwen3-4b",
   "md2akn_version": "0.5.1",
   "top": 5,
-  "instruments": 2677,
-  "files": 2677,
-  "units": 221527,
-  "searched": 165591,
-  "bytes": 349579125,
+  "instruments": 2670,
+  "files": 2670,
+  "units": 227132,
+  "searched": 158327,
+  "bytes": 355688477,
   "largest": {
-    "file": "files/tratados/137355.json",
-    "bytes": 4384762,
-    "units": 2165
+    "file": "files/tratados/114738.json",
+    "bytes": 4557061,
+    "units": 3141
   },
   "flags": {
     "numbering_gap": {
-      "instruments": 31,
-      "count": 86
+      "instruments": 33,
+      "count": 99
     },
     "over_window": {
       "instruments": 1,
       "count": 1
     },
     "no_articles": {
-      "instruments": 34,
-      "count": 34
+      "instruments": 28,
+      "count": 28
     },
     "no_transitorios": {
-      "instruments": 1054,
-      "count": 1054
+      "instruments": 1053,
+      "count": 1053
     }
   },
   "release": "atlas-instruments",
@@ -40,28 +40,28 @@
   "sums": "SHA256SUMS-qwen3-4b.txt",
   "nearest_texts": {
     "top": 5,
-    "sources": 165591,
-    "source_texts": 165465,
-    "rows_written": 827325,
+    "sources": 158327,
+    "source_texts": 158128,
+    "rows_written": 790640,
     "sources_short_of_top": 0,
     "sources_without_rows": 0,
     "agrees_with_nearest": true,
     "tolerance": 1e-06,
     "method": "dense",
     "tolerance_relative": false,
-    "vector_rows": 202786,
+    "vector_rows": 207922,
     "block_rows": 1024,
-    "threads": 32,
-    "node": "cemieredes",
-    "slurm_job_id": "1933",
+    "threads": 8,
+    "node": "headmaster",
+    "slurm_job_id": null,
     "seconds": {
-      "load": 4.0,
-      "normalise": 1.1,
-      "sweep": 519.4,
-      "check": 0.5,
-      "write": 0.8
+      "load": 25.3,
+      "normalise": 4.0,
+      "sweep": 1310.4,
+      "check": 0.9,
+      "write": 1.2
     },
-    "seconds_total": 526.1,
-    "peak_rss_gb": 5.09
+    "seconds_total": 1340.3,
+    "peak_rss_gb": 5.08
   }
 }
