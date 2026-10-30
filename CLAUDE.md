@@ -1261,6 +1261,15 @@ missing `orden` are `CONTENIDO` blocks the API serves today.
   53 to 56 missing, the transitorios). The last two answered the same on every retry and on
   a second pass, with `tamanio` agreeing with the rows served: the API's own data lacks
   those `orden`, which no client can restore. A second resumed pass did not change any of them.
+  **Retried on 2026-10-30 (review fix-3 of #300, found after the fact):** `lft` was re-crawled once more
+  (`recrawl_scjn_outline.py --coleccion leyes --instrumento lft --ledger .recrawl-contenido.jsonl`, two
+  attempts, 1,105 s) and is still `incomplete`: **53 of its 55 reforms with articles fail the guard**
+  (6 more have no articles, 2 pass), and every file of `scripts/scjn/leyes/lft/` is byte-identical to before.
+  Reform 61 (14-05-2026) answered 1,433 rows for `tamanio` 1,433, 174 of them verbatim repeats (1,259
+  distinct) and 191 `orden` missing among 1..1,450; reform 1 (01-04-1970) 976 rows, 124 repeats, 130
+  `orden` missing. The guard and the writer were not touched and nothing was rebuilt from the 15 October
+  raw answer. `reglamentos/81587` and `reglamentos/67602` were not retried: they stay as they are, by the
+  repository owner's decision of 2026-10-30.
 - **The release sweep passes** (19 tests: `TestInvariantesDelBloque` I1 to I4 included; run
   whole once, then its two failing treaty tests again after the two parser fixes above). I4 found 22
   numbering gaps new to the fixture in 7 treaties (16189, 18141, 23943, 24031, 84855, 84858): all texts
