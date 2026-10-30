@@ -34,6 +34,10 @@ the `id_ordenamiento` of a reglamento, a lineamiento or a treaty, and it is what
 every published file, so a reader never branches. `slug` and `codNota` are
 null for the id-keyed collections, which have no DOF link at all (#220).
 
+It also carries `envelope` (issue #301, `md2akn`'s `TextUnit.envelope`): true for a unit of the instrument's
+envelope, the title block and a treaty's promulgation decree. It is vectorised like any other unit, and the Atlas'
+matrix, nearest texts and the evaluations leave it out (see "Measured, the envelope left out" below).
+
 ## The work directory
 
 Everything lives under one directory per run, on `/home` (`--work-dir`, or
@@ -4693,3 +4697,548 @@ changed.** The page's literals follow and say 21 October 2026.
 (`emb-run-<c>-055/publish/PUBLICAR.md`, **regenerated**: leyes, reglamentos, lineamientos, tratados), the three `atlas-pairs`
 sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and
 `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).
+
+
+## Measured, the envelope left out and the complete corpora, 2026-10-26 (issue #301)
+
+Issue #300 restored the blocks the SCJN API had omitted and re-crawled the four corpora, so every vector set,
+the Atlas and the Instruments page were stale. This issue rebuilds the whole chain on the complete corpora and
+adds one rule to it: **the envelope of an instrument is neither a source nor a candidate.**
+
+**The envelope.** The Atlas compared the formulaic wrapper of the Mexican publication with the text it wraps:
+the title block the SCJN prints above every instrument and, in a treaty, the promulgation decree and its
+closing certification. The same decree, word for word, wraps every treaty promulgated on the same day, and 701
+of the 7,661 envelope units of the treaties cite "artículo 89" of the Constitution (the President's power to
+promulgate), against 45 units outside the envelope. `md2akn.outline.es_bloque_de_envoltura` reads it from the
+outline markers alone: a `kind=header` block, an `other` block whose label is rule 29's `#promulgation` role, and
+the "PARTE FINAL DEL DECRETO PROMULGATORIO" certification. `TextUnit.envelope` (the last field, so a positional
+construction is unchanged), the `envelope` column of `units.parquet` and `instrument_matrix.searched_mask` carry
+it, and every consumer that builds its own frame (`prepare_bm25_input`, `cluster_instruments`,
+`export_instrument_files`, `gold_links`, which drops an envelope row from signal C) does too; a units file with
+no such column compares everything and `matrix.json` records `envelope_column: false`, while a mixture of the
+two is refused. A treaty's own preamble (`hc_PREÁMBULO`) and a law's closing text stay compared. Envelope
+units per corpus (`corpus-manifest.json`, `envelope_units`): 324 of 68,843 leyes, 1,265 of 113,643
+reglamentos, 183 of 6,253 lineamientos and 7,661 of 60,599 tratados; in the leyes they are the title block
+(318 `preamble`, 6 `intro`), in the treaties 5,608 `intro`, 1,375 `preamble`, 603 `conclusions`, 62 `table`,
+7 `article` and 6 `heading` (the reservations a promulgation decree prints, and its own transitory article).
+`md2akn` stays 0.5.1; nothing about a text or its hash changed, so no vector depends on the rule.
+
+**The vectors, `-056`.** `emb-run-<c>-056/` are copies of the `-055` directories (old `shards.json`, `publish/`
+and `runs/*/manifest.json` removed), `build_units.py --no-split-articles`, one plan per collection for both
+models (`first_shard_index` 29, 57, 12 and 45): 59, 60, 12 and 4,291 texts in 1, 1, 1 and 3 shards, 0 failed,
+`merge_shards.py` with `missing_vectors` 0, `already_embedded()` equal between the models in every collection.
+`compare_merges.py` against `-055` is **clean for all eight runs** (0 texts with another vector, 0 non-finite,
+no file gained or lost; 59, 60, 12 and 4,322 new texts and 2, 5, 0 and 123 dropped; 5, 6, 21 and 146 differing
+files per model). Distinct texts now 59,251, 103,536, 5,876 and 58,189, in 632, 2,168, 254 and 2,748 vector
+files (1, 3, 1 and 3 parts, no stale asset). `package_vectors.py` wrote `emb-run-<c>-056/publish/PUBLICAR.md` with
+both models' changed files in the `--clobber` block, the four `.github/scjn-*-vectors*.md` bodies carry the new
+counts and the `envelope` column, and `stage_vectors_cache.py` built `emb-run-vectors-056-cache/`. The release sweep
+passed (19 tests, 56 minutes).
+
+**The Atlas chain**, from that cache (the previous work directories were moved to `emb-run-atlas*-prev` and are
+deleted once this commit is final):
+
+| | before | now |
+|---|---:|---:|
+| instruments | 2,677 | 2,677 |
+| excerpts (`meta.provisions`) | 221,527 | 226,010 |
+| headings excluded | 33,500 | 33,904 |
+| transitory rows excluded | 22,436 | 22,536 |
+| envelope rows excluded | not a rule | 9,165 |
+| word-for-word shared rows not counted (0.6B and 4B / BM25) | 2,408 / 2,836 | 2,044 / 2,435 |
+| counted rows (0.6B and 4B / BM25) | 163,183 / 162,752 | 158,361 / 157,967 |
+| distinct vector rows | 202,786 | 207,096 |
+
+`meta.envelope_rows_excluded` is a new key of the three `atlas*.json` (headings are counted first, then
+transitorios, then the envelope, so a unit is counted once). The unique-instrument selection is unchanged
+(315 + 864 + 125 + 1,373). The closest instrument is unchanged for **2,302 of 2,677** under the 0.6B, 2,300
+under the 4B and 2,318 under BM25: the corpora gained text (4,483 more excerpts) and the envelope is out. `p`
+changed for 155 instruments and `pc` for 2,659 (2,636 under BM25), because nearly every instrument had a title
+block that counted. The three files list the same instruments in the same positions (`--instruments-as`). The
+three `atlas-pairs` sets have 12,720, 12,715 and 12,684 files (12,929, 12,907 and 12,936 before); this time the
+BM25 set needed no `--tolerance 2e-6`. The 4B's nearest texts: 160,405 searched unit rows, 160,203 distinct
+source texts, 801,015 rows, `agrees_with_nearest` true. The instrument files: 2,677 files, 356.0 MB (74.8 MB as the
+tarball), the re-parse equals the staged units for all 2,677, flags `loose` none, `duplicate_number` none,
+`numbering_gap` 108 in 35 instruments (the restored text; every one is in `genuine_gaps.json`, and the release
+sweep's I4 passed), `over_window` 1, `no_articles` 27 and `no_transitorios` 1,054; an envelope excerpt carries no
+nearest texts and the page does not mark it *Compared*. Timings: matrix jobs 219, 392 and 955 s (0.6B, 4B, BM25),
+nearest texts 526 s, instrument files 2,083 s, pair sets 2,278, 2,712 and 1,548 s (the three ran beside one
+another and beside the instrument files). The BM25 index was built with `bm25s` 0.3.11 (the pinned version).
+
+**The evaluations were re-run** (`gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`). The gold is
+**exactly** the earlier one (253 instruments, 277 links: A 162, B 196 links over 172 instruments;
+`links.md` byte-identical to `_gold-links.md`) because it is built from names and opening sentences. **Signal C is
+not**: 5,096 citations in 3,764 excerpts of 982 instruments, 3,450 scored and 2,407 without the Constitution
+(7,144, 5,292, 1,925, 4,383 and 2,617 before). The 1,528 excerpts that left were mostly the envelope's: a promulgation decree
+that cites the Constitution's article 89 was counted as a text that cites the Constitution (1,766 → 1,043 scored
+excerpts citing it) and as a treaty's own text (751 → 133 scored excerpts of treaties). Instrument level, A and B
+together: the closest is a gold instrument for 125, 129 and 130 of 253 (0.6B, 4B, BM25); a gold instrument is among
+the five closest for 193, 202 and 198; the mean reciprocal rank is 0.615, 0.630 and 0.631. Of the eighteen
+comparisons **fifteen are ties**; the three that are not: the 4B against the 0.6B on the five closest (A and B,
+p = 0.035), and BM25 against the 0.6B on the five closest (136 against 129, p = 0.016) and on the mean reciprocal
+rank (A alone). The 4B and BM25 never differ. Row level: recall@5 0.311, 0.344 and 0.320, median rank 18, 14 and 15; the
+4B is better than the 0.6B on all five measures, **better than BM25 on two** (the five closest and the mean
+reciprocal rank; four before) and BM25 is better than the 0.6B on two (the ten closest and the median rank; none
+before). **Two conclusions moved, the others did not:** BM25 is no longer tied with the 0.6B everywhere, and the
+4B's lead over BM25 is narrower; the 4B is still the better model on a single excerpt. The treaties' own level, with
+the envelope out, is 20 to 22 % of the cited instruments among the five closest, against 4 % before. The Atlas
+page's literals, the Instruments page's prose and `test_atlas_page.py`'s pins follow, and say 26 October 2026.
+
+### Measured, topics, the 4B, 2026-10-26 (issue #301)
+
+The topics were run again over the new 4B matrix (`Qwen/Qwen3-Embedding-4B`, 2,677 × 2,677, 0 zero rows) and
+the 277 strong links of the (unchanged) gold; every configuration finished (22 of 22), same sweeps, gates,
+rule, c-TF-IDF parameters and stopword list. Per configuration, in `comparison.md`:
+
+| algorithm | parameter | clusters | noise | largest | silhouette | co-membership | gates | chosen |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| hdbscan_umap | min_cluster_size 5 | 160 | 19.8% | 2.2% | 0.152 | 0.412 | fail: 160 clusters, outside 20-80; noise 19.8% over 15% |  |
+| hdbscan_umap | min_cluster_size 10 | 80 | 21.9% | 4.8% | 0.111 | 0.437 | fail: noise 21.9% over 15% |  |
+| hdbscan_umap | min_cluster_size 15 | 53 | 28.0% | 3.5% | 0.093 | 0.444 | fail: noise 28.0% over 15% |  |
+| hdbscan_umap | min_cluster_size 20 | 42 | 33.9% | 3.6% | 0.088 | 0.455 | fail: noise 33.9% over 15% |  |
+| hdbscan_umap | min_cluster_size 30 | 26 | 35.4% | 10.0% | 0.066 | 0.321 | fail: noise 35.4% over 15% |  |
+| agglomerative | n_clusters 20 | 20 | 0.0% | 66.8% | 0.023 | 0.708 | fail: largest cluster 66.8% over 25% |  |
+| agglomerative | n_clusters 30 | 30 | 0.0% | 56.5% | 0.033 | 0.643 | fail: largest cluster 56.5% over 25% |  |
+| agglomerative | n_clusters 40 | 40 | 0.0% | 51.9% | 0.042 | 0.606 | fail: largest cluster 51.9% over 25% |  |
+| agglomerative | n_clusters 50 | 50 | 0.0% | 49.1% | 0.050 | 0.574 | fail: largest cluster 49.1% over 25% |  |
+| agglomerative | n_clusters 60 | 60 | 0.0% | 42.8% | 0.057 | 0.534 | fail: largest cluster 42.8% over 25% |  |
+| agglomerative | n_clusters 80 | 80 | 0.0% | 32.3% | 0.069 | 0.462 | fail: largest cluster 32.3% over 25% |  |
+| kmeans | n_clusters 20 | 20 | 0.0% | 54.6% | 0.031 | 0.621 | fail: largest cluster 54.6% over 25% |  |
+| kmeans | n_clusters 30 | 30 | 0.0% | 45.1% | 0.041 | 0.596 | fail: largest cluster 45.1% over 25% |  |
+| kmeans | n_clusters 40 | 40 | 0.0% | 37.9% | 0.048 | 0.509 | fail: largest cluster 37.9% over 25% |  |
+| kmeans | n_clusters 50 | 50 | 0.0% | 31.9% | 0.056 | 0.509 | fail: largest cluster 31.9% over 25% |  |
+| kmeans | n_clusters 60 | 60 | 0.0% | 35.9% | 0.061 | 0.458 | fail: largest cluster 35.9% over 25% |  |
+| kmeans | n_clusters 80 | 80 | 0.0% | 28.4% | 0.071 | 0.415 | fail: largest cluster 28.4% over 25% |  |
+| louvain | resolution 0.5 | 15 | 0.0% | 32.3% | 0.016 | 0.834 | fail: 15 clusters, outside 20-80; largest cluster 32.3% over 25% |  |
+| louvain | resolution 1.0 | 30 | 0.0% | 14.7% | 0.025 | 0.830 | pass | **yes** |
+| louvain | resolution 1.5 | 42 | 0.0% | 11.9% | 0.039 | 0.798 | pass |  |
+| louvain | resolution 2.0 | 49 | 0.0% | 13.1% | 0.043 | 0.794 | pass |  |
+| louvain | resolution 3.0 | 65 | 0.0% | 8.5% | 0.054 | 0.805 | pass |  |
+
+
+Four configurations pass the gates, all of them Louvain; `resolution` 0.5 gives 15 communities, under 20. Ward
+and *k*-means leave a topic of 28.4 to 66.8 % of the instruments in every configuration, HDBSCAN leaves 19.8 to
+35.4 % of them in no dense region. The rule picks **`louvain` `resolution` 1.0**: 30 topics, no noise, the largest
+with 393 instruments (14.7 %), silhouette 0.025 and co-membership 0.830 (230 of the 277 strong links stay together).
+The 2026-10-16 run chose resolution 1.5 (40 topics, 0.841); with the envelope out the highest co-membership among
+the four that pass is at 1.0 (1.0: 0.830; 1.5: 0.798; 2.0: 0.794; 3.0: 0.805). The lottery regulations are again a
+topic of their own (page topic 18, 42 instruments, 2 laws and 40 regulations).
+
+The 30 topics of the chosen configuration, by size (`topics.json`, numbered from 1 as the page numbers them; the
+terms are the first five of ten):
+
+| id | size | collections | top 5 terms |
+|---:|---:|---|---|
+| 1 | 393 | leyes 13, reglamentos 7, tratados 373 | ex, parte, partes, presente, kg |
+| 2 | 352 | leyes 3, reglamentos 5, tratados 344 | partes, cooperación, convenio, presente, articulo |
+| 3 | 253 | leyes 29, lineamientos 80, reglamentos 144 | artículo, información, tribunal, ley, general |
+| 4 | 218 | leyes 58, lineamientos 11, reglamentos 102, tratados 47 | secretaría, unidades, artículo, nacional, administrativas |
+| 5 | 179 | tratados 179 | contratante, estado, estado contratante, otro estado, otro |
+| 6 | 163 | leyes 11, lineamientos 5, reglamentos 87, tratados 60 | trabajo, instituto, trabajadores, artículo, servicios |
+| 7 | 139 | leyes 3, tratados 136 | parte, parte requerida, requerida, requirente, parte requirente |
+| 8 | 126 | leyes 15, lineamientos 3, reglamentos 108 | personal, militar, escuela, artículo, plantel |
+| 9 | 120 | leyes 30, lineamientos 3, reglamentos 37, tratados 50 | articulo, artículo, salud, caso, ley |
+| 10 | 77 | leyes 31, lineamientos 10, reglamentos 36 | artículo, ley, fiscal, refiere, impuesto |
+| 11 | 75 | leyes 19, reglamentos 54, tratados 2 | artículo, secretaría, comisión, ley, energía |
+| 12 | 75 | leyes 5, lineamientos 1, reglamentos 15, tratados 54 | carga, buques, anexo, buque, código |
+| 13 | 69 | leyes 33, reglamentos 36 | comisión, ley, artículo, sociedades, sociedad |
+| 14 | 59 | leyes 19, reglamentos 35, tratados 5 | secretaría, artículo, ley, forestales, residuos |
+| 15 | 58 | leyes 4, lineamientos 2, reglamentos 51, tratados 1 | 2023, electoral, partidos, electorales, instituto |
+| 16 | 58 | leyes 1, reglamentos 2, tratados 55 | unión, cmr, servicio, postal, banda |
+| 17 | 44 | leyes 8, reglamentos 10, tratados 26 | artículo, registro, presente, solicitud, internacional |
+| 18 | 42 | leyes 2, reglamentos 40 | sorteo, pronósticos, premios, sorteos, números |
+| 19 | 39 | leyes 12, lineamientos 7, reglamentos 19, tratados 1 | artículo, centro, adolescentes, persona, niñas |
+| 20 | 25 | leyes 5, reglamentos 14, tratados 6 | agencia, persona, vuelo, aviación, aviación civil |
+| 21 | 19 | leyes 5, lineamientos 2, reglamentos 10, tratados 2 | contrato, artículo, contratación, caso, licitación |
+| 22 | 19 | leyes 1, reglamentos 18 | pasantes, prácticas, naval, examen profesional, prácticas profesionales |
+| 23 | 15 | leyes 2, lineamientos 1, tratados 12 | estado, tratado, consular, estado receptor, receptor |
+| 24 | 11 | leyes 4, reglamentos 7 | cámara, mesa, presidente, comisiones, diputados |
+| 25 | 11 | leyes 1, reglamentos 1, tratados 9 | potencia, prisioneros, guerra, cuyo poder, conflicto |
+| 26 | 11 | reglamentos 11 | beca, becas, conacyt, becaria, persona becaria |
+| 27 | 9 | leyes 1, reglamentos 8 | turísticos, secretaría, turística, turismo, turístico |
+| 28 | 9 | tratados 9 | sen, único aprueba, 2014 sen, andrade presidente, cervantes andrade |
+| 29 | 7 | reglamentos 7 | conamed, médica, queja, artículo, comité |
+| 30 | 2 | tratados 2 | postal universal, universal, postal, acuerdo relativo, unión postal |
+
+**What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four
+corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, from issue #300), the four vectors releases
+(`emb-run-<c>-056/publish/PUBLICAR.md`, **regenerated**: leyes, reglamentos, lineamientos, tratados), the three
+`atlas-pairs` sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`,
+regenerated) and `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).
+
+### Measured, the envelope by position, 2026-10-27 (review fix-1: #300 #301)
+
+**What was wrong, found by reading the Instruments page against the Atlas.** Two things were decided by the label of an API
+block alone and failed in both directions. (1) `md2akn`'s `preamble` and `conclusions` did not respect the API blocks: `preamble`
+ran from the first line to the first container, so for 649 of the 1,373 treaties, 118 of the 864 regulations, 67 of the 125
+guidelines and 9 laws it swallowed the blocks after `ENCABEZADO` (the decree, the certification, a `CONSIDERANDO`), and
+`conclusions` was the last four blocks matching `CONCLUSIONES`, whatever markers they crossed. (2) `rangos_de_envoltura` took an
+`other` block for envelope when its **label** was one of a few decree words, so a treaty's own `FIRMA` block (`11374`) was
+excluded and a decree step with a label nobody had listed (`CANJE DE NOTAS`, the decree's `TRANSITORIO`) was compared. The page
+showed neither: a block with a label and no heading of its own was drawn with no sign of it.
+
+**The rules** (`md2akn` stays 0.5.1; every one applies only to a document with outline markers, a document without them is
+byte-identical, and no rule names an instrument):
+
+* **Rule 42**, `preamble` is exactly the `ENCABEZADO` block (a `header` that opens the document) and `conclusions` never crosses
+  a marker: `_rango_conclusiones` gives up when a marker follows the match. A `header` block after the first node, a `preamble`
+  or `recitals` block opens an `hcontainer` like any other labelled block (rule 29), and an `ÍNDICE` marker closes the previous
+  block's container. `md2akn.validate._block_escapes` now fails a `preamble`/`conclusions` node that reaches into the next marker,
+  so the release sweep's I1 has no exemption left.
+* **Rule 43**, the envelope is read by **position**, `md2akn.outline.bloques_de_decreto`: the `header` blocks, the **leading run**
+  of decree blocks after them (it ends right after a block labelled `CERTIFICACIÓN…`, so a treaty's own text after the
+  certification is never swallowed) and the **trailing run** (from the end back to where the leading run ended), plus any
+  `PARTE FINAL DEL DECRETO…` block elsewhere (`closing`). A block of a run is a decree step when its label is a step word
+  (`_PASO`, widened only where measured: `PROMULGACIÓN`, `CERTIFICACIÓN`, `ACEPTACIÓN`, `ADHESIÓN`, `ADOPCIÓN`, `DEPÓSITO`,
+  `NOTIFICACIONES`, `RATIFICACIÓN`, `RESERVAS`; a lone `DECLARACIÓN` is not one, combined labels are) or, **only when sandwiched
+  between two decree labels**, a generic block whose label is in the vocabulary `ETAPAS_DEL_DECRETO` (`CANJE`, `INTERCAMBIO`,
+  `NOTIFICACIÓN`, `SUSCRIPCIÓN`, `TRANSITORIO DEL DECRETO` ...); a decree label **inside** the instrument's own text is not
+  envelope (`11374`'s `FIRMA`). `es_bloque_de_envoltura` is now only `kind == "header"`. A bare `CONTENIDO` is never read as the
+  decree's (a first version swallowed treaty `24128`'s exchange of notes: 11 all-zero rows), and an instrument that is only its
+  envelope (`23815`, `23891`, `23892`, `55686`) marks none of it (`units._mark_envelope`), or its row would be zero.
+
+**Measured** (`scripts/embeddings/measure_envelope.py`, newest snapshot of the 2,677 Atlas instruments, the parser before and
+after; the record is in the gitignored `output/`):
+
+| | leyes | reglamentos | lineamientos | tratados |
+|---|---:|---:|---:|---:|
+| envelope units before | 324 | 1,030 | 182 | 7,661 |
+| envelope units after | 319 | 1,024 | 178 | 9,185 |
+| instruments with a `preamble`/`conclusions` crossing a marker, before | 9 | 118 | 67 | 649 |
+| the same, after | **0** | **0** | **0** | **0** |
+| instruments whose tree changed | 14 | 129 | 75 | 891 |
+
+In the treaties' envelope the largest moves are `PARTE FINAL DEL DECRETO PROMULGATORIO` 892 → 1,429, `TRANSITORIO` 0 → 528,
+`CANJE DE NOTAS` 0 → 239, `NOTIFICACIÓN` 0 → 142, `INTERCAMBIO DE NOTIFICACIONES` 0 → 67, `CANJE DE INSTRUMENTOS` and `CANJE DE
+NOTIFICACIONES` 0 → 27 each, and out of it `DECLARACIONES Y RESERVAS` 108 → 0, `RESERVAS` 43 → 12, `CERTIFICACIÓN` 1,074 → 1,048 (a
+certification inside the instrument is its own text now). Four treaties have no envelope marked now (1,372 → 1,368 instruments
+with one): the four that are only decree text (`23815`, `23891`, `23892`, `55686`). **What became envelope with no decree-role label** (`measure_envelope.py --leading`, 44 labels, all in
+`tratados`): `TRANSITORIO` 265 instruments, `CANJE DE NOTAS` 239, `NOTIFICACIÓN` 143, `INTERCAMBIO DE NOTIFICACIONES` 67, `CANJE
+DE INSTRUMENTOS` 27, `CANJE DE NOTIFICACIONES` 27, `INTERCAMBIO DE NOTAS` 11, `RATIFICACIÓN Y CANJE DE INSTRUMENTOS` 10,
+`SUSCRIPCIÓN` 8, `CANJE DE RATIFICACIONES` 6, `RATIFICACIÓN Y CONFIRMACIÓN` 5, `INTERCAMBIO NOTIFICACIONES` 5, and 32
+labels of one or two instruments each (`ENTRADA EN VIGOR`, `FORMALIZACIÓN`, `INSTRUMENTOS ADOPTADOS`, `TRANSITORIO DEL DECRETO
+PROMULGATORIO`, `CONCLUSIÓN`, `DEPÓSITO E INTERPRETACIÓN` ...). Each is a step of the Mexican publication of the treaty
+(who exchanged which note, when it entered into force), never an article of it; the labels were read in a sample of instruments
+(`measure_envelope.py --leading` names four for each), and the rule was tightened (`CERTIFICACIÓN` stop, the vocabulary, the sandwich) every time a trial swallowed
+own text (`149202`, `24062`, `11422`, `24128`). **The reverse** (`--mid`, a block *labelled* as a decree step that is not
+envelope because it stands inside the instrument's own text): `CERTIFICACIÓN` 20 treaties, 10 guidelines and 2 regulations,
+`PROMULGACIÓN` 17 treaties and 5 laws, `APROBACIÓN` 6 treaties and 2 regulations, `RESERVAS` 6, `FIRMA` 3 (`11374`, `55907`,
+`110059`), and a few single ones. The Instruments page shows each such block with its label.
+
+**The Instruments page.** A node with a label (`n`) and no heading of its own is drawn with the label as a heading (`h3` to `h6`
+by depth, muted small caps, `title` "Section label from the SCJN's database") and never twice: when the text's first line is
+already that label nothing is added (`LABEL_TITLE`, `labelHeading` in `instruments.js`). Tests: the toy treaty has an `ARREGLO
+PROVISIONAL` block and a `CONSIDERANDO` block, and the real `11374` shows its `FIRMA` once.
+
+**The vectors, rebuilt incrementally** (`emb-run-<c>-057/`, copies of `-056`, which is untouched; `md2akn` 0.5.1): units
+68,852 / 113,735 / 6,298 / 60,881 (leyes, reglamentos, lineamientos, tratados), distinct texts 59,244 / 103,597 / 5,924 / 58,471,
+shared 2,480 / 4,482 / 145 / 1,273. Against the published merge (`compare_merges.py`, identical for both models): texts new
+16 / 426 / 253 / 2,281, dropped 23 / 365 / 205 / 1,999, differing files 16 / 154 / 77 / 879, **no file gained or lost, no text with
+another vector, no non-finite vector, `problems: []` for all eight runs**. Only 4 treaty texts were new to the whole work
+directory (3 shards, both models, 0 failed): the others were already embedded by an earlier run and are looked up by
+`text_sha1`. `package_vectors.py --changed-files` regenerated the four `PUBLICAR.md` (no stale assets, the partition of the
+numbered series unchanged) and the four release bodies (`.github/scjn-*-vectors*.md`) follow the corpora.
+
+**The Atlas chain over the staged cache** (`emb-run-vectors-057-cache/`, verified against the four `SHA256SUMS.txt`): 2,677
+instruments (315 + 864 + 125 + 1,373), 226,425 excerpts, 159,736 searched, 33,948 headings, 22,609 transitory articles and 10,132
+envelope excerpts left out (9,165 before), 2,047 word-for-word shared rows not counted (2,427 under BM25), **157,689 counted**
+(158,361 before; 157,306 under BM25). The closest instrument is unchanged for 2,573 (0.6B), 2,566 (4B) and 2,551 (BM25) of 2,677;
+`p` changed for 393 instruments and `pc` for 938 (945). Matrix jobs 226 s, 401 s and 944 s. The 4B's nearest texts: 159,736 searched
+unit rows, 159,534 source texts, 797,670 rows, `agrees_with_nearest` true (536 s). The three pair sets have 12,683, 12,654 and
+12,622 files (47.5, 50.5 and 51.9 MB as tarballs); the instrument files are 2,677 files, 356 MB (74.9 MB as the tarball), the
+re-parse equals the staged units for **all 2,677**, and the flags are `loose` none, `duplicate_number` none, `numbering_gap`
+107 excerpts in 34 instruments (the sweep's I4 fixture lost one entry, `tratados/23803` `art_19`: its articles 19 to 21 are now
+read as the section `RESERVAS` that they are, not as a sibling of articles 1 to 5), `over_window` 1, `no_articles` 27 and
+`no_transitorios` 1,053.
+
+**Three instruments have an all-zero row, on purpose.** `tratados/11151`, `16145` and `23742` are the same treaty published
+three times; with the decree out of their preamble every excerpt that is compared is a text the three own word for word, which
+the `m > 1` rule does not count, so none of the three has a counted excerpt (before, a preamble that swallowed the decree was
+the only text of each that was not shared). The old guard said such a row "cannot exist" and stopped the build; it does exist.
+What changed, with a test each: `build_instrument_umap_html.normalise_rows` returns the non-zero mask and leaves the row zero,
+`project` fits only the non-zero rows and draws the three at the centre `(0.5, 0.5)` of every layout (`umap.json`
+`without_counted_excerpts`), `export_atlas_data` exports them with `pc` 0 and no targets (still a `SystemExit` for a row that
+sums to a positive number and points nowhere, or for a sum that does not agree with `matrix.json`), the page already drew a
+radius of 0 at its 2.5 px floor, and the clustering already labelled a zero row noise (the three are the "Instruments in no topic"
+below). The matrix is the same in the three models (the same three rows). Nothing in the rule was loosened to avoid them.
+
+**The evaluations were re-run** (`gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`). The gold is **exactly** the
+earlier one (253 instruments, 277 links, `links.md` byte-identical to `_gold-links.md`). Signal C: 5,191 citations in 3,816
+excerpts of 1,002 instruments that cite 307 instruments (88 to themselves set aside), 3,496 citing exactly one, 3,481 scored and
+2,413 without the Constitution (1,068 cite it): 5,096, 3,764, 982, 303, 93, 3,465, 3,450, 2,407 and 1,043 before. Instrument
+level, A and B together: the closest is a gold instrument for 125, 129 and 129 of 253 (0.6B, 4B, BM25; 130 for BM25 before), a
+gold instrument is among the five closest for 193, 202 and 196 (198), the mean reciprocal rank is 0.614, 0.630 and 0.628; gold A
+alone is identical to the digit. Of the eighteen comparisons fifteen are ties, the same three as before. Row level: recall@5
+0.309, 0.343 and 0.317, median rank 18, 14 and 15; the 4B is better than the 0.6B on all five measures and now **better than BM25
+on three** (the five and the ten closest and the mean reciprocal rank; two before), and BM25 is better than the 0.6B on **one**
+(the median rank; the ten closest was the second before and is now p = 0.055). **No conclusion changed**: two margins moved in
+the direction the page already says. The page's literals follow and say 27 October 2026; its Chapingo example now has 29
+excerpts, 16 counted, three targets and 18 incoming, the Constitution's next closest instruments are two at 8.0, and 1,281 of the
+1,373 treaties have another treaty as their closest instrument (three have none).
+
+**The release sweep** (`test_units_release_sweep.py`, over the four cached corpora refreshed from `scripts/scjn/`, I1 with the
+`preamble`/`conclusions` check in force): 19 tests in 69 minutes on the final parser: 18 passed at once and `TestInvariantesDelBloque.test_tratados` failed only on I4's "an entry of `genuine_gaps.json` that is no longer a gap" (`tratados/23803` `art_19`, above); with that entry removed it passes (225 s). No I1 (every node inside its API block, `preamble` and `conclusions` included), I2 (`loose`), I3 (`duplicate_number`) or new I4 failure in any of the four corpora.
+
+**What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four corpora
+(`scripts/scjn/<c>-release/PUBLICAR.md`, from issue #300), the four vectors releases
+(`emb-run-<c>-057/publish/PUBLICAR.md`, **regenerated**: leyes, reglamentos, lineamientos, tratados), the three `atlas-pairs`
+sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and
+`atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).
+
+### Measured, topics, the 4B, 2026-10-27 (review fix-1: #300 #301)
+
+The topics were run again over the 4B matrix of the positional envelope (`Qwen/Qwen3-Embedding-4B`, 2,677 × 2,677,
+**3 zero rows**: `tratados/11151`, `16145` and `23742`, the same treaty published three times, whose every compared
+excerpt is a word-for-word text that the three own, which the matrix does not count) and the 277 strong links of the
+(unchanged) gold; every configuration finished (22 of 22), same sweeps, gates, rule, c-TF-IDF parameters and stopword
+list. A zero row is left out of every fit and labelled noise (`cluster_instruments.normalised_rows`), so the three
+treaties are the 0.1 % of noise below and the page's "Instruments in no topic". Per configuration, in `comparison.md`:
+
+| algorithm | parameter | clusters | noise | largest | silhouette | co-membership | gates | chosen |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| hdbscan_umap | min_cluster_size 5 | 155 | 16.8% | 2.7% | 0.146 | 0.480 | fail: 155 clusters, outside 20-80; noise 16.8% over 15% |  |
+| hdbscan_umap | min_cluster_size 10 | 81 | 21.8% | 2.7% | 0.110 | 0.451 | fail: 81 clusters, outside 20-80; noise 21.8% over 15% |  |
+| hdbscan_umap | min_cluster_size 15 | 47 | 22.5% | 7.1% | 0.078 | 0.534 | fail: noise 22.5% over 15% |  |
+| hdbscan_umap | min_cluster_size 20 | 41 | 27.3% | 6.2% | 0.078 | 0.480 | fail: noise 27.3% over 15% |  |
+| hdbscan_umap | min_cluster_size 30 | 25 | 35.9% | 9.3% | 0.064 | 0.310 | fail: noise 35.9% over 15% |  |
+| agglomerative | n_clusters 20 | 20 | 0.1% | 62.1% | 0.023 | 0.661 | fail: largest cluster 62.1% over 25% |  |
+| agglomerative | n_clusters 30 | 30 | 0.1% | 54.4% | 0.033 | 0.635 | fail: largest cluster 54.4% over 25% |  |
+| agglomerative | n_clusters 40 | 40 | 0.1% | 51.0% | 0.042 | 0.614 | fail: largest cluster 51.0% over 25% |  |
+| agglomerative | n_clusters 50 | 50 | 0.1% | 48.3% | 0.050 | 0.592 | fail: largest cluster 48.3% over 25% |  |
+| agglomerative | n_clusters 60 | 60 | 0.1% | 42.8% | 0.058 | 0.567 | fail: largest cluster 42.8% over 25% |  |
+| agglomerative | n_clusters 80 | 80 | 0.1% | 34.2% | 0.070 | 0.466 | fail: largest cluster 34.2% over 25% |  |
+| kmeans | n_clusters 20 | 20 | 0.1% | 50.0% | 0.032 | 0.567 | fail: largest cluster 50.0% over 25% |  |
+| kmeans | n_clusters 30 | 30 | 0.1% | 44.9% | 0.043 | 0.531 | fail: largest cluster 44.9% over 25% |  |
+| kmeans | n_clusters 40 | 40 | 0.1% | 42.9% | 0.048 | 0.516 | fail: largest cluster 42.9% over 25% |  |
+| kmeans | n_clusters 50 | 50 | 0.1% | 35.8% | 0.057 | 0.422 | fail: largest cluster 35.8% over 25% |  |
+| kmeans | n_clusters 60 | 60 | 0.1% | 37.8% | 0.061 | 0.462 | fail: largest cluster 37.8% over 25% |  |
+| kmeans | n_clusters 80 | 80 | 0.1% | 27.8% | 0.070 | 0.419 | fail: largest cluster 27.8% over 25% |  |
+| louvain | resolution 0.5 | 15 | 0.1% | 25.4% | 0.014 | 0.848 | fail: 15 clusters, outside 20-80; largest cluster 25.4% over 25% |  |
+| louvain | resolution 1.0 | 31 | 0.1% | 13.7% | 0.032 | 0.809 | pass | **yes** |
+| louvain | resolution 1.5 | 40 | 0.1% | 12.6% | 0.039 | 0.798 | pass |  |
+| louvain | resolution 2.0 | 50 | 0.1% | 11.9% | 0.045 | 0.780 | pass |  |
+| louvain | resolution 3.0 | 66 | 0.1% | 11.5% | 0.053 | 0.773 | pass |  |
+
+Four configurations pass the gates, all of them Louvain; `resolution` 0.5 gives 15 communities, under 20. Ward
+and *k*-means leave a topic of 27.8 to 62.1 % of the instruments in every configuration, HDBSCAN leaves 16.8 to
+35.9 % of them in no dense region. The rule picks **`louvain` `resolution` 1.0**: 31 topics, the 3 instruments above in
+none, the largest with 366 instruments (13.7 %), silhouette 0.032 and co-membership 0.809 (224 of the 277 strong
+links stay together; 0.830, 30 topics before). The lottery regulations are again a topic of their own (page topic
+20, 44 instruments, 2 laws and 42 regulations).
+
+The 31 topics of the chosen configuration, by size (`topics.json`, numbered from 1 as the page numbers them; the
+terms are the first five of ten):
+
+| id | size | collections | top 5 terms |
+|---:|---:|---|---|
+| 1 | 366 | leyes 3, reglamentos 5, tratados 358 | partes, cooperación, convenio, presente, articulo |
+| 2 | 294 | leyes 9, reglamentos 2, tratados 283 | presente, estados, partes, parte, miembros |
+| 3 | 252 | leyes 30, lineamientos 65, reglamentos 157 | información, artículo, general, tribunal, ley |
+| 4 | 177 | leyes 12, lineamientos 7, reglamentos 19, tratados 139 | ex, parte, kg, 01, capítulo |
+| 5 | 155 | leyes 16, lineamientos 3, reglamentos 73, tratados 63 | trabajo, trabajadores, instituto, artículo, trabajador |
+| 6 | 120 | leyes 43, lineamientos 4, reglamentos 36, tratados 37 | artículo, ley, comisión, articulo, caso |
+| 7 | 103 | leyes 24, lineamientos 8, reglamentos 70, tratados 1 | artículo, personal, servicio, nacional, militar |
+| 8 | 103 | leyes 1, tratados 102 | parte, parte requerida, requerida, requirente, parte requirente |
+| 9 | 99 | leyes 13, lineamientos 1, reglamentos 83, tratados 2 | personal, escuela, educación, plantel, artículo |
+| 10 | 92 | leyes 31, lineamientos 18, reglamentos 43 | artículo, ley, fiscal, refiere, bienes |
+| 11 | 90 | leyes 31, lineamientos 2, reglamentos 54, tratados 3 | secretaría, artículo, desarrollo, ley, ambiental |
+| 12 | 85 | tratados 85 | estado, estado contratante, contratante, otro estado, otro |
+| 13 | 77 | leyes 5, lineamientos 1, reglamentos 14, tratados 57 | carga, buques, anexo, buque, código |
+| 14 | 74 | leyes 17, lineamientos 4, reglamentos 24, tratados 29 | nacional, derechos, derechos humanos, artículo, humanos |
+| 15 | 72 | leyes 24, lineamientos 1, reglamentos 38, tratados 9 | articulo, salud, secretaría, artículo, productos |
+| 16 | 71 | leyes 18, reglamentos 52, tratados 1 | artículo, secretaría, comisión, ley, energía |
+| 17 | 62 | tratados 62 | parte contratante, parte, otra parte, contratante, otra |
+| 18 | 57 | leyes 1, reglamentos 2, tratados 54 | unión, cmr, servicio, postal, banda |
+| 19 | 56 | leyes 4, lineamientos 2, reglamentos 49, tratados 1 | 2023, electoral, partidos, electorales, políticos |
+| 20 | 44 | leyes 2, reglamentos 42 | sorteo, pronósticos, premios, sorteos, números |
+| 21 | 34 | leyes 5, lineamientos 1, reglamentos 1, tratados 27 | tratado, estado, consular, estado receptor, the |
+| 22 | 30 | leyes 6, reglamentos 18, tratados 6 | agencia, persona, artículo, aviación, vuelo |
+| 23 | 28 | leyes 7, lineamientos 5, reglamentos 14, tratados 2 | centro, artículo, persona, ministerio público, ministerio |
+| 24 | 23 | lineamientos 1, reglamentos 22 | normatividad, normatividad aplicable, pensionissste, aplicable, servicios |
+| 25 | 22 | tratados 22 | aduanera, autoridad aduanera, aduaneras, autoridad, autoridades aduaneras |
+| 26 | 20 | leyes 6, lineamientos 1, reglamentos 11, tratados 2 | contrato, artículo, contratación, licitación, caso |
+| 27 | 18 | leyes 2, lineamientos 1, reglamentos 15 | turísticos, estancia, secretaría, turística, niño |
+| 28 | 18 | leyes 1, reglamentos 1, tratados 16 | potencia, señor, prisioneros, guerra, excelencia |
+| 29 | 12 | reglamentos 12 | pasantes, prácticas, naval, examen profesional, prácticas profesionales |
+| 30 | 11 | leyes 4, reglamentos 7 | cámara, mesa, presidente, comisiones, diputados |
+| 31 | 9 | tratados 9 | sen, único aprueba, 2014 sen, andrade presidente, cervantes andrade |
+| -1 | 3 | tratados 3 | convenio, presente convenio, prostitución, partes presente, presente |
+
+
+### Measured, the outline governs first, 2026-10-28 (review fix-2: #300 #301)
+
+**What was wrong, found by reading the Instruments page against the Atlas.** (1) One treaty was on the map three times:
+`tratados/11151`, `16145` and `23742` have the same current text, and the three all-zero matrix rows fix-1 had to special-case
+were that, not an accident of the envelope. (2) The label the SCJN prints as the first line of an API block was compared as
+text: `tratados/143097`'s block `DISPOSICIONES PRELIMINARES` holds only that line, and `md2akn` made it a `section` titled
+`SECCIÓN ...` (a word the SCJN never wrote) with an `intro` unit that was the label again. (3) Text rules had been overruling the
+markers (the API's own outline) since #291: a line's place was decided by five independent text rules, and fix-1 to fix-6
+each patched the case someone had looked at.
+
+**(a) The measurement, before any change** (`scripts/embeddings/measure_marker_conformance.py`, newest snapshot of the 2,677
+instruments of the previous Atlas; `md2akn.validate.block_conformance` compares each API block with the node rooted at it).
+Run with the parser of `f09b3c587` and the checker as finally written (`output/conformance-before-final-checker.txt`):
+
+| class of disagreement | leyes | reglamentos | lineamientos | tratados |
+|---|---:|---:|---:|---:|
+| `type`, the root is not what the marker says | 226 (62 instruments) | 612 (98) | 51 (19) | 756 (194) |
+| `crossing`, a leaf reaches into the next block | 106 (52) | 55 (36) | 0 | 0 |
+| `parent`, a container hangs from one of its own rank | 24 (1) | 0 | 0 | 33 (4) |
+| `label-line`, the block's own label line is content | 5 (4) | 308 (163) | 284 (105) | 436 (215) |
+| `no-node`, the block opened no node | 16 (10) | 9 (8) | 0 | 0 |
+| compared `intro` units that are only the label of the block before | 5 (4) | 78 (31) | 83 (20) | 38 (31) |
+
+2,921 disagreements that were not documented. (The first, broader count of that last row, taken before the metric was
+restricted to the unit's own container, was 91, 547, 100 and 448 units: 1,186. The review's 1,448 counted the same
+shape over a wider reading of "label".) The big classes had one cause each: the text rules read a block that holds articles after
+a label as a `section` (`type`, 1,645), read the label line as the first paragraph (`label-line`, 1,033), pulled a trailing
+annotation into the node of the *next* block, whose span then began inside the block before it (`crossing`, 161; the Código
+Civil Federal's article 188 began inside article 187), and nested a `PARTE` inside the part before it (`parent`, 57).
+
+**(b) The markers govern first, rules 44 to 47 and invariant I5** (`md2akn` stays 0.5.1; every rule applies only to a document
+with markers, and a document without them is byte-identical, pinned by digests computed with the parser before the change,
+`fixtures_units/marker_free_digests.json`; no rule names an instrument):
+
+* **Invariant I5** (`validate.block_conformance`, run by the release sweep over every current instrument of the four corpora): the
+  node a block opens is of the type its marker says, holds the number the marker gives, hangs from the node its rank
+  implies, contains the text the block holds and takes its own label line as its heading. A disagreement is either fixed in
+  the parser or one of a short list of **documented** classes with raw evidence (`CLASES_DOCUMENTADAS`, below).
+* **Rule 44**, an API block labelled `other` is an `hcontainer`, never a `section` the text of the articles after it suggests
+  (a section is what the SCJN says when it says `type=section`). The one exception is rule 38's heading-only article blocks. A
+  block whose own first text is its label (`**DISPOSICIONES PRELIMINARES**`, `**III. CONSIDERANDOS**`, `Finalidad.`, compared
+  without case, accents, bold, ordinal marks, `:` and `.`, a leading numeral allowed) has that line as the heading of the
+  node, not as an `intro` unit; the court's `(NOTA: ...)` printed above it is an annotation of that heading.
+* **Rule 45**, where a `PARTE` sits is read from the next marker: when it opens a book, a title or a chapter the part holds it
+  and ranks just above that type, and a part is the sibling of the part before it. Otherwise the document-wide reading stays.
+* **Rule 46**, an annotation read after the last text of a block and before the next marker belongs to the block it was read
+  in. It hangs from the deepest last node of that block (see the sweep, below).
+* **Rule 47**, a block the API labels `provision` is one text, like an `article` block: a heading line *inside* it (`Anexo I`
+  in the IMDG treaty `114738`) opens nothing; its own first line is still its opener.
+
+**The documented exceptions** (`packages/md2akn/tests/fixtures_units/marker_documented.json`, 57 blocks, regenerated by
+`scripts/embeddings/classify_marker_exceptions.py`, read in both directions by the sweep like the gap fixture): the marker's
+`label` and its own `numero` disagree and the node takes `numero` (`documented-number-by-numero`, 7 blocks: `22680`'s
+`ARTICULO XXVII` on the block numbered 37 whose text prints `XXXVII`); the label repeats an earlier block's and the text prints
+another number (`documented-number-label-repeated`, 4: the API labelled two blocks `ARTÍCULO 47-J`); the LIGIE's tariff chapters
+served as `ARTÍCULO 83` whose text is `Capítulo 83` (`documented-article-served-as-chapter`, 4); a block labelled
+`TRANSITORIO` whose whole text is the closing signatures of reglamento `37613` (`documented-closing-signature`, 1); and an API
+`article` block that holds only a heading and a caption, followed by `provision` blocks, in reglamento `952`
+(`documented-article-heading`, 41, rule 38's section). Every entry carries the raw marker and the block's first line.
+
+**After:**
+
+| | leyes | reglamentos | lineamientos | tratados |
+|---|---:|---:|---:|---:|
+| disagreements that are not documented | **0** | **0** | **0** | **0** |
+| documented | 5 | 48 | 0 | 3 |
+| compared `intro` units that are only a label | 0 | 1 | 0 | 2 |
+
+The three that remain are not a disagreement with a marker: reglamento `216`'s derogated `V.- (SIC) ARTÍCULO 1255` block (the
+unit holds the bold lead of an article that was repealed) and, in treaty `84858`, a bare `CONTENIDO` block whose first line repeats
+the title of the block before it (`Reglamento Interno de los Congresos`, rule 40). **Trees that changed** (`measure_trees.py`
+against the same snapshots, fix-1's parser): 20 of 315 leyes, 198 of 864 reglamentos, 107 of 125 lineamientos and 342 of 1,373
+treaties; 0 `coverage()` failures and 0 repeated numbers.
+
+**What the release sweep found, and what it fixed.** The first run on the new parser failed 5 of 19 tests. (1) `coverage()` left 14
+leyes and 9 reglamentos with an annotation uncovered (the Código Fiscal's `(REFORMADO PRIMER PÁRRAFO ...)` before article 18-A):
+`units._annotation_ranges` finds each note by a left-to-right search and reads a node's notes before its children's, so a rule-46
+note held by the article itself was read before the notes of the paragraphs it follows. The note now hangs from the deepest
+last node. (2) Lineamiento `109466`, an acuerdo read in ordinal mode, repeated `PRIMERO` to `CUARTO`: rule 47 had also turned the
+block's own `**Primero.**` into content, which made the document-wide gate of rule 8 stop reading the mode. (3) the I4 fixture
+(`genuine_gaps.json`) is keyed by eId and the `sec_` identifiers became `hc_`; it was regenerated with
+`classify_numbering_gaps.py --write` (110 entries before, 102 now: the eight that left are `tratados/14227`'s, whose articles
+quoted inside a `provision` block no longer open structure, and the other 70 entries, in 13 instruments, are the same gaps under
+their new identifiers, `hc_` for `sec_` and the `_2`, `_3` suffixes of a repeated label; reglamento `71871` prints the same
+`A.`/`B.` headings under several `4.` headings, so the flag, which reads one container at a time by its label, sees the numbering
+jump while the articles run on from 90 to 96). Each fix has a test (`test_marker_conformance.py`, 18 tests in all). **The sweep then passes: 19 tests in 58 min 30 s on the final parser.**
+
+**(c) One instrument per identical text** (`unique_instruments.select_identical`). The same-name rule of #259 stays, for
+`reglamentos` and `lineamientos`. A second rule, for **all four collections**, groups the instruments whose compared excerpts
+(the unit rows the matrix searches: no heading, table of contents, transitorio or envelope) are the same multiset of `text_sha1`,
+and keeps the one whose **original publication is that text** (its oldest snapshot is word for word its newest, once the
+provenance header and the outline markers are stripped); a tie, and a group in which no member qualifies, go to the larger
+identifier, and an instrument with no compared excerpt is never grouped. It runs after the same-name rule on what that kept, and the
+report entries carry a `reason` (`same-name` or `identical-text`). The seven it drops: `tratados/16145` and `23742` (replaced by
+`11151`), `11432` (`55908`), `16515` (`114898`), `22598` (`22599`), `23776` (`89156`) and the law `lamn` (`lamni`: the SCJN files
+the 2020 Amnesty Law twice). **The instrument count is 2,670, not the 2,675 the review's two-treaty reading gave**: with the
+labels no longer compared (rule 44) five more groups are word for word the same, which is also what would have made their
+rows all zero. Fix-1's special cases for an all-zero row (`normalise_rows`' mask, `project`'s centre, `export_atlas_data`'s
+`pc` 0, the page's no-target panel) were **removed** (`git revert` of `b452c96d9` and `2d0765f52`) and the guard restored: a row
+that sums to zero is an error again, which the build now never reaches (0 instruments in no topic below).
+
+**(d) The chain, rebuilt** (nothing published). `emb-run-<c>-058/` are copies of `-057` (untouched, like `-055` to `-057`):
+units 68,854 / 114,033 / 6,512 / 61,338 (leyes, reglamentos, lineamientos, tratados), distinct texts 59,246 / 103,699 / 5,991 /
+58,747, shared 2,480 / 4,513 / 169 / 1,316. The plan excluded what was already embedded (66,964 / 111,052 / 7,970 / 88,288) and
+embedded 283 / 1,162 / 401 / 3,496 texts with each model (3 shards per collection and model on the three A100s, 0 failed).
+`compare_merges.py` against `-057`, identical for both models: texts new 290 / 1,238 / 449 / 3,567, dropped 288 / 1,136 / 382 /
+3,291, differing files 18 / 244 / 108 / 324, **no file gained or lost, no text with another vector, no non-finite vector,
+`problems: []` for all eight runs**. `package_vectors.py --changed-files` regenerated the four `PUBLICAR.md` and the four release
+bodies (`.github/scjn-*-vectors.md`) follow the corpora. The Atlas chain ran over the staged cache
+(`emb-run-vectors-058-cache/`, `stage_vectors_cache.py`): **2,670 instruments** (314 + 864 + 125 + 1,367), 227,132 excerpts,
+158,327 searched, 36,137 headings, 22,575 transitory articles and 10,093 envelope excerpts left out, 1,895 word-for-word shared rows
+not counted (2,294 under BM25), **156,432 counted** (156,030). The closest instrument is unchanged for 2,616 (0.6B), 2,617 (4B) and
+2,625 (BM25) of 2,670 against the previous Atlas; `p` changed for 448 instruments and `pc` for 226 (238). Matrix jobs ran on the
+login node (1,293 s, 2,098 s and 1,682 s, peak 2.2, 4.3 and 3.1 GB); the 4B's nearest texts: 158,327 searched unit rows, 158,128
+source texts, 790,640 rows, `agrees_with_nearest` true (1,340 s). The three pair sets have 12,691, 12,652 and 12,617 files (47.4,
+50.5 and 51.9 MB as tarballs); the instrument files are 2,670 files, 356 MB (74.7 MB as the tarball), the re-parse equals the staged
+units for **all 2,670**, and the flags are `numbering_gap` 99 excerpts in 33 instruments, `over_window` 1, `no_articles` 28 and
+`no_transitorios` 1,053, with no `loose`, `duplicate_number` or `uncovered` anywhere.
+
+**The evaluations were re-run.** The gold is exactly as before (253 instruments, 277 links: A 162, B 172, 62 unresolved names,
+none ambiguous; `links.md` byte-identical to `_gold-links.md`). Signal C: 5,186 citations in 3,814 excerpts of 1,001 instruments that
+cite 307 instruments (88 to themselves set aside), 3,495 citing exactly one, 3,480 scored and 2,413 without the Constitution (1,067
+cite it); 5,191, 3,816, 1,002, 3,496, 3,481 and 1,068 before. Instrument level: the closest is a gold instrument for 99, 101 and 102 of
+the 162 (A alone, identical to before) and for 125, 129 and 131 of the 253; a gold instrument is among the five closest for 129, 134
+and 136 and for 194, 202 and 196; the mean reciprocal rank is 0.696, 0.717, 0.722 and 0.614, 0.631, 0.631. **Two of the eighteen
+comparisons are not ties, both on the narrow gold standard in BM25's favour over the 0.6B** (the five closest, p = 0.016, and the
+mean reciprocal rank); the 4B's lead over the 0.6B on the wide gold standard's five closest (p = 0.035) is now a tie (p = 0.077).
+Row level: recall@5 0.309, 0.342 and 0.317, median rank 18, 14 and 15; the 4B is better than the 0.6B on all five measures and than
+BM25 on three, BM25 better than the 0.6B on the median rank only. **No other conclusion changed.** The page's literals follow and
+say 28 October 2026, and its prose names the identical-text rule.
+
+**The topics** (`cluster_instruments.py` over the 4B matrix, the same sweeps, gates, rule, c-TF-IDF parameters and stopwords; the
+Topics page stays a draft and only its generated files and literals follow the data): every one of the 22 configurations finished, and
+the rule again picks `louvain` `resolution` 1.0 with 31 topics, **no instrument in none**, a largest topic of 344 instruments
+(12.9 %), silhouette 0.032 and co-membership 0.819 (227 of the 277 strong links, 0.809 before).
+
+**What a human has to run, in this order, before the pull request merges** (nothing was uploaded): the four corpora
+(`scripts/scjn/<c>-release/PUBLICAR.md`, from issue #300), the four vectors releases (`emb-run-<c>-058/publish/PUBLICAR.md`,
+**regenerated**: leyes, reglamentos, lineamientos, tratados; the `-057` ones are superseded), the three `atlas-pairs` sets
+(`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`, regenerated) and `atlas-instruments`
+(`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, regenerated).
+
+### Measured, topics, the 4B, 2026-10-28 (review fix-2: #300 #301)
+
+The topics were run again over the 4B matrix of the corpora whose outline governs first (`Qwen/Qwen3-Embedding-4B`, 2,670 x 2,670,
+no zero row) and the 277 strong links of the (unchanged) gold; every configuration finished (22 of 22). Per configuration, in
+`comparison.md`:
+
+| algorithm | parameter | clusters | noise | largest | silhouette | co-membership | gates | chosen |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| hdbscan_umap | min_cluster_size 5 | 158 | 17.0% | 2.2% | 0.148 | 0.426 | fail: 158 clusters, outside 20-80; noise 17.0% over 15% |  |
+| hdbscan_umap | min_cluster_size 10 | 80 | 21.9% | 3.1% | 0.112 | 0.440 | fail: noise 21.9% over 15% |  |
+| hdbscan_umap | min_cluster_size 15 | 50 | 26.9% | 3.8% | 0.088 | 0.498 | fail: noise 26.9% over 15% |  |
+| hdbscan_umap | min_cluster_size 20 | 41 | 33.7% | 3.1% | 0.087 | 0.448 | fail: noise 33.7% over 15% |  |
+| hdbscan_umap | min_cluster_size 30 | 28 | 39.6% | 7.4% | 0.075 | 0.292 | fail: noise 39.6% over 15% |  |
+| agglomerative | n_clusters 20 | 20 | 0.0% | 74.0% | 0.018 | 0.693 | fail: largest cluster 74.0% over 25% |  |
+| agglomerative | n_clusters 30 | 30 | 0.0% | 52.1% | 0.029 | 0.632 | fail: largest cluster 52.1% over 25% |  |
+| agglomerative | n_clusters 40 | 40 | 0.0% | 50.3% | 0.038 | 0.617 | fail: largest cluster 50.3% over 25% |  |
+| agglomerative | n_clusters 50 | 50 | 0.0% | 47.4% | 0.046 | 0.588 | fail: largest cluster 47.4% over 25% |  |
+| agglomerative | n_clusters 60 | 60 | 0.0% | 42.2% | 0.055 | 0.523 | fail: largest cluster 42.2% over 25% |  |
+| agglomerative | n_clusters 80 | 80 | 0.0% | 35.7% | 0.067 | 0.480 | fail: largest cluster 35.7% over 25% |  |
+| kmeans | n_clusters 20 | 20 | 0.0% | 53.4% | 0.032 | 0.599 | fail: largest cluster 53.4% over 25% |  |
+| kmeans | n_clusters 30 | 30 | 0.0% | 46.2% | 0.039 | 0.505 | fail: largest cluster 46.2% over 25% |  |
+| kmeans | n_clusters 40 | 40 | 0.0% | 40.0% | 0.048 | 0.505 | fail: largest cluster 40.0% over 25% |  |
+| kmeans | n_clusters 50 | 50 | 0.0% | 38.2% | 0.051 | 0.430 | fail: largest cluster 38.2% over 25% |  |
+| kmeans | n_clusters 60 | 60 | 0.0% | 33.1% | 0.063 | 0.440 | fail: largest cluster 33.1% over 25% |  |
+| kmeans | n_clusters 80 | 80 | 0.0% | 26.6% | 0.073 | 0.458 | fail: largest cluster 26.6% over 25% |  |
+| louvain | resolution 0.5 | 15 | 0.0% | 32.2% | 0.016 | 0.841 | fail: 15 clusters, outside 20-80; largest cluster 32.2% over 25% |  |
+| louvain | resolution 1.0 | 31 | 0.0% | 12.9% | 0.032 | 0.819 | pass | **yes** |
+| louvain | resolution 1.5 | 39 | 0.0% | 12.8% | 0.038 | 0.816 | pass |  |
+| louvain | resolution 2.0 | 48 | 0.0% | 12.1% | 0.045 | 0.801 | pass |  |
+| louvain | resolution 3.0 | 69 | 0.0% | 11.7% | 0.055 | 0.787 | pass |  |
+
+Four configurations pass the gates, all of them Louvain; `resolution` 0.5 gives 15 communities, under 20. Ward and *k*-means leave a
+topic of 26.6 to 74.0 % of the instruments in every configuration, HDBSCAN leaves 17.0 to 39.6 % of them in no dense region. The rule
+picks **`louvain` `resolution` 1.0**: 31 topics, none of the instruments in no topic, the largest with 344 instruments (12.9 %),
+silhouette 0.032 and co-membership 0.819 (227 of the 277 strong links stay together).

@@ -58,11 +58,13 @@ def test_annex_holds_its_parts_and_each_part_its_appendix():
     tree = parse_markdown(_read("outline_tratado.md"))
     body = next(c for c in tree.children if c.akn_type == "body")
     top = [(c.akn_type, c.num) for c in body.children if c.akn_type not in ("article", "content")]
+    # the recitals block is a container of its own (rule 42, review fix-1 of #301);
     # the index is a toc, not containers; the block that holds articles `1.1`
-    # and `1.2` in its own text is an implicit section (rule 23); ANEXO 1 and
-    # ANEXO 2 are siblings
+    # and `1.2` in its own text is an `hcontainer` named by its label (rules 23 and
+    # 44: the API said `other`, never `SECCIÓN`); ANEXO 1 and ANEXO 2 are siblings
     assert top == [
-        ("toc", "1"), ("section", "1 ÁMBITO"), ("attachment", "1"), ("attachment", "2"),
+        ("hcontainer", "CONSIDERANDO"), ("toc", "1"), ("hcontainer", "1 ÁMBITO"),
+        ("attachment", "1"), ("attachment", "2"),
     ]
     anexo1 = body.find("att_1")
     assert [(c.akn_type, c.num) for c in anexo1.children if c.akn_type == "part"] == [
@@ -77,8 +79,8 @@ def test_annex_holds_its_parts_and_each_part_its_appendix():
 def test_the_same_number_in_two_parts_is_not_a_repeat():
     tree = parse_markdown(_read("outline_tratado.md"))
     eids = [n.eId for n in _walk(tree) if n.akn_type == "article"]
-    # the implicit section's own `1.1` and Part 1's `1.1` are two identifiers
-    assert "sec_1_ÁMBITO__art_1.1" in eids and "att_1__part_1__art_1.1" in eids
+    # the labelled block's own `1.1` and Part 1's `1.1` are two identifiers
+    assert "hc_1_ÁMBITO__art_1.1" in eids and "att_1__part_1__art_1.1" in eids
     assert not any(n.repeated for n in _walk(tree))
     assert len(eids) == len(set(eids))
 
@@ -190,8 +192,9 @@ def test_an_article_block_that_quotes_another_article_stays_one_article():
     assert "Texto citado." in arts[0].text
 
 
-def test_a_block_that_holds_articles_in_its_own_text_opens_a_section():
-    """Rule 23: an `other` block carrying articles opens an implicit section,
+def test_a_block_that_holds_articles_in_its_own_text_opens_a_labelled_container():
+    """Rules 23 and 44: an `other` block carrying articles opens a container of its
+    own -- an `hcontainer` named by its label, since the API did not say `SECCIÓN` --
     so a number the next block restarts is not a repeat."""
     text = (
         '<!-- scjn:block orden=1 numero=0 kind=other label="1 ÁMBITO" -->\n\n'
@@ -202,8 +205,9 @@ def test_a_block_that_holds_articles_in_its_own_text_opens_a_section():
         "**Artículo 1.1:** Otra vez, en otra sección.\n"
     )
     tree = parse_markdown(text)
-    secs = [n for n in _walk(tree) if n.akn_type == "section"]
-    assert len(secs) == 2
+    secs = [n for n in _walk(tree) if n.akn_type == "hcontainer"]
+    assert [n.num for n in secs] == ["1 ÁMBITO", "2 OTRO"]
+    assert not [n for n in _walk(tree) if n.akn_type == "section"]
     assert not any(n.repeated for n in _walk(tree))
 
 

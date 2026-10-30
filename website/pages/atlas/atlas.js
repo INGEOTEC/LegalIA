@@ -1074,11 +1074,17 @@
         }
         if (!ok) continue;
         // Exact-prefix name matches first, then a name that contains every
-        // word, then an abbreviation or id.
+        // word, then an abbreviation or id. Among names of one kind the one the
+        // query covers most of comes first (a query that is the whole name, then
+        // the shortest name that starts with it): "constitucion" finds the
+        // Constitution before the treaty "CONSTITUCION Y CONVENIO DE LA UNION ...",
+        // however many more excerpts that one counts.
         const rank = d.folded.startsWith(folded) || d.foldedKey === folded ? 0 : inName ? 1 : 2;
-        found.push({ d, rank });
+        const coverage = rank === 2 ? 0 : folded.length / d.folded.length;
+        found.push({ d, rank, coverage });
       }
-      found.sort((a, b) => a.rank - b.rank || b.d.pc - a.d.pc || a.d.i - b.d.i);
+      found.sort((a, b) => a.rank - b.rank || b.coverage - a.coverage || b.d.pc - a.d.pc
+        || a.d.i - b.d.i);
       return found.slice(0, SUGGESTIONS).map((entry) => entry.d);
     }
 

@@ -20,14 +20,18 @@ only when **every snapshot already on disk came back**. A transient failure
 snapshot that was there; here the instrument is recorded as `incomplete` in
 the ledger and retried on the next run, with the old files untouched.
 
-Resumable. ``<outdir>/<coleccion>/.recrawl-outline.jsonl`` gets one line per
+Resumable. ``<outdir>/<coleccion>/.recrawl-outline.jsonl`` (or ``--ledger NAME``) gets one line per
 instrument attempted (``done`` or ``incomplete``, its counts and seconds); a
 second run skips every ``done`` key. What the API answered is kept, gzipped,
 under ``--raw-dir`` (default ``<outdir>/raw-api``), so the writer can change
 again without a second crawl: ``scripts/rewrite_scjn_from_raw.py``.
 
     ./scripts/recrawl_scjn_outline.py --coleccion tratados --limit 50
-    ./scripts/recrawl_scjn_outline.py --coleccion leyes --instrumento ccom
+    ./scripts/recrawl_scjn_outline.py --coleccion leyes --instrumento ccom   # again, even if done
+
+Since issue #300 the API client refuses an incomplete answer (`orden` gap, fewer
+rows than `tamanio`), so a reform that still comes back partial after its
+retries is not written: the instrument is ``incomplete`` and keeps its old files.
 
 Nothing is published and no release asset is touched: packaging
 (`empaqueta_scjn_leyes.py`/`empaqueta_scjn_coleccion.py`) is the step after.
@@ -68,11 +72,11 @@ def instruments(outdir: Path, coleccion: str) -> list[tuple[str, str, str]]:
     ]
 
 
-def done_keys(base: Path) -> set[str]:
+def done_keys(base: Path, name: str = LEDGER) -> set[str]:
     """Every key a ledger of `base` (the plain one, and the ``--part`` ones)
     records as ``done``, a later failed attempt cancelling an earlier success."""
     keys = set()
-    for ledger in sorted(base.glob(f"{LEDGER}*")):
+    for ledger in sorted(base.glob(f"{name}*")):
         for line in ledger.read_text(encoding="utf-8").splitlines():
             if line.strip():
                 row = json.loads(line)
@@ -144,21 +148,27 @@ def main(argv=None) -> int:
     p.add_argument("--espera", type=float, default=scjn_api.ESPERA_DEFAULT)
     p.add_argument("--limit", type=int, default=None, help="stop after this many instruments")
     p.add_argument("--instrumento", action="append", default=None, help="only these keys")
+    p.add_argument("--ledger", default=LEDGER, metavar="NAME",
+                   help="ledger file name under the collection's directory; a fresh name "
+                        "re-crawls every instrument again (issue #300 used "
+                        ".recrawl-contenido.jsonl). Default: %(default)s")
     p.add_argument("--part", default=None, metavar="I/N",
                    help="only every N-th instrument starting at I (0-based), to run N processes")
     args = p.parse_args(argv)
 
     raw_root = (args.raw_dir or args.outdir / "raw-api") / args.coleccion
     base = args.outdir / args.coleccion
-    ledger = base / LEDGER
+    ledger = base / args.ledger
     todo = instruments(args.outdir, args.coleccion)
     if args.part:
         i, n = (int(x) for x in args.part.split("/"))
         todo = [t for k, t in enumerate(todo) if k % n == i]
-        ledger = base / f"{LEDGER}.part{i}of{n}"
-    seen = done_keys(base)
+        ledger = base / f"{args.ledger}.part{i}of{n}"
+    seen = done_keys(base, args.ledger)
     if args.instrumento:
         todo = [t for t in todo if t[0] in set(args.instrumento)]
+        # Naming an instrument asks for it again, whatever the ledger says.
+        seen -= set(args.instrumento)
     api = scjn_api.ScjnApi(espera=args.espera)
     attempted = failed = 0
     started = time.time()

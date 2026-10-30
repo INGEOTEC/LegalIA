@@ -472,6 +472,35 @@ every machine has — rather than over a handful of fixtures; see its own module
   `numbering_gap` classified in `tests/fixtures_units/genuine_gaps.json`.
   No rule names an instrument and a document with no marker is read as before.
 
+  **Issue #300 (still 0.5.1):** **rule 40**. The SCJN serves some treaties as a
+  title-only block (`ANEXO`, `ANEXO 4`, `PROTOCOLO`) followed by a block labelled
+  just `CONTENIDO` that holds the text -- rule 30's split with nothing after the
+  word, so rule 30 never fired, and the text opened a section beside the annex.
+  A `kind=other` block whose folded label is exactly `CONTENIDO` and that follows a
+  block whose text is one short line is now that block's content
+  (`outline.es_contenido_suelto`, read from the marker and the text before it, also
+  by `validate`'s invariant I1). One after a block with text of its own, such as
+  the index of reglamento 138214 after its `CONSIDERANDO`, is read as before.
+  **Rule 41**, found by the release sweep over the restored text: a running head `Art. 8`
+  straight before `**ARTICULO 8**` is not an article (markers only), and
+  `NUM_ARTICULO` takes a capital letter that closes the line (`Artículo 11 A`; it
+  reaches 5 lines of one treaty, 23895, in the whole corpus).
+
+  **Issue #301 (still 0.5.1):** `TextUnit` gains a last field, `envelope`, true for
+  the units of an instrument's envelope: the SCJN header block, the Mexican
+  promulgation decree (rule 29's `#promulgation` role) and the decree's closing
+  certification (`outline.es_bloque_de_envoltura`, `rangos_de_envoltura`). It is read from
+  the outline markers alone, so it is false everywhere in a document with none, and it
+  changes no other field (`text`, `text_sha1`, eIds). Nothing is dropped from `text_units`:
+  the consumers (the Atlas matrix) decide that an envelope is neither a source nor a candidate.
+  **Review fix-1 of #301 (still 0.5.1; rules 42 and 43):** on a snapshot with outline markers
+  `preamble` is exactly the title block and `conclusions` never crosses an API block (both used to
+  be built from text heuristics, and `validate`'s invariant I1 exempted them); and the envelope is
+  read by *position* (`outline.bloques_de_decreto`): the decree is a run of blocks after the title
+  block or at the end of the document, so a decree-step label inside the instrument's own text (a
+  treaty's testimonium `FIRMA`) is not envelope and a decree's opening the label table did not know
+  (`APROBACIÓN DE INSTRUMENTOS`) is. A document without markers is read as before.
+
 - **0.5.0** — **rule 10** of `text_units` (issue #279): a roman-numbered
   article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`) is an
   article, the way an international treaty numbers its own articles. It is a

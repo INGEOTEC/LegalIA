@@ -293,7 +293,7 @@ def test_the_committed_data_lists_the_atlas_instruments_at_every_i(committed):
 def test_every_instrument_is_in_exactly_one_committed_topic(committed):
     members = [i for topic in committed["topics"] for i in topic["members"]]
     assert sorted(members) == list(range(committed["meta"]["instruments"]))
-    assert committed["meta"]["instruments"] == 2677
+    assert committed["meta"]["instruments"] == 2670
     topics = committed["topics"]
     assert [t["size"] for t in topics if t["id"] != -1] == sorted(
         (t["size"] for t in topics if t["id"] != -1), reverse=True)
@@ -321,10 +321,10 @@ def test_the_committed_markdown_is_the_committed_data(committed):
             group = [j for j in topic["members"] if instruments[j][0] == instruments[i][0]]
             assert group.index(i) < len(topic["reps"])
     keys = [re.search(r"`([^`]+)`$", line).group(1) for lines in lists for line in lines]
-    assert len(keys) == len(set(keys)) == 2677
+    assert len(keys) == len(set(keys)) == 2670
     rows = re.findall(r"(?m)^\| \[[^\]]+\]\(#(topic-[^)]+)\) \|.*\| ([\d,]+) \| [\d,]+ \| [\d,]+ \| "
                       r"[\d,]+ \| [\d,]+ \|$", markdown)
-    assert sum(int(size.replace(",", "")) for _, size in rows) == 2677
+    assert sum(int(size.replace(",", "")) for _, size in rows) == 2670
     assert [anchor for anchor, _ in rows] == re.findall(r"(?m)^### .* \{#(topic-[^}]+)\}$", markdown)
 
 
@@ -363,7 +363,7 @@ def test_the_qmd_literals_agree_with_the_committed_data(committed):
     meta = committed["meta"]
     measures = meta["measures"]
     assert (meta["algorithm"], meta["parameter_name"], meta["parameter"]) == (
-        "louvain", "resolution", 1.5)
+        "louvain", "resolution", 1.0)
     assert meta["selection"] == {"mode": "rule", "finished": 22, "passing_the_gates": 4}
     gates = meta["gates"]
     assert f"between {gates['min_clusters']} and {gates['max_clusters']} topics" in text
@@ -387,10 +387,10 @@ def test_the_qmd_literals_agree_with_the_committed_data(committed):
     assert f"the same {meta['instruments']:,} unique instruments" in text
     assert f"The table lists the {meta['topics']} topics" in text and (
         f"add up to the {meta['instruments']:,} instruments" in text)
-    assert measures["clusters"] == meta["topics"] == 40
+    assert measures["clusters"] == meta["topics"] == 31
 
 
-FOUR_B_SECTION = "### Measured, topics, the 4B, 2026-10-16"
+FOUR_B_SECTION = "### Measured, topics, the 4B, 2026-10-28 (review fix-2: #300 #301)"
 
 
 def four_b_rows() -> list[dict]:
@@ -408,16 +408,16 @@ def four_b_rows() -> list[dict]:
 
 
 def test_the_qmd_comparison_claims_agree_with_the_4b_sweeps(committed):
-    """Ward and k-means left a topic of 30 % to 77 % of the instruments; the
-    density-based runs left 19 % to 37 % in no topic over a minimum of 5 to 30; only
+    """Ward and k-means left a topic of 27 % to 74 % of the instruments; the
+    density-based runs left 17 % to 40 % in no topic over a minimum of 5 to 30; only
     Louvain passed."""
     rows = four_b_rows()
     assert len(rows) == 22
     ward_kmeans = [r["largest"] for r in rows if r["algorithm"] in ("agglomerative", "kmeans")]
-    assert 29 <= min(ward_kmeans) <= 31 and 76 <= max(ward_kmeans) <= 78     # 30 % to 77 %
+    assert 26 <= min(ward_kmeans) <= 27 and 74 <= max(ward_kmeans) <= 75     # 27 % to 74 %
     density = [r for r in rows if r["algorithm"] == "hdbscan_umap"]
     noise = [r["noise"] for r in density]
-    assert len(noise) == 5 and 18 <= min(noise) <= 19 and 37 <= max(noise) <= 38   # 19 % to 37 %
+    assert len(noise) == 5 and 17 <= min(noise) <= 18 and 39 <= max(noise) <= 40   # 17 % to 40 %
     passing = [r for r in rows if r["gates"] == "pass"]
     assert {r["algorithm"] for r in passing} == {"louvain"} and len(passing) == 4
     meta = committed["meta"]
@@ -429,8 +429,8 @@ def test_the_qmd_comparison_claims_agree_with_the_4b_sweeps(committed):
         measures["clusters"], f"{measures['silhouette']:.3f}", f"{measures['comembership']:.3f}")
     assert chosen["largest"] == round(measures["largest"] * 100, 1)
     text = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert "from 30 % to 77 % of the instruments" in text
-    assert "from 19 % to 37 % of the instruments in no topic" in text
+    assert "from 27 % to 74 % of the instruments" in text
+    assert "from 17 % to 40 % of the instruments in no topic" in text
     assert "from 5 to 30 instruments" in text
 
 
@@ -442,7 +442,7 @@ def test_the_committed_files_come_from_the_4b_matrix(committed):
     for i, (triple, entry) in enumerate(zip(committed["instruments"], four_b["instruments"])):
         assert triple == [entry["c"], entry["k"], entry["n"]], i
     assert four_b["meta"]["model"] == committed["meta"]["model"]
-    assert committed["meta"]["gold"]["instruments"] == committed["meta"]["instruments"] == 2677
+    assert committed["meta"]["gold"]["instruments"] == committed["meta"]["instruments"] == 2670
     assert committed["meta"]["gold_links"] == 277
 
 
@@ -462,10 +462,10 @@ def test_the_qmd_worked_example_is_a_topic_of_the_committed_data(committed):
     topic = topic_by_term(committed, "sorteo")
     instruments = committed["instruments"]
     text = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert topic["id"] == 27 and topic["size"] == 43
-    assert topic["by"] == {"leyes": 2, "reglamentos": 41}
+    assert topic["id"] == 20 and topic["size"] == 42
+    assert topic["by"] == {"leyes": 2, "reglamentos": 40}
     assert topic["terms"][:3] == ["sorteo", "pronósticos", "premios"]
-    assert ("Topic 27 holds 43 instruments, 2 laws and 41 regulations, and its leading terms "
+    assert ("Topic 20 holds 42 instruments, 2 laws and 40 regulations, and its leading terms "
             "are `sorteo`, `pronósticos` and `premios`") in text
     names = [instruments[i][2] for i in topic["reps"]]
     assert all(part in " ".join(names) for part in ("GANA GATO", "TRIS", "PRONOSTICOS RAPIDOS"))
@@ -476,10 +476,10 @@ def test_the_qmd_worked_example_is_a_topic_of_the_committed_data(committed):
 
 
 def test_the_qmd_remark_on_the_two_spellings_is_true_of_the_data(committed):
-    led = next(t for t in committed["topics"] if t["id"] == 18)
-    assert {"artículo", "articulo"} <= set(led["terms"][:3])
+    both = [t["id"] for t in committed["topics"] if {"artículo", "articulo"} <= set(t["terms"])]
+    assert both == [6, 7]
     text = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert "`artículo` and `articulo`" in text and "topic 18 is led by both" in text
+    assert "`artículo` and `articulo`" in text and "topics 6 and 7 list both" in text
     # The page no longer says two topics share their leading terms: none does.
     leading = [tuple(t["terms"][:3]) for t in committed["topics"]]
     assert len(leading) == len(set(leading))

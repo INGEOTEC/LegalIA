@@ -32,12 +32,13 @@ first, ahead of the walk order.
 from __future__ import annotations
 
 import bisect
+import dataclasses
 import hashlib
 import re
 from dataclasses import dataclass
 
 from md2akn.model import REFERS_TO_ANEXO, REFERS_TO_TRANSITORIOS, AknNode
-from md2akn.outline import MARCADORES_EN_TEXTO
+from md2akn.outline import MARCADORES_EN_TEXTO, rangos_de_envoltura
 from md2akn.pipeline import parse_markdown
 
 #: The split threshold `text_units` uses when no `cap` is given: measured
@@ -143,6 +144,12 @@ class TextUnit:
     #: Normalized — exactly what gets embedded.
     text: str
     text_sha1: str
+    #: Issue #301: the unit's text comes from the instrument's *envelope* -- the API's
+    #: title block, the steps of the promulgation decree or the decree's closing
+    #: certification (`md2akn.outline.es_bloque_de_envoltura`). Decided from the outline
+    #: markers alone, so it is `False` everywhere in a document that has none, and it
+    #: changes no other field: not `text`, not `text_sha1`, not the eId.
+    envelope: bool = False
 
 
 @dataclass(frozen=True)
@@ -1074,7 +1081,69 @@ def text_units(
        articles): when a document does it three times or more.
     39. A numbered provision the API could not classify because the source
        misprints its number (`kind=other`, label `98 (SIC)`) is an article.
-    Rules 25 to 39 apply to a document with outline markers; one without
+    40. A bare `CONTENIDO` block (`kind=other`, no label after the word) that follows a
+       block holding only its own title -- `ANEXO` and `CONTENIDO`, `PROTOCOLO`
+       and `CONTENIDO` -- is that block's content, as rule 30 reads `ARTÍCULOS` and
+       `CONTENIDO ARTICULOS` (issue #300). One that follows a block with text of
+       its own (an index after a `CONSIDERANDO`) is read by the other rules.
+    41. A heading line that is only `Art. 8`, straight before the block `**ARTICULO 8**`
+       with the same number, is a running head and not an article (the Radio
+       Regulations a treaty reprints); and an article number may end with a capital
+       letter that closes the line (`Artículo 11 A`, issue #300).
+    42. On a snapshot with outline markers `preamble` is exactly the title block
+       (`kind=header`) and `conclusions` never crosses an API block (review fix-1
+       of #301, found after the fact: both used to be built from text heuristics
+       that ignored the blocks, and the validator exempted them). A recitals or
+       preamble block that follows the title block (`CONSIDERANDO`, a treaty's own
+       `PREÁMBULO`) is a labelled container of its own, an index the SCJN labels is
+       an API block whose marker ends the block before it, and a dated closing line
+       (`Lima, a los ... Rúbricas.`) followed by another API block leaves no
+       `conclusions` node: that block and the ones after it keep their own nodes by
+       their own role.
+    43. Whether a promulgation-decree block is the *envelope* (`TextUnit.envelope`) is
+       read from its position (`md2akn.outline.bloques_de_decreto`): a run of decree
+       blocks right after the title block, or at the end of the document, made of blocks
+       labelled as a step of the decree (`es_etiqueta_de_decreto`) and of the blocks it
+       interleaves between two steps (`CANJE DE NOTAS`, `NOTIFICACIÓN`, its own
+       `TRANSITORIO`, a bare `CONTENIDO` after a step). A decree-step label inside the
+       instrument's own text (a treaty's testimonium `FIRMA`) is not envelope and is
+       not part of the `DECRETO PROMULGATORIO` group; a `PARTE FINAL DEL DECRETO
+       PROMULGATORIO` is envelope wherever it stands. Read from markers and positions,
+       never from an instrument or an eId.
+    44. The outline governs first (review fix-2 of #300 and #301, found after the fact:
+       the text rules used to overrule the SCJN's own markers). A block labelled
+       `other` is an `hcontainer` named by its label, never a `section` because
+       articles follow it (rule 23's implicit section: `SECCIÓN` is what the SCJN says
+       when it says a section, `type=section`), and holds the article blocks that follow
+       it; and when the block opens with a line that is only its own label
+       (`**DISPOSICIONES PRELIMINARES**`, `**III. CONSIDERANDOS**`, `Finalidad.`,
+       compared without case, accents, bold, `:` or `.`, a leading numeral allowed)
+       that line is the **heading** of the node -- a `heading` unit, neither source nor
+       candidate -- never an `intro` unit that is only a title. The `(NOTA: ...)` and
+       `(REFORMADO, ...)` lines printed above it describe that heading.
+    45. A part the SCJN labels (`type=part`) whose very next marker opens a book, a
+       title or a chapter holds it and ranks just above that type (the Código Civil
+       Federal's `PRIMERA PARTE` holds its titles inside the fourth book; a treaty's
+       `SEGUNDA PARTE` holds the chapters VIII to XIII, closing the chapter open before
+       it); a part is a sibling of the part before it. Any other part keeps the
+       document-wide reading (SOLAS: `Parte A` inside `Capítulo II-2`).
+    46. An annotation read after the last text of an API block and before the next
+       marker (`(DEROGADO SEGUNDO PÁRRAFO, ...)` after an article's last paragraph)
+       belongs to that block. It used to wait for "the next node", whose span then began
+       before its own marker.
+    47. A block the API labels `provision` is one text, like an `article` block (rule
+       24): a line inside it that reads like an annex or a chapter heading (the IMDG
+       Code's `1.1.2 Convenios`, which lists SOLAS and MARPOL with their own `Capítulo`
+       and `Anexo` lines) opens nothing.
+    Invariant I5 (`md2akn.validate.block_conformance`): for every API block the node it
+    opened is typed as its marker says (`kind`/`type`), numbered as its `num`, has the
+    block's own label line as its heading, has no leaf reaching into the next block and
+    hangs from the container the markers' order implies. The disagreements the parser
+    takes on purpose have a `documented-` class (`CLASES_DOCUMENTADAS`): the label of a
+    block disagreeing with its own `numero` or repeating an earlier label (rule 19),
+    the LIGIE's tariff chapters served as `ARTÍCULO N`, rule 38's heading-only article
+    blocks and a closing signature the API labels `transitorios`.
+    Rules 25 to 47 apply to a document with outline markers; one without
     them is read, and its eIds written, as before.
 
     >>> import md2akn
@@ -1117,7 +1186,33 @@ def text_units(
     if conclusions is not None:
         units.extend(_leaf_units("conclusions", conclusions, ann_ranges, cap, split_over_cap))
 
-    return units
+    return _mark_envelope(units, doc_text)
+
+
+def _mark_envelope(units: list[TextUnit], doc_text: str) -> list[TextUnit]:
+    """Set `envelope` on every unit that starts inside an envelope API block (issue #301)."""
+    ranges = rangos_de_envoltura(doc_text)
+    if not ranges:
+        return units
+    starts = [a for a, _ in ranges]
+    marked = []
+    for unit in units:
+        k = bisect.bisect_right(starts, unit.start_char) - 1
+        inside = k >= 0 and unit.start_char < ranges[k][1]
+        marked.append(dataclasses.replace(unit, envelope=True) if inside else unit)
+    if not any(
+        not unit.envelope and unit.unit_type not in ("heading", "toc")
+        and not any(label == "TRANSITORIOS" or label.startswith("TRANSITORIOS ")
+                    for label in unit.path)
+        for unit in marked
+    ):
+        # Review fix-1 of #301: an instrument that is nothing *but* its envelope (the
+        # Court prints only the decree and the list of what it promulgates: treaties
+        # 23815, 23891, 23892, 55686) has no other text to compare, so none of it is
+        # marked. Otherwise the comparison would be left with an instrument that has no
+        # row at all.
+        return units
+    return marked
 
 
 def leaf_map(tree: AknNode, units: list[TextUnit]) -> list[LeafRef]:

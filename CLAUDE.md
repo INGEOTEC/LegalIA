@@ -1179,6 +1179,236 @@ PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
   October 2026) were rebuilt. **Nothing was published**; the human order is: the four corpora, the four vectors releases
   (`emb-run-<c>-055/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
 
+## Blocks the API omitted (issue #300, done)
+
+Browsing the Instruments page, the treaty `tratados/24031` (the CAMR-92 Final Acts)
+compared only its envelope: its four annexes came out empty. **The text of the treaty
+was not in the corpus.** The SCOW API serves 16 blocks for it today; the snapshot on
+disk (and the published `scjn-tratados` tarball) held 12. The four missing ones
+(`orden` 9, 11, 13, 15, all labelled `CONTENIDO`: 174,692 + 15,675 + 77,203 + 25,887
+characters) are the partial revision of the Radio Regulations and two annexes. The
+writer was not at fault: **the API itself omitted the blocks when we crawled, and
+still reserved their `orden` numbers.** Issue #178's comment above
+`TAMANIO_PAGINA_ARTICULOS` had called such an answer ("`lfd` reforma 99 reports
+`tamanio` 995 and serves 991 articles") complete; it was incomplete, and the four
+missing `orden` are `CONTENIDO` blocks the API serves today.
+
+- **The guard (`scjn.api.articulos_of_reforma`).** An answer is complete when its
+  `orden` values are exactly `1..max` *and* it carries at least `tamanio` rows; either
+  alone missed a case (a hole in the middle versus a block dropped at the end). An
+  incomplete answer is requested again (`self.reintentos`, `self.espera`) and then
+  refused with `ScjnApiIncompleteError(ScjnApiError)`, which names the reform, the
+  missing `orden` and `tamanio`; being a `ScjnApiError`, `descarga_ordenamiento`
+  already counts the reform as failed and writes no file for it. The two stop
+  conditions of the paging loop are untouched (`_articulos_una_vez`).
+- **What the re-crawl taught the guard (2026-10-26, same issue).** Re-crawling
+  all four corpora showed three more shapes of the same unreliability, each pinned by a
+  test: (1) the API **repeats a row verbatim** (`cpf` 08-05-2023 came back as 1,007 rows
+  over 893 distinct blocks, `pef-2026` 21-11-2025 with 8 repeats; `tamanio` counts the
+  repeats), which would have printed an article twice, so an *identical* row
+  (`orden`, `numero`, `referencia`, `contenido`) is dropped, first kept
+  (`_sin_filas_repetidas`); (2) two *different* blocks sharing an `orden` are real
+  (`lissste` 27-05-2011 gives 322 to a `D.O.F.` line and to a 44 k-character `CONTENIDO`
+  block; reglamento 166758 too) and both stay; (3) an answer can be **short and
+  `tamanio` short with it**: `lft` today answers 1,433 rows for `tamanio` 1,433 with 174
+  repeats and 191 `orden` missing among 1..1,450, in 53 of its 55 reforms, where the raw
+  answer kept on 15 October had 1,450 distinct rows. The `orden` check is what catches
+  those; a block dropped at the very end of an answer whose `tamanio` also dropped
+  cannot be caught by any client-side check (four `cpeum` snapshots on the same day,
+  03-02-1983 `-2` and three more, lost or gained one trailing `D.O.F.` decree block
+  between the previous crawl and this one: the SCJN's own answers moved, and the fresh
+  answer was taken, as every re-crawl does).
+- **Rule 40 of `md2akn`** (`outline.es_contenido_suelto`, structure rule 30's sibling):
+  a bare `CONTENIDO` block (`kind=other`, no label after the word) that follows a block
+  whose text is one short line (`ANEXO`, `ANEXO 4`, `PROTOCOLO`; the block before is
+  `other` or `container`) is that block's content. Before it, 24031's `CONTENIDO` opened a
+  `section` beside the annex, so the annex was empty; now the articles hang from the annex
+  (`validate`'s invariant I1 reads the same predicate). A `CONTENIDO` after a block with text
+  of its own (reglamento 138214's index after its `CONSIDERANDO`) is read as before: it is
+  not an article or `loose` (`test_bare_contenido.py`). A document with no markers is read as
+  before; `md2akn` and `scjn` stay 0.5.1, unpublished. The release sweep's I3 (no repeated
+  number) then caught two more parse errors in the restored text, fixed in the parser
+  and not listed: **rule 41**, a running head `Art. 8` straight before `**ARTICULO 8**`
+  (the Radio Regulations 24031 reprints) is no article, and `NUM_ARTICULO` takes a capital
+  letter that closes the line, `**Artículo 11 **A` being article `11 A` (treaty 23895's
+  amendment inserting 11A and 11B; it changes 5 heading lines in the whole corpus).
+- **The re-crawl** (`scripts/recrawl_scjn_outline.py --ledger .recrawl-contenido.jsonl`,
+  a fresh ledger name so the #291 ledgers stay as their record; `--instrumento` now re-crawls
+  the keys it names whatever the ledger says): 315 + 1,087 + 163 + 1,455 instruments, ~2.2
+  hours wall clock with seven processes, raw answers in `scripts/scjn/raw-api/`. No
+  reform was new, so nothing needed DOF linking. Against the snapshots published until
+  now: leyes 8 instruments changed (`cpeum`, `lacp`, `lfd`, `lgcs`, `lgipe`, `lgpp`,
+  `lissste`, `ltpcpimcp`), reglamentos 21, lineamientos 6, treaties 199; the others
+  are byte-identical (the tarballs are byte-reproducible, so the unchanged ones were
+  checked against the cache by hash). 107 leyes, 40 reglamentos, 9 lineamientos and 214
+  treaty snapshots **gained blocks**, 4 `cpeum` ones lost one (above), 18 changed text
+  only (an upstream edit: `lgcs`, `lgipe`, `lgpp`, ...).
+- **Measured, `scripts/measure_block_gaps.py`** (counts the snapshots whose `orden`
+  markers have a gap; a gap is *explained* when the kept raw answer holds the missing
+  `orden`: a block whose whole text is an editorial `N. DE E.` aside yields no text and
+  so no marker). Before (the issue, on-disk markers, not separating the explained ones): 367 snapshots of
+  240 instruments with 843 missing blocks (leyes 80 / 4 instruments, reglamentos 38 / 19, lineamientos 10 / 7,
+  tratados 239 / 210). After: **0 unexplained gaps in leyes, lineamientos and tratados**; explained, 6, 1
+  and 55 snapshots (6, 1 and 73 blocks); the two `incomplete` reglamentos below keep their old files and
+  their 2 snapshots (5 blocks) with the gap. `tratados/24031/29-08-1994.md` is 259,942 characters, 16 markers,
+  four `ARTICULO 1`, and its tree holds the articles under the annex.
+- **Incomplete instruments, listed because the guard refuses them** (3 of 2,920, never
+  more than 1 % of a collection): `leyes/lft` (53 of its 55 snapshots, the API's corrupt
+  answer above; the 2 that pass after dropping repeats are not swapped in either, an instrument
+  is swapped in whole or not at all; its old files, whose markers have no gap, stay);
+  `reglamentos/81587` (29-05-2015, reformaId 3: 214 rows for `tamanio` 214, `orden` 214
+  missing); `reglamentos/67602` (17-08-2015, reformaId 2: 53 rows for `tamanio` 53, `orden`
+  53 to 56 missing, the transitorios). The last two answered the same on every retry and on
+  a second pass, with `tamanio` agreeing with the rows served: the API's own data lacks
+  those `orden`, which no client can restore. A second resumed pass did not change any of them.
+  **Retried on 2026-10-30 (review fix-3 of #300, found after the fact):** `lft` was re-crawled once more
+  (`recrawl_scjn_outline.py --coleccion leyes --instrumento lft --ledger .recrawl-contenido.jsonl`, two
+  attempts, 1,105 s) and is still `incomplete`: **53 of its 55 reforms with articles fail the guard**
+  (6 more have no articles, 2 pass), and every file of `scripts/scjn/leyes/lft/` is byte-identical to before.
+  Reform 61 (14-05-2026) answered 1,433 rows for `tamanio` 1,433, 174 of them verbatim repeats (1,259
+  distinct) and 191 `orden` missing among 1..1,450; reform 1 (01-04-1970) 976 rows, 124 repeats, 130
+  `orden` missing. The guard and the writer were not touched and nothing was rebuilt from the 15 October
+  raw answer. `reglamentos/81587` and `reglamentos/67602` were not retried: they stay as they are, by the
+  repository owner's decision of 2026-10-30.
+- **The release sweep passes** (19 tests: `TestInvariantesDelBloque` I1 to I4 included; run
+  whole once, then its two failing treaty tests again after the two parser fixes above). I4 found 22
+  numbering gaps new to the fixture in 7 treaties (16189, 18141, 23943, 24031, 84855, 84858): all texts
+  that print only the amended articles of a text (the CAMR-92 and WRC-2012 revisions of the Radio
+  Regulations, the ITU amendments, a UPU corrigendum), each classified in
+  `fixtures_units/genuine_gaps.json` (now 111 entries) with the raw evidence of the API block: which
+  article openers its own text prints and that none of the skipped numbers is among them (the
+  classifier's `source-omits-number` used to rest on "no article *block* between", which proves nothing
+  when one `CONTENIDO` block holds a whole text; 20 existing entries moved to
+  `numbering-continues-across-containers` on the same evidence).
+- **Packaged, not published**: `scripts/scjn/<c>-release/PUBLICAR.md` for the four corpora
+  (for `reglamentos` and `tratados`, whose `partes.json` was seeded from the live releases
+  with a read-only `gh release view`; part 1 holds 997 tarballs plus 3 metadata assets; only
+  the changed tarballs, listed above, need `--clobber`, plus `indice-global.json.gz`,
+  `SHA256SUMS.txt` and `MANIFEST.md`). The release sweep ran over the refreshed
+  snapshots staged into `~/.cache/scjn` (the changed tarballs and each `indice-global.json.gz`
+  copied from the release directories), never published.
+  **The publish order for a human: the four corpora first** (leyes, reglamentos, lineamientos,
+  tratados), then everything derived from them, which is the follow-up issue's work (vectors,
+  Atlas, pairs, instrument files, evaluations); nothing was published here (issue #115, Hallazgo C).
+
+## The envelope and the complete corpora (issue #301, done)
+
+Issue #300 made the four corpora complete, which left every vector set, the Atlas and the
+Instruments page stale, and the review of the Atlas' own evidence turned up one more thing
+it compared that is not the instrument's own text: its **envelope**.
+
+- **The rule.** The title block the SCJN prints above every instrument and, in a treaty, the promulgation
+  decree and its closing certification are the formulaic wrapper of the Mexican publication: the same decree,
+  word for word, wraps every treaty promulgated the same day (701 of the 7,661 envelope units of the treaties
+  cite "artículo 89" of the Constitution, against 45 outside it). `md2akn.outline.es_bloque_de_envoltura` /
+  `rangos_de_envoltura` read it from the outline markers alone (**by label at first, by position since review
+  fix-1 below**: the `kind=header` blocks plus the leading and trailing runs of decree blocks, `bloques_de_decreto`);
+  `TextUnit.envelope` is the last field, `units.parquet` has an `envelope` column, and
+  `instrument_matrix.searched_mask` makes an envelope unit neither a source nor a candidate, exactly like a heading
+  or a transitorio (headings are counted first, then transitorios, then the envelope: `matrix.json`'s
+  `envelope_rows_excluded`, carried into `atlas*.json`'s `meta`). A treaty's own preamble and a law's closing text
+  stay compared. Nothing is dropped from `text_units`, no text or hash changed, `md2akn` stays 0.5.1.
+- **Every consumer takes it from the column, never from a copied regex.** `nearest_texts`, `export_atlas_pairs`,
+  `tune_bm25` and `evaluate_citations` inherit it through `unit_rows`; `prepare_bm25_input`, `cluster_instruments`,
+  `export_instrument_files` and `gold_links` (signal C) build their own frames and request the column. A units
+  file with no `envelope` column compares everything and records `envelope_column: false`; a mixture of
+  collections with and without it is a `SystemExit`.
+- **Rebuilt, nothing published.** The four vectors work directories `-056` (59, 60, 12 and 4,291 new texts,
+  `compare_merges` clean for all eight runs), the staged cache `emb-run-vectors-056-cache/`, the three Atlas
+  work directories, `atlas*.json` (226,010 excerpts, 158,361 counted; 9,165 envelope rows out; **superseded by
+  review fix-1 below**), the three pair sets,
+  the 4B's nearest texts, the 2,677 instrument files, the gold (unchanged: 253 instruments, 277 links), the
+  evaluations, the topics (Louvain 1.0, 30 topics: the rule's choice moved from 1.5) and the pages' literals (26
+  October 2026). **Two conclusions moved**: BM25 is no longer tied with the 0.6B everywhere (better on the five closest
+  at the narrow gold level and on two row-level measures) and the 4B's lead over BM25 at row level is two measures,
+  not four; signal C fell from 5,292 to 3,764 citing excerpts because the promulgation decrees were counted as
+  text that cites the Constitution. The Instruments page does not mark an envelope excerpt *Compared*. The
+  release sweep passes (19 in 56 minutes). Tables in `scripts/embeddings/README.md` ("Measured, the envelope left
+  out and the complete corpora, 2026-10-26").
+  The publish order for a human: the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, issue #300), the four
+  vectors releases (`emb-run-<c>-057/publish/PUBLICAR.md`, **`-057` since review fix-1; the `-056` ones are
+  superseded**), the three `atlas-pairs` sets and `atlas-instruments`,
+  or `website.yml` fails or pairs the new JSON with old files (issue #115, Hallazgo C).
+- **The envelope by position, and preamble and conclusions inside their API block, rules 42 and 43 (review fix-1 of
+  #300 and #301, found after the fact).** Reading the Instruments page against the Atlas showed two decisions taken
+  from a label alone that failed both ways. `md2akn`'s `preamble` ran to the first container, so for 649 treaties, 118
+  reglamentos, 67 lineamientos and 9 laws it swallowed the blocks after `ENCABEZADO` (the decree, a certification,
+  a `CONSIDERANDO`), and `conclusions` was the last four blocks matching `CONCLUSIONES` across any marker; and the
+  envelope was an `other` block whose label was a few decree words, so a treaty's own `FIRMA` (`11374`) was
+  excluded while a decree step nobody had listed (`CANJE DE NOTAS`, the decree's `TRANSITORIO`) was compared.
+  **Rule 42**: `preamble` is exactly the `ENCABEZADO` block, `conclusions` never crosses a marker, a `header`
+  after the first node and `preamble`/`recitals` blocks open an `hcontainer` (rule 29), an `ÍNDICE` marker closes
+  the previous container, and `md2akn.validate._block_escapes` (invariant I1) has no `preamble`/`conclusions`
+  exemption left. **Rule 43**: the envelope is the `header` blocks, the leading run of decree blocks after them
+  (it ends right after a `CERTIFICACIÓN…` block) and the trailing run, `md2akn.outline.bloques_de_decreto`; a block
+  of a run is a decree step by its label (`_PASO`, widened only where measured; a lone `DECLARACIÓN` is not one) or,
+  only when sandwiched between two decree labels, by the vocabulary `ETAPAS_DEL_DECRETO`; a decree label inside the
+  instrument's own text is not envelope; a bare `CONTENIDO` never is; an instrument that is only its envelope marks
+  none (`units._mark_envelope`). Both apply only to a document with markers (no-marker output is byte-identical),
+  no rule names an instrument, `md2akn` and `scjn` stay 0.5.1.
+  `scripts/embeddings/measure_envelope.py` records it (envelope units by label, crossing units, the run blocks with
+  no decree-role label: `TRANSITORIO` 265 treaties, `CANJE DE NOTAS` 239, `NOTIFICACIÓN` 143 ..., and the reverse
+  list): crossing 0 in all four collections (9 / 118 / 67 / 649 instruments before), envelope units 324 → 319,
+  1,030 → 1,024, 182 → 178 and 7,661 → 9,185, 14 / 129 / 75 / 891 trees changed. The Instruments page draws a
+  node that has a label and no heading of its own with that label as a heading, once. **Three treaties have no
+  counted excerpt**: `tratados/11151`, `16145` and `23742` are one treaty published three times, and with the decree
+  out of their preamble every compared excerpt is a text the three own word for word (the `m > 1` rule), so their
+  matrix rows are zero in all three models (before, a preamble that swallowed the decree was the only text of each
+  that was not shared). `build_instrument_umap_html.normalise_rows` returns a non-zero mask instead of refusing
+  (the old docstring's "it cannot exist" was false), `project` fits only the non-zero rows and draws the three at the
+  centre, `export_atlas_data` exports them with `pc` 0 and no targets, and the topics label them noise ("Instruments
+  in no topic"); nothing in the rule was loosened. Rebuilt without re-crawling: the four `emb-run-<c>-057`
+  work directories (16, 426, 253 and 2,281 texts new against the published merge, only 4 of them never embedded
+  before; `compare_merges` clean for all eight runs, 0 texts with another vector), the staged cache
+  `emb-run-vectors-057-cache/`, the three Atlas work directories and `atlas*.json` (226,425 excerpts, 157,689
+  counted, 10,132 envelope rows out; the closest instrument unchanged for 2,573 / 2,566 / 2,551 of 2,677), the three
+  pair sets, the 4B's nearest texts (agreement proved), the 2,677 instrument files, the gold (unchanged, 253
+  instruments and 277 links), the evaluations (signal C 5,191 citations in 3,816 excerpts; the 4B is now better than
+  BM25 on three row-level measures and BM25 better than the 0.6B on one; no conclusion changed), the topics (a draft
+  page: Louvain 1.0, 31 topics, 3 instruments in none) and the pages' literals (27 October 2026). The sweep's I4
+  fixture lost one entry (`tratados/23803` `art_19`, now inside its `RESERVAS` section). Tables in
+  `scripts/embeddings/README.md` ("Measured, the envelope by position, 2026-10-27"). **Nothing was published**; the
+  human order is: the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, issue #300), the four vectors releases
+  (`emb-run-<c>-057/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+- **The outline governs first, rules 44 to 47, invariant I5, and one instrument per identical text (review fix-2 of #300
+  and #301, found after the fact; supersedes fix-1's three-treaty special cases).** Reading the Instruments page against the
+  Atlas showed one treaty on the map three times (`tratados/11151`, `16145`, `23742`) and the label the SCJN prints as an API
+  block's first line compared as text (`143097`'s `DISPOSICIONES PRELIMINARES`: a `section` titled `SECCIÓN ...` plus an `intro`
+  unit that was only the label), and nobody had measured where else the text rules overruled the markers.
+  `scripts/embeddings/measure_marker_conformance.py` (`md2akn.validate.block_conformance`) did, **before any change**: 2,921
+  disagreements between a block and the node rooted at it (1,645 wrong type, 1,033 label line read as content, 161 a leaf reaching
+  into the next block, 57 wrong parent, 25 no node). **Invariant I5**: the node a block opens is of the type, number and rank
+  its marker says and takes the block's own label line as its heading; the release sweep enforces it over the four corpora, with
+  the only exceptions a short documented list with raw evidence (`md2akn.validate.CLASES_DOCUMENTADAS`, 57 blocks in
+  `fixtures_units/marker_documented.json`, regenerated by `classify_marker_exceptions.py`). **Rule 44**, an API `other` block is
+  an `hcontainer` (never a rule-23 `section`; rule 38's heading-only article blocks stay `section`) and its own label line is its
+  heading; **45**, a `PARTE` is ranked from the next marker (book, title or chapter) and is the sibling of the part before it;
+  **46**, a trailing annotation belongs to the block it was read in and hangs from that block's deepest last node (a node's notes
+  are read before its children's, which `coverage()`'s left-to-right search needs); **47**, a `provision` block is one text, its
+  own first line still opening it (leaving that out turned lineamiento `109466`'s `Primero.` into content and switched rule 8's
+  ordinal mode off). Documents without markers are byte-identical (digests, `marker_free_digests.json`). Result: 0
+  undocumented disagreements, 20 / 198 / 107 / 342 trees changed, and the release sweep, which first failed 5 of 19 tests on
+  these two defects and the eId renames of the I4 fixture (regenerated by `classify_numbering_gaps.py`, 110 -> 102 entries),
+  passes: 19 in 58 min 30 s. **`unique_instruments.select_identical`** generalises #259 to every collection: instruments
+  whose compared excerpts are the same multiset of `text_sha1` are one, and the one whose original publication is that text is
+  kept (reports carry `reason`: `same-name` or `identical-text`; `atlas*.json`'s `meta.identical_text_dropped`). It drops seven
+  (`tratados` 16145, 23742, 11432, 16515, 22598, 23776 and the law `lamn`, filed twice) so **the Atlas has 2,670 instruments**
+  (314 + 864 + 125 + 1,367), not the 2,675 the review's two-treaty reading gave: with the labels no longer compared five more
+  groups became word for word identical. **Fix-1's all-zero-row special cases were removed** (`git revert` of `b452c96d9` and
+  `2d0765f52`: `normalise_rows`' mask, `project`'s centre, `export_atlas_data`'s `pc` 0) and the guard restored; the build never
+  reaches it (no instrument in no topic). Atlas and Instruments search now rank, within a rank, the name the query covers most
+  first (`atlas.js`, `instruments.js`), so the tests search the original "constitucion"/"CONSTITUCIÓN" again. Rebuilt without
+  re-crawling: the four `emb-run-<c>-058` work directories (copies of `-057`; 290, 1,238, 449 and 3,567 texts new against it,
+  3 shards, both models, `compare_merges` clean for all eight runs), the staged cache `emb-run-vectors-058-cache/`, the three
+  Atlas work directories, `atlas*.json` (227,132 excerpts, 156,432 counted; the closest instrument unchanged for 2,616 / 2,617 /
+  2,625 of 2,670), the three pair sets, the 4B's nearest texts (agreement proved), the 2,670 instrument files, the gold
+  (unchanged, 253 instruments and 277 links), the evaluations (two instrument-level comparisons are not ties instead of three; no
+  other conclusion changed), the topics (a draft page: Louvain 1.0, 31 topics, none in no topic) and the pages' literals (28
+  October 2026). `md2akn` and `scjn` stay 0.5.1. Tables in `scripts/embeddings/README.md` ("Measured, the outline governs first,
+  2026-10-28"). **Nothing was published**; the human order is: the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, issue
+  #300), the four vectors releases (`emb-run-<c>-058/publish/PUBLICAR.md`, **`-058` since this fix; the `-057` ones are
+  superseded**), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+
 ## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
 
 The website's **Atlas** (`website/pages/atlas.qmd`, navbar entry *Atlas*

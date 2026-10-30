@@ -36,7 +36,9 @@ reason to loosen the test.
 Review fix-6 of #291 adds four more invariants over every current instrument of the
 four collections (`TestInvariantesDelBloque`, one parse per instrument): **I1**
 `md2akn.validate._block_escapes` (what an API block's text holds hangs from what the
-block opened), **I2** no `loose` unit outside a transitorios section, **I3** no
+block opened), **I5** `md2akn.validate.block_conformance` (the node a block opened is
+what its marker says, review fix-2 of #300 and #301; the disagreements the parser takes on
+purpose are listed in `fixtures_units/marker_documented.json`, both ways), **I2** no `loose` unit outside a transitorios section, **I3** no
 repeated article number outside transitorios, **I4** every `numbering_gap` is listed in
 `fixtures_units/genuine_gaps.json` with the raw evidence that it is the source's (and
 every entry of the fixture still is one). I2 prints instrument, snapshot, eId and the
@@ -75,7 +77,7 @@ from md2akn.outline import lee_marcador
 from md2akn.patterns import ARTICULO, FILA_TABLA
 from md2akn.segmenter import iter_blocks, split_frontmatter
 from md2akn.structure import modo_sin_articulos
-from md2akn.validate import _block_escapes
+from md2akn.validate import _block_escapes, block_conformance
 
 _TIENE_SCJN = importlib.util.find_spec("scjn") is not None
 if _TIENE_SCJN:
@@ -95,6 +97,7 @@ if _TIENE_SCJN:
 # the sweep reads them from there, and skips those two invariants outside the monorepo.
 _SCRIPTS = Path(__file__).resolve().parents[3] / "scripts" / "embeddings"
 _GAPS = Path(__file__).resolve().parent / "fixtures_units" / "genuine_gaps.json"
+_DOCUMENTADOS = Path(__file__).resolve().parent / "fixtures_units" / "marker_documented.json"
 _EXPORTADOR = None
 if (_SCRIPTS / "export_instrument_files.py").exists():
     sys.path.insert(0, str(_SCRIPTS))
@@ -383,16 +386,23 @@ def _en_transitorios(path) -> bool:
 
 
 def _invariantes_del_bloque(instrumentos, clave):
-    """I1 to I3 and the flagged gaps of every instrument, one parse each:
-    ``(i1, i2, i3, gaps)`` with `i1` the `block-escape` violations, `i2` the `loose`
-    units outside a transitorios section (instrument, snapshot, eId, first 80
-    characters), `i3` the repeated article numbers and `gaps` the flagged articles as
-    ``(key, eId)`` pairs."""
-    i1, i2, i3, gaps = [], [], [], []
+    """I1 to I3, I5 and the flagged gaps of every instrument, one parse each:
+    ``(i1, i2, i3, gaps, i5, documented)`` with `i1` the `block-escape` violations, `i2`
+    the `loose` units outside a transitorios section (instrument, snapshot, eId, first 80
+    characters), `i3` the repeated article numbers, `gaps` the flagged articles as
+    ``(key, eId)`` pairs, `i5` the disagreements between a block's marker and the node it
+    opened that the parser does not take on purpose and `documented` the ones it does, as
+    ``(key, orden, class)``."""
+    i1, i2, i3, gaps, i5, documented = [], [], [], [], [], []
     for instrumento in instrumentos:
         markdown = instrumento["markdown"]
         tree = parse_markdown(markdown)
         units = text_units(tree, split_articles=False)
+        for d in block_conformance(tree):
+            if d.documented:
+                documented.append((str(instrumento[clave]), d.orden, d.klass))
+            else:
+                i5.append((instrumento[clave], instrumento["archivo"], str(d)))
         i1.extend((instrumento[clave], instrumento["archivo"], str(v)) for v in _block_escapes(tree))
         i2.extend(
             (instrumento[clave], instrumento["archivo"], u.eId, markdown[u.start_char:u.end_char][:80])
@@ -406,7 +416,7 @@ def _invariantes_del_bloque(instrumentos, clave):
                     i3.append((instrumento[clave], instrumento["archivo"], unit.eId))
                 if "numbering_gap" in names:
                     gaps.append((str(instrumento[clave]), unit.eId))
-    return i1, i2, i3, gaps
+    return i1, i2, i3, gaps, i5, documented
 
 
 @unittest.skipUnless(_TIENE_SCJN, "scjn is not installed")
@@ -414,8 +424,26 @@ class TestInvariantesDelBloque(unittest.TestCase):
     """Review fix-6 of #291: I1 to I4, over every current instrument of each collection."""
 
     def _comprueba(self, coleccion, instrumentos, clave):
-        i1, i2, i3, gaps = _invariantes_del_bloque(instrumentos, clave)
+        i1, i2, i3, gaps, i5, documented = _invariantes_del_bloque(instrumentos, clave)
         self.assertEqual(i1, [], f"I1: {len(i1)} node(s) escape the API block they were built from")
+        self.assertEqual(
+            i5, [], f"I5: {len(i5)} block(s) whose node is not what their marker says "
+                    f"(md2akn.validate.block_conformance)",
+        )
+        expected = {
+            (e["key"], e["orden"], e["class"])
+            for e in json.loads(_DOCUMENTADOS.read_text(encoding="utf-8"))
+            if e["collection"] == coleccion
+        }
+        self.assertEqual(
+            sorted(set(documented) - expected), [],
+            "I5: a disagreement the parser takes on purpose that is not in "
+            "fixtures_units/marker_documented.json (with the raw evidence of the API block)",
+        )
+        self.assertEqual(
+            sorted(expected - set(documented)), [],
+            "I5: an entry of fixtures_units/marker_documented.json that is no longer there",
+        )
         self.assertEqual(i2, [], f"I2: {len(i2)} `loose` unit(s) outside transitorios")
         if _EXPORTADOR is None:
             self.skipTest("scripts/embeddings is not importable: I3 and I4 need its definitions")

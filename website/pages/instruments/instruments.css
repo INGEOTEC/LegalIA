@@ -383,6 +383,18 @@
 .instruments-document h5.instruments-heading { font-size: 1.08rem; }
 .instruments-document h6.instruments-heading { font-size: 1rem; font-style: italic; }
 
+/* The Court's own label of a block that has no heading line in the text (review fix-1 of
+   #301): an editorial label, quieter than the instrument's own headings. */
+.instruments-document .instruments-heading.instruments-label {
+  font-weight: 600;
+  font-style: normal;
+  font-size: 0.9rem;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: var(--instruments-muted);
+  margin: 1.2rem 0 0.35rem;
+}
+
 .instruments-text {
   margin: 0.2rem 0;
 }

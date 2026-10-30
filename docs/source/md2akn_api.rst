@@ -656,6 +656,12 @@ annex that leaves its block is one with no container or article after its
 heading in the block's text, whose structure the API serves in the blocks that
 follow.
 
+Review fix-2 of issues #300 and #301 let the outline govern first. **Rule 44**: a
+block the API marks ``other`` is an ``hcontainer`` named by its label, never a
+``section`` (an amending ``RESOLUCIÓN`` included, so its eId prefix is ``hc_``),
+and its own label line is its heading, not text to compare. Rule 33's ordering
+of the headings a block prints is unchanged.
+
 >>> resolutions = (
 ...     '<!-- scjn:block orden=1 numero=0 kind=other label="RESOLUCIÓN MSC.1(1)" -->\n\n'
 ...     "**RESOLUCIÓN MSC.1(1)**\n\nEl Comité adopta las enmiendas.\n\n"
@@ -665,8 +671,8 @@ follow.
 ...     "**RESOLUCIÓN MSC.2(2)**\n\nEl Comité adopta otras enmiendas.\n"
 ... )
 >>> tree = md2akn.parse_markdown(resolutions)
->>> [(n.akn_type, n.eId) for n in tree.walk() if n.akn_type in ("section", "attachment", "chapter", "part")]
-[('section', 'sec_RESOLUCIÓN_MSC.1(1)'), ('attachment', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment'), ('chapter', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1'), ('part', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1__part_A'), ('chapter', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'), ('part', 'sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2__part_A'), ('section', 'sec_RESOLUCIÓN_MSC.2(2)')]
+>>> [(n.akn_type, n.eId) for n in tree.walk() if n.akn_type in ("hcontainer", "attachment", "chapter", "part")]
+[('hcontainer', 'hc_RESOLUCIÓN_MSC.1(1)'), ('attachment', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment'), ('chapter', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1'), ('part', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1__part_A'), ('chapter', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'), ('part', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2__part_A'), ('hcontainer', 'hc_RESOLUCIÓN_MSC.2(2)')]
 
 Review fix-6 of the same issue made the block the root of *all* its text. **Rule
 34**: whatever a block's text holds hangs from the container the block opened, also
@@ -710,7 +716,7 @@ True
 ... )
 >>> tree = md2akn.parse_markdown(restarted)
 >>> [(n.eId, n.repeated) for n in tree.walk() if n.akn_type == "article"]
-[('sec_ACUERDO__art_1', False), ('sec_ACUERDO__art_2', False), ('sec_ACUERDO__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_1', False)]
+[('hc_ACUERDO__art_1', False), ('hc_ACUERDO__art_2', False), ('hc_ACUERDO__hc_Artículos_que_se_refieren_al_Comité_Ejecutivo__art_1', False)]
 
 >>> annexed = (
 ...     '<!-- scjn:block orden=1 numero=0 kind=container type=chapter num="2" label="CAPÍTULO 2" -->\n\n'
@@ -724,6 +730,37 @@ True
 ... )
 >>> [(n.eId, n.refers_to) for n in md2akn.parse_markdown(annexed).walk() if n.akn_type in ("chapter", "attachment")]
 [('cap_2', None), ('cap_2__att_2-A', '#anexo'), ('cap_3', None), ('app_1', '#apendice')]
+
+The *envelope* of an instrument (issue #301) is the wrapper of its publication: the
+title block the SCJN prints above the text and, in a treaty, the promulgation decree and
+its closing certification. It says who published the text and when, not what the text
+says, so a unit inside it carries ``TextUnit.envelope == True`` and a consumer that compares
+the texts of different instruments leaves it out. Nothing is dropped from ``text_units``, and
+a document with no outline marker has no envelope. Whether a decree block is envelope is
+read from its *position* (:py:func:`md2akn.outline.bloques_de_decreto`, review fix-1 of
+#301): the decree is a run of blocks right after the title block or at the end of the
+document, so a decree-step label inside the instrument's own text (a treaty's testimonium,
+``FIRMA``) is not envelope, and the opening of a decree the label table does not know
+(``APROBACIÓN DE INSTRUMENTOS``) is.
+
+>>> wrapped = (
+...     '<!-- scjn:block orden=1 numero=0 kind=header -->\n\n**LEY DE PRUEBA**\n\n'
+...     '<!-- scjn:block orden=2 numero=1 kind=article -->\n\n**Artículo 1.-** Uno.\n'
+... )
+>>> [(u.unit_type, u.envelope) for u in md2akn.text_units(wrapped)]
+[('preamble', True), ('article', False)]
+>>> [(u.unit_type, u.envelope) for u in md2akn.text_units("**Artículo 1.-** Uno.\n")]
+[('article', False)]
+>>> treaty = (
+...     '<!-- scjn:block orden=1 numero=0 kind=header label="ENCABEZADO" -->\n\n**TRATADO**\n\n'
+...     '<!-- scjn:block orden=2 numero=0 kind=other label="APROBACIÓN DE INSTRUMENTOS" -->\n\n'
+...     'Que se aprobaron los instrumentos siguientes.\n\n'
+...     '<!-- scjn:block orden=3 numero=1 kind=article label="ARTÍCULO 1" -->\n\n**Artículo 1.-** Uno.\n\n'
+...     '<!-- scjn:block orden=4 numero=0 kind=other label="FIRMA" -->\n\nEn fe de lo cual, firman.\n\n'
+...     '<!-- scjn:block orden=5 numero=0 kind=other label="PARTE FINAL DEL ACTA" -->\n\nHecho en la sede.\n'
+... )
+>>> [(u.unit_type, u.envelope) for u in md2akn.text_units(treaty)]
+[('preamble', True), ('intro', True), ('article', False), ('intro', False), ('intro', False)]
 
 :py:func:`~md2akn.max_unit_chars` is :py:func:`~md2akn.coverage`'s sibling:
 where ``coverage()`` says nothing was lost, this says the units are usable.

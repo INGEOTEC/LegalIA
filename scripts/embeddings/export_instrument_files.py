@@ -150,7 +150,7 @@ REQUIRED = (
 #: Columns forwarded from `units.parquet` through `build_umap_html.load_frames`:
 #: the one join, never re-joined here.
 UNIT_COLUMNS = ("text_sha1", "piece", "piece_eId", "start_char", "end_char", "num", "path",
-                "archivo", "fecha_publicacion", "codNota")
+                "archivo", "fecha_publicacion", "codNota", "envelope")
 
 _INTEGER_NUM = re.compile(r"^\s*(\d+)\s*[º°oO]?\.?\s*$")
 _ROMAN_NUM = re.compile(r"^\s*[IVXLCDM]+(?:\s+(?:BIS|TER|QUATER))?\.?\s*$")
@@ -377,6 +377,7 @@ def load(work_dir: Path, *, cache_dir=None, top: int, log=print) -> dict:
         "eId": points["e"],
         "row": points["v"].astype("int64"),
         "transitorio": [instrument_matrix.is_transitorio_path(path) for path in points["path"]],
+        "envelope": instrument_matrix.envelope_flags(points)[0],
     })
     searched = instrument_matrix.searched_mask(units)
 

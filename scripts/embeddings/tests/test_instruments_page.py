@@ -875,12 +875,12 @@ def test_the_outline_nests_a_resolutions_annex_chapters_and_parts(browser, serve
         return [b.inner_text().strip() for b in item.locator(
             "xpath=./ul/li/button[contains(@class, 'instruments-outline-link')]").all()]
 
-    assert children_of("Sección RESOLUCIÓN MSC.1(1)") == ["Introduction", "Annex"]
+    assert children_of("Block: RESOLUCIÓN MSC.1(1)") == ["Introduction", "Annex"]
     assert children_of("Annex") == ["Capítulo II-1", "Capítulo II-2"]
     assert children_of("Capítulo II-1") == ["Part A", "Part B"]
     assert children_of("Capítulo II-2") == ["Part A"]
-    nested = page.locator('section[data-eid="sec_RESOLUCIÓN_MSC.1(1)__att_attachment"]')
-    assert nested.locator('section[data-eid="sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'
+    nested = page.locator('section[data-eid="hc_RESOLUCIÓN_MSC.1(1)__att_attachment"]')
+    assert nested.locator('section[data-eid="hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'
                           '__part_A"]').count() == 1
     assert page.errors == []
     page.close()
@@ -915,6 +915,38 @@ def test_the_outline_names_every_labelled_block_by_its_role(browser, server):
     node = page.locator('section[data-eid="hc_DECRETO_PROMULGATORIO"]')
     assert node.get_attribute("data-type") == "hcontainer"
     assert node.locator('section[data-eid="hc_DECRETO_PROMULGATORIO__hc_FIRMA"]').count() == 1
+    assert page.errors == []
+    page.close()
+
+
+def test_a_block_the_court_labels_but_prints_no_heading_for_shows_its_label_once(browser, server):
+    """Review fix-1 of #301: some nodes get their name only from the Court's outline marker
+    (`ARREGLO PROVISIONAL`, `FIRMA`), with no heading line of their own in the text. The
+    document draws that label as a heading at the node's depth, styled as an editorial label
+    with a `title`; a node whose own text already starts with its heading line (a
+    `CONSIDERANDO` block that prints `**CONSIDERANDO**`, a chapter) is not given a second one,
+    and the group of decree blocks, whose name is ours, gets none."""
+    page = open_page(browser, f"{server}?c=tratados&k=700")
+    wait_rendered(page)
+    labels = page.locator(".instruments-document .instruments-label")
+    shown = [label.inner_text().strip() for label in labels.all()]
+    assert "ARREGLO PROVISIONAL" in shown
+    for expected in ("RESERVAS AL TRATADO", "FIRMA", "PROMULGACIÓN", "NOTA EXPLICATIVA"):
+        assert expected in shown, expected
+    assert "CONSIDERANDO" not in shown            # its own first line is already that heading
+    assert "DECRETO PROMULGATORIO" not in shown   # the group's name is md2akn's, not the Court's
+    assert len(shown) == len(set(shown))          # once each
+    first = labels.filter(has_text="ARREGLO PROVISIONAL").first
+    assert first.get_attribute("title") == "Section label from the SCJN's database"
+    assert first.evaluate("e => e.tagName") in {"H3", "H4", "H5", "H6"}
+    # the label heads its node, ahead of the text that follows it
+    node = page.locator('section[data-eid="hc_ARREGLO_PROVISIONAL"]')
+    assert node.locator(":scope > .instruments-label").count() == 1
+    assert "El arreglo provisional que las Partes aplican" in node.inner_text()
+    # no label heading repeats a heading the text itself prints
+    texts = [t.strip() for t in page.locator(".instruments-document .instruments-heading").all_inner_texts()]
+    assert len([t for t in texts if t == "CAPÍTULO 3"]) <= 1
+    assert "<!--" not in page.locator(".instruments-document").inner_text()
     assert page.errors == []
     page.close()
 
@@ -1237,5 +1269,30 @@ def test_a_real_treaty_with_promulgation_decree_blocks_shows_no_marker_line(brow
     assert_reads_as_a_document(page)
     markdown = json.loads((FILES / "tratados" / f"{key}.json").read_text(encoding="utf-8"))["markdown"]
     assert "<!-- scjn:block" in markdown                            # the file keeps its markers
+    assert page.errors == []
+    page.close()
+
+
+def treaty_11374_is_read_by_position():
+    path = FILES / "tratados" / "11374.json"
+    return path.exists() and "hc_DECRETO_PROMULGATORIO__hc_APROBACI" in path.read_text(encoding="utf-8")
+
+
+@pytest.mark.skipif(not treaty_11374_is_read_by_position(),
+                    reason="website/pages/instruments/files/ has not been rebuilt for review fix-1 of #301")
+def test_the_real_treaty_11374_shows_the_courts_labels_once(browser, real_server):
+    """Review fix-1 of #301: the labels of 11374's blocks -- the decree's opening, its own
+    preamble, the testimonium `FIRMA`, the closing clause and the provisional arrangement --
+    are shown in the document, each once, and the group of decree blocks gets none."""
+    page = open_page(browser, f"{real_server}?c=tratados&k=11374")
+    page.wait_for_selector('.instruments-document[data-rendered="true"]', timeout=120000)
+    shown = [label.inner_text().strip()
+             for label in page.locator(".instruments-document .instruments-label").all()]
+    for expected in ("APROBACIÓN DE INSTRUMENTOS", "PREÁMBULO", "FIRMA", "PARTE FINAL DEL ACTA",
+                     "ARREGLO PROVISIONAL"):
+        assert expected in shown, expected
+    assert "DECRETO PROMULGATORIO" not in shown
+    assert len([t for t in shown if t == "FIRMA"]) == 1
+    assert_reads_as_a_document(page)
     assert page.errors == []
     page.close()

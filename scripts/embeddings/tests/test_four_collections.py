@@ -171,3 +171,57 @@ def test_the_bm25_input_indexes_the_treaty(matrix4, cache4, tmp_path):
     assert matrix.shape == (7, 7) and built["counted_rows"] == 10
     assert matrix[index[TREATY]].sum() == pytest.approx(1)
     assert matrix[:, index[TREATY]].sum() > 0
+
+
+# -- the same treaty filed under two ids (review fix-2 of #300 and #301) ------ #
+
+TWIN = "7002"
+
+
+def twin_reader():
+    """`7001` is the treaty's original publication (one snapshot, its text); `7002` was
+    published earlier with another text and has the same one as its latest snapshot."""
+    def reader(coleccion):
+        def read(clave, cache_dir=None):
+            if coleccion != "tratados":
+                return {"snapshots": [{"fecha_publicacion": "01-01-2000", "markdown": "x"}]}
+            snapshots = {
+                TREATY: [("01-01-2010", "texto tt1")],
+                TWIN: [("01-01-1990", "texto anterior"), ("01-01-2010", "texto tt1")],
+            }[clave]
+            return {"snapshots": [{"fecha_publicacion": d, "markdown": f"---\nid: {clave}\n---\n\n{body}\n"}
+                                  for d, body in snapshots]}
+        return read
+    return reader
+
+
+@pytest.fixture
+def cache_twins(cache4):
+    treaties = cache4 / "scjn-tratados-vectors"
+    write_units(treaties, "tratados", [
+        (TREATY, "Tratado T", "article", "art_1", "tt1", "texto tt1"),
+        (TWIN, "Tratado T bis", "heading", "tit_1", "th", "TÍTULO"),
+        (TWIN, "Tratado T bis", "article", "art_1", "tt1", "texto tt1"),
+    ])
+    write_vectors(treaties, f"vectors-{TWIN}-{SLUG}-{K}.parquet", ["th"])
+    return cache4
+
+
+def test_a_treaty_whose_compared_text_is_anothers_is_left_out_with_its_reason(tmp_path, cache_twins):
+    work_dir = tmp_path / "work-twins"
+    prepare_umap_input.prepare(work_dir, collections=COLLECTIONS, cache_dir=cache_twins,
+                               unique_names=True, corpus_reader=twin_reader(), log=quiet)
+    instruments = pq.read_table(work_dir / "instruments.parquet").to_pandas()
+    treaties = list(instruments[instruments["coleccion"] == "tratados"]["clave"])
+    assert treaties == [TREATY]
+    report = json.loads((work_dir / "unique-instruments.json").read_text(encoding="utf-8"))
+    assert report["tratados"] == {
+        "before": 2, "kept": 1, "dropped": 1,
+        "dropped_instruments": [{"clave": TWIN, "nombre": "Tratado T bis",
+                                 "first_publication": "01-01-1990", "replaced_by": TREATY,
+                                 "reason": "identical-text"}],
+    }
+    # the heading the twin has of its own does not make it another text: headings are not compared
+    assert export_atlas_data.identical_text_dropped(work_dir) == {
+        "tratados": [{"k": TWIN, "replaced_by": TREATY}]}
+    assert export_atlas_data.duplicates_dropped(work_dir) == {"lineamientos": 0}

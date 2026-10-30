@@ -283,6 +283,16 @@ Las disposiciones marcadas modifican el Tratado.
 
 Al firmar el presente texto, la delegación formula una reserva.
 
+<!-- scjn:block orden=15 numero=0 kind=other label="ARREGLO PROVISIONAL" -->
+
+El arreglo provisional que las Partes aplican mientras el Tratado entra en vigor.
+
+<!-- scjn:block orden=16 numero=0 kind=recitals label="CONSIDERANDO" -->
+
+**CONSIDERANDO**
+
+Que las Partes desean aplicar el Tratado cuanto antes.
+
 <!-- scjn:block orden=12 numero=0 kind=other label="FIRMA" -->
 
 El Plenipotenciario firmó el Tratado.
@@ -670,10 +680,10 @@ def test_a_block_is_the_root_of_its_hierarchy_in_the_exported_tree(exported):
     `PARTE A` is its own."""
     document = read_file(exported, "tratados", "700")
     body = next(n for n in document["tree"]["c"] if n["t"] == "body")
-    resolution = next(n for n in body["c"] if n["e"] == "sec_RESOLUCIÓN_MSC.1(1)")
+    resolution = next(n for n in body["c"] if n["e"] == "hc_RESOLUCIÓN_MSC.1(1)")
     assert [(c["t"], c["e"]) for c in resolution["c"]] == [
-        ("intro", "sec_RESOLUCIÓN_MSC.1(1)__intro"),
-        ("attachment", "sec_RESOLUCIÓN_MSC.1(1)__att_attachment"),
+        ("intro", "hc_RESOLUCIÓN_MSC.1(1)__intro"),
+        ("attachment", "hc_RESOLUCIÓN_MSC.1(1)__att_attachment"),
     ]
     annex = resolution["c"][1]
     assert [(c["t"], c["n"]) for c in annex["c"]] == [("chapter", "II-1"), ("chapter", "II-2")]

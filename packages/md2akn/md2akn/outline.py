@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 
 #: A marker line, whole. Matched against a block's text (a marker is a block of
 #: its own: the writer puts a blank line on each side) and, with `MULTILINE`,
@@ -88,15 +89,27 @@ def pliega_etiqueta(etiqueta: str) -> str:
 #:   its own, always a `section` (rule 33: the container rule 23 gave one that
 #:   holds articles, now every one, so sibling resolutions are of one type).
 #: - everything else has no role: a generic labelled container.
+#: Review fix-1 of #301 widened this only where the measurement showed a decree step
+#: missed: `DECLARACIÓN`/`DECLARACIONES` as a later step of a combined label (`APROBACIÓN Y
+#: DECLARACIÓN`) and the labels listed in the `promulgation` pattern below. `APROBACION` followed by
+#: anything else is *not* a step (`SECCIÓN 5 APROBACIÓN`, an annex title naming an
+#: approval): only the whole labels match. The blocks of the decree that have no such
+#: label (`CANJE DE NOTAS`) are read by position, not by label (`bloques_de_decreto`).
 _PASO = (
     r"(?:FIRMA|APROBACION|RESERVAS?|RATIFICACION|ACEPTACION|ADHESION|ADOPCION|DEPOSITO|"
     r"NOTIFICACIONES?|PROMULGACION|CERTIFICACION)"
 )
+#: A step that may only *follow* another one in a combined label (`APROBACIÓN Y
+#: DECLARACIÓN`, `RATIFICACIÓN, DEPÓSITO Y DECLARACIÓN`): a block labelled just `DECLARACIÓN`
+#: is a treaty's own annex far more often than a decree's step.
+_PASO_SIGUIENTE = rf"(?:{_PASO}|DECLARACION(?:ES)?)"
 ROLES_DE_ETIQUETA: tuple[tuple[str, "re.Pattern[str]"], ...] = (
     ("conclusions", re.compile(r"PARTE FINAL(?: .*)?")),
     ("promulgation", re.compile(
-        rf"{_PASO}(?:(?:,| Y) {_PASO})*|DECLARACIONES?(?: .*)?|"
-        r"INSTRUMENTO DE (?:RATIFICACION|ACEPTACION|ADHESION|APROBACION)"
+        rf"{_PASO}(?:(?:,| Y) {_PASO_SIGUIENTE})*|DECLARACIONES?(?: .*)?|"
+        r"INSTRUMENTO DE (?:RATIFICACION|ACEPTACION|ADHESION|APROBACION)|"
+        r"APROBACION (?:DEL PROYECTO|DE INSTRUMENTOS|DE LA ASAMBLEA GENERAL DE LAS NACIONES UNIDAS)|"
+        r"APROBACION, RATIFICACION Y CANJE DE RATIFICACIONES"
     )),
     ("note", re.compile(r"NOTAS?(?: EXPLICATIVAS?)?")),
     ("resolution", re.compile(r"RESOLUCION(?: .*)?")),
@@ -141,3 +154,284 @@ def es_continuacion(etiqueta: str, anterior: str) -> bool:
     """
     m = _CONTENIDO.fullmatch(pliega_etiqueta(etiqueta))
     return m is not None and m.group("resto") == pliega_etiqueta(anterior)
+
+
+#: The longest single line a block can be and still be only a title (rule 40),
+#: the same bound rule 38 uses for a heading block's lines.
+MAX_LINEA_DE_TITULO = 160
+
+
+def es_solo_titulo(texto: str) -> bool:
+    """Rule 40: whether the text of an API block (its marker line left out) is
+    only a title -- one short line, bold or not, with no body. Reform
+    annotations (`(REFORMADO, D.O.F. ...)`) do not count as text.
+
+    >>> es_solo_titulo("**ANEXO**")
+    True
+    >>> es_solo_titulo("ANEXO A LA RESOLUCION No. 46 (CAMR-92)")
+    True
+    >>> es_solo_titulo("**TÍTULO**\\n\\nArtículo 1.- Texto.")
+    False
+    >>> es_solo_titulo("")
+    False
+    """
+    lineas = [
+        linea.replace("**", "").strip()
+        for linea in texto.splitlines()
+        if linea.strip()
+    ]
+    lineas = [linea for linea in lineas if not linea.startswith("(")]
+    return len(lineas) == 1 and len(lineas[0]) <= MAX_LINEA_DE_TITULO
+
+
+def es_contenido_suelto(
+    etiqueta: str, kind: str, texto_anterior: str, kind_anterior: str = "other"
+) -> bool:
+    """Rule 40 (issue #300): whether an API block is the bare `CONTENIDO` the
+    SCJN serves as the body of the block before it, when that block holds only
+    its own title (`ANEXO`, `ANEXO 4`, `PROTOCOLO`). The second half of a split
+    block like rule 30's, but with no label after `CONTENIDO`, so rule 30 does
+    not recognise it. A `CONTENIDO` after a block that has text of its own (a
+    `CONSIDERANDO` followed by an index), or after a header, recitals, preamble or
+    article block, is not this one.
+
+    >>> es_contenido_suelto("CONTENIDO", "other", "**ANEXO**")
+    True
+    >>> es_contenido_suelto("CONTENIDO", "other", "**ANEXO**", "container")
+    True
+    >>> es_contenido_suelto("CONTENIDO", "other", "**CONSIDERANDO**", "recitals")
+    False
+    >>> es_contenido_suelto("CONTENIDO", "other", "CONSIDERANDO\\n\\nQue el decreto.")
+    False
+    >>> es_contenido_suelto("CONTENIDO", "container", "**ANEXO**")
+    False
+    >>> es_contenido_suelto("CONTENIDO ARTICULOS", "other", "**ANEXO**")
+    False
+    """
+    return (
+        kind == "other"
+        and kind_anterior in ("other", "container")
+        and pliega_etiqueta(etiqueta) == "CONTENIDO"
+        and es_solo_titulo(texto_anterior)
+    )
+
+
+#: The folded label of the block that closes a Mexican promulgation decree (rule 29's
+#: `conclusions` role, narrowed): a treaty's *own* closing clause (`PARTE FINAL DEL
+#: ESTATUTO`, `PARTE FINAL DE LAS ACTAS`) is part of the instrument and is not it, and
+#: neither is the closing of a decree that is itself the instrument (`PARTE FINAL DEL
+#: DECRETO`, a treaty entry that is only a decree). Review fix-1 of #301 admits the
+#: spellings of the same closing that the measurement found (`PARTE FINAL DE DECRETO
+#: PROMULGATORIO`, `... DEL DECRETO DE PROMULGACIÓN`, `... DE LA CERTIFICACIÓN`).
+ETIQUETA_PARTE_FINAL_DEL_DECRETO = "PARTE FINAL DEL DECRETO PROMULGATORIO"
+PARTE_FINAL_DE_DECRETO = re.compile(
+    r"PARTE FINAL DE(?:L| LA)? (?:DECRETO PROMULGATORIO|DECRETO DE PROMULGACION|"
+    r"PROMULGACION|CERTIFICACION)"
+)
+
+
+def es_etiqueta_de_decreto(etiqueta: str) -> bool:
+    """Whether a label names a step of the Mexican promulgation decree or its closing
+    certification, *wherever the block stands* -- position decides whether it is
+    envelope (`bloques_de_decreto`).
+
+    >>> es_etiqueta_de_decreto("PROMULGACIÓN")
+    True
+    >>> es_etiqueta_de_decreto("PARTE FINAL DEL DECRETO PROMULGATORIO")
+    True
+    >>> es_etiqueta_de_decreto("APROBACIÓN DE INSTRUMENTOS")
+    True
+    >>> es_etiqueta_de_decreto("SECCIÓN 5 APROBACIÓN")
+    False
+    >>> es_etiqueta_de_decreto("PARTE FINAL DEL ACTA")
+    False
+    >>> es_etiqueta_de_decreto("PARTE FINAL DEL DECRETO")
+    False
+    """
+    plano = pliega_etiqueta(etiqueta)
+    return rol_de_etiqueta(etiqueta) == "promulgation" or PARTE_FINAL_DE_DECRETO.fullmatch(plano) is not None
+
+
+#: The labels of the blocks a promulgation decree interleaves between its named steps
+#: and that the role table does not know (`CANJE DE NOTAS`, `NOTIFICACIÓN`, `INTERCAMBIO
+#: DE NOTIFICACIONES`, `SUSCRIPCIÓN`, `RATIFICACIÓN Y CONFIRMACIÓN`, `TRANSITORIO DEL
+#: DECRETO`), as the words they *start* with, matched on the folded label. The measurement
+#: of review fix-1 of #301 is why this is a vocabulary and not "any block between two
+#: steps": the unrestricted reading swallowed 500,000 characters of a treaty's own text
+#: (a bare `CONTENIDO`, the sections `MANDATO`, `OBJETIVO`, `FUNCIONES` of an
+#: organisation's mandate that sit between the decree and its `RESERVAS`).
+ETAPAS_DEL_DECRETO = re.compile(
+    r"(?:CANJE|CAMBIO|INTERCAMBIO|NOTIFICACION|SUSCRIPCION|FORMALIZACION|CELEBRACION|"
+    r"RATIFICACION(?:ES)?|RATIFIACION|APROBACION|ENTRADA EN VIGOR|CONCLUSION|ADOPCION|ACEPTACION|ADHESION|DEPOSITO|"
+    r"CONFIRMACION|CERTIFI|PROMULGACION|PUBLICACION|"
+    r"NOTAS? CAMBIADAS|INSTRUMENTOS? ADOPTADOS?|TRANSITORIOS? DEL DECRETO)\b.*"
+)
+
+
+def bloques_de_decreto(marcas: list[dict[str, str]]) -> dict[int, str]:
+    """Review fix-1 of #301: which API blocks, by position in `marcas` (the markers of
+    one document in order), are the Mexican promulgation decree wrapped around the
+    instrument, as ``{index: "leading" | "trailing" | "closing"}`` (`closing`: the
+    decree's certification where a treaty's annexes follow it).
+
+    A label alone does not decide it (a treaty's own testimonium is labelled `FIRMA`;
+    the decree's opening may be labelled anything). The decree is a *run* of blocks at
+    one end of the document:
+
+    * the **leading run** starts right after the title block(s) and goes on while the
+      blocks are `kind=other`; it must open with a block whose label names a decree
+      step (`es_etiqueta_de_decreto`), and a block with no role at all (`CANJE DE
+      NOTAS`, `NOTIFICACIÓN`) stays in it when a decree step comes after it, because
+      the decree interleaves them. A block after the last decree step is the
+      instrument's own; so is a block with a role of its own (`PARTE FINAL DEL ACTA`,
+      `NOTA`, `RESOLUCIÓN ...`) or any other kind (a preamble, an article, a container).
+      A block between two steps stays in a run only when its label starts with a word of
+      the decree's own procedure (`ETAPAS_DEL_DECRETO`) or is the decree's own transitorios
+      block: an own section that happens to sit between two decree-step labels
+      (`MANDATO`, a bare `CONTENIDO`) is not swallowed, and a bare `CONTENIDO` is never
+      read as the decree's (treaty 24128's `CONTENIDO` is the exchange of notes itself).
+    * the **trailing run** is the same read backwards from the last block, down to
+      where the leading run ended.
+
+    A decree step *between* the instrument's own blocks is its own text and is in
+    neither run.
+
+    >>> blocks = [{"kind": "header"}, {"kind": "other", "label": "FIRMA"},
+    ...           {"kind": "other", "label": "CANJE DE NOTAS"},
+    ...           {"kind": "other", "label": "PROMULGACIÓN"}, {"kind": "preamble"}]
+    >>> bloques_de_decreto(blocks)
+    {1: 'leading', 2: 'leading', 3: 'leading'}
+    >>> blocks = [{"kind": "header"}, {"kind": "preamble"}, {"kind": "article"},
+    ...           {"kind": "other", "label": "FIRMA"}, {"kind": "other", "label": "PARTE FINAL DEL ACTA"}]
+    >>> bloques_de_decreto(blocks)
+    {}
+    """
+    n = len(marcas)
+
+    def tipo(k):
+        return marcas[k].get("kind")
+
+    def decreto(k):
+        return tipo(k) == "other" and es_etiqueta_de_decreto(marcas[k].get("label", ""))
+
+    def generico(k, encontrados):
+        # A decree prints its own `TRANSITORIO` *between* two of its steps (treaty 76:
+        # `PROMULGACIÓN`, `TRANSITORIO`, `CERTIFICACIÓN`); one at the edge of a run is the
+        # instrument's own (a guideline's `CERTIFICACIÓN` is followed by its transitorios).
+        if tipo(k) == "transitorios":
+            return bool(encontrados)
+        etiqueta = marcas[k].get("label", "")
+        return (
+            tipo(k) == "other"
+            and rol_de_etiqueta(etiqueta) is None
+            and ETAPAS_DEL_DECRETO.fullmatch(pliega_etiqueta(etiqueta)) is not None
+        )
+
+    resultado: dict[int, str] = {}
+
+    def corre(indices, nombre):
+        pendientes: list[int] = []
+        encontrados: dict[int, str] = {}
+        for k in indices:
+            if decreto(k):
+                encontrados.update({p: nombre for p in pendientes})
+                encontrados[k] = nombre
+                pendientes = []
+                if nombre == "leading" and pliega_etiqueta(
+                    marcas[k].get("label", "")
+                ).startswith("CERTIFICACION"):
+                    # The certification is the last step of the decree that opens a
+                    # document: what follows it (treaty 149202's `INTERCAMBIO DE CARTAS`,
+                    # 24062's `CANJE DE NOTAS ALEMANIA`) is the instrument's own text,
+                    # even when a closing certification of the decree comes after it.
+                    break
+            elif generico(k, encontrados):
+                pendientes.append(k)
+            else:
+                break
+        return encontrados
+
+    inicio = 0
+    while inicio < n and tipo(inicio) == "header":
+        inicio += 1
+    delante = corre(range(inicio, n), "leading")
+    resultado.update(delante)
+    limite = max(delante, default=inicio - 1) + 1
+    resultado.update(corre(range(n - 1, limite - 1, -1), "trailing"))
+    # The closing certification of the decree is the decree's wherever it stands: a
+    # treaty may print annexes after it (`CUADRO DE RUTAS`, `CANJE DE NOTA`), which makes
+    # no run of it but leaves the label as unambiguous as ever.
+    for k in range(n):
+        if k not in resultado and tipo(k) == "other" and PARTE_FINAL_DE_DECRETO.fullmatch(
+            pliega_etiqueta(marcas[k].get("label", ""))
+        ):
+            resultado[k] = "closing"
+    return resultado
+
+
+def es_bloque_de_envoltura(attrs: dict[str, str]) -> bool:
+    """Issue #301, kept for a block read alone: whether it is a title block. Whether a
+    decree block is envelope depends on its position (`bloques_de_decreto`, review fix-1
+    of #301), so `rangos_de_envoltura` reads the whole document.
+
+    >>> es_bloque_de_envoltura({"kind": "header", "label": "ENCABEZADO"})
+    True
+    >>> es_bloque_de_envoltura({"kind": "other", "label": "RATIFICACIÓN Y DEPÓSITO"})
+    False
+    """
+    return attrs.get("kind") == "header"
+
+
+def rangos_de_envoltura(texto: str) -> list[tuple[int, int]]:
+    """The character ranges of `texto` that are envelope blocks, as `(start, end)`.
+
+    The envelope (issue #301, by position since review fix-1) is the title block, the
+    decree's leading run and its trailing run (`bloques_de_decreto`), read from the
+    markers alone: no eId, no `path`, no instrument. A block runs from where the text
+    before its marker ends (the blank lines between two blocks belong to the block that
+    follows, the way `validate` reads them) to the next block's start. A document with no
+    markers has none.
+    """
+    encontradas = list(MARCADORES_EN_TEXTO.finditer(texto))
+    inicios = [len(texto[: m.start()].rstrip()) if m.start() else 0 for m in encontradas]
+    fines = [*inicios[1:], len(texto) + 1]
+    marcas = [lee_marcador(m.group(0)) or {} for m in encontradas]
+    decreto = bloques_de_decreto(marcas)
+    return [
+        (inicio, fin)
+        for k, (inicio, fin) in enumerate(zip(inicios, fines))
+        if k in decreto or es_bloque_de_envoltura(marcas[k])
+    ]
+
+
+_SOLO_ALFANUM = re.compile(r"[^0-9a-z]")
+_NUMERO_INICIAL = re.compile(r"^\s*(?:[IVXLCDM]+|\d+)[.)\-–]\s*", re.IGNORECASE)
+_ORDINAL = re.compile(r"(?<=\d)[oº°]", re.IGNORECASE)
+
+
+def _plano(texto: str) -> str:
+    """`texto` reduced to its letters and digits: no case, accents, bold, punctuation,
+    spaces or ordinal indicator (`1º.-A BIS` is `1abis`)."""
+    sin = unicodedata.normalize("NFKD", _ORDINAL.sub("", texto.replace("**", "")))
+    return _SOLO_ALFANUM.sub("", sin.encode("ascii", "ignore").decode().lower())
+
+
+def es_linea_de_etiqueta(linea: str, etiqueta: str) -> bool:
+    """Whether `linea`, a block's first line of text, is only the block's own `etiqueta`:
+    the same letters and digits, ignoring case, accents, bold, `:`, `.` and spacing, and a
+    leading numeral (`III. CONSIDERANDOS` under the label `CONSIDERANDOS`).
+
+    >>> es_linea_de_etiqueta("**DISPOSICIONES PRELIMINARES**", "DISPOSICIONES PRELIMINARES")
+    True
+    >>> es_linea_de_etiqueta("**III. CONSIDERANDOS**", "CONSIDERANDOS")
+    True
+    >>> es_linea_de_etiqueta("Finalidad. Esta norma", "Finalidad.")
+    False
+    """
+    objetivo = _plano(etiqueta)
+    if not objetivo:
+        return False
+    candidatas = [linea, _NUMERO_INICIAL.sub("", linea.replace("**", ""), count=1)]
+    return any(_plano(c) == objetivo for c in candidatas)
+
+

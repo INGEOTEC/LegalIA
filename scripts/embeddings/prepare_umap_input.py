@@ -54,7 +54,11 @@ import pyarrow as pa
 import legalvec
 
 from _atomic import atomic_write_npy, atomic_write_table, atomic_write_text
-from unique_instruments import first_publication_dates, select_unique
+from unique_instruments import (  # noqa: E402
+    first_publication_dates,
+    select_identical,
+    select_unique,
+)
 
 #: The corpora, in the order their rows are stacked into `vectors.npy`. A new
 #: collection goes last, so an earlier work directory's row order is a prefix
@@ -71,17 +75,22 @@ UNIQUE_REPORT = "unique-instruments.json"
 
 
 def drop_duplicates(coleccion: str, records: list[dict], *, reader=None, log=print):
-    """`records` without the same-name duplicates of `coleccion`, the set of
-    `text_sha1` the kept ones own, and this collection's entry of
-    `unique-instruments.json`.
+    """`records` without the same-name duplicates of `coleccion` (issue #259, the id-keyed
+    collections only) and then without the instruments whose compared text is another's
+    (review fix-2 of #300 and #301, every collection), the set of `text_sha1` the kept ones
+    own, and this collection's entry of `unique-instruments.json`.
 
-    `leyes` is never grouped (`select_unique`), so its entry reports
-    `dropped: 0`, and it is not looked up in the SCJN corpus at all.
+    `leyes` is never grouped by name (`select_unique`), so it is not looked up in the SCJN
+    corpus for that rule; the identical-text rule reads the corpus of the members of a
+    group only.
     """
     dated = first_publication_dates(
-        [{"coleccion": coleccion, "clave": r["clave"], "nombre": r["nombre"]} for r in records],
+        [{"coleccion": coleccion, "clave": r["clave"], "nombre": r["nombre"],
+          "compared": r.get("compared", [])} for r in records],
         reader=reader)
     kept_dated, dropped_dated = select_unique(dated)
+    kept_dated, identical = select_identical(kept_dated, reader=reader)
+    dropped_dated = dropped_dated + identical
     kept_claves = {r["clave"] for r in kept_dated}
     kept = [r for r in records if r["clave"] in kept_claves]
     owned = {sha1 for r in kept for sha1 in r["text_sha1"]}
@@ -95,11 +104,13 @@ def drop_duplicates(coleccion: str, records: list[dict], *, reader=None, log=pri
                 "nombre": d["nombre"],
                 "first_publication": d["first_publication"].strftime("%d-%m-%Y"),
                 "replaced_by": d["replaced_by"],
+                "reason": d["reason"],
             }
             for d in dropped_dated
         ],
     }
-    log(f"  {coleccion}: unique names keep {len(kept)} of {len(records)} instruments")
+    log(f"  {coleccion}: unique names and texts keep {len(kept)} of {len(records)} instruments "
+        f"({len(identical)} dropped for an identical text)")
     return kept, owned, report
 
 
@@ -112,16 +123,29 @@ def instruments_of(units: pa.Table) -> list[dict]:
     **unit rows**, so an instrument that repeats a transitorio is pulled
     toward that text as many times as it repeats it.
     """
+    from instrument_matrix import EXCLUDED_UNIT_TYPES, is_transitorio_path
+
     claves = units.column("clave").to_pylist()
     nombres = units.column("nombre").to_pylist()
     hashes = units.column("text_sha1").to_pylist()
+    types = (units.column("unit_type").to_pylist() if "unit_type" in units.column_names
+             else [None] * len(claves))
+    paths = units.column("path").to_pylist() if "path" in units.column_names else [None] * len(claves)
+    envelope = (units.column("envelope").to_pylist() if "envelope" in units.column_names
+                else [False] * len(claves))
 
     by_clave: dict[str, dict] = {}
-    for clave, nombre, sha1 in zip(claves, nombres, hashes):
+    for clave, nombre, sha1, unit_type, path, in_envelope in zip(
+            claves, nombres, hashes, types, paths, envelope):
         record = by_clave.get(clave)
         if record is None:
-            record = by_clave[clave] = {"clave": clave, "nombre": nombre, "text_sha1": []}
+            record = by_clave[clave] = {"clave": clave, "nombre": nombre, "text_sha1": [],
+                                        "compared": []}
         record["text_sha1"].append(sha1)
+        # The unit rows the matrix searches (`instrument_matrix.searched_mask`): the
+        # identity of an instrument's text for the identical-text rule.
+        if unit_type not in EXCLUDED_UNIT_TYPES and not is_transitorio_path(path) and not in_envelope:
+            record["compared"].append(sha1)
     return list(by_clave.values())
 
 

@@ -36,6 +36,14 @@ changing quietly:
   the article's instrument; a text only headings and transitorios own is never
   a winner. A heading inside a transitorios section is counted once, as a
   heading.
+* **The envelope is out too** (issue #301). A unit marked `envelope` by `md2akn`
+  (`units.parquet`'s `envelope` column: the API's title block, the steps of the
+  promulgation decree and the decree's closing certification) is neither a source
+  row nor a candidate, exactly like a heading or a transitorio: that text is the
+  formulaic wrapper of the Mexican publication (the same `PROMULGACIÓN` is word for
+  word in treaties promulgated the same day), not the instrument's own. A
+  treaty's own preamble and its own closing clause stay compared. The summary's
+  `envelope_rows_excluded` counts them after headings and transitorios.
 * **Ties count, every one of them.** The winners of a row are every column
   within `--tolerance` (1e-6 on float32 cosine) of its best, because identical
   texts across collections are *exact* ties and picking the lowest column
@@ -83,7 +91,8 @@ Outputs, under `--work-dir/instrument-matrix/`, written atomically with
   `identical_shared`).
 * `matrix.json` — the weighting rule, `excluded_unit_types`,
   `excluded_transitorios`, `unit_rows`, `heading_rows_excluded`,
-  `transitorio_rows_excluded`, `searched_rows` (`unit_rows` minus both),
+  `transitorio_rows_excluded`, `envelope_rows_excluded`, `searched_rows` (`unit_rows`
+  minus the three), `envelope_column` (whether `units.parquet` carried the column),
   `identical_shared_dropped` and `counted_rows`, the
   row-sum identity, seconds per phase, the tie and `m` histograms,
   `shared_rows`, the tolerance, peak RSS, threads, host.
@@ -188,13 +197,38 @@ def searched_mask(units):
     """Which rows of the frame `unit_rows` returns take part in the comparison,
     as a boolean `numpy` array: the definition of a *searched* row.
 
-    A row is searched unless its `unit_type` is in `EXCLUDED_UNIT_TYPES` or it
-    lies in a transitorios section (`transitorio`). `build_matrix` and
-    `export_atlas_pairs.load` both narrow the same join through this function,
-    so they cannot disagree about which rows `nearest.parquet` holds.
+    A row is searched unless its `unit_type` is in `EXCLUDED_UNIT_TYPES`, it
+    lies in a transitorios section (`transitorio`) or it is part of the
+    instrument's envelope (`envelope`, issue #301; a frame without the column,
+    a toy corpus, has none). `build_matrix` and `export_atlas_pairs.load` both
+    narrow the same join through this function, so they cannot disagree about
+    which rows `nearest.parquet` holds.
     """
-    return (~units["unit_type"].isin(EXCLUDED_UNIT_TYPES).to_numpy()
+    mask = (~units["unit_type"].isin(EXCLUDED_UNIT_TYPES).to_numpy()
             & ~units["transitorio"].to_numpy().astype(bool))
+    if "envelope" in units.columns:
+        mask &= ~units["envelope"].to_numpy().astype(bool)
+    return mask
+
+
+def envelope_flags(points):
+    """`(flags, present)` for the `envelope` column `build_umap_html.load_frames` carries
+    when asked for it in `extra_columns`: a boolean array, and whether any collection's
+    `units.parquet` had the column at all. A column some collections have and others lack
+    is a stale cache and stops the run: it would silently compare one collection's
+    envelope."""
+    import numpy as np
+
+    values = points["envelope"].to_numpy() if "envelope" in points.columns else None
+    if values is None:
+        return np.zeros(len(points), dtype=bool), False
+    missing = np.array([v is None or v != v for v in values])
+    if missing.all():
+        return np.zeros(len(points), dtype=bool), False
+    if missing.any():
+        raise SystemExit("some collections' units.parquet carry an `envelope` column and "
+                         "others do not: rebuild them with the current build_units.py")
+    return values.astype(bool), True
 
 
 def output_dir(work_dir: Path, subdir: str = SUBDIR) -> Path:
@@ -224,8 +258,9 @@ def unit_rows(work_dir: Path, *, collections=None, cache_dir=None, log=print):
     if collections is None:
         collections = tuple(html.COLLECTION_CODES)
     points, _ = html.load_frames(work_dir, [], neighbors=0, collections=collections,
-                                 cache_dir=cache_dir, extra_columns=("path",), log=log)
+                                 cache_dir=cache_dir, extra_columns=("path", "envelope"), log=log)
     instruments = pq.read_table(Path(work_dir) / "instruments.parquet").to_pandas()
+    envelope, envelope_present = envelope_flags(points)
     collections = {code: name for name, code in html.COLLECTION_CODES.items()}
     units = pd.DataFrame({
         "i": points["i"].astype("int32"),
@@ -236,9 +271,12 @@ def unit_rows(work_dir: Path, *, collections=None, cache_dir=None, log=print):
         # `path` comes through `load_frames`' own join (no second one); a units
         # table without it (the toy corpora) has no transitorio.
         "transitorio": [is_transitorio_path(path) for path in points["path"]],
+        "envelope": envelope,
     })
     units = units.merge(instruments[["i", "clave"]], on="i", how="left")
-    return units[["i", "coleccion", "clave", "unit_type", "eId", "row", "transitorio"]]
+    units = units[["i", "coleccion", "clave", "unit_type", "eId", "row", "transitorio", "envelope"]]
+    units.attrs["envelope_column"] = envelope_present
+    return units
 
 
 def owners_of_rows(units, vector_rows: int) -> list[list[int]]:
@@ -412,23 +450,30 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
     if len(all_units) != expected_rows:
         raise SystemExit(f"{len(all_units)} unit rows joined, but instruments.parquet lists "
                          f"{expected_rows}: rerun prepare_umap_input.py over this work directory")
-    # Headings and transitorios are neither sources nor candidates: every step
-    # below, owners and exclusive-column masks included, sees only the searched
-    # rows. Headings are counted first, so a heading inside a transitorios
-    # section is one excluded row, not two.
+    # Headings, transitorios and the envelope are neither sources nor candidates:
+    # every step below, owners and exclusive-column masks included, sees only the
+    # searched rows. Headings are counted first, then transitorios, then envelope
+    # rows (issue #301), so a row that is two things is one excluded row, not two.
     is_heading = all_units["unit_type"].isin(EXCLUDED_UNIT_TYPES).to_numpy()
+    is_transitorio = all_units["transitorio"].to_numpy().astype(bool)
+    is_envelope = all_units["envelope"].to_numpy().astype(bool)
     searched = searched_mask(all_units)
     units = all_units[searched].reset_index(drop=True)
     heading_rows_excluded = int(is_heading.sum())
-    transitorio_rows_excluded = len(all_units) - len(units) - heading_rows_excluded
+    transitorio_rows_excluded = int((is_transitorio & ~is_heading).sum())
+    envelope_rows_excluded = int((is_envelope & ~is_heading & ~is_transitorio).sum())
+    if len(all_units) - len(units) != (heading_rows_excluded + transitorio_rows_excluded
+                                       + envelope_rows_excluded):
+        raise SystemExit("the excluded-row counters do not add up to the searched mask")
     # The text-to-text score is the work directory's own (issue #267): the exact
     # cosine over `vectors.npy` unless `input.json` says `bm25`.
     scorer = scoring.scorer_for(work_dir)
     n_vectors = scorer.n_rows
     timings["load"] = round(time.time() - started, 1)
     timings.update({key: value for key, value in scorer.timings.items() if key != "load"})
-    log(f"{len(all_units)} unit rows ({heading_rows_excluded} heading and "
-        f"{transitorio_rows_excluded} transitorio rows excluded) over "
+    log(f"{len(all_units)} unit rows ({heading_rows_excluded} heading, "
+        f"{transitorio_rows_excluded} transitorio and {envelope_rows_excluded} envelope "
+        f"rows excluded) over "
         f"{n_vectors} vectors ({scorer.method}) in {timings['load']}s")
 
     owners = owners_of_rows(units, n_vectors)
@@ -519,6 +564,8 @@ def build_matrix(work_dir: Path, *, tolerance: float = DEFAULT_TOLERANCE,
         "excluded_transitorios": True,
         "heading_rows_excluded": heading_rows_excluded,
         "transitorio_rows_excluded": int(transitorio_rows_excluded),
+        "envelope_rows_excluded": envelope_rows_excluded,
+        "envelope_column": bool(all_units.attrs.get("envelope_column", False)),
         "searched_rows": int(len(nearest)),
         "identical_shared_dropped": int(identical_shared.sum()),
         "no_match_rows": int(no_match.sum()),
@@ -718,7 +765,8 @@ def report(work_dir: Path, log=print) -> dict:
     if summary:
         log(f"  {summary['counted_rows']} counted of {summary['unit_rows']} unit rows "
             f"({summary['heading_rows_excluded']} headings and "
-            f"{summary['transitorio_rows_excluded']} transitorios excluded), "
+            f"{summary['transitorio_rows_excluded']} transitorios and "
+            f"{summary.get('envelope_rows_excluded', 0)} envelope rows excluded), "
             f"sum {summary['matrix_sum']}, "
             f"{summary['tie_rows']} tied, {summary['seconds_total']}s, "
             f"{summary['peak_rss_gb']} GB peak, node {summary['node']}")

@@ -760,17 +760,32 @@ class TestPaginacion(unittest.TestCase):
         sesion = SesionFalsa(respuestas)
         return ScjnApi(espera=0, reintentos=0, session=sesion), sesion
 
-    def test_una_pagina_corta_es_la_ultima_aunque_tamanio_sobrecuente(self):
-        from scjn.api import TAMANIO_PAGINA_ARTICULOS
+    def test_una_pagina_corta_es_la_ultima_y_la_respuesta_corta_es_incompleta(self):
+        # Issue #300 re-pinned this case. `lfd` reforma 99 declared 995, served
+        # 991 rows over `orden` 1..995 and was believed complete; the 4
+        # missing `orden` were `CONTENIDO` blocks the API had left out. The
+        # short page still ends the paging (a third request would answer
+        # 500), but the answer is refused, not returned.
+        from scjn.api import TAMANIO_PAGINA_ARTICULOS, ScjnApiIncompleteError
 
         n = TAMANIO_PAGINA_ARTICULOS
-        # Página 1 completa, página 2 corta; `tamanio` declara 4 de más.
         cliente, sesion = self.respuestas_articulos(
             [range(1, n + 1), range(n + 1, n + 492)], tamanio=n + 495
         )
-        articulos = cliente.articulos_of_reforma(693, 99)
-        self.assertEqual(len(articulos), n + 491)
-        # Y no pidió la tercera página, que es la que contesta 500.
+        with self.assertRaises(ScjnApiIncompleteError) as ctx:
+            cliente.articulos_of_reforma(693, 99)
+        self.assertIn("tamanio 995", str(ctx.exception))
+        self.assertEqual(len(sesion.llamadas), 2)
+
+    def test_una_pagina_corta_completa_es_la_ultima(self):
+        # The same shape with the 4 blocks served: 995 rows, `tamanio` 995.
+        from scjn.api import TAMANIO_PAGINA_ARTICULOS
+
+        n = TAMANIO_PAGINA_ARTICULOS
+        cliente, sesion = self.respuestas_articulos(
+            [range(1, n + 1), range(n + 1, 996)], tamanio=995
+        )
+        self.assertEqual(len(cliente.articulos_of_reforma(693, 99)), 995)
         self.assertEqual(len(sesion.llamadas), 2)
 
     def test_una_pagina_completa_que_agota_tamanio_es_la_ultima(self):
@@ -1059,3 +1074,130 @@ class TestWholeNumberLeads(unittest.TestCase):
             self._lead("ARTICULO 18.-A.- Para los efectos de esta ley."),
             "**ARTICULO 18.-A.-** Para los efectos de esta ley.",
         )
+
+
+class TestCompletitud(unittest.TestCase):
+    """Issue #300: an `Articulos` answer whose `orden` is not `1..N`, or that
+    holds fewer rows than its `tamanio`, is retried and then refused."""
+
+    @staticmethod
+    def respuesta(ordenes, tamanio):
+        return RespuestaFalsa(
+            {
+                "codigo": 200,
+                "tamanio": tamanio,
+                "articulos": [
+                    {"numero": i, "orden": i, "referencia": f"ARTÍCULO {i}", "contenido": "x"}
+                    for i in ordenes
+                ],
+            }
+        )
+
+    def cliente(self, respuestas, reintentos=2):
+        from scjn.api import ScjnApi
+
+        sesion = SesionFalsa(respuestas)
+        return ScjnApi(espera=0, reintentos=reintentos, session=sesion), sesion
+
+    def test_un_hueco_que_se_sirve_completo_al_reintentar_se_devuelve(self):
+        cliente, sesion = self.cliente(
+            [self.respuesta([1, 2, 4], 4), self.respuesta([1, 2, 3, 4], 4)]
+        )
+        arts = cliente.articulos_of_reforma(24031, 1)
+        self.assertEqual([a.orden for a in arts], [1, 2, 3, 4])
+        self.assertEqual(len(sesion.llamadas), 2)
+
+    def test_un_hueco_persistente_levanta_y_nombra_los_orden_que_faltan(self):
+        from scjn.api import ScjnApiError, ScjnApiIncompleteError
+
+        cliente, sesion = self.cliente([self.respuesta([1, 2, 5], 5)] * 3)
+        with self.assertRaises(ScjnApiIncompleteError) as ctx:
+            cliente.articulos_of_reforma(24031, 1)
+        self.assertIsInstance(ctx.exception, ScjnApiError)
+        self.assertIn("missing orden [3, 4]", str(ctx.exception))
+        self.assertIn("idReforma=1", str(ctx.exception))
+        self.assertEqual(len(sesion.llamadas), 3)  # reintentos + 1
+
+    def test_menos_filas_que_tamanio_levanta_aunque_orden_sea_contiguo(self):
+        # A block dropped at the end of the answer leaves no gap in `orden`.
+        from scjn.api import ScjnApiIncompleteError
+
+        cliente, _ = self.cliente([self.respuesta([1, 2, 3], 4)] * 3)
+        with self.assertRaises(ScjnApiIncompleteError) as ctx:
+            cliente.articulos_of_reforma(24031, 1)
+        self.assertIn("3 rows is fewer than tamanio 4", str(ctx.exception))
+
+    def test_una_fila_repetida_exacta_se_descarta_y_orden_distinto_con_mismo_orden_no(self):
+        # 2026-10-26: the API repeated rows verbatim (`tamanio` counts them);
+        # two *different* blocks that share an `orden` are real and both stay.
+        fila = lambda orden, ref, texto: {
+            "numero": 0, "orden": orden, "referencia": ref, "contenido": texto,
+        }
+        filas = [
+            fila(1, "A", "uno"), fila(2, "B", "dos"), fila(2, "B", "dos"),
+            fila(3, "C", "tres"), fila(3, "CONTENIDO", "otro bloque"),
+        ]
+        cliente, _ = self.cliente(
+            [RespuestaFalsa({"codigo": 200, "tamanio": len(filas), "articulos": filas})]
+        )
+        arts = cliente.articulos_of_reforma(1, 1)
+        self.assertEqual([(a.orden, a.referencia) for a in arts],
+                         [(1, "A"), (2, "B"), (3, "C"), (3, "CONTENIDO")])
+
+    def test_repetidas_que_enmascaran_un_hueco_siguen_siendo_incompletas(self):
+        # lft reforma 61 on 2026-10-26: 1,433 rows for `tamanio` 1,433, but 174
+        # of them repeats and 191 `orden` values missing.
+        from scjn.api import ScjnApiIncompleteError
+
+        filas = [
+            {"numero": 0, "orden": o, "referencia": f"R{o}", "contenido": "x"}
+            for o in (1, 2, 2, 4)
+        ]
+        cliente, _ = self.cliente(
+            [RespuestaFalsa({"codigo": 200, "tamanio": 4, "articulos": filas})] * 3
+        )
+        with self.assertRaises(ScjnApiIncompleteError) as ctx:
+            cliente.articulos_of_reforma(410, 61)
+        self.assertIn("missing orden [3]", str(ctx.exception))
+
+    def test_una_respuesta_completa_pide_una_sola_vez(self):
+        cliente, sesion = self.cliente([self.respuesta([1, 2, 3], 3)])
+        self.assertEqual(len(cliente.articulos_of_reforma(1, 1)), 3)
+        self.assertEqual(len(sesion.llamadas), 1)
+
+    def test_sin_filas_y_sin_tamanio_es_una_respuesta_vacia_valida(self):
+        cliente, _ = self.cliente([self.respuesta([], 0)])
+        self.assertEqual(cliente.articulos_of_reforma(1, 1), [])
+
+    def test_descarga_ordenamiento_registra_la_reforma_incompleta_y_no_escribe(self):
+        from tempfile import TemporaryDirectory
+
+        from scjn.api import Ordenamiento, Reforma, descarga_ordenamiento
+
+        incompleto = [self.respuesta([1, 3], 3)] * 3
+        completo = [self.respuesta([1, 2], 2)]
+
+        class ClienteFalso:
+            def __init__(self, parent):
+                self.parent = parent
+                self.api, _ = parent.cliente(incompleto + completo)
+
+            def search_ordenamiento(self, nombre, **kw):
+                return [Ordenamiento(idOrdenamiento="1", ordenamiento="LEY X")]
+
+            def reformas_of_ordenamiento(self, id_ordenamiento):
+                return [
+                    Reforma(reformaId=2, fecha_publicacion="02-01-2025"),
+                    Reforma(reformaId=1, fecha_publicacion="01-01-2024"),
+                ]
+
+            def articulos_of_reforma(self, id_ordenamiento, id_reforma):
+                return self.api.articulos_of_reforma(id_ordenamiento, id_reforma)
+
+        with TemporaryDirectory() as tmp:
+            resultado = descarga_ordenamiento(ClienteFalso(self), "LEY X", Path(tmp))
+            nombres = sorted(p.name for p in Path(tmp).glob("*.md"))
+        self.assertEqual(nombres, ["01-01-2024.md"])
+        self.assertEqual(len(resultado.reformas_fallidas), 1)
+        self.assertIn("02-01-2025", resultado.reformas_fallidas[0])
+        self.assertIn("missing orden [2]", resultado.reformas_fallidas[0])

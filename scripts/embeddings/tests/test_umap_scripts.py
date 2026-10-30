@@ -213,7 +213,8 @@ def test_unique_names_drops_the_older_duplicate_before_stacking(tmp_path, duplic
     assert report["lineamientos"] == {
         "before": 2, "kept": 1, "dropped": 1,
         "dropped_instruments": [{"clave": "901", "nombre": "LINEAMIENTOS  Z",
-                                 "first_publication": "01-01-1999", "replaced_by": "900"}],
+                                 "first_publication": "01-01-1999", "replaced_by": "900",
+                                 "reason": "same-name"}],
     }
     record = json.loads((work_dir / "input.json").read_text(encoding="utf-8"))
     assert record["unique_names"] is True

@@ -431,11 +431,12 @@ def instrument_documents(work_dir: Path, instruments, *, collections, cache_dir=
     import pandas as pd
 
     points, _ = html.load_frames(work_dir, [], neighbors=0, collections=collections,
-                                 cache_dir=cache_dir, extra_columns=("path", "text"), log=log)
+                                 cache_dir=cache_dir, extra_columns=("path", "text", "envelope"), log=log)
     names = dict(enumerate(html.UNIT_TYPES))
     units = pd.DataFrame({
         "unit_type": points["u"].map(names),
         "transitorio": [instrument_matrix.is_transitorio_path(path) for path in points["path"]],
+        "envelope": instrument_matrix.envelope_flags(points)[0],
     })
     searched = instrument_matrix.searched_mask(units)
     texts = pd.Series(["" if text is None or text != text else str(text)
@@ -443,7 +444,7 @@ def instrument_documents(work_dir: Path, instruments, *, collections, cache_dir=
                       index=points["i"].to_numpy()[searched])
     joined = texts.groupby(level=0).agg("\n".join)
     log(f"{int(searched.sum())} searched unit rows of {joined.shape[0]} instruments "
-        f"({len(points) - int(searched.sum())} headings and transitorios left out)")
+        f"({len(points) - int(searched.sum())} headings, transitorios and envelope left out)")
     return [joined.get(int(i), "") for i in instruments["i"]]
 
 

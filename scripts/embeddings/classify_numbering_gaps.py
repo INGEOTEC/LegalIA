@@ -53,6 +53,7 @@ import export_instrument_files as X  # noqa: E402
 import instrument_matrix  # noqa: E402
 from md2akn import parse_markdown, text_units  # noqa: E402
 from md2akn.outline import lee_marcador  # noqa: E402
+from md2akn.patterns import ARTICULO  # noqa: E402
 from scjn import (  # noqa: E402
     iter_current_federal_laws,
     iter_current_lineamientos,
@@ -87,6 +88,27 @@ def _marker_of(markdown: str, offset: int):
     for m in _MARKER.finditer(markdown, 0, offset + 1):
         last = lee_marcador(m.group(0)) or {}
     return last or {}
+
+
+def _block_text_at(markdown: str, offset: int) -> tuple[str, str]:
+    """The label and the text of the API block that holds `offset` (marker line left out)."""
+    start = label = None
+    for m in _MARKER.finditer(markdown, 0, offset + 1):
+        start, label = m.end(), (lee_marcador(m.group(0)) or {}).get("label", "")
+    if start is None:
+        return "", ""
+    nxt = _MARKER.search(markdown, start)
+    return label, markdown[start:nxt.start() if nxt else len(markdown)]
+
+
+def _printed_openers(text: str) -> set[int]:
+    """The integer article numbers a block's text opens an article with."""
+    found = set()
+    for line in text.splitlines():
+        m = ARTICULO.match(line.replace("**", "").strip())
+        if m and re.fullmatch(r"\d+", m.group("num") or ""):
+            found.add(int(m.group("num")))
+    return found
 
 
 def classify(collection, key, markdown):
@@ -130,6 +152,22 @@ def classify(collection, key, markdown):
                 kind, note = ("source-omits-number",
                               f"no article block of the API between article {before} and {unit.num}"
                               + (f" (blocks between: {labels})" if labels else ""))
+                # Issue #300: when both articles are printed inside one API block (a
+                # `CONTENIDO` block holds a whole text), "no article block between"
+                # proves nothing; look at what that block's own text opens.
+                label, text = _block_text_at(markdown, unit.start_char)
+                if text and _marker_of(markdown, prev_unit.start_char) == own and isinstance(value, int):
+                    skipped = list(range(before + 1, value))
+                    printed = _printed_openers(text)
+                    inside = [n for n in skipped if n in printed]
+                    if inside:
+                        kind, note = ("numbering-continues-across-containers",
+                                      f"the API block `{label}` prints articles {inside} of the skipped range "
+                                      f"{before + 1}..{value - 1} in other sections of its own text")
+                    else:
+                        kind, note = ("source-omits-number",
+                                      f"the API block `{label}` prints article openers {sorted(printed)[:12]} and "
+                                      f"none of the skipped {before + 1}..{value - 1}")
             found.append({
                 "collection": collection, "key": str(key), "eId": unit.eId,
                 "after": before, "num": str(unit.num), "kind": kind, "evidence": note,

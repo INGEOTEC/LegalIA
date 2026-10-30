@@ -141,3 +141,129 @@ def test_the_default_reader_is_scjns_own():
 
     assert unique_instruments._default_reader("reglamentos") is scjn.download_scjn_reglamentos_corpus
     assert unique_instruments._default_reader("lineamientos") is scjn.download_scjn_lineamientos_corpus
+
+
+# -- identical texts (review fix-2 of #300 and #301) ------------------------- #
+
+from unique_instruments import (  # noqa: E402
+    original_is_current, select_identical, snapshot_body,
+)
+
+TEXT = ["a", "b", "c"]
+
+
+def text_record(coleccion, clave, compared=TEXT):
+    return {"coleccion": coleccion, "clave": clave, "nombre": f"N{clave}", "compared": list(compared)}
+
+
+def snapshots_reader(by_clave):
+    """`reader(coleccion)(clave, cache_dir=None)` over ``{clave: [(date, body), ...]}``."""
+    def reader(coleccion):
+        def read(clave, cache_dir=None):
+            return {"snapshots": [
+                {"fecha_publicacion": d, "markdown": f"---\nfuente: scjn\nid: {clave}\n---\n\n{body}\n"}
+                for d, body in by_clave[clave]]}
+        return read
+    return reader
+
+
+def test_the_instrument_whose_original_publication_is_the_text_is_kept():
+    """tratados 11151, 16145 and 23742: the 1950 Convention is the latest snapshot of all
+    three, and the original publication of 11151 only."""
+    reader = snapshots_reader({
+        "11151": [("19-06-1956", "convención 1950")],
+        "16145": [("25-01-1936", "convención 1921"), ("19-10-1949", "protocolo"),
+                  ("19-06-1956", "convención 1950")],
+        "23742": [("21-06-1938", "convención 1933"), ("19-06-1956", "convención 1950")],
+    })
+    kept, dropped = select_identical(
+        [text_record("tratados", k) for k in ("11151", "16145", "23742")], reader=reader)
+    assert claves(kept) == ["11151"]
+    assert claves(dropped) == ["16145", "23742"]
+    assert {d["replaced_by"] for d in dropped} == {"11151"}
+    assert {d["reason"] for d in dropped} == {"identical-text"}
+    assert [d["first_publication"] for d in dropped] == [date(1936, 1, 25), date(1938, 6, 21)]
+
+
+def test_the_kept_instrument_does_not_depend_on_the_id_when_one_is_the_original():
+    reader = snapshots_reader({
+        "5": [("01-01-1950", "viejo"), ("01-01-1960", "texto")],
+        "9": [("01-01-1960", "texto")],
+    })
+    for order in (("5", "9"), ("9", "5")):
+        kept, _ = select_identical([text_record("tratados", k) for k in order], reader=reader)
+        assert claves(kept) == ["9"]
+    reader = snapshots_reader({"5": [("01-01-1960", "texto")], "9": [("01-01-1950", "viejo"), ("01-01-1960", "texto")]})
+    kept, dropped = select_identical([text_record("tratados", "5"), text_record("tratados", "9")],
+                                     reader=reader)
+    assert claves(kept) == ["5"] and claves(dropped) == ["9"]
+
+
+def test_a_tie_between_originals_goes_to_the_larger_id_as_an_integer():
+    reader = snapshots_reader({"999": [("01-01-1960", "t")], "1000": [("01-01-1960", "t")]})
+    kept, dropped = select_identical(
+        [text_record("tratados", "999"), text_record("tratados", "1000")], reader=reader)
+    assert claves(kept) == ["1000"] and claves(dropped) == ["999"]
+
+
+def test_a_group_in_which_nobody_is_the_original_goes_to_the_larger_id():
+    reader = snapshots_reader({
+        "20": [("01-01-1950", "a"), ("01-01-1960", "texto")],
+        "30": [("01-01-1940", "b"), ("01-01-1960", "texto")],
+    })
+    kept, _ = select_identical(
+        [text_record("tratados", "20"), text_record("tratados", "30")], reader=reader)
+    assert claves(kept) == ["30"]
+
+
+def test_the_header_and_the_markers_are_not_part_of_the_text():
+    a = "---\nid: 1\nfecha: x\n---\n\n<!-- scjn:block orden=1 numero=0 kind=other label=\"A\" -->\n\nTexto.\n"
+    b = "---\nid: 2\n---\n\n<!-- scjn:block orden=7 numero=0 kind=other label=\"B\" -->\n\nTexto.\n"
+    assert snapshot_body(a) == snapshot_body(b) == "Texto."
+    assert original_is_current([{"fecha_publicacion": "01-01-1950", "markdown": a},
+                                {"fecha_publicacion": "01-01-1960", "markdown": b}])
+
+
+def test_different_or_empty_compared_texts_are_never_grouped():
+    def reader(coleccion):
+        raise AssertionError("no group, no lookup")
+
+    records = [text_record("tratados", "1", ["a"]), text_record("tratados", "2", ["b"]),
+               text_record("tratados", "3", []), text_record("tratados", "4", [])]
+    kept, dropped = select_identical(records, reader=reader)
+    assert claves(kept) == ["1", "2", "3", "4"] and dropped == []
+    # the same set of texts but a different multiset is another text
+    kept, dropped = select_identical(
+        [text_record("tratados", "1", ["a", "a", "b"]), text_record("tratados", "2", ["a", "b", "b"])],
+        reader=reader)
+    assert claves(kept) == ["1", "2"]
+
+
+def test_the_rule_is_applied_inside_every_collection_and_never_across_them():
+    reader = snapshots_reader({"1": [("01-01-1960", "t")], "2": [("01-01-1960", "t")],
+                               "x": [("01-01-1960", "t")], "y": [("01-01-1960", "t")]})
+    records = [text_record("tratados", "1"), text_record("tratados", "2"),
+               text_record("leyes", "x"), text_record("leyes", "y"),
+               text_record("reglamentos", "1")]
+    kept, dropped = select_identical(records, reader=reader)
+    assert [(r["coleccion"], r["clave"]) for r in kept] == [
+        ("tratados", "2"), ("leyes", "y"), ("reglamentos", "1")]
+    assert [(r["coleccion"], r["clave"]) for r in dropped] == [("tratados", "1"), ("leyes", "x")]
+
+
+def test_real_11151_is_the_original_of_the_treaty_filed_three_times():
+    """The three ids the SCJN files the 1950 Lake Success Convention under: only 11151 was
+    originally published as that text (its single snapshot, 19-06-1956); 16145 and 23742
+    are the 1921 and 1933 conventions the 1956 text superseded."""
+    import scjn
+
+    try:
+        snapshots = {k: scjn.download_scjn_tratados_corpus(k)["snapshots"]
+                     for k in ("11151", "16145", "23742")}
+    except scjn.AssetNotCached:
+        pytest.skip("scjn-tratados is not cached locally")
+    assert {k: original_is_current(v) for k, v in snapshots.items()} == {
+        "11151": True, "16145": False, "23742": False}
+    kept, dropped = select_identical(
+        [text_record("tratados", k) for k in ("16145", "11151", "23742")])
+    assert claves(kept) == ["11151"] and claves(dropped) == ["16145", "23742"]

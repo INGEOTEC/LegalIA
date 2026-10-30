@@ -52,48 +52,54 @@
       "text_sha1": "dd0ea30f5de3ac2d410c07f4b5dacbbbe33eb742"
     },
     {
-      "unit_type": "preamble",
-      "eId": "preamble",
-      "piece": 5,
+      "unit_type": "heading",
+      "eId": "hc_CONSIDERANDO",
+      "piece": 0,
       "piece_eId": null,
-      "akn_type": "preamble",
-      "num": null,
+      "akn_type": "hcontainer",
+      "num": "CONSIDERANDO",
       "path": [],
       "text": "**CONSIDERANDO**",
       "text_sha1": "ef1e078f1c11b28485a2b6d5330b4c0b2e74377a"
     },
     {
-      "unit_type": "preamble",
-      "eId": "preamble",
-      "piece": 6,
+      "unit_type": "intro",
+      "eId": "hc_CONSIDERANDO__intro",
+      "piece": 1,
       "piece_eId": null,
-      "akn_type": "preamble",
+      "akn_type": "intro",
       "num": null,
-      "path": [],
-      "text": "Que el Convenio Internacional para la Seguridad de la Vida Humana en el Mar, 1974 (Convenio SOLAS/74) fue aprobado por la Cámara de Senadores del H. Congreso de la Unión el 27 de diciembre de 1976, según Decreto publicado en el Diario Oficial de la Federación del 20 de enero de 1977;",
-      "text_sha1": "42aa3ba8d206a15f4af123e997c750848a085029"
+      "path": [
+        "CONSIDERANDO"
+      ],
+      "text": "CONSIDERANDO Que el Convenio Internacional para la Seguridad de la Vida Humana en el Mar, 1974 (Convenio SOLAS/74) fue aprobado por la Cámara de Senadores del H. Congreso de la Unión el 27 de diciembre de 1976, según Decreto publicado en el Diario Oficial de la Federación del 20 de enero de 1977;",
+      "text_sha1": "0fc3fe9b334c4e681d63e8acb8909043ff831e9f"
     },
     {
-      "unit_type": "preamble",
-      "eId": "preamble",
-      "piece": 7,
+      "unit_type": "intro",
+      "eId": "hc_CONSIDERANDO__intro",
+      "piece": 2,
       "piece_eId": null,
-      "akn_type": "preamble",
+      "akn_type": "intro",
       "num": null,
-      "path": [],
-      "text": "Que el Gobierno de los Estados Unidos Mexicanos depositó su instrumento de adhesión al Convenio SOLAS/74, ante el Secretario General de la entonces Organización Consultiva Marítima Intergubernamental (ahora Organización Marítima Internacional), el 28 de marzo de 1977;",
-      "text_sha1": "f025c75392e1f2b1db9004daa96db4a47a0c1f07"
+      "path": [
+        "CONSIDERANDO"
+      ],
+      "text": "CONSIDERANDO Que el Gobierno de los Estados Unidos Mexicanos depositó su instrumento de adhesión al Convenio SOLAS/74, ante el Secretario General de la entonces Organización Consultiva Marítima Intergubernamental (ahora Organización Marítima Internacional), el 28 de marzo de 1977;",
+      "text_sha1": "eed841a3e7df2e9cce4e2a7ed96b4682ad4e46ab"
     },
     {
-      "unit_type": "preamble",
-      "eId": "preamble",
-      "piece": 8,
+      "unit_type": "intro",
+      "eId": "hc_CONSIDERANDO__intro",
+      "piece": 3,
       "piece_eId": null,
-      "akn_type": "preamble",
+      "akn_type": "intro",
       "num": null,
-      "path": [],
-      "text": "Que el Convenio SOLAS/74 fue publicado en el Diario Oficial de la Federación del 9 de mayo de 1977;",
-      "text_sha1": "2b9092938368f548bae0a0f28f657839c41630c1"
+      "path": [
+        "CONSIDERANDO"
+      ],
+      "text": "CONSIDERANDO Que el Convenio SOLAS/74 fue publicado en el Diario Oficial de la Federación del 9 de mayo de 1977;",
+      "text_sha1": "ca3a2112f9397bbc351436592ac6edcb4e699580"
     },
     {
       "unit_type": "toc",
@@ -151,40 +157,38 @@
       "text_sha1": "9eb6f049c3d4aef9769867a964ef6bcfd1e03ad7"
     },
     {
-      "unit_type": "intro",
-      "eId": "sec_1_ÁMBITO__intro",
+      "unit_type": "heading",
+      "eId": "hc_1_ÁMBITO",
       "piece": 0,
       "piece_eId": null,
-      "akn_type": "intro",
-      "num": null,
-      "path": [
-        "SECCIÓN 1 ÁMBITO"
-      ],
-      "text": "SECCIÓN 1 ÁMBITO **1 ÁMBITO**",
-      "text_sha1": "f99c5c392e9e5d0f3082f193db168d59b6a2e1fd"
+      "akn_type": "hcontainer",
+      "num": "1 ÁMBITO",
+      "path": [],
+      "text": "**1 ÁMBITO**",
+      "text_sha1": "061d21c18a30484e364ab9da8488457b4ddd6c5d"
     },
     {
       "unit_type": "article_piece",
-      "eId": "sec_1_ÁMBITO__art_1.1",
+      "eId": "hc_1_ÁMBITO__art_1.1",
       "piece": 1,
-      "piece_eId": "sec_1_ÁMBITO__art_1.1__p_1",
+      "piece_eId": "hc_1_ÁMBITO__art_1.1__p_1",
       "akn_type": "article",
       "num": "1.1",
       "path": [
-        "SECCIÓN 1 ÁMBITO"
+        "1 ÁMBITO"
       ],
       "text": "1.1 El presente Código está destinado a que lo utilicen la Administración y la autoridad competente del Estado de abanderamiento cuando aprueben productos que se vayan a instalar en buques que enarbolen el pabellón del Estado de abanderamiento, de conformidad con las prescripciones de seguridad contra incendios del Convenio internacional para la seguridad de la vida humana en el mar, 1974, enmendado.",
       "text_sha1": "12db7b26ca28c5e292518df9ffa63cecdf37a6eb"
     },
     {
       "unit_type": "article",
-      "eId": "sec_1_ÁMBITO__art_1.2",
+      "eId": "hc_1_ÁMBITO__art_1.2",
       "piece": 0,
       "piece_eId": null,
       "akn_type": "article",
       "num": "1.2",
       "path": [
-        "SECCIÓN 1 ÁMBITO"
+        "1 ÁMBITO"
       ],
       "text": "1.2 El Código será utilizado por los laboratorios de ensayo cuando sometan a ensayo y evalúen productos con arreglo a lo dispuesto en el mismo.",
       "text_sha1": "8db9a6aba0d5569980ec32574d7c32bfae8cb7ae"

@@ -473,11 +473,14 @@
         }
         if (!ok) continue;
         // Exact-prefix name matches first, then a name that contains every word,
-        // then an abbreviation or id.
+        // then an abbreviation or id. Among names of one kind the one the query
+        // covers most of comes first (the Atlas page ranks the same way).
         const rank = item.folded.startsWith(folded) || item.foldedKey === folded ? 0 : inName ? 1 : 2;
-        found.push({ item, rank });
+        const coverage = rank === 2 ? 0 : folded.length / item.folded.length;
+        found.push({ item, rank, coverage });
       }
-      found.sort((a, b) => a.rank - b.rank || b.item.d.a - a.item.d.a || a.item.i - b.item.i);
+      found.sort((a, b) => a.rank - b.rank || b.coverage - a.coverage || b.item.d.a - a.item.d.a
+        || a.item.i - b.item.i);
       return found.slice(0, SUGGESTIONS).map((entry) => entry.item);
     }
 
@@ -899,6 +902,31 @@
         return heading;
       }
 
+      // The label the Court gives a block that has no heading line of its own in the text (a
+      // preamble, `APROBACIÓN DE INSTRUMENTOS`, `PARTE FINAL DEL ACTA`): drawn as a heading at the
+      // node's depth, in an editorial style, so the reader sees where the Court cut the instrument.
+      // Review fix-1 of #301.
+      const LABEL_TITLE = "Section label from the SCJN's database";
+      function foldLabel(text) {
+        return String(text || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "");
+      }
+      function firstLineOf(node) {
+        const lines = stripMarkers(markdown.slice(node.s, node.l)).split(/\n/);
+        const line = lines.find((candidate) => candidate.trim());
+        return line === undefined ? "" : line;
+      }
+      function labelHeading(label, level) {
+        return element("h" + String(level), {
+          className: "instruments-heading instruments-label",
+          title: LABEL_TITLE,
+          text: label,
+        });
+      }
+
       const depthOf = new Map(); // a node -> how many containers hold it
       function containerDepth(node, parentNode) {
         const depth = parentNode === null ? 0 : (depthOf.get(parentNode) || 0) + (CONTAINERS.has(parentNode.t) ? 1 : 0);
@@ -962,6 +990,16 @@
           el.append(heading);
           excerptEls.set(excerptId(unit), heading);
           if (at >= 0) text = text.slice(at + own.trim().length);
+        }
+        if (
+          CONTAINERS.has(node.t) &&
+          node.n &&
+          node.r !== "#promulgation" &&
+          !(unit && unit.u === "heading") &&
+          !text.trim() &&
+          foldLabel(firstLineOf(node)) !== foldLabel(node.n)
+        ) {
+          el.append(labelHeading(node.n, Math.min(6, 3 + depth)));
         }
         if (text.trim()) el.append(element("div", { className: "instruments-text" }, [renderText(text)]));
         if (node.c && node.c.length) {

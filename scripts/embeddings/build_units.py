@@ -114,6 +114,10 @@ UNITS_SCHEMA = pa.schema([
     ("end_char", pa.int64()),
     ("text", pa.string()),
     ("text_sha1", pa.string()),
+    # Issue #301: the unit belongs to the instrument's envelope (md2akn's `TextUnit.envelope`),
+    # neither a source nor a candidate of the instrument matrix. Last, so every earlier
+    # column keeps its position.
+    ("envelope", pa.bool_()),
 ])
 
 LEAVES_SCHEMA = pa.schema([
@@ -158,6 +162,7 @@ def build_rows(
     instrumentos = 0
     modos: dict[str, int] = {}
     over_cap = residuo = maximo = articles_over_cap = longest_article = 0
+    envelope_units = 0
     for instrumento in lector["iter"](claves, cache_dir=cache_dir):
         instrumentos += 1
         clave = str(instrumento[lector["clave"]])
@@ -205,7 +210,9 @@ def build_rows(
                 "end_char": unit.end_char,
                 "text": unit.text,
                 "text_sha1": unit.text_sha1,
+                "envelope": unit.envelope,
             })
+            envelope_units += unit.envelope
         for ref in leaf_map(tree, units):
             leaf_rows.append({
                 "coleccion": coleccion,
@@ -220,6 +227,7 @@ def build_rows(
     stats = {
         "instruments": instrumentos,
         "instruments_by_numbering": modos,
+        "envelope_units": envelope_units,
         "units_over_cap": over_cap,
         "units_over_cap_unsplittable": residuo,
         "max_unit_chars": maximo,

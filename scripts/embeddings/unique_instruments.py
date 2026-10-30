@@ -26,6 +26,19 @@ guidelines, and this module is the rule that picks them:
   in what `legalvec` published), so a text-less instrument can never win a
   group and erase one the Atlas can draw.
 
+* **Identical texts (review fix-2 of #300 and #301), for every collection.** The SCJN
+  files one treaty under several ids when a later instrument supersedes it
+  (`tratados/11151`, `16145` and `23742`: the 1950 Convention that replaced the
+  1921 and 1933 ones is the *latest* snapshot of all three, so their current
+  texts are one text). Instruments whose compared excerpts -- the unit rows
+  the matrix searches: no heading, table of contents, transitorio or envelope --
+  are the same multiset of `text_sha1` form a group, and the one kept is the one
+  whose **original publication** is that text, that is, whose *oldest* snapshot is
+  word for word its newest (the body, once the provenance header and the outline
+  markers are stripped). A tie, and a group in which no member qualifies, go to the
+  larger id (an integer where the key is one). An instrument with no compared
+  excerpt at all is never grouped. Run after the same-name rule, on what it kept.
+
 A snapshot's `fecha_publicacion` is `DD-MM-YYYY`: it is parsed here and never
 compared as a string (`"02-04-2014"` is later than `"30-08-2004"`).
 """
@@ -40,6 +53,12 @@ from datetime import date, datetime
 #: not among them: measured on the live `scjn-tratados` index (2026-10-12),
 #: 0 of its 1,373 names repeat under this folding (issue #282).
 GROUPED_COLLECTIONS = ("reglamentos", "lineamientos")
+
+#: The collections the identical-text rule is applied to: all of them.
+IDENTICAL_COLLECTIONS = ("leyes", "reglamentos", "lineamientos", "tratados")
+
+REASON_SAME_NAME = "same-name"
+REASON_IDENTICAL_TEXT = "identical-text"
 
 
 def name_key(nombre: str) -> str:
@@ -87,7 +106,79 @@ def select_unique(records: list[dict]) -> tuple[list[dict], list[dict]]:
         if replaced_by is None:
             kept.append(record)
         else:
-            dropped.append({**record, "replaced_by": replaced_by})
+            dropped.append({**record, "replaced_by": replaced_by, "reason": REASON_SAME_NAME})
+    return kept, dropped
+
+
+def _id_key(clave: str):
+    """A key's order: an integer id as an integer, a slug as its string."""
+    return (0, int(clave), "") if str(clave).isdigit() else (1, 0, str(clave))
+
+
+def snapshot_body(markdown: str) -> str:
+    """A snapshot with its provenance header and its outline markers removed: what is the
+    instrument's text and nothing the SCJN or this project says about it."""
+    import re
+
+    text = markdown
+    if text.startswith("---"):
+        end = text.find("\n---", 3)
+        if end != -1:
+            text = text[end + 4:]
+    text = re.sub(r"^<!-- scjn:block .*? -->[ \t]*\n(?:[ \t]*\n)?", "", text, flags=re.MULTILINE)
+    return text.strip()
+
+
+def original_is_current(snapshots: list[dict]) -> bool:
+    """Whether an instrument's oldest snapshot is word for word its newest: its original
+    publication *is* the text it has now. One snapshot is trivially so."""
+    ordered = sorted(snapshots, key=lambda s: parse_date(s["fecha_publicacion"]))
+    return snapshot_body(ordered[0]["markdown"]) == snapshot_body(ordered[-1]["markdown"])
+
+
+def select_identical(records: list[dict], *, reader=None, cache_dir=None) -> tuple[list[dict], list[dict]]:
+    """Split `records` into the ones to keep and the ones dropped because another instrument
+    of the same collection has the same compared text.
+
+    Each record carries `coleccion`, `clave` and `compared`, the `text_sha1` of every
+    compared excerpt (a list, repeats kept: the multiset is the identity). Records with
+    no compared excerpt are never grouped. Each dropped record is a copy with
+    `replaced_by` (the group's winner), `reason` and `first_publication`. `reader(coleccion)`
+    returns the function that reads one instrument's corpus by key (default: the
+    disk-first `scjn.download_scjn_*_corpus`), and is called only for the members of a
+    group.
+    """
+    reader = reader or _default_reader
+    groups: dict[tuple[str, tuple[str, ...]], list[dict]] = {}
+    for record in records:
+        compared = record.get("compared") or []
+        if compared:
+            groups.setdefault((record["coleccion"], tuple(sorted(compared))), []).append(record)
+
+    dropped_by_clave: dict[tuple[str, str], tuple[str, date]] = {}
+    for members in groups.values():
+        if len(members) < 2:
+            continue
+        snapshots = {
+            m["clave"]: reader(m["coleccion"])(m["clave"], cache_dir=cache_dir)["snapshots"]
+            for m in members
+        }
+        originals = [m for m in members if original_is_current(snapshots[m["clave"]])]
+        winner = max(originals or members, key=lambda r: _id_key(r["clave"]))
+        for member in members:
+            if member is not winner:
+                first = min(parse_date(s["fecha_publicacion"]) for s in snapshots[member["clave"]])
+                dropped_by_clave[(member["coleccion"], member["clave"])] = (winner["clave"], first)
+
+    kept: list[dict] = []
+    dropped: list[dict] = []
+    for record in records:
+        hit = dropped_by_clave.get((record["coleccion"], record["clave"]))
+        if hit is None:
+            kept.append(record)
+        else:
+            dropped.append({**record, "replaced_by": hit[0], "reason": REASON_IDENTICAL_TEXT,
+                            "first_publication": hit[1]})
     return kept, dropped
 
 
@@ -95,8 +186,10 @@ def _default_reader(coleccion: str):
     import scjn
 
     return {
+        "leyes": scjn.download_scjn_leyes_corpus,
         "reglamentos": scjn.download_scjn_reglamentos_corpus,
         "lineamientos": scjn.download_scjn_lineamientos_corpus,
+        "tratados": scjn.download_scjn_tratados_corpus,
     }[coleccion]
 
 

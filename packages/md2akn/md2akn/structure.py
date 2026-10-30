@@ -41,6 +41,7 @@ paragraph — and neither is interpreted.
 
 from __future__ import annotations
 
+import bisect
 import re
 
 from md2akn.annotations import es_anotacion, parse_annotation
@@ -57,7 +58,14 @@ from md2akn.divisions import (
     es_encabezado_de_formulario,
     inicio_de_la_serie,
 )
-from md2akn.outline import es_continuacion, lee_marcador, rol_de_etiqueta
+from md2akn.outline import (
+    bloques_de_decreto,
+    es_continuacion,
+    es_contenido_suelto,
+    es_linea_de_etiqueta,
+    lee_marcador,
+    rol_de_etiqueta,
+)
 from md2akn.model import (
     REFERS_TO_ANEXO,
     REFERS_TO_APARTADO,
@@ -551,6 +559,14 @@ def _rango_conclusiones(bloques) -> int:
     inicio = max(0, len(bloques) - CONCLUSIONES_ULTIMOS_BLOQUES)
     for i in range(inicio, len(bloques)):
         if CONCLUSIONES.search(bloques[i].text):
+            if any(lee_marcador(b.text) is not None for b in bloques[i + 1:]):
+                # Rule 42 (review fix-1 of #301, a correction found after the fact):
+                # on a snapshot with outline markers the closing signatures never
+                # cross an API block. A dated closing line followed by another API
+                # block (the decree's certification after a treaty's own `PARTE FINAL
+                # DEL ACTA`) is not the end of the document: that block and every
+                # one after it keep their own nodes, by their own role (rule 29).
+                return len(bloques)
             return i
     return len(bloques)
 
@@ -780,6 +796,7 @@ class _Constructor:
         #: node's span is pulled back over it (the way an annotation's is).
         self._marca_inicio: int | None = None
         self._lee_marcas()
+        self._lee_encabezados_repetidos()
         #: Rule 15 (review fix-1 of #291): the tables of contents, as
         #: ``{marker block index: first block index after it}``. Rule 19: a
         #: block the SCJN labels `ÍNDICE` is one, whatever its text says.
@@ -836,6 +853,10 @@ class _Constructor:
         self._implicita: tuple[AknNode, int] | None = None
         #: The node that holds each eId, for `AknNode.repeated`.
         self._por_eid: dict[str, AknNode] = {}
+        #: The node created last, and the node the API block being read opened
+        #: (rule 44, review fix-2 of #300 and #301).
+        self._ultimo_nodo: AknNode | None = None
+        self._nodo_de_bloque: AknNode | None = None
         #: Rule 21 (review fix-2 of #291): the rank of the container the
         #: current API block opened, or `None`. A heading the *text* of that
         #: block contains (an `APÉNDICE` inside a `PARTE`) belongs to it.
@@ -909,6 +930,17 @@ class _Constructor:
                             # API block opens. It used to be placed as text of the
                             # container *before* it, the one the block closes.
                             self._clases[i] = ("encabezado_previo", {})
+                if (actual.get("kind") in self.BLOQUES_CON_ROTULO and destino > inicio_de_marca + 1
+                        and es_linea_de_etiqueta(self._bloques[destino].text, actual.get("label", ""))):
+                    # Rule 44: the court's `(NOTA: ...)` printed above the label line
+                    # of a labelled block describes that heading, as it does a
+                    # container's (rule 29); it is not the block's first paragraph.
+                    for i in range(inicio_de_marca + 1, destino):
+                        if self._clases[i][0] == "nota_editorial":
+                            self._clases[i] = (
+                                "anotacion",
+                                {"cuerpo": self._bloques[i].text.strip().replace("**", "").strip("() ")},
+                            )
                 self._primeros[destino] = actual
                 self._destino_de_marca[inicio_de_marca] = destino
                 self._clases[destino] = self._clase_de_marca(
@@ -936,13 +968,35 @@ class _Constructor:
                     # amendment quoting the text it amends, an alternative
                     # wording, a list of the articles that follow), not a
                     # further one.
-                    desde = destino + 1 if actual["kind"] == "article" else k
+                    desde = destino + 1 if actual["kind"] in ("article", "provision") else k
                     for i in range(desde, siguiente[inicio_de_marca]):
                         if self._clases[i][0] in self.APERTURAS_DE_ESTRUCTURA:
                             self._clases[i] = ("contenido", {})
             self._de_marca[k] = actual
         self._indices_de_marca = indices
         self._siguiente_de_marca = siguiente
+
+    def _lee_encabezados_repetidos(self) -> None:
+        """Rule 41 (issue #300): a heading line that is only `Art. 8`, straight
+        before the block `**ARTICULO 8**` with the same number, is a running head and
+        not an article of its own. The Radio Regulations the CAMR-92 Final Acts
+        reprint print `Art. 8` above each article's own heading; read as an article it
+        left an empty `art_8` beside the real one and the number repeated. Only in a
+        document with outline markers, and only when the next block opens an article of
+        the same number: a lone `Art. 8` line stays what it was."""
+        if not self._marcas:
+            return
+        for i in range(len(self._bloques) - 1):
+            kind, campos = self._clases[i]
+            siguiente_kind, siguiente = self._clases[i + 1]
+            if kind != "articulo" or siguiente_kind != "articulo":
+                continue
+            if campos.get("num") != siguiente.get("num"):
+                continue
+            texto = self._bloques[i].text.replace("**", "")
+            m = ARTICULO.match(texto.split("\n", 1)[0])
+            if m and "\n" not in texto.strip() and not texto[m.end():].strip():
+                self._clases[i] = ("contenido", {})
 
     def _abre_articulos(self, i: int) -> bool:
         """Whether block `i` opens an article, as the pass will read it: by its
@@ -984,20 +1038,45 @@ class _Constructor:
         Rule 30: a block labelled `CONTENIDO <label of the block before>` (`ARTÍCULOS`
         and `CONTENIDO ARTICULOS`) is the content of that block, not a new one:
         it opens nothing, and the container the first opened goes on through it.
+
+        Rule 40 (issue #300): so is a bare `CONTENIDO` (a `kind=other` block with no
+        label after the word) that follows a block holding only its own title -- `ANEXO`
+        and `CONTENIDO`, `PROTOCOLO` and `CONTENIDO`. The decision reads the marker and
+        the text of the block before it, never an instrument.
         """
         self._aperturas: dict[int, int] = {}
         self._fusion: set[int] = set()
         for n in range(1, len(indices)):
             marca, anterior = self._marcas[indices[n]], self._marcas[indices[n - 1]]
-            if marca.get("kind") == "other" and es_continuacion(
-                marca.get("label", ""), anterior.get("label", "")
+            if marca.get("kind") == "other" and (
+                es_continuacion(marca.get("label", ""), anterior.get("label", ""))
+                or es_contenido_suelto(
+                    marca.get("label", ""), marca.get("kind", ""),
+                    "\n\n".join(
+                        self._bloques[i].text
+                        for i in range(indices[n - 1] + 1, indices[n])
+                    ),
+                    anterior.get("kind", ""),
+                )
             ):
                 self._fusion.add(indices[n])
-        #: The role of each `other` block, by marker index.
-        self._rol_de: dict[int, str | None] = {
-            k: rol_de_etiqueta(self._marcas[k].get("label", ""))
-            for k in indices if self._marcas[k].get("kind") == "other"
-        }
+        #: The role of each `other` block, by marker index. Rule 43 (review fix-1 of
+        #: #301): a decree step is read by *position*. Only a block in the decree's
+        #: leading or trailing run (`bloques_de_decreto`) has the `promulgation` role
+        #: -- a block there with no role of its own (`APROBACIÓN DE INSTRUMENTOS`,
+        #: `CANJE DE NOTAS`) included -- and a decree-step label inside the
+        #: instrument's own text (a treaty's testimonium, `FIRMA`) has none.
+        decreto = bloques_de_decreto([self._marcas[k] for k in indices])
+        self._rol_de: dict[int, str | None] = {}
+        for n, k in enumerate(indices):
+            if self._marcas[k].get("kind") != "other":
+                continue
+            rol = rol_de_etiqueta(self._marcas[k].get("label", ""))
+            if n in decreto and rol in (None, "promulgation"):
+                rol = "promulgation"
+            elif rol == "promulgation":
+                rol = None
+            self._rol_de[k] = rol
         preambulos = 0
         for n, k in enumerate(indices):
             kind = self._marcas[k].get("kind")
@@ -1106,7 +1185,7 @@ class _Constructor:
 
     #: Rule 24: the `kind`s of API block inside which no heading opens a
     #: structure, and the classes of block that would.
-    BLOQUES_DE_UN_SOLO_TEXTO = ("article", "header", "preamble", "recitals")
+    BLOQUES_DE_UN_SOLO_TEXTO = ("article", "provision", "header", "preamble", "recitals")
     APERTURAS_DE_ESTRUCTURA = (
         "articulo", "articulo_ordinal", "contenedor", "transitorios", "transitorios_dof",
     )
@@ -1247,6 +1326,27 @@ class _Constructor:
         marca, self._marca_inicio = self._marca_inicio, None
         return min(inicio, marca)
 
+    def _suelta_anotaciones_pendientes(self, fin: int) -> None:
+        """Rule 44 (review fix-2 of #300 and #301): an annotation read after the last
+        text of an API block and before the next marker -- `(DEROGADO SEGUNDO PÁRRAFO,
+        ...)` printed after an article's last paragraph -- belongs to the block it was
+        read in. Held until "the next node", it was pulled into the node the *next*
+        block opens, whose span then began before its own marker: article 188 of the
+        Código Civil Federal started inside article 187's block. It is attached to the
+        last node of the block that ends here, which grows over it."""
+        if not self._pendientes.notas or self._ultimo_nodo is None:
+            return
+        nodo = self._ultimo_nodo
+        # The deepest last descendant: the notes of a node are read before its
+        # children's, so one at the tail of an article held by the article itself
+        # would be read before the annotations of the paragraphs it follows, and
+        # `units._annotation_ranges`' left-to-right search would skip past them.
+        while nodo.children:
+            nodo = nodo.children[-1]
+        _, notas = self._pendientes.toma(fin)
+        nodo.notes.extend(notas)
+        self._extiende(nodo, len(self._doc.text[:fin].rstrip()))
+
     def _bloque_marcador(self, bloque, campos):
         """A marker is metadata: it ends whatever the previous API block had
         open (an article never reaches into the next block the SCJN serves,
@@ -1254,6 +1354,8 @@ class _Constructor:
         and its characters belong to the node the block it heads opens."""
         marca = self._marcas[self._i]
         self._indice_marca = self._i
+        self._nodo_de_bloque = None
+        self._suelta_anotaciones_pendientes(bloque.start)
         if self._marca_inicio is None:
             self._marca_inicio = bloque.start
         self._decreto = False
@@ -1310,22 +1412,42 @@ class _Constructor:
                 # An amending resolution is a text of its own, not the tail of the
                 # transitorios before it (rule 29, whichever container it opens).
                 self._transitorios = None
-            etiqueta = _limpia(marca.get("label", "")) or "section"
-            nodo = self._nuevo_nodo("section", bloque.start, bloque.end, num=etiqueta)
+            # Rule 44 (review fix-2 of #300 and #301): a block the API labels `other` is
+            # an `hcontainer` of that label, never a `section` the text of the articles
+            # that follow it would suggest -- `SECCIÓN` is what the SCJN says when it
+            # says a section (`type=section`), and it never said it here.
+            etiqueta = _limpia(marca.get("label", "")) or "block"
+            if marca.get("kind") == "article":
+                # Rule 38 is the one exception, and a documented one (`I5`'s
+                # `documented-article-heading`): the API block is an article's heading
+                # line, and the section is what the provisions after it belong to.
+                nodo = self._nuevo_nodo("section", bloque.start, bloque.end, num=etiqueta)
+            else:
+                padre = self._padre_contenedor(bloque.start)
+                nodo = self._nuevo_nodo(
+                    "hcontainer", bloque.start, bloque.end, num=etiqueta, padre=padre,
+                    eid=self._eid_de_bloque(padre, etiqueta),
+                )
             nodo.heading = None
             self._marca_inicio = None
+            self._nodo_de_bloque = nodo
             self._pila.append((5.0, nodo))
             self._piso = self._piso_del_bloque = 5.0
             self._implicita = (nodo, self._aperturas[self._i])
         elif not continuacion and self._i + 1 < self._fin_cuerpo and (
             (marca.get("kind") == "other" and id(marca) not in self._provisiones_sic)
-            or (marca.get("kind") in ("header", "preamble", "recitals")
-                and (self.body is not None or self._pila))
+            or marca.get("kind") in ("preamble", "recitals")
+            or (marca.get("kind") == "header"
+                and (self.preambulo is not None or self.body is not None or self._pila))
         ):
             # Rule 29. A title block, a preamble or recitals that come after the
             # instrument's own text began (a treaty's preamble after the
             # promulgation decree that precedes it) are a text of their own: a
             # labelled container, not loose text of the body.
+            # Rule 42 (review fix-1 of #301): so is a preamble or recitals block that
+            # follows the title block straight away (`CONSIDERANDO`, a treaty's own
+            # `PREÁMBULO`): the document's `preamble` is exactly the title block, and it
+            # used to swallow whatever API block came next until a container opened.
             self._abre_bloque_otro(bloque, marca)
 
     # -- blocks the API labels `other` (rules 29-31, review fix-4 of #291) --
@@ -1425,6 +1547,7 @@ class _Constructor:
         self._pila.append((rango, nodo))
         self._piso = self._piso_del_bloque = piso
         self._bloque_abierto = nodo
+        self._nodo_de_bloque = nodo
 
     # -- helpers ---------------------------------------------------------
 
@@ -1508,6 +1631,7 @@ class _Constructor:
         if eid != propuesto and propuesto in self._por_eid:
             self._por_eid[propuesto].repeated = True
         self._por_eid.setdefault(eid, nodo)
+        self._ultimo_nodo = nodo
         return padre.add(nodo)
 
     # -- the pass --------------------------------------------------------
@@ -1520,8 +1644,30 @@ class _Constructor:
                 self._agrega_conclusiones(bloque)
                 i += 1
                 continue
+            if self._marcas and self._es_linea_de_rotulo(i):
+                # Rule 44: the block's own label line is the heading of the node
+                # the block opened, whatever the text rules would have made of it
+                # (the title line of an index, the caption of a table). The annotation
+                # that stands before it (`(REFORMADO, D.O.F. ...)`) describes that
+                # heading, and is attached to it.
+                _, notas = self._pendientes.toma(self._bloques[i].start)
+                self._nodo_de_bloque.notes.extend(notas)
+                self._extiende(self._nodo_de_bloque, self._bloques[i].end)
+                self._tabla = None
+                if i in self._indices:
+                    fin = self._indices.pop(i)
+                    if fin > i + 1:
+                        self._indices[i + 1] = fin
+                i += 1
+                continue
             if i in self._indices:
                 fin = self._indices[i]
+                if i in self._marcas:
+                    # Rule 42 (review fix-1 of #301): an index the SCJN labels `ÍNDICE`
+                    # is an API block like any other, and its marker ends the block
+                    # before it (the `CONSIDERANDO` that precedes it is not its parent).
+                    self._i = i
+                    self._bloque_marcador(self._bloques[i], None)
                 self._bloque_indice(self._bloques[i], self._bloques[fin - 1])
                 i = fin
                 continue
@@ -1595,6 +1741,26 @@ class _Constructor:
         self._cierra_spans()
         self.act.modo = self._modo_sin_articulos
         return self.act
+
+    #: The kinds of API block whose node is an `hcontainer` named by the block's label
+    #: (rules 29 and 44): the label line the block may open with is that node's heading.
+    BLOQUES_CON_ROTULO = ("other", "preamble", "recitals", "header")
+
+    def _es_linea_de_rotulo(self, i: int) -> bool:
+        """Rule 44 (review fix-2 of #300 and #301): whether block `i` is the first text
+        of an API block that opened a labelled `hcontainer` and consists only of that
+        label (`**DISPOSICIONES PRELIMINARES**`, `**III. CONSIDERANDOS**`,
+        `Finalidad.`), compared without case, accents, bold, `:` or `.`, and with a
+        leading numeral allowed. The SCJN serves the heading it names a block with as
+        the block's first line; it is the heading of the node, and read as content it
+        became an `intro` unit that is nothing but a title and is compared as text."""
+        marca = self._primeros.get(i)
+        nodo = self._nodo_de_bloque
+        if (marca is None or nodo is None or nodo.akn_type != "hcontainer"
+                or marca.get("kind") not in self.BLOQUES_CON_ROTULO
+                or nodo.children or self._articulo is not None):
+            return False
+        return es_linea_de_etiqueta(self._bloques[i].text, marca.get("label", ""))
 
     def _refina_con_marcas(self, bloque, kind, campos):
         """Rule 32 (review fix-4 of #291): numbering the ordinary grammar does not
@@ -1772,6 +1938,10 @@ class _Constructor:
             if akn_type == "part" and self._parte_en_capitulo
             else PRECEDENCIA[akn_type]
         )
+        if akn_type == "part" and forzado and self._marcas:
+            propio = self._rango_de_parte()
+            if propio is not None:
+                rango = propio
         if (
             self._marcas and akn_type == "attachment" and not forzado
             and refers_to == REFERS_TO_ANEXO and self._es_codigo_de_resolucion()
@@ -1797,6 +1967,28 @@ class _Constructor:
             # siblings).
             return self._piso + self.RANGO_EN_BLOQUE + self._orden_en_bloque(akn_type, rango, refers_to, num)
         return rango
+
+    def _rango_de_parte(self) -> float | None:
+        """Rule 45 (review fix-2 of #300 and #301): where a part the SCJN labels
+        (`type=part`) sits, read from the order of the markers rather than from a
+        guess about the whole document. When the very next marker opens a book, a title
+        or a chapter, the part holds it -- the Código Civil Federal's `PRIMERA PARTE`
+        and its titles inside the fourth book, a treaty's `SEGUNDA PARTE` and its
+        chapters VIII to XIII -- and ranks just above that type: below the open book,
+        above the titles; below the open title, above the chapters; closing a chapter
+        that was open. A part whose next marker is anything else (SOLAS: `Parte A` and
+        its regulations) keeps the document-wide reading, `None`."""
+        n = bisect.bisect_left(self._indices_de_marca, self._indice_marca)
+        if n + 1 >= len(self._indices_de_marca):
+            return None
+        siguiente = self._marcas[self._indices_de_marca[n + 1]]
+        tipo = siguiente.get("type")
+        if siguiente.get("kind") != "container" or tipo not in ("book", "title", "chapter"):
+            return None
+        rango = PRECEDENCIA[tipo] - 0.5
+        # A part is a sibling of the part before it, never inside it.
+        abiertas = [r for r, nodo in self._pila if nodo.akn_type == "part"]
+        return min(rango, abiertas[0]) if abiertas else rango
 
     def _es_codigo_de_resolucion(self) -> bool:
         """Whether the annex heading being read is the instrument's own and not

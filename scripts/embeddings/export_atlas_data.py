@@ -44,10 +44,12 @@ loudly when the matrix is missing, and is a no-op once `umap.parquet` exists
   integer, at least 1, and the `pc` add up to `meta.counted_rows`. `pc` is per
   model (BM25 differs from the embeddings in 197 instruments), so unlike `p` it
   is **not** part of the `--instruments-as` comparison. `meta` carries the totals (`heading_rows_excluded`,
-  `transitorio_rows_excluded`, `identical_shared_dropped`, `counted_rows`).
+  `transitorio_rows_excluded`, `envelope_rows_excluded`, `identical_shared_dropped`, `counted_rows`).
 * **Unique instruments only** (issue #259). A work directory prepared without
   `prepare_umap_input.py --unique-names` is refused, and `meta` records
-  `unique_names` and `duplicates_dropped` per collection.
+  `unique_names` and `duplicates_dropped` per collection, and (review fix-2 of #300 and
+  #301) `identical_text_dropped`: the instruments left out because another instrument of
+  the collection has the same compared text.
 * **Short keys** (`c`, `k`, `n`, `p`, `pc`, `in`, `out`, `inc`) because there are
   over a thousand of each; `meta` spells everything out.
 
@@ -177,8 +179,26 @@ def duplicates_dropped(work_dir: Path) -> dict:
             if (coleccion, str(dropped["clave"])) in present:
                 raise SystemExit(f"{coleccion} {dropped['clave']} is listed as dropped in "
                                  f"{UNIQUE_REPORT} but is in instruments.parquet")
-    return {name: int(entry["dropped"]) for name, entry in report.items()
-            if name in GROUPED_COLLECTIONS}
+    # The same-name rule's drops (issue #259); the identical-text rule's are
+    # `identical_text_dropped`, so this figure keeps the meaning it always had.
+    return {name: sum(1 for d in entry["dropped_instruments"] if d.get("reason") != "identical-text")
+            for name, entry in report.items() if name in GROUPED_COLLECTIONS}
+
+
+def identical_text_dropped(work_dir: Path) -> dict:
+    """The instruments `prepare_umap_input.py --unique-names` dropped because another
+    instrument of the collection has the same compared text (review fix-2 of #300 and
+    #301): ``{collection: [{"k": key, "replaced_by": kept key}]}``, only for the
+    collections that dropped any. The kept one is the instrument whose original
+    publication is that text (`unique_instruments.select_identical`)."""
+    report = json.loads((Path(work_dir) / UNIQUE_REPORT).read_text(encoding="utf-8"))
+    out = {}
+    for name, entry in report.items():
+        rows = [{"k": str(d["clave"]), "replaced_by": str(d["replaced_by"])}
+                for d in entry["dropped_instruments"] if d.get("reason") == "identical-text"]
+        if rows:
+            out[name] = rows
+    return out
 
 
 #: The instrument fields whose position-by-position agreement between two
@@ -311,12 +331,15 @@ def atlas(work_dir: Path, *, n_neighbors=DEFAULT_N_NEIGHBORS, top: int = TOP_TAR
         "provisions": provisions,
         "heading_rows_excluded": int(summary["heading_rows_excluded"]),
         "transitorio_rows_excluded": int(summary["transitorio_rows_excluded"]),
+        # issue #301; a matrix.json written before it has no envelope rows to report
+        "envelope_rows_excluded": int(summary.get("envelope_rows_excluded", 0)),
         "identical_shared_dropped": int(summary["identical_shared_dropped"]),
         "counted_rows": int(summary["counted_rows"]),
         "distinct_texts": int(summary["vector_rows"]),
         "collections": collections,
         "unique_names": True,
         "duplicates_dropped": dropped,
+        "identical_text_dropped": identical_text_dropped(work_dir),
         "n_neighbors": n_neighbors,
         "default_n_neighbors": (DEFAULT_RADIO_VALUE if DEFAULT_RADIO_VALUE in n_neighbors
                                 else n_neighbors[len(n_neighbors) // 2]),

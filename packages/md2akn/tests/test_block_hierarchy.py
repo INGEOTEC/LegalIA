@@ -87,15 +87,17 @@ def test_every_resolution_is_a_sibling_container_of_one_type():
     resolutions = _resolutions(parse_markdown(_doc()))
     assert [r.num for r in resolutions] == [
         "RESOLUCIÓN MSC.404(96)", "RESOLUCIÓN MSC.409(97)", "RESOLUCIÓN MSC.421(98)"]
-    assert {r.akn_type for r in resolutions} == {"section"}
+    # Rule 44 (review fix-2 of #300 and #301): every block the API labels `other` is an
+    # `hcontainer` named by its label, the resolutions included -- one type for all of them.
+    assert {r.akn_type for r in resolutions} == {"hcontainer"}
     assert [r.eId for r in resolutions] == [
-        "sec_RESOLUCIÓN_MSC.404(96)", "sec_RESOLUCIÓN_MSC.409(97)", "sec_RESOLUCIÓN_MSC.421(98)"]
+        "hc_RESOLUCIÓN_MSC.404(96)", "hc_RESOLUCIÓN_MSC.409(97)", "hc_RESOLUCIÓN_MSC.421(98)"]
 
 
 def test_nothing_of_a_block_is_at_the_body_level():
     tree = parse_markdown(_doc())
     body = next(c for c in tree.children if c.akn_type == "body")
-    assert [c.akn_type for c in body.children] == ["hcontainer", "section", "section", "section"]
+    assert [c.akn_type for c in body.children] == ["hcontainer", "hcontainer", "hcontainer", "hcontainer"]
 
 
 def test_the_annex_holds_the_chapters_and_the_chapter_its_parts():
@@ -167,7 +169,7 @@ def test_the_next_marker_closes_everything_the_block_opened():
         assert _kids(annex, "chapter") == ["I"]
         assert _kids(annex.children[0], "part") == ["A"] if annex.children[0].akn_type == "chapter" else True
     assert [n.eId for n in _walk(tree) if n.akn_type == "chapter"] == [
-        "sec_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_I", "sec_RESOLUCIÓN_MSC.2(2)__att_attachment__cap_I"]
+        "hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_I", "hc_RESOLUCIÓN_MSC.2(2)__att_attachment__cap_I"]
 
 
 def test_without_markers_nothing_is_a_labelled_block():

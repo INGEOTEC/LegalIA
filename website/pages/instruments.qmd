@@ -1,6 +1,6 @@
 ---
 title: "The Instruments of the Atlas"
-subtitle: "315 laws, 864 regulations, 125 guidelines and 1,373 treaties, article by article"
+subtitle: "314 laws, 864 regulations, 125 guidelines and 1,367 treaties, article by article"
 page-layout: full
 toc: false
 number-sections: false
@@ -28,9 +28,10 @@ left follows the document, a fold hides the contents of a title or a chapter, an
 click on any entry goes to that place.
 
 An article, an introduction, a table or the preamble is what the Atlas calls an
-excerpt, the piece of text that it compares with the rest of the corpus. A heading and
-a transitory article say little about how two instruments relate, so they are left
-out, and the remaining ones are called compared excerpts. Each of them is marked in
+excerpt, the piece of text that it compares with the rest of the corpus. A heading, a
+transitory article and the envelope of an instrument, which is its title block and, in a
+treaty, the promulgation decree, say little about how two instruments relate, so they are
+left out, and the remaining ones are called compared excerpts. Each of them is marked in
 the margin of the document with a thin rule and the word *Compared*, and it carries a
 *Nearest texts* line. Opening it lists the five closest texts that live in other
 instruments, each with its similarity as the Qwen3 Embedding 4B model measures it,

@@ -54,9 +54,10 @@ def test_the_schema_is_meta_instruments_projections(exported):
     assert list(data) == ["meta", "instruments", "projections"]
     assert list(data["meta"]) == [
         "title", "generated", "commit", "model", "method", "instruments", "provisions",
-        "heading_rows_excluded", "transitorio_rows_excluded",
+        "heading_rows_excluded", "transitorio_rows_excluded", "envelope_rows_excluded",
         "identical_shared_dropped", "counted_rows",
         "distinct_texts", "collections", "unique_names", "duplicates_dropped",
+        "identical_text_dropped",
         "n_neighbors", "default_n_neighbors", "umap", "weighting", "top", "sources"]
     meta = data["meta"]
     assert meta["title"] == ("An Atlas of Mexican Federal Law: Laws, Regulations, "
