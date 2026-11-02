@@ -449,17 +449,13 @@ class TestRegla9(unittest.TestCase):
         for anterior, siguiente in zip(partida, partida[1:]):
             self.assertEqual(anterior.end_char, siguiente.start_char)
 
-    def test_un_parrafo_mas_largo_que_el_cap_se_deja_entero(self):
+    def test_un_parrafo_mas_largo_que_el_cap_se_deja_entero_y_max_unit_chars_lo_cuenta(self):
         texto = "Una sola frase larguísima que no se corta por la mitad jamás.\n"
         units = text_units(texto, cap=20)
         self.assertEqual(len(units), 1)
         self.assertEqual(units[0].piece, 0)
         self.assertGreater(len(units[0].text), 20)
-
-    def test_max_unit_chars_cuenta_el_residuo(self):
-        texto = "Una sola frase larguísima que no se corta por la mitad jamás.\n"
-        tree = parse_markdown(texto)
-        report = max_unit_chars(tree, text_units(texto, cap=20), cap=20)
+        report = max_unit_chars(parse_markdown(texto), units, cap=20)
         self.assertEqual((report.over_cap, report.unsplittable, report.splittable), (1, 1, 0))
 
     def test_el_invariante_se_cumple_en_cada_fixture(self):
