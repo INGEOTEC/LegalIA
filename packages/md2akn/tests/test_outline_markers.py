@@ -1,4 +1,4 @@
-"""Rules 19-23 (review fix-2 of #291): an instrument written with the outline
+"""Rules S1, S3, S4, S5 and S6 (review fix-2 of #291): an instrument written with the outline
 the SCJN's API states -- one marker line before each block -- is built from
 that outline, and uses the text heuristics only inside a block.
 
@@ -59,9 +59,9 @@ def test_annex_holds_its_parts_and_each_part_its_appendix():
     tree = parse_markdown(_read("outline_tratado.md"))
     body = next(c for c in tree.children if c.akn_type == "body")
     top = [(c.akn_type, c.num) for c in body.children if c.akn_type not in ("article", "content")]
-    # the recitals block is a container of its own (rule 42, review fix-1 of #301);
+    # the recitals block is a container of its own (rule S11, review fix-1 of #301);
     # the index is a toc, not containers; the block that holds articles `1.1`
-    # and `1.2` in its own text is an `hcontainer` named by its label (rules 23 and
+    # and `1.2` in its own text is an `hcontainer` named by its label (rule S6 and
     # 44: the API said `other`, never `SECCIÓN`); ANEXO 1 and ANEXO 2 are siblings
     assert top == [
         ("hcontainer", "CONSIDERANDO"), ("toc", "1"), ("hcontainer", "1 ÁMBITO"),
@@ -161,7 +161,7 @@ def test_markers_are_never_embedded_and_coverage_holds():
         assert coverage(tree, units).uncovered_chars == 0
 
 
-# -- rules 22-24 -----------------------------------------------------------
+# -- rules S5, S6 and S2 -----------------------------------------------------------
 
 
 def test_an_article_label_that_disagrees_with_its_text_does_not_collide():
@@ -180,7 +180,7 @@ def test_an_article_label_that_disagrees_with_its_text_does_not_collide():
 
 
 def test_an_article_block_that_quotes_another_article_stays_one_article():
-    """Rule 24: inside an `article` block no line opens structure -- an
+    """Rule S2: inside an `article` block no line opens structure -- an
     amendment article quoting `ARTÍCULO 5.-` is that article's own text."""
     text = (
         '<!-- scjn:block orden=1 numero=1 kind=article num="1" label="ARTÍCULO 1" -->\n\n'
@@ -194,7 +194,7 @@ def test_an_article_block_that_quotes_another_article_stays_one_article():
 
 
 def test_a_block_that_holds_articles_in_its_own_text_opens_a_labelled_container():
-    """Rules 23 and 44: an `other` block carrying articles opens a container of its
+    """Rules S6 and S8: an `other` block carrying articles opens a container of its
     own -- an `hcontainer` named by its label, since the API did not say `SECCIÓN` --
     so a number the next block restarts is not a repeat."""
     text = (

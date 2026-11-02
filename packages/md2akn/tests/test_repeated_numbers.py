@@ -1,4 +1,4 @@
-"""Rules 14-18 (review fix-1 of #291, a finding made after the fact): an
+"""Rules B1, S14, B5 and B4 (review fix-1 of #291, a finding made after the fact): an
 instrument's articles must not repeat a number because of how `md2akn` read it.
 
 209 of the 2,676 instruments of the Atlas carried a repeated article number.
@@ -46,7 +46,7 @@ def _num(line: str):
     return None if m is None else (m.group("num"), m.group("sep").strip())
 
 
-# -- rule 14: an article's number is read whole ----------------------------
+# -- rule B1: an article's number is read whole ----------------------------
 
 
 @pytest.mark.parametrize(
@@ -101,7 +101,7 @@ def test_a_letter_suffix_does_not_repeat_its_base_article():
     assert not _repeated(tree)
 
 
-# -- rules 15 and 16: a table of contents, and PARTE/ANEXO -------------------
+# -- rules S14 and B5: a table of contents, and PARTE/ANEXO -------------------
 
 
 def test_index_parts_and_appendices_of_the_imdg_code():
@@ -130,7 +130,7 @@ def test_a_marker_alone_never_swallows_text():
     assert [a.num for a in _articles(tree)] == ["1o"]
 
 
-# -- rule 17: recitals are not provisions ------------------------------------
+# -- rule B4: recitals are not provisions ------------------------------------
 
 
 def test_numbered_recitals_are_not_articles():
@@ -150,7 +150,7 @@ def test_unnumbered_recitals_leave_the_numbered_paragraphs_to_be_articles():
     assert [a.num for a in _articles(tree)] == ["1", "2", "3", "4", "5"]
 
 
-# -- rule 18: a numeral that starts over is a list item -----------------------
+# -- rule B4: a numeral that starts over is a list item -----------------------
 
 
 def test_restarted_numerals_are_list_items_of_the_provision_above():

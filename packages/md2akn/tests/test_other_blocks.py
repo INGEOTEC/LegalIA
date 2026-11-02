@@ -1,4 +1,4 @@
-"""Rules 29-32 (review fix-4 of #291): every block the SCJN's API labels
+"""Rules S8, S10, B9 and B2 (review fix-4 of #291): every block the SCJN's API labels
 `kind=other` is a container of its own, a numbering that starts over inside one
 block opens a division, and the article-number grammar of a radio-regulations
 text is read on the marker path.
@@ -39,7 +39,7 @@ def _articles(tree):
     return [n.eId for n in _walk(tree) if n.akn_type == "article"]
 
 
-# -- the role table (rule 29) and the split block (rule 30) -----------------------
+# -- the role table (rule S8) and the split block (rule S10) -----------------------
 
 
 def test_role_table():
@@ -104,7 +104,7 @@ def test_every_other_block_is_a_container_and_the_promulgation_stays_together():
     assert top[0] == ("hcontainer", "DECRETO PROMULGATORIO", "#promulgation")
     assert ("hcontainer", "NOTA EXPLICATIVA", "#note") in top
     assert ("hcontainer", "RESERVAS AL REGLAMENTO DE RADIOCOMUNICACIONES", None) in top
-    # a block that holds articles opens a section (rule 23): the pair is one
+    # a block that holds articles opens a section (rule S6): the pair is one
     assert [c.num for c in body.children if c.num == "ARTÍCULOS"] == ["ARTÍCULOS"]
     assert top[-1] == ("hcontainer", "PARTE FINAL DE LAS ACTAS", "#conclusions")
     assert not any(n.num == "CONTENIDO ARTICULOS" for n in _walk(tree))
@@ -131,7 +131,7 @@ def test_the_number_grammar():
     assert clave_de_numero("S5.43") == clave_de_numero("5.43")
 
 
-# -- a numbering that starts over inside one block opens a division (rule 31) ------
+# -- a numbering that starts over inside one block opens a division (rule B9) ------
 
 SOLAS = _doc(
     _marker(1, "RESOLUCIÓN MSC.496(105)", "container", extra=" type=other"),
@@ -181,7 +181,7 @@ def test_a_plain_lead_in_line_opens_a_division_when_the_numbers_start_over():
 
 
 def test_no_heading_no_division():
-    # the same restart with nothing that can head it stays what rule 22 makes it:
+    # the same restart with nothing that can head it stays what rule S5 makes it:
     # a repeat, flagged on both articles, never merged or renumbered
     text = _doc(
         _marker(1, "ARTÍCULO 1", "article", numero=1, extra=' num="1"'),

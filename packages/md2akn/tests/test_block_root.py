@@ -1,7 +1,7 @@
-"""Rules 34-39 (review fix-6 of #291): an API block is the root of its text.
+"""Rules S4, U6, B7, B8, S6 and S9 (review fix-6 of #291): an API block is the root of its text.
 
 The owner's rule, stated for the sixth time: the marker `<!-- scjn:block ... -->`
-*groups everything that follows it* until the next marker. Rules 29-33 claimed it
+*groups everything that follows it* until the next marker. Rules S8, S10, B9, B2 and S4 claimed it
 and still failed when the `other` block came after a `kind=decree` block (the
 Ley Federal del Impuesto sobre Automóviles Nuevos' `MODIFICACIONES AL ANEXO 15`):
 `_padre_contenedor` returned the open transitorios section before it looked at the
@@ -119,7 +119,7 @@ def test_a_document_without_markers_has_no_blocks_and_no_violations():
     assert _block_escapes(tree) == []
 
 
-# -- rule 36: a caption belongs to its table, and a table inside an article stays text --
+# -- rule B7: a caption belongs to its table, and a table inside an article stays text --
 
 
 def test_a_caption_and_the_note_after_the_rows_belong_to_the_table():

@@ -11,21 +11,21 @@ fixtures:
 - `coverage()`: every non-whitespace character is in a unit, the frontmatter
   or a reform annotation. Nothing is lost.
 - `max_unit_chars()`: no unit is over the cap except one whose single
-  paragraph is itself over it (issue #227's rule 9). The units are usable.
+  paragraph is itself over it (issue #227's rule U5). The units are usable.
 
-And one property that is specific to rule 8, and is the reason rule 8 is safe
+And one property that is specific to rule B3, and is the reason rule B3 is safe
 by construction: `modo_sin_articulos` returns `None` for **every** federal
 law, so the rule can never change one. That is the cheap, permanent form of
 the proof; its strong form was run once when the rule landed — regenerating
-the 315 laws' `units.parquet` with rule 8 on and rule 9 off produced a file
+the 315 laws' `units.parquet` with rule B3 on and rule U5 off produced a file
 byte-identical to the pre-#227 one (one byte apart: the pyarrow writer
 version string in the Parquet footer).
 
-Over the treaties it also asserts rule 10's reach (issue #279): every treaty
+Over the treaties it also asserts rule B1's reach (issue #279): every treaty
 with a roman-numbered article opener has at least one roman-numbered
 `article` unit, so none of them is left as `preamble`/`loose` blocks.
 
-Issue #291's rules 11 to 13 are swept the same way: every treaty that writes a
+Issue #291's rules B1, B6 and B7 are swept the same way: every treaty that writes a
 decimal article opener (`Artículo 1.1:`) has a decimal-numbered `article` unit,
 and no table row of any collection comes out as a `loose`, `intro` or
 `heading` unit (`TestReglas11A13`). The decimal check reads the *cached*
@@ -136,7 +136,7 @@ def _bloques_que_abren_un_articulo(markdown: str):
 
 def _abre_con_articulo_romano(markdown: str) -> bool:
     """Whether any block of `markdown` opens on a roman-numbered article
-    heading (rule 10, issue #279) — read with the same pattern the builder
+    heading (rule B1, issue #279) — read with the same pattern the builder
     uses, bold markers removed."""
     for bloque in _bloques_que_abren_un_articulo(markdown):
         m = ARTICULO.match(bloque.text.split("\n", 1)[0].replace("**", ""))
@@ -147,7 +147,7 @@ def _abre_con_articulo_romano(markdown: str) -> bool:
 
 def _abre_con_articulo_decimal(markdown: str) -> bool:
     """Whether any block of `markdown` opens on a decimal-numbered article
-    heading (rule 11, issue #291), read with the pattern the builder uses."""
+    heading (rule B1, issue #291), read with the pattern the builder uses."""
     for bloque in _bloques_que_abren_un_articulo(markdown):
         m = ARTICULO.match(bloque.text.split("\n", 1)[0].replace("**", ""))
         if m and _NUMERO_DECIMAL.fullmatch(m.group("num")):
@@ -165,7 +165,7 @@ def _filas_fuera_de_tabla(instrumentos, clave):
     units that are not `table` units (or an article's own text) and still
     contain a table row. Only a unit before the first container -- the
     `preamble` -- or after the last one -- `conclusions` -- may: those keep
-    their pre-#291 treatment (rule 12's "text before any container")."""
+    their pre-#291 treatment (rule B6's "text before any container")."""
     con_tablas = 0
     fuera = []
     for instrumento in instrumentos:
@@ -228,7 +228,7 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
         )
         self.assertEqual(
             partibles, [],
-            f"{len(partibles)} of {vistos} carry a unit over the cap that rule 9 "
+            f"{len(partibles)} of {vistos} carry a unit over the cap that rule U5 "
             "could still have split",
         )
 
@@ -284,14 +284,14 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
         _TIENE_SCJN and local_tratados_ids(), "no scjn-tratados release cached locally"
     )
     def test_todo_tratado_con_articulos_romanos_tiene_unidades_de_articulo(self):
-        """Rule 10's reach: a treaty that numbers its articles `ARTÍCULO I`..
+        """Rule B1's reach: a treaty that numbers its articles `ARTÍCULO I`..
         has at least one roman-numbered `article` unit (before the rule, 176
         of the 229 treaties with no `article` unit were exactly these), and
         the treaties left with no article unit at all are the ones with no
         roman opener either (53 measured, issue #279; 54 since review fix-1
         of #291: the treaty 22648 writes its articles as a bold `**III**` and
         its ten recitals `**PRIMERO.-**` .. `**DECIMO.-**` used to be read as
-        its only articles, rule 17 correctly leaves them in the preamble)."""
+        its only articles, rule B4 correctly leaves them in the preamble)."""
         romanos = 0
         sin_unidad_romana = []
         sin_articulo = 0
@@ -319,7 +319,7 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
         _TIENE_SCJN and local_tratados_ids(), "no scjn-tratados release cached locally"
     )
     def test_todo_tratado_con_articulos_decimales_tiene_unidades_de_articulo_decimales(self):
-        """Rule 11's reach (issue #291): a treaty that numbers its articles
+        """Rule B1's reach (issue #291): a treaty that numbers its articles
         `Artículo 1.1:` has decimal-numbered `article` units, so its articles
         are not all article `1`."""
         decimales = 0
@@ -369,7 +369,7 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
 
     @unittest.skipUnless(_TIENE_SCJN and local_slugs(), "no scjn-leyes release cached locally")
     def test_la_regla_8_no_se_activa_en_ninguna_ley(self):
-        """Rule 8's gate is off for every federal law — which is what makes
+        """Rule B3's gate is off for every federal law — which is what makes
         the rule a no-op on them by construction, rather than by inspection
         of what it happened to produce (issue #227's Fase 1)."""
         activadas = []
@@ -378,7 +378,7 @@ class TestInvariantesSobreElReleaseCompleto(unittest.TestCase):
             modo = modo_sin_articulos(list(iter_blocks(ley["markdown"], fin_meta)))
             if modo is not None:
                 activadas.append((ley["slug"], modo))
-        self.assertEqual(activadas, [], f"rule 8 switched on for {len(activadas)} laws")
+        self.assertEqual(activadas, [], f"rule B3 switched on for {len(activadas)} laws")
 
 
 def _en_transitorios(path) -> bool:

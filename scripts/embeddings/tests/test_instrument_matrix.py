@@ -321,7 +321,7 @@ def test_headings_are_neither_sources_nor_winners(prepared, cache):
     assert matrix[index["b"], index["c"]] == 0
     summary = result["summary"]
     # A table of contents joined the headings in review fix-1 of #291 (md2akn's
-    # rule 15), so the recorded list says both.
+    # rule S14), so the recorded list says both.
     assert summary["excluded_unit_types"] == ["heading", "toc"]
     assert summary["heading_rows_excluded"] == 3
     assert summary["unit_rows"] == 16
@@ -1066,7 +1066,7 @@ def test_the_counts_and_the_identity(transitorio_work):
     assert (summary["searched_rows"] + summary["heading_rows_excluded"]
             + summary["transitorio_rows_excluded"]) == summary["unit_rows"]
     # A table of contents joined the headings in review fix-1 of #291 (md2akn's
-    # rule 15), so the recorded list says both.
+    # rule S14), so the recorded list says both.
     assert summary["excluded_unit_types"] == ["heading", "toc"]
     assert summary["excluded_transitorios"] is True
     assert summary["identical_shared_dropped"] == 3

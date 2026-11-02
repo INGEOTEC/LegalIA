@@ -68,7 +68,7 @@ class TestCoverageInvariant(unittest.TestCase):
                 cov = coverage(tree, text_units(text))
                 raw_notes = [n.raw for node in tree.walk() if node is not tree for n in node.notes]
                 raw_notes += [n.raw for n in tree.notes]
-                # An outline marker line (rule 19) is metadata like a note.
+                # An outline marker line (rule S1) is metadata like a note.
                 raw_notes += [
                     line for line in text.splitlines() if line.startswith("<!-- scjn:block ")
                 ]
@@ -140,9 +140,9 @@ class TestTemplate(unittest.TestCase):
         self.assertIn("1o", articulo.text)
 
     def test_heading_intro_y_loose_siempre_llevan_el_camino(self):
-        # Rule 7: unconditional for heading/intro/loose, regardless of
+        # Rule U4: unconditional for heading/intro/loose, regardless of
         # template. A container's own loose text is an `intro` since issue
-        # #291 (rule 12); `loose` is what is left under the transitorios.
+        # #291 (rule B6); `loose` is what is left under the transitorios.
         text = (
             "**CAPITULO I**\n\nUna fila suelta.\n\n**Articulo 1o.** Uno.\n\n"
             "## Transitorios\n\nOtra fila suelta.\n\n**Primero.** Uno.\n"
@@ -164,7 +164,7 @@ class TestTemplate(unittest.TestCase):
 def _tree_with_article_children(children_specs, article_num="4o"):
     """A minimal `act` -> `body` -> `article` tree, with `article`'s direct
     children built exactly as specified -- so the split rule (#218 Fase 1,
-    rule 3) is exercised directly, with no dependency on what the segmenter's
+    rule U2) is exercised directly, with no dependency on what the segmenter's
     own block classifier would decide for a given piece of Markdown.
 
     `children_specs`: a list of `(text, is_chapeau, is_tail)`, concatenated
@@ -238,7 +238,7 @@ class TestReglaDePartida(unittest.TestCase):
         )
         units = text_units(tree, cap=5)
         self.assertEqual([u.piece for u in units], [1, 2])
-        # Piece 2 is prefixed with the chapeau (rule 3).
+        # Piece 2 is prefixed with the chapeau (rule U2).
         self.assertIn("chapeau introductorio", units[1].text)
         self.assertIn("unica fraccion", units[1].text)
 
@@ -350,7 +350,7 @@ class TestTableRowShape(unittest.TestCase):
 
     def test_text_units_da_una_unidad_por_fila_con_el_texto_completo(self):
         # A cap small enough to force the split-by-paragraph rule (#218's
-        # rule 3): each row is its own paragraph, so each becomes its own
+        # rule U2): each row is its own paragraph, so each becomes its own
         # unit rather than being folded into one whole-article unit.
         units = text_units(self.TEXT, cap=10)
         filas = [u for u in units if u.text.strip().startswith("|")]
@@ -378,11 +378,11 @@ if __name__ == "__main__":  # pragma: no cover
         print("wrote", destino)
 
 
-# -- issue #227: rules 8 and 9 --------------------------------------------- #
+# -- issue #227: rules B3 and U5 --------------------------------------------- #
 
 class TestRegla8(unittest.TestCase):
     """The *acuerdo*-shaped instrument: no `Artículo N` anywhere, provisions
-    numbered `**PRIMERO.-**` or `1.` instead (issue #227's rule 8)."""
+    numbered `**PRIMERO.-**` or `1.` instead (issue #227's rule B3)."""
 
     ORDINALES = "**PRIMERO.-** Uno.\n\n**SEGUNDO.-** Dos.\n\n**TERCERO.-** Tres.\n"
     NUMERALES = "".join(f"{n}. Provisión número {n}.\n\n" for n in range(1, 7))
@@ -404,7 +404,7 @@ class TestRegla8(unittest.TestCase):
         self.assertEqual([u.unit_type for u in units], ["preamble"])
 
     def test_una_ley_no_cambia(self):
-        """The gate is what makes rule 8 safe: a document with a single
+        """The gate is what makes rule B3 safe: a document with a single
         `Artículo N` outside its transitorios never switches it on, so the
         bolded ordinals below stay ordinary paragraphs."""
         texto = (
@@ -479,7 +479,7 @@ class TestRegla9(unittest.TestCase):
 # -- issue #256: split_articles=False, one unit per article whatever its length -- #
 
 class TestSplitArticles(unittest.TestCase):
-    """`split_articles=False` (issue #256): rules 3 and 9 never apply to an
+    """`split_articles=False` (issue #256): rules U2 and U5 never apply to an
     `article` — it is always one unit, `piece == 0`, whatever its length."""
 
     def test_over_cap_article_stays_one_unit(self):

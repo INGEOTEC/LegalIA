@@ -51,7 +51,7 @@ def _titulo(resto) -> str | None:
 
 
 def es_fila_tabla(bloque) -> bool:
-    """Whether `bloque` is a table row (rule 13, issue #291): a block that
+    """Whether `bloque` is a table row (rule B7, issue #291): a block that
     opens with `|` and closes with `|`, the shape `scjn.api` writes one
     recovered row in since issue #253."""
     return bool(FILA_TABLA.match(bloque.text.strip()))
@@ -98,7 +98,7 @@ def clasifica(bloque) -> tuple[str, dict]:
         if clase in CONTENEDORES and num:
             return "contenedor", {"akn_type": CONTENEDORES[clase], "num": num}
 
-    # Rule 16 (review fix-1 of #291): `PARTE`, `ANEXO`, `APÉNDICE`.
+    # Rule B5 (review fix-1 of #291): `PARTE`, `ANEXO`, `APÉNDICE`.
     m = CONTENEDOR_PARTE.match(linea)
     if m:
         num = _limpia(m.group("ord") or m.group("num") or m.group("num2"))
@@ -138,7 +138,7 @@ def clasifica(bloque) -> tuple[str, dict]:
 
 
 #: How an instrument that never writes `Artículo N` numbers its provisions
-#: (issue #227's rule 8) — `modo_sin_articulos`' two answers, plus `None` for
+#: (issue #227's rule B3) — `modo_sin_articulos`' two answers, plus `None` for
 #: "it numbers them the ordinary way, or not recognizably at all".
 MODO_ORDINAL = "ordinal"
 MODO_NUMERAL = "numeral"
@@ -158,7 +158,7 @@ MIN_NUMERALES = 5
 
 
 def modo_sin_articulos(bloques, clases=None) -> str | None:
-    """Rule 8 (issue #227), decided **once per document**: how this
+    """Rule B3 (issue #227), decided **once per document**: how this
     instrument numbers its provisions, when it never writes `Artículo N`.
 
     A *lineamiento* is usually an **acuerdo**, and an acuerdo does not number
@@ -184,7 +184,7 @@ def modo_sin_articulos(bloques, clases=None) -> str | None:
     (a roman-numeral outline, mostly), and they keep the behaviour they
     already had rather than being guessed at.
 
-    A roman-numbered article (`ARTÍCULO I`, issue #279's rule 10) is an
+    A roman-numbered article (`ARTÍCULO I`, issue #279's rule B1) is an
     `ARTICULO` match, so a roman-numbered treaty whose paragraphs read `1.`,
     `2.` returns `None` here instead of `MODO_NUMERAL`. The 3 lineamientos
     above are unchanged by that rule (0 roman article openers measured in
@@ -199,7 +199,7 @@ def modo_sin_articulos(bloques, clases=None) -> str | None:
     True
 
     `clases`, when given, is `clasifica`'s answer for each of `bloques` -- what
-    the builder passes for a snapshot that carries outline markers (rule 19),
+    the builder passes for a snapshot that carries outline markers (rule S1),
     whose classes the markers have already settled.
     """
     en_transitorios = False

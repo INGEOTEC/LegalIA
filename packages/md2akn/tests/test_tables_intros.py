@@ -1,4 +1,4 @@
-"""Rules 11, 12 and 13 (issue #291): decimal article numbers, a container's
+"""Rules B1, B6 and B7 (issue #291): decimal article numbers, a container's
 `intro`, and `table` nodes.
 
 Found browsing the Instruments page: the T-MEC's `Artículo 1.1:` all read as
@@ -56,7 +56,7 @@ def _units(text, **kw):
     return text_units(text, **kw)
 
 
-# -- rule 11: decimal article numbers ------------------------------------- #
+# -- rule B1: decimal article numbers ------------------------------------- #
 
 def _num(line):
     m = ARTICULO.match(line.replace("**", ""))
@@ -112,7 +112,7 @@ def test_decimal_articles_are_article_units():
 
 def test_the_gate_of_rule_8_sees_a_decimal_article():
     # A document that writes `Artículo N.M` numbers its articles the ordinary
-    # way: rule 8 must stay off, even if its paragraphs read `1.`, `2.`.
+    # way: rule B3 must stay off, even if its paragraphs read `1.`, `2.`.
     text = (
         "**Artículo 1.1**: Uno.\n\n1. Primero.\n\n2. Segundo.\n\n3. Tercero.\n\n"
         "4. Cuarto.\n\n5. Quinto.\n\n6. Sexto.\n"
@@ -126,7 +126,7 @@ def test_a_decimal_article_is_not_an_acuerdo_numeral():
     assert [n.eId for n in tree.walk() if n.akn_type == "article"] == ["art_2.1", "art_2.2"]
 
 
-# -- rule 12: a container's intro ----------------------------------------- #
+# -- rule B6: a container's intro ----------------------------------------- #
 
 def test_the_notes_under_a_section_are_its_intro():
     tree = parse_markdown(_ligie(_rows(3)))
@@ -206,7 +206,7 @@ def test_an_annotation_before_an_intro_stays_covered():
     assert [u.unit_type for u in units] == ["heading", "intro", "article"]
 
 
-# -- rule 13: tables ------------------------------------------------------ #
+# -- rule B7: tables ------------------------------------------------------ #
 
 def test_row_and_label_patterns():
     assert FILA_TABLA.match(HEADER)

@@ -1,4 +1,4 @@
-"""Invariant I5 and rules 44 to 47 (review fix-2 of #300 and #301, found after the fact).
+"""Invariant I5 and rules S8, S12, S13 and S2 (review fix-2 of #300 and #301, found after the fact).
 
 The SCJN's API serves an instrument as a list of blocks, each with a marker (`kind`,
 `type`, `num`, `label`), and that outline has to organise the document first: the text
@@ -114,7 +114,7 @@ def test_a_line_that_only_starts_with_the_label_is_content():
 
 
 def test_what_the_court_prints_above_the_label_line_describes_that_heading():
-    """Rule 44: `(REFORMADO, D.O.F. ...)` and the court's `(NOTA: ...)` above the label line
+    """Rule S8: `(REFORMADO, D.O.F. ...)` and the court's `(NOTA: ...)` above the label line
     are the heading's annotations, not the block's first paragraph."""
     text = (
         f'{M}orden=1 numero=0 kind=other label="G.O. 9 DE SEPTIEMBRE DE 2009" -->\n\n'
@@ -146,7 +146,7 @@ def test_the_caption_rule_does_not_take_the_label_line():
 
 
 def test_a_trailing_annotation_belongs_to_the_block_it_was_read_in():
-    """Rule 46, the Código Civil Federal's articles 187 and 188: `(DEROGADO SEGUNDO
+    """Rule S13, the Código Civil Federal's articles 187 and 188: `(DEROGADO SEGUNDO
     PÁRRAFO, ...)` stands after article 187's last paragraph. Held for "the next node" it
     was pulled into article 188, whose span began inside article 187's block, before its
     own marker."""
@@ -177,7 +177,7 @@ def test_a_trailing_annotation_belongs_to_the_block_it_was_read_in():
 
 
 def test_a_part_holds_the_titles_the_next_marker_opens():
-    """Rule 45, the Código Civil Federal's fourth book: `PRIMERA PARTE`, then its titles;
+    """Rule S12, the Código Civil Federal's fourth book: `PRIMERA PARTE`, then its titles;
     the next part is the part's sibling, inside the book."""
     blocks = [
         ("container", 'type=book num="CUARTO" label="LIBRO CUARTO"', "**LIBRO CUARTO**"),
@@ -204,7 +204,7 @@ def test_a_part_holds_the_titles_the_next_marker_opens():
 
 
 def test_a_part_that_holds_chapters_closes_the_chapter_open_before_it():
-    """Rule 45, a treaty whose `SEGUNDA PARTE` holds its chapters VIII and IX: a chapter
+    """Rule S12, a treaty whose `SEGUNDA PARTE` holds its chapters VIII and IX: a chapter
     open before the part is not its parent."""
     blocks = [
         ("container", 'type=chapter num="VII" label="CAPÍTULO VII"', "**CAPÍTULO VII**"),
@@ -247,7 +247,7 @@ def test_a_part_whose_next_marker_is_an_article_keeps_the_document_reading():
 
 
 def test_a_provision_block_is_one_text():
-    """Rule 47, the IMDG Code's `1.1.2 Convenios`: one `provision` block that lists the
+    """Rule S2, the IMDG Code's `1.1.2 Convenios`: one `provision` block that lists the
     conventions with their own `Capítulo` and `Anexo` lines. They opened an `ANEXO I` at
     the body level that swallowed every chapter after it."""
     blocks = [
@@ -357,7 +357,7 @@ def test_real_labels_are_headings():
 
 
 def test_every_annotation_of_an_article_is_covered_in_document_order():
-    """Rule 46's tail annotation (the Código Fiscal's articles 18 and 18-A): the notes of a
+    """Rule S13's tail annotation (the Código Fiscal's articles 18 and 18-A): the notes of a
     node are read before its children's, so one held by the article itself at the end of its
     block was read before the annotations of the paragraphs it follows, and the left-to-right
     search of `coverage()` skipped past the next annotation. It hangs from the deepest last
@@ -380,10 +380,10 @@ def test_every_annotation_of_an_article_is_covered_in_document_order():
 
 
 def test_a_provision_block_keeps_its_own_ordinal_opener():
-    """Rule 47 stops a heading *inside* a provision block from opening structure, not the
+    """Rule S2 stops a heading *inside* a provision block from opening structure, not the
     block's own first line (lineamiento 109466: an acuerdo's `**PRIMERO.-**` and the
     guidelines' own `**Primero.**`): the second is a different provision, because the
-    document is still read in rule 8's ordinal mode and the text's spelling wins."""
+    document is still read in rule B3's ordinal mode and the text's spelling wins."""
     text = (
         f'{M}orden=1 numero=0 kind=provision num="PRIMERO" label="PRIMERO" -->\n\n'
         "**PRIMERO.-** Se aprueban los Lineamientos.\n\n"

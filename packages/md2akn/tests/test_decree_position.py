@@ -1,4 +1,4 @@
-"""Rules 42 and 43 (review fix-1 of #301, a correction found after the fact).
+"""Rules S11 and U7 (review fix-1 of #301, a correction found after the fact).
 
 On a snapshot with outline markers, `preamble` is exactly the title block, `conclusions`
 never crosses an API block, and whether a promulgation-decree block is the *envelope*

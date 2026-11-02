@@ -17,17 +17,17 @@ What is here, and which issue put it there:
 - #160 — fracciones, incisos and subincisos.
 - #161 — the `(REFORMADO, D.O.F. ...)` annotations.
 - #227 — `NUMERAL_DECIMAL`, for the *acuerdo*-shaped instrument that numbers
-  its provisions `1.` / `2.1` rather than `Artículo N` (rule 8).
-- #279 — `NUMERO_ROMANO`, a roman-numbered article (rule 10).
-- #291 — `NUMERO_DECIMAL_ARTICULO` (rule 11), a decimal article number
-  (`Artículo 1.1`), and `FILA_TABLA`/`ETIQUETA_TABLA` (rule 13), the table
+  its provisions `1.` / `2.1` rather than `Artículo N` (rule B3).
+- #279 — `NUMERO_ROMANO`, a roman-numbered article (rule B1).
+- #291 — `NUMERO_DECIMAL_ARTICULO` (rule B1), a decimal article number
+  (`Artículo 1.1`), and `FILA_TABLA`/`ETIQUETA_TABLA` (rule B7), the table
   rows `scjn` writes since #253.
-- review fix-1 of #291 (repeated article numbers, rules 14 to 17) — the whole
+- review fix-1 of #291 (repeated article numbers, rules B1, S14, B5 and B4) — the whole
   article number (`NUM_ARTICULO`, `SUFIJO_LATINO`, `ORDINAL_PALABRA`,
   `NUMERO_DECIMAL_ARTICULO` read what the SCJN actually writes: `1o. Bis`,
   `1,055 Bis 1`, `8-01`, `195-Z-1`, `4B`, `Quintus`, `DECIMOSEGUNDO`,
-  `2.A.1`), `MARCADOR_INDICE` (rule 15, a table of contents) and
-  `CONTENEDOR_ANEXO`/`CONTENEDOR_PARTE` (rule 16, `PARTE`/`ANEXO`/`APÉNDICE`
+  `2.A.1`), `MARCADOR_INDICE` (rule S14, a table of contents) and
+  `CONTENEDOR_ANEXO`/`CONTENEDOR_PARTE` (rule B5, `PARTE`/`ANEXO`/`APÉNDICE`
   containers).
 """
 
@@ -107,7 +107,7 @@ SUFIJO_LATINO = (
     rf"(?:{_UNIDAD_LATINA})(?:[ \t]+DECIMUS)?"
 )
 
-#: A roman-numbered article's number (issue #279's rule 10): `ARTÍCULO I`,
+#: A roman-numbered article's number (issue #279's rule B1): `ARTÍCULO I`,
 #: `**ARTÍCULO IV.-**`, `ARTÍCULO XV BIS`. International treaties write their
 #: own articles this way -- over the 1,373 cached `scjn-tratados` with text,
 #: 489 carry 6,646 such openers (`**ARTÍCULO R**` 5,661, `ARTÍCULO R` 705,
@@ -212,7 +212,7 @@ NUM_ARTICULO = (
     r")"
 )
 
-#: A decimal article number (issue #291's rule 11): `Artículo 1.1:`,
+#: A decimal article number (issue #291's rule B1): `Artículo 1.1:`,
 #: `Artículo 12.3.-`, `Artículo 3.2.1` -- chapter and article, how the T-MEC
 #: and six other `scjn-tratados` instruments number their articles; since
 #: review fix-1 also the T-MEC's annex articles, `Artículo 2.A.1:`,
@@ -268,7 +268,7 @@ ARTICULO_ORDINAL = re.compile(
 
 #: A decimal numeral opening a block — `1.`, `2.1.`, `3.2.1` — the second way
 #: an *acuerdo*-shaped instrument numbers its provisions when it never writes
-#: `Artículo N` (issue #227's rule 8; 37 of the 89 articleless lineamientos
+#: `Artículo N` (issue #227's rule B3; 37 of the 89 articleless lineamientos
 #: carry five or more of these).
 #:
 #: Like `ARTICULO_ORDINAL` this one is **context-dependent and must not be
@@ -331,7 +331,7 @@ CONTENEDOR = re.compile(
 )
 
 #: The number a `PARTE`, `ANEXO` or `APÉNDICE` carries (review fix-1 of #291,
-#: rule 16): `1`, `4.31`, `1-A`, `II`, `III-B`, `A`, `B-1`, `PRIMERA`, `ÚNICO`.
+#: rule B5): `1`, `4.31`, `1-A`, `II`, `III-B`, `A`, `B-1`, `PRIMERA`, `ÚNICO`.
 #: A *number token*, never a word: `Parte Contratante` and `Anexo a la
 #: solicitud` are prose, and the whole line has to be the heading.
 _NUM_DE_PARTE = (
@@ -352,7 +352,7 @@ _RESTO_DE_PARTE = (
 #: A `PARTE` heading, in the two shapes the corpus writes it: `PARTE 1`,
 #: `Parte A`, `PARTE I. DISPOSICIONES GENERALES`, and the ordinal word before
 #: the noun (`PRIMERA PARTE`, `SEGUNDA PARTE. FORMATOS E INSTRUCTIVOS`: the
-#: reglamento 975 and 47726). Rule 16, review fix-1 of #291: 114738 (the
+#: reglamento 975 and 47726). Rule B5, review fix-1 of #291: 114738 (the
 #: IMDG Code) is divided into seven of them, and without a container for it
 #: every chapter `1.1` of every part hung off the root.
 CONTENEDOR_PARTE = re.compile(
@@ -365,7 +365,7 @@ CONTENEDOR_PARTE = re.compile(
 
 #: An `ANEXO` or `APÉNDICE` heading: `ANEXO II`, `**ANEXO**` alone (163
 #: occurrences, every one the heading of an annex), `Apéndice A`, `APÉNDICE 3
-#: (Rev.CMR-07)`. Rule 16, review fix-1 of #291. An annex is its own text and
+#: (Rev.CMR-07)`. Rule B5, review fix-1 of #291. An annex is its own text and
 #: usually numbers its own articles from 1: it is a container of its own
 #: (Akoma Ntoso's `attachment`) that closes every other open container.
 CONTENEDOR_ANEXO = re.compile(
@@ -376,7 +376,7 @@ CONTENEDOR_ANEXO = re.compile(
     re.UNICODE,
 )
 
-#: A table of contents' own marker (rule 15, review fix-1 of #291): a block
+#: A table of contents' own marker (rule S14, review fix-1 of #291): a block
 #: that is nothing but `Índice`, `**INDICE**`, `Contenido`, `Tabla de
 #: contenido`. 100 instruments carry one; what follows it is a list of
 #: headings that the rest of the document then repeats as its body.
@@ -420,7 +420,7 @@ DOF_TRANSITORIOS = re.compile(
 )
 
 #: The heading that opens an instrument's recitals: `**CONSIDERANDO**`,
-#: `**CONSIDERANDO:**`, `CONSIDERANDOS` (rule 17, review fix-1 of #291). A
+#: `**CONSIDERANDO:**`, `CONSIDERANDOS` (rule B4, review fix-1 of #291). A
 #: lineamiento or acuerdo numbers its recitals `PRIMERO.` .. `NOVENO.` and then
 #: numbers its provisions `PRIMERO.` again; the recitals are the preamble, not
 #: articles.
@@ -523,7 +523,7 @@ MARCADOR_LISTA = re.compile(
 #: reglamentos 97 (2,126), lineamientos 22 (290), tratados 134 (18,083).
 FILA_TABLA = re.compile(r"^\|.*\|$", re.DOTALL)
 
-#: The one non-row block that does *not* end a table (rule 13): a lone,
+#: The one non-row block that does *not* end a table (rule B7): a lone,
 #: all-caps, parenthesised label sitting between two rows -- `**(ARANCEL)**`,
 #: which the LIGIE puts between the header row of every chapter's tariff and
 #: its body (97 of the 97 tables of that law). Without it every one of those
@@ -535,7 +535,7 @@ FILA_TABLA = re.compile(r"^\|.*\|$", re.DOTALL)
 #: reform annotation) are *not* tolerated: they are a table's end.
 ETIQUETA_TABLA = re.compile(r"^\*{0,2}\([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ]{1,30}\)\*{0,2}$")
 
-#: Rule 36 (review fix-6 of #291): a table's caption -- a block that is bold
+#: Rule B7 (review fix-6 of #291): a table's caption -- a block that is bold
 #: from its first character (`**A.** Tarifa para determinar ...`, `**TARIFA**`),
 #: one line, short -- when the rows follow it straight away.
 LEYENDA_TABLA = re.compile(r"^\*\*[^\n]{1,100}?\*\*[^\n]{0,300}$")

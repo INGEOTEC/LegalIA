@@ -163,7 +163,7 @@ JOB_JSON = "job.json"
 
 #: Unit types that are neither a source row nor a candidate (see the module
 #: docstring). `md2akn` marks every heading `unit_type == "heading"`. A table of
-#: contents (`toc`, md2akn's rule 15, review fix-1 of #291) is a list of
+#: contents (`toc`, md2akn's rule S14, review fix-1 of #291) is a list of
 #: headings and is excluded for the same reason: it matches another
 #: instrument's index and says nothing about the relation. The summary's
 #: `heading_rows_excluded` counts both.

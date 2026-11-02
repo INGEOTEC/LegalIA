@@ -54,11 +54,11 @@ this package (it remains in git history if it is ever needed again).
 | Artículo N | `article` | |
 | fracción / inciso / subinciso | `paragraph` / `point` / `subpoint` | |
 | TRANSITORIOS | `section` | + `refers_to="#transitorios"` |
-| PARTE | `part` | above books and titles; rule 16 of `text_units` |
-| ANEXO / APÉNDICE | `attachment` | + `refers_to="#anexo"` / `"#apendice"`; rule 16 |
-| a table of contents | `toc` | eId `toc_N`; rule 15 of `text_units` |
-| a container's introductory text (the *Notas.* of a LIGIE chapter) | `intro` | eId `<container>__intro`; rule 12 of `text_units` |
-| consecutive `\| … \|` rows | `table` | eId `<parent>__table_N`; rule 13 of `text_units` |
+| PARTE | `part` | above books and titles; rule B5 |
+| ANEXO / APÉNDICE | `attachment` | + `refers_to="#anexo"` / `"#apendice"`; rule B5 |
+| a table of contents | `toc` | eId `toc_N`; rule S14 |
+| a container's introductory text (the *Notas.* of a LIGIE chapter) | `intro` | eId `<container>__intro`; rule B6 |
+| consecutive `\| … \|` rows | `table` | eId `<parent>__table_N`; rule B7 |
 | a plain paragraph | `content` | numbered 1..n inside its parent (`art_1o__p_2`) |
 | the closing signatures | `conclusions` | |
 
@@ -92,7 +92,7 @@ SCJN corpus, so the variation it covers is the variation that is there:
 laws use none), ordinals (`1o.`, `1°`, `1º`), Latin suffixes in any case and
 joined by a space or a dash (`28 Bis`, `3° bis`, `103-Bis`, `3° Bis 1`),
 letter suffixes (`27-A`, and the CCF's `410 A`), roman numerals
-(`ARTÍCULO IV`, how a treaty numbers its articles — rule 10 of `text_units`),
+(`ARTÍCULO IV`, how a treaty numbers its articles — rule B1),
 two articles under one
 heading (`Art. 30,31.` — kept as one node with `num="30,31"`, since dividing
 the shared text between them is not possible without guessing), and container
@@ -339,6 +339,14 @@ name and its own number (`template="contextual"`) or neither
 (`template="bare"`, the default) is a manifest field a caller picks per
 published vector set, never a code edit — `heading`/`loose` units carry
 their ancestor path either way.
+
+The rules `text_units` and `parse_markdown` follow are one layered list in
+[`RULES.md`](RULES.md) (issue #304): **W** what a snapshot's outline markers
+promise, **S** the skeleton those markers state (read first, by
+`md2akn.skeleton`), **B** the text rules, which run only *inside* one API block,
+and **U** the units. The changelog below, written as each version shipped,
+still quotes the old numbers; the table at the end of `RULES.md` maps each to
+its place in the list.
 
 ## Development
 

@@ -1,4 +1,4 @@
-"""Rule 10 (issue #279): a roman-numbered article opener is an article.
+"""Rule B1 (issue #279): a roman-numbered article opener is an article.
 
 International treaties number their own articles `ARTÍCULO I`, `ARTÍCULO II`,
 ... — 6,646 such openers over 489 of the cached `scjn-tratados`. The rule is
@@ -91,7 +91,7 @@ def test_treaty_yields_one_article_unit_per_roman_article():
 
 def test_paragraphs_stay_inside_their_roman_article():
     text = FIXTURE.read_text(encoding="utf-8")
-    # rule 8 must not fire: the gate now sees articles.
+    # rule B3 must not fire: the gate now sees articles.
     assert modo_sin_articulos(list(iter_blocks(text))) is None
     article_iii = next(
         u for u in text_units(text, split_articles=False) if u.eId == "art_III"
@@ -118,7 +118,7 @@ def test_roman_and_arabic_eids_never_collide():
 
 
 def test_numeral_paragraphs_of_a_roman_treaty_are_not_articles():
-    # Before rule 10 this document had no article, so rule 8 read every
+    # Before rule B1 this document had no article, so rule B3 read every
     # `1.` / `2.` paragraph as its own "article" and lost the roman heading.
     text = (
         "**ARTÍCULO I**\n\n1. Uno.\n\n2. Dos.\n\n3. Tres.\n\n4. Cuatro.\n\n"

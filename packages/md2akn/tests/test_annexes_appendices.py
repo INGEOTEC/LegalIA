@@ -1,4 +1,4 @@
-"""Rules 25-28 (review fix-3 of #291): annexes belong to the chapter the SCJN's
+"""Rule S7 (review fix-3 of #291): annexes belong to the chapter the SCJN's
 outline says they annex, appendices to the annex or instrument they follow, and
 a text of its own printed after them (an amending resolution) to none of them.
 
@@ -216,7 +216,7 @@ def test_a_document_without_markers_keeps_its_attachment_eids():
 
 
 def test_a_section_of_its_own_stays_in_its_chapter_when_no_attachment_is_open():
-    """Rule 28 only separates a text of its own from an annex or appendix: the
+    """Rule S7 only separates a text of its own from an annex or appendix: the
     `DISPOSICIONES GENERALES` the Código Civil Federal's chapter IV opens with is
     a section of that chapter (an unguarded rule hung it from the body)."""
     text = (
@@ -229,6 +229,6 @@ def test_a_section_of_its_own_stays_in_its_chapter_when_no_attachment_is_open():
     )
     tree = parse_markdown(text)
     section = next(n for n in _walk(tree) if n.num == "DISPOSICIONES GENERALES")
-    # Rule 44: a block the API labels `other` is an `hcontainer`, not a `section`.
+    # Rule S8: a block the API labels `other` is an `hcontainer`, not a `section`.
     assert section.akn_type == "hcontainer"
     assert section.parent.eId == "cap_IV"

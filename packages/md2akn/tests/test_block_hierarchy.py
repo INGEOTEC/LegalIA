@@ -1,4 +1,4 @@
-"""Rule 33 (review fix-5 of #291): an API block is the root of a hierarchy.
+"""Rule S4 (review fix-5 of #291): an API block is the root of a hierarchy.
 
 The tratados 11293 (the SOLAS convention and its fifteen amending resolutions)
 prints each resolution as one API block, with its recitals, an `ANEXO` and the
@@ -87,7 +87,7 @@ def test_every_resolution_is_a_sibling_container_of_one_type():
     resolutions = _resolutions(parse_markdown(_doc()))
     assert [r.num for r in resolutions] == [
         "RESOLUCIÓN MSC.404(96)", "RESOLUCIÓN MSC.409(97)", "RESOLUCIÓN MSC.421(98)"]
-    # Rule 44 (review fix-2 of #300 and #301): every block the API labels `other` is an
+    # Rule S8 (review fix-2 of #300 and #301): every block the API labels `other` is an
     # `hcontainer` named by its label, the resolutions included -- one type for all of them.
     assert {r.akn_type for r in resolutions} == {"hcontainer"}
     assert [r.eId for r in resolutions] == [
@@ -213,7 +213,7 @@ def test_an_annex_with_nothing_structural_after_it_in_its_block_takes_the_blocks
     """The shape of the reglamento 83225 and of the gas carrier code (96707): the annex is
     the last thing the block prints, and the instrument it approves, or the code it amends, is
     what the API serves in the blocks after it -- so they belong to the annex, which leaves
-    the block (rule 29, narrowed by rule 33)."""
+    the block (rule S8, narrowed by rule S4)."""
     doc = "\n\n".join([
         _marker(1, "ACUERDO"), "**ACUERDO**", "Se aprueba el Reglamento.", "**ANEXO ÚNICO**",
         _marker(2, "REGLAMENTO DE LA MATERIA"), "Reglamento de la materia",

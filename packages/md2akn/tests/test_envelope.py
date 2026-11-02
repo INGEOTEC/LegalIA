@@ -62,7 +62,7 @@ def test_envelope_is_the_header_the_decree_steps_and_the_decree_closing_only():
 
 def test_a_stray_promulgation_step_hanging_outside_the_decree_is_envelope():
     # `NOTIFICACIÓN` is a promulgation step in the T-MEC (137355) and hangs elsewhere;
-    # its role comes from rule 29's table, not from where it hangs. In this document
+    # its role comes from rule S8's table, not from where it hangs. In this document
     # the label is not in the table, so it stays compared; the table is the definition.
     units = text_units(parse_markdown(_treaty()), split_articles=False)
     assert not [u for u in units if "depositario" in u.text and u.envelope]

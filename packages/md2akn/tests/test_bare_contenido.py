@@ -1,10 +1,10 @@
-"""Rule 40 (issue #300): a bare `CONTENIDO` block the SCJN serves after a block
+"""Rule S10 (issue #300): a bare `CONTENIDO` block the SCJN serves after a block
 holding only its own title is that block's content.
 
 The SCOW API serves some treaties as a title-only block (`ANEXO`, `PROTOCOLO`)
 followed by a block labelled just `CONTENIDO` with the text itself -- the same
-split rule 30 reads when the second label repeats the first (`CONTENIDO
-ARTICULOS`), but with nothing after the word, so rule 30 never fired. The
+split rule S10 reads when the second label repeats the first (`CONTENIDO
+ARTICULOS`), but with nothing after the word, so rule S10 never fired. The
 fragments are cut down from the real answers for the treaties 24031 (the CAMR-92
 Final Acts, whose four annexes were this shape) and 22588 (a protocol), and the
 reglamento 138214, whose `CONTENIDO` is an index after a `CONSIDERANDO`.
@@ -62,7 +62,7 @@ def test_predicates():
     assert not es_contenido_suelto("CONTENIDO", "container", "**ANEXO**")
     assert es_contenido_suelto("CONTENIDO", "other", "**ANEXO**", "container")
     assert not es_contenido_suelto("CONTENIDO", "other", "**CONSIDERANDO**", "recitals")
-    assert not es_contenido_suelto("CONTENIDO ARTICULOS", "other", "**ARTÍCULOS**")  # rule 30's
+    assert not es_contenido_suelto("CONTENIDO ARTICULOS", "other", "**ARTÍCULOS**")  # rule S10's
 
 
 def test_the_text_after_a_bare_contenido_is_inside_the_annex_before_it():
@@ -140,7 +140,7 @@ def test_a_document_with_no_markers_parses_as_before():
 
 def test_a_running_head_art_n_before_the_article_with_the_same_number_is_no_article():
     # The Radio Regulations the CAMR-92 Final Acts reprint print `Art. 8` above
-    # each article's own heading (rule 41).
+    # each article's own heading (rule B1).
     doc = _doc(
         _marker(1, "ENCABEZADO", "header"),
         "**ACTAS FINALES**",

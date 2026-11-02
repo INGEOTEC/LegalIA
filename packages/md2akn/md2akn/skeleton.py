@@ -74,16 +74,16 @@ TIPOS_DE_CONTENEDOR = {
 }
 
 #: The roles whose blocks are never read as a section of numbered articles
-#: (rule 23): the Mexican decree's own blocks, a closing formula, a note.
+#: (rule S6): the Mexican decree's own blocks, a closing formula, a note.
 ROLES_SIN_SECCION = ("promulgation", "conclusions", "note")
 
-#: Rule 38: how many heading-only article blocks a document needs, each followed
+#: Rule S6: how many heading-only article blocks a document needs, each followed
 #: by provision blocks, before they are read as headings, and the longest a
 #: heading block's lines are.
 MIN_ENCABEZADOS_DE_ARTICULO = 3
 MAX_LINEA_DE_ENCABEZADO = 160
 
-#: Rule 24: the `kind`s of API block inside which no heading opens a
+#: Rule S2: the `kind`s of API block inside which no heading opens a
 #: structure, and the classes of block that would.
 BLOQUES_DE_UN_SOLO_TEXTO = ("article", "provision", "header", "preamble", "recitals")
 APERTURAS_DE_ESTRUCTURA = (
@@ -94,18 +94,18 @@ APERTURAS_DE_ESTRUCTURA = (
 VENTANA_ENCABEZADO = 6
 
 #: The kinds of API block whose node is an `hcontainer` named by the block's label
-#: (rules 29 and 44): the label line the block may open with is that node's heading.
+#: (rule S8): the label line the block may open with is that node's heading.
 BLOQUES_CON_ROTULO = ("other", "preamble", "recitals", "header")
 
 
-#: Longest a block of a table of contents may be (rule 15). Some indexes carry
+#: Longest a block of a table of contents may be (rule S14). Some indexes carry
 #: long titles (`5.5.3 Disposiciones especiales aplicables a los bultos...`),
 #: so the bound is generous; `MAX_ENCABEZADO_INDICE` is what a heading that
 #: *repeats* an entry may be.
 MAX_ENTRADA_INDICE = 600
 MAX_ENCABEZADO_INDICE = 250
 
-#: How many of its first entries the body is expected to repeat (rule 15).
+#: How many of its first entries the body is expected to repeat (rule S14).
 VENTANA_INDICE = 6
 
 #: How many entries a table of contents needs. A marker (`Contenido`) followed
@@ -135,7 +135,7 @@ def _plegar(texto: str) -> str:
 
 def _clave_de_entrada(bloque) -> tuple[str, str]:
     """What identifies a heading whether it is written as a table-of-contents
-    entry or as the heading it lists (rule 15): a container or article word and
+    entry or as the heading it lists (rule S14): a container or article word and
     its number (`CAPÍTULO I. DISPOSICIONES GENERALES.` and `CAPÍTULO I
     Disposiciones Generales.` are both ``("capitulo", "i")``), else the title
     with its leading label and its trailing page number dropped (`I. OBJETIVO`
@@ -165,7 +165,7 @@ def _es_entrada_de_indice(bloque, clase: str) -> bool:
 
 
 def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
-    """Rule 15 (review fix-1 of #291): where each table of contents is, as
+    """Rule S14 (review fix-1 of #291): where each table of contents is, as
     ``{index of its marker block: index of the first block after it}``.
 
     A table of contents is the run of short blocks (one or two lines, table
@@ -196,7 +196,7 @@ def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
         marcas_cruzadas: list[int] = []
         while j < fin and _es_entrada_de_indice(bloques[j], clases[j][0]):
             if lee_marcador(bloques[j].text) is not None:
-                # Rule 34 (review fix-6 of #291): a marker is a boundary. An index
+                # Rule S4 (review fix-6 of #291): a marker is a boundary. An index
                 # may reach into the next API block only up to the heading that
                 # block opens with (the `PRESENTACIÓN` below), never past two
                 # markers: a short decree header and a list of short lines in the
@@ -215,7 +215,7 @@ def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
                 k for k in range(i + 1 + ventana, j)
                 if len(bloques[k].text) <= MAX_ENCABEZADO_INDICE
                 and _clave_de_entrada(bloques[k]) in candidatas
-                # Rule 34: across a marker, only the heading the next block opens
+                # Rule S4: across a marker, only the heading the next block opens
                 # with (the marker line, then at most an epigraph) repeats an entry.
                 and all(k <= m + 2 for m in marcas_cruzadas if m < k)
             ),
@@ -226,7 +226,7 @@ def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
             continue
         fin_indice = repite
         if marcas_cruzadas:
-            # Rule 34 (review fix-6 of #291): an index belongs to the API block it
+            # Rule S4 (review fix-6 of #291): an index belongs to the API block it
             # starts in, so it ends at that block's end, the next marker, when
             # the repeat lies beyond it (the heading line after the marker --
             # `CAPITULO I`, then the epigraph -- belongs to the block that opens
@@ -255,7 +255,7 @@ def rangos_de_indice(bloques, clases, fin) -> dict[int, int]:
             and len(bloques[fin_indice - 1].text) > MAX_ENCABEZADO_INDICE
         ):
             fin_indice -= 1
-        # Rule 29 (review fix-4 of #291): the marker line of the API block that
+        # Rule S8 (review fix-4 of #291): the marker line of the API block that
         # holds the first repeated heading (`PRESENTACIÓN`) is that block's, not
         # an entry of the index it follows.
         while fin_indice - 1 > i and lee_marcador(bloques[fin_indice - 1].text) is not None:
@@ -307,19 +307,19 @@ def _rango_conclusiones(bloques) -> int:
     for i in range(inicio, len(bloques)):
         if CONCLUSIONES.search(bloques[i].text):
             if not es_firma_de_cierre(bloques, i):
-                # Rule 42 (review fix-1 of #301, a correction found after the fact):
+                # Rule S11 (review fix-1 of #301, a correction found after the fact):
                 # on a snapshot with outline markers the closing signatures never
                 # cross an API block. A dated closing line followed by another API
                 # block (the decree's certification after a treaty's own `PARTE FINAL
                 # DEL ACTA`) is not the end of the document: that block and every
-                # one after it keep their own nodes, by their own role (rule 29).
+                # one after it keep their own nodes, by their own role (rule S8).
                 hit("S11", "closing-blocked-by-marker", True)
                 return len(bloques)
             hit("S11", "closing-by-text", _con_marcas(bloques))
             return i
     return len(bloques)
 
-#: Rule 39 (review fix-6 of #291): the label of an `other` block that is a numbered
+#: Rule S9 (review fix-6 of #291): the label of an `other` block that is a numbered
 #: provision the SCJN could not classify because the source misprints its number,
 #: `98 (SIC)`.
 _ETIQUETA_PROVISION_SIC = re.compile(r"^(?P<num>\d+[A-Za-z]?)[ \t]*\((?:sic|SIC)\)\.?$")
@@ -380,7 +380,7 @@ def _es_el_mismo_numero_en_otra_cifra(texto: str, etiqueta: str) -> bool:
 
 
 def _numero_de_articulo(texto: str | None, etiqueta: str, numero: str | None = None) -> str:
-    """The number an article block is identified by (rule 19): what its text
+    """The number an article block is identified by (rule S1): what its text
     prints, unless the SCJN's label says something more specific or something
     else.
 
@@ -434,7 +434,7 @@ def _numero_de_articulo(texto: str | None, etiqueta: str, numero: str | None = N
 
 def _quita_etiqueta(linea: str, etiqueta: str) -> tuple[bool, str | None]:
     """Whether `linea` starts with the label `etiqueta`, and what follows it as
-    a heading (`None` when nothing does): rule 19 reads `PARTE 1- ENSAYO DE
+    a heading (`None` when nothing does): rule S1 reads `PARTE 1- ENSAYO DE
     INCOMBUSTIBILIDAD` under the label `PARTE 1` as the part titled `ENSAYO DE
     INCOMBUSTIBILIDAD`. Compared without accents, case, spaces or punctuation."""
     texto = linea.replace("**", "")
@@ -581,17 +581,17 @@ class Skeleton:
 
     def __init__(self, bloques, divisiones=None):
         self.bloques = bloques
-        #: Rule 31 (review fix-4 of #291): the blocks that open a division of
+        #: Rule B9 (review fix-4 of #291): the blocks that open a division of
         #: their own, ``{block index: (label, role)}``, as the passes before this
         #: one asked for them (`pide_divisiones`); the model-certificate headings
         #: are added below, once the markers are known.
         self.divisiones: dict[int, tuple[str | None, str | None]] = dict(divisiones or {})
         self.fin_cuerpo = _rango_conclusiones(bloques)
         #: `clasifica` of every block, computed once: the table-of-contents
-        #: scan, rule 8's gate, the rank of a `PARTE` and the pass itself all
+        #: scan, rule B3's gate, the rank of a `PARTE` and the pass itself all
         #: read it.
         self.clases = [clasifica(bloque) for bloque in bloques]
-        #: Rule 19 (review fix-2 of #291): the outline markers a snapshot
+        #: Rule S1 (review fix-2 of #291): the outline markers a snapshot
         #: written by `scjn.api` carries, ``{block index: attributes}``, and
         #: for every block the marker of the API block it belongs to.
         self.marcas: dict[int, dict[str, str]] = {}
@@ -601,15 +601,15 @@ class Skeleton:
         self.primeros: dict[int, dict[str, str]] = {}
         #: The block each marker's `primeros` entry is at, ``{marker index: block}``.
         self.destino_de_marca: dict[int, int] = {}
-        #: Rule 39: the markers (by identity) of the `other` blocks read as a provision.
+        #: Rule S9: the markers (by identity) of the `other` blocks read as a provision.
         self.provisiones_sic: set[int] = set()
-        #: Rule 29: for an article whose caption comes before its heading line,
+        #: Rule S8: for an article whose caption comes before its heading line,
         #: ``{heading block index: first block index}``.
         self.encabezados_de_leyenda: dict[int, int] = {}
         self._lee_marcas()
         self._lee_encabezados_repetidos()
-        #: Rule 15 (review fix-1 of #291): the tables of contents, as
-        #: ``{marker block index: first block index after it}``. Rule 19: a
+        #: Rule S14 (review fix-1 of #291): the tables of contents, as
+        #: ``{marker block index: first block index after it}``. Rule S1: a
         #: block the SCJN labels `ÍNDICE` is one, whatever its text says.
         self.indices = rangos_de_indice(bloques, self.clases, self.fin_cuerpo)
         for inicio, fin in self._indices_de_marcas().items():
@@ -620,10 +620,10 @@ class Skeleton:
         self.en_indice = {
             k for inicio, fin in self.indices.items() for k in range(inicio, fin)
         }
-        #: Rule 8 (issue #227), decided once for the whole document before
+        #: Rule B3 (issue #227), decided once for the whole document before
         #: the pass starts -- `None` for every law and every instrument that
         #: numbers articles the ordinary way. A table of contents is not the
-        #: document's own numbering, so its blocks are not read. Rule 19: nor
+        #: document's own numbering, so its blocks are not read. Rule S1: nor
         #: are a reform decree's, or the recitals', which are not the
         #: instrument's own provisions either.
         propios = [
@@ -637,7 +637,7 @@ class Skeleton:
             hit("B3", f"mode-{self.modo}", bool(self.marcas))
         self._busca_secciones(self.indices_de_marca, self.siguiente_de_marca)
         self._busca_formularios(self.en_indice)
-        #: Rule 16 (review fix-1 of #291): a `PARTE` is above the books, titles
+        #: Rule B5 (review fix-1 of #291): a `PARTE` is above the books, titles
         #: and chapters unless the document opens one of those first.
         self.parte_en_capitulo = False
         for k, (kind, campos) in enumerate(self.clases):
@@ -689,7 +689,7 @@ class Skeleton:
                     # What stands between the marker and its heading is the
                     # heading's own annotation (`(REFORMADA SU DENOMINACIÓN,
                     # ...) (REPUBLICADA, ...)`), whatever it looks like.
-                    # Rule 29: that includes the court's `(NOTA: EL PLENO ...)` the
+                    # Rule S8: that includes the court's `(NOTA: EL PLENO ...)` the
                     # SCJN prints before a chapter's own heading, which used to
                     # hang from the container before it.
                     for i in range(inicio_de_marca + 1, destino):
@@ -701,7 +701,7 @@ class Skeleton:
                               and self.clases[destino][0] in (
                                   "contenedor", "transitorios", "transitorios_dof")
                               and self.clases[i][0] not in ("anotacion", "nota_editorial")):
-                            # Rule 34 (review fix-6 of #291): any other line before
+                            # Rule S4 (review fix-6 of #291): any other line before
                             # the heading -- the court's elision `[...]` ahead of
                             # `Transitorios`, the institution's name above `SEGUNDA
                             # PARTE` -- is part of the heading of the container this
@@ -711,9 +711,9 @@ class Skeleton:
                             self.clases[i] = ("encabezado_previo", {})
                 if (actual.get("kind") in BLOQUES_CON_ROTULO and destino > inicio_de_marca + 1
                         and es_linea_de_etiqueta(self.bloques[destino].text, actual.get("label", ""))):
-                    # Rule 44: the court's `(NOTA: ...)` printed above the label line
+                    # Rule S8: the court's `(NOTA: ...)` printed above the label line
                     # of a labelled block describes that heading, as it does a
-                    # container's (rule 29); it is not the block's first paragraph.
+                    # container's (rule S8); it is not the block's first paragraph.
                     for i in range(inicio_de_marca + 1, destino):
                         if self.clases[i][0] == "nota_editorial":
                             hit("S8", "note-above-label-line")
@@ -727,7 +727,7 @@ class Skeleton:
                     self.clases[destino], actual, self.bloques[destino]
                 )
                 if actual.get("kind") == "article" and self.clases[destino][0] == "articulo":
-                    # Rule 29: what the API block prints before the article's own
+                    # Rule S8: what the API block prints before the article's own
                     # heading line (the caption `Objeto`, a `(NOTA: ...)`) is the
                     # article's, not text hanging from the container before it: the
                     # article opens at the first of those blocks and its heading
@@ -742,7 +742,7 @@ class Skeleton:
                         self.clases[primero] = ("articulo", dict(self.clases[destino][1]))
                         self.encabezados_de_leyenda[destino] = primero
                 if actual.get("kind") in BLOQUES_DE_UN_SOLO_TEXTO:
-                    # Rule 24: a block the SCJN labels as an article is one
+                    # Rule S2: a block the SCJN labels as an article is one
                     # article, and one labelled as a title block, a preamble or
                     # recitals opens none: an article, container or
                     # transitorios heading inside its text is quoted text (an
@@ -759,7 +759,7 @@ class Skeleton:
         self.siguiente_de_marca = siguiente
 
     def _lee_encabezados_repetidos(self) -> None:
-        """Rule 41 (issue #300): a heading line that is only `Art. 8`, straight
+        """Rule B1 (issue #300): a heading line that is only `Art. 8`, straight
         before the block `**ARTICULO 8**` with the same number, is a running head and
         not an article of its own. The Radio Regulations the CAMR-92 Final Acts
         reprint print `Art. 8` above each article's own heading; read as an article it
@@ -784,12 +784,12 @@ class Skeleton:
     def _abre_articulos(self, i: int) -> bool:
         """Whether block `i` opens an article, as the pass will read it: by its
         class, or, in a document that numbers its provisions some other way
-        (rule 8), by the shape that document numbers them with."""
+        (rule B3), by the shape that document numbers them with."""
         kind, _campos = self.clases[i]
         if kind == "articulo":
             return True
         if self.marcas and kind == "contenido":
-            # Rule 32: a radio-regulations provision (`S5.43`) is an article.
+            # Rule B2: a radio-regulations provision (`S5.43`) is an article.
             linea = self.bloques[i].text.split("\n", 1)[0]
             if PROVISION_RR.match(linea) or ENCABEZADO_ARTICULO_RR.match(linea):
                 return True
@@ -800,7 +800,7 @@ class Skeleton:
         return False
 
     def _busca_secciones(self, indices, siguiente) -> None:
-        """Rules 23 and 30: which markers open an implicit section, where it
+        """Rules S6 and S10: which markers open an implicit section, where it
         ends, and which markers are only the second half of a block the SCJN
         split in two.
 
@@ -812,13 +812,13 @@ class Skeleton:
         its own text or is followed by article blocks. The section lasts until
         the first later marker that is not an article. One whose label names a
         role of the Mexican decree (`FIRMA`, `PARTE FINAL ...`, `NOTA EXPLICATIVA`)
-        never opens one (rule 29): it is an `hcontainer`.
+        never opens one (rule S8): it is an `hcontainer`.
 
-        Rule 30: a block labelled `CONTENIDO <label of the block before>` (`ARTÍCULOS`
+        Rule S10: a block labelled `CONTENIDO <label of the block before>` (`ARTÍCULOS`
         and `CONTENIDO ARTICULOS`) is the content of that block, not a new one:
         it opens nothing, and the container the first opened goes on through it.
 
-        Rule 40 (issue #300): so is a bare `CONTENIDO` (a `kind=other` block with no
+        Rule S10 (issue #300): so is a bare `CONTENIDO` (a `kind=other` block with no
         label after the word) that follows a block holding only its own title -- `ANEXO`
         and `CONTENIDO`, `PROTOCOLO` and `CONTENIDO`. The decision reads the marker and
         the text of the block before it, never an instrument.
@@ -840,7 +840,7 @@ class Skeleton:
             ):
                 hit("S10", "continuation" if es_continuacion(marca.get("label", ""), anterior.get("label", "")) else "bare-contenido")
                 self.fusion.add(indices[n])
-        #: The role of each `other` block, by marker index. Rule 43 (review fix-1 of
+        #: The role of each `other` block, by marker index. Rule U7 (review fix-1 of
         #: #301): a decree step is read by *position*. Only a block in the decree's
         #: leading or trailing run (`bloques_de_decreto`) has the `promulgation` role
         #: -- a block there with no role of its own (`APROBACIÓN DE INSTRUMENTOS`,
@@ -871,7 +871,7 @@ class Skeleton:
             if rol in ROLES_SIN_SECCION:
                 continue
             if id(self.marcas[k]) in self.provisiones_sic:
-                continue  # rule 39: a provision printed `N (SIC)`, an article
+                continue  # rule S9: a provision printed `N (SIC)`, an article
             ultimo = n
             while ultimo + 1 < len(indices) and indices[ultimo + 1] in self.fusion:
                 ultimo += 1
@@ -888,14 +888,14 @@ class Skeleton:
         self._busca_articulos_de_encabezado(indices, siguiente)
 
     def _busca_articulos_de_encabezado(self, indices, siguiente) -> None:
-        """Rule 38 (review fix-6 of #291): the Reglamento General de Infantería is
+        """Rule S6 (review fix-6 of #291): the Reglamento General de Infantería is
         written `ARTICULO 1°. Generalidades` and, under it, `1.- La preparación ...`
         to `5.- ...`, then `ARTICULO 2°` and `6.- ...`: the numbered provisions run
         on across the articles, which are headings that group them. Read as
         articles, the two numberings interleave (1, 5 then 2°, 6, 9 then 3°, 10 ...)
         and 70 numbers look missing. An API `article` block whose text is only its
         heading line and a caption, followed by `provision` blocks, opens a section
-        of those provisions (rule 23's machinery: it lasts to the next marker that is
+        of those provisions (rule S6's machinery: it lasts to the next marker that is
         neither a provision nor an `other` block) -- when the document does it three
         times or more; one such block in a reglamento is an article whose numbered
         paragraphs the API labelled provisions, and stays an article."""
@@ -924,7 +924,7 @@ class Skeleton:
                 self.clases[i] = ("encabezado_de_seccion", {})
 
     def _busca_formularios(self, en_indice) -> None:
-        """Rule 31: the heading of a model certificate or form opens a division of
+        """Rule B9: the heading of a model certificate or form opens a division of
         its own -- the `MODELO DE CERTIFICADO ...` an appendix reprints, one per
         certificate, each numbering its boxes from 2.1. A second heading in the
         very next block (`CERTIFICADO DE SEGURIDAD ...` under `MODELO DE
@@ -1036,7 +1036,7 @@ class Skeleton:
                 "tipo": marca["type"],
             }
         if kind == "other" and self._es_provision_sic(marca, linea):
-            # Rule 39: `98 (SIC).- El pelotón es ...` is provision `98 (SIC)`.
+            # Rule S9: `98 (SIC).- El pelotón es ...` is provision `98 (SIC)`.
             self.provisiones_sic.add(id(marca))
             hit("S9", "sic-provision")
             return "articulo", {"num": _limpia(marca["label"])}
@@ -1051,7 +1051,7 @@ class Skeleton:
             # `Capítulo 84` block `ARTÍCULO 84`. The text says container, with the
             # very number the label gives, so it is read as the container it is
             # (a container with another number, a section heading printed above
-            # an article, stays inside the article, rule 24).
+            # an article, stays inside the article, rule S2).
             hit("S1", "article-served-as-chapter")
             return clase
         if kind == "article" and marca.get("num"):
@@ -1069,7 +1069,7 @@ class Skeleton:
 
     def _indices_de_marcas(self) -> dict[int, int]:
         """The blocks a marker labels `ÍNDICE`, as ``{marker index: first
-        index after the API block}`` -- rule 15's table of contents, decided
+        index after the API block}`` -- rule S14's table of contents, decided
         by the SCJN rather than by the text."""
         rangos = {}
         siguientes = sorted(self.marcas)
@@ -1083,7 +1083,7 @@ class Skeleton:
 
     def _es_ajeno_a_la_numeracion(self, k: int) -> bool:
         """Whether block `k` is not one of the instrument's own provisions, so
-        rule 8 must not read its numbering: a reform decree's text, or the
+        rule B3 must not read its numbering: a reform decree's text, or the
         recitals."""
         marca = self.de_marca[k]
         return marca is not None and marca.get("kind") in (
@@ -1092,7 +1092,7 @@ class Skeleton:
 
     @staticmethod
     def _es_provision_sic(marca, linea: str) -> bool:
-        """Rule 39: whether an `other` block is a numbered provision whose number
+        """Rule S9: whether an `other` block is a numbered provision whose number
         the source prints with a `(SIC)` -- its label is `<number> (SIC)` and its
         text opens with that number and goes on."""
         m = _ETIQUETA_PROVISION_SIC.match(marca.get("label", "").strip())
