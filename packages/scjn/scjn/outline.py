@@ -62,6 +62,9 @@ the four corpora), is regenerated and compared here and parsed by `md2akn`'s tes
 `scripts/verify_scjn_outline.py` checks the other direction over every snapshot on
 disk: each marker round-trips through `marker_line`/`parse_marker`, equals `classify`
 of its label, and `strip_markers` of the rebuilt body is the `outline=False` text.
+
+What this writer promises is rules W1 to W3 of `packages/md2akn/RULES.md`, and what a reader
+makes of it is that file's layers S and B (issue #304).
 """
 
 from __future__ import annotations

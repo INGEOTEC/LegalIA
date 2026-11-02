@@ -211,13 +211,17 @@ def test_text_rules_never_open_a_node_above_the_root_of_the_block_they_read():
 
 
 def test_rule_hit_counters_count_per_rule_branch_and_marking():
-    reset()
-    hit("S4", "x")
-    hit("S4", "x")
-    hit("B3", "mode-ordinal", False)
-    assert dict(HITS) == {"S4/x/marked": 2, "B3/mode-ordinal/unmarked": 1}
-    reset()
-    assert not HITS
-    parse_markdown(_bloque(1, "article", "Artículo 1", "**Artículo 1.-** Uno.", num="1"))
-    assert any(key.startswith("S1/") for key in HITS)
-    reset()
+    saved = Counter(HITS)  # the counters are process-wide; leave them as found
+    try:
+        reset()
+        hit("S4", "x")
+        hit("S4", "x")
+        hit("B3", "mode-ordinal", False)
+        assert dict(HITS) == {"S4/x/marked": 2, "B3/mode-ordinal/unmarked": 1}
+        reset()
+        assert not HITS
+        parse_markdown(_bloque(1, "article", "Artículo 1", "**Artículo 1.-** Uno.", num="1"))
+        assert any(key.startswith("S1/") for key in HITS)
+    finally:
+        HITS.clear()
+        HITS.update(saved)
