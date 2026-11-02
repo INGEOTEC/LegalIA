@@ -348,6 +348,48 @@ and **U** the units. The changelog below, written as each version shipped,
 still quotes the old numbers; the table at the end of `RULES.md` maps each to
 its place in the list.
 
+## Tests
+
+```bash
+pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_sweep.py
+```
+
+The release sweep is excluded for wall-clock time and the local cache it needs (see Development).
+Helpers shared by the marker-document tests (`walk`, `marker`, `document_of`, `units_of`, ...) are in
+`tests/conftest.py`; the rules the files below name are those of [`RULES.md`](RULES.md).
+
+| File | What it covers |
+|---|---|
+| `test_annexes_appendices.py` | S7: annexes and appendices |
+| `test_annotations.py` | reform annotations as metadata |
+| `test_bare_contenido.py` | S10: a bare `CONTENIDO` block |
+| `test_block_hierarchy.py`, `test_block_root.py` | S4: an API block is the root of its text |
+| `test_decree_position.py`, `test_envelope.py` | S11, U7: preamble, conclusions and the envelope |
+| `test_fixtures.py` | the curated law fixtures |
+| `test_lists.py` | fracciones, incisos and subincisos |
+| `test_marker_conformance.py` | invariant I5 and S8, S12, S13, S2 |
+| `test_model.py` | the tree's own contract |
+| `test_other_blocks.py` | S8, S10, B9, B2: the blocks the API labels `other` |
+| `test_outline_markers.py` | S1, S3-S6: an instrument written with the outline |
+| `test_pipeline.py` | the spaCy layer and the entry points |
+| `test_repeated_numbers.py`, `test_roman_articles.py`, `test_tables_intros.py` | B1, B4-B7, S14: article numbers, recitals, tables, intros |
+| `test_segmenter.py` | frontmatter and the block scan |
+| `test_skeleton.py` | the two phases: the skeleton alone, the named deviations, the interior bound |
+| `test_structure.py` | containers, articles, preamble, transitorios |
+| `test_units.py` | `text_units`, `coverage`, `max_unit_chars` |
+| `test_units_release_sweep.py` | the invariants over the whole cached corpus (excluded above) |
+
+Shared helpers live in `tests/conftest.py`, one definition each. To find a test that repeats another
+(same input and assertions, a subset, a parametrisable group, a helper defined in two files) run the
+read-only inventory, which parses the tests without importing them:
+
+```bash
+python scripts/test_inventory.py --suite md2akn
+```
+
+After merging or deleting tests, compare line coverage per file by the *set* of covered lines
+(`pytest --cov=md2akn --cov-report=json`): a line covered before and not after is a lost test.
+
 ## Development
 
 ```bash

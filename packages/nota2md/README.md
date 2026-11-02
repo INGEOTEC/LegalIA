@@ -605,6 +605,37 @@ pip install document2md          # own repository; only needed for the image/PDF
 pip install -e "packages/nota2md[test]"
 ```
 
+## Tests
+
+```bash
+pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py
+```
+
+The ignored file reconstructs the 44 laws the reconstruction was designed against and makes real
+network calls.
+
+| File | What it covers |
+|---|---|
+| `test_builder.py` | `legal_provisions`: the HTML, image and PDF paths |
+| `test_builder_scjn.py` | the dispatcher between the SCJN corpus and the DOF |
+| `test_cache.py` | `nota2md.cache`: what `nota2md` derives and keeps |
+| `test_cli.py` | the console script, `nota2md download` included (one parametrised set for the three id-keyed subcommands) |
+| `test_html_converter.py` | the HTML-to-Markdown converter |
+| `test_leyes.py` | `reconstruct_legal_provisions` |
+| `test_leyes_44.py` | reconstruction against the 44 reference laws (network) |
+| `test_linking.py` | matching a snapshot to the DOF `codNota` that produced it |
+
+Shared helpers live in `tests/conftest.py`, one definition each. To find a test that repeats another
+(same input and assertions, a subset, a parametrisable group, a helper defined in two files) run the
+read-only inventory, which parses the tests without importing them:
+
+```bash
+python scripts/test_inventory.py --suite nota2md
+```
+
+After merging or deleting tests, compare line coverage per file by the *set* of covered lines
+(`pytest --cov=nota2md --cov-report=json`): a line covered before and not after is a lost test.
+
 ## Development
 
 ```bash

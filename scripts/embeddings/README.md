@@ -18,6 +18,50 @@ automated is the publish: no GitHub Action creates or uploads a release
 here, and a human runs the `PUBLICAR.md` the packaging step generates (issue
 #115, Hallazgo C).
 
+## Tests
+
+```bash
+uv run pytest scripts/embeddings/tests scripts/tests -q
+```
+
+The browser and Quarto tests (`test_atlas_page.py`, `test_instruments_page.py`, `test_topics_page.py`)
+skip with a reason when Playwright's Chromium or Quarto is absent, and the tests that read the
+gitignored pair sets or instrument files skip when those are not installed; nothing here needs the
+network, Slurm or a model. Helpers used by several files (`quiet`, `write_units`) are in
+`tests/conftest.py`, imported with `from conftest import ...`; the toy-corpus fixtures (`cache`,
+`prepared`, ...) still live in `test_instrument_matrix.py` and are imported by the other files.
+
+| File | What it covers |
+|---|---|
+| `test_atlas_page.py` | the Atlas page, in a real browser |
+| `test_cluster_instruments.py` | the topics of the instrument map |
+| `test_compare_merges.py`, `test_compare_units.py`, `test_stage_vectors_cache.py` | the incremental re-embedding checks and the staged cache |
+| `test_embeddings_scripts.py` | the pure-Python logic of the embedding pipeline |
+| `test_envelope_exclusion.py` | an instrument's envelope is neither a source nor a candidate |
+| `test_evaluate_citations.py`, `test_evaluate_links.py`, `test_gold_links.py` | the strong-link gold and the evaluations |
+| `test_export_atlas_data.py`, `test_export_atlas_pairs.py` | the Atlas data and its pair explanations |
+| `test_export_instrument_files.py`, `test_instruments_page.py` | the Instruments page's files and the page |
+| `test_four_collections.py` | the Atlas chain over four collections |
+| `test_instrument_matrix.py`, `test_nearest_texts.py`, `test_scoring.py` | the matrix, the nearest texts and the scorers |
+| `test_prepare_bm25_input.py`, `test_tune_bm25.py` | the BM25 data set |
+| `test_submit_jobs.py`, `test_umap_scripts.py` | the Slurm waits and the UMAP scripts |
+| `test_topics_page.py` | the Topics page and its exporter |
+| `test_unique_instruments.py` | the unique-instrument rule |
+| `scripts/tests/` | `find_scjn_table_instruments.py`, `verify_scjn_outline.py` and `test_inventory.py` |
+
+To find tests that repeat each other across every suite of the repository (same input and
+assertions, a subset, a parametrisable group, a helper defined in two files), run the read-only
+inventory, which parses the tests without importing them:
+
+```bash
+python scripts/test_inventory.py                    # every suite
+python scripts/test_inventory.py --suite md2akn     # one suite
+python scripts/test_inventory.py --json inventory.json
+```
+
+After merging or deleting tests, compare line coverage per file by the *set* of covered lines
+(`pytest --cov=scripts --cov-report=json`): a line covered before and not after is a lost test.
+
 ## One work directory per collection
 
 `--coleccion {leyes,reglamentos,lineamientos,tratados}` picks the corpus

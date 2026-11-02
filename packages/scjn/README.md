@@ -165,6 +165,44 @@ generated data, never by an import.
   disk-first readers of the `scjn-leyes`/`scjn-reglamentos`/
   `scjn-lineamientos` releases (issues #206-#212, #220, #222).
 
+## Tests
+
+```bash
+pytest packages/scjn -q --ignore=packages/scjn/tests/test_api_red.py \
+    --ignore=packages/scjn/tests/test_release_red.py
+```
+
+The two ignored files make real network calls (the live SCOW API and the real `scjn-leyes`
+release); CI includes them, so check before assuming a failure there is unrelated.
+
+| File | What it covers |
+|---|---|
+| `test_api.py` | `scjn.api` against recorded JSON shapes: paging, the completeness guard, the crawl |
+| `test_api_red.py` | live check of the SCOW API (network) |
+| `test_boundary.py` | the one-way dependency: `scjn` imports no sibling package |
+| `test_cache.py` | the disk-first cache and `AssetNotCached` |
+| `test_catalog.py` | the catalogue algebra: slugs, `abrev`, the instrument key |
+| `test_discovery.py` | the discovery passes, with a stub API |
+| `test_header.py` | the provenance header |
+| `test_markdown.py` | the plain-text-to-Markdown writer (`scjn.markdown`) |
+| `test_outline.py` | the outline markers the writer keeps |
+| `test_release.py` | the release readers; the three id-keyed collections share one parametrised wrapper set (`TestIdKeyedWrappers`, over `COLECCIONES_POR_ID`) |
+| `test_release_red.py` | end-to-end check against the real release (network) |
+| `test_site_references.py` | no reference to the retired WebForms site anywhere in the tree |
+| `test_state.py` | crawl state and the row-comparison plan |
+| `test_text.py` | editorial-note removal and instrument grouping |
+
+Shared helpers live in `tests/conftest.py`, one definition each. To find a test that repeats another
+(same input and assertions, a subset, a parametrisable group, a helper defined in two files) run the
+read-only inventory, which parses the tests without importing them:
+
+```bash
+python scripts/test_inventory.py --suite scjn
+```
+
+After merging or deleting tests, compare line coverage per file by the *set* of covered lines
+(`pytest --cov=scjn --cov-report=json`): a line covered before and not after is a lost test.
+
 ## Development
 
 ```bash
