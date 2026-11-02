@@ -1,7 +1,4 @@
 import datetime as dt
-import io
-import json
-import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,19 +19,7 @@ from dofjson.api import (
     get_nota,
     get_notas,
 )
-
-
-def hacer_tgz(archivos: dict) -> bytes:
-    """Build an in-memory notas-YYYY[-MM].tgz from {member_name: dict_contenido}
-    -- same shape tests/test_titulos.py's own helper builds."""
-    buf = io.BytesIO()
-    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
-        for nombre, contenido in archivos.items():
-            data = json.dumps(contenido).encode("utf-8")
-            info = tarfile.TarInfo(name=nombre)
-            info.size = len(data)
-            tar.addfile(info, io.BytesIO(data))
-    return buf.getvalue()
+from .conftest import make_tgz
 
 
 def _write_pdf(path, n_pages):
@@ -309,7 +294,7 @@ class TestGetNotasCacheDir(unittest.TestCase):
         self.tmpdir.cleanup()
 
     def _cachear(self, notas_del_dia):
-        contenido = hacer_tgz({"1980/02011980-notas.json": notas_del_dia})
+        contenido = make_tgz({"1980/02011980-notas.json": notas_del_dia})
         (self.cache_dir / "notas-1980.tgz").write_bytes(contenido)
 
     @patch("dofjson.api.dofweb.get_notas")

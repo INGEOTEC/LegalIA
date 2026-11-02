@@ -1,3 +1,6 @@
+import io
+import json
+import tarfile
 from unittest.mock import patch
 
 import pytest
@@ -22,3 +25,16 @@ def _cache_dir_global_aislado(tmp_path):
     """
     with patch.object(titulos, "CACHE_DIR", tmp_path / "cache-inexistente"):
         yield
+
+
+def make_tgz(archivos: dict) -> bytes:
+    """Build an in-memory `notas-YYYY[-MM].tgz` from `{member_name: dict_contenido}` (issue #305:
+    one definition for the four test files that used to carry a copy)."""
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+        for nombre, contenido in archivos.items():
+            data = json.dumps(contenido).encode("utf-8")
+            info = tarfile.TarInfo(name=nombre)
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    return buf.getvalue()
