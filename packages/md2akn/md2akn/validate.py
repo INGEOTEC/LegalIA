@@ -25,7 +25,7 @@ import bisect
 from dataclasses import dataclass, field
 
 from md2akn.model import REFERS_TO_TRANSITORIOS, AknNode
-from md2akn.structure import _es_el_mismo_numero_en_otra_cifra, _extiende
+from md2akn.skeleton import _es_el_mismo_numero_en_otra_cifra, _extiende
 from md2akn.outline import (
     MARCADORES_EN_TEXTO,
     _plano,
