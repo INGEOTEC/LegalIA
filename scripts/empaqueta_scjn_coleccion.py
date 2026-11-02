@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Package an id-keyed SCJN corpus (`reglamentos`, issue #220; `lineamientos`,
 issue #222; `tratados`, issue #277) into one byte-reproducible tarball *per instrument with text*,
-plus a human-readable manifest and a checksum file. Shared by both
-collections (issue #222's Fase 0, generalized out of the `reglamentos`-only
-`empaqueta_scjn_reglamentos.py`), without `indice.json`/`notas/` or a
-`codNota` section: neither collection has DOF linking at all (issue #220's
-own Scope, unchanged by #222), so every ``<id_ordenamiento>.tgz`` ships only
-``<id_ordenamiento>/<fecha>.md`` and ``<id_ordenamiento>/estado.json``.
+plus a human-readable manifest and a checksum file. Shared by the three
+id-keyed collections (generalized out of the `reglamentos`-only
+`empaqueta_scjn_reglamentos.py` in issue #222's Fase 0), without
+`indice.json`/`notas/` or a `codNota` section: none of them has DOF linking,
+so every ``<id_ordenamiento>.tgz`` ships only ``<id_ordenamiento>/<fecha>.md``
+and ``<id_ordenamiento>/estado.json``.
 
 ## Manual publish only — never automated
 
@@ -39,17 +39,17 @@ sequence lives.
     <id_ordenamiento>/estado.json     when it was crawled, and its own
                                        categoria_ordenamiento/vigencia/materia/resumen
 
-No `abrev` (neither collection has one, issue #220's own decision 3: the
+No `abrev` (no id-keyed collection has one, issue #220's own decision 3: the
 SCJN reissues an instrument as a brand-new `idOrdenamiento` rather than as a
 reform of the previous one, so a title-derived key would collide), no
 `indice.json`, no `notas/` -- nothing here depends on a DOF link that does
-not exist for either collection yet.
+not exist for any of them.
 
 ## An instrument with no consolidated text ships no tarball (decision 6)
 
 Every row of some instruments' reform table has `tieneArticulos=False`: the
 SCJN classifies and crawls them, but serves no text at all (5 of
-`reglamentos`' 1087, 37 of `lineamientos`' 163). Their own `estado.json`
+`reglamentos`' 1087, 37 of `lineamientos`' 163, 82 of `tratados`' 1455). Their own `estado.json`
 still carries `"rastreado"` -- the crawl ran, it is not pending -- so this
 script tells that apart from "never crawled" (seeded but not yet swept by
 `fetch_scjn_legislacion.py`) purely from `rastreado`, never from the absence

@@ -38,17 +38,16 @@ loudly when the matrix is missing, and is a no-op once `umap.parquet` exists
 * **`out`'s total is `pc`** (issue #271): under the `1/m` rule the row sum
   equals the instrument's *counted* excerpts (`matrix.json`'s
   `row_sums_equal_counted_rows`) — its `p` minus its headings, its
-  transitorios (neither is compared at all, issue #264) and the word-for-word
+  transitorios, its envelope (none of them is compared at all: `instrument_matrix.searched_mask`) and the word-for-word
   matches several instruments share, which are searched but not counted. It is
   exported as the integer `pc`, refused unless the row sum is within 1e-3 of an
   integer, at least 1, and the `pc` add up to `meta.counted_rows`. `pc` is per
-  model (BM25 differs from the embeddings in 197 instruments), so unlike `p` it
+  model (BM25 differs from the embeddings in some instruments), so unlike `p` it
   is **not** part of the `--instruments-as` comparison. `meta` carries the totals (`heading_rows_excluded`,
   `transitorio_rows_excluded`, `envelope_rows_excluded`, `identical_shared_dropped`, `counted_rows`).
 * **Unique instruments only** (issue #259). A work directory prepared without
   `prepare_umap_input.py --unique-names` is refused, and `meta` records
-  `unique_names` and `duplicates_dropped` per collection, and (review fix-2 of #300 and
-  #301) `identical_text_dropped`: the instruments left out because another instrument of
+  `unique_names` and `duplicates_dropped` per collection, and `identical_text_dropped`: the instruments left out because another instrument of
   the collection has the same compared text.
 * **Short keys** (`c`, `k`, `n`, `p`, `pc`, `in`, `out`, `inc`) because there are
   over a thousand of each; `meta` spells everything out.

@@ -1,21 +1,21 @@
 """A local, `legalvec`-shaped cache holding vectors that are not published yet (issue #294).
 
-Issue #291 re-embedded the texts `md2akn` 0.5.1 changed, and issue #293 verified
-the merged result and wrote the `PUBLICAR.md` a human will run. Until that
+When a corpus or the parser changes, the vectors are re-embedded and merged, and
+`package_vectors.py` writes the `PUBLICAR.md` a human will run. Until that
 happens `legalvec.load_units`/`load_vectors` would still serve the published,
 stale files, so every script that takes `--cache-dir` (`prepare_umap_input.py`,
 `export_instrument_files.py`, ...) is pointed at this directory instead:
 
     python scripts/embeddings/stage_vectors_cache.py \\
-        --work-dir leyes=emb-run-leyes-051 --work-dir reglamentos=emb-run-reglamentos-051 \\
-        --work-dir lineamientos=emb-run-lineamientos-051 --work-dir tratados=emb-run-tratados-051 \\
-        --out emb-run-vectors-051-cache
+        --work-dir leyes=emb-run-leyes-NNN --work-dir reglamentos=emb-run-reglamentos-NNN \\
+        --work-dir lineamientos=emb-run-lineamientos-NNN --work-dir tratados=emb-run-tratados-NNN \\
+        --out emb-run-vectors-NNN-cache
 
 The layout is `legalvec`'s own (`<out>/<release tag>/units.parquet`,
 `vectors-<clave>-<model>-<K>.parquet`, ...), so nothing downstream knows it is a
 staging area. Each collection's directory is built **from its merged work
 directory alone**, which is complete: `merge_shards.py` writes every
-per-instrument and shared file of both models, changed or not, and #293 proved
+per-instrument and shared file of both models, changed or not, and `compare_merges.py` proves
 that the unchanged ones are bit-identical to the published files. Laying the
 changed files over a copy of the published cache (the cache a machine has may
 be incomplete anyway) would give the same bytes and could silently leave a stale

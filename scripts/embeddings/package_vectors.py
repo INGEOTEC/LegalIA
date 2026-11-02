@@ -1,16 +1,15 @@
-"""A vector release's assets, ready for a human to publish (issue #227's
-Fase 4).
+"""A vector release's assets, ready for a human to publish.
 
 Turns one collection's finished work directory — `units.parquet`,
 `leaves.parquet`, `corpus-manifest.json` and every model's merged
 `runs/<model>/vectors/` — into the exact upload plan for its own GitHub
 release, and stops there. **Nothing here publishes anything**: no
 `gh release create`, no upload, no tag. That is issue #115's Hallazgo C,
-which this issue does not get to override — a human reads `PUBLICAR.md` and
+which no script here overrides — a human reads `PUBLICAR.md` and
 runs it.
 
-Nothing is copied, either. A vector release is ~570 MB (0.6B) to ~1.4 GB
-(4B) per corpus, so `parte-<n>.txt` lists the files where they already are
+Nothing is copied, either. A vector release is 10 MB to 163 MB (0.6B) and 23 MB to 395 MB
+(4B), by corpus, so `parte-<n>.txt` lists the files where they already are
 and `gh release upload` reads them from there; the only files written here
 are the small ones a release needs and does not already have
 (`vectors-manifest.json`, `SHA256SUMS.txt`, the part lists, `PUBLICAR.md`).
@@ -23,8 +22,8 @@ checked into `.github/<tag>.md`, the pattern `.github/historial-legislativo.md`
 set: the file *is* the body, so it is reviewed in a pull request rather than
 typed into a web form.
 
-Because issue #256 replaces these releases **in place** (same tags, whole
-articles instead of split ones), `PUBLICAR.md` also lists every asset
+Because these releases are replaced **in place** (same tags) whenever the
+corpus or the parser changes, `PUBLICAR.md` also lists every asset
 currently on the live release series that the new asset set does not
 contain, with the `gh release delete-asset` command to remove each — read
 via a read-only `gh release view <tag> --json assets` per part of the
