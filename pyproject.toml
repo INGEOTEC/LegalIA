@@ -46,6 +46,9 @@ dev = [
     # CI (Linux) installs the package explicitly and still runs them.
     "nota2md[ocr]; sys_platform != 'darwin' or platform_machine != 'x86_64'",
     "scjn[test]",
+    # Line coverage (issue #305): the per-file covered-line sets compared before and
+    # after a test consolidation; `scripts/test_inventory.py` names the candidates.
+    "pytest-cov",
 ]
 # The exploratory-analysis group (issue #241): what `scripts/embeddings/`'s
 # UMAP scripts need and nothing else does. Deliberately kept out of `dev`, so
