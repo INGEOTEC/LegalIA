@@ -83,7 +83,7 @@ ROLES_SIN_SECCION = ("promulgation", "conclusions", "note")
 MIN_ENCABEZADOS_DE_ARTICULO = 3
 MAX_LINEA_DE_ENCABEZADO = 160
 
-#: Rule S2: the `kind`s of API block inside which no heading opens a
+#: Rule S2: the `kind` values of API block inside which no heading opens a
 #: structure, and the classes of block that would.
 BLOQUES_DE_UN_SOLO_TEXTO = ("article", "provision", "header", "preamble", "recitals")
 APERTURAS_DE_ESTRUCTURA = (
@@ -283,6 +283,7 @@ def es_firma_de_cierre(bloques, i: int) -> bool:
     says it is, not the transitorios the marker says.
 
     >>> from md2akn.segmenter import iter_blocks
+    >>> from md2akn.skeleton import es_firma_de_cierre
     >>> bloques = list(iter_blocks("**Artículo 1.** Uno.\\n\\nCiudad de México, a 1 de enero.- Rúbrica."))
     >>> es_firma_de_cierre(bloques, 1)
     True
@@ -475,6 +476,7 @@ def es_articulo_servido_como_capitulo(kind: str, clase, marca) -> bool:
     tariff chapters. It is read as the chapter the text says (a container with another
     number, a heading printed above an article, stays inside the article, rule S2).
 
+    >>> from md2akn.skeleton import es_articulo_servido_como_capitulo
     >>> es_articulo_servido_como_capitulo("article", ("contenedor", {"num": "83"}), {"num": "83"})
     True
     >>> es_articulo_servido_como_capitulo("article", ("contenedor", {"num": "84"}), {"num": "83"})
@@ -489,6 +491,7 @@ def es_numero_por_numero(texto: str, etiqueta: str, numero: str | None) -> bool:
     disagree, the text prints the number `numero` says, and the node takes the text's
     (`ARTICULO XXVII` on the block numbered 37, whose text prints `XXXVII`).
 
+    >>> from md2akn.skeleton import es_numero_por_numero
     >>> es_numero_por_numero("XXXVII", "XXVII", "37")
     True
     >>> es_numero_por_numero("XXXVII", "XXXVII", "37")
@@ -504,6 +507,7 @@ def es_etiqueta_repetida(numero: str, alternativa: str | None, ya_tomado: bool) 
     block, so the node takes the text's rather than repeat an identifier. `ya_tomado` is
     the builder's own fact (the eId the label would give is in use).
 
+    >>> from md2akn.skeleton import es_etiqueta_repetida
     >>> es_etiqueta_repetida("47-J", "47-K", True)
     True
     >>> es_etiqueta_repetida("47-J", "47-K", False)
@@ -521,6 +525,7 @@ def es_articulo_de_encabezado(lineas: list[str]) -> bool:
     General de Infantería's `ARTICULO 1°. Generalidades` over `1.- ...`). A document needs
     `MIN_ENCABEZADOS_DE_ARTICULO` of them for the rule to apply.
 
+    >>> from md2akn.skeleton import es_articulo_de_encabezado
     >>> es_articulo_de_encabezado(["**ARTICULO 1°.**", "Generalidades"])
     True
     >>> es_articulo_de_encabezado(["**Artículo 1.** " + "x" * 200])

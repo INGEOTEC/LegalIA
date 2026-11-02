@@ -169,6 +169,77 @@ tree, out of the blocks this module scans.
    :private-members:
    :undoc-members:
 
+Two phases: the skeleton, then the text rules (issue #304)
+-----------------------------------------------------------------
+
+A snapshot written by :py:mod:`scjn` carries the structure the SCJN's API states: one
+``<!-- scjn:block ... -->`` marker line before each *API block*. The parser reads
+that structure **first**. :py:mod:`md2akn.skeleton` (the first phase) classifies every
+Markdown block once and settles, from the markers, what each API block *is* — a
+container of a type and number, an article of a number, a decree, an index, a labelled
+``hcontainer`` — and :py:mod:`md2akn.structure` (the second phase) places the blocks in a
+tree, running the text rules *inside* the API block it is reading: a rule may open a
+node below the block's root and may not open one above it. A document with no markers is
+one implicit block, and the second phase runs unbounded, as it always did.
+``packages/md2akn/RULES.md`` is the list of rules by layer (**W** the writer's contract,
+**S** skeleton, **B** block interior, **U** units) with the table that maps each of the
+47 numbers the rules were first given to its place.
+
+>>> from md2akn.segmenter import iter_blocks
+>>> from md2akn.skeleton import Skeleton
+>>> text = (
+...     '<!-- scjn:block orden=1 numero=1 kind=container type=chapter num="I" label="CAPÍTULO I" -->\n\n'
+...     "**CAPÍTULO I**\n\n**Del objeto**\n\n"
+...     '<!-- scjn:block orden=2 numero=2 kind=article num="1" label="Artículo 1" -->\n\n'
+...     "**Artículo 1.-** Esta ley regula el objeto.\n\n"
+...     '<!-- scjn:block orden=3 numero=3 kind=other label="NOTA EXPLICATIVA" -->\n\n'
+...     "**NOTA EXPLICATIVA**\n\nUna nota.\n"
+... )
+>>> [(b.marca["kind"], b.rol) for b in Skeleton(list(iter_blocks(text))).blocks]
+[('container', None), ('article', None), ('other', 'note')]
+>>> [(n.akn_type, n.eId) for n in md2akn.parse_markdown(text).walk()]
+[('act', 'act'), ('body', 'body'), ('chapter', 'cap_I'), ('article', 'cap_I__art_1'), ('content', 'cap_I__art_1__p_1'), ('hcontainer', 'hc_NOTA_EXPLICATIVA'), ('intro', 'hc_NOTA_EXPLICATIVA__intro'), ('content', 'hc_NOTA_EXPLICATIVA__intro__p_1')]
+
+The five departures from a marker the parser takes on purpose are named predicates
+(:py:data:`md2akn.skeleton.DEVIATIONS`), and
+:py:func:`md2akn.validate.block_conformance` reports a block that departs from its marker
+under the name of the predicate that is true of it, or as an undocumented disagreement:
+
+>>> from md2akn.skeleton import DEVIATIONS
+>>> sorted(DEVIATIONS)
+['documented-article-heading', 'documented-article-served-as-chapter', 'documented-closing-signature', 'documented-number-by-numero', 'documented-number-label-repeated']
+
+``md2akn.skeleton`` — the first phase
+------------------------------------------------
+
+.. automodule:: md2akn.skeleton
+   :members:
+   :private-members:
+   :undoc-members:
+
+``md2akn.classify`` — what one Markdown block looks like
+-----------------------------------------------------------------
+
+The text classifier both phases share, and the document-level gate of rule B3
+(:py:func:`~md2akn.classify.modo_sin_articulos`):
+
+>>> from md2akn.classify import modo_sin_articulos
+>>> modo_sin_articulos([], []) is None
+True
+
+.. automodule:: md2akn.classify
+   :members:
+   :private-members:
+   :undoc-members:
+
+``md2akn.hits`` — rule-hit counters
+------------------------------------------
+
+.. automodule:: md2akn.hits
+   :members:
+   :private-members:
+   :undoc-members:
+
 ``md2akn.structure`` — containers and articles (issue #159)
 --------------------------------------------------------------------
 
@@ -442,7 +513,7 @@ is decided per published vector set, not in this package:
 'Artículo 9o. **ARTICULO 9o.-** Son obligaciones de los patrones: I.- Cumplir las disposiciones de las normas de trabajo; II.- Pagar a los trabajadores los salarios e indemnizaciones;'
 
 Rules B3 and U5: the *acuerdo*-shaped instrument, and the cap
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Issue #227 added two rules to the same list, for the two collections
 :py:mod:`scjn` publishes alongside the laws. A *lineamiento* is usually an
@@ -537,7 +608,7 @@ inside an article stays that article's own text.
 2 CAPÍTULO 01 Animales vivos | CÓDIGO | DESCRIPCIÓN | | 01.02 | Bovinos |
 
 Rules B1, S14, B5 and B4: no repeated article number
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A review of the Atlas after issue #291 found that 209 of its 2,676 instruments
 carried an article number more than once. Each had its own cause, and each is
