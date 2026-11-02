@@ -540,36 +540,13 @@ class TestResolverNotaGuardsAgainstDofwebOnlyNotes(unittest.TestCase):
 
     @patch("dofjson.api.dofweb.get_nota")
     @patch("dofjson.api.sidof.get_nota")
-    def test_download_nota_imagenes_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
-        self._mock_dofweb_only_nota(mock_sidof, mock_web)
+    def test_every_download_function_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
+        for download in (download_nota_imagenes, download_nota_pdf, download_nota_imagen_o_pdf, download_nota):
+            with self.subTest(download=download.__name__):
+                self._mock_dofweb_only_nota(mock_sidof, mock_web)
 
-        with self.assertRaises(ValueError):
-            download_nota_imagenes(4997808, self.outdir)
-
-    @patch("dofjson.api.dofweb.get_nota")
-    @patch("dofjson.api.sidof.get_nota")
-    def test_download_nota_pdf_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
-        self._mock_dofweb_only_nota(mock_sidof, mock_web)
-
-        with self.assertRaises(ValueError):
-            download_nota_pdf(4997808, self.outdir)
-
-    @patch("dofjson.api.dofweb.get_nota")
-    @patch("dofjson.api.sidof.get_nota")
-    def test_download_nota_imagen_o_pdf_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
-        self._mock_dofweb_only_nota(mock_sidof, mock_web)
-
-        with self.assertRaises(ValueError):
-            download_nota_imagen_o_pdf(4997808, self.outdir)
-
-    @patch("dofjson.api.dofweb.get_nota")
-    @patch("dofjson.api.sidof.get_nota")
-    def test_download_nota_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
-        self._mock_dofweb_only_nota(mock_sidof, mock_web)
-
-        with self.assertRaises(ValueError):
-            download_nota(4997808, self.outdir)
-
+                with self.assertRaises(ValueError):
+                    download(4997808, self.outdir)
 
 class TestDownloadNota(unittest.TestCase):
     def setUp(self):
