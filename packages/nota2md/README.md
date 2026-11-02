@@ -2,7 +2,9 @@
 
 [![Documentation Status](https://readthedocs.org/projects/legalia/badge/?version=latest)](https://legalia.readthedocs.io/en/latest/nota2md_api.html)
 
-> **v0.5.1 (unreleased; review fix-2 of #291):** a
+*The version notes in the blockquotes below are a changelog and keep the issue and rule numbers of the day they were written; `packages/md2akn/RULES.md` maps every old `md2akn` rule number to the present list.*
+
+> **v0.5.1 (unreleased):** a
 > snapshot `scjn` writes now carries the outline the SCJN's API states, one
 > `<!-- scjn:block ... -->` marker line before each block (`scjn.outline`). `nota2md`
 > reads the text, not the outline, so `legal_provisions`' SCJN path and the
@@ -88,7 +90,7 @@
 > unchanged in every other respect. See [the SCJN
 > path](#the-scjn-path--a-laws-consolidated-text-at-each-reform).
 
-Eight entry points, all re-exported off the package itself
+Nine entry points, all re-exported off the package itself
 (`from nota2md import ...`), for Mexico's official gazette (DOF, Diario
 Oficial de la Federación) and the federal laws it publishes:
 
@@ -102,6 +104,7 @@ Oficial de la Federación) and the federal laws it publishes:
 | [`download_scjn_leyes_corpus`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | a law's `slug` | every snapshot of that law in the `scjn-leyes` release, with its `codNota` links, in memory |
 | [`download_scjn_leyes_index`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (reads one small release asset) | the reverse index `codNota → (law, snapshot)`, in memory |
 | [`download_scjn_leyes_catalog`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (the index, plus one tarball per law for `actualizado`) | every federal law the release publishes, as `abrev`+`nombre`+`actualizado`+`materia`+`vigencia`+`resumen` |
+| [`iter_current_federal_laws`](#the-scjn-path--a-laws-consolidated-text-at-each-reform) | nothing (the release, read lazily) | the current text of every federal law, one snapshot per law, as a lazy iterator |
 
 They compose: `download_scjn_leyes_corpus` gets you the `codNota` list
 `reconstruct_legal_provisions` needs, and `reconstruct_legal_provisions` gets you a

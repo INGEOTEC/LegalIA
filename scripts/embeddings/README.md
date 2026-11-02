@@ -13,10 +13,41 @@ inside `packages/`.
 
 **This has been run, end to end, against the real cluster and both real
 models** — six model × corpus runs (issue #227's Fase 3; the leyes half was
-first run for #218 and rebuilt here under rules 8 and 9). What is *not*
+first run for #218). What is *not*
 automated is the publish: no GitHub Action creates or uploads a release
 here, and a human runs the `PUBLICAR.md` the packaging step generates (issue
 #115, Hallazgo C).
+
+> **Rule numbers.** The dated *Measured* sections below quote `md2akn`'s rules by the number they had
+> the day they were written (1 to 47, in the order they were found). Issue #304 renumbered them into a
+> layered list (W, S, B, U); `packages/md2akn/RULES.md` is that list and `docs/HISTORY.md` carries the
+> old-to-new table. A *Measured* section is never edited afterwards: it says what was true on its date.
+
+## As it stands
+
+What this directory does today, in one place (the sections below are the manual and the record of
+each run).
+
+- **Four collections**, one gitignored work directory each (`emb-run-<collection>[-NNN]/`; a numbered
+  copy per rebuild, a published one is never touched), both models (`Qwen/Qwen3-Embedding-0.6B`, K 1,024;
+  `Qwen/Qwen3-Embedding-4B`, K 2,560), whole articles as units (`--no-split-articles`, truncated at the
+  model's window, never split) and `md2akn` 0.5.1. Release bodies: `.github/scjn-<collection>-vectors*.md`.
+- **The chain**: `build_units.py` → `plan_shards.py` → `submit_jobs.py` (one model at a time) →
+  `merge_shards.py` → `package_vectors.py` (writes `PUBLICAR.md`, uploads nothing) →
+  `compare_merges.py` against the published merge → `stage_vectors_cache.py` (a `legalvec`-shaped cache
+  of what is not published yet) → the Atlas work directories (`prepare_umap_input.py --unique-names`,
+  `prepare_bm25_input.py`, `instrument_matrix.py`, `nearest_texts.py`) → `export_atlas_data.py`,
+  `export_atlas_pairs.py`, `export_instrument_files.py` → `gold_links.py`, `evaluate_links.py`,
+  `evaluate_citations.py` → `cluster_instruments.py`, `export_topics_page.py`.
+- **What the matrix compares**: `instrument_matrix.searched_mask` — no heading, `toc`, transitorio or
+  envelope unit is a source or a candidate; a text several instruments own word for word is not counted;
+  a tied winner is shared `1/m`.
+- **The data as of 28 October 2026** (`atlas.json`): 2,670 unique instruments (314 laws, 864 regulations,
+  125 guidelines, 1,367 treaties), 227,132 excerpts, 156,432 counted; three data sets (0.6B, 4B, BM25);
+  gold of 253 instruments and 277 links.
+- **Nothing here is published by a script** (issue #115, Hallazgo C): a human runs each `PUBLICAR.md`,
+  and the order is the four corpora, the four vectors releases, the three `atlas-pairs` sets and
+  `atlas-instruments`.
 
 ## Tests
 
@@ -110,7 +141,7 @@ work/
 nota2md download all
 
 # 1. The corpus, as two Parquet files + a manifest. Once per collection:
-#    --no-split-articles (issue #256) turns rules 3/9 off for articles: one
+#    --no-split-articles (issue #256) turns rules U2/U5 off for articles: one
 #    article is one unit whatever its length, truncated at the model's own
 #    window rather than split. Omit it to keep the default, cap-2000 shape
 #    that reproduces a pre-#256 vector set byte for byte.
@@ -299,7 +330,7 @@ dependency on `torch`/`transformers` being importable at all.
   `units.parquet`'s own `text_sha1 -> clave` map.
 - `units.parquet` is byte-reproducible from the same release, cap and
   template — the row order is `(coleccion, clave, document order)`. Rebuilding
-  the 315 laws under issue #227's rule 8 with rule 9 off
+  the 315 laws under issue #227's rule B3 (then 8) with rule U5 (then 9) off
   (`--no-split-over-cap`) reproduced the pre-#227 file exactly, one byte
   apart: the pyarrow writer version in the Parquet footer.
 - Every artifact is written as `<name>.parcial`, `fsync`'d, then renamed —

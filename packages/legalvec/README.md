@@ -85,6 +85,8 @@ out.
 
 ## Changelog
 
+Rule numbers below are those of the day each entry was written; `packages/md2akn/RULES.md` (issue #304) maps every old number to the present layered list (W, S, B, U).
+
 - **0.2.0** — a fourth collection, `tratados`: `RELEASE_TAGS["tratados"]` is
   `scjn-tratados-vectors`, `legalvec download --collection tratados` and
   `legalvec status` accept it, and the default `--collection all` now fetches

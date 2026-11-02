@@ -187,10 +187,9 @@ In Akoma Ntoso terms this is the **passive** side of a modification
 but the information is here at the granularity someone would need to emit it.
 The **active** side, a DOF decree saying what *it* changed, is issue #163.
 
-Over the 315 laws of the SCJN corpus this reads **36,836 annotations, of which
-36,835 yield an action and a date or a source**; the one that does not is a
-typo in the source itself (`13 DE AGOSTO **CE** 2009`), and it is kept with
-its `raw` rather than dropped.
+Over the 315 laws of the SCJN corpus (the 2026-10-26 crawl) this reads **37,113
+annotations, of which 165 yield no action**: `scripts/md2akn_sweep.py` counts them, and
+each is kept with its `raw` rather than dropped.
 
 ## Validation
 
@@ -225,23 +224,26 @@ since it is deliberately parsed into `meta` rather than into a node.
 
 `scripts/md2akn_sweep.py` runs the whole thing over the 315 laws and writes a
 report sorted worst-metric-first. It is not a test and does not run in CI: it
-needs data this repository deliberately does not version. The current run:
+needs data this repository deliberately does not version. The release sweep
+(`packages/md2akn/tests/test_units_release_sweep.py`) is the one that asserts
+invariants over every corpus; this one measures `validate`'s own, older ones.
+The run of 2026-11-01, over the newest snapshot of each law:
 
 | | |
 |---|---|
 | laws parsed | 315 / 315, none raising |
-| coverage | **100.00 % median, 99.99 % mean, 99.45 % worst** — all 315 above 99 % |
-| invariant violations | **0**, across every law |
+| coverage | **100.00 % median, 100.00 % mean, 99.89 % worst** — all 315 above 99 % |
+| invariant violations | **18 in 16 laws**, all `overlapping-siblings` (a node whose span starts before the previous sibling's ends; e.g. `lcf`, `lfd`, `cff`, `ladua`, `lan`) |
 | laws with no article recognized | 0 |
-| articles / fracciones / incisos | 53,740 / 65,318 / 7,657 |
-| sibling articles sharing a number | 498 (0.9 %) |
-| annotations, and unparsed ones | 36,838 / **0** |
-| throughput | 533 KB/s; the 1.89 MB worst case (`ligie-2022`) in 6.8 s |
+| articles / fracciones / incisos | 54,169 / 64,784 / 7,736 |
+| sibling articles sharing a number | 42 (0.08 %) |
+| annotations, and ones with no action | 37,113 / 165 |
+| throughput | 256 KB/s; the 1.69 MB worst case (`ligie-2022`) in 8.0 s |
 
-The threshold this was held to, fixed in issue #162 before it closed: **zero
-invariant violations, every law with at least one article, and ≥99 % coverage
-on ≥95 % of the laws.** The measured result clears it — 100 % of the laws are
-above 99 %, not 95 % of them.
+The threshold fixed for this sweep in issue #162 was **zero invariant violations,
+every law with at least one article, and ≥99 % coverage on ≥95 % of the laws.**
+Coverage and articles clear it; the 18 `overlapping-siblings` violations do not,
+and are a finding for the maintainers, not something this README hides.
 
 ## The spaCy layer
 
@@ -402,6 +404,8 @@ over the whole cached SCJN corpus — `scjn-leyes`, `scjn-reglamentos`,
 every machine has — rather than over a handful of fixtures; see its own module docstring.
 
 ## Changelog
+
+Rule numbers below are those of the day each entry was written; `packages/md2akn/RULES.md` (issue #304) maps every old number to the present layered list (W, S, B, U).
 
 - **0.5.1** — three parse errors fixed, bug fixes only (issue #291), as
   **rules 11, 12 and 13** of `text_units`. All three are unconditional.

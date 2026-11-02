@@ -20,8 +20,8 @@ a public map of the instruments (the website's Atlas and Instruments pages).
 
 Each `packages/<name>/` has its own `pyproject.toml`, dynamic version (`<pkg>.__version__`), tests and
 PyPI release, and is installed independently. Read them in this order; each builds on the ones before.
-Versions are what `scripts/check_package_versions.py` reads (all 0.5.1 but `legalvec` 0.2.0, none of the
-current unpublished work on PyPI).
+Versions are what `scripts/check_package_versions.py` reads: `dofjson`, `scjn` and `nota2md` 0.5.1 (PyPI has
+0.5.0), `md2akn` 0.5.1 and `legalvec` 0.2.0 (never published).
 
 - **`dofjson`**: client for SIDOF's undocumented JSON open-data service (`sidof.segob.gob.mx`).
   Everything is reachable off the package (`dofjson.get_nota`, `dofjson.get_notas`, ...); another package

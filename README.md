@@ -20,10 +20,10 @@ analysis of the gazette, see the project's
 |---|---|
 | [dofjson](packages/dofjson) ([PyPI](https://pypi.org/project/dofjson/)) | Client for SIDOF's JSON open-data service: which legal provisions were published on a given day, and the full detail — including HTML content, when it exists — of any one of them. Also streams a compact `codNota` + `titulo` + `fecha` record of every legal provision ever published (`legal_provisions_titles`), off the same on-disk cache. |
 | [scjn](packages/scjn) ([PyPI](https://pypi.org/project/scjn/)) | Client for the SCJN's SCOW JSON API and the disk-first reader for the `scjn-leyes`, `scjn-reglamentos`, `scjn-lineamientos` and `scjn-tratados` (international treaties) releases: a federal instrument's reform-dated snapshots, and the current text of every one of them. Depends on nothing else in this monorepo. |
-| [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF legal provision (`legal_provisions`), reconstructs a law's current text from nothing but its legal provisions (`reconstruct_legal_provisions`), and reads the SCJN corpus of consolidated law texts back from the `scjn-leyes` release (`download_scjn_leyes_corpus`/`_index`/`_catalog`). |
+| [nota2md](packages/nota2md) ([PyPI](https://pypi.org/project/nota2md/)) | Builds the Markdown of a single DOF legal provision (`legal_provisions`), reconstructs a law's current text from nothing but its legal provisions (`reconstruct_legal_provisions`), and re-exports `scjn`'s readers of the `scjn-leyes` release (`download_scjn_leyes_corpus`/`_index`/`_catalog`). |
 | [document2md](https://github.com/INGEOTEC/document2md) ([PyPI](https://pypi.org/project/document2md/)) | Converts a PDF, or an ordered set of scanned page images, to Markdown — OCR included — whatever document they come from; the heavy artillery `nota2md` borrows for legal provisions that predate the HTML era. Renamed from `dof2md` (issue #228), and **moved to its own repository** (issues #233, #234) — it is `nota2md`'s optional `ocr` extra, not a package of this monorepo. |
-| [md2akn](packages/md2akn) ([PyPI](https://pypi.org/project/md2akn/)) | Segments a Mexican federal law's Markdown — the output of `nota2md` — into a navigable hierarchy labelled with Akoma Ntoso's vocabulary. Depends on none of the other packages. |
-| [legalvec](packages/legalvec) ([PyPI](https://pypi.org/project/legalvec/)) | Disk-first reader for this project's own vector releases: one embedding per distinct text of every federal law, reglamento and lineamiento, as segmented by `md2akn`. Depends on none of the other packages. |
+| [md2akn](packages/md2akn) ([PyPI](https://pypi.org/project/md2akn/)) | Reads an instrument's Markdown — the output of `scjn` or `nota2md` — into a navigable hierarchy labelled with Akoma Ntoso's vocabulary and cuts it into retrieval units. Depends on none of the other packages. |
+| [legalvec](packages/legalvec) ([PyPI](https://pypi.org/project/legalvec/)) | Disk-first reader for this project's own vector releases: one embedding per distinct text of every federal law, reglamento, lineamiento and international treaty, as segmented by `md2akn`. Depends on none of the other packages. |
 
 Each package lives under `packages/<name>/` with its own `pyproject.toml`,
 dependencies, version, and tests — installed and released independently to
@@ -35,7 +35,7 @@ example for every public one — see
 
 ## Quick start
 
-`nota2md` has eight entry points, all re-exported off the package itself.
+`nota2md` has nine entry points, all re-exported off the package itself.
 Note that `legal_provisions` answers from the SCJN's consolidated law texts
 by default when the `scjn-leyes` release covers the `codNota`, and only goes
 to the DOF otherwise — `source="dof"` forces the original source. See

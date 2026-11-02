@@ -516,7 +516,9 @@ Diario Oficial de la Federación remains the official source of legal text. Map
 data generated on <span data-atlas-generated>28 October 2026</span>.
 
 *Read more.* The division of instruments into excerpts is described in
-[`md2akn`](https://legalia.readthedocs.io/en/latest/md2akn_api.html), the way
+[`md2akn`](https://legalia.readthedocs.io/en/latest/md2akn_api.html), which reads in
+two steps, first the structure that the Court's database states for each block of text
+and then the rules that read the text itself, inside that block; the way
 the vectors are read back in
 [`legalvec`](https://legalia.readthedocs.io/en/latest/legalvec_api.html), and
 the full tables of the two evaluations in the

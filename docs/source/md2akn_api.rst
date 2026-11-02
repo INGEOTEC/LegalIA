@@ -344,9 +344,7 @@ on our fixture's first article:
 ------------------------------------------------------
 
 :py:class:`~md2akn.AknNode` and :py:class:`~md2akn.Annotation`, and the
-vocabulary their ``akn_type`` is drawn from — 20 Akoma Ntoso element names
-(``intro`` and ``table`` joined in 0.5.1, ``attachment``, ``part`` and ``toc``
-in review fix-1 of issue #291, ``hcontainer`` in review fix-4), in the rough
+vocabulary their ``akn_type`` is drawn from — 20 Akoma Ntoso element names, in the rough
 order they nest:
 
 >>> from md2akn import AKN_TYPES, REFERS_TO_APARTADO, REFERS_TO_TRANSITORIOS
@@ -463,6 +461,8 @@ none of the three:
 
 >>> tree = md2akn.parse_markdown(FIXTURE)
 >>> cov = md2akn.coverage(tree, units)
+>>> isinstance(cov, md2akn.Coverage)
+True
 >>> cov.uncovered_chars
 0
 >>> cov.annotation_chars  # the REFORMADO note above art1, and nothing else
@@ -473,6 +473,8 @@ none of the three:
 — every leaf eId this tree has, and which unit's text carries it:
 
 >>> refs = md2akn.leaf_map(tree, units)
+>>> isinstance(refs[0], md2akn.LeafRef)
+True
 >>> [(r.eId, r.unit_eId) for r in refs if r.unit_eId == "tit_PRIMERO__cap_I__art_1o"]
 [('tit_PRIMERO__cap_I__art_1o__p_1', 'tit_PRIMERO__cap_I__art_1o'), ('tit_PRIMERO__cap_I__art_1o__para_I', 'tit_PRIMERO__cap_I__art_1o'), ('tit_PRIMERO__cap_I__art_1o__para_II__point_a', 'tit_PRIMERO__cap_I__art_1o'), ('tit_PRIMERO__cap_I__art_1o__para_II__point_b', 'tit_PRIMERO__cap_I__art_1o')]
 
@@ -565,10 +567,9 @@ longer read as an *acuerdo*:
 Rules B1, B6 and B7: decimal articles, a container's intro, and tables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Issue #291 found three parse errors while browsing the instruments, and fixed
-them as one patch release, ``md2akn`` 0.5.1 — bug fixes, no new parameter.
-None of the three has a gate: they are corrections, and the measurement in
-``scripts/embeddings/README.md`` says how far each one reaches.
+``md2akn`` 0.5.1 reads three more things than 0.5.0 did — bug fixes, no new
+parameter. None of the three has a gate: they are unconditional, and the
+measurement in ``scripts/embeddings/README.md`` says how far each one reaches.
 
 Rule B1 reads a **decimal article number** whole. The T-MEC and six other
 treaties write ``Artículo 1.1:`` (chapter 1, article 1); the number used to
@@ -610,13 +611,11 @@ inside an article stays that article's own text.
 Rules B1, S14, B5 and B4: no repeated article number
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A review of the Atlas after issue #291 found that 209 of its 2,676 instruments
-carried an article number more than once. Each had its own cause, and each is
-fixed where it starts — five rules of ``md2akn`` here, and the ``scjn`` writer
-for the cause that is its own (``scjn.api``'s ``_LEAD_ARTICULO`` bolded only
-the part of a number it knew). None of them hides or renumbers a duplicate:
-where the SCJN's own answer repeats a number, it stays repeated and is listed
-for the repository owner in ``scripts/embeddings/README.md``.
+An article number is repeated only when it is the same identifier. Each cause of
+a repeat is handled where it starts — five rules of ``md2akn`` here, and the ``scjn`` writer
+for the cause that is its own (``scjn.api``'s ``_LEAD_ARTICULO`` bolds the whole
+number). None of them hides or renumbers a duplicate: where an answer still
+repeats a number, it stays repeated and ``AknNode.repeated`` says so.
 
 Rule B1 reads **an article's number whole**: ``1o.-A BIS`` (the LIVA and the
 LIEPS), ``3o.- Bis``, ``228 a`` and ``228 a BIS`` (the LGTOC) are different
@@ -662,12 +661,10 @@ provision above, not a further article:
 >>> [u.num for u in md2akn.text_units(acuerdo, split_articles=False)]
 ['1', '2', '2.1', '3', '4']
 
-A second review of the same repeats found that the cause was neither the SCJN
-nor ``md2akn``'s rules alone: the SCJN's API states an outline for each block of
-a snapshot (its ``referencia``, ``numero`` and ``orden``) and the ``scjn`` writer
-discarded it. It now writes one marker line before every block
-(``<!-- scjn:block ... -->``, see :py:mod:`scjn.outline`), and ``md2akn`` reads
-it. **Rule S1**: the markers are metadata and decide the class of the block's
+The SCJN's API states an outline for each block of a snapshot (its ``referencia``,
+``numero`` and ``orden``): the ``scjn`` writer writes one marker line before every
+block (``<!-- scjn:block ... -->``, see :py:mod:`scjn.outline`), and ``md2akn``
+reads it first. **Rule S1**: the markers are metadata and decide the class of the block's
 heading — a container with its type and number, an article with its number, the
 index as a ``toc`` — while the text heuristics keep working inside a block.
 **Rule S3**: a reform decree the API marks holds everything after it. **Rule
@@ -691,8 +688,7 @@ preamble or recitals block no line opens structure.
 >>> [u.text for u in md2akn.text_units(marked, split_articles=False)]
 ['**CAPÍTULO I**', '**Artículo 1.-** Uno.', '**Artículo 1.-** Otra vez.']
 
-Review fix-3 of the same issue found two hierarchy errors the markers could
-settle. **Rule S7**: an annex the API numbers after a chapter (its ``numero`` is
+Annexes and appendices follow the markers too. **Rule S7**: an annex the API numbers after a chapter (its ``numero`` is
 the chapter's, and so is the ``N-`` prefix of its ``num``) is a child of that
 chapter, and the next chapter closes it — a chapter is never inside an annex.
 **Rule S7**: an appendix is an ``attachment`` with ``refersTo="#apendice"`` and
@@ -704,8 +700,7 @@ API marks ``other`` that opens a section of its own (an amending resolution) han
 from the body, never inside the appendix before it. A document with no markers
 is read, and its eIds written, as before.
 
-Review fix-4 of the same issue made the remaining blocks the API calls ``other``
-structure too. **Rule S8**: each is an ``hcontainer`` named by its label, and an
+The remaining blocks, those the API calls ``other``, are structure too. **Rule S8**: each is an ``hcontainer`` named by its label, and an
 explicit role table (``md2akn.outline.ROLES_DE_ETIQUETA``) marks the closing
 formulas ``#conclusions``, the explanatory note ``#note``, the steps of the
 Mexican promulgation decree (kept together under one ``#promulgation``
@@ -718,7 +713,7 @@ stays flagged. **Rule B2**: the number grammar of a radio-regulations text
 (``S5.43``, ``ARTÍCULO S5``, ``APÉNDICE S30``) and the mixed-case
 ``Artículo Primero.-`` of transitorios are read.
 
-Review fix-5 of the same issue made an API block the root of its hierarchy.
+An API block is the root of its hierarchy.
 **Rule S4**: every ``RESOLUCIÓN`` block is a ``section``; the headings a block's
 text prints keep their order among themselves (an ``ANEXO`` holds the chapters
 printed after it, a chapter its parts, a bare ``APÉNDICE`` after the annex is
@@ -727,7 +722,7 @@ annex that leaves its block is one with no container or article after its
 heading in the block's text, whose structure the API serves in the blocks that
 follow.
 
-Review fix-2 of issues #300 and #301 let the outline govern first. **Rule S8**: a
+The outline governs first. **Rule S8**: a
 block the API marks ``other`` is an ``hcontainer`` named by its label, never a
 ``section`` (an amending ``RESOLUCIÓN`` included, so its eId prefix is ``hc_``),
 and its own label line is its heading, not text to compare. Rule S4's ordering
@@ -745,10 +740,9 @@ of the headings a block prints is unchanged.
 >>> [(n.akn_type, n.eId) for n in tree.walk() if n.akn_type in ("hcontainer", "attachment", "chapter", "part")]
 [('hcontainer', 'hc_RESOLUCIÓN_MSC.1(1)'), ('attachment', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment'), ('chapter', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1'), ('part', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-1__part_A'), ('chapter', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2'), ('part', 'hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_II-2__part_A'), ('hcontainer', 'hc_RESOLUCIÓN_MSC.2(2)')]
 
-Review fix-6 of the same issue made the block the root of *all* its text. **Rule
+A block is the root of *all* its text. **Rule
 S4**: whatever a block's text holds hangs from the container the block opened, also
-when the block follows a reform decree (the text used to hang from the decree and the
-block's container held only its heading); an index ends with the API block it starts
+when the block follows a reform decree; an index ends with the API block it starts
 in; the lines between a marker and its heading are the heading's; and what a
 container holds after its index is its ``intro``. **Rule U6**: a container with
 nothing under it is a ``heading`` unit, never ``loose``. **Rule B7**: the caption and
@@ -808,8 +802,7 @@ its closing certification. It says who published the text and when, not what the
 says, so a unit inside it carries ``TextUnit.envelope == True`` and a consumer that compares
 the texts of different instruments leaves it out. Nothing is dropped from ``text_units``, and
 a document with no outline marker has no envelope. Whether a decree block is envelope is
-read from its *position* (:py:func:`md2akn.outline.bloques_de_decreto`, review fix-1 of
-#301): the decree is a run of blocks right after the title block or at the end of the
+read from its *position* (:py:func:`md2akn.outline.bloques_de_decreto`): the decree is a run of blocks right after the title block or at the end of the
 document, so a decree-step label inside the instrument's own text (a treaty's testimonium,
 ``FIRMA``) is not envelope, and the opening of a decree the label table does not know
 (``APROBACIÓN DE INSTRUMENTOS``) is.
@@ -840,6 +833,8 @@ is the admissible residue — a unit rule U5 has nothing left to cut:
 
 >>> tree = md2akn.parse_markdown(parrafos)
 >>> report = md2akn.max_unit_chars(tree, md2akn.text_units(parrafos, cap=40), cap=40)
+>>> isinstance(report, md2akn.CapReport)
+True
 >>> (report.units, report.max_chars, report.over_cap, report.splittable)
 (2, 35, 0, 0)
 
@@ -852,7 +847,7 @@ before #227 is reproduced byte for byte:
 ``split_articles``: one vector per article, whatever its length (issue #256)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Rule U2 exist because the 2 000-character cap was once believed to be
+The 2 000-character cap that rule U2 applies was once believed to be
 close to a limit of the embedding model. It is not: an embedding model's own
 window is tens of thousands of tokens, far past any article in the corpus.
 ``split_articles=False`` turns rules U2 and U5 off for articles entirely — one

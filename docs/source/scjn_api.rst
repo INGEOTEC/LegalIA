@@ -519,13 +519,13 @@ yields no text and so no marker:
    :private-members:
    :undoc-members:
 
-``scjn.outline`` — the outline the SCJN's API states (review fix-2 of #291)
----------------------------------------------------------------------------
+``scjn.outline`` — the outline the SCJN's API states
+----------------------------------------------------
 
 ``GET /api/SCOW/Articulos`` returns an instrument as ordered *blocks*, each with
 an ``orden``, a ``numero`` and a ``referencia`` that names what the block is
 (``ÍNDICE``, ``TÍTULO PRIMERO``, ``ARTÍCULO 6 TER``, ``ANEXO 1``,
-``D.O.F. 10 DE NOVIEMBRE DE 2023``). The writer used to discard it; it now puts
+``D.O.F. 10 DE NOVIEMBRE DE 2023``). The writer keeps it: it puts
 one HTML-comment marker line before each block, so a reader of the Markdown
 (``md2akn``) knows where the index, the containers, a reform decree and each
 article are instead of guessing. ``classify`` derives the ``kind`` from the
