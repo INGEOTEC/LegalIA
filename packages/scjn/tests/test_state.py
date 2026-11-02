@@ -64,6 +64,9 @@ class TestEstadoPorInstrumento(unittest.TestCase):
             self.assertIsNone(state.motivo_pendiente({"actualizado": "2026-06-09"}, destino, None))
 
     def test_cambio_detectado_contra_el_estado_de_la_ley(self):
+        # `reformas=None` (the default) is the date comparison: a law with no `id_ordenamiento`
+        # falls back to it, reported by the planner as the fallback mode, not silently (the
+        # separate test of that name was an exact duplicate of this one, issue #305).
         with tempfile.TemporaryDirectory() as tmp:
             destino = Path(tmp)
             (destino / "01-01-2020.md").write_text("x")
@@ -190,17 +193,4 @@ class TestMotivoPendienteConComparacionPorFila(unittest.TestCase):
             self.assertEqual(
                 state.motivo_pendiente({}, destino, None, reformas=reformas),
                 state.PENDIENTE_NUNCA_RASTREADO,
-            )
-
-    def test_sin_id_ordenamiento_recae_en_la_comparacion_de_fecha(self):
-        # reformas=None (el default) es exactamente el modo de antes --
-        # una ley sin id_ordenamiento cae aqui, reportada por el planificador
-        # como "modo de respaldo", no silenciosamente.
-        with tempfile.TemporaryDirectory() as tmp:
-            destino = Path(tmp)
-            (destino / "01-01-2020.md").write_text("x")
-            state.escribe_estado(destino, actualizado="2026-06-09", rastreado="2026-08-29")
-            self.assertEqual(
-                state.motivo_pendiente({"actualizado": "2026-07-01"}, destino, "2026-08-29"),
-                state.PENDIENTE_CAMBIO,
             )

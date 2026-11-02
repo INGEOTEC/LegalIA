@@ -1088,37 +1088,27 @@ class TestCompletenessDefects(unittest.TestCase):
 
         return [Articulo(0, o, f"R{o}", "x") for o in ordenes]
 
-    def test_a_complete_answer_has_no_defect(self):
+    #: `(shape, the answer's orden values, the declared tamanio, the defects)`; `tamanio` is a floor on
+    #: the rows, never a ceiling (an answer may carry more: a block repeated, a block the declared
+    #: count did not include). Issue #305: one table instead of a test per shape.
+    CASES = (
+        ("a complete answer has no defect", (1, 2, 3), 3, []),
+        ("a gap in orden", (1, 2, 5), 3, ["missing orden [3, 4]"]),
+        ("a short count with contiguous orden", (1, 2, 3), 4, ["3 rows is fewer than tamanio 4"]),
+        ("both defects are listed in order", (1, 3), 5,
+         ["missing orden [2]", "2 rows is fewer than tamanio 5"]),
+        ("a short tamanio with a longer answer is not a defect", (1, 2, 3), 2, []),
+        ("an empty answer with nothing declared is complete", (), 0, []),
+        ("an empty answer with something declared is short", (), 2, ["0 rows is fewer than tamanio 2"]),
+        ("an answer that does not start at one has a gap", (2, 3), 2, ["missing orden [1]"]),
+    )
+
+    def test_each_shape_of_answer_has_its_defects(self):
         from scjn.api import completeness_defects
 
-        self.assertEqual(completeness_defects(self.rows(1, 2, 3), 3), [])
-
-    def test_a_gap_in_orden(self):
-        from scjn.api import completeness_defects
-
-        self.assertEqual(completeness_defects(self.rows(1, 2, 5), 3), ["missing orden [3, 4]"])
-
-    def test_a_short_count_with_contiguous_orden(self):
-        from scjn.api import completeness_defects
-
-        self.assertEqual(
-            completeness_defects(self.rows(1, 2, 3), 4), ["3 rows is fewer than tamanio 4"]
-        )
-
-    def test_both_defects_are_listed_in_order(self):
-        from scjn.api import completeness_defects
-
-        self.assertEqual(
-            completeness_defects(self.rows(1, 3), 5),
-            ["missing orden [2]", "2 rows is fewer than tamanio 5"],
-        )
-
-    def test_a_short_tamanio_with_a_longer_answer_is_not_a_defect(self):
-        # `tamanio` is a floor on the rows, never a ceiling: an answer may carry
-        # more (a block repeated, a block the declared count did not include).
-        from scjn.api import completeness_defects
-
-        self.assertEqual(completeness_defects(self.rows(1, 2, 3), 2), [])
+        for shape, ordenes, tamanio, defects in self.CASES:
+            with self.subTest(shape):
+                self.assertEqual(completeness_defects(self.rows(*ordenes), tamanio), defects)
 
     def test_two_different_blocks_sharing_an_orden_are_not_a_defect(self):
         # `lissste` 27-05-2011 and reglamento 166758 (issue #300): real, kept.
@@ -1145,17 +1135,6 @@ class TestCompletenessDefects(unittest.TestCase):
         # With some rows numbered, only those are checked for gaps.
         mezcla = sin_orden + [Articulo(0, 1, "C", "z"), Articulo(0, 3, "D", "w")]
         self.assertEqual(completeness_defects(mezcla, 0), ["missing orden [2]"])
-
-    def test_an_empty_answer_is_complete_only_when_nothing_was_declared(self):
-        from scjn.api import completeness_defects
-
-        self.assertEqual(completeness_defects([], 0), [])
-        self.assertEqual(completeness_defects([], 2), ["0 rows is fewer than tamanio 2"])
-
-    def test_an_answer_that_does_not_start_at_one_has_a_gap(self):
-        from scjn.api import completeness_defects
-
-        self.assertEqual(completeness_defects(self.rows(2, 3), 2), ["missing orden [1]"])
 
     def test_the_client_error_carries_the_same_reasons(self):
         from scjn.api import _orden_faltante, completeness_defects
