@@ -488,11 +488,6 @@ class _Constructor:
         }.get(rol)
         rango, piso = self.RANGO_BLOQUE, self.RANGO_BLOQUE
         padre = None
-        if rol == "resolution":
-            # An amending resolution is a text of its own, not the tail of the
-            # transitorios before it.
-            hit("S8", "resolution-container")
-            self._transitorios = None
         if rol in ROLES_SIN_SECCION:
             hit("S8", f"role-container-{rol}")
             # Whatever transitorios were open end: this is a text of its own.

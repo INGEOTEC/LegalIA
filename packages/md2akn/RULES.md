@@ -276,6 +276,25 @@ clause of the new rule; nothing was dropped.
 
 W1–W3 have no old number: they state, for the first time as rules, what the writer promises (issue #303).
 
+## Counters and removed branches
+
+Issue #304 counted before it deleted. `md2akn.hits` records, per rule, branch and whether the document
+had markers, every application of a text rule; `measure_trees.py --all-snapshots --hits` ran the
+parser over all 8,966 snapshots of the four corpora (3,709 leyes, 2,924 reglamentos, 173
+lineamientos, 2,160 tratados) and the `md2akn` test suite over every fixture. A branch with no hit in
+either, **and that no marker-free document could reach**, was removed:
+
+- S8, a role-`resolution` block entering the labelled-container builder (a resolution is routed to its
+  section by S4 before that builder is reached, so the branch never ran);
+- S14, trimming a trailing marker line off a text-detected table of contents (a marker ends the index).
+
+Zero hits does not by itself remove a branch that a document with no markers can reach: B4's
+`dof-header-opens-decree` and `recitals-end-at-restart` have none in the corpus (every snapshot is
+marked) and none in the fixtures, and stay, because the parser's contract for a marker-free document
+is unchanged. The digest of every snapshot before and after the restructuring, with every node's type,
+eId, number, heading, `refers_to`, offsets and notes and every unit's type, eId, piece, hash and
+offsets, for both `split_articles` settings, is identical: **0 moved of 8,966**.
+
 ## Open findings
 
 Defects found while restructuring, recorded and **not** fixed (the output of the parser is held fixed by
