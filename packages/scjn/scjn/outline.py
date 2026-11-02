@@ -40,6 +40,28 @@ carries its `label`.
 
 `strip_markers` takes the lines back out, for the readers that want the text
 as it always was (a reader's own Markdown, a diff between two snapshots).
+
+**What a marker promises, and what a missing one means (issue #303).** Every API
+block that yields text is preceded by exactly one marker carrying that block's own
+`orden`, `numero` and `referencia` (as `label`), and `kind`/`type`/`num` are
+`classify(referencia)` and nothing else. A block that yields **no** text -- a whole
+block that was an editorial `N. DE E.` aside, or an empty one -- has no marker: its
+`orden` is a gap in the markers, which is *explained* when the raw answer kept beside
+the snapshot serves that `orden`, and an omission by the API otherwise (the guard in
+`scjn.api` is what prevents those from being written). A snapshot with no marker at
+all predates review fix-2 of #291 and is read as plain text.
+
+**Three readers of one grammar.** This module, `md2akn.outline`
+(`MARCADOR_ESQUEMA`/`lee_marcador`) and `stripMarkers` in
+`website/pages/instruments/instruments.js` each read it, and `md2akn` and the page
+import nothing from here. They are tied by *data*, not by code:
+`packages/md2akn/tests/fixtures_units/marker_vocabulary.json`, generated from this
+module by `scripts/verify_scjn_outline.py --write-vocabulary` (one example marker
+per `classify` branch, the kinds and container types, the real distribution over
+the four corpora), is regenerated and compared here and parsed by `md2akn`'s tests.
+`scripts/verify_scjn_outline.py` checks the other direction over every snapshot on
+disk: each marker round-trips through `marker_line`/`parse_marker`, equals `classify`
+of its label, and `strip_markers` of the rebuilt body is the `outline=False` text.
 """
 
 from __future__ import annotations

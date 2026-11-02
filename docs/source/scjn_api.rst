@@ -475,7 +475,46 @@ of one paragraph per wrapped source line:
 | a).- Concepto envuelto en dos líneas | $1.00 | $1 |
 <BLANKLINE>
 
+The writer's own module, :py:mod:`scjn.markdown` (issue #303), is documented
+below; every name it holds is still importable from :py:mod:`scjn.api`. What
+stays here is the completeness guard. :py:func:`~scjn.api.completeness_defects`
+is the pure predicate :py:meth:`~scjn.api.ScjnApi.articulos_of_reforma` and
+``scripts/verify_scjn_outline.py --guard`` share: an empty list is a complete
+answer, a gap in ``orden`` and a count below ``tamanio`` are the two defects, and
+``total=0`` means the declared ``tamanio`` is unknown (a kept raw answer does not
+record it):
+
+>>> from scjn.api import Articulo, completeness_defects
+>>> completeness_defects([Articulo(1, 1, "ARTÍCULO 1", "x"), Articulo(3, 3, "ARTÍCULO 3", "y")], 3)
+['missing orden [2]', '2 rows is fewer than tamanio 3']
+>>> completeness_defects([Articulo(1, 1, "ARTÍCULO 1", "x"), Articulo(2, 2, "ARTÍCULO 2", "y")], 2)
+[]
+
 .. automodule:: scjn.api
+   :members:
+   :private-members:
+   :undoc-members:
+
+``scjn.markdown`` — the plain-text-to-Markdown writer (issue #303)
+---------------------------------------------------------------------
+
+Split out of :py:mod:`scjn.api` with no behaviour change. It turns the blocks an
+``Articulos`` answer holds into the light Markdown a snapshot stores, one marker
+line (:py:mod:`scjn.outline`) before each block that yields text when
+``outline=True``. A block whose whole text is an editorial ``N. DE E.`` aside
+yields no text and so no marker:
+
+>>> from scjn.markdown import articulos_a_markdown
+>>> blocks = [Articulo(0, 1, "ENCABEZADO", "LEY DE EJEMPLO"), Articulo(0, 2, "NOTA", "[N. DE E. VÉASE ANEXO]")]
+>>> print(articulos_a_markdown(blocks, outline=True))
+<!-- scjn:block orden=1 numero=0 kind=header label="ENCABEZADO" -->
+<BLANKLINE>
+**LEY DE EJEMPLO**
+<BLANKLINE>
+>>> articulos_a_markdown(blocks)
+'**LEY DE EJEMPLO**\n'
+
+.. automodule:: scjn.markdown
    :members:
    :private-members:
    :undoc-members:

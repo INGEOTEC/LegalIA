@@ -1076,6 +1076,187 @@ class TestWholeNumberLeads(unittest.TestCase):
         )
 
 
+class TestCompletenessDefects(unittest.TestCase):
+    """`scjn.api.completeness_defects` (issue #303): the one pure predicate the
+    client (`articulos_of_reforma`) and `scripts/verify_scjn_outline.py --guard`
+    share. One case per shape the guard knows, and per shape the audit of the
+    raw answers kept on disk found."""
+
+    @staticmethod
+    def rows(*ordenes):
+        from scjn.api import Articulo
+
+        return [Articulo(0, o, f"R{o}", "x") for o in ordenes]
+
+    def test_a_complete_answer_has_no_defect(self):
+        from scjn.api import completeness_defects
+
+        self.assertEqual(completeness_defects(self.rows(1, 2, 3), 3), [])
+
+    def test_a_gap_in_orden(self):
+        from scjn.api import completeness_defects
+
+        self.assertEqual(completeness_defects(self.rows(1, 2, 5), 3), ["missing orden [3, 4]"])
+
+    def test_a_short_count_with_contiguous_orden(self):
+        from scjn.api import completeness_defects
+
+        self.assertEqual(
+            completeness_defects(self.rows(1, 2, 3), 4), ["3 rows is fewer than tamanio 4"]
+        )
+
+    def test_both_defects_are_listed_in_order(self):
+        from scjn.api import completeness_defects
+
+        self.assertEqual(
+            completeness_defects(self.rows(1, 3), 5),
+            ["missing orden [2]", "2 rows is fewer than tamanio 5"],
+        )
+
+    def test_a_short_tamanio_with_a_longer_answer_is_not_a_defect(self):
+        # `tamanio` is a floor on the rows, never a ceiling: an answer may carry
+        # more (a block repeated, a block the declared count did not include).
+        from scjn.api import completeness_defects
+
+        self.assertEqual(completeness_defects(self.rows(1, 2, 3), 2), [])
+
+    def test_two_different_blocks_sharing_an_orden_are_not_a_defect(self):
+        # `lissste` 27-05-2011 and reglamento 166758 (issue #300): real, kept.
+        from scjn.api import Articulo, completeness_defects
+
+        filas = [Articulo(0, 1, "A", "x"), Articulo(0, 2, "D.O.F. 1", "y"), Articulo(0, 2, "CONTENIDO", "z")]
+        self.assertEqual(completeness_defects(filas, 3), [])
+
+    def test_the_missing_orden_list_is_cut_at_twenty(self):
+        from scjn.api import completeness_defects
+
+        (defect,) = completeness_defects(self.rows(1, 40), 0)
+        self.assertTrue(defect.startswith("missing orden [2, 3, 4"))
+        self.assertTrue(defect.endswith(" ...") or defect.endswith("..."))
+
+    def test_rows_with_no_orden_are_checked_for_the_count_only(self):
+        # The audit of every raw answer kept found rows whose `orden` is null
+        # would defeat the contiguity check; they are counted, never assumed.
+        from scjn.api import Articulo, completeness_defects
+
+        sin_orden = [Articulo(0, None, "A", "x"), Articulo(0, None, "B", "y")]
+        self.assertEqual(completeness_defects(sin_orden, 2), [])
+        self.assertEqual(completeness_defects(sin_orden, 3), ["2 rows is fewer than tamanio 3"])
+        # With some rows numbered, only those are checked for gaps.
+        mezcla = sin_orden + [Articulo(0, 1, "C", "z"), Articulo(0, 3, "D", "w")]
+        self.assertEqual(completeness_defects(mezcla, 0), ["missing orden [2]"])
+
+    def test_an_empty_answer_is_complete_only_when_nothing_was_declared(self):
+        from scjn.api import completeness_defects
+
+        self.assertEqual(completeness_defects([], 0), [])
+        self.assertEqual(completeness_defects([], 2), ["0 rows is fewer than tamanio 2"])
+
+    def test_an_answer_that_does_not_start_at_one_has_a_gap(self):
+        from scjn.api import completeness_defects
+
+        self.assertEqual(completeness_defects(self.rows(2, 3), 2), ["missing orden [1]"])
+
+    def test_the_client_error_carries_the_same_reasons(self):
+        from scjn.api import _orden_faltante, completeness_defects
+
+        filas = self.rows(1, 3)
+        self.assertEqual(_orden_faltante(filas, 5), "; ".join(completeness_defects(filas, 5)))
+        self.assertIsNone(_orden_faltante(self.rows(1, 2), 2))
+
+
+class TestShapesOfTheKeptRawAnswers(unittest.TestCase):
+    """Shapes `scripts/verify_scjn_outline.py --guard` found over the 8,911 raw
+    answers kept on 2026-11-01 (issue #303) that no test pinned yet. None of them is
+    refused today and none is a defect: the guard must keep answering them whole,
+    one request, and the writer must keep writing what they hold. Every case is
+    a stubbed transport, no network."""
+
+    @staticmethod
+    def fila(orden, referencia, contenido, numero=0):
+        return {"numero": numero, "orden": orden, "referencia": referencia, "contenido": contenido}
+
+    def cliente(self, filas):
+        from scjn.api import ScjnApi
+
+        sesion = SesionFalsa([RespuestaFalsa({"codigo": 200, "tamanio": len(filas), "articulos": filas})])
+        return ScjnApi(espera=0, reintentos=0, session=sesion), sesion
+
+    def test_an_empty_block_next_to_a_decree_line_shares_its_orden(self):
+        # `ligie-2022` 18-11-2022, `orden` 126: a block with no reference and no
+        # text, and the `D.O.F.` line of the decree. 9 such blocks over the corpus.
+        filas = [
+            self.fila(1, "ENCABEZADO", "LEY"),
+            self.fila(2, "", ""),
+            self.fila(2, "D.O.F. 18 DE NOVIEMBRE DE 2022", "(REFORMADO, D.O.F. 18 DE NOVIEMBRE DE 2022)"),
+            self.fila(3, "ARTÍCULO 1", "Artículo 1.- Texto."),
+        ]
+        cliente, sesion = self.cliente(filas)
+        articulos = cliente.articulos_of_reforma(1, 1)
+        self.assertEqual([(a.orden, a.referencia) for a in articulos],
+                         [(1, "ENCABEZADO"), (2, ""), (2, "D.O.F. 18 DE NOVIEMBRE DE 2022"), (3, "ARTÍCULO 1")])
+        self.assertEqual(len(sesion.llamadas), 1)
+
+    def test_three_blocks_with_one_orden_and_one_reference_are_all_kept(self):
+        # `lissste` 12-11-2015, `orden` 318: `TRANSITORIOS` twice with different
+        # text, between them an empty block. Rows are dropped only when identical.
+        from scjn.api import completeness_defects
+
+        filas = [
+            self.fila(1, "ENCABEZADO", "LEY"),
+            self.fila(2, "TRANSITORIOS", "\r\nTRANSITORIOS"),
+            self.fila(2, "", ""),
+            self.fila(2, "TRANSITORIOS", "\r\nTRANSITORIOS\r\n\r\nPRIMERO. La presente."),
+        ]
+        cliente, _ = self.cliente(filas)
+        articulos = cliente.articulos_of_reforma(1, 1)
+        self.assertEqual(len(articulos), 4)
+        self.assertEqual(completeness_defects(articulos, 4), [])
+
+    def test_the_writer_gives_a_marker_to_each_block_with_text_and_none_to_an_empty_one(self):
+        from scjn.api import Articulo, articulos_a_markdown
+        from scjn.outline import parse_marker
+
+        blocks = [
+            Articulo(0, 2, "TRANSITORIOS", "\r\nTRANSITORIOS"),
+            Articulo(0, 2, "", ""),
+            Articulo(0, 2, "TRANSITORIOS", "\r\nTRANSITORIOS\r\n\r\nPRIMERO. La presente."),
+        ]
+        markdown = articulos_a_markdown(blocks, outline=True)
+        markers = [parse_marker(line) for line in markdown.split("\n") if line.startswith("<!--")]
+        self.assertEqual([m["orden"] for m in markers], ["2", "2"])
+        self.assertEqual([m["kind"] for m in markers], ["transitorios", "transitorios"])
+
+    def test_a_block_with_a_reference_and_no_text_is_served_and_writes_nothing(self):
+        # `tratados/89658` 23-06-1953, `orden` 63, `numero` 49: no reference, no text.
+        # The orden is reserved (a gap in the markers is explained by the raw answer).
+        from scjn.api import Articulo, articulos_a_markdown, completeness_defects
+
+        blocks = [Articulo(1, 1, "ARTÍCULO 1", "Artículo 1.- Texto."), Articulo(49, 2, "", ""),
+                  Articulo(3, 3, "ARTÍCULO 3", "Artículo 3.- Otro.")]
+        self.assertEqual(completeness_defects(blocks, 3), [])
+        markdown = articulos_a_markdown(blocks, outline=True)
+        self.assertEqual(markdown.count("scjn:block"), 2)
+        self.assertNotIn("orden=2 ", markdown)
+
+    def test_a_marker_for_an_unnamed_block_with_text_is_other(self):
+        # An empty `referencia` that does carry text is `other`, label kept as "".
+        from scjn.api import Articulo, articulos_a_markdown
+
+        markdown = articulos_a_markdown([Articulo(0, 1, "", "Texto suelto.")], outline=True)
+        self.assertTrue(markdown.startswith('<!-- scjn:block orden=1 numero=0 kind=other label="" -->'))
+
+    def test_orden_always_starts_at_one_and_rows_arrive_sorted(self):
+        # The audit found 8,911 answers that start at `orden` 1, all with integer
+        # `orden` and `numero`: an answer that does not is a gap, never a new shape.
+        from scjn.api import ScjnApiIncompleteError
+
+        cliente, _ = self.cliente([self.fila(2, "A", "x"), self.fila(3, "B", "y")])
+        with self.assertRaises(ScjnApiIncompleteError) as ctx:
+            cliente.articulos_of_reforma(1, 1)
+        self.assertIn("missing orden [1]", str(ctx.exception))
+
+
 class TestCompletitud(unittest.TestCase):
     """Issue #300: an `Articulos` answer whose `orden` is not `1..N`, or that
     holds fewer rows than its `tamanio`, is retried and then refused."""

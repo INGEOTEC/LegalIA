@@ -11,10 +11,11 @@ byte for byte, from the API blocks, so the marker grammar this package reads
 cannot drift from the one that is written.
 """
 
+import json
 from pathlib import Path
 
 from md2akn import parse_markdown
-from md2akn.outline import lee_marcador
+from md2akn.outline import MARCADORES_EN_TEXTO, lee_marcador
 from md2akn.units import coverage, text_units
 
 FIXTURES = Path(__file__).parent / "fixtures_units"
@@ -245,3 +246,54 @@ def test_a_chapter_the_api_labels_as_an_article_is_a_chapter():
     assert [(n.akn_type, n.num) for n in _walk(tree) if n.akn_type in ("chapter", "article")] == [
         ("chapter", "84"), ("chapter", "85"), ("article", "3"),
     ]
+
+
+# -- the marker vocabulary `scjn.outline` writes (issue #303) ---------------- #
+
+
+def _vocabulary() -> dict:
+    """`marker_vocabulary.json`, generated from `scjn.outline` by
+    `scripts/verify_scjn_outline.py --write-vocabulary` and compared with it by
+    `packages/scjn/tests/test_outline.py`. `md2akn` imports nothing of `scjn`
+    (issue #158): this file is the bridge, and the grammar this package reads is
+    checked against it here."""
+    return json.loads(_read("marker_vocabulary.json"))
+
+
+def test_lee_marcador_parses_every_example_to_the_attributes_scjn_wrote():
+    examples = _vocabulary()["examples"]
+    assert len(examples) >= 40
+    for example in examples:
+        assert lee_marcador(example["line"]) == example["attributes"], example["referencia"]
+
+
+def test_lee_marcador_reads_the_vocabulary_scjn_declares():
+    vocabulary = _vocabulary()
+    kinds = {e["attributes"]["kind"] for e in vocabulary["examples"]}
+    types = {e["attributes"].get("type") for e in vocabulary["examples"]} - {None}
+    assert kinds == set(vocabulary["kinds"])
+    assert types == set(vocabulary["container_types"])
+    assert vocabulary["marker_prefix"] == "<!-- scjn:block "
+
+
+def test_marcadores_en_texto_strips_exactly_the_marker_lines():
+    examples = _vocabulary()["examples"]
+    lines = [e["line"] for e in examples]
+    # Marker lines interleaved with text that must survive, one per example.
+    document = "\n\n".join(f"{line}\n\nTexto {i}" for i, line in enumerate(lines)) + "\n"
+    found = [m.group(0) for m in MARCADORES_EN_TEXTO.finditer(document)]
+    assert found == lines
+    stripped = MARCADORES_EN_TEXTO.sub("", document)
+    assert "scjn:block" not in stripped
+    for i in range(len(lines)):
+        assert f"Texto {i}" in stripped
+
+
+def test_a_marker_with_trailing_blanks_and_text_that_only_resembles_one():
+    line = _vocabulary()["examples"][0]["line"]
+    assert lee_marcador(line + "  \t") is not None
+    assert MARCADORES_EN_TEXTO.findall(line + "  \t") == [line + "  \t"]
+    # An inline mention is no marker: the line must open with the prefix and close with `-->`.
+    for text in (f"texto {line}", f"{line} texto", "<!-- scjn:block orden=1", "<!-- otro -->"):
+        assert lee_marcador(text) is None
+        assert MARCADORES_EN_TEXTO.findall(text) == []

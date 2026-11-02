@@ -43,7 +43,42 @@ where an unauthenticated address gets 60 requests an hour; when `GH_TOKEN`
 (or `GITHUB_TOKEN`) is set, those requests carry it as a bearer token, and
 without one nothing changes.
 
+## Verifying the outline
+
+Since review fix-2 of #291 every snapshot carries one marker line
+(`<!-- scjn:block orden=… numero=… kind=… label="…" -->`, `scjn.outline`) before
+each API block that yields text, and the raw answer of every reform is kept
+gzipped beside it. `scripts/verify_scjn_outline.py` (read-only, no network, issue
+#303) checks the contract between the writer (`scjn.markdown`) and its readers over
+the four local corpora (`scripts/scjn/<c>/<key>/<snapshot>.md` and
+`scripts/scjn/raw-api/…`):
+
+- **writer drift**: the body rebuilt from the raw answer against the body on disk
+  (`identical`, `differs`, `no-raw`) — reported, never rewritten, and never a
+  failure (`scripts/rewrite_scjn_from_raw.py` is what a human runs to decide);
+- **marker completeness**: every raw block with text has exactly one marker; an
+  `orden` with no marker is *explained* when the block wrote no text (the predicate
+  `scripts/measure_block_gaps.py` holds) and otherwise an omission;
+- **attribute round-trip**: each marker equals `marker_line(parse_marker(…))` and
+  `classify` of its own label;
+- **text invariance**: `strip_markers` of the rebuilt body is the `outline=False` text.
+
+The exit status is non-zero only for a round-trip or an invariance violation. `--guard`
+audits `scjn.api.completeness_defects` (the predicate `articulos_of_reforma` also uses)
+over every raw answer, and `--compare before.json` checks that two runs have the same
+drift classes (how the `scjn.api` → `scjn.markdown` split was shown to change nothing).
+`--write-vocabulary` writes `packages/md2akn/tests/fixtures_units/marker_vocabulary.json`,
+the one fixture `scjn`'s and `md2akn`'s tests both read: `md2akn` imports nothing from
+this package, so the marker grammar it reads and the one written here are tied by that
+generated data, never by an import.
+
 ## Changelog
+
+- **Issue #303 (still 0.5.1):** `scjn.markdown` is the Markdown writer, moved out of
+  `scjn.api` with every name re-exported from it (a pure move; the writer-drift classes of
+  `scripts/verify_scjn_outline.py` are identical before and after), and
+  `scjn.api.completeness_defects(filas, tamanio)` is the guard's predicate as a pure
+  function. No behaviour change, no new public name in `scjn.__all__`.
 
 - **0.5.1** — a bug fix (issue #291): `articulos_a_markdown` bolds a decimal
   article lead whole. The T-MEC and six other treaties write `Artículo 1.1:`
