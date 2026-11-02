@@ -17,14 +17,7 @@ import pytest
 from md2akn import parse_markdown, text_units
 from md2akn.outline import bloques_de_decreto, es_etiqueta_de_decreto
 from md2akn.validate import _block_escapes
-
-
-def _marker(orden, label, kind="other", extra=""):
-    return f'<!-- scjn:block orden={orden} numero=0 kind={kind}{extra} label="{label}" -->'
-
-
-def _doc(*blocks):
-    return "\n\n".join(blocks) + "\n"
+from .conftest import document_of, marker
 
 
 def _article(orden, n, text="Las partes cooperarán."):
@@ -47,19 +40,19 @@ def _by_text(units, fragment):
 # A treaty the way the SCJN serves 16475: the decree first, then the treaty, then the
 # treaty's own closing (a dated line and `Rúbricas.`) and the decree's certification.
 def _treaty_with_a_dated_closing():
-    return _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    return document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**ACTA CONSTITUTIVA**\n\nCARLOS SALINAS, Presidente, a sus habitantes, sabed:",
-        _marker(2, "FIRMA"),
+        marker(2, "FIRMA"),
         "El doce de octubre el Plenipotenciario firmó ad referéndum el Acta.",
-        _marker(3, "PROMULGACIÓN"),
+        marker(3, "PROMULGACIÓN"),
         "Por lo tanto, para su debida observancia, promulgo el presente Decreto.",
-        _marker(4, "PREÁMBULO", "preamble"),
+        marker(4, "PREÁMBULO", "preamble"),
         "Los Estados Miembros acuerdan constituir la Asociación.",
         *_article(5, 1),
-        _marker(6, "PARTE FINAL DEL ACTA"),
+        marker(6, "PARTE FINAL DEL ACTA"),
         "La presente Acta consta de dos ejemplares.\n\nLima, a los doce días del mes de octubre. Rúbricas.",
-        _marker(7, "PARTE FINAL DEL DECRETO PROMULGATORIO"),
+        marker(7, "PARTE FINAL DEL DECRETO PROMULGATORIO"),
         "La presente es copia fiel y completa del Acta.\n\nConté.- Rúbrica.",
     )
 
@@ -86,10 +79,10 @@ def test_the_decree_certification_is_its_own_node():
 
 
 def test_the_preamble_is_the_title_block_and_nothing_else():
-    markdown = _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    markdown = document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**REGLAMENTO INTERIOR**\n\nEl Consejo General, con fundamento en la ley,",
-        _marker(2, "CONSIDERANDO", "recitals"),
+        marker(2, "CONSIDERANDO", "recitals"),
         "**CONSIDERANDO**\n\nQue el reglamento debe actualizarse;\n\nQue es necesario aprobar lo siguiente.",
         *_article(3, 1, "Este reglamento regula al Consejo."),
     )
@@ -105,10 +98,10 @@ def test_the_preamble_is_the_title_block_and_nothing_else():
 
 
 def test_a_treatys_own_preamble_after_the_title_block_is_compared():
-    markdown = _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    markdown = document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**CONVENIO**",
-        _marker(2, "PREÁMBULO", "preamble"),
+        marker(2, "PREÁMBULO", "preamble"),
         "Los Gobiernos signatarios, deseosos de cooperar, convienen lo siguiente.",
         *_article(3, 1),
     )
@@ -121,20 +114,20 @@ def test_a_treatys_own_preamble_after_the_title_block_is_compared():
 # 11374: the decree opens with a block the label table does not know, and the treaty's
 # own testimonium is labelled `FIRMA`.
 def _treaty_with_a_testimonium():
-    return _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    return document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**CONSTITUCIÓN**",
-        _marker(2, "APROBACIÓN DE INSTRUMENTOS"),
+        marker(2, "APROBACIÓN DE INSTRUMENTOS"),
         "Que en la Conferencia se aprobaron instrumentos cuyo texto traducido al español es el siguiente:",
-        _marker(3, "PREÁMBULO", "preamble"),
+        marker(3, "PREÁMBULO", "preamble"),
         "La Conferencia General de la Organización, reunida en su sede.",
         *_article(4, 1),
         *_article(5, 2),
-        _marker(6, "FIRMA"),
+        marker(6, "FIRMA"),
         "En fe de lo cual, los suscritos han firmado esta Constitución.",
-        _marker(7, "PARTE FINAL DEL ACTA"),
+        marker(7, "PARTE FINAL DEL ACTA"),
         "Hecho en la sede de la Organización.",
-        _marker(8, "PARTE FINAL DEL DECRETO PROMULGATORIO"),
+        marker(8, "PARTE FINAL DEL DECRETO PROMULGATORIO"),
         "La presente es copia fiel y completa de la Constitución.",
     )
 
@@ -161,16 +154,16 @@ def test_a_decree_step_label_inside_the_own_text_is_not_envelope_nor_the_decree_
 
 
 def test_a_generic_block_between_decree_steps_belongs_to_the_decree():
-    markdown = _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    markdown = document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**CANJE DE NOTAS**",
-        _marker(2, "FIRMA"),
+        marker(2, "FIRMA"),
         "Se firmó el canje.",
-        _marker(3, "CANJE DE NOTAS"),
+        marker(3, "CANJE DE NOTAS"),
         "Las notas fueron intercambiadas.",
-        _marker(4, "PROMULGACIÓN"),
+        marker(4, "PROMULGACIÓN"),
         "Promulgo el presente Decreto.",
-        _marker(5, "PREÁMBULO", "preamble"),
+        marker(5, "PREÁMBULO", "preamble"),
         "Texto propio del instrumento.",
         *_article(6, 1),
     )
@@ -219,12 +212,12 @@ def test_the_decrees_leading_run_ends_at_its_certification():
 
 
 def test_an_instrument_that_is_nothing_but_its_envelope_marks_none_of_it():
-    only_the_decree = _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    only_the_decree = document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**INSTRUMENTOS ADOPTADOS POR EL CONGRESO**",
-        _marker(2, "FIRMA"),
+        marker(2, "FIRMA"),
         "El Plenipotenciario firmó los instrumentos.",
-        _marker(3, "PROMULGACIÓN"),
+        marker(3, "PROMULGACIÓN"),
         "Promulgo el presente Decreto.",
     )
     units = _units(only_the_decree)
@@ -234,12 +227,12 @@ def test_an_instrument_that_is_nothing_but_its_envelope_marks_none_of_it():
     units = _units(with_an_article)
     assert [u.envelope for u in _by_text(units, "Promulgo")] == [True]
     # headings and transitorios are not text of its own: still nothing but the envelope
-    with_transitorios = _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    with_transitorios = document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**DECRETO**",
-        _marker(2, "FIRMA"),
+        marker(2, "FIRMA"),
         "El Plenipotenciario firmó.",
-        _marker(3, "TRANSITORIOS", "transitorios"),
+        marker(3, "TRANSITORIOS", "transitorios"),
         "**TRANSITORIOS**\n\n**ÚNICO.-** Entra en vigor.",
     )
     assert not any(u.envelope for u in _units(with_transitorios))
@@ -254,10 +247,10 @@ def test_a_decree_closing_is_envelope_even_when_annexes_follow_it():
 
 def test_own_blocks_after_a_generic_leading_block_are_not_swallowed():
     # an instrument that opens with a generic `other` block and has no decree step
-    markdown = _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    markdown = document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**ACUERDO**",
-        _marker(2, "ANTECEDENTES"),
+        marker(2, "ANTECEDENTES"),
         "Antecedentes del acuerdo, texto propio.",
         *_article(3, 1),
     )
@@ -300,8 +293,8 @@ def test_a_document_with_no_markers_is_read_as_before():
 
 def test_closing_signatures_inside_the_last_block_stay_conclusions():
     # no later marker: the dated line is the tail of the last API block, as before
-    markdown = _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    markdown = document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**LEY**",
         *_article(2, 1, "Texto del artículo."),
         "Dado en el Palacio Nacional.- Rúbricas.",

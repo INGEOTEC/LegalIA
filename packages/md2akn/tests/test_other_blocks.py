@@ -15,28 +15,15 @@ from md2akn import parse_markdown
 from md2akn.divisions import clave_de_numero, inicio_de_la_serie
 from md2akn.outline import es_continuacion, rol_de_etiqueta
 from md2akn.units import coverage, text_units
-
-
-def _marker(orden, label, kind="other", numero=0, extra=""):
-    return f'<!-- scjn:block orden={orden} numero={numero} kind={kind}{extra} label="{label}" -->'
-
-
-def _walk(node):
-    yield node
-    for child in node.children:
-        yield from _walk(child)
-
-
-def _doc(*blocks):
-    return "\n\n".join(blocks) + "\n"
+from .conftest import document_of, marker, walk
 
 
 def _hcontainers(tree):
-    return [(n.eId, n.num, n.refers_to) for n in _walk(tree) if n.akn_type == "hcontainer"]
+    return [(n.eId, n.num, n.refers_to) for n in walk(tree) if n.akn_type == "hcontainer"]
 
 
 def _articles(tree):
-    return [n.eId for n in _walk(tree) if n.akn_type == "article"]
+    return [n.eId for n in walk(tree) if n.akn_type == "article"]
 
 
 # -- the role table (rule S8) and the split block (rule S10) -----------------------
@@ -63,24 +50,24 @@ def test_a_block_split_in_two_is_one_container():
     assert not es_continuacion("ARTÍCULOS", "CONTENIDO ARTICULOS")
 
 
-FINAL_ACTS = _doc(
-    _marker(1, "ENCABEZADO", "header"),
+FINAL_ACTS = document_of(
+    marker(1, "ENCABEZADO", "header"),
     "**ACTAS FINALES DE LA CONFERENCIA MUNDIAL DE RADIOCOMUNICACIONES (CMR-2000)**",
-    _marker(2, "FIRMA"),
+    marker(2, "FIRMA"),
     "El dos de junio de dos mil, el Plenipotenciario de los Estados Unidos Mexicanos firmó las Actas.",
-    _marker(3, "APROBACIÓN"),
+    marker(3, "APROBACIÓN"),
     "Las Actas Finales fueron aprobadas por la Cámara de Senadores.",
-    _marker(4, "RATIFICACIÓN Y DEPÓSITO"),
+    marker(4, "RATIFICACIÓN Y DEPÓSITO"),
     "El instrumento de ratificación fue depositado ante el Secretario General.",
-    _marker(5, "PROMULGACIÓN"),
+    marker(5, "PROMULGACIÓN"),
     "Por lo tanto, para su debida observancia, promulgo el presente Decreto.",
-    _marker(6, "NOTA EXPLICATIVA"),
+    marker(6, "NOTA EXPLICATIVA"),
     "Las disposiciones marcadas con MOD, ADD o SUP modifican el Reglamento.",
-    _marker(7, "RESERVAS AL REGLAMENTO DE RADIOCOMUNICACIONES"),
+    marker(7, "RESERVAS AL REGLAMENTO DE RADIOCOMUNICACIONES"),
     "Al firmar el presente texto, la delegación se reserva el derecho de adoptar las medidas.",
-    _marker(8, "ARTÍCULOS"),
+    marker(8, "ARTÍCULOS"),
     "**ARTICULOS**",
-    _marker(9, "CONTENIDO ARTICULOS"),
+    marker(9, "CONTENIDO ARTICULOS"),
     "**ARTÍCULO S1**\n\nTérminos y definiciones",
     "**MOD**",
     "S1.171 zona de coordinación: Cuando se determina la necesidad de coordinación.",
@@ -89,7 +76,7 @@ FINAL_ACTS = _doc(
     "S5.43 1) Cuando en el presente Reglamento se indica que un servicio puede funcionar.",
     "**ADD**",
     "S5.43A 1bis) Cuando en el presente Reglamento se indica que un servicio puede funcionar.",
-    _marker(10, "PARTE FINAL DE LAS ACTAS"),
+    marker(10, "PARTE FINAL DE LAS ACTAS"),
     "EN TESTIMONIO DE LO CUAL, los delegados firmaron las presentes Actas.",
 )
 
@@ -107,15 +94,15 @@ def test_every_other_block_is_a_container_and_the_promulgation_stays_together():
     # a block that holds articles opens a section (rule S6): the pair is one
     assert [c.num for c in body.children if c.num == "ARTÍCULOS"] == ["ARTÍCULOS"]
     assert top[-1] == ("hcontainer", "PARTE FINAL DE LAS ACTAS", "#conclusions")
-    assert not any(n.num == "CONTENIDO ARTICULOS" for n in _walk(tree))
+    assert not any(n.num == "CONTENIDO ARTICULOS" for n in walk(tree))
 
 
 def test_the_radio_regulations_numbering_is_read_whole():
     tree = parse_markdown(FINAL_ACTS)
-    articles = [n.num for n in _walk(tree) if n.akn_type == "article"]
+    articles = [n.num for n in walk(tree) if n.akn_type == "article"]
     assert articles == ["S1.171", "S5.43", "S5.43A"]
-    assert any(n.akn_type == "section" and n.num == "S5" for n in _walk(tree))
-    assert not any(n.repeated for n in _walk(tree))
+    assert any(n.akn_type == "section" and n.num == "S5" for n in walk(tree))
+    assert not any(n.repeated for n in walk(tree))
 
 
 def test_units_of_other_blocks_are_not_loose_and_cover_the_text():
@@ -133,8 +120,8 @@ def test_the_number_grammar():
 
 # -- a numbering that starts over inside one block opens a division (rule B9) ------
 
-SOLAS = _doc(
-    _marker(1, "RESOLUCIÓN MSC.496(105)", "container", extra=" type=other"),
+SOLAS = document_of(
+    marker(1, "RESOLUCIÓN MSC.496(105)", "container", extra=" type=other"),
     "**RESOLUCIÓN MSC.496(105)**",
     "**APÉNDICE CERTIFICADOS**",
     "Los certificados que se reproducen a continuación se expiden en el formato siguiente.",
@@ -152,16 +139,16 @@ SOLAS = _doc(
 def test_the_boxes_of_a_model_certificate_are_not_articles():
     tree = parse_markdown(SOLAS)
     assert _articles(tree) == []
-    assert not any(n.repeated for n in _walk(tree))
-    forms = [n for n in _walk(tree) if n.refers_to == "#form"]
+    assert not any(n.repeated for n in walk(tree))
+    forms = [n for n in walk(tree) if n.refers_to == "#form"]
     # the first certificate has its own heading, the second only the placeholder
     assert len(forms) == 2
     assert forms[0].num.startswith("MODELO DE CERTIFICADO")
     assert forms[1].num == "SE CERTIFICA"
 
 
-LEAD_IN = _doc(
-    _marker(1, "ACUERDO", "other"),
+LEAD_IN = document_of(
+    marker(1, "ACUERDO", "other"),
     "**Artículo 1.-** Las partes convienen en cooperar.",
     "**Artículo 2.-** Las partes designan un Comité Ejecutivo.",
     "Artículos que se refieren al Comité Ejecutivo",
@@ -172,8 +159,8 @@ LEAD_IN = _doc(
 
 def test_a_plain_lead_in_line_opens_a_division_when_the_numbers_start_over():
     tree = parse_markdown(LEAD_IN)
-    assert not any(n.repeated for n in _walk(tree))
-    divisions = [n for n in _walk(tree) if n.refers_to == "#division"]
+    assert not any(n.repeated for n in walk(tree))
+    divisions = [n for n in walk(tree) if n.refers_to == "#division"]
     assert len(divisions) == 1
     assert divisions[0].akn_type == "hcontainer"
     assert divisions[0].num == "Artículos que se refieren al Comité Ejecutivo"
@@ -183,16 +170,16 @@ def test_a_plain_lead_in_line_opens_a_division_when_the_numbers_start_over():
 def test_no_heading_no_division():
     # the same restart with nothing that can head it stays what rule S5 makes it:
     # a repeat, flagged on both articles, never merged or renumbered
-    text = _doc(
-        _marker(1, "ARTÍCULO 1", "article", numero=1, extra=' num="1"'),
+    text = document_of(
+        marker(1, "ARTÍCULO 1", "article", numero=1, extra=' num="1"'),
         "**Artículo 1.-** Primero.",
-        _marker(2, "ARTÍCULO 2", "article", numero=2, extra=' num="2"'),
+        marker(2, "ARTÍCULO 2", "article", numero=2, extra=' num="2"'),
         "**Artículo 2.-** Segundo.",
-        _marker(3, "ARTÍCULO 1", "article", numero=1, extra=' num="1"'),
+        marker(3, "ARTÍCULO 1", "article", numero=1, extra=' num="1"'),
         "**Artículo 1.-** Otra vez primero.",
     )
     tree = parse_markdown(text)
-    assert sum(1 for n in _walk(tree) if n.repeated) == 2
+    assert sum(1 for n in walk(tree) if n.repeated) == 2
 
 
 def test_the_start_of_a_series():
@@ -206,5 +193,5 @@ def test_the_start_of_a_series():
 def test_a_document_without_markers_is_read_as_before():
     plain = "**Artículo 1.-** Texto.\n\n**Artículo 2.-** Texto.\n"
     tree = parse_markdown(plain)
-    assert not [n for n in _walk(tree) if n.akn_type == "hcontainer"]
+    assert not [n for n in walk(tree) if n.akn_type == "hcontainer"]
     assert _articles(tree) == ["art_1", "art_2"]

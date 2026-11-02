@@ -20,23 +20,14 @@ import re
 
 from md2akn import parse_markdown
 from md2akn.units import coverage, text_units
-
-
-def _marker(orden, label, kind="other"):
-    return f'<!-- scjn:block orden={orden} numero=0 kind={kind} label="{label}" -->'
-
-
-def _walk(node):
-    yield node
-    for child in node.children:
-        yield from _walk(child)
+from .conftest import marker, walk
 
 
 def _resolution(orden, name, date, chapters, with_appendix=False, bold_parts=True):
     """One `RESOLUCIÓN` block as the API serves it: heading, recitals, operative
     paragraphs, an `ANEXO` and the chapters (each `(heading, [parts])`) it prints."""
     blocks = [
-        _marker(orden, name),
+        marker(orden, name),
         f"**{name}**",
         f"(adoptada el {date})",
         "**ENMIENDAS AL CONVENIO INTERNACIONAL PARA LA SEGURIDAD DE LA VIDA HUMANA EN EL MAR, 1974, ENMENDADO**",
@@ -60,8 +51,8 @@ def _resolution(orden, name, date, chapters, with_appendix=False, bold_parts=Tru
 
 def _doc():
     blocks = [
-        _marker(1, "ENCABEZADO", "header"), "**ACUERDO DE PUBLICACIÓN**",
-        _marker(2, "PARTE FINAL DEL ACUERDO", "other"), "Dado en la Ciudad de México.",
+        marker(1, "ENCABEZADO", "header"), "**ACUERDO DE PUBLICACIÓN**",
+        marker(2, "PARTE FINAL DEL ACUERDO", "other"), "Dado en la Ciudad de México.",
     ]
     blocks += _resolution(3, "RESOLUCIÓN MSC.404(96)", "19 de mayo de 2016",
                           [("II-2", ["A", "D", "G"]), ("III", ["A", "B"])])
@@ -128,7 +119,7 @@ def test_an_appendix_of_the_block_is_inside_its_annex_after_the_chapters():
 
 
 def test_no_part_or_annex_needs_a_numeric_suffix():
-    eids = [n.eId for n in _walk(parse_markdown(_doc()))]
+    eids = [n.eId for n in walk(parse_markdown(_doc()))]
     assert len(eids) == len(set(eids))
     assert not [e for e in eids if re.search(r"__(?:part|att|app)_[^_]*_\d+$", e)]
 
@@ -144,7 +135,7 @@ def test_an_annex_heading_is_not_loose_text_and_has_its_title():
 
 def test_an_untitled_annex_is_still_a_container_of_what_follows():
     doc = "\n\n".join([
-        _marker(1, "RESOLUCIÓN MSC.1(1)"), "**RESOLUCIÓN MSC.1(1)**", "RECORDANDO algo.",
+        marker(1, "RESOLUCIÓN MSC.1(1)"), "**RESOLUCIÓN MSC.1(1)**", "RECORDANDO algo.",
         "**ANEXO**", "**CAPÍTULO I**", "**DISPOSITIVOS**", "**PARTE A**", "Regla 1", "Texto.",
         "**CAPÍTULO II**", "**OTRO**", "**PARTE A**", "Regla 2", "Texto.",
     ]) + "\n"
@@ -157,9 +148,9 @@ def test_an_untitled_annex_is_still_a_container_of_what_follows():
 
 def test_the_next_marker_closes_everything_the_block_opened():
     doc = "\n\n".join([
-        _marker(1, "RESOLUCIÓN MSC.1(1)"), "**RESOLUCIÓN MSC.1(1)**", "RECORDANDO algo.",
+        marker(1, "RESOLUCIÓN MSC.1(1)"), "**RESOLUCIÓN MSC.1(1)**", "RECORDANDO algo.",
         "**ANEXO**", "**CAPÍTULO I**", "**DISPOSITIVOS**", "**PARTE A**", "Regla 1", "Texto.",
-        _marker(2, "RESOLUCIÓN MSC.2(2)"), "**RESOLUCIÓN MSC.2(2)**", "RECORDANDO algo.",
+        marker(2, "RESOLUCIÓN MSC.2(2)"), "**RESOLUCIÓN MSC.2(2)**", "RECORDANDO algo.",
         "**ANEXO**", "**CAPÍTULO I**", "**DISPOSITIVOS**", "**PARTE A**", "Regla 1", "Texto.",
     ]) + "\n"
     tree = parse_markdown(doc)
@@ -168,14 +159,14 @@ def test_the_next_marker_closes_everything_the_block_opened():
         annex = r.children[-1]
         assert _kids(annex, "chapter") == ["I"]
         assert _kids(annex.children[0], "part") == ["A"] if annex.children[0].akn_type == "chapter" else True
-    assert [n.eId for n in _walk(tree) if n.akn_type == "chapter"] == [
+    assert [n.eId for n in walk(tree) if n.akn_type == "chapter"] == [
         "hc_RESOLUCIÓN_MSC.1(1)__att_attachment__cap_I", "hc_RESOLUCIÓN_MSC.2(2)__att_attachment__cap_I"]
 
 
 def test_without_markers_nothing_is_a_labelled_block():
     stripped = "\n\n".join(b for b in _doc().split("\n\n") if not b.startswith("<!-- scjn:block"))
     tree = parse_markdown(stripped)
-    assert not any(n.akn_type == "hcontainer" for n in _walk(tree))
+    assert not any(n.akn_type == "hcontainer" for n in walk(tree))
 
 
 def test_an_annex_that_follows_an_empty_annex_is_inside_it():
@@ -183,7 +174,7 @@ def test_an_annex_that_follows_an_empty_annex_is_inside_it():
     title of the annex to the Convention / `APÉNDICE`: the second is the first's own text,
     and the first is not left an empty node."""
     doc = "\n\n".join([
-        _marker(1, "RESOLUCIÓN MSC.1(1)"), "**RESOLUCIÓN MSC.1(1)**", "RECORDANDO algo.",
+        marker(1, "RESOLUCIÓN MSC.1(1)"), "**RESOLUCIÓN MSC.1(1)**", "RECORDANDO algo.",
         "**ANEXO**", "**ENMIENDAS AL PROTOCOLO DE 1988**",
         "**ANEXO**", "**MODIFICACIONES Y ADICIONES AL ANEXO DEL CONVENIO**",
         "**APÉNDICE**", "**MODIFICACIONES AL APÉNDICE**", "Texto del apéndice.",
@@ -201,7 +192,7 @@ def test_an_annex_that_follows_an_empty_annex_is_inside_it():
 
 def test_an_annex_with_a_text_between_two_annexes_closes_the_first():
     doc = "\n\n".join([
-        _marker(1, "RESOLUCIÓN MSC.1(1)"), "**RESOLUCIÓN MSC.1(1)**", "RECORDANDO algo.",
+        marker(1, "RESOLUCIÓN MSC.1(1)"), "**RESOLUCIÓN MSC.1(1)**", "RECORDANDO algo.",
         "**ANEXO**", "**PRIMER ANEXO**", "Texto del primer anexo.",
         "**ANEXO**", "**SEGUNDO ANEXO**", "Texto del segundo anexo.",
     ]) + "\n"
@@ -215,9 +206,9 @@ def test_an_annex_with_nothing_structural_after_it_in_its_block_takes_the_blocks
     what the API serves in the blocks after it -- so they belong to the annex, which leaves
     the block (rule S8, narrowed by rule S4)."""
     doc = "\n\n".join([
-        _marker(1, "ACUERDO"), "**ACUERDO**", "Se aprueba el Reglamento.", "**ANEXO ÚNICO**",
-        _marker(2, "REGLAMENTO DE LA MATERIA"), "Reglamento de la materia",
-        _marker(3, "CAPÍTULO I", "container").replace("kind=container", "kind=container type=chapter num=\"I\""),
+        marker(1, "ACUERDO"), "**ACUERDO**", "Se aprueba el Reglamento.", "**ANEXO ÚNICO**",
+        marker(2, "REGLAMENTO DE LA MATERIA"), "Reglamento de la materia",
+        marker(3, "CAPÍTULO I", "container").replace("kind=container", "kind=container type=chapter num=\"I\""),
         "**CAPÍTULO I**", "**Artículo 1.-** Uno.",
     ]) + "\n"
     tree = parse_markdown(doc)

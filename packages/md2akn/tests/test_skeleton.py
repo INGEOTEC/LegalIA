@@ -33,6 +33,7 @@ from md2akn.skeleton import (
     es_numero_por_numero,
 )
 from md2akn.validate import CLASES_DOCUMENTADAS, _block_escapes, block_conformance
+from .conftest import walk
 
 M = "<!-- scjn:block "
 UNIT_FIXTURES = Path(__file__).parent / "fixtures_units"
@@ -45,12 +46,6 @@ def _bloque(orden, kind, label, body, num=None, numero=None, typ=None):
     if num:
         attrs += f' num="{num}"'
     return f'{M}{attrs} label="{label}" -->\n\n{body}\n'
-
-
-def _walk(node):
-    yield node
-    for child in node.children:
-        yield from _walk(child)
 
 
 def _ancestors(node):
@@ -194,7 +189,7 @@ def test_text_rules_never_open_a_node_above_the_root_of_the_block_they_read():
     marks = [m.start() for m in re.finditer(r"<!-- scjn:block ", text)] + [len(text)]
     roots = []
     for k in range(3):
-        inside = [n for n in _walk(tree) if marks[k] <= n.start_char < marks[k + 1]
+        inside = [n for n in walk(tree) if marks[k] <= n.start_char < marks[k + 1]
                   and n.akn_type not in ("act", "body")]
         root = inside[0]
         roots.append(root)
@@ -204,7 +199,7 @@ def test_text_rules_never_open_a_node_above_the_root_of_the_block_they_read():
     # The third block's chapter is a sibling of the first's, never inside it.
     assert roots[2].parent is roots[0].parent
     # Article 1 keeps its quoted heading as its own text, opening no container.
-    assert [n.akn_type for n in _walk(roots[1])].count("chapter") == 0
+    assert [n.akn_type for n in walk(roots[1])].count("chapter") == 0
 
 
 # -- the counters ------------------------------------------------------------------------

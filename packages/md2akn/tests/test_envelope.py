@@ -6,33 +6,26 @@ with no markers has none."""
 
 from md2akn import parse_markdown, text_units
 from md2akn.outline import es_bloque_de_envoltura, rangos_de_envoltura
-
-
-def _marker(orden, label, kind="other", extra=""):
-    return f'<!-- scjn:block orden={orden} numero=0 kind={kind}{extra} label="{label}" -->'
-
-
-def _doc(*blocks):
-    return "\n\n".join(blocks) + "\n"
+from .conftest import document_of, marker
 
 
 def _treaty():
-    return _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    return document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**ACTAS FINALES DE LA CONFERENCIA**\n\nTEXTO ORIGINAL.\n\nCARLOS SALINAS, Presidente, a sus habitantes, sabed:",
-        _marker(2, "FIRMA"),
+        marker(2, "FIRMA"),
         "El día tres de marzo el Plenipotenciario firmó ad referéndum las Actas Finales.",
-        _marker(3, "PROMULGACIÓN"),
+        marker(3, "PROMULGACIÓN"),
         "Por lo tanto, para su debida observancia, promulgo el presente Decreto.",
-        _marker(4, "PREÁMBULO", "preamble"),
+        marker(4, "PREÁMBULO", "preamble"),
         "Considerando las Resoluciones pertinentes, la Conferencia aprobó lo que sigue.",
-        _marker(5, "ARTÍCULO 1", "article", " numero=1"),
+        marker(5, "ARTÍCULO 1", "article", " numero=1"),
         "**Artículo 1.-** Las partes se comprometen a cooperar.",
-        _marker(6, "PARTE FINAL DEL ESTATUTO"),
+        marker(6, "PARTE FINAL DEL ESTATUTO"),
         "EN FE DE LO CUAL, los plenipotenciarios firman el presente Estatuto.",
-        _marker(7, "NOTIFICACIÓN"),
+        marker(7, "NOTIFICACIÓN"),
         "El Gobierno depositario notificó la ratificación a las demás partes.",
-        _marker(8, "PARTE FINAL DEL DECRETO PROMULGATORIO"),
+        marker(8, "PARTE FINAL DEL DECRETO PROMULGATORIO"),
         "La presente es copia fiel y completa de las Actas Finales.",
     )
 
@@ -66,12 +59,12 @@ def test_a_stray_promulgation_step_hanging_outside_the_decree_is_envelope():
     # the label is not in the table, so it stays compared; the table is the definition.
     units = text_units(parse_markdown(_treaty()), split_articles=False)
     assert not [u for u in units if "depositario" in u.text and u.envelope]
-    stray = _doc(
-        _marker(1, "ENCABEZADO", "header"),
+    stray = document_of(
+        marker(1, "ENCABEZADO", "header"),
         "**TRATADO**",
-        _marker(2, "ARTÍCULO 1", "article", " numero=1"),
+        marker(2, "ARTÍCULO 1", "article", " numero=1"),
         "**Artículo 1.-** Texto del artículo.",
-        _marker(3, "RATIFICACIÓN Y DEPÓSITO"),
+        marker(3, "RATIFICACIÓN Y DEPÓSITO"),
         "El instrumento de ratificación fue depositado ante el Secretario General.",
     )
     units = text_units(parse_markdown(stray), split_articles=False)

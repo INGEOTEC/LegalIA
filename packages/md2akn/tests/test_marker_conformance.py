@@ -18,16 +18,11 @@ from pathlib import Path
 
 from md2akn import parse_markdown, text_units
 from md2akn.validate import _block_escapes, block_conformance
+from .conftest import walk
 
 M = "<!-- scjn:block "
 FIXTURES = Path(__file__).parent / "fixtures"
 UNIT_FIXTURES = Path(__file__).parent / "fixtures_units"
-
-
-def _walk(node):
-    yield node
-    for child in node.children:
-        yield from _walk(child)
 
 
 def _real(disagreements):
@@ -56,10 +51,10 @@ def test_a_block_that_is_only_its_label_is_a_heading_and_never_compared():
     open a `section` (a `SECCIÓN` the SCJN never said) whose only content was that line,
     an `intro` unit that was compared."""
     tree = parse_markdown(ACTA)
-    block = next(n for n in _walk(tree) if n.num == "DISPOSICIONES PRELIMINARES")
+    block = next(n for n in walk(tree) if n.num == "DISPOSICIONES PRELIMINARES")
     assert block.akn_type == "hcontainer"
     assert block.eId == "hc_DISPOSICIONES_PRELIMINARES"
-    assert not [n for n in _walk(tree) if n.akn_type in ("section", "intro")]
+    assert not [n for n in walk(tree) if n.akn_type in ("section", "intro")]
     assert [a.eId for a in block.children] == [
         "hc_DISPOSICIONES_PRELIMINARES__art_1", "hc_DISPOSICIONES_PRELIMINARES__art_2"]
     units = _units(ACTA)
@@ -79,7 +74,7 @@ def test_the_label_line_is_found_case_accent_and_punctuation_blind():
     for line in ("Disposiciones preliminares", "**DISPOSICIONES  PRELIMINARES:**", "**Disposiciones Preliminares.**"):
         text = ACTA.replace("**DISPOSICIONES PRELIMINARES**", line)
         tree = parse_markdown(text)
-        assert not any(n.akn_type == "intro" for n in _walk(tree)), line
+        assert not any(n.akn_type == "intro" for n in walk(tree)), line
         assert [u.unit_type for u in _units(text)].count("heading") == 1, line
 
 
@@ -91,7 +86,7 @@ def test_a_numeral_before_the_label_is_part_of_the_heading():
         "Que el Tribunal considera lo siguiente.\n"
     )
     tree = parse_markdown(text)
-    block = next(n for n in _walk(tree) if n.akn_type == "hcontainer")
+    block = next(n for n in walk(tree) if n.akn_type == "hcontainer")
     assert [c.akn_type for c in block.children] == ["intro"]
     units = _units(text)
     assert [(u.unit_type, u.text) for u in units if u.unit_type == "heading"] == [
@@ -108,7 +103,7 @@ def test_a_line_that_only_starts_with_the_label_is_content():
         "Finalidad. Esta norma regula el servicio.\n"
     )
     tree = parse_markdown(text)
-    block = next(n for n in _walk(tree) if n.akn_type == "hcontainer")
+    block = next(n for n in walk(tree) if n.akn_type == "hcontainer")
     assert [c.akn_type for c in block.children] == ["intro"]
     assert not [u for u in _units(text) if u.unit_type == "heading"]
 
@@ -124,9 +119,9 @@ def test_what_the_court_prints_above_the_label_line_describes_that_heading():
         "**ARTÍCULO PRIMERO.** Publíquese.\n"
     )
     tree = parse_markdown(text)
-    block = next(n for n in _walk(tree) if n.akn_type == "hcontainer")
+    block = next(n for n in walk(tree) if n.akn_type == "hcontainer")
     assert block.start_char < min(c.start_char for c in block.children)
-    assert not [n for n in _walk(tree) if n.akn_type == "intro"]
+    assert not [n for n in walk(tree) if n.akn_type == "intro"]
     assert len(block.notes) == 2
     assert _real(block_conformance(tree)) == []
 
@@ -140,7 +135,7 @@ def test_the_caption_rule_does_not_take_the_label_line():
         "| SESIONES: | 6ª SESION ORDINARIA DE 2009 |\n\n| FECHA: | 17-VI-2009 |\n"
     )
     tree = parse_markdown(text)
-    table = next(n for n in _walk(tree) if n.akn_type == "table")
+    table = next(n for n in walk(tree) if n.akn_type == "table")
     assert not table.heading
     assert _real(block_conformance(tree)) == []
 
@@ -162,7 +157,7 @@ def test_a_trailing_annotation_belongs_to_the_block_it_was_read_in():
     )
     tree = parse_markdown(text)
     doc = tree.span.doc.text
-    a187, a188 = (n for n in _walk(tree) if n.akn_type == "article")
+    a187, a188 = (n for n in walk(tree) if n.akn_type == "article")
     # (the trailing annotation hangs from the deepest last node of the block, so that
     # the notes of the document are still read in the order they are printed)
     def notes_of(nodo):
@@ -195,7 +190,7 @@ def test_a_part_holds_the_titles_the_next_marker_opens():
         for i, (kind, attrs, line) in enumerate(blocks, 1)
     ) + "\n"
     tree = parse_markdown(text)
-    book = next(n for n in _walk(tree) if n.akn_type == "book")
+    book = next(n for n in walk(tree) if n.akn_type == "book")
     assert [(c.akn_type, c.num) for c in book.children] == [("part", "PRIMERA"), ("part", "SEGUNDA")]
     first, second = book.children
     assert [(c.akn_type, c.num) for c in first.children] == [("title", "PRIMERO"), ("title", "SEGUNDO")]
@@ -241,7 +236,7 @@ def test_a_part_whose_next_marker_is_an_article_keeps_the_document_reading():
         for i, (kind, attrs, line) in enumerate(blocks, 1)
     ) + "\n"
     tree = parse_markdown(text)
-    chapter = next(n for n in _walk(tree) if n.akn_type == "chapter")
+    chapter = next(n for n in walk(tree) if n.akn_type == "chapter")
     assert [c.num for c in chapter.children if c.akn_type == "part"] == ["A", "B"]
     assert block_conformance(tree) == []
 
@@ -262,7 +257,7 @@ def test_a_provision_block_is_one_text():
         for i, (kind, attrs, line) in enumerate(blocks, 1)
     ) + "\n"
     tree = parse_markdown(text)
-    assert not [n for n in _walk(tree) if n.akn_type == "attachment"]
+    assert not [n for n in walk(tree) if n.akn_type == "attachment"]
     body = next(c for c in tree.children if c.akn_type == "body")
     assert [(c.akn_type, c.num) for c in body.children] == [("chapter", "1.1"), ("chapter", "1.2")]
     assert block_conformance(tree) == []
@@ -319,7 +314,7 @@ def _real_snapshot(collection, key, name):
 
 def test_real_143097_first_compared_excerpt_is_article_1():
     tree = _real_snapshot("tratados", "143097", "05-06-2020.md")
-    block = next(n for n in _walk(tree) if n.num == "DISPOSICIONES PRELIMINARES")
+    block = next(n for n in walk(tree) if n.num == "DISPOSICIONES PRELIMINARES")
     assert block.akn_type == "hcontainer"
     assert [c.akn_type for c in block.children] == ["article", "article"]
     units = text_units(tree, split_articles=False)
@@ -334,7 +329,7 @@ def test_real_151973_an_index_titled_with_the_label_does_not_take_the_label_as_i
     """Reglamento 151973: the block labelled `CONTENIDO` opens with `**CONTENIDO**` and the
     index that follows it. The title line is the heading; the index is the `toc`."""
     tree = _real_snapshot("reglamentos", "151973", "20-10-2021.md")
-    block = next(n for n in _walk(tree) if n.eId == "hc_CONTENIDO")
+    block = next(n for n in walk(tree) if n.eId == "hc_CONTENIDO")
     assert [c.akn_type for c in block.children] == ["toc"]
     doc = tree.span.doc.text
     assert doc[block.start_char:block.children[0].start_char].rstrip().endswith("**CONTENIDO**")
@@ -397,7 +392,7 @@ def test_a_provision_block_keeps_its_own_ordinal_opener():
         "**SEGUNDO.-** Se aprueban los anexos.\n"
     )
     tree = parse_markdown(text)
-    articles = [n.eId for n in _walk(tree) if n.akn_type == "article"]
+    articles = [n.eId for n in walk(tree) if n.akn_type == "article"]
     assert articles == ["art_PRIMERO", "art_Primero", "art_Segundo", "art_SEGUNDO"]
-    assert not [n for n in _walk(tree) if n.akn_type == "attachment"]
-    assert not [n for n in _walk(tree) if n.repeated]
+    assert not [n for n in walk(tree) if n.akn_type == "attachment"]
+    assert not [n for n in walk(tree) if n.repeated]

@@ -24,6 +24,7 @@ import pytest
 from md2akn import parse_markdown
 from md2akn.units import coverage, text_units
 from md2akn.validate import _block_escapes, validate
+from .conftest import walk
 
 M = "<!-- scjn:block "
 
@@ -59,14 +60,8 @@ LFISAN = (
 )
 
 
-def _walk(node):
-    yield node
-    for child in node.children:
-        yield from _walk(child)
-
-
 def _find(tree, fragment):
-    return [n for n in _walk(tree) if fragment in n.eId]
+    return [n for n in walk(tree) if fragment in n.eId]
 
 
 def _loose_outside_transitorios(tree):
@@ -89,9 +84,9 @@ def test_the_text_of_a_block_after_a_decree_hangs_from_the_block_not_from_the_de
     # nothing of the block's text is a sibling of the block under the decree
     assert [c.akn_type for c in decree.children if c is not block] == ["content"] or \
         all(c is block or c.akn_type == "intro" for c in decree.children)
-    inside = {n.akn_type for n in _walk(block)} - {block.akn_type}
+    inside = {n.akn_type for n in walk(block)} - {block.akn_type}
     assert {"toc", "table"} <= inside
-    assert len([n for n in _walk(block) if n.akn_type == "table"]) == 2
+    assert len([n for n in walk(block) if n.akn_type == "table"]) == 2
 
 
 def test_i1_nothing_a_block_holds_escapes_it():
@@ -103,9 +98,9 @@ def test_i1_nothing_a_block_holds_escapes_it():
 
 def test_i1_is_checked_on_the_structure_and_notices_an_escape():
     tree = parse_markdown(LFISAN)
-    block = next(n for n in _walk(tree) if n.akn_type == "table"
+    block = next(n for n in walk(tree) if n.akn_type == "table"
                  and "MODIFICACIONES" in n.eId).parent
-    leaf = next(n for n in _walk(block) if n.akn_type == "table")
+    leaf = next(n for n in walk(block) if n.akn_type == "table")
     # re-parent a table of the block to the decree that holds the block: the exact
     # defect the owner reported
     block.children.remove(leaf)
@@ -124,7 +119,7 @@ def test_a_document_without_markers_has_no_blocks_and_no_violations():
 
 def test_a_caption_and_the_note_after_the_rows_belong_to_the_table():
     tree = parse_markdown(LFISAN)
-    tables = [n for n in _walk(tree) if n.akn_type == "table" and "MODIFICACIONES" in n.eId]
+    tables = [n for n in walk(tree) if n.akn_type == "table" and "MODIFICACIONES" in n.eId]
     assert [t.num for t in tables] == ["1", "2"]
     first = tables[0]
     assert first.heading.startswith("**A.** Tarifa para vehículos nuevos") \
@@ -136,7 +131,7 @@ def test_a_caption_and_the_note_after_the_rows_belong_to_the_table():
 
 def test_a_table_inside_an_article_is_not_a_node_and_the_article_is_one_excerpt():
     tree = parse_markdown(LFISAN)
-    assert not [n for n in _walk(tree) if n.akn_type == "table" and "art_3" in n.eId]
+    assert not [n for n in walk(tree) if n.akn_type == "table" and "art_3" in n.eId]
     article = tree.find("cap_I__art_3")
     assert "| Inferior | Superior | fija |" in article.text
     units = [u for u in text_units(tree, split_articles=False) if u.eId == "cap_I__art_3"]
@@ -176,8 +171,8 @@ def test_lines_before_the_heading_belong_to_the_container_the_block_opens():
         "[...]\n\n## Transitorios\n\n**Primero.** Entra en vigor.\n"
     )
     tree = parse_markdown(doc)
-    assert not [n for n in _walk(tree) if n.akn_type == "content" and n.text.strip() == "[...]"]
-    section = next(n for n in _walk(tree) if n.refers_to == "#transitorios")
+    assert not [n for n in walk(tree) if n.akn_type == "content" and n.text.strip() == "[...]"]
+    section = next(n for n in walk(tree) if n.refers_to == "#transitorios")
     assert "[...]" in section.text
     assert _loose_outside_transitorios(tree) == []
     assert _block_escapes(tree) == []
@@ -201,7 +196,7 @@ def test_an_index_ends_with_the_api_block_it_starts_in():
     tree = parse_markdown(doc)
     chapter = tree.find("cap_I")
     assert chapter is not None and chapter.parent.akn_type == "body"
-    toc = next(n for n in _walk(tree) if n.akn_type == "toc")
+    toc = next(n for n in walk(tree) if n.akn_type == "toc")
     assert "De las Autoridades" in toc.text
     assert "CAPITULO I" not in toc.text
     assert _loose_outside_transitorios(tree) == []
@@ -226,7 +221,7 @@ def test_text_after_an_index_in_the_same_block_is_the_introduction_of_its_contai
 
 
 def _numbers(tree):
-    return [(n.eId, n.num) for n in _walk(tree) if n.akn_type == "article"]
+    return [(n.eId, n.num) for n in walk(tree) if n.akn_type == "article"]
 
 
 def test_a_reference_line_that_names_an_article_is_not_an_opener():
@@ -238,7 +233,7 @@ def test_a_reference_line_that_names_an_article_is_not_an_opener():
     )
     tree = parse_markdown(doc)
     assert _numbers(tree) == []
-    assert not [n for n in _walk(tree) if n.repeated]
+    assert not [n for n in walk(tree) if n.repeated]
 
 
 def test_an_article_block_that_only_heads_numbered_provisions_opens_a_section():
@@ -259,13 +254,13 @@ def test_an_article_block_that_only_heads_numbered_provisions_opens_a_section():
             n += 1
             orden += 1
     tree = parse_markdown("\n\n".join(blocks) + "\n")
-    sections = [s for s in _walk(tree) if s.akn_type == "section"]
+    sections = [s for s in walk(tree) if s.akn_type == "section"]
     assert len(sections) == 4
-    assert [a.num for a in _walk(tree) if a.akn_type == "article"] == [str(i) for i in range(1, n)]
+    assert [a.num for a in walk(tree) if a.akn_type == "article"] == [str(i) for i in range(1, n)]
     assert all(s.heading and "Generalidades" in s.heading for s in sections)
     assert _block_escapes(tree) == []
     assert coverage(tree, text_units(tree)).uncovered_chars == 0
-    assert not [x for x in _walk(tree) if x.repeated]
+    assert not [x for x in walk(tree) if x.repeated]
 
 
 def test_a_lone_article_followed_by_a_provision_stays_an_article():
@@ -276,7 +271,7 @@ def test_a_lone_article_followed_by_a_provision_stays_an_article():
         "1. Las Comisiones deberán publicar los programas.\n"
     )
     tree = parse_markdown(doc)
-    assert not [s for s in _walk(tree) if s.akn_type == "section"]
+    assert not [s for s in walk(tree) if s.akn_type == "section"]
     assert tree.find("art_25") is not None
 
 
@@ -290,8 +285,8 @@ def test_a_numbered_provision_the_api_calls_other_is_an_article():
         "99.- Durante este período se hará la selección.\n"
     )
     tree = parse_markdown(doc)
-    assert [n.num for n in _walk(tree) if n.akn_type == "article"] == ["97", "98 (SIC)", "99"]
-    assert not [n for n in _walk(tree) if n.akn_type == "hcontainer"]
+    assert [n.num for n in walk(tree) if n.akn_type == "article"] == ["97", "98 (SIC)", "99"]
+    assert not [n for n in walk(tree) if n.akn_type == "hcontainer"]
     assert coverage(tree, text_units(tree)).uncovered_chars == 0
 
 
@@ -299,4 +294,4 @@ def test_a_numbered_provision_the_api_calls_other_is_an_article():
 def test_an_other_block_with_a_non_numeric_label_is_still_a_container(label):
     doc = f'{M}orden=1 numero=0 kind=other label="{label}" -->\n\nTexto del bloque.\n'
     tree = parse_markdown(doc)
-    assert [n.akn_type for n in _walk(tree) if n.akn_type == "hcontainer"] == ["hcontainer"]
+    assert [n.akn_type for n in walk(tree) if n.akn_type == "hcontainer"] == ["hcontainer"]
