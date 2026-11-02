@@ -4,6 +4,7 @@ against a `tmp_path` fixture, never a mocked `requests.get`. `TestOffline`
 at the bottom is the regression test for the disk-first contract itself:
 every reader still answers with `requests.get` monkeypatched to raise."""
 
+import functools
 import gzip
 import io
 import json
@@ -11,11 +12,13 @@ import os
 import tarfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import requests
 
 from scjn import release
+from scjn.cache import COLECCIONES_POR_ID
 
 
 def _hacer_tgz(archivos: dict) -> bytes:
@@ -1313,225 +1316,191 @@ class TestDescargaAssetsScjnReglamentosAvisaFaltantes(unittest.TestCase):
         self.assertFalse(any("104906.tgz" in m and "warning" in m for m in mensajes))
 
 
-class TestScjnLineamientos(unittest.TestCase):
-    """`scjn-lineamientos` (issue #222): the third id-keyed collection, a
-    thin set of wrappers over the same generic core `scjn-reglamentos`
-    already exercises above -- this class checks the wiring (right
-    subdirectory, right `coleccion` name, right exceptions), not the core
-    logic itself again."""
+def _por_coleccion(prueba):
+    """Run a `TestIdKeyedWrappers` test once per collection of `COLECCIONES_POR_ID`, each in a cache
+    directory of its own, as `prueba(self, nombre, cache, directorio_del_release, funciones)`."""
+
+    @functools.wraps(prueba)
+    def envuelta(self):
+        for nombre in COLECCIONES_POR_ID:
+            with self.subTest(coleccion=nombre):
+                release._MEMO_INDICE_POR_ID.clear()
+                cache = self.tmp / nombre
+                directorio, funciones = self._wrappers(nombre, cache)
+                prueba(self, nombre, cache, directorio, funciones)
+
+    return envuelta
+
+
+class TestIdKeyedWrappers(unittest.TestCase):
+    """The public wrappers of the three id-keyed collections (`scjn-reglamentos`, issue #220;
+    `scjn-lineamientos`, #222; `scjn-tratados`, #277) over the one generic core. Each wrapper is
+    a few lines, so this checks the *wiring* -- the right subdirectory, the right `coleccion`
+    name, the right exceptions and raise order -- once per collection in
+    `scjn.cache.COLECCIONES_POR_ID` instead of one hand-copied class per collection (issue #305:
+    it replaced `TestScjnLineamientos` and `TestScjnTratados`; the core's own logic is exercised
+    by the reglamentos classes above). A fourth collection is covered by adding its entry to
+    `COLECCIONES_POR_ID`, nothing here."""
+
+    #: The id used for a published instrument with text, and for a text-less one.
+    ID_CON_TEXTO = "1012"
+    ID_SIN_TEXTO = "7"
 
     def setUp(self):
         self.tmp = Path(__import__("tempfile").mkdtemp())
         self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
-        self.release_dir = self.tmp / "scjn-lineamientos"
-        self.release_dir.mkdir(parents=True)
-
-    def _publica_indice(self, instrumentos: dict):
-        payload = {"generado": "x", "coleccion": "lineamientos", "instrumentos": instrumentos}
-        (self.release_dir / release.ASSET_INDICE_GLOBAL).write_bytes(
-            gzip.compress(json.dumps(payload).encode("utf-8"))
-        )
-
-    def _publica_tgz(self, id_ordenamiento: str, **archivos):
-        (self.release_dir / f"{id_ordenamiento}.tgz").write_bytes(_hacer_tgz(archivos))
-
-    def test_construye_indice_global_lineamientos_no_lleva_codnota(self):
-        indice = release.construye_indice_global_lineamientos(
-            [{"id_ordenamiento": "180528", "nombre": "LINEAMIENTOS...", "snapshots": 1}],
-            generado="x",
-        )
-        self.assertEqual(indice["coleccion"], "lineamientos")
-        self.assertNotIn("codNota", indice)
-
-    def test_download_index_lee_el_publicado(self):
-        self._publica_indice({"180528": {"nombre": "LINEAMIENTOS...", "asset": "180528.tgz",
-                                          "snapshots": 1}})
-
-        indice = release.download_scjn_lineamientos_index(cache_dir=self.tmp)
-
-        self.assertEqual(indice["coleccion"], "lineamientos")
-        self.assertEqual(indice["instrumentos"]["180528"]["snapshots"], 1)
-
-    def test_download_corpus_lee_snapshots_ordenados(self):
-        self._publica_indice({"180528": {"nombre": "L", "asset": "180528.tgz", "snapshots": 1}})
-        self._publica_tgz("180528", **{"180528/12-06-2019.md": "**LINEAMIENTOS.**"})
-
-        resultado = release.download_scjn_lineamientos_corpus("180528", cache_dir=self.tmp)
-
-        self.assertEqual(resultado["id_ordenamiento"], "180528")
-        self.assertEqual(resultado["snapshots"][0]["markdown"], "**LINEAMIENTOS.**")
-
-    def test_corpus_sin_texto_lanza_sintextoenscjn(self):
-        self._publica_indice({"96090": {"nombre": "SIN TEXTO", "snapshots": 0}})
-
-        with self.assertRaises(release.SinTextoEnSCJN) as ctx:
-            release.download_scjn_lineamientos_corpus("96090", cache_dir=self.tmp)
-
-        self.assertEqual(ctx.exception.coleccion, "lineamientos")
-
-    def test_local_ids_lee_scjn_lineamientos_no_scjn_reglamentos(self):
-        (self.release_dir / "180528.tgz").write_bytes(b"x")
-        (self.tmp / "scjn-reglamentos").mkdir()
-        (self.tmp / "scjn-reglamentos" / "104906.tgz").write_bytes(b"x")
-
-        self.assertEqual(release.local_lineamientos_ids(self.tmp), ["180528"])
-
-    @patch("scjn.cache.descarga", return_value=b"bytes")
-    @patch("scjn.release._assets_scjn_lineamientos")
-    def test_download_assets_baja_al_subdirectorio_propio(self, mock_assets, mock_descarga):
-        mock_assets.return_value = {
-            "indice-global.json.gz": "https://x/indice-global.json.gz",
-            "180528.tgz": "https://x/180528.tgz",
-        }
-
-        resultados = release.download_scjn_lineamientos_assets(cache_dir=self.tmp)
-
-        self.assertEqual(
-            sorted(ruta.name for ruta, _ in resultados),
-            ["180528.tgz", "indice-global.json.gz"],
-        )
-        self.assertTrue((self.tmp / "scjn-lineamientos" / "180528.tgz").is_file())
-
-    def test_asset_not_cached_nombra_el_comando_de_lineamientos(self):
-        exc = release.AssetNotCached("180528.tgz", Path("/x"), coleccion="lineamientos")
-        self.assertEqual(
-            str(exc),
-            "'180528.tgz' is not cached under /x -- run "
-            "`scjn download --coleccion lineamientos --id 180528`",
-        )
-
-
-class TestScjnTratados(unittest.TestCase):
-    """`scjn-tratados` (issue #277): the fourth id-keyed collection, thin
-    wrappers over the same generic core `scjn-reglamentos` already exercises
-    -- this class checks the wiring (right subdirectory, right `coleccion`
-    name, right exceptions and raise order)."""
-
-    def setUp(self):
-        self.tmp = Path(__import__("tempfile").mkdtemp())
-        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp))
-        self.release_dir = self.tmp / "scjn-tratados"
-        self.release_dir.mkdir(parents=True)
         release._MEMO_INDICE_POR_ID.clear()
 
-    def _publica_indice(self, instrumentos: dict):
-        payload = {"generado": "x", "coleccion": "tratados", "instrumentos": instrumentos}
-        (self.release_dir / release.ASSET_INDICE_GLOBAL).write_bytes(
+    def _wrappers(self, nombre: str, cache: Path):
+        """`(release directory, namespace of the collection's public functions)`."""
+        directorio = cache / f"scjn-{nombre}"
+        directorio.mkdir(parents=True, exist_ok=True)
+        funciones = SimpleNamespace(
+            construye_indice=getattr(release, f"construye_indice_global_{nombre}"),
+            index=getattr(release, f"download_scjn_{nombre}_index"),
+            corpus=getattr(release, f"download_scjn_{nombre}_corpus"),
+            assets=getattr(release, f"download_scjn_{nombre}_assets"),
+            local_ids=getattr(release, f"local_{nombre}_ids"),
+            iter_current=getattr(release, f"iter_current_{nombre}"),
+        )
+        return directorio, funciones
+
+    def _publica_indice(self, directorio: Path, nombre: str, instrumentos: dict):
+        payload = {"generado": "x", "coleccion": nombre, "instrumentos": instrumentos}
+        (directorio / release.ASSET_INDICE_GLOBAL).write_bytes(
             gzip.compress(json.dumps(payload).encode("utf-8"))
         )
 
-    def _publica_tgz(self, id_ordenamiento: str, **archivos):
-        (self.release_dir / f"{id_ordenamiento}.tgz").write_bytes(_hacer_tgz(archivos))
+    def _publica_tgz(self, directorio: Path, id_ordenamiento: str, **archivos):
+        (directorio / f"{id_ordenamiento}.tgz").write_bytes(_hacer_tgz(archivos))
 
-    def test_construye_indice_global_tratados_no_lleva_codnota(self):
-        indice = release.construye_indice_global_tratados(
-            [{"id_ordenamiento": "1012", "nombre": "CONVENIO...", "snapshots": 1},
-             {"id_ordenamiento": "2", "nombre": "SIN TEXTO", "snapshots": 0}],
+    def test_every_collection_of_the_registry_is_covered_by_a_wrapper_set(self):
+        self.assertEqual(sorted(COLECCIONES_POR_ID), ["lineamientos", "reglamentos", "tratados"])
+
+    @_por_coleccion
+    def test_construye_indice_global_no_lleva_codnota_y_solo_indexa_asset_si_hay_texto(self, nombre, cache, directorio, f):
+        indice = f.construye_indice(
+            [{"id_ordenamiento": self.ID_CON_TEXTO, "nombre": "CON TEXTO", "snapshots": 1},
+             {"id_ordenamiento": self.ID_SIN_TEXTO, "nombre": "SIN TEXTO", "snapshots": 0}],
             generado="x",
         )
-        self.assertEqual(indice["coleccion"], "tratados")
+        self.assertEqual(indice["coleccion"], nombre)
         self.assertNotIn("codNota", indice)
-        self.assertEqual(indice["instrumentos"]["1012"]["asset"], "1012.tgz")
-        self.assertNotIn("asset", indice["instrumentos"]["2"])
+        self.assertEqual(indice["instrumentos"][self.ID_CON_TEXTO]["asset"], f"{self.ID_CON_TEXTO}.tgz")
+        self.assertNotIn("asset", indice["instrumentos"][self.ID_SIN_TEXTO])
 
-    def test_download_index_lee_el_publicado(self):
-        self._publica_indice({"1012": {"nombre": "CONVENIO", "asset": "1012.tgz", "snapshots": 1}})
+    @_por_coleccion
+    def test_download_index_lee_el_publicado(self, nombre, cache, directorio, f):
+        self._publica_indice(directorio, nombre, {
+            self.ID_CON_TEXTO: {"nombre": "X", "asset": f"{self.ID_CON_TEXTO}.tgz", "snapshots": 1}})
 
-        indice = release.download_scjn_tratados_index(cache_dir=self.tmp)
+        indice = f.index(cache_dir=cache)
 
-        self.assertEqual(indice["coleccion"], "tratados")
+        self.assertEqual(indice["coleccion"], nombre)
+        self.assertEqual(indice["instrumentos"][self.ID_CON_TEXTO]["snapshots"], 1)
 
-    def test_download_corpus_lee_snapshots_ordenados(self):
-        self._publica_indice({"1012": {"nombre": "C", "asset": "1012.tgz", "snapshots": 1}})
-        self._publica_tgz("1012", **{"1012/12-06-1951.md": "**ARTICULO I.**"})
+    @_por_coleccion
+    def test_download_corpus_lee_snapshots_ordenados(self, nombre, cache, directorio, f):
+        self._publica_indice(directorio, nombre, {
+            self.ID_CON_TEXTO: {"nombre": "X", "asset": f"{self.ID_CON_TEXTO}.tgz", "snapshots": 1}})
+        self._publica_tgz(directorio, self.ID_CON_TEXTO,
+                          **{f"{self.ID_CON_TEXTO}/12-06-1951.md": "**ARTICULO I.**"})
 
-        resultado = release.download_scjn_tratados_corpus("1012", cache_dir=self.tmp)
+        resultado = f.corpus(self.ID_CON_TEXTO, cache_dir=cache)
 
-        self.assertEqual(resultado["id_ordenamiento"], "1012")
+        self.assertEqual(resultado["id_ordenamiento"], self.ID_CON_TEXTO)
         self.assertEqual(resultado["snapshots"][0]["markdown"], "**ARTICULO I.**")
 
-    def test_corpus_orden_de_excepciones(self):
+    @_por_coleccion
+    def test_corpus_orden_de_excepciones(self, nombre, cache, directorio, f):
         # Cold cache: the *index* is what is missing first.
         with self.assertRaises(release.AssetNotCached) as ctx:
-            release.download_scjn_tratados_corpus("7", cache_dir=self.tmp)
+            f.corpus(self.ID_SIN_TEXTO, cache_dir=cache)
         self.assertIn("indice-global.json.gz", str(ctx.exception))
 
-        self._publica_indice({
-            "7": {"nombre": "SIN TEXTO", "snapshots": 0},
+        self._publica_indice(directorio, nombre, {
+            self.ID_SIN_TEXTO: {"nombre": "SIN TEXTO", "snapshots": 0},
             "8": {"nombre": "LISTADO", "asset": "8.tgz", "snapshots": 1},
         })
         # Listed with no asset -> SinTextoEnSCJN, never AssetNotCached.
         with self.assertRaises(release.SinTextoEnSCJN) as ctx:
-            release.download_scjn_tratados_corpus("7", cache_dir=self.tmp)
-        self.assertEqual(ctx.exception.coleccion, "tratados")
+            f.corpus(self.ID_SIN_TEXTO, cache_dir=cache)
+        self.assertEqual(ctx.exception.coleccion, nombre)
         # Listed with an asset not on disk -> AssetNotCached for the tarball.
         with self.assertRaises(release.AssetNotCached) as ctx:
-            release.download_scjn_tratados_corpus("8", cache_dir=self.tmp)
+            f.corpus("8", cache_dir=cache)
         self.assertIn("8.tgz", str(ctx.exception))
         self.assertNotIsInstance(ctx.exception, release.SinTextoEnSCJN)
 
-    def test_local_ids_lee_scjn_tratados_no_otra_coleccion(self):
-        (self.release_dir / "1012.tgz").write_bytes(b"x")
-        (self.tmp / "scjn-reglamentos").mkdir()
-        (self.tmp / "scjn-reglamentos" / "104906.tgz").write_bytes(b"x")
+    @_por_coleccion
+    def test_local_ids_lee_su_propio_subdirectorio_y_no_el_de_otra_coleccion(self, nombre, cache, directorio, f):
+        (directorio / f"{self.ID_CON_TEXTO}.tgz").write_bytes(b"x")
+        otra = "lineamientos" if nombre != "lineamientos" else "reglamentos"
+        (cache / f"scjn-{otra}").mkdir(exist_ok=True)
+        (cache / f"scjn-{otra}" / "104906.tgz").write_bytes(b"x")
 
-        self.assertEqual(release.local_tratados_ids(self.tmp), ["1012"])
+        self.assertEqual(f.local_ids(cache), [self.ID_CON_TEXTO])
 
-    @patch("scjn.cache.descarga", return_value=b"bytes")
-    @patch("scjn.release._assets_scjn_tratados")
-    def test_download_assets_baja_al_subdirectorio_propio(self, mock_assets, mock_descarga):
-        mock_assets.return_value = {
-            "indice-global.json.gz": "https://x/indice-global.json.gz",
-            "1012.tgz": "https://x/1012.tgz",
-        }
+    @_por_coleccion
+    def test_download_assets_baja_al_subdirectorio_propio(self, nombre, cache, directorio, f):
+        with patch("scjn.cache.descarga", return_value=b"bytes"), \
+                patch(f"scjn.release._assets_scjn_{nombre}") as mock_assets:
+            mock_assets.return_value = {
+                "indice-global.json.gz": "https://x/indice-global.json.gz",
+                f"{self.ID_CON_TEXTO}.tgz": f"https://x/{self.ID_CON_TEXTO}.tgz",
+            }
 
-        resultados = release.download_scjn_tratados_assets(cache_dir=self.tmp)
+            resultados = f.assets(cache_dir=cache)
 
-        self.assertEqual(
-            sorted(ruta.name for ruta, _ in resultados), ["1012.tgz", "indice-global.json.gz"]
-        )
-        self.assertTrue((self.tmp / "scjn-tratados" / "1012.tgz").is_file())
+        self.assertEqual(sorted(ruta.name for ruta, _ in resultados),
+                         [f"{self.ID_CON_TEXTO}.tgz", "indice-global.json.gz"])
+        self.assertTrue((cache / f"scjn-{nombre}" / f"{self.ID_CON_TEXTO}.tgz").is_file())
 
-    @patch("scjn.release._assets_de_partes", return_value={})
-    def test_assets_resuelve_la_serie_scjn_tratados(self, mock_partes):
-        release._assets_scjn_tratados()
+    @_por_coleccion
+    def test_assets_resuelve_la_serie_de_su_propio_release(self, nombre, cache, directorio, f):
+        with patch("scjn.release._assets_de_partes", return_value={}) as mock_partes:
+            getattr(release, f"_assets_scjn_{nombre}")()
 
-        self.assertEqual(mock_partes.call_args.args[0], "scjn-tratados")
+        self.assertEqual(mock_partes.call_args.args[0], f"scjn-{nombre}")
 
-    def test_asset_not_cached_nombra_el_comando_de_tratados(self):
-        exc = release.AssetNotCached("1012.tgz", Path("/x"), coleccion="tratados")
+    @_por_coleccion
+    def test_asset_not_cached_nombra_el_comando_de_su_coleccion(self, nombre, cache, directorio, f):
+        exc = release.AssetNotCached(f"{self.ID_CON_TEXTO}.tgz", Path("/x"), coleccion=nombre)
         self.assertEqual(
             str(exc),
-            "'1012.tgz' is not cached under /x -- run "
-            "`scjn download --coleccion tratados --id 1012`",
+            f"'{self.ID_CON_TEXTO}.tgz' is not cached under /x -- run "
+            f"`scjn download --coleccion {nombre} --id {self.ID_CON_TEXTO}`",
         )
 
-    def test_iter_current_tratados_lee_su_propio_subdirectorio(self):
-        self._publica_indice({
-            "1012": {"nombre": "CONVENIO", "asset": "1012.tgz", "snapshots": 2},
-            "7": {"nombre": "SIN TEXTO", "snapshots": 0},
+    @_por_coleccion
+    def test_iter_current_lee_su_propio_subdirectorio_y_salta_lo_que_no_tiene_texto(self, nombre, cache, directorio, f):
+        self._publica_indice(directorio, nombre, {
+            self.ID_CON_TEXTO: {"nombre": "X", "asset": f"{self.ID_CON_TEXTO}.tgz", "snapshots": 2},
+            self.ID_SIN_TEXTO: {"nombre": "SIN TEXTO", "snapshots": 0},
         })
         self._publica_tgz(
-            "1012",
-            **{"1012/22-05-1998.md": "**VIEJO.**", "1012/05-01-1999.md": "**NUEVO.**"},
+            directorio, self.ID_CON_TEXTO,
+            **{f"{self.ID_CON_TEXTO}/22-05-1998.md": "**VIEJO.**",
+               f"{self.ID_CON_TEXTO}/05-01-1999.md": "**NUEVO.**"},
         )
 
-        [tratado] = list(release.iter_current_tratados(cache_dir=self.tmp))
+        [instrumento] = list(f.iter_current(cache_dir=cache))
 
-        self.assertEqual(tratado["id_ordenamiento"], "1012")
-        self.assertEqual(tratado["markdown"], "**NUEVO.**")
-        self.assertEqual(tratado["nombre"], "CONVENIO")
-        self.assertNotIn("abrev", tratado)
+        self.assertEqual(instrumento["id_ordenamiento"], self.ID_CON_TEXTO)
+        self.assertEqual(instrumento["markdown"], "**NUEVO.**")
+        self.assertEqual(instrumento["nombre"], "X")
+        self.assertNotIn("abrev", instrumento)
 
     def test_reexportados_desde_el_paquete(self):
         import scjn
 
-        for nombre in (
-            "download_scjn_tratados_index", "download_scjn_tratados_corpus",
-            "download_scjn_tratados_assets", "local_tratados_ids", "iter_current_tratados",
-        ):
-            self.assertIn(nombre, scjn.__all__)
-            self.assertTrue(callable(getattr(scjn, nombre)))
+        for nombre in COLECCIONES_POR_ID:
+            for funcion in (f"download_scjn_{nombre}_index", f"download_scjn_{nombre}_corpus",
+                            f"download_scjn_{nombre}_assets", f"local_{nombre}_ids",
+                            f"iter_current_{nombre}"):
+                with self.subTest(funcion=funcion):
+                    self.assertIn(funcion, scjn.__all__)
+                    self.assertTrue(callable(getattr(scjn, funcion)))
         self.assertEqual(scjn.__version__, "0.5.1")
 
 
@@ -1615,20 +1584,3 @@ class TestIterCurrentPorId(ConCacheFixtureReglamentos):
         self.assertIsNone(instrumento["nombre"])
         self.assertIsNone(instrumento["materia"])
         self.assertEqual(instrumento["markdown"], "x")
-
-    def test_lineamientos_lee_su_propio_subdirectorio(self):
-        directorio = self.tmp / "scjn-lineamientos"
-        directorio.mkdir()
-        (directorio / release.ASSET_INDICE_GLOBAL).write_bytes(
-            gzip.compress(json.dumps({
-                "generado": "x", "coleccion": "lineamientos",
-                "instrumentos": {"31834": {"nombre": "LINEAMIENTOS", "asset": "31834.tgz",
-                                           "snapshots": 1}},
-            }).encode("utf-8"))
-        )
-        (directorio / "31834.tgz").write_bytes(_hacer_tgz({"31834/15-07-2008.md": "**L.**"}))
-
-        [lineamiento] = list(release.iter_current_lineamientos(cache_dir=self.tmp))
-
-        self.assertEqual(lineamiento["id_ordenamiento"], "31834")
-        self.assertEqual(lineamiento["nombre"], "LINEAMIENTOS")

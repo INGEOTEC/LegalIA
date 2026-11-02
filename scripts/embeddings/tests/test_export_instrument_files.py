@@ -39,6 +39,7 @@ import nearest_texts  # noqa: E402
 import prepare_umap_input  # noqa: E402
 from md2akn import parse_markdown, text_units  # noqa: E402
 from test_instrument_matrix import stub_corpus_reader  # noqa: E402
+from conftest import quiet
 
 REPO = Path(__file__).resolve().parents[3]
 MODEL = "Qwen/Qwen3-Embedding-4B"
@@ -311,10 +312,6 @@ DOCUMENTS = {
     ("lineamientos", "900"): ("LINEAMIENTOS P", "09-09-2021.md", None, LINEAMIENTOS),
     ("tratados", "700"): ("TRATADO X", "10-10-2017.md", None, TRATADO),
 }
-
-
-def quiet(*args):
-    pass
 
 
 def vector_of(sha: str):

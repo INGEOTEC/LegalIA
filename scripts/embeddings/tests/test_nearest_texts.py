@@ -27,10 +27,7 @@ import nearest_texts  # noqa: E402
 from test_instrument_matrix import (  # noqa: E402,F401
     COLLECTIONS, SLUG, bm25_computed, cache, computed, index_of, prepared,
     transitorio_work)
-
-
-def quiet(*args):
-    pass
+from conftest import quiet
 
 
 def run(work_dir, cache, **kwargs):

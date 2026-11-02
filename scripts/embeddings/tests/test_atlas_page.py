@@ -49,6 +49,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from test_instrument_matrix import (  # noqa: E402,F401
     cache, index_of, prepared, stub_umap, with_matrix)
+from conftest import quiet
 
 REPO = Path(__file__).resolve().parents[3]
 WEBSITE = REPO / "website"
@@ -1925,10 +1926,6 @@ def test_rendered_selection_draws_five_lines(rendered_page):
 
 
 # -- the explanation dialog over a toy site (issue #250) ---------------------- #
-
-def quiet(*args):
-    pass
-
 
 @pytest.fixture
 def toy_site(with_matrix, stub_umap, cache, tmp_path):

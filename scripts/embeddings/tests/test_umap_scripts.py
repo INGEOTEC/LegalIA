@@ -28,6 +28,7 @@ import project_umap  # noqa: E402
 import submit_umap  # noqa: E402
 
 import legalvec  # noqa: E402
+from conftest import write_units
 
 SLUG = "qwen3-0.6b"
 K = 4
@@ -60,19 +61,6 @@ def write_vectors(directory: Path, name: str, hashes) -> None:
         "vector": pa.array([[VALUES[h]] * K for h in hashes],
                             type=pa.list_(pa.float32())),
     }), directory / name)
-
-
-def write_units(directory: Path, coleccion: str, rows) -> None:
-    directory.mkdir(parents=True, exist_ok=True)
-    pq.write_table(pa.table({
-        "coleccion": pa.array([coleccion] * len(rows), type=pa.string()),
-        "clave": pa.array([r[0] for r in rows], type=pa.string()),
-        "nombre": pa.array([r[1] for r in rows], type=pa.string()),
-        "unit_type": pa.array([r[2] for r in rows], type=pa.string()),
-        "eId": pa.array([r[3] for r in rows], type=pa.string()),
-        "text_sha1": pa.array([r[4] for r in rows], type=pa.string()),
-        "text": pa.array([r[5] for r in rows], type=pa.string()),
-    }), directory / "units.parquet")
 
 
 @pytest.fixture

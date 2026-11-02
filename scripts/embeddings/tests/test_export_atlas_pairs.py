@@ -31,6 +31,7 @@ import export_atlas_pairs  # noqa: E402
 import instrument_matrix  # noqa: E402
 from test_instrument_matrix import (  # noqa: E402,F401
     COLLECTIONS, cache, index_of, prepared, transitorio_work, with_matrix)
+from conftest import quiet
 
 NOW = datetime(2026, 9, 23, 12, 0, tzinfo=timezone.utc)
 
@@ -45,10 +46,6 @@ LABELS = {
     ("900", "art_1"): ("PRIMERO", [], 0),
     ("900", "art_2"): ("SEGUNDO", [], 0),
 }
-
-
-def quiet(*args):
-    pass
 
 
 @pytest.fixture
