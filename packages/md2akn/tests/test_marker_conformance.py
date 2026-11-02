@@ -18,7 +18,7 @@ from pathlib import Path
 
 from md2akn import parse_markdown, text_units
 from md2akn.validate import _block_escapes, block_conformance
-from .conftest import walk
+from .conftest import units_of, walk
 
 M = "<!-- scjn:block "
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -27,10 +27,6 @@ UNIT_FIXTURES = Path(__file__).parent / "fixtures_units"
 
 def _real(disagreements):
     return [d for d in disagreements if not d.documented]
-
-
-def _units(text):
-    return text_units(parse_markdown(text), split_articles=False)
 
 
 ACTA = (
@@ -57,7 +53,7 @@ def test_a_block_that_is_only_its_label_is_a_heading_and_never_compared():
     assert not [n for n in walk(tree) if n.akn_type in ("section", "intro")]
     assert [a.eId for a in block.children] == [
         "hc_DISPOSICIONES_PRELIMINARES__art_1", "hc_DISPOSICIONES_PRELIMINARES__art_2"]
-    units = _units(ACTA)
+    units = units_of(ACTA)
     heading = next(u for u in units if u.unit_type == "heading")
     assert heading.text == "**DISPOSICIONES PRELIMINARES**"
     assert heading.eId == "hc_DISPOSICIONES_PRELIMINARES"
@@ -75,7 +71,7 @@ def test_the_label_line_is_found_case_accent_and_punctuation_blind():
         text = ACTA.replace("**DISPOSICIONES PRELIMINARES**", line)
         tree = parse_markdown(text)
         assert not any(n.akn_type == "intro" for n in walk(tree)), line
-        assert [u.unit_type for u in _units(text)].count("heading") == 1, line
+        assert [u.unit_type for u in units_of(text)].count("heading") == 1, line
 
 
 def test_a_numeral_before_the_label_is_part_of_the_heading():
@@ -88,7 +84,7 @@ def test_a_numeral_before_the_label_is_part_of_the_heading():
     tree = parse_markdown(text)
     block = next(n for n in walk(tree) if n.akn_type == "hcontainer")
     assert [c.akn_type for c in block.children] == ["intro"]
-    units = _units(text)
+    units = units_of(text)
     assert [(u.unit_type, u.text) for u in units if u.unit_type == "heading"] == [
         ("heading", "**III. CONSIDERANDOS**")]
     assert [u.text for u in units if u.unit_type == "intro"] == [
@@ -105,7 +101,7 @@ def test_a_line_that_only_starts_with_the_label_is_content():
     tree = parse_markdown(text)
     block = next(n for n in walk(tree) if n.akn_type == "hcontainer")
     assert [c.akn_type for c in block.children] == ["intro"]
-    assert not [u for u in _units(text) if u.unit_type == "heading"]
+    assert not [u for u in units_of(text) if u.unit_type == "heading"]
 
 
 def test_what_the_court_prints_above_the_label_line_describes_that_heading():
@@ -168,7 +164,7 @@ def test_a_trailing_annotation_belongs_to_the_block_it_was_read_in():
     assert a187.end_char <= doc.index(f"{M}orden=2") + 1
     assert _block_escapes(tree) == [] and block_conformance(tree) == []
     # the text of an article is what it was: annotations are never part of a unit's text
-    assert [u.text for u in _units(text) if u.unit_type == "article"][0].endswith("puede terminar.")
+    assert [u.text for u in units_of(text) if u.unit_type == "article"][0].endswith("puede terminar.")
 
 
 def test_a_part_holds_the_titles_the_next_marker_opens():

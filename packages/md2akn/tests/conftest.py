@@ -4,6 +4,7 @@ outline markers (`<!-- scjn:block ... -->`); they are not fixtures and not part 
 
 from pathlib import Path
 
+from md2akn import parse_markdown, text_units
 from md2akn.patterns import ARTICULO
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -37,3 +38,8 @@ def article_opener(line: str):
     `clasifica` matches against the line with its bold markers removed."""
     m = ARTICULO.match(line.replace("**", ""))
     return None if m is None else (m.group("num"), m.group("sep").strip())
+
+
+def units_of(markdown: str):
+    """The retrieval units of `markdown`, every article whole (`split_articles=False`)."""
+    return text_units(parse_markdown(markdown), split_articles=False)

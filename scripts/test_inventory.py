@@ -251,6 +251,14 @@ def parametrisable(tests: list[TestRecord], min_signature: int = 3) -> list[list
     return [g for g in groups.values() if len(g) > 1 and len({t.literals for t in g}) > 1]
 
 
+def _similar(first: str, second: str, ratio: float) -> bool:
+    """`difflib` similarity of two dumps, with the cheap upper bounds tried first: the helper
+    table has a few hundred entries and the full ratio is quadratic in the dump length."""
+    matcher = difflib.SequenceMatcher(None, first, second, autojunk=False)
+    return (matcher.real_quick_ratio() >= ratio and matcher.quick_ratio() >= ratio
+            and matcher.ratio() >= ratio)
+
+
 def shared_helpers(helpers: list[Helper], near: float = 1.0) -> list[list[Helper]]:
     """Helpers defined in more than one file of a suite with the same (``near`` = 1.0) or nearly
     the same (``near`` < 1.0, by ``difflib`` ratio of the dumps) normalised tree."""
@@ -272,9 +280,7 @@ def shared_helpers(helpers: list[Helper], near: float = 1.0) -> list[list[Helper
             cluster = [a]
             for j in range(i + 1, len(group)):
                 b = group[j]
-                if j not in used and b.file != a.file and (
-                        a.dump == b.dump
-                        or difflib.SequenceMatcher(None, a.dump, b.dump, autojunk=False).ratio() >= near):
+                if j not in used and b.file != a.file and (a.dump == b.dump or _similar(a.dump, b.dump, near)):
                     cluster.append(b)
                     used.add(j)
             if len({h.file for h in cluster}) > 1:
