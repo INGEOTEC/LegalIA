@@ -1758,7 +1758,7 @@ uv run --group viz python scripts/embeddings/export_instrument_files.py --work-d
   parsed again (`md2akn.parse_markdown`, `text_units(split_articles=False)`) and
   the result must equal the released rows — `(unit_type, eId, piece, text_sha1,
   start_char, end_char)` in order — or the run is a `SystemExit` naming the
-  instrument and the first differing position. There is no `--allow-mismatch`:
+  instrument and the first differing position. No flag lets a mismatch pass:
   issue #279 proved the re-parse reproduces the units, so a difference is a
   finding to report, not noise to skip.
 - **`files/<coleccion>/<clave>.json`**, short keys, the text stored once. `meta`:
@@ -2885,7 +2885,7 @@ only: the cited *article* is not resolved (renumbering, `Bis` articles and range
 are a project of their own).
 
 **Scoring** (`evaluate_citations.py` -- a script of its own rather than
-`evaluate_links.py --level row`, which would have had to carry a scorer, a mask and
+a row level of `evaluate_links.py`, which would have had to carry a scorer, a mask and
 a row join the instrument level never needs; it imports that script's bootstrap,
 McNemar test and instrument check). For each model's work directory: its own
 scorer (`scoring.scorer_for`: the exact cosine or BM25), the unit-row join, and

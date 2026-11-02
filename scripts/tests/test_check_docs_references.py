@@ -148,3 +148,9 @@ def test_rst_roles_and_automodule_are_read(tmp_path):
         ">>> scjn.api.not_checked_in_a_doctest\n"
     ))
     assert _kinds(report) == [("name", "scjn.api.Missing", False)]
+
+def test_the_real_repository_has_no_unresolved_reference():
+    report = checker.run(checker.ROOT)
+    failing = [f for f in report.findings
+               if f.document not in checker.HISTORY_DOCS and not f.history]
+    assert failing == [], "\n".join(f"{f.document}:{f.line} {f.kind} {f.text}" for f in failing)

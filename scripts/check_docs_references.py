@@ -362,7 +362,8 @@ def check_document(path: Path, repo: Repository, report: Report) -> None:
     pending = ""
     changelog_level = 0
     before = len(report.findings)
-    for number, raw in enumerate(path.read_text(encoding="utf-8").split("\n"), start=1):
+    lines = path.read_text(encoding="utf-8").split("\n")
+    for number, raw in enumerate(lines, start=1):
         heading = _HEADING.match(raw) if not in_fence else None
         if heading:
             level = len(heading.group(1))
@@ -401,7 +402,9 @@ def check_document(path: Path, repo: Repository, report: Report) -> None:
         for span in _spans(raw):
             _check_span(span, path, repo, report, number)
         for finding in report.findings[start:]:
-            finding.history = finding.history or bool(changelog_level) or bool(_GONE.search(raw))
+            # A sentence wraps: "... are deleted outright" may end a line before the name it says is gone.
+            window = " ".join(lines[max(number - 2, 0):number + 1])
+            finding.history = finding.history or bool(changelog_level) or bool(_GONE.search(window))
 
 
 def _check_span(span: str, path: Path, repo: Repository, report: Report, number: int) -> None:
