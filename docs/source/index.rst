@@ -50,8 +50,10 @@ order's sake, but nothing on this site documents its API any more.
      - `dofjson <https://pypi.org/project/dofjson/>`_
      - :doc:`dofjson_api`
    * - ``scjn``
-     - Client for the SCJN's SCOW JSON API and the disk-first reader for the
-       ``scjn-leyes`` release: a federal law's reform-dated snapshots.
+     - Client for the SCJN's SCOW JSON API, the writer of its Markdown
+       snapshots and the disk-first reader for the four SCJN releases
+       (``scjn-leyes``, ``scjn-reglamentos``, ``scjn-lineamientos``,
+       ``scjn-tratados``): an instrument's reform-dated snapshots.
      - |scjn_version|
      - `scjn <https://pypi.org/project/scjn/>`_
      - :doc:`scjn_api`
@@ -70,14 +72,15 @@ order's sake, but nothing on this site documents its API any more.
      - `document2md <https://pypi.org/project/document2md/>`_
      - `own repository <https://document2md.readthedocs.io/>`_
    * - ``md2akn``
-     - Segments a law's Markdown into a hierarchy labelled with Akoma
-       Ntoso's vocabulary. No dependency on the other four packages.
+     - Reads an instrument's Markdown into a hierarchy labelled with Akoma
+       Ntoso's vocabulary and cuts it into retrieval units. No dependency on
+       the other four packages.
      - |md2akn_version|
      - `md2akn <https://pypi.org/project/md2akn/>`_
      - :doc:`md2akn_api`
    * - ``legalvec``
      - Disk-first reader for this project's own vector releases: one
-       embedding per distinct text of all three SCJN corpora.
+       embedding per distinct text of the four SCJN corpora.
      - |legalvec_version|
      - `legalvec <https://pypi.org/project/legalvec/>`_
      - :doc:`legalvec_api`
@@ -87,7 +90,7 @@ How the packages relate
 
 ``dofjson`` is the only package that talks to SIDOF/``www.dof.gob.mx``;
 ``scjn`` is the only one that talks to the SCJN's SCOW API and reads the
-``scjn-leyes`` release, disk-first, into its own cache; ``nota2md`` depends
+four SCJN releases, disk-first, from its own cache; ``nota2md`` depends
 on both — building a note's Markdown off ``dofjson``, and matching a
 snapshot ``scjn`` reads back to the DOF ``codNota`` that produced it
 (:py:mod:`nota2md.linking`, the one SCJN-adjacent concern that needs both
@@ -102,8 +105,8 @@ either: it reads back the vector releases this project derives from
 (issue #227).
 
 .. graphviz::
-   :alt: How dofjson, scjn, nota2md and md2akn relate, the external systems
-         each one talks to, and document2md in its own repository.
+   :alt: How dofjson, scjn, nota2md, md2akn and legalvec relate, the external
+         systems each one talks to, and document2md in its own repository.
 
    digraph legalia_flow {
        rankdir=LR;
@@ -116,14 +119,16 @@ either: it reads back the vector releases this project derives from
        dofweb [label="www.dof.gob.mx", style="rounded,dashed", fillcolor="#ffffff"];
        scjn_api_ext [label="SCJN SCOW API", style="rounded,dashed", fillcolor="#ffffff"];
        notas_archivo [label="notas-archivo release", style="rounded,dashed", fillcolor="#ffffff"];
-       scjn_leyes [label="scjn-leyes release", style="rounded,dashed", fillcolor="#ffffff"];
+       scjn_leyes [label="SCJN releases\n(leyes, reglamentos,\nlineamientos, tratados)", style="rounded,dashed", fillcolor="#ffffff"];
+       vectors [label="*-vectors releases", style="rounded,dashed", fillcolor="#ffffff"];
        mineru [label="mineru\n(external OCR/layout)", style="rounded,dashed", fillcolor="#ffffff"];
 
        dofjson [label="dofjson\nDOF/SIDOF client"];
-       scjn [label="scjn\nSCOW API client,\nscjn-leyes reader"];
+       scjn [label="scjn\nSCOW API client,\nrelease readers"];
        nota2md [label="nota2md\nnote -> Markdown,\ncodNota linking, reform replay"];
        document2md [label="document2md\n(own repository)", style="rounded,dashed", fillcolor="#ffffff"];
-       md2akn [label="md2akn\nMarkdown -> Akoma Ntoso\nvocabulary tree"];
+       md2akn [label="md2akn\nMarkdown -> Akoma Ntoso\nvocabulary tree, units"];
+       legalvec [label="legalvec\nvector release reader"];
 
        sidof -> dofjson;
        dofweb -> dofjson [label="recovers days SIDOF loses"];
@@ -135,6 +140,8 @@ either: it reads back the vector releases this project derives from
        nota2md -> document2md [label="OCR fallback\n(pre-HTML-era notes)", style=dashed];
        document2md -> mineru;
        nota2md -> md2akn [label="Markdown"];
+       vectors -> legalvec;
+       md2akn -> vectors [label="units, embedded\noffline on a GPU", style=dashed];
    }
 
 API

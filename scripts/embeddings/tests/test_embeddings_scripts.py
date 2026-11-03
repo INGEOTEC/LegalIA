@@ -436,7 +436,7 @@ def test_build_rows_keys_a_reglamento_by_id_with_no_slug_and_no_codnota(monkeypa
 
 def test_build_rows_keys_a_treaty_by_id_and_reads_its_roman_articles(monkeypatch):
     # Issue #280: the fourth collection. A roman-numbered treaty gets article
-    # units (md2akn rule 10) and rule 8 stays off for it.
+    # units (md2akn rule B1) and rule B3 stays off for it.
     tratado = (
         "**ARTÍCULO I**\n\nUno.\n\n1. Primero.\n\n2. Segundo.\n\n**ARTÍCULO II**\n\nDos.\n"
     )

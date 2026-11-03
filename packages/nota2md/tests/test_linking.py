@@ -148,18 +148,16 @@ class TestEnlazaPorTitulo(unittest.TestCase):
 
 
 class TestTitleLinkStatus(unittest.TestCase):
-    def test_enlazado_cuando_hay_codnota(self):
-        self.assertEqual(linking.title_link_status(100, [100]), "linked")
-
-    def test_ninguno_sin_candidatos(self):
-        self.assertEqual(linking.title_link_status(None, []), "none")
-
-    def test_reclamado_cuando_el_unico_candidato_ya_fue_tomado(self):
-        self.assertEqual(linking.title_link_status(None, [100]), "claimed")
-
-    def test_ambiguo_con_varios_candidatos(self):
-        self.assertEqual(linking.title_link_status(None, [100, 200]), "ambiguous")
-
+    def test_each_state_of_a_title_link(self):
+        cases = (
+            ("linked when there is a codNota", 100, [100], "linked"),
+            ("none with no candidates", None, [], "none"),
+            ("claimed when the only candidate was already taken", None, [100], "claimed"),
+            ("ambiguous with several candidates", None, [100, 200], "ambiguous"),
+        )
+        for case, cod_nota, candidates, expected in cases:
+            with self.subTest(case):
+                self.assertEqual(linking.title_link_status(cod_nota, candidates), expected)
 
 class TestTitleMentionsName(unittest.TestCase):
     def test_reconoce_mencion_explicita_case_e_acento_insensible(self):

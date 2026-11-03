@@ -14,7 +14,7 @@ the two files with ``--compare``:
     uv run --group viz python scripts/embeddings/measure_loose.py --compare /tmp/before.json /tmp/after.json
 
 ``--other-labels`` tabulates, instead, the labels of the API blocks the SCJN
-marks `kind=other` (the vocabulary the container roles of rule 29 are drawn
+marks `kind=other` (the vocabulary the container roles of rule S8 are drawn
 from). Read-only; no network.
 """
 
@@ -81,7 +81,7 @@ def one(job):
 
 def other_labels(job):
     """The labels of an instrument's `other` blocks (digits folded), and how many of
-    them rule 29 gives each role, or `continuation` when rule 30 folds the block
+    them rule S8 gives each role, or `continuation` when rule S10 folds the block
     into the one before it."""
     collection, key, path = job
     out = collections.Counter()
@@ -171,7 +171,7 @@ def main(argv=None) -> int:
             ranked = sorted(table.items(), key=lambda item: -len(item[1]))
             print(f"{len(ranked)} distinct (collection, label) shapes, "
                   f"{sum(sum(v.values()) for v in table.values())} blocks")
-            print("-- blocks by role of rule 29 (continuation = rule 30)")
+            print("-- blocks by role of rule S8 (continuation = rule S10)")
             for c in sorted(by_role):
                 print(f"{c:13} " + ", ".join(f"{r} {n}" for r, n in by_role[c].most_common()))
             for (c, label), per in ranked[: 120]:

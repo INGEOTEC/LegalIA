@@ -32,102 +32,56 @@ class TestRatioSimilitudYGuardas(unittest.TestCase):
 
 
 class TestQuitaNotasEditoriales(unittest.TestCase):
-    def test_quita_la_nota_embebida_dentro_de_una_anotacion_de_reforma(self):
-        self.assertEqual(
-            text.quita_notas_editoriales(
-                "(REFORMADO [N. DE E. ESTE PÁRRAFO], D.O.F. 19 DE DICIEMBRE DE 2017)"
-            ),
-            "(REFORMADO, D.O.F. 19 DE DICIEMBRE DE 2017)",
-        )
+    #: `(what the case pins, paragraph, what is left of it)` -- one case per shape of editorial note
+    #: the SCJN prints (issue #305: a table instead of one test per case).
+    QUITA = (
+        ("a note embedded in a reform annotation",
+         "(REFORMADO [N. DE E. ESTE PÁRRAFO], D.O.F. 19 DE DICIEMBRE DE 2017)",
+         "(REFORMADO, D.O.F. 19 DE DICIEMBRE DE 2017)"),
+        ("the `N. DE . E.` variant",
+         "(ADICIONADA [N. DE . E. REUBICADA], D.O.F. 15 DE JUNIO DE 2007)",
+         "(ADICIONADA, D.O.F. 15 DE JUNIO DE 2007)"),
+        ("a paragraph that is only an editorial note",
+         '[N. DE E. TRANSITORIO DEL "DECRETO POR EL QUE SE REFORMA".]', ""),
+        ("a paragraph with the `NOTA n` marker",
+         "[NOTA 1. DE CONFORMIDAD CON EL ACUERDO EMITIDO POR EL CONSEJO.]", ""),
+        ("an all-capitals bracket with no marker",
+         "(REUBICADO [ANTES ARTICULO 57], D.O.F. 23 DE ENERO DE 2004)",
+         "(REUBICADO, D.O.F. 23 DE ENERO DE 2004)"),
+        ("a loose marker after an annotation already closed",
+         "(ADICIONADA, D.O.F. 14 DE NOVIEMBRE DE 2013) N. DE E. SÓLO EN "
+         "CUANTO AL CONTENIDO, PORQUE DEL ANÁLISIS DEL TEXTO ORIGINAL "
+         "PUBLICADO EL 2 DE AGOSTO DE 2006, SE APRECIA LA EXISTENCIA DE "
+         "ESTA FRACCIÓN.",
+         "(ADICIONADA, D.O.F. 14 DE NOVIEMBRE DE 2013)"),
+        ("a loose marker embedded before the annotation resumes",
+         "(REFORMADO N. DE E. ESTE PÁRRAFO, D.O.F. 21 DE FEBRERO DE 2018)",
+         "(REFORMADO, D.O.F. 21 DE FEBRERO DE 2018)"),
+        ("a paragraph wrapped in parentheses with no bracket marker",
+         "(NOTA 1: EL PLENO DE LA SUPREMA CORTE DECLARÓ LA INVALIDEZ.)", ""),
+        ("a parenthesised note after real text in the same paragraph",
+         "Artículo 58.- La música oficial del Himno Nacional es la "
+         "siguiente: (N. DE E., VÉASE D.O.F. 8 DE FEBRERO DE 1984)",
+         "Artículo 58.- La música oficial del Himno Nacional es la siguiente:"),
+        ("the bold of an already formatted paragraph is kept",
+         "**(REFORMADA [N. DE E. ADICIONADA], D.O.F. 15 DE ENERO DE 2026)**",
+         "**(REFORMADA, D.O.F. 15 DE ENERO DE 2026)**"),
+    )
 
-    def test_quita_la_nota_embebida_con_variante_n_de_punto_e(self):
-        self.assertEqual(
-            text.quita_notas_editoriales(
-                "(ADICIONADA [N. DE . E. REUBICADA], D.O.F. 15 DE JUNIO DE 2007)"
-            ),
-            "(ADICIONADA, D.O.F. 15 DE JUNIO DE 2007)",
-        )
+    #: Paragraphs that must come back untouched.
+    INTACTOS = (
+        ("a tariff formula between brackets", "El resultado de la fórmula [(S/365)+V * (I + D)] se aplica."),
+        ("a chemical name between brackets", "Se entiende por [4-nitro-3-(trifluorometil)fenilo] la substancia."),
+        ("`Nota 1` cited as a tariff note", "Mezclas previstas en la Nota 1 b) de este Capítulo."),
+        ("an already clean paragraph", "**(REFORMADA, D.O.F. 15 DE ENERO DE 2026)**"),
+    )
 
-    def test_deja_vacio_un_parrafo_que_es_enteramente_nota_editorial(self):
-        self.assertEqual(
-            text.quita_notas_editoriales(
-                '[N. DE E. TRANSITORIO DEL "DECRETO POR EL QUE SE REFORMA".]'
-            ),
-            "",
-        )
+    def test_quita_cada_forma_de_nota_editorial(self):
+        for caso, parrafo, esperado in self.QUITA:
+            with self.subTest(caso):
+                self.assertEqual(text.quita_notas_editoriales(parrafo), esperado)
 
-    def test_deja_vacio_un_parrafo_con_el_marcador_nota_n(self):
-        self.assertEqual(
-            text.quita_notas_editoriales(
-                "[NOTA 1. DE CONFORMIDAD CON EL ACUERDO EMITIDO POR EL CONSEJO.]"
-            ),
-            "",
-        )
-
-    def test_quita_un_corchete_sin_marcador_pero_todo_en_mayusculas(self):
-        self.assertEqual(
-            text.quita_notas_editoriales(
-                "(REUBICADO [ANTES ARTICULO 57], D.O.F. 23 DE ENERO DE 2004)"
-            ),
-            "(REUBICADO, D.O.F. 23 DE ENERO DE 2004)",
-        )
-
-    def test_no_toca_una_formula_arancelaria_entre_corchetes(self):
-        parrafo = "El resultado de la fórmula [(S/365)+V * (I + D)] se aplica."
-        self.assertEqual(text.quita_notas_editoriales(parrafo), parrafo)
-
-    def test_no_toca_un_nombre_quimico_entre_corchetes(self):
-        parrafo = "Se entiende por [4-nitro-3-(trifluorometil)fenilo] la substancia."
-        self.assertEqual(text.quita_notas_editoriales(parrafo), parrafo)
-
-    def test_no_confunde_la_nota_n_con_una_cita_de_nota_arancelaria(self):
-        parrafo = "Mezclas previstas en la Nota 1 b) de este Capítulo."
-        self.assertEqual(text.quita_notas_editoriales(parrafo), parrafo)
-
-    def test_quita_el_marcador_suelto_que_sigue_a_una_anotacion_ya_cerrada(self):
-        self.assertEqual(
-            text.quita_notas_editoriales(
-                "(ADICIONADA, D.O.F. 14 DE NOVIEMBRE DE 2013) N. DE E. SÓLO EN "
-                "CUANTO AL CONTENIDO, PORQUE DEL ANÁLISIS DEL TEXTO ORIGINAL "
-                "PUBLICADO EL 2 DE AGOSTO DE 2006, SE APRECIA LA EXISTENCIA DE "
-                "ESTA FRACCIÓN."
-            ),
-            "(ADICIONADA, D.O.F. 14 DE NOVIEMBRE DE 2013)",
-        )
-
-    def test_quita_el_marcador_suelto_embebido_antes_de_que_la_anotacion_reanude(self):
-        self.assertEqual(
-            text.quita_notas_editoriales(
-                "(REFORMADO N. DE E. ESTE PÁRRAFO, D.O.F. 21 DE FEBRERO DE 2018)"
-            ),
-            "(REFORMADO, D.O.F. 21 DE FEBRERO DE 2018)",
-        )
-
-    def test_deja_vacio_un_parrafo_envuelto_en_parentesis_sin_marcador_de_corchete(self):
-        self.assertEqual(
-            text.quita_notas_editoriales(
-                "(NOTA 1: EL PLENO DE LA SUPREMA CORTE DECLARÓ LA INVALIDEZ.)"
-            ),
-            "",
-        )
-
-    def test_quita_la_nota_entre_parentesis_que_sigue_a_texto_real_en_el_mismo_parrafo(self):
-        self.assertEqual(
-            text.quita_notas_editoriales(
-                "Artículo 58.- La música oficial del Himno Nacional es la "
-                "siguiente: (N. DE E., VÉASE D.O.F. 8 DE FEBRERO DE 1984)"
-            ),
-            "Artículo 58.- La música oficial del Himno Nacional es la siguiente:",
-        )
-
-    def test_conserva_la_negrita_de_un_parrafo_ya_formateado_al_limpiarlo(self):
-        self.assertEqual(
-            text.quita_notas_editoriales(
-                "**(REFORMADA [N. DE E. ADICIONADA], D.O.F. 15 DE ENERO DE 2026)**"
-            ),
-            "**(REFORMADA, D.O.F. 15 DE ENERO DE 2026)**",
-        )
-
-    def test_es_un_no_op_sobre_un_parrafo_ya_limpio(self):
-        parrafo = "**(REFORMADA, D.O.F. 15 DE ENERO DE 2026)**"
-        self.assertEqual(text.quita_notas_editoriales(parrafo), parrafo)
+    def test_no_toca_lo_que_no_es_una_nota_editorial(self):
+        for caso, parrafo in self.INTACTOS:
+            with self.subTest(caso):
+                self.assertEqual(text.quita_notas_editoriales(parrafo), parrafo)

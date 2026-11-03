@@ -1,2333 +1,466 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file guides Claude Code (claude.ai/code) in this repository. It says what the tree **is**, in the
+present tense. Why it became so, issue by issue, is in `docs/HISTORY.md`; the parser's rules are in
+`packages/md2akn/RULES.md`. A figure here is kept only when it defines the tree, and carries its date.
 
 ## What this is
 
-LegalIA is a monorepo of independently-versioned Python packages, developed by
-INGEOTEC, for analyzing legal texts in the Mexican context. The first target
-is the *Diario Oficial de la Federación* (DOF), Mexico's official gazette:
-over 1.2 million legal provisions published since 1917.
+LegalIA is a monorepo of independently-versioned Python packages, developed by INGEOTEC, for analyzing
+legal texts in the Mexican context. Two sources: the *Diario Oficial de la Federación* (DOF), Mexico's
+official gazette (over 1.2 million legal provisions since 1917, through `dofjson`), and the Supreme
+Court's (SCJN) consolidated texts of federal laws, regulations, guidelines and international treaties
+(through `scjn`). The DOF is the official source of legal text; the SCJN is not, and `fuente: scjn` in a
+provenance header means exactly that.
 
-## Packages (`packages/<name>/`)
+On top of the corpora sit retrieval units (`md2akn`), vectors (`legalvec` and `scripts/embeddings/`) and
+a public map of the instruments (the website's Atlas and Instruments pages).
 
-Each package has its own `pyproject.toml`, dynamic version (`<pkg>.__version__`),
-tests, and PyPI release — installed independently. Read order matters: they
-build on each other in this sequence.
+## Packages and read order
 
-- **`dofjson`** — client for SIDOF's undocumented JSON open-data service
-  (`sidof.segob.gob.mx`). Everything is reachable off the `dofjson` package
-  itself (`dofjson.get_nota`, `dofjson.get_notas`, ...) — never import
-  `dofjson.sidof`/`dofjson.dofweb` directly from another package. SIDOF
-  silently loses whole days (reports them as an empty, valid day, same as a
-  Sunday); `dofjson.dofweb` recovers those from `www.dof.gob.mx` and callers
-  never need to know which source actually answered (see `fuente` field).
-  Also streams the compact `codNota`+`titulo`+`fecha` record of every legal
-  provision ever published (`legal_provisions_titles`), off the on-disk cache
-  of the `notas-archivo` GitHub release — it writes no dataset of its own
-  (issue #166).
-- **`scjn`** — client for the SCJN's **SCOW JSON API** (`scjn.api`, the
-  backend of `legislacion.scjn.gob.mx/consulta/buscador`; replaced a legacy
-  WebForms crawler in issue #172, retired in #179) and the disk-first reader
-  for the `scjn-leyes` GitHub release it feeds (`scjn.release`): a federal
-  law's reform-dated snapshots, one tarball per law. Extracted out of
-  `nota2md`'s own modules (issue #206, done — see its own section below);
-  depends on nothing else in this monorepo, and nothing here imports back
-  from `nota2md`/`dofjson` (`packages/scjn/tests/test_boundary.py`'s own grep
-  enforces it). Three sibling id-keyed releases, `scjn-reglamentos` (issue
-  #220), `scjn-lineamientos` (issue #222) and `scjn-tratados` (issue #277),
-  share `scjn.release`'s own generic core since #222's Fase 0 — see their own
-  sections below for `download_scjn_reglamentos_*`/
-  `download_scjn_lineamientos_*`/`download_scjn_tratados_*` and
-  `SinTextoEnSCJN`.
-  Eight entry points for `scjn-leyes` itself, re-exported off the package: `download_scjn_leyes_index`/
-  `download_scjn_leyes_corpus`/`markdown_de_snapshot` (the release's readers,
-  by reverse index / whole law / one snapshot), `download_scjn_leyes_catalog`
-  (the federal-law catalogue — `abrev`+`nombre` off the index and
-  `actualizado` off each law's own `estado.json`, the seed that used to be
-  scraped from the Cámara de Diputados, read back rather than rebuilt; issue
-  #185), `iter_current_federal_laws` (a lazy iterator over the *current* text
-  of every federal law — one snapshot per law, the newest by
-  `fecha_publicacion`, without decoding the rest of that law's history; issue
-  #191), `local_slugs`/`download_scjn_leyes_assets`/`AssetNotCached` (the
-  disk-first cache: every reader raises `AssetNotCached` rather than
-  downloading — only `download_scjn_leyes_assets`, or the `scjn download`
-  CLI, talks to the network; issue #209). Its own cache directory
-  (`scjn.cache.CACHE_DIR`, `$SCJN_CACHE_DIR`) is separate from `nota2md`'s,
-  with a one-time migration out of the pre-#209 `nota2md` cache
-  (`scjn.cache.migrate_legacy_assets`, called from `nota2md download`).
-  Since issue #215 every law also carries the SCJN's own `materia`,
-  `vigencia` and `resumen` — per law, never per reform, so they live in that
-  law's `estado.json` and in the release index, and **not** in a snapshot's
-  provenance header (`vigencia` is about the law today, a snapshot about one
-  reform in the past); `download_scjn_leyes_catalog` and
-  `iter_current_federal_laws` return them with no extra request, which is
-  what makes `scjn-leyes` a classified corpus.
-  `scripts/fetch_federal_law_metadata.py` fills them in from the cached
-  release — one SCJN search per law, resolved by `idOrdenamiento` and never
-  by rank (issue #115, Hallazgo C) — and patches the published
-  `indice-global.json.gz` rather than rebuilding it from local scratch. The
-  API is public but has no stability contract, and the SCJN is still not an
-  official source of legal text: `fuente: scjn` means what it always did, the
-  DOF/SIDOF remains the official source.
-- **`nota2md`** — nine entry points, all re-exported off the package:
-  `legal_provisions` (one note → Markdown, `legal_provisions(codNota)` with no
-  other argument writing into `nota2md.cache.CACHE_DIR` and returning the
-  `Path` (issue #165); **by default the SCJN's
-  consolidated text of the whole law at that reform** when the `scjn-leyes`
-  release covers the `codNota`, else the DOF's own HTML/image/PDF source —
-  `source="dof"` forces the original source; issue #117),
-  `reconstruct_legal_provisions` (a law's current text, replayed from its own
-  reform decrees),
-  `fetch_daily_legal_provisions` (a whole day's legal provisions as one flat
-  list, each naming its edition — re-exported from `dofjson.api`, which is
-  where it lives since issue #180 collapsed it with
-  `legal_provisions_of_day`),
-  `get_document` (a `get_nota` record whose `cadenaContenido` is Markdown —
-  the one note→Markdown step, issue #170),
-  `legal_provisions_titles` (re-exported from `dofjson.titulos`),
-  `download_scjn_leyes_corpus`/`download_scjn_leyes_index`/
-  `download_scjn_leyes_catalog`/`iter_current_federal_laws` (the `scjn`
-  package's own readers, re-exported here unchanged for a caller — see
-  `scjn` above). Its own CLI's `download all` puts all five of the project's
-  GitHub releases on disk since issues #225 and #277 — `federal-laws`/
-  `federal-regulations`/`federal-guidelines`/`international-treaties` (the
-  four SCJN releases, into `scjn`'s own cache) plus `gazette-metadata`
-  (`notas-archivo`, into `dofjson`'s) — though `nota2md` still reads nothing
-  from `scjn-reglamentos`/`scjn-lineamientos`/`scjn-tratados` itself:
-  `download` only widens as a convenience downloader, it is not a new
-  Python-level dependency on any of those corpora. Depends on `scjn` for all of the above; `nota2md.linking` is
-  the one SCJN-adjacent concern that stays here instead — matching a
-  snapshot `scjn` reads back to the DOF `codNota` that produced it, and the
-  reverse (a `codNota` to the snapshot it produced, for `legal_provisions`'
-  own SCJN path) — because a `codNota` is a DOF concept, so this seam needs
-  both sides and cannot live one-way inside `scjn` (issue #206 section 5,
-  #208). `legal_provisions`' own derived output (a snapshot's extracted text,
-  a DOF note's Markdown) is cached on disk under `nota2md.cache.CACHE_DIR` —
-  `nota2md`'s own directory, deliberately not `dofjson`'s or `scjn`'s.
-- **`document2md`** — *not a package of this monorepo any more.* It OCRs a PDF
-  or a set of scanned images to Markdown via `mineru`, and lives in
-  https://github.com/INGEOTEC/document2md since issues #233/#234 (see its own
-  section below); here it is only `nota2md`'s optional `ocr` extra
-  (`document2md>=0.3.0`), imported lazily, and the read order is otherwise
-  unchanged. Only needed as `nota2md`'s OCR fallback for legal provisions
-  predating the HTML era (pre-1999ish) — a modern note only needs `dofjson` +
-  `nota2md`.
-- **`md2akn`** — segments a Mexican federal law's Markdown (what `nota2md`
-  produces) into a navigable hierarchy — articles inside their chapter,
-  fracciones inside their article — labelled with Akoma Ntoso's *vocabulary*
-  (`akn_type`, `eId`, `refersTo`). It reads Markdown and has no dependency on
-  the other packages, so it comes last in the read order. The project emits no
-  Akoma Ntoso XML anywhere: only the vocabulary is borrowed, and the earlier
-  XML converter that lived in `nota2md` was removed (issue #168).
-  `text_units()` (issue #218) is the retrieval-unit view the embedding work
-  builds on, under **thirteen** rules since issue #227 added two (#279 a tenth, #291 three more, below): **rule 8**, an
-  instrument that never writes `Artículo N` numbers its provisions
-  `**PRIMERO.-**` or `1.` / `2.1` instead, decided once per *document*
-  (`md2akn.structure.modo_sin_articulos`) and therefore incapable of changing
-  a law — proved, not argued: regenerating the 315 laws' `units.parquet` with
-  rule 8 on and rule 9 off reproduced the pre-#227 file to the byte, and the
-  release sweep asserts the gate is off for every law; and **rule 9**, no unit
-  over the cap — one still over it is cut again at paragraph boundaries, never
-  mid-sentence, with whatever cannot be cut (a single over-cap paragraph, or a
-  chapeau prefix rule 3 repeats) counted by `max_unit_chars`, `coverage()`'s
-  sibling invariant. `split_over_cap=False` reproduces the pre-#227 output.
+Each `packages/<name>/` has its own `pyproject.toml`, dynamic version (`<pkg>.__version__`), tests and
+PyPI release, and is installed independently. Read them in this order; each builds on the ones before.
+Versions are what `scripts/check_package_versions.py` reads: `dofjson`, `scjn` and `nota2md` 0.5.1 (PyPI has
+0.5.0), `md2akn` 0.5.1 and `legalvec` 0.2.0 (never published).
 
-- **`legalvec`** — the disk-first reader for this project's *own* vector
-  releases (issue #227's Fase 4, which is #218's Fase 3 widened to three
-  corpora, and to a fourth by #280): `scjn-leyes-vectors`,
-  `scjn-reglamentos-vectors`, `scjn-lineamientos-vectors`,
-  `scjn-tratados-vectors`, one embedding per distinct text of each
-  corpus. Deliberately not part of `scjn` — `scjn` means "client for the
-  Court", and these vectors are this project's own, derived on a GPU from a
-  specific model revision — and it imports nothing else in this monorepo
-  (`packages/legalvec/tests/test_boundary.py` greps for that), which is why
-  it can take `pyarrow` and `numpy`. Minimum surface:
-  `download_vectors_assets` (the only network, resolving a numbered release
-  series the way #223 does), `load_vectors` (an instrument's own file unioned
-  with the shared one, deduplicated by `text_sha1` — neither is usable
-  alone), `load_units`, `VectorSet`, `AssetNotCached`, `model_slug`, and its
-  own `$LEGALVEC_CACHE_DIR`. Since issue #239 it also has a console script,
-  `legalvec download` (an argparse front end over `download_vectors_assets`,
-  `--collection` defaulting to `all` — ~1.16 GB for the four releases, both
-  models — and one `--key` for all three collections, since `units.parquet`
-  has one uniform `clave` column) plus the strictly offline `legalvec
-  status`; both helpers stay private in `legalvec.cli`, so the public
-  surface above is unchanged, and the flags are English
-  (`--collection`/`--key`/`--refresh`) where `scjn`'s are Spanish. It is not
-  wired into `nota2md download all`: `nota2md` reads nothing from these
-  releases, and the boundary test says so.
+- **`dofjson`**: client for SIDOF's undocumented JSON open-data service (`sidof.segob.gob.mx`).
+  Everything is reachable off the package (`dofjson.get_nota`, `dofjson.get_notas`, ...); another package
+  never imports `dofjson.sidof`/`dofjson.dofweb` directly. SIDOF silently loses whole days (it reports
+  them as an empty, valid day, like a Sunday); `dofjson.dofweb` recovers them from `www.dof.gob.mx`, and
+  callers never need to know which source answered (the `fuente` field says). It streams the compact
+  `codNota`+`titulo`+`fecha` record of every legal provision ever published (`legal_provisions_titles`)
+  off the on-disk cache of the `notas-archivo` release, and writes no dataset of its own.
+- **`scjn`**: client for the SCJN's SCOW JSON API (`scjn.api`, the backend of
+  `legislacion.scjn.gob.mx/consulta`), the writer of the Markdown snapshots (`scjn.markdown`,
+  `scjn.outline`) and the disk-first reader of the four SCJN releases (`scjn.release`). It depends on
+  nothing else in the monorepo and nothing there is imported back from `nota2md`/`dofjson`
+  (`packages/scjn/tests/test_boundary.py` greps for it). Entry points for `scjn-leyes`:
+  `download_scjn_leyes_index`/`_corpus`/`_catalog`, `markdown_de_snapshot`, `iter_current_federal_laws`,
+  `local_slugs`, `download_scjn_leyes_assets`, `AssetNotCached`; the three id-keyed siblings have the same
+  names with `reglamentos`/`lineamientos`/`tratados` (`iter_current_*` included) and raise
+  `SinTextoEnSCJN` for an instrument with no text. Its CLI is `scjn download`.
+- **`nota2md`**: one DOF note to Markdown. `legal_provisions(codNota)` returns the SCJN's consolidated
+  text of the whole law at that reform when `scjn-leyes` covers the `codNota`, else the DOF's own
+  HTML/image/PDF source (`source="dof"` forces it); `reconstruct_legal_provisions` replays a law's current
+  text from its reform decrees; `fetch_daily_legal_provisions`, `get_document`, `legal_provisions_titles`
+  and the `scjn` readers are re-exported. `nota2md.linking` is the one SCJN-adjacent concern kept here:
+  it matches a snapshot to the DOF `codNota` that produced it, and a `codNota` is a DOF concept. Its
+  derived output is cached under `nota2md.cache.CACHE_DIR`, deliberately not `dofjson`'s or `scjn`'s.
+  `nota2md download all` fetches the five GitHub releases (`federal-laws`, `federal-regulations`,
+  `federal-guidelines`, `international-treaties`, `gazette-metadata`); `nota2md` itself reads only
+  `scjn-leyes` and `notas-archivo`.
+- **`md2akn`**: reads a Markdown instrument (what `scjn`/`nota2md` write) into a tree labelled with Akoma
+  Ntoso's *vocabulary* (`akn_type`, `eId`, `refersTo`; the project emits no Akoma Ntoso XML) and turns the
+  tree into retrieval units, `text_units()`. No dependency on another package. See "How md2akn reads a
+  document".
+- **`legalvec`**: disk-first reader for the project's own vector releases (`*-vectors`). Not part of
+  `scjn` ("the Court's client"): the vectors are derived on a GPU from a specific model revision. It
+  imports nothing else in the monorepo (grepped by `test_boundary.py`), which is why it may take `pyarrow`
+  and `numpy`. Surface: `download_vectors_assets` (the only network), `load_vectors`, `load_units`,
+  `VectorSet`, `AssetNotCached`, `model_slug`; console script `legalvec download`/`legalvec status`.
+  `nota2md download` does not fetch these releases.
+- **`document2md`** is not in this monorepo: it OCRs a PDF or scanned images to Markdown via `mineru` and
+  lives in https://github.com/INGEOTEC/document2md. Here it is only `nota2md`'s optional `ocr` extra
+  (`document2md>=0.3.0`), imported lazily, needed for notes predating the HTML era (pre-1999).
 
-**Data is never committed to git.** The SCJN corpus of consolidated law
-texts, `dofjson`'s notes archive, the vectors derived from either, and
-downloaded titles datasets all live only in GitHub releases (`scjn-leyes`,
-`notas-archivo`, `scjn-*-vectors`, `atlas-pairs`) or are `.gitignore`d local
-scratch directories (`/output/`, `/notas-archivo/`, `scripts/scjn/`,
-`scripts/legal_provisions/`, `/emb-run*/`, `/website/pages/atlas/pairs/`).
-Read them back via `download_scjn_leyes_corpus`/`download_scjn_leyes_index` /
-`legal_provisions_titles` (the latter over the cache `nota2md download
-gazette-metadata` populates), never by looking for a file in the repo.
+Decisions:
 
-**A law's reform history is the `scjn-leyes` release itself** (issue #187):
-each law's own `indice.json`, one entry per reform oldest-first with the
-`codNota` that published it, plus `indice-global.json.gz` inverting that by
-`codNota`. There is no separate history dataset any more —
-`download_legal_provisions_provenance_ids` and the `historial-legislativo`
-release's `leyes.tgz` are gone with the Diputados data they carried, with no
-shim. **"Reform N" now means the SCJN reform table's chronological order**,
-not Diputados' numbering; the two count different things and the old one is
-not reproduced or measured against.
+- A package is named after what it does, not after the corpus that first needed it.
+- A package leaves the monorepo only when it depends on no sibling and has its own release cadence.
+- A published package never carries a URL dependency; publish order is `scjn` and `dofjson` before the
+  `nota2md` release that raises their floor, and `document2md` before any `nota2md` whose `ocr` extra
+  requires it.
+- No source other than the SCJN and the DOF/SIDOF: the Cámara de Diputados (LeyesBiblio) is not a source.
+  The federal-law catalogue is the `scjn-leyes` release itself, and an `abrev` is that release's slug and
+  asset name, never re-derived.
+- "Reform N" of a law is the SCJN reform table's chronological order.
+- Only `leyes` has an `abrev`, an `actualizado` (`actualizado_scjn`, `actualizado_dof`), an `indice.json`
+  and DOF linking; reglamentos, lineamientos and tratados are keyed by `id_ordenamiento`
+  (`scjn.catalog.instrumento_key`) and have none.
 
-## Sources: SCJN + DOF only (issue #184, done)
+## Data is never committed: releases and caches
 
-**This section now describes the tree, not a direction.** All six phases
-landed (#185–#190): the catalogue was built from the SCJN and the DOF
-(`scripts/extract_scjn_titles.py`, itself retired by issue #210 once its
-job moved into each law's own `estado.json`),
-`download_legal_provisions_provenance_ids`
-and `nota2md.utils` are deleted, the `leyesmx` package and the
-four-collection abstraction are gone, and `.github/workflows/reformas.yml`
-with them. The decisions below are kept because they are the reasons, and
-because a grep for `diputados` in this repo now hits only history: read them
-before re-introducing anything they rule out.
+Corpora, vectors and derived datasets live only in GitHub releases or in gitignored local scratch
+(`/output/`, `/notas-archivo/`, `scripts/scjn/`, `/emb-run*/`, `/website/pages/atlas/pairs*/`, `/website/pages/instruments/files/`). Read them back
+through the readers above, never by looking for a file in the repository.
 
-The decision: every dependency on the Cámara de Diputados (LeyesBiblio) is
-removed, and federal-law functionality rests on the **SCJN** (the SCOW JSON
-API, `scjn.api` since issue #206/#207 moved it out of `nota2md`) plus the
-**DOF/SIDOF** (`dofjson`) alone. LeyesBiblio
-was three HTML page layouts whose markup changes without notice, and it was
-scraped for one thing: the initial seed of federal legislation — which laws
-exist, their name, their abbreviation.
-
-- **The seed is read, not rebuilt.** It is already published: the `scjn-leyes`
-  release's `indice-global.json.gz` carries every law's slug and `nombre`, the
-  slug *is* the `abrev` (`scjn.catalog.slug_instrumento`), and each
-  `<slug>.tgz` ships an `estado.json` recording the `actualizado` it was
-  crawled against. So `download_scjn_leyes_index` answers the question the
-  scraper used to. Existing `abrev` values are preserved **verbatim** — an
-  `abrev` is the release's slug and asset name, so re-deriving one would be a
-  breaking change dressed up as a cleanup.
-- **The source hierarchy does not change.** The DOF/SIDOF remains the official
-  source of legal text; the SCJN's consolidated texts keep their `fuente: scjn`
-  header, meaning exactly what it has always meant.
-- **Only the `leyes` collection survives.** Reglamentos, tratados and Normas
-  Oficiales Mexicanas are out of scope, so their code is deleted rather than
-  migrated — unused machinery still has to be read, tested and reasoned about.
-  With one collection left, the four-collection abstraction collapses:
-  `nota2md.utils`' `COLECCIONES`/`_ASSETS`/`_INDICES`/`_une_con_historial`, the
-  `--coleccion` flags of the SCJN scripts, `empaqueta_historial.py`'s asset
-  map, and the collection branches in what is now `scjn.catalog`/`scjn.api`.
-  The public
-  `download_legal_provisions_provenance_ids` was **deleted outright** in #187 —
-  no shim, no deprecation, no name kept for compatibility (changelog note in
-  `packages/nota2md/README.md` regardless of whether a version bump follows). A law's reform history then lives in the
-  `scjn-leyes` release itself (each law's `indice.json`, plus
-  `indice-global.json.gz`); no new dataset and no new asset is created for it.
-  Consequently the `historial-legislativo` release lost its `leyes.tgz` asset
-  (deleted in #190), while `reglamentos.tgz`, `normas.tgz` and `tratados.tgz`
-  stay downloadable, labelled by name in the release notes
-  (`.github/historial-legislativo.md`, which *is* the release body) as a
-  frozen record nothing in the repo can regenerate.
-- **Reform numbering is redefined, loudly.** "Reform N" becomes the SCJN reform
-  table's chronological order. It is not an attempt to reproduce Diputados'
-  numbering, and it is not measured against it — the old numbering is gone with
-  its source.
-- **No GitHub Action publishes SCJN-derived data.** That rule predates this
-  work and is written down in `scripts/empaqueta_scjn_leyes.py` (issue #115,
-  Hallazgo C: the SCJN's own search can return a completely wrong document for
-  an instrument, so a human decides what is safe to publish). This epic does
-  not get to override it — which is why `.github/workflows/reformas.yml` is
-  **deleted rather than repointed**, with no workflow replacing it. The leyes
-  rebuild becomes a manual publish, like `scjn-leyes` already is.
-
-Phases, each its own sub-issue, in order:
-
-| Phase | Issue | What it does |
-|---|---|---|
-| Fase 0 | #185 | Audit the Diputados footprint; read the seed already in `scjn-leyes` |
-| Fase 1 | #186 | `catalogo.json` without Diputados: discovery and `actualizado` |
-| Fase 2 | #187 | Reform history of leyes from SCJN + DOF |
-| Fase 3 | #188 | Replace `texto_vigente`'s ground truth for `reconstruct_legal_provisions()` |
-| Fase 4 | #189 | Delete `leyesmx`, the Diputados code, the collection abstraction |
-| Fase 5 | #190 | Delete the workflow; freeze the release; update the docs |
-
-## The `scjn` package: extracted from `nota2md` (issue #206, done)
-
-**This section now describes the tree, not a direction.** All six phases
-landed (#207–#212): the SCJN's transport, catalogue algebra, crawl state,
-provenance header and the `scjn-leyes` release's own readers all live in a
-new top-level package, `scjn` — read before `nota2md` in the read order
-above. The decisions below are kept as the reasons a later change should
-weigh against, not a task list still open.
-
-- **One-way dependency, enforced.** `scjn` imports neither `nota2md` nor
-  `dofjson` — a `codNota` is a DOF concept, so anything that needs both
-  sides (matching a snapshot to the DOF note that produced it) stays a layer
-  up, in `nota2md.linking` (issue #208). `nota2md` depends on `scjn`, never
-  the reverse; `packages/scjn/tests/test_boundary.py` greps for
-  `nota2md`/`dofjson` inside `scjn`'s own source so the direction cannot
-  regress silently.
-- **A pure move first, behaviour changes after.** Fase 1 (#207) relocated
-  `scjn.api` (the SCOW transport, formerly `nota2md.scjn_api`),
-  `scjn.catalog`, `scjn.state` and `scjn.header` (formerly parts of
-  `nota2md.scjn`) with no rename of existing Spanish identifiers and no
-  behaviour change — `nota2md.scjn` kept re-exporting every moved name until
-  Fase 3 deleted it. Fase 2 (#208) then moved `codNota` linking into its own
-  leaf module, `nota2md.linking`, breaking an import cycle
-  (`nota2md.builder` no longer needs a deferred import to reach it).
-- **The release readers became disk-first, with their own cache.** Fase 3
-  (#209) moved `scjn.release` here too: every reader
-  (`download_scjn_leyes_index`, `download_scjn_leyes_corpus`,
-  `download_scjn_leyes_catalog`, `iter_current_federal_laws`,
-  `markdown_de_snapshot`, `local_slugs`) now only ever reads
-  `scjn.cache.CACHE_DIR` (`$SCJN_CACHE_DIR`) — a directory separate from
-  `nota2md`'s, migrated once, automatically, out of the pre-#209 `nota2md`
-  cache (`scjn.cache.migrate_legacy_assets`, called from `nota2md download
-  federal-laws`/`all`, since `scjn` itself must never know `nota2md`'s cache
-  layout). A missing asset raises `AssetNotCached` instead of attempting a
-  download; only `download_scjn_leyes_assets` (and the `scjn download` CLI
-  built on it) talks to the network. `nota2md download federal-laws`/`all`
-  genuinely delegate to that downloader rather than reimplementing it.
-- **One record per law.** Fase 4 (#210) retired the separate `catalogo.json`
-  seeding the whole pipeline: each law's own `estado.json`
-  (`abrev`/`nombre`/`nombre_scjn`/`id_ordenamiento`/`actualizado_scjn`/
-  `actualizado_dof`/`actualizado`/`rastreado`/`enlazado`) is now the one
-  per-law record, migrated by a one-time, human-run backfill rather than
-  guessed at. `scripts/discover_federal_laws.py` replaced
-  `extract_scjn_titles.py --discover`: it reports a candidate new law and
-  stops, never writing state — a new federal law is a handful a year, and an
-  `abrev` is a release asset name, so adding one stays a human's decision.
-- **Completeness by row comparison, not just by date.** Fase 5 (#211) added
-  `scjn.state.reformas_faltantes`, diffing a law's whole reform table
-  against its on-disk snapshots — the only way to see a gap in the middle of
-  an otherwise current-looking law (`lfd` had 92 snapshots against 98
-  reforms, issue #178). The older date-only comparison
-  (`scjn.state.motivo_pendiente` with no `reformas` given) stays as an
-  explicit, cheaper, offline fallback — `fetch_scjn_legislacion.py
-  --solo-fecha` — not a default for a plan anyone acts on.
-  `actualizado_dof`/`actualizado_scjn` are not replaced by either mode: row
-  comparison catches a gap in an indexed table, the DOF half still catches a
-  reform the SCJN has not indexed at all yet (issue #124's `lfca`).
-- **Docs and packaging catch up last.** Fase 6 (#212) gave `scjn` its own
-  Read the Docs page (`docs/source/scjn_api.rst`, built to the same standard
-  as every other package's) and its first PyPI release
-  (`.github/workflows/publish-pypi.yml` already had `scjn-v*`/`scjn` since
-  Fase 1) — `nota2md`'s own next release has to go out at the same time or
-  after `scjn`'s, never before, or `pip install nota2md` breaks for everyone
-  outside this repo.
-
-Phases, each its own sub-issue, in order:
-
-| Phase | Issue | What it does |
-|---|---|---|
-| Fase 1 | #207 | Create the `scjn` package: transport, catalogue, state, header |
-| Fase 2 | #208 | Extract `codNota` linking into `nota2md.linking`; break the import cycle |
-| Fase 3 | #209 | Move the release readers to `scjn.release`, disk-first, own cache |
-| Fase 4 | #210 | One record per law: `estado.json` absorbs `catalogo.json` |
-| Fase 5 | #211 | Completeness by row comparison against the SCJN reform table |
-| Fase 6 | #212 | Docs, packaging, first PyPI release, this section |
-
-## The `scjn-reglamentos` corpus (issue #220, done)
-
-**Every federal *reglamento* the SCJN has** — 1087 instruments, keyed by
-`idOrdenamiento` — published as a sibling GitHub release alongside
-`scjn-leyes`. It reuses the crawl/packaging machinery `scjn-leyes` already
-has, narrowed to what this collection actually needs, rather than
-parameterising the `leyes` path itself.
-
-- **Inclusion rule**: `categoriaOrdenamiento == "REGLAMENTO"`, or any row of
-  the instrument's own reform table has `categoriaReforma == "REGLAMENTO"`.
-  The second half is load-bearing — it rescues 6 instruments the SCJN itself
-  classifies `ACUERDO (S)`/`ESTATUTO`/`RESULTADOS` (all six titled
-  "REGLAMENTO ..." regardless) while correctly rejecting the ~181 other
-  non-REGLAMENTO federal hits for the phrase "reglamento" (mostly acuerdos
-  generales of the CJF/INE that merely *reglamentan* something).
-- **No `abrev`, ever.** The SCJN reissues a reglamento as a brand-new
-  `idOrdenamiento` rather than as a reform of the previous one (137 of 1080
-  titles repeat, covering 355 distinct instruments), so any title-derived
-  key collides — `id_ordenamiento` is the only key the SCJN guarantees
-  stable, and it is what the corpus uses everywhere: directory name, asset
-  name, `indice-global.json.gz` key. `scjn.catalog.instrumento_key` (issue
-  #222's Fase 0; `reglamento_key` is kept as a working alias, see that
-  issue's own section below) is that key, not a slug of a title.
-- **No `actualizado`, no DOF linking, no `--actualiza` chain.** This corpus
-  is out of scope for DOF linking entirely (a future issue adds it, for
-  reglamentos and laws alike) — so its `estado.json` has no
-  `actualizado`/`actualizado_scjn`/`actualizado_dof`, no `nombre_scjn`
-  override, and there is nothing for `fetch_scjn_legislacion.py`'s
-  `--actualiza`/`--solo-fecha`/`--dof-only`/`--reintenta`/
-  `--sin-refrescar-catalogo` to feed — passing any of them with
-  `--coleccion reglamentos` is a `SystemExit`, not a silent no-op. The only
-  way to know an instrument needs (re)crawling is a row comparison against
-  the SCJN's own reform table (`scjn.state.reformas_faltantes`), which needs
-  no date at all.
-- **A sibling release, not a parameter — superseded by issue #222's Fase 0.**
-  Originally (this issue): `scjn.cache._SCJN_REGLAMENTOS_RELEASE` was a
-  second release tag under the same `CACHE_DIR`, and `scjn.release` gained
-  new, separate reader functions (`download_scjn_reglamentos_index`,
-  `download_scjn_reglamentos_corpus`, `local_reglamentos_ids`,
-  `download_scjn_reglamentos_assets`) rather than a `coleccion` parameter on
-  the existing `download_scjn_leyes_*` ones — "a third collection would mean
-  a third literal branch, not a new dict entry" (this section's own words,
-  before #222). That held for exactly one more collection: when
-  `scjn-lineamientos` (issue #222) made it a *third* id-keyed collection, a
-  third hand-duplicated ~226-line copy of index/corpus/local-ids/assets was
-  where duplication stopped paying, so #222's Fase 0 refactored the shared
-  shape (keyed by `id_ordenamiento`, no `abrev`, no `actualizado`, no DOF
-  link, no `indice.json`) into one private generic core plus a `Coleccion`
-  descriptor (`scjn.cache.Coleccion`/`REGLAMENTOS`/`LINEAMIENTOS`) and
-  ~4-line public wrappers per collection — see the `scjn-lineamientos`
-  section below for the shape this left behind. The four
-  `download_scjn_reglamentos_*`/`local_reglamentos_ids` names themselves did
-  not change, are still separate functions from their `leyes` counterparts,
-  and still ship no `codNota` section or per-instrument `indice.json` — only
-  what generated their bodies moved. `scjn.cli`'s `scjn download --coleccion`
-  is now dispatched through `scjn.cache.COLECCIONES_POR_ID` instead of a
-  hand-written per-flag two-way branch, so a further id-keyed collection
-  costs one dict entry, not a new literal branch.
-- **Discovery is a listing, seeding is separate from a full sweep's
-  freshness.** `scripts/discover_federal_reglamentos.py` pages the SCJN by
-  category and applies the reform-category rescue rule; unlike
-  `discover_federal_laws.py` it does **not** confirm candidates against the
-  DOF (there is no DOF link for this collection) and includes a one-time,
-  opt-in, exhaustive coverage audit (`--auditoria-cobertura`, ~7900 reform
-  tables, ~65 minutes) for an instrument whose title never says
-  "reglamento" at all. It reports and stops, same as `discover_federal_laws.py`;
-  `scripts/seed_federal_reglamentos.py` turns a reviewed list into
-  `estado.json` files, idempotently, never touching an instrument already
-  crawled. `fetch_scjn_legislacion.py --coleccion reglamentos` (plain crawl,
-  or `--plan` for the row-comparison plan) and
-  `scripts/empaqueta_scjn_coleccion.py --coleccion reglamentos` (packaging)
-  round out the pipeline — no automated publish, same as `scjn-leyes` (issue
-  #115, Hallazgo C). Since issue #222's Fase 0, the phrase-union paging, the
-  reform-category rescue rule and the coverage audit itself live in
-  `scjn.discovery` (shared with `scjn-lineamientos`), the seeding function
-  is shared too (`scripts/seed_federal_reglamentos.py --coleccion
-  {reglamentos,lineamientos}`), and packaging is the shared
-  `empaqueta_scjn_coleccion.py` — this script's own name and its
-  `--auditoria-cobertura` phrase list are the only `reglamentos`-specific
-  parts left.
-- **Published as a numbered series of release tags, since issue #223.**
-  Publishing the corpus on 2026-09-10 hit two GitHub limits neither this
-  issue nor `scjn-leyes` had come close to: a release holds at most 1000
-  assets (1082 tarballs + 3 more assets is 1085), and a release body at most
-  125 000 characters (`MANIFEST.md`'s 1082-row table is 179 749 bytes). So
-  the collection is `scjn-reglamentos`/`scjn-reglamentos-2` today — part 1
-  keeps the bare tag, a continuation adds `-<n>` — and `scjn.release`
-  resolves the whole series by asking GitHub directly, probing
-  `_tag_de_parte(base, 1)`, `(base, 2)`, ... until one 404s
-  (`_assets_de_partes`); nothing published or cached records a part count,
-  so a repartition can never desync from what GitHub actually serves. The
-  partition itself **is** recorded, at packaging time only
-  (`empaqueta_scjn_coleccion.py`'s own `partes.json`, local scratch, never
-  a release asset): today's split is arbitrary (whichever upload batches
-  happened to fail), so recomputing it from a sorted/hashed rule would
-  disagree with reality for hundreds of already-published assets. The same
-  multi-part resolution covers `scjn-leyes` too (one part today), so the
-  1000-asset wall stops being reglamentos-specific folklore.
-- **An instrument with no consolidated text ships no tarball (issue #222's
-  decision 6, applied retroactively).** 5 of the 1087 instruments have a
-  reform table where every row carries `tieneArticulos=false` — the SCJN
-  classifies and crawled them (their own `estado.json` has `rastreado`), but
-  serves no text at all. Before #222 these were indistinguishable from
-  "never crawled" and silently dropped from `indice-global.json.gz` (1082
-  entries, not 1087). Packaging (`empaqueta_scjn_coleccion.py`) now tells
-  the two apart purely from `rastreado`, indexes the 5 with `snapshots: 0`
-  and no `asset`, and lists them in `MANIFEST.md` under their own heading —
-  the published index grows from 1082 to 1087 entries, the only deliberate
-  change #222's Fase 0 makes to this already-published corpus's content.
-- **`nota2md download all` fetches it too, since issue #225.** A new
-  `nota2md download federal-regulations` subcommand (`--id`, repeatable,
-  never `--slug`) delegates to `download_scjn_reglamentos_assets`, and `all`
-  now includes it — `nota2md` itself still reads nothing from this corpus.
-
-## The id-keyed collection path, refactored (issue #222's Fase 0, done)
-
-`scjn-reglamentos` (issue #220) was implemented by deliberate duplication —
-"a sibling release, not a parameter" — because two collections were a
-defensible cost. `scjn-lineamientos` (below) made it a *third*, and a third
-~226-line copy of `scjn.release`'s index/corpus/local-ids/assets is where
-that duplication stops paying. Fase 0 refactored the shared shape instead,
-**behaviour-preserving against `scjn-reglamentos` as already published**
-(1087 instruments, 1082 tarballs, live since 2026-09-10) except for one
-deliberate change, decision 6 above (index 1082 → 1087).
-
-- **`scjn.cache.Coleccion`** (`dataclass(frozen=True)`, fields `nombre`,
-  `tag_base`, `subdirectorio`) describes an id-keyed collection's own
-  release-tag series and cache subdirectory; `REGLAMENTOS`/`LINEAMIENTOS`
-  are its two instances, and `COLECCIONES_POR_ID` maps a collection's name
-  to its descriptor for `scjn.cli`/`fetch_scjn_legislacion.py`/
-  `empaqueta_scjn_coleccion.py` to dispatch through. Deliberately **not**
-  the four-collection registry issue #189 deleted: it carries no
-  `_ASSETS`/`_INDICES`/`_une_con_historial` equivalent, no per-collection
-  behaviour flag, and `leyes` (its own `abrev`/`actualizado`/`indice.json`/
-  `notas/`/codNota-reverse-index path) is not, and will not be, described by
-  it — growing it to cover `leyes` too is the sign this abstraction went too
-  far.
-- **`scjn.release`** replaced ~226 hand-duplicated lines with one private
-  generic core — `_indice_global_por_id`, `_index_de_release`,
-  `_corpus_de_release`, `_local_ids_de_release`, `_download_assets_de_release`
-  — plus ~4-line public wrappers per collection
-  (`download_scjn_reglamentos_index`/`_corpus`/`_assets`,
-  `local_reglamentos_ids`, and the symmetric `_lineamientos` names below):
-  decision 7 keeps every published name exactly where it was, so nothing on
-  PyPI breaks and `@patch("scjn.release._assets_scjn_reglamentos")`-style
-  test mocking keeps working (the generic core takes the collection's own
-  "list assets" function as an explicit parameter rather than deriving it
-  from the descriptor, so Python's late-bound module-attribute lookup still
-  lets a test substitute it).
-- **`SinTextoEnSCJN`** (decision 10): raised by `download_*_corpus` for an
-  id listed in the index with `snapshots: 0` (no asset — decision 6) — a
-  sibling of `AssetNotCached`, never that class itself, so
-  `except AssetNotCached` keeps meaning exactly "not downloaded yet". The
-  raise order is part of the contract, not an implementation detail: a cold
-  cache raises `AssetNotCached` for the **index** first (`download_*_corpus`
-  must read it before it can tell a text-less id apart from a missing
-  tarball), and only once the index says an id has no asset does it raise
-  `SinTextoEnSCJN`; an id absent from the index, or one the index lists with
-  an asset that is not on disk, still raises `AssetNotCached` for the
-  tarball.
-- **`scjn.catalog.instrumento_key`** replaces `reglamento_key` as the
-  current name (`reglamento_key` stays a working alias — see that
-  function's own docstring); still just `str(entrada["id_ordenamiento"])`.
-- **`scjn.discovery`** is new library code extracted out of the
-  `reglamentos`-only `discover_federal_reglamentos.py` (issue #220):
-  `discover_by_category`/`candidates_outside_category`/
-  `rescue_by_reform_category` (the phrase-union listing plus the
-  reform-category rescue rule) and `coverage_audit` (the opt-in, one-time,
-  exhaustive sweep, decision 8) all take a target `categoria` and phrase
-  list as parameters instead of hardcoding REGLAMENTO, and are
-  unit-testable against a stub API with no network at all
-  (`packages/scjn/tests/test_discovery.py`). `discover_federal_reglamentos.py`
-  and `discover_federal_lineamientos.py` are now both thin argparse wrappers
-  naming their own category/phrases. The coverage audit caches every reform
-  table it fetches under `--cache-dir` (default `scripts/scjn/`, gitignored
-  scratch, never a release asset) so a sibling collection's own audit reuses
-  an already-swept instrument's table and re-applies its own `categoria`
-  predicate offline instead of paying for the same ~65-70 minute sweep
-  twice.
-- **`scripts/seed_federal_reglamentos.py`** and
-  **`scripts/empaqueta_scjn_coleccion.py`** are shared by both collections,
-  parameterised by `--coleccion`, replacing the `reglamentos`-only
-  `empaqueta_scjn_reglamentos.py`.
-- **`fetch_scjn_legislacion.py`**'s `rastrea_reglamentos`/`planea_reglamentos`
-  became `rastrea_por_id(coleccion, ...)`/`planea_por_id(coleccion, ...)`;
-  the `SystemExit` guard over the six `leyes`-only flags now checks
-  membership in `scjn.cache.COLECCIONES_POR_ID` instead of naming
-  `reglamentos`.
-
-Net effect, per issue #222: a further id-keyed collection costs one
-descriptor entry, four wrapper functions, one discovery wrapper script and
-its docs — not another ~800 duplicated lines.
-
-## The `scjn-lineamientos` corpus (issue #222, done)
-
-**Every federal *lineamiento* the SCJN has** — 163 instruments, keyed by
-`idOrdenamiento` — published as a sibling GitHub release alongside
-`scjn-leyes`/`scjn-reglamentos`, on the id-keyed collection path the section
-above refactored to make this collection cheap. A very small, very sparse
-corpus next to its siblings:
-
-| corpus | instruments | snapshots | snapshots/instrument |
+| release | what | key | produced by |
 |---|---|---|---|
-| `scjn-leyes` | 315 | 3707 | 11.77 |
-| `scjn-reglamentos` | 1087 | 2920 | 2.69 |
-| `scjn-lineamientos` | 163 | 173 | 1.07 (median 1, max 3) |
+| `scjn-leyes` | 315 federal laws, reform-dated snapshots, one tarball per law, `indice-global.json.gz` | `abrev` (slug) | `scripts/fetch_scjn_legislacion.py`, `scripts/empaqueta_scjn_leyes.py` |
+| `scjn-reglamentos` (series `-2`, ...) | 1,087 federal reglamentos | `id_ordenamiento` | `scripts/empaqueta_scjn_coleccion.py` |
+| `scjn-lineamientos` | 163 federal lineamientos | `id_ordenamiento` | same |
+| `scjn-tratados` (series `-2`, ...) | 1,455 international treaties (the SCJN's *ámbito* `TRATADOS INTERNACIONALES`, any category) | `id_ordenamiento` | same |
+| `notas-archivo` | the DOF notes archive, monthly | `codNota` | `.github/workflows/notas-archivo.yml` (the one release a workflow publishes) |
+| `scjn-leyes-vectors`, `scjn-reglamentos-vectors`, `scjn-lineamientos-vectors`, `scjn-tratados-vectors` (numbered series) | one embedding per distinct text, both models (Qwen3-Embedding 0.6B and 4B) | `clave` | `scripts/embeddings/package_vectors.py` |
+| `atlas-pairs` | the pair explanations behind each Atlas weight, three sets (0.6B, 4B, BM25) | pair | `scripts/embeddings/export_atlas_pairs.py` |
+| `atlas-instruments` | the Instruments page's per-instrument files (4B) | `coleccion/clave` | `scripts/embeddings/export_instrument_files.py` |
 
-- **Inclusion rule**: same shape as `reglamentos` — `categoriaOrdenamiento
-  == "LINEAMIENTOS"`, or any row of the instrument's own reform table has
-  `categoriaReforma == "LINEAMIENTOS"`. 159 by category, plus 4 rescued
-  (3 titled "LINEAMIENTOS ...", one a "MANUAL DE LINEAMIENTOS..." with a
-  single LINEAMIENTOS reform row and no text at all). None of the 159 has a
-  REGLAMENTO reform row, so the two id-keyed collections never overlap.
-- **No `abrev`, no `actualizado`, no DOF linking** — same reasoning as
-  `reglamentos` above, milder in degree (3 of 159 titles repeat, covering 6
-  records, against 137 of 1080), still non-zero, so `id_ordenamiento`
-  (`scjn.catalog.instrumento_key`) is the key regardless.
-- **37 of 163 have no consolidated text at all** (36 of the 159 category
-  members, plus the "MANUAL DE LINEAMIENTOS..." rescue) — 23% of this
-  corpus, against 5 of 1087 for `reglamentos`. Indexed with `snapshots: 0`
-  and no `asset` (decision 6, the same rule this issue wrote and applied
-  retroactively to `reglamentos` too), never silently dropped.
-- **`scripts/discover_federal_lineamientos.py`** is a thin wrapper over
-  `scjn.discovery`, naming `categoriaF=LINEAMIENTOS` and its own phrase
-  list; `scripts/seed_federal_reglamentos.py --coleccion lineamientos` and
-  `fetch_scjn_legislacion.py --coleccion lineamientos` (plain crawl, or
-  `--plan`) and `scripts/empaqueta_scjn_coleccion.py --coleccion
-  lineamientos` round out the pipeline — the same shared scripts
-  `reglamentos` uses, not new copies.
-- **Public reader names stay per-collection** (decision 7, symmetric with
-  `reglamentos`): `download_scjn_lineamientos_index`/`_corpus`/`_assets`,
-  `local_lineamientos_ids`, re-exported off `scjn` alongside their
-  `reglamentos` counterparts.
-- **No DOF linking, no automated publish** — unchanged from `reglamentos`
-  and issue #115, Hallazgo C: a human decides what is safe to publish, via
-  the `PUBLICAR.md` `empaqueta_scjn_coleccion.py` generates.
-- **The one-time coverage audit (decision 8) was written but not run in
-  this pass.** `scjn.discovery.coverage_audit` is fully implemented and
-  tested, and `discover_federal_lineamientos.py --auditoria-cobertura` is
-  ready to run (~65-70 minutes, ~8800 requests, sharing its cache with
-  `discover_federal_reglamentos.py --auditoria-cobertura` under
-  `scripts/scjn/`) — it was deliberately not executed as part of landing
-  this issue, given its cost; a human runs it later, once, whenever the
-  extra confidence is worth ~70 minutes against the live SCJN.
-- **`nota2md download all` fetches it too, since issue #225.** A new
-  `nota2md download federal-guidelines` subcommand (`--id`, repeatable,
-  never `--slug`) delegates to `download_scjn_lineamientos_assets`, and
-  `all` now includes it — `nota2md` itself still reads nothing from this
-  corpus.
+Corpus counts are those of the 2026-10-26 re-crawl. A release series is resolved by asking GitHub: a
+part keeps the bare tag, a continuation adds `-<n>`, and a reader probes `-1`, `-2`, ... until one 404s,
+so nothing records a part count (a release holds at most 1,000 assets and a body 125,000 characters).
+An instrument with no consolidated text is indexed with `snapshots: 0` and no tarball.
 
-## The `scjn-tratados` corpus (issue #277, done)
+Caches, one per package, none shared: `scjn.cache.CACHE_DIR` (`$SCJN_CACHE_DIR`, the four SCJN releases),
+`nota2md.cache.CACHE_DIR` (`$NOTA2MD_CACHE_DIR`, derived Markdown), `legalvec.cache` (`$LEGALVEC_CACHE_DIR`,
+the vector releases) and `dofjson.titulos.CACHE_DIR` (platformdirs; `notas-archivo`). Every reader reads
+only its cache and raises `AssetNotCached` rather than downloading; only `download_*_assets`,
+`scjn download`, `legalvec download` and `nota2md download` talk to the network. `nota2md`'s derived
+Markdown is keyed by file name and reused, so a rewritten snapshot needs `refrescar=True` or a deleted file.
 
-**Every international treaty the SCJN serves** — 1,455 instruments at
-discovery (2026-10-08; the planning measurement an hour earlier said 1,456,
-the SCJN moves), keyed by `idOrdenamiento` — published as a fourth sibling
-GitHub release alongside `scjn-leyes`/`scjn-reglamentos`/`scjn-lineamientos`,
-on the id-keyed path the section above refactored: **one descriptor entry
-(`scjn.cache.TRATADOS`), four wrapper functions plus `iter_current_tratados`,
-one discovery wrapper script and its docs** — the promise #222 made, kept.
+Decisions:
 
-- **Inclusion is by *ámbito*, not by category.** The SCJN does not classify
-  a treaty as a federal instrument: it carries `ambito == "TRATADOS
-  INTERNACIONALES"` (the `FEDERAL` hits of "tratado" are e.g. the *Ley sobre
-  la Celebración de Tratados*). A member is any instrument of that ámbito,
-  **any category** — CONVENIO, ACUERDO (S), CONVENCION, TRATADO, PROTOCOLO,
-  PROYECTO, ACTA, CODIGO, ESTATUTO, CONSTITUCION, ARREGLO, REGLAMENTO,
-  DECLARACION, CONGRESO, CARTA, PACTO, NOTA(S), MEMORANDUM, AVISO, REGLA (S),
-  DECRETO, BASES, MANDATO: 23 measured, every sampled oddity a genuine
-  international instrument (CODIGO = IMO safety codes, CONSTITUCION = of
-  international organisations, CONGRESO = Universal Postal Union decisions,
-  PROYECTO = ILO draft conventions). A category whitelist would have dropped
-  386 ACUERDO (S) and ~80 others. Confirmed with the repository owner.
-- **The search phrases only page, they never decide membership.**
-  `BusquedaFrase` has no "list everything" mode, so
-  `scripts/discover_federal_tratados.py` pages the ámbito with a union
-  (tratado, convenio, convencion, arreglo, carta, declaracion, pacto,
-  protocolo, **acuerdo**, de, a, la, y, para, el): "acuerdo" alone reaches 371
-  instruments nothing else does, "de" 49 more.
-- **No reform-category rescue and no coverage audit.** Both are predicates on
-  a reform row's category, and a reform row carries no ámbito, so neither can
-  say "international": `scjn.discovery.discover(..., categoria="",
-  ambito="TRATADOS INTERNACIONALES")` is the by-ámbito mode that skips both
-  (`auditoria_cobertura=True` with it is a `ValueError`; the script has no
-  `--auditoria-cobertura`). Instead `scjn.discovery.report_outside_ambito`
-  lets the script **report — under its own heading, never in the `--json` —
-  the instruments outside the ámbito whose own category is a treaty word**,
-  for a human: 119 at discovery (73 ESTATAL PROTOCOLO, 44 FEDERAL PROTOCOLO,
-  2 FEDERAL CONVENIO), every one a domestic protocol or inter-agency
-  agreement — none included. `discover`/`discover_by_category` gained an
-  `ambito: str = "FEDERAL"` keyword (every existing call is unchanged) and
-  every candidate carries `ambito`, recorded in `estado.json` through
-  `CAMPOS_SEMILLA`; the release index's `CAMPOS_METADATOS` does not gain it
-  (its own `coleccion` already says it), and **`Coleccion` gained no field**:
-  how membership is decided is a fact of the discovery script, not of the
-  reader.
-- **No `abrev`, no `actualizado`, no DOF linking, no `indice.json`** —
-  identical to the two siblings; `id_ordenamiento` is the key everywhere, an
-  instrument with no consolidated text is indexed with `snapshots: 0` and no
-  asset (decision 6), and the raise order is `AssetNotCached` for the index,
-  then `SinTextoEnSCJN`, then `AssetNotCached` for a listed tarball not on
-  disk (decision 10).
-- **A numbered series of release tags** (`scjn-tratados`, `scjn-tratados-2`,
-  ...), since ~1,450 tarballs are over GitHub's 1,000-asset cap — resolved by
-  `scjn.release._assets_de_partes` and planned by `empaqueta_scjn_coleccion.py`'s
-  `partes.json`, issue #223's machinery, unchanged.
-- **The pipeline was run in this issue; publishing was not.** Discover →
-  `seed_federal_reglamentos.py --coleccion tratados` → `fetch_scjn_legislacion.py
-  --coleccion tratados` (and `--plan`) → `empaqueta_scjn_coleccion.py
-  --coleccion tratados`, all into the gitignored `scripts/scjn/`, stopping at
-  `scripts/scjn/tratados-release/PUBLICAR.md`: a human runs it (issue #115,
-  Hallazgo C), so until then there is no `scjn-tratados` release on GitHub and
-  the docs page carries no live download example for it (same posture as
-  `scjn-lineamientos` before its own publication). The figures from the run
-  are in the issue's own comment, not here: they describe a day's crawl, not
-  the tree.
-- **`nota2md download international-treaties`** (`--id`, repeatable, never
-  `--slug`) delegates to `download_scjn_tratados_assets`, and `all` now
-  downloads **five** releases; `nota2md` still reads nothing from this
-  corpus. `scjn` went to 0.5.0 (new public names), `nota2md`'s unreleased
-  0.5.0 grew its README banner and its floor is now `scjn>=0.5.0`;
-  `find_scjn_table_instruments.py` takes its `--coleccion` choices from
-  `("leyes", *COLECCIONES_POR_ID)`.
-- **Out of scope, deliberately.** Vectors (`legalvec.cache.RELEASE_TAGS`,
-  `scripts/embeddings/build_units.py`'s `COLECCIONES`, a
-  `scjn-tratados-vectors` release), the Atlas, DOF linking (`codNota`,
-  `nota2md.linking`), `md2akn` rules for treaty structure (`ARTÍCULO I`
-  roman numerals, "FIRMA" blocks — a treaty that `text_units` mishandles is
-  a later issue's finding, not fixed here) and a website page.
+- **No workflow publishes SCJN-derived data** (issue #115, Hallazgo C: the SCJN's search can return a
+  completely wrong document for an instrument, so a human decides what is safe to publish). Every
+  packaging script writes a `PUBLICAR.md` for a human and uploads nothing. Only `notas-archivo` is built
+  by a workflow, and `website.yml` only *downloads* releases.
+- A release the page or `legalvec download` needs must exist **before** the pull request that needs it
+  merges: `website.yml` and `legalvec download` fail without it, on purpose.
+- A regenerated release is replaced in place (same tag, `--clobber`), and `package_vectors.py` lists the
+  assets a new set no longer contains.
+- Dedup of vectors is inside a collection, never across.
 
-### The retired SCJN *Buscador*, audited (issue #277)
+## The SCJN outline contract
 
-The SCJN's current legislation site is `legislacion.scjn.gob.mx/consulta`
-(headed *"La clave de la Corte"*, `https://legislacion.scjn.gob.mx/consulta/home`),
-read through the SCOW JSON backend `scjn.api` talks to; the legacy WebForms
-*Buscador* was retired in issue #179. The audit found exactly one live link
-left — `website/pages/leyes.ipynb` and its frozen
-`website/_freeze/pages/leyes/execute-results/html.json`, both edited
-**textually**, never re-executed (`freeze: true`, see "Commands") — and
-`packages/scjn/tests/test_site_references.py` now fails on any occurrence of
-the retired site's URL anywhere in the tree except
-`.github/migracion-diputados.md` and `.github/historial-legislativo.md` (frozen
-history) and the gitignored scratch (`.git/`, `.venv/`, `website/_site/`,
-`emb-run*/`, `scripts/scjn/`, `output/`). It lives in `packages/scjn/tests/`
-because CI runs only `pytest packages/<pkg>`, and skips with a reason outside
-the monorepo. Historical narrative that says the WebForms crawler was
-"retired"/"replaced" (`scjn/api.py`'s docstring, `fetch_scjn_legislacion.py`'s
-header, the READMEs) stays as it is: it does not link the old site.
+The SCOW API serves an instrument's reform as ordered *blocks* (`orden`, `numero`, `referencia`,
+`contenido`, `tamanio`). `scjn` writes one marker line before each block that yields text:
 
-## A vector for every text of all three corpora (issue #227, done)
+    <!-- scjn:block orden=N numero=N kind=<kind> [type=] [num=] label="..." -->
 
-**This section describes the tree, not a direction.** All four phases landed
-in one branch: `md2akn`'s rules 8 and 9 (Fase 1), `scjn`'s
-`iter_current_reglamentos`/`iter_current_lineamientos` (Fase 2),
-`scripts/embeddings/`'s `--coleccion` and the six model × corpus runs on
-`cemieredes` (Fase 3), and the `legalvec` package plus the three releases'
-upload plans (Fase 4). Publishing stayed a human step, as issue #115's
-Hallazgo C requires — a person ran the `PUBLICAR.md`
-`scripts/embeddings/package_vectors.py` generates, and the three releases
-have been live since 2026-09-13 (which is what lets issue #239's CLI and the
-docs page's own download example fetch a real, tiny slice of one). No
-workflow publishes them, and `legalvec` has no PyPI release either.
+`kind` is one of header, recitals, preamble, toc, transitorios, decree, container, article, provision,
+other. The marker is an HTML comment on purpose: no character of the text changes, `strip_markers`
+returns the text byte for byte, and `markdown_de_snapshot(..., outline=False)` is what `nota2md` reads.
+The contract (`packages/md2akn/RULES.md`, layer W): every block that yields text has exactly one marker; a
+block that yields none (an editorial `N. DE E.` aside) leaves its `orden` as a gap the raw answer
+explains; a marker is metadata, never embedded.
 
-- **The unit contract of #218 was not renegotiated**, only extended: cap
-  2,000, the article as the unit, the chapeau-prefixed split, the `unit_type`
-  vocabulary, `normalize()`, `text_sha1` and `bare`/`contextual` are
-  unchanged, and rules 8 and 9 were *added* to the same numbered list and
-  recorded in each corpus' own `corpus-manifest.json`
-  (`split_over_cap`, `md2akn_version`, `instruments_by_numbering`,
-  `units_over_cap`/`units_over_cap_unsplittable`).
-- **Rule 8 is gated on the document, never on the pattern.** `ARTICULO_ORDINAL`
-  and the new `NUMERAL_DECIMAL` are read as article openers only where
-  `modo_sin_articulos` finds no `ARTICULO` match outside the transitorios.
-  Measured: rule 8 fires for 0 of 315 laws, 7 of 1,082 reglamentos and 83 of
-  126 lineamientos.
-- **`clave`, not `slug`, is what names a published file.** `units.parquet`
-  gained `coleccion` and `clave` (a law's slug, an `id_ordenamiento`
-  otherwise — #220's key, unchanged), and `merge_shards.py` writes
-  `vectors-<clave>-<model>-<K>.parquet`, so a reader never branches.
-  `slug`/`codNota` stay null for the id-keyed collections: there is no DOF
-  link for them and inventing one was out of scope.
-- **Dedup is inside a collection, never across them** (0.9 % saved, against a
-  shared file three independently republished corpora would all have to be
-  published against), one work directory per collection (`emb-run-<coleccion>/`,
-  gitignored), and **both models stay live** — #217's proxy evaluation has
-  not been run, so nothing has earned the right to drop the 4B, and the two
-  never share a file per instrument.
-- **Three releases, not one**, mirroring the three corpus releases;
-  `scjn-reglamentos-vectors` needs the numbered series #223 built (2,171
-  assets against GitHub's 1,000-asset cap), and `legalvec` resolves a series
-  by probing GitHub until a part 404s, recording a part count nowhere.
-- The run itself, on `cemieredes`' three A100s: 12 + 30 + 1 shards per model,
-  0 failed, weights downloaded and deleted per model. 381,349 distinct texts
-  across the three corpora, ~2.0 GB of vectors.
-- **Someone finally looked at them, in issue #241.** Four more scripts under
-  `scripts/embeddings/` — `prepare_umap_input.py`, `project_umap.py`,
-  `submit_umap.py`/`submit_umap.sh`, `build_umap_html.py`, plus a root
-  `[dependency-groups] viz` (`umap-learn`, `pynndescent`, `altair`,
-  `pandas`, `vl-convert-python`, deliberately not in `dev`) — fit UMAP on
-  **all** 381,349 of the
-  0.6B model's vectors, four `n_neighbors` configurations (16/32/64/128, the
-  shared `project_umap.DEFAULT_N_NEIGHBORS`; the earlier sweeps' 4/8 and
-  15/50/200 stay on disk and come back with `build_umap_html.py
-  --projections all`), one
-  exclusive CPU node each on a *different* Slurm cluster (`geoint`: three
-  ~60-core, ~245 GB nodes, no GPU, shared `/home`, so the jobs run this
-  repository's own `.venv`), and turn the result into one standalone
-  Vega-Lite HTML explorer — `scripts/embeddings/build_umap_html.py` is the
-  file that generates the page, and since the second pass the page says so
-  itself, in a footer naming the script, the commit, the date, the work
-  directory and the command line (the same record the `.vl.json` carries in
-  `usermeta.provenance`). **Exactly one instrument is highlighted at a time**
-  since the third pass — the last click wins, wired by clearing each
-  selection from the other view's marks
-  (`clear="dblclick, @centroids_1_marks:click"` and its mirror) and checked
-  by compiling the spec to Vega with `vl_convert`, which fails the build
-  rather than shipping a page whose two selections stay on at once; the
-  nearest-neighbour rings are off by default (`--neighbors 0`), off rather
-  than deleted, since the kNN table and `project_umap.py --knn` are
-  untouched. No sample, no fallback and no retry: a
-  configuration that dies is reported and the HTML is built from what
-  finished. Nothing derived is committed (`emb-run-umap/`, `output/`),
-  nothing in `packages/` changed, and no `legalvec` API was added — the
-  measured per-configuration table, the cluster's own facts, the mark legend
-  and why `nearest` is off (it makes Vega-Lite insert a Voronoi layer that
-  turns every overview tooltip into `undefined`) live in
-  `scripts/embeddings/README.md`.
-- **The instruments they belong to, in issue #242.** Two more
-  scripts in the same directory — `instrument_matrix.py` (one Slurm job,
-  `--submit`/`--wait`/`--report`/`--dry-run` in `submit_umap.py`'s style,
-  whose `queued_jobs` it imports) and `build_instrument_umap_html.py` —
-  answer, for **every unit row of every instrument but the headings and the
-  transitorios** (since #264), "which
-  *other* instrument owns the text nearest to this one?", and weigh the answers into
-  a directed 1,303 × 1,303 matrix (`emb-run-atlas/instrument-matrix/`, gitignored;
-  the instruments are the *unique* ones, see the Atlas page section below).
-  The rules are the issue's, not defaults: **headings are neither sources nor
-  candidates** (they match another instrument's identical reform-date heading
-  and say nothing about the relation), every other unit type counts;
-  every tied winner counts (1e-6 on float32 cosine, because identical texts
-  across collections tie exactly); **a unit row distributes a total weight of
-  1, `1/m` to each of the `m` instruments owning a winner**, so `A.sum()` is
-  the counted-row count (110,362 of 161,989 unit rows, after 28,568 headings,
-  21,344 transitorios and 1,715 shared word-for-word rows — the same in both
-  models) and every row sums to that
-  instrument's own counted rows — a boilerplate row credits each owner a
-  fraction instead of hundreds of cells a whole 1, and `A` counts articles
-  rather than article–instrument incidences; **a row whose winner is a
-  word-for-word match (`similarity >= 1 - 1e-6`) owned by several instruments
-  (`m > 1`) is not counted** — it adds nothing to `A` and is not re-credited
-  to a next-nearest text (`nearest.parquet` keeps it with `counted` false; an
-  identical winner with `m == 1` still counts); **a heading and a transitorio (its `path` holds a `TRANSITORIOS…` label,
-  Akoma Ntoso's `refersTo="#transitorios"`) are neither sources nor candidates
-  since issue #264** (`instrument_matrix.searched_mask`, imported by
-  `export_atlas_pairs.load` rather than copied; it replaced #259's rule that
-  dropped only a transitorio whose best match was a near-copy, now deleted) —
-  a text a transitorio shares with an article stays a candidate, owned by the
-  article's instrument alone; `nearest.parquet` marks each dropped row with a
-  `drop_reason` (null or `identical_shared`), and `matrix.json` records
-  `heading_rows_excluded`, `transitorio_rows_excluded` (headings counted
-  first), `identical_shared_dropped` and
-  `counted_rows` (`matrix.json`), which `atlas.json`'s `meta` carries; per unit row, so a
-  boilerplate article repeated *m* times counts *m*
-  times; and only columns owned *exclusively* by the source are masked — a
-  text it shares with another instrument is that unit's strongest foreign
-  neighbour, not something to hide. Exact cosine by blocked matmul, never
-  `neighbors.parquet`, whose k=15 cannot see past a 3,600-article code's own
-  articles. The rows are then L2-normalised and embedded (`n_neighbors`
-  4/8/16/32, `random_state=0` — seconds at this size, so a reproducible page
-  is worth the single-threaded fit) into
-  `output/umap-instruments-qwen3-0.6b.html`, where a click rings an
-  instrument and the five it points at hardest — the same five the tooltip
-  names, one `target N` row each, weight first. `build_umap_html`'s join and
-  footer helpers are **imported**, never copied, so the two pages cannot
-  disagree about which vector row a unit got.
-- **The website's Atlas reads one committed file, since issue #244.**
-  `scripts/embeddings/export_atlas_data.py` turns #242's outputs into
-  `website/pages/atlas/atlas.json` (~0.4 MB): `meta`, one short-keyed entry
-  per instrument (`c`/`k`/`n`, `p` = its **excerpts**, `pc` = its counted
-  excerpts, the matrix row sum — the export and the page say *excerpts*,
-  never *units* (the Python side's word) and never *provisions* (a DOF note
-  is a *legal provision* in this project, and a heading is not a rule), see
-  issue #271 — `in`, and `out`/`inc` as `[id, weight]` pairs from
-  `build_instrument_umap_html.strongest_targets` over the row and over the
-  column), and the four projections as `[x, y]` pairs. It is a pure read —
-  no refit, no `--force`, `matrix.npy`/`umap.parquet` untouched — and it is
-  the one derived file committed for the page, the same category as
-  `website/pages/data/scjn-leyes-summary.json` (a sub-MB summary the site
-  cannot be built without, not a corpus or a vector set). Regenerating it is
-  this exporter run by a human, never a workflow (issue #115, Hallazgo C);
-  `meta.commit` is provenance for the file and is never displayed;
-  `meta.unique_names` and `meta.duplicates_dropped` record the selection
-  below, and the exporter refuses a work directory prepared without it.
+- **Raw answers are kept.** Every reform's answer is stored gzipped (`scripts/scjn/raw-api/<c>/<key>/`,
+  local scratch), so the writer can change without a re-crawl (`scripts/rewrite_scjn_from_raw.py`).
+- **The completeness guard** (`scjn.api.ScjnApi.articulos_of_reforma`): an answer is complete when its
+  `orden` values are exactly `1..max` and it carries at least `tamanio` rows. An incomplete answer is
+  requested again and then refused with `ScjnApiIncompleteError`, so `descarga_ordenamiento` counts the
+  reform as failed and writes no file. A verbatim repeated row is dropped, first kept; two *different*
+  blocks sharing an `orden` both stay. An instrument is swapped in whole or not at all (a re-crawl
+  never half-updates one); three instruments of 2,920 are still refused as incomplete (`leyes/lft`,
+  `reglamentos/81587`, `reglamentos/67602`: the API's own data lacks those blocks) and keep their old files.
+- **Tables.** A tab-bearing block is a table: a blank line ends a row, a bare newline is a wrapped line
+  inside a cell, a run of tabs separates columns. One recovered row is one Markdown paragraph
+  `| cell | cell |`, with no header separator; an `Artículo N` lead on a tabbed line is never a row.
+- **Lead of an article.** `scjn.api._LEAD_ARTICULO` bolds the whole number (`**Artículo 1.1**:`,
+  `Artículo 2.A.1`).
+- **`scripts/verify_scjn_outline.py`** checks the contract over the four local corpora and their raw
+  answers, read-only: writer drift (rebuilt body against the one on disk), marker completeness,
+  attribute round-trip and text invariance. Exit 1 only on a round-trip or invariance violation, never
+  on drift or an explained gap. `scripts/measure_block_gaps.py` counts the snapshots whose `orden` markers
+  have a gap and which are explained. The shared fixture
+  `packages/md2akn/tests/fixtures_units/marker_vocabulary.json` is the bridge to `md2akn`, which imports
+  nothing from `scjn`.
 
-## A vector for every treaty (issue #280, done)
+## How md2akn reads a document
 
-The `scjn-tratados` corpus (#277) got its own vector release, and
-`scjn-reglamentos-vectors` was regenerated for the one instrument #279's rule
-reaches. **Nothing was published**: the two `PUBLICAR.md` files are for a human
-(issue #115, Hallazgo C), and `legalvec download` (default `--collection all`)
-**fails until the `scjn-tratados-vectors` series exists**, so both publishes
-must happen before the pull request merges — the posture `atlas-pairs` already
-has. No "skip a missing release" softening was added, on purpose.
+`packages/md2akn/RULES.md` is the specification, one layered list: **W** the writer's contract, **S** the
+skeleton the outline states, **B** the rules inside an API block, **U** the units. The design in one
+sentence: *the structure the SCJN states is the structure; the rules come after, inside it.*
 
-- **Four collections now.** `build_units.py --coleccion tratados` (keyed by
-  `id_ordenamiento`, `slug`/`codNota` null), `package_vectors.TAGS["tratados"]`,
-  `legalvec.cache.RELEASE_TAGS["tratados"]`, `legalvec` **0.2.0** (unpublished
-  on PyPI), three Spanish release bodies `.github/scjn-tratados-vectors{,-2,-3}.md`.
-  The Atlas, `prepare_umap_input.py`'s `COLLECTIONS`, `unique_instruments.py`
-  and `atlas-pairs` stay three-corpus: a treaty on the map is its own issue.
-- **Measured (2026-10-11):** 1,373 treaties with text, 41,335 units, 39,668
-  distinct texts (701 shared), 6 shards per model on the three A100s, 0 failed,
-  10 articles truncated at each model's window (41,360 to 115,193 tokens), 65 MB
-  (0.6B) + 151 MB (4B), 2,753 assets in three parts (995 + 1,000 + 753 vector
-  files, plus 5 metadata). Rule 8 now reads 45 treaties as `numeral` (279
-  before rule 10), 4 as `ordinal`; 1,324 are ordinary. Tables in
-  `scripts/embeddings/README.md`.
-- **The shard-index bug, fixed with a test.** `plan_shards.py --against`
-  numbered new shards from 0, so `submit_jobs.pending_shards` saw the old
-  `shard-0000.done` and the merge would have silently published the old
-  vectors. New shards now start after the highest `shard-*` index under
-  `--against` or the work directory's own `runs/*/`; `shards.json` records
-  `first_shard_index`.
-- **Reglamentos, incrementally and confined.** The published
-  `emb-run-whole-reglamentos/` was copied (never touched; its `units.parquet`
-  sha256 still matches its `publish/SHA256SUMS.txt`), rebuilt under `md2akn`
-  0.5.0 and replanned: 30 new texts (182464's roman articles), one shard (30)
-  per model, `excluded_already_embedded` 100,852 for both. Of 1,083 files per
-  model only `vectors-182464-<model>-<K>.parquet` differs from the published
-  merge (`pyarrow.Table.equals`); no stale assets. The reglamentos release body
-  was also corrected to the whole-article numbers (it still carried the
-  pre-#256 ones).
+- **Two phases.** `md2akn.skeleton` reads the markers first and settles what each API block *is* (its
+  node type, number, rank and heading); `md2akn.structure` then places the Markdown blocks in a tree and
+  runs the text rules *inside* the block it is reading; `md2akn.units` turns the tree into retrieval units
+  (`text_units()`, rules U1 to U7: article as the unit, `heading`/`intro`/`table`/`loose`/`preamble`/
+  `conclusions`/`toc` units, `cap` 2,000 for everything that is not an article, `text_sha1` and
+  `bare`/`contextual` templates, `envelope`). `md2akn.hits.hit(rule, branch)` counts where a rule takes
+  effect (`scripts/embeddings/measure_trees.py --all-snapshots --hits` sums it over every snapshot, which
+  is how a branch that can no longer fire is found).
+- **A document with no markers** is one implicit block: layer S has nothing to say and layer B runs
+  unbounded, and the output is byte-identical to the pre-marker parser
+  (`tests/fixtures_units/marker_free_digests.json`).
+- **No rule names an instrument, a collection or an eId.**
+- **Invariants**, each a test and, over the real corpora, a release-sweep assertion:
+  **I1** an API block is the unit of ownership (everything up to the next marker hangs from the node the
+  block opened; `md2akn.validate._block_escapes`); **I2** no `loose` unit outside the transitorios;
+  **I3** no repeated identifier (`duplicate_number` is 0: a number is repeated only when it is the same
+  identifier, and a second claimant takes a `_2` suffix); **I4** every numbering gap is classified with raw
+  evidence in `tests/fixtures_units/genuine_gaps.json`, and every fixture entry is still a gap; **I5** the
+  node a block opens is of the type, number and rank its marker says (`md2akn.validate.block_conformance`),
+  with a short documented list of exceptions (`marker_documented.json`).
+- **The release sweep** (`packages/md2akn/tests/test_units_release_sweep.py`, 19 tests, about an hour)
+  runs the four cached corpora through `text_units` and asserts `coverage()` (every character of the
+  instrument is accounted for once), `max_unit_chars()`, the four invariants above and the
+  corpus-level counts. It needs the corpora in `~/.cache/scjn` and is excluded from routine runs; run it
+  whenever the parser, the writer or a corpus changes.
+- **Units are the vectors' contract.** `normalize()`, `text_sha1` and the unit vocabulary are not
+  renegotiated; a change that alters what a *future* vector means is a version bump of `md2akn`. Whole
+  articles are embedded (`split_articles=False`), truncated at the model's own
+  `max_position_embeddings`, never split or windowed; `encode_shard.py` records every truncated text.
 
-## Articles embedded whole (issue #256, done)
+Decisions:
 
-The 2,000-character `cap` that used to split a long article into
-`article_piece`s (rule 3) was a guess about training length, not a limit of
-either Qwen3-Embedding model — one article is the unit a lawyer cites, so
-`md2akn.text_units(..., split_articles=False)` now makes every article one
-unit, whatever its length, whatever it does to rules 3 and 9. Nothing else
-changed: `cap` 2,000 still governs `heading`/`loose`/`preamble`/
-`conclusions`, rule 8's ordinal/decimal articles, the `bare` template, dedup
-by `text_sha1`, both models, and default `split_articles=True` output stays
-byte-identical to before this issue.
+- A table outside an article is a node and yields `table` units cut at row boundaries; inside an
+  article it stays article text.
+- A container's introduction is an `intro` node; a childless container is a `heading` unit.
+- The article number is read whole (`18.-A.-`, `1.1`, roman `ARTÍCULO I`, `Bis`, `Art. 8` running heads
+  excluded); an articleless instrument numbers its provisions `PRIMERO.-` or `1.`/`2.1`, decided once per
+  document.
+- Nothing is merged, dropped or renumbered after the fact to hide a repeat.
 
-- **A handful of articles do not fit a model's own window.** Measured
-  before this issue: 4 articles exceed the 0.6B's 32,768-token window (the
-  longest, `lft` art. 513, ~69,215 tokens) and 2 exceed the 4B's 40,960.
-  These are **truncated at the model's own `max_position_embeddings`**
-  (read from its config, never hard-coded) — never split, windowed or
-  mean-pooled — and `encode_shard.py` records every truncated text's
-  `text_sha1` and original token count, carried into each model's
-  `manifest.json` as `texts_truncated`/`max_tokens_embedded`.
-- **Batching moved from a fixed row count to a padded-token budget.**
-  Whole articles vary far more in length than the pre-#256, capped shape
-  did, so `encode_shard.py --max-batch-tokens` replaces the old fixed
-  `--batch-size` as what actually bounds memory (a batch's cost is its
-  longest text's token count times its row count); `--batch-size` stays as
-  the upper bound on a batch's row count, and a text over the token budget
-  on its own is embedded alone.
-- **`submit_jobs.py`'s wait is chunked now too**, mirroring
-  `submit_umap.py` (issue #241): `--max-wait-minutes N` returns exit status
-  75 ("still running") instead of blocking `squeue` forever, so an
-  automated session can drive a multi-hour run across several calls. State
-  lives in `runs/<model-slug>/jobs.json`.
-- **`package_vectors.py` also lists what to delete.** Because these three
-  releases are replaced *in place* (same tags), `PUBLICAR.md` now has a
-  section naming every asset on the live release series that the new set
-  does not contain, with the `gh release delete-asset` commands to remove
-  them — read read-only via `gh release view`, resolving the numbered
-  series the way `legalvec`/`scjn.release` already do. Uploading with
-  `--clobber` (unchanged) is what replaces a same-named file's content.
-- **The Atlas is built from these whole-article vectors.** `atlas.json`, the
-  matrix and the pair files come from `emb-run-atlas/`, prepared from the
-  three vector releases as they stand (`split_articles: false`, `md2akn`
-  0.4.0 — check each cached `corpus-manifest.json` before preparing); see the
-  Atlas page section below.
-- **`md2akn` went to 0.4.0** — a new public keyword (`split_articles`) that
-  changes what a *future* vector means, with no change to default output.
+## Embeddings and the Atlas chain
 
-## Roman-numbered articles (issue #279, done)
+`scripts/embeddings/` is orchestration for one research run on one cluster (`headmaster` + `cemieredes`
+for the GPUs, `geoint` for CPU nodes), not a package; `scripts/embeddings/README.md` is its manual, with
+a dated *Measured* section for every run.
 
-`md2akn.text_units` raised nothing on the `scjn-tratados` corpus (issue #277),
-but a treaty numbers its own articles `ARTÍCULO I`, `ARTÍCULO II`, … and none
-of those was an `article` unit: a treaty's body fell into `preamble`/`loose`
-blocks. **Rule 10** reads a roman-numbered opener as an article, and `md2akn`
-went to 0.5.0 (never published on PyPI) — the same reasoning as 0.3.0 and
-0.4.0, a new rule changes what a future vector means.
+- **Work directories.** One gitignored directory per collection (`emb-run-<collection>[-NNN]/`), a
+  numbered copy per rebuild; a published one is copied, never touched. `build_units.py` writes
+  `units.parquet` (columns include `coleccion`, `clave`, `text_sha1`, `unit_type`, `path`, `envelope`) and
+  `corpus-manifest.json`; `plan_shards.py` dedups by `text_sha1` and balances shards; `submit_jobs.py`
+  runs one model at a time (`--max-wait-minutes` returns 75 "still running" instead of blocking);
+  `merge_shards.py` writes `vectors-<clave>-<model>-<K>.parquet`; `package_vectors.py` writes the release
+  assets and `PUBLICAR.md`. `compare_merges.py` proves a rebuilt merge differs from the published one only
+  in the files whose set of owned texts changed.
+- **The Atlas chain.** `stage_vectors_cache.py` builds a `legalvec`-shaped gitignored cache from the
+  merges, verified against their `SHA256SUMS.txt`, and every later script reads it with `--cache-dir`.
+  `prepare_umap_input.py --unique-names` builds `emb-run-atlas/` (0.6B; `emb-run-atlas-4b/` for the 4B;
+  `prepare_bm25_input.py` builds `emb-run-atlas-bm25/`); `instrument_matrix.py` weighs, for every
+  searched excerpt, which *other* instrument owns the nearest text into a directed instrument × instrument
+  matrix; `build_instrument_umap_html.py`/`export_atlas_data.py` project and export it;
+  `nearest_texts.py` keeps the five nearest foreign texts per excerpt (4B only, and it proves rank 1 is
+  the matrix's winner before writing `.done`); `export_atlas_pairs.py` and `export_instrument_files.py`
+  write the two release payloads. `scoring.py` is the one place a text-to-text score is computed.
+- **What the matrix compares.** `instrument_matrix.searched_mask` is the one rule, imported by every
+  consumer: a **heading**, a `toc`, a **transitorio** (its `path` holds a `TRANSITORIOS…` label) and an
+  **envelope** unit (the title block and a treaty's promulgation decree and certification, read by
+  position) are neither a source nor a candidate. Every tied winner counts (1e-6 on float32 cosine); a
+  unit row distributes a total weight of 1, `1/m` to each of the `m` instruments owning a winner; a row
+  whose winner is a word-for-word match owned by several instruments is not counted; only columns owned
+  *exclusively* by the source are masked. Cosine is exact (blocked matmul), never the k=15 neighbours.
+  A units file with no `envelope` column compares everything and says so; a mixture is a `SystemExit`.
+- **Three data sets over the same comparison:** `atlas.json` (Qwen3-Embedding-0.6B, the default),
+  `atlas-qwen3-4b.json`, `atlas-bm25.json` (a lexical baseline: `bm25s`, Lucene `k1` 1.5, `b` 0.75, defaults
+  kept after one tuning run). `export_atlas_data.py --instruments-as atlas.json` refuses a file whose
+  instruments differ at any position, because the page swaps files keeping its selection.
+- **Unique instruments.** `unique_instruments.py` keeps one instrument per identical name in
+  `reglamentos` and `lineamientos` (the newest original publication date wins; NFKD, accents, whitespace
+  and case folded) and, in every collection, one per identical multiset of compared `text_sha1`. Leyes and
+  treaties are never grouped by name. It runs before the matrix is stacked.
+- **As it stands (28 October 2026, `atlas.json`):** 2,670 instruments (314 laws, 864 regulations, 125
+  guidelines, 1,367 treaties), 227,132 excerpts, 156,432 counted, with 36,137 headings, 22,575
+  transitorios and 10,093 envelope rows out and 1,895 shared word-for-word rows not counted.
+- **Evaluation.** `gold_links.py` builds an external gold (an instrument whose own name or "objeto"
+  sentence names another instrument; any direction, never itself): 253 instruments, 277 links.
+  `evaluate_links.py` scores the three matrices against it at instrument level under a bootstrap + McNemar
+  rule fixed beforehand; `evaluate_citations.py` scores, one unit row at a time, explicit citations
+  ("artículo N de la Ley X"). The 0.6B, the 4B and BM25 are tied on the closest instrument; the 4B is
+  better row by row. Outputs are local and gitignored.
+- **Topics (draft).** `cluster_instruments.py` clusters the instruments from the rows of the matrix (four
+  algorithms, a selection rule fixed beforehand, Louvain at resolution 1.0 wins); `export_topics_page.py`
+  writes `website/pages/topics/`. The Topics page is `draft: true` and excluded from the site by decision
+  of the repository owner (2026-10-13); re-enabling it takes the steps listed in `website/_quarto.yml`.
 
-- **Measured over the whole cached corpus (2026-10-11):** 1,373 treaties with
-  text, 0 exceptions, 0 `coverage()` failures, 0 `splittable`; 489 treaties
-  carry 6,646 roman openers; 229 treaties had no `article` unit before the
-  rule (176 of them roman-numbered) and **53 have none after it** — exchanges
-  of notes and prose protocols with no roman opener either, left as they are.
-  Rule 8 used to misfire on a roman-numbered treaty whose paragraphs read
-  `1.`/`2.` (ids 11097, 11103): the gate saw no article. It sees one now.
-- **Part of `NUM_ARTICULO`, unconditional.** `patterns.NUMERO_ROMANO` is a
-  third alternative of `NUM_ARTICULO`, so the builder, `clasifica` and
-  `modo_sin_articulos` all see it at once. A *valid*, upper-case roman numeral
-  (`ARTÍCULO MIL`/`CIVIL` are only roman letters) followed by what may follow
-  a digit number, so `ARTÍCULO VIGÉSIMO` stays an ordinal word; the Latin
-  suffix is admitted (`XV BIS`). `eId`s keep the number as written
-  (`art_I`, `art_1`): roman and arabic never collide. Rule 8's thresholds and
-  gate are untouched; no document-level gate was added for roman numerals.
-- **The plural `ARTICULOS I y II`** is read as article `I`, the way `ARTICULOS
-  1 y 2` always was; pinned in `test_roman_articles.py`, not designed.
-- **Its reach on the published corpora, proved and not argued:** the three
-  corpora's `units.parquet` regenerated with `build_units.py
-  --no-split-articles` reproduce the published ones as tables
-  (`pyarrow.Table.equals`; bytes differ by the writer-version footer) — leyes
-  (68,581 rows) and lineamientos (5,514) are equal, and reglamentos (110,670)
-  is equal except `clave == "182464"`, a Contrato Ley's pension reglamento
-  whose 30 `ARTÍCULO I.` … `ARTÍCULO XXX.` lines were `loose` and are now
-  `article` units (its 47 rows: 30 loose + 4 article before, 34 article after).
-  The repository owner chose to regenerate `scjn-reglamentos-vectors` for that
-  one instrument rather than leave it stale; that is the follow-up issue's
-  work, not this one's.
-- **The release sweep covers four corpora** (`test_tratados`,
-  `test_tratados_split_articles_false`, and a treaty test asserting that every
-  roman-opener treaty has a roman-numbered `article` unit and that at most 53
-  have none), ~17 minutes.
+Decisions:
 
-## Decimal articles, intros and tables (issue #291, done)
+- Both models stay live; nothing has earned the right to drop the 4B.
+- Excerpt is the reader's word; *unit* is the Python side's; a DOF note is a *legal provision*.
+- Regenerating a committed derived file (`atlas*.json`, `instruments.json`, `topics.json`) is a human
+  running the exporter, never a workflow.
+- Nothing derived is committed but sub-MB summaries the site cannot be built without; no `legalvec` API
+  was added for the visual explorers (`build_umap_html.py`, `project_umap.py`, `submit_umap.py` fit and draw
+  UMAP over all vectors as one standalone Vega-Lite page; `viz` is a root dependency group, not in `dev`).
 
-Browsing the Instruments page (#289, #290) turned up three parse errors under every
-vector, matrix and Atlas number; they are fixed as **rules 11, 12 and 13** of
-`md2akn.text_units`, `md2akn` **0.5.1** (a patch release: bug fixes only, never published on
-PyPI) and `scjn` **0.5.1**. All three are unconditional, like rule 10.
+## The website
 
-- **Rule 11, `Artículo 1.1:` is article `1.1`.** The T-MEC and six other treaties number
-  their articles chapter.article. `scjn.api._LEAD_ARTICULO` bolded only `**Artículo 1.**` and
-  left `1:` outside, so every `Artículo 1.N` read as article `1`; it now takes
-  `\d+(?:\.\d+)+` whole (`**Artículo 1.1**:`, the `:` outside the bold), and
-  `patterns.NUMERO_DECIMAL_ARTICULO` is tried before `NUM_ARTICULO` inside `ARTICULO` only (eId
-  `art_1.1`). Fixed at source and by re-downloading the seven treaties (#255's procedure; 76,
-  84349, 84350, 90408, 107392, 128585, 137355; `PUBLICAR.md` generated, not run), with no
-  `md2akn` shim for the broken `**Artículo 1.**1:` shape. **A second shape was not fixed there (fixed by review fix-1 below)**: annex
-  articles `Artículo 2.A.1:` still come out `**Artículo 2.**A.1:` (61 lines in the treaty
-  137355, 3 in the reglamento 145559); the T-MEC kept 59 repeated numbers (592 before); the annex lead is read whole since review fix-1 and the T-MEC has none.
-- **Rule 12, a container's introduction is its `intro`.** The blocks between a container's
-  heading (epigraph included) and its first child container or article are one `intro` node
-  (eId `<container>__intro`, children `content`/`table`) and `intro` units, capped and cut like
-  `loose` with the same ancestor `path`. Since an article takes every block after it until the
-  next container, container-level text was always exactly this leading run: the change relabels
-  it (`loose` → `intro`, same `text_sha1`), and splits it from the tables. Text before any
-  container keeps `preamble`/`loose`.
-- **Rule 13, a table is a node.** Consecutive blocks that open and close with `|` (what #253
-  writes) are one `table` node (eId `<parent>__table_N`); the lone `**(ARANCEL)**` label of a
-  LIGIE tariff is tolerated between two rows, any other block ends the table. A table outside an
-  article yields `table` units cut at row boundaries up to the cap, every piece after the first
-  prefixed with the table's first row; a table inside an article stays article text (and is not a
-  node: the article's interior is unchanged). A table is never part of an `intro` unit, and a
-  table row is no container's epigraph. `AKN_TYPES`/`UNIT_TYPES` gain `intro` and `table`;
-  `scripts/embeddings/build_umap_html.UNIT_TYPES` appends them so older codes keep their meaning.
-- **Measured against the published units (2026-10-14), `scripts/embeddings/compare_units.py`.**
-  The vectors have to be recomputed, for all four collections: 3,307 distinct new texts
-  (leyes 1,067 · reglamentos 46 · lineamientos 23 · tratados 2,171); 49 laws, 144 reglamentos,
-  28 lineamientos and 107 treaties change rows, most of them only relabelled. Re-embedded
-  incrementally with both models into `emb-run-<collection>-051/` (gitignored copies of the four
-  published work directories, which were not touched), 0 failed shards, `missing_vectors` 0.
-  Tables in `scripts/embeddings/README.md` ("Measured, md2akn 0.5.1 against the published units").
-  **Nothing was published.**
-- **The re-embedded merges, verified and packaged (issue #293, done).**
-  `scripts/embeddings/compare_merges.py` proves, per collection and model and from the two
-  work directories alone, that a rebuilt merge differs from the published one only in the files
-  whose set of owned texts changed (derived from both `units.parquet`, not from a list), gains or
-  loses a file only when an instrument does, keeps every unchanged text's vector bit for bit, holds
-  exactly each file's expected texts and has no non-finite vector; all eight runs are clean (5, 8, 4
-  and 35 + shared differing files, 0 texts with another vector, 0 non-finite). `package_vectors.py`
-  now writes `gh release edit` + `--clobber` for a part already live (it always wrote `gh release
-  create`) and, with `--changed-files`, an explicit `--clobber` block for same-name changed files,
-  because `upload_release_assets.py` skips an asset of the same size. The four release bodies were
-  updated to the rebuilt corpus. **Nothing was published**: the four `emb-run-<c>-051/publish/PUBLICAR.md`
-  are for a human (issue #115, Hallazgo C) and must run before the pull request merges; the Atlas
-  chain and the Instruments page are issue #294. Tables in `scripts/embeddings/README.md`
-  ("Measured, the re-embedded vectors against the published ones").
-- **The Atlas chain and the Instruments page on `md2akn` 0.5.1 (issue #294, done).** Everything
-  downstream of the excerpts was rebuilt from the re-embedded vectors **without publishing them**:
-  `scripts/embeddings/stage_vectors_cache.py` builds `emb-run-vectors-051-cache/` (a `legalvec`-shaped,
-  gitignored cache) from the four `emb-run-<c>-051/` merges, verified against their
-  `SHA256SUMS.txt`, and every script of the chain reads it through `--cache-dir`. The three work
-  directories (`emb-run-atlas`, `-4b`, `-bm25`) were rebuilt from scratch on `cemieredes`, the three
-  `atlas*.json` regenerated with `--instruments-as` (the same 2,676 instruments; 203,874 excerpts,
-  144,456 counted, 144,111 for BM25; the closest instrument unchanged for 2,659 of 2,676 under the 0.6B
-  and the 4B), the three `atlas-pairs` sets, the 4B's nearest texts (their winner-agreement proof
-  passed) and the instrument files (the re-parse equals the staged units for all 2,676) and
-  `instruments.json`. `instrument_matrix.py`/`nearest_texts.py` gained `--shared-node` (`submit_cpu.sh`:
-  no `--exclusive`, the cluster's own venv; the geoint line is unchanged without it) and now forward
-  `--cache-dir` into the job. `gold_links.py`'s signal B reads `intro` units too, since the text a chapter
-  opens with is what `loose` text became (it lost 6 links to the relabelling; the gold is again 251
-  instruments, 275 links). The evaluations were re-run: only last digits moved, no conclusion changed,
-  and the Atlas page's literals say 14 October 2026. **Nothing was published**: before the pull request
-  merges a human must run, in this order, the `scjn-tratados` re-package of #291
-  (`scripts/scjn/tratados-release/PUBLICAR.md`), the four vectors releases of #293
-  (`emb-run-<c>-051/publish/PUBLICAR.md`, leyes, reglamentos, lineamientos, tratados), the three
-  `atlas-pairs` sets (`emb-run-atlas/`, `emb-run-atlas-4b/`, `emb-run-atlas-bm25/` `atlas-pairs/PUBLICAR.md`)
-  and `atlas-instruments` (`emb-run-atlas-4b/instrument-files/PUBLICAR.md`, a first publish), or
-  `website.yml` fails or pairs the new JSON with old files. Tables in `scripts/embeddings/README.md`
-  ("Measured, the Atlas chain and the Instruments page under `md2akn` 0.5.1").
-- **Repeated article numbers, rules 14 to 18 (review fix-1 of #291, found after the fact).** 209 of the
-  Atlas' 2,676 instruments carried `duplicate_number` (the IMDG code `tratados/114738` 482). The origin was
-  evidenced per instrument by ablation (`scripts/embeddings/measure_repeated_numbers.py`): **the Markdown writer
-  accounts for 0 of the 4,598 repeats**; `md2akn` does. **Rule 14**, the whole article number (`18.-A.-`, `Bis`
-  after an ordinal, lowercase/ordinal letters, more Latin spellings, spaced and `DISPOSICIONES TRANSITORIAS`
-  markers, `(SIC)`; 948 excerpts); **rule 15**, a table of contents is a `toc` node and unit, never an article,
-  and outside rule 8's gate (1,374; `toc`, like a heading, is neither a source nor a candidate of the matrix);
-  **rule 16**, `PARTE`/`ANEXO`/`APÉNDICE` are `part`/`attachment` containers; **rule 17**, recitals under
-  `CONSIDERANDO` and D.O.F.-headed decrees are not articles (150); **rule 18**, in numeral mode a restarted whole
-  numeral is a list item (449; switch `structure.REINICIO_ES_ITEM`). `md2akn` and `scjn` stay 0.5.1; the writer's
-  lead regex takes the whole number too (cosmetic for the parse, pinned in `test_api.py`). The flag's definition,
-  `export_instrument_files.py`, is untouched and nothing hides, merges or renumbers a repeat: **73 instruments
-  (2,428 excerpts) still repeat**, all the SCJN's own numbering (annex/part restarts, `(SIC)` rows, a protocol
-  printed with its treaty), listed with raw API evidence as questions for the repository owner in
-  `scripts/embeddings/README.md` ("Measured, repeated numbers, 2026-10-15") and in the comment on #291. Five
-  instruments appear newly flagged because the old parse left them as one giant article. 32+1 leyes, 13
-  reglamentos and 24 tratados were re-downloaded and repackaged (a snapshot is adopted only when its bold/header
-  differ; 150 kept as published, because the fresh answer turns tab-indented text into table rows); the vectors
-  (122/55/2/29 new texts), the Atlas data sets, the pair sets, the instrument files and the evaluations were
-  rebuilt, the page's literals follow. **Nothing was published**: the human order is in the #291 comment.
-  **Corrected by review fix-2 below: the 73 were not the SCJN's own numbering.**
-- **The structure the SCJN states, rules 19 to 24 (review fix-2 of #291, found after the fact; corrects fix-1's
-  premise).** The SCJN's `Articulos` blocks carry an outline (`referencia`, `numero`, `orden`) that `scjn.api`
-  discarded, so `md2akn` guessed a structure from flattened text and fix-1 mistook the result for "the SCJN's own
-  numbering". The owner's rule: **a number is repeated only when it is the same identifier** (`1.1` of Part 1 is not
-  `1.1` of Part 2); the goal is zero repeats. `scjn.outline` (new) writes one marker line before each block,
-  `<!-- scjn:block orden=N numero=N kind=<kind> [type=] [num=] label="..." -->` (`kind`: header, recitals, preamble,
-  toc, transitorios, decree, container, article, provision, other; an HTML comment on purpose: invisible, no
-  character of the text changes, `strip_markers` returns it byte for byte, and `markdown_de_snapshot(...,
-  outline=False)` is what `nota2md` reads); `articulos_a_markdown(..., outline=True)` is what `snapshot` passes,
-  and the raw answer of every reform is kept gzipped (`raw_dir`, `guarda_crudo`, `scripts/scjn/raw-api/`, local
-  scratch) so the writer can change without a re-crawl (`scripts/rewrite_scjn_from_raw.py`). All four corpora were
-  re-crawled with `scripts/recrawl_scjn_outline.py` (provenance headers kept, an instrument swapped in only when
-  every snapshot it had came back, no `--reintenta`: 8,966 reform answers, 1,781,734 blocks, 0 failed; it also
-  picked up `cpeum` 07-10-2026, `ligie-2022` 13-10-2026, four reglamentos reforms and `189946`'s first text,
-  `17349`'s reform). `md2akn` (still 0.5.1; `md2akn.outline` reads the marker): **rule 19**, markers are metadata and
-  decide the class of a block's heading (a container with its type and number, an article with its number, the
-  index a `toc`); **rule 20**, a reform decree holds what follows it (its own transitorios, an `ANEXO ÚNICO`
-  reprinting the instrument); **rule 21**, a container found in a container's text nests below it; **rule 22**, a
-  second claimant of an identifier takes a `_2` suffix and `AknNode.repeated` is true on **both** (what
-  `export_instrument_files.excerpt_flags` now counts as `duplicate_number`; `AknNode.modo` carries rule 8's mode);
-  **rule 23**, a block holding articles in its own text opens an implicit section; **rule 24**, inside an
-  article, header, preamble or recitals block no line opens structure. What the data forced, each with a test: the
-  label can be wrong (the text's number wins when it equals or extends the label's, a roman numeral and an arabic one
-  of the same value are one number and the text's spelling is kept, else the one that agrees with `numero`), the
-  LIGIE's tariff chapters are served as `ARTÍCULO 83`/`84` (a text that says `Capítulo N` with the label's number is a
-  chapter), and a label followed by a tab (`| CAPÍTULO II |  |`) is the heading, not a table. No rule is keyed to an
-  instrument, a document with no marker is read as before, and `nota2md` strips the markers on the SCJN path.
-  Result (`scripts/embeddings/measure_outline_repeats.py`, markers stripped against kept, same parser): **7
-  instruments and 164 excerpts repeat, from 36 and 356** (leyes, reglamentos and lineamientos 0), all seven treaties
-  with the repeat inside a single API block that serves a whole document under one label (`96728` PARTE 3, `11293`
-  two IMO resolutions, `23774`, `44552`, `47860`, `22834`, `96707`), listed with their raw API block as a question
-  for the owner in `scripts/embeddings/README.md` ("Measured, the structure the SCJN states, 2026-10-16"). The four
-  corpora, the four vectors releases (3, 6, 2 and 8 shards, 0 new texts on the later rebuilds, `compare_merges` clean
-  for all eight runs), the Atlas data sets (**2,677 instruments**: `189946` is a reglamento the SCJN serves a text for
-  now; 214,294 excerpts, 156,448 counted), the three pair sets, the nearest texts, the 2,677 instrument files, the
-  gold (253 instruments, 277 links), the evaluations and the topics (Louvain 1.5, 40 topics) were rebuilt and the
-  pages' literals follow; no conclusion of the evaluations changed. `export_instrument_files.py` and the page's flag
-  prose changed with the flag's definition. **Nothing was published**; before the pull request merges a human runs,
-  in this order, the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`), the four vectors releases
-  (`emb-run-<c>-052/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, or `website.yml`
-  fails or pairs the new JSON with old files.
-- **Annexes under their chapter, appendices as appendices, rules 25 to 28 (review fix-3 of #291, found after the
-  fact).** The Instruments page's outline showed two hierarchy errors under the markers: the T-MEC (`137355`) built every
-  `ANEXO 2-A` ... as a sibling of the chapters and nested the next chapter inside the annex before it, and the gas carrier
-  code (`96707`) made its `APÉNDICE 1` to `5` five bare top-level attachments with the amending resolutions inside appendix 5.
-  Every rule applies only to a document with outline markers (one without them parses, and writes its eIds, as before), and no
-  rule names an instrument. **Rule 25**, an annex whose API `numero` (or the `N-` prefix of its `num`, against books, titles,
-  chapters and parts only) is the number of an open container is that container's child (`cap_2__att_2-A`), a quarter of a rank
-  below it so the next chapter closes it; its title is what follows its own label (`ANEXO 2-A:` read by the text was annex `2`
-  titled `A`). **Rule 26**, an appendix keeps `attachment`/`refersTo="#apendice"` and takes the eId prefix `app` (`app_1`),
-  nested in the annex that is open, after its chapters, else in the instrument. **Rule 27**, a bare `**APÉNDICE**` directly under
-  the unnumbered appendix it repeats is that appendix's running page header (the T-MEC's seven-page tariff appendix was seven
-  appendices). **Rule 28**, a block the API marks `other` that opens a section (rule 23) while an annex or appendix is open hangs
-  from the body, a sibling of the instrument's parts; unguarded it also moved the Código Civil Federal's `DISPOSICIONES
-  GENERALES` out of its chapter, which the before/after tree comparison caught and a test pins. `instruments.js` shows `part`
-  and `attachment` in the outline, each named by its own kind from `refersTo`, never from the eId (*Annex 2-A*, *Appendix 1*).
-  No re-crawl: **51 of 2,897 trees changed** (2 leyes, 3 reglamentos, 2 lineamientos, 44 tratados; 20 only by `att_` -> `app_`),
-  repeats unchanged at 7 / 164, and 1,614 unit rows have a new `text_sha1` (a heading or intro carries the containers in front of
-  it), so 3, 17, 1 and 1,528 texts were encoded with both models, the four `-052` work directories re-merged (`compare_merges`
-  clean for all eight runs), the Atlas chain, the instrument files, the evaluations and the page's literals rebuilt (only last
-  digits moved; the closest instrument of 1,303 of 1,373 treaties is a treaty, 7 laws and 6 regulations and no guideline have a
-  treaty as their closest). The release sweep passes (15 in 40 minutes). **Nothing was published**; the publish order is the one
-  above, with the four vectors releases, the three `atlas-pairs` sets and `atlas-instruments` regenerated.
-- **The blocks the API calls `other`, divisions and radio-regulations numbering, rules 29 to 32 (review fix-4 of #291,
-  found after the fact; fix-2's "the SCJN's own numbering" was still wrong for the last 7).** The 164 repeated-number
-  excerpts of 7 treaties and 5,668 `loose` excerpts all came from the API blocks the SCJN labels `kind=other`, where a whole text
-  (a model certificate, the Radio Regulations, an amending resolution) is served under one label. **Rule 29**, every such block
-  is an `hcontainer` (new `AKN_TYPES` member, eId derived from the label, its leading text its `intro`) with an explicit,
-  tested role table (`md2akn.outline.ROLES_DE_ETIQUETA`, matched on the *whole* folded label): `PARTE FINAL ...`
-  `#conclusions`, `NOTA EXPLICATIVA`/`NOTAS` `#note`, the steps of the Mexican promulgation decree kept together under one
-  `#promulgation`, `RESOLUCIÓN ...` rule 28's container; an API `provision` is an article; the whole `other` vocabulary (10,919
-  blocks, 1,968 shapes) is tabulated in `scripts/embeddings/README.md`. **Rule 30**, `ARTÍCULOS` + `CONTENIDO ARTICULOS` is one
-  container. **Rule 31**, a numbering that starts over *inside* one block opens a division (`#division`, `#form` for the
-  boxes of a model certificate) at the nearest heading that reads as one, strong before weak, and **with none there is no
-  division and the repeat stays**: nothing is merged, dropped or renumbered afterwards; a numeral before a lower-case word
-  is a value, and one equal to the article above is that article's paragraph. **Rule 32**, `S5.43`/`5.43A`, `ARTÍCULO S5`,
-  `APÉNDICE S30`, a mixed-case `Artículo Primero.-` in transitorios and the caption line before an article's heading.
-  Every rule applies only to a document with outline markers; no rule names an instrument; `md2akn` and `scjn` stay 0.5.1.
-  Result over the 2,677 instruments (`scripts/embeddings/measure_loose.py`, `measure_trees.py`): `loose` 5,668 → 448 excerpts,
-  repeats 164 → **0** (all seven treaties resolved, each cause recorded in the README), 4 treaties lose articles and every
-  loss is explained. What stays `loose` is a container with only its own heading lines, an index printed inside an `other`
-  block, a decree's dated headings with nothing under them and a lettered table in a decree's transitorios. The four
-  corpora's units, the four vectors releases (445, 2,115, 1,377 and 14,246 new texts, 3/3/3/6 shards, 0 failed,
-  `compare_merges` clean for all eight runs), the Atlas data sets, the three pair sets, the nearest texts, the 2,677 instrument
-  files, the evaluations (no conclusion changed) and the page's literals were rebuilt without re-crawling; the closest instrument
-  moved for 300 of 2,677 under the 0.6B (7,413 more excerpts). The Instruments page's outline names every labelled block by
-  its role (`Promulgation decree`, `Note`, `Closing formulas`, `Form`, `Division`, else `Block: <label>`). The release sweep
-  passes (15 in 39 minutes). **Nothing was published**; the human order is: the four corpora, the four vectors releases
-  (`emb-run-<c>-053/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
-- **An API block is the root of its hierarchy, rule 33 (review fix-5 of #291, found after the fact; the owner
-  reviewed the SOLAS treaty `11293`).** Each of its fifteen amending resolutions is one API block that prints its own
-  `ANEXO`, chapters and parts, and the tree had them as siblings: rule 21 gave every heading a block's text prints the same
-  rank, so the annex was an empty node beside its chapters, the chapters beside their parts (the next chapter's `PARTE A` a
-  `part_A_2`), one resolution an `hcontainer` among `section`s and its annex at body level. **Rule 33**: every `RESOLUCIÓN ...`
-  block is a `section`; the headings a block's text prints keep their order (`piso + 0.5 + precedence / 100`: an `ANEXO` holds
-  the chapters after it, a chapter its parts, a bare `APÉNDICE` after an annex of the block is inside it, a bare `ANEXO` right
-  after an annex with only its title is inside that one); the next marker closes everything the block opened; and the one annex
-  that still leaves its block is rule 29's original case, narrowed: no container or article after its heading in the block's
-  text, a next marker that is not a resolution or a closing role (the code a resolution amends in `96707`, the reglamento an
-  `ANEXO ÚNICO` approves in `83225`). A numbered appendix or annex keeps its rank (`137355`, `114115`, `992`). Result over the
-  2,677 instruments (`measure_trees.py`, `measure_loose.py`): **44 trees changed** (1 ley, 3 reglamentos, 2 lineamientos, 38
-  tratados), 124 resolutions `hcontainer` → `section`, `loose` 448 → 430 (`11293` 19 → 0; two index-like reglamentos get 12 more:
-  a container with only its heading line, the class fix-4 left), `duplicate_number` 0, `part`/`attachment` identifiers ending in
-  `_N` 23 → 8 and 114 → 78. 2,021 distinct new texts were encoded with both models (1, 1, 1 and 3 shards, `compare_merges`
-  clean for all eight runs), the Atlas chain rebuilt (closest instrument unchanged for 2,668 / 2,667 / 2,670 of 2,677), the
-  gold and the evaluations identical but for three intervals, the page's literals say 20 October 2026. `md2akn` and `scjn`
-  stay 0.5.1. **Nothing was published**; the human order is: the four corpora, the four vectors releases
-  (`emb-run-<c>-054/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
-- **The marker path as a whole, rules 34 to 39 (review fix-6 of #291, found after the fact; the owner asked for the
-  cause, not another patch).** An API block is the unit of ownership (**invariant I1**): everything up to the next marker
-  hangs from the node that block opened. The parser had never stated it and decided a line's place in five independent
-  spots (the class of the block's lines, the open-container stack, rule 23's implicit section, rule 29's `hcontainer`, the
-  "transitorios are open" latch), so a line went to whichever container was last open; fix-2 to fix-5 each patched one case.
-  Measured: 20,133 excerpts of the Atlas' instruments hung from a node that was not their block's root. **Rule 34**, a block's
-  root bounds its text (the transitorios latch no longer outranks a block root, an index ends at its API block's next marker,
-  the lines before a container's heading are the heading's, text after an index or a captioned table is a further `intro`);
-  **35**, a childless container is a `heading` unit, never `loose`; **36**, a caption and the notes under a table are the
-  table's; **37**, `Artículo N` before a lower-case word is a reference line; **38**, an API `article` block that holds only
-  a heading and is followed by `provision` blocks opens a section (gate: three per document; it removed 70 of reglamento
-  `952`'s gaps); **39**, an `other` block labelled `N (SIC)` is the article. `md2akn.validate._block_escapes` checks I1. Result:
-  `loose` 430 → **0** (the 299 outside the transitorios, which the matrix compares, included), `duplicate_number` 0,
-  `numbering_gap` 157 → 86 in 31 instruments, every one classified with raw evidence in
-  `packages/md2akn/tests/fixtures_units/genuine_gaps.json` (omitted articles of an amending text, the source's own `(SIC)`,
-  `10 O` read as an ordinal, API order, numbering across sibling sections, one unmarked index). The release sweep gained
-  `TestInvariantesDelBloque` (I1 ownership, I2 no `loose` outside transitorios, I3 `duplicate_number` 0, I4 every gap in the
-  fixture and every fixture entry a gap): 19 passed in 53 minutes. The Instruments page draws a table printed inside an
-  article as **one HTML table** (caption in `<caption>`); the article stays one excerpt and its vector does not change.
-  `md2akn` and `scjn` stay 0.5.1. No re-crawl: 1,288 distinct new texts (1,098 encoded) with both models, the four `-055` work
-  directories (`compare_merges` clean for all eight runs), the Atlas chain (2,677 instruments, closest instrument unchanged
-  for 2,673 / 2,672 / 2,663), the evaluations (gold exactly as before, no conclusion changed) and the page's literals (21
-  October 2026) were rebuilt. **Nothing was published**; the human order is: the four corpora, the four vectors releases
-  (`emb-run-<c>-055/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+Two sites, one division of labour, stated identically in `README.md`, `docs/source/index.rst` and
+`website/_quarto.yml`'s navbar:
 
-## Blocks the API omitted (issue #300, done)
+- **Read the Docs** (`docs/source/`, Sphinx, legalia.readthedocs.io) is the **developer reference**: every
+  package's full API, public and private, with a worked example for every public symbol. Usage examples
+  live here, not on the website.
+- **`website/`** (Quarto, `ingeotec.github.io/LegalIA`) is **results**: datasets, findings, the analysis of
+  the gazette. A page uses the packages to build something rather than teaching how to call them; a page
+  that explains a function's arguments belongs on its Read the Docs page.
 
-Browsing the Instruments page, the treaty `tratados/24031` (the CAMR-92 Final Acts)
-compared only its envelope: its four annexes came out empty. **The text of the treaty
-was not in the corpus.** The SCOW API serves 16 blocks for it today; the snapshot on
-disk (and the published `scjn-tratados` tarball) held 12. The four missing ones
-(`orden` 9, 11, 13, 15, all labelled `CONTENIDO`: 174,692 + 15,675 + 77,203 + 25,887
-characters) are the partial revision of the Radio Regulations and two annexes. The
-writer was not at fault: **the API itself omitted the blocks when we crawled, and
-still reserved their `orden` numbers.** Issue #178's comment above
-`TAMANIO_PAGINA_ARTICULOS` had called such an answer ("`lfd` reforma 99 reports
-`tamanio` 995 and serves 991 articles") complete; it was incomplete, and the four
-missing `orden` are `CONTENIDO` blocks the API serves today.
+Rules for a package's Read the Docs page (`docs/source/<pkg>_api.rst`; a future package inherits them):
 
-- **The guard (`scjn.api.articulos_of_reforma`).** An answer is complete when its
-  `orden` values are exactly `1..max` *and* it carries at least `tamanio` rows; either
-  alone missed a case (a hole in the middle versus a block dropped at the end). An
-  incomplete answer is requested again (`self.reintentos`, `self.espera`) and then
-  refused with `ScjnApiIncompleteError(ScjnApiError)`, which names the reform, the
-  missing `orden` and `tamanio`; being a `ScjnApiError`, `descarga_ordenamiento`
-  already counts the reform as failed and writes no file for it. The two stop
-  conditions of the paging loop are untouched (`_articulos_una_vez`).
-- **What the re-crawl taught the guard (2026-10-26, same issue).** Re-crawling
-  all four corpora showed three more shapes of the same unreliability, each pinned by a
-  test: (1) the API **repeats a row verbatim** (`cpf` 08-05-2023 came back as 1,007 rows
-  over 893 distinct blocks, `pef-2026` 21-11-2025 with 8 repeats; `tamanio` counts the
-  repeats), which would have printed an article twice, so an *identical* row
-  (`orden`, `numero`, `referencia`, `contenido`) is dropped, first kept
-  (`_sin_filas_repetidas`); (2) two *different* blocks sharing an `orden` are real
-  (`lissste` 27-05-2011 gives 322 to a `D.O.F.` line and to a 44 k-character `CONTENIDO`
-  block; reglamento 166758 too) and both stay; (3) an answer can be **short and
-  `tamanio` short with it**: `lft` today answers 1,433 rows for `tamanio` 1,433 with 174
-  repeats and 191 `orden` missing among 1..1,450, in 53 of its 55 reforms, where the raw
-  answer kept on 15 October had 1,450 distinct rows. The `orden` check is what catches
-  those; a block dropped at the very end of an answer whose `tamanio` also dropped
-  cannot be caught by any client-side check (four `cpeum` snapshots on the same day,
-  03-02-1983 `-2` and three more, lost or gained one trailing `D.O.F.` decree block
-  between the previous crawl and this one: the SCJN's own answers moved, and the fresh
-  answer was taken, as every re-crawl does).
-- **Rule 40 of `md2akn`** (`outline.es_contenido_suelto`, structure rule 30's sibling):
-  a bare `CONTENIDO` block (`kind=other`, no label after the word) that follows a block
-  whose text is one short line (`ANEXO`, `ANEXO 4`, `PROTOCOLO`; the block before is
-  `other` or `container`) is that block's content. Before it, 24031's `CONTENIDO` opened a
-  `section` beside the annex, so the annex was empty; now the articles hang from the annex
-  (`validate`'s invariant I1 reads the same predicate). A `CONTENIDO` after a block with text
-  of its own (reglamento 138214's index after its `CONSIDERANDO`) is read as before: it is
-  not an article or `loose` (`test_bare_contenido.py`). A document with no markers is read as
-  before; `md2akn` and `scjn` stay 0.5.1, unpublished. The release sweep's I3 (no repeated
-  number) then caught two more parse errors in the restored text, fixed in the parser
-  and not listed: **rule 41**, a running head `Art. 8` straight before `**ARTICULO 8**`
-  (the Radio Regulations 24031 reprints) is no article, and `NUM_ARTICULO` takes a capital
-  letter that closes the line, `**Artículo 11 **A` being article `11 A` (treaty 23895's
-  amendment inserting 11A and 11B; it changes 5 heading lines in the whole corpus).
-- **The re-crawl** (`scripts/recrawl_scjn_outline.py --ledger .recrawl-contenido.jsonl`,
-  a fresh ledger name so the #291 ledgers stay as their record; `--instrumento` now re-crawls
-  the keys it names whatever the ledger says): 315 + 1,087 + 163 + 1,455 instruments, ~2.2
-  hours wall clock with seven processes, raw answers in `scripts/scjn/raw-api/`. No
-  reform was new, so nothing needed DOF linking. Against the snapshots published until
-  now: leyes 8 instruments changed (`cpeum`, `lacp`, `lfd`, `lgcs`, `lgipe`, `lgpp`,
-  `lissste`, `ltpcpimcp`), reglamentos 21, lineamientos 6, treaties 199; the others
-  are byte-identical (the tarballs are byte-reproducible, so the unchanged ones were
-  checked against the cache by hash). 107 leyes, 40 reglamentos, 9 lineamientos and 214
-  treaty snapshots **gained blocks**, 4 `cpeum` ones lost one (above), 18 changed text
-  only (an upstream edit: `lgcs`, `lgipe`, `lgpp`, ...).
-- **Measured, `scripts/measure_block_gaps.py`** (counts the snapshots whose `orden`
-  markers have a gap; a gap is *explained* when the kept raw answer holds the missing
-  `orden`: a block whose whole text is an editorial `N. DE E.` aside yields no text and
-  so no marker). Before (the issue, on-disk markers, not separating the explained ones): 367 snapshots of
-  240 instruments with 843 missing blocks (leyes 80 / 4 instruments, reglamentos 38 / 19, lineamientos 10 / 7,
-  tratados 239 / 210). After: **0 unexplained gaps in leyes, lineamientos and tratados**; explained, 6, 1
-  and 55 snapshots (6, 1 and 73 blocks); the two `incomplete` reglamentos below keep their old files and
-  their 2 snapshots (5 blocks) with the gap. `tratados/24031/29-08-1994.md` is 259,942 characters, 16 markers,
-  four `ARTICULO 1`, and its tree holds the articles under the annex.
-- **Incomplete instruments, listed because the guard refuses them** (3 of 2,920, never
-  more than 1 % of a collection): `leyes/lft` (53 of its 55 snapshots, the API's corrupt
-  answer above; the 2 that pass after dropping repeats are not swapped in either, an instrument
-  is swapped in whole or not at all; its old files, whose markers have no gap, stay);
-  `reglamentos/81587` (29-05-2015, reformaId 3: 214 rows for `tamanio` 214, `orden` 214
-  missing); `reglamentos/67602` (17-08-2015, reformaId 2: 53 rows for `tamanio` 53, `orden`
-  53 to 56 missing, the transitorios). The last two answered the same on every retry and on
-  a second pass, with `tamanio` agreeing with the rows served: the API's own data lacks
-  those `orden`, which no client can restore. A second resumed pass did not change any of them.
-  **Retried on 2026-10-30 (review fix-3 of #300, found after the fact):** `lft` was re-crawled once more
-  (`recrawl_scjn_outline.py --coleccion leyes --instrumento lft --ledger .recrawl-contenido.jsonl`, two
-  attempts, 1,105 s) and is still `incomplete`: **53 of its 55 reforms with articles fail the guard**
-  (6 more have no articles, 2 pass), and every file of `scripts/scjn/leyes/lft/` is byte-identical to before.
-  Reform 61 (14-05-2026) answered 1,433 rows for `tamanio` 1,433, 174 of them verbatim repeats (1,259
-  distinct) and 191 `orden` missing among 1..1,450; reform 1 (01-04-1970) 976 rows, 124 repeats, 130
-  `orden` missing. The guard and the writer were not touched and nothing was rebuilt from the 15 October
-  raw answer. `reglamentos/81587` and `reglamentos/67602` were not retried: they stay as they are, by the
-  repository owner's decision of 2026-10-30.
-- **The release sweep passes** (19 tests: `TestInvariantesDelBloque` I1 to I4 included; run
-  whole once, then its two failing treaty tests again after the two parser fixes above). I4 found 22
-  numbering gaps new to the fixture in 7 treaties (16189, 18141, 23943, 24031, 84855, 84858): all texts
-  that print only the amended articles of a text (the CAMR-92 and WRC-2012 revisions of the Radio
-  Regulations, the ITU amendments, a UPU corrigendum), each classified in
-  `fixtures_units/genuine_gaps.json` (now 111 entries) with the raw evidence of the API block: which
-  article openers its own text prints and that none of the skipped numbers is among them (the
-  classifier's `source-omits-number` used to rest on "no article *block* between", which proves nothing
-  when one `CONTENIDO` block holds a whole text; 20 existing entries moved to
-  `numbering-continues-across-containers` on the same evidence).
-- **Packaged, not published**: `scripts/scjn/<c>-release/PUBLICAR.md` for the four corpora
-  (for `reglamentos` and `tratados`, whose `partes.json` was seeded from the live releases
-  with a read-only `gh release view`; part 1 holds 997 tarballs plus 3 metadata assets; only
-  the changed tarballs, listed above, need `--clobber`, plus `indice-global.json.gz`,
-  `SHA256SUMS.txt` and `MANIFEST.md`). The release sweep ran over the refreshed
-  snapshots staged into `~/.cache/scjn` (the changed tarballs and each `indice-global.json.gz`
-  copied from the release directories), never published.
-  **The publish order for a human: the four corpora first** (leyes, reglamentos, lineamientos,
-  tratados), then everything derived from them, which is the follow-up issue's work (vectors,
-  Atlas, pairs, instrument files, evaluations); nothing was published here (issue #115, Hallazgo C).
+- Every name in `__all__`, every public method of an exported class and every CLI subcommand gets a
+  verified example: a live doctest run by the `docs-doctest` job of `.github/workflows/test.yml` (network
+  allowed; the Read the Docs build itself is HTML-only and never touches the network). An exception is
+  written on the page itself, naming the pytest suite that verifies the behaviour instead.
+- Private helpers (leading underscore) get a full docstring and appear through `:private-members:` but need
+  no example. Tests are never documented.
+- An example touching a large release picks one small law or asset; the doctest job caches
+  `nota2md.cache.CACHE_DIR` and `dofjson.titulos.CACHE_DIR`.
+- `docs/HISTORY.md` is plain Markdown outside the Sphinx toctree.
 
-## The envelope and the complete corpora (issue #301, done)
+The pages of the website:
 
-Issue #300 made the four corpora complete, which left every vector set, the Atlas and the
-Instruments page stale, and the review of the Atlas' own evidence turned up one more thing
-it compared that is not the instrument's own text: its **envelope**.
+- Notebooks (`index`, `titles`, `dataset`, `leyes`, `document2md`) are frozen results: `website/_freeze/`
+  is what is published, never re-executed in CI (see Commands). Do not edit a notebook or its freeze to
+  change prose without a re-freeze pass of its own.
+- **Atlas** (`pages/atlas.qmd`, `pages/atlas/atlas.js`/`atlas.css`): a hand-written D3 v7 page with no
+  code cells and no build step; `_quarto.yml`'s `project.resources` copies `pages/atlas/**`. Circle area is
+  the counted excerpts; a detail panel lists the five closest instruments and the five that point there;
+  *Neighbourhood size* switches the four UMAP layouts and *Similarity* the three data sets (0.6B default,
+  4B, BM25); each weight opens a `<dialog>` with the excerpts behind it, read from
+  `pairs*/<i>-<j>.json`. The panel is a `<div role="complementary">`, never an `<aside>` (Quarto sends an
+  `<aside>` to the page margin). Colours: laws `#2a78d6`, regulations `#008300`, guidelines `#e87ba4`,
+  treaties `#eda100`; the legend comes from `meta.collections`.
+- **Instruments** (`pages/instruments.qmd`, `pages/instruments/instruments.js`/`.css`): a reading page, no
+  library. A landing (search, sortable table) opens an instrument at `?c=<collection>&k=<key>[#<eId>]`:
+  an outline, the document as headings, paragraphs and tables, and on a *compared* excerpt its five
+  nearest texts. No eId, unit type or flag is printed; `stripMarkers` removes the marker lines on display
+  (a documented copy of `scjn.outline.MARKER`, compared by a test).
+- **Topics**: a draft, not rendered (above).
+- **Committed:** `atlas.json`, `atlas-qwen3-4b.json`, `atlas-bm25.json`, `_gold-links.md`,
+  `instruments/instruments.json`, `topics/` (draft), `data/scjn-leyes-summary.json`. **Fetched by
+  `website.yml` from releases, never committed, and the build fails if missing:** `pairs/`,
+  `pairs-qwen3-4b/`, `pairs-bm25/` (`atlas-pairs`) and `instruments/files/` (`atlas-instruments`).
+- **Literals.** The pages quote measured numbers as literals copied from the dated *Measured* sections of
+  `scripts/embeddings/README.md`, never recomputed; static checks in `test_atlas_page.py` and
+  `test_instruments_page.py` pin them against the committed data, and the page says the date.
+- **Verified in a real browser.** `scripts/embeddings/tests/test_atlas_page.py`, `test_instruments_page.py`
+  and `test_topics_page.py` drive headless Chromium through Playwright (`uv run --group viz playwright
+  install chromium` once) and render the qmd with a local Quarto (the newest
+  `~/.local/opt/quarto-*/bin/quarto` when not on `PATH`; CI pins 1.9.38). Without them the tests skip with
+  a reason and the static checks still run. The harness page never loads the site's stylesheet, so the
+  rendered-page tests are what see a Quarto CSS interaction.
 
-- **The rule.** The title block the SCJN prints above every instrument and, in a treaty, the promulgation
-  decree and its closing certification are the formulaic wrapper of the Mexican publication: the same decree,
-  word for word, wraps every treaty promulgated the same day (701 of the 7,661 envelope units of the treaties
-  cite "artículo 89" of the Constitution, against 45 outside it). `md2akn.outline.es_bloque_de_envoltura` /
-  `rangos_de_envoltura` read it from the outline markers alone (**by label at first, by position since review
-  fix-1 below**: the `kind=header` blocks plus the leading and trailing runs of decree blocks, `bloques_de_decreto`);
-  `TextUnit.envelope` is the last field, `units.parquet` has an `envelope` column, and
-  `instrument_matrix.searched_mask` makes an envelope unit neither a source nor a candidate, exactly like a heading
-  or a transitorio (headings are counted first, then transitorios, then the envelope: `matrix.json`'s
-  `envelope_rows_excluded`, carried into `atlas*.json`'s `meta`). A treaty's own preamble and a law's closing text
-  stay compared. Nothing is dropped from `text_units`, no text or hash changed, `md2akn` stays 0.5.1.
-- **Every consumer takes it from the column, never from a copied regex.** `nearest_texts`, `export_atlas_pairs`,
-  `tune_bm25` and `evaluate_citations` inherit it through `unit_rows`; `prepare_bm25_input`, `cluster_instruments`,
-  `export_instrument_files` and `gold_links` (signal C) build their own frames and request the column. A units
-  file with no `envelope` column compares everything and records `envelope_column: false`; a mixture of
-  collections with and without it is a `SystemExit`.
-- **Rebuilt, nothing published.** The four vectors work directories `-056` (59, 60, 12 and 4,291 new texts,
-  `compare_merges` clean for all eight runs), the staged cache `emb-run-vectors-056-cache/`, the three Atlas
-  work directories, `atlas*.json` (226,010 excerpts, 158,361 counted; 9,165 envelope rows out; **superseded by
-  review fix-1 below**), the three pair sets,
-  the 4B's nearest texts, the 2,677 instrument files, the gold (unchanged: 253 instruments, 277 links), the
-  evaluations, the topics (Louvain 1.0, 30 topics: the rule's choice moved from 1.5) and the pages' literals (26
-  October 2026). **Two conclusions moved**: BM25 is no longer tied with the 0.6B everywhere (better on the five closest
-  at the narrow gold level and on two row-level measures) and the 4B's lead over BM25 at row level is two measures,
-  not four; signal C fell from 5,292 to 3,764 citing excerpts because the promulgation decrees were counted as
-  text that cites the Constitution. The Instruments page does not mark an envelope excerpt *Compared*. The
-  release sweep passes (19 in 56 minutes). Tables in `scripts/embeddings/README.md` ("Measured, the envelope left
-  out and the complete corpora, 2026-10-26").
-  The publish order for a human: the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, issue #300), the four
-  vectors releases (`emb-run-<c>-057/publish/PUBLICAR.md`, **`-057` since review fix-1; the `-056` ones are
-  superseded**), the three `atlas-pairs` sets and `atlas-instruments`,
-  or `website.yml` fails or pairs the new JSON with old files (issue #115, Hallazgo C).
-- **The envelope by position, and preamble and conclusions inside their API block, rules 42 and 43 (review fix-1 of
-  #300 and #301, found after the fact).** Reading the Instruments page against the Atlas showed two decisions taken
-  from a label alone that failed both ways. `md2akn`'s `preamble` ran to the first container, so for 649 treaties, 118
-  reglamentos, 67 lineamientos and 9 laws it swallowed the blocks after `ENCABEZADO` (the decree, a certification,
-  a `CONSIDERANDO`), and `conclusions` was the last four blocks matching `CONCLUSIONES` across any marker; and the
-  envelope was an `other` block whose label was a few decree words, so a treaty's own `FIRMA` (`11374`) was
-  excluded while a decree step nobody had listed (`CANJE DE NOTAS`, the decree's `TRANSITORIO`) was compared.
-  **Rule 42**: `preamble` is exactly the `ENCABEZADO` block, `conclusions` never crosses a marker, a `header`
-  after the first node and `preamble`/`recitals` blocks open an `hcontainer` (rule 29), an `ÍNDICE` marker closes
-  the previous container, and `md2akn.validate._block_escapes` (invariant I1) has no `preamble`/`conclusions`
-  exemption left. **Rule 43**: the envelope is the `header` blocks, the leading run of decree blocks after them
-  (it ends right after a `CERTIFICACIÓN…` block) and the trailing run, `md2akn.outline.bloques_de_decreto`; a block
-  of a run is a decree step by its label (`_PASO`, widened only where measured; a lone `DECLARACIÓN` is not one) or,
-  only when sandwiched between two decree labels, by the vocabulary `ETAPAS_DEL_DECRETO`; a decree label inside the
-  instrument's own text is not envelope; a bare `CONTENIDO` never is; an instrument that is only its envelope marks
-  none (`units._mark_envelope`). Both apply only to a document with markers (no-marker output is byte-identical),
-  no rule names an instrument, `md2akn` and `scjn` stay 0.5.1.
-  `scripts/embeddings/measure_envelope.py` records it (envelope units by label, crossing units, the run blocks with
-  no decree-role label: `TRANSITORIO` 265 treaties, `CANJE DE NOTAS` 239, `NOTIFICACIÓN` 143 ..., and the reverse
-  list): crossing 0 in all four collections (9 / 118 / 67 / 649 instruments before), envelope units 324 → 319,
-  1,030 → 1,024, 182 → 178 and 7,661 → 9,185, 14 / 129 / 75 / 891 trees changed. The Instruments page draws a
-  node that has a label and no heading of its own with that label as a heading, once. **Three treaties have no
-  counted excerpt**: `tratados/11151`, `16145` and `23742` are one treaty published three times, and with the decree
-  out of their preamble every compared excerpt is a text the three own word for word (the `m > 1` rule), so their
-  matrix rows are zero in all three models (before, a preamble that swallowed the decree was the only text of each
-  that was not shared). `build_instrument_umap_html.normalise_rows` returns a non-zero mask instead of refusing
-  (the old docstring's "it cannot exist" was false), `project` fits only the non-zero rows and draws the three at the
-  centre, `export_atlas_data` exports them with `pc` 0 and no targets, and the topics label them noise ("Instruments
-  in no topic"); nothing in the rule was loosened. Rebuilt without re-crawling: the four `emb-run-<c>-057`
-  work directories (16, 426, 253 and 2,281 texts new against the published merge, only 4 of them never embedded
-  before; `compare_merges` clean for all eight runs, 0 texts with another vector), the staged cache
-  `emb-run-vectors-057-cache/`, the three Atlas work directories and `atlas*.json` (226,425 excerpts, 157,689
-  counted, 10,132 envelope rows out; the closest instrument unchanged for 2,573 / 2,566 / 2,551 of 2,677), the three
-  pair sets, the 4B's nearest texts (agreement proved), the 2,677 instrument files, the gold (unchanged, 253
-  instruments and 277 links), the evaluations (signal C 5,191 citations in 3,816 excerpts; the 4B is now better than
-  BM25 on three row-level measures and BM25 better than the 0.6B on one; no conclusion changed), the topics (a draft
-  page: Louvain 1.0, 31 topics, 3 instruments in none) and the pages' literals (27 October 2026). The sweep's I4
-  fixture lost one entry (`tratados/23803` `art_19`, now inside its `RESERVAS` section). Tables in
-  `scripts/embeddings/README.md` ("Measured, the envelope by position, 2026-10-27"). **Nothing was published**; the
-  human order is: the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, issue #300), the four vectors releases
-  (`emb-run-<c>-057/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
-- **The outline governs first, rules 44 to 47, invariant I5, and one instrument per identical text (review fix-2 of #300
-  and #301, found after the fact; supersedes fix-1's three-treaty special cases).** Reading the Instruments page against the
-  Atlas showed one treaty on the map three times (`tratados/11151`, `16145`, `23742`) and the label the SCJN prints as an API
-  block's first line compared as text (`143097`'s `DISPOSICIONES PRELIMINARES`: a `section` titled `SECCIÓN ...` plus an `intro`
-  unit that was only the label), and nobody had measured where else the text rules overruled the markers.
-  `scripts/embeddings/measure_marker_conformance.py` (`md2akn.validate.block_conformance`) did, **before any change**: 2,921
-  disagreements between a block and the node rooted at it (1,645 wrong type, 1,033 label line read as content, 161 a leaf reaching
-  into the next block, 57 wrong parent, 25 no node). **Invariant I5**: the node a block opens is of the type, number and rank
-  its marker says and takes the block's own label line as its heading; the release sweep enforces it over the four corpora, with
-  the only exceptions a short documented list with raw evidence (`md2akn.validate.CLASES_DOCUMENTADAS`, 57 blocks in
-  `fixtures_units/marker_documented.json`, regenerated by `classify_marker_exceptions.py`). **Rule 44**, an API `other` block is
-  an `hcontainer` (never a rule-23 `section`; rule 38's heading-only article blocks stay `section`) and its own label line is its
-  heading; **45**, a `PARTE` is ranked from the next marker (book, title or chapter) and is the sibling of the part before it;
-  **46**, a trailing annotation belongs to the block it was read in and hangs from that block's deepest last node (a node's notes
-  are read before its children's, which `coverage()`'s left-to-right search needs); **47**, a `provision` block is one text, its
-  own first line still opening it (leaving that out turned lineamiento `109466`'s `Primero.` into content and switched rule 8's
-  ordinal mode off). Documents without markers are byte-identical (digests, `marker_free_digests.json`). Result: 0
-  undocumented disagreements, 20 / 198 / 107 / 342 trees changed, and the release sweep, which first failed 5 of 19 tests on
-  these two defects and the eId renames of the I4 fixture (regenerated by `classify_numbering_gaps.py`, 110 -> 102 entries),
-  passes: 19 in 58 min 30 s. **`unique_instruments.select_identical`** generalises #259 to every collection: instruments
-  whose compared excerpts are the same multiset of `text_sha1` are one, and the one whose original publication is that text is
-  kept (reports carry `reason`: `same-name` or `identical-text`; `atlas*.json`'s `meta.identical_text_dropped`). It drops seven
-  (`tratados` 16145, 23742, 11432, 16515, 22598, 23776 and the law `lamn`, filed twice) so **the Atlas has 2,670 instruments**
-  (314 + 864 + 125 + 1,367), not the 2,675 the review's two-treaty reading gave: with the labels no longer compared five more
-  groups became word for word identical. **Fix-1's all-zero-row special cases were removed** (`git revert` of `b452c96d9` and
-  `2d0765f52`: `normalise_rows`' mask, `project`'s centre, `export_atlas_data`'s `pc` 0) and the guard restored; the build never
-  reaches it (no instrument in no topic). Atlas and Instruments search now rank, within a rank, the name the query covers most
-  first (`atlas.js`, `instruments.js`), so the tests search the original "constitucion"/"CONSTITUCIÓN" again. Rebuilt without
-  re-crawling: the four `emb-run-<c>-058` work directories (copies of `-057`; 290, 1,238, 449 and 3,567 texts new against it,
-  3 shards, both models, `compare_merges` clean for all eight runs), the staged cache `emb-run-vectors-058-cache/`, the three
-  Atlas work directories, `atlas*.json` (227,132 excerpts, 156,432 counted; the closest instrument unchanged for 2,616 / 2,617 /
-  2,625 of 2,670), the three pair sets, the 4B's nearest texts (agreement proved), the 2,670 instrument files, the gold
-  (unchanged, 253 instruments and 277 links), the evaluations (two instrument-level comparisons are not ties instead of three; no
-  other conclusion changed), the topics (a draft page: Louvain 1.0, 31 topics, none in no topic) and the pages' literals (28
-  October 2026). `md2akn` and `scjn` stay 0.5.1. Tables in `scripts/embeddings/README.md` ("Measured, the outline governs first,
-  2026-10-28"). **Nothing was published**; the human order is: the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, issue
-  #300), the four vectors releases (`emb-run-<c>-058/publish/PUBLICAR.md`, **`-058` since this fix; the `-057` ones are
-  superseded**), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+Decisions:
 
-## The Atlas page (issues #244, #245, #259, #261, #262, #267, #268)
+- The English interface says *excerpt*, *compared excerpt*, *nearest texts*, *parse*; never *unit*,
+  *provision*, *tooltip*, *n_neighbors*. No provenance footer, script name or commit on a page.
+- The prose is as wide as the app, flowing academic English, with no lead-phrase-and-colon sentence (a test
+  pins it). UMAP, Qwen3 Embedding and BM25 are cited through `website/references.bib`; `references.qmd`'s
+  `nocite` carries the keys and `website/scripts/fix_citation_links.py` retargets the links.
+- The retired SCJN *Buscador* URL appears nowhere in the tree except two frozen history documents
+  (`packages/scjn/tests/test_site_references.py` fails on it).
 
-The website's **Atlas** (`website/pages/atlas.qmd`, navbar entry *Atlas*
-right after *Federal Laws*, titled *An Atlas of Mexican Federal Law: Laws,
-Regulations and Guidelines*) is #242's instrument map made public. Two issues,
-split on purpose: #244 exports the data (`website/pages/atlas/atlas.json`,
-see the #242 bullet above), #245 draws it.
+## Processes
 
-- **Unique instruments only (issue #259).** The SCJN reissues a reglamento or
-  lineamiento under a new `idOrdenamiento` instead of reforming it, so the
-  corpora hold several instruments with one name and the map would count
-  the same regulation several times. `prepare_umap_input.py --unique-names`
-  (`scripts/embeddings/unique_instruments.py`) keeps one per name in
-  `reglamentos` and `lineamientos`: names folded by NFKD, accents,
-  whitespace and case (punctuation is *not* folded), the **newest original
-  publication date wins** (the date of the instrument's oldest snapshot, from
-  the SCJN corpus, parsed from `DD-MM-YYYY`), a tie to the larger integer id.
-  Leyes are keyed by `abrev` and never grouped, names are never compared across
-  collections, and only instruments with vectors compete. The rule agrees
-  with the SCJN's own `VIGENTE` mark in all 104 unambiguous groups. It runs
-  **before** the vector matrix is stacked, so a dropped instrument is neither a
-  source nor a candidate anywhere downstream; the result is 315 laws + 863
-  regulations + 125 guidelines = 1,303 instruments (220 dropped), recorded in
-  `unique-instruments.json` and `atlas.json`'s `meta`. The work directory is
-  `emb-run-atlas/` (gitignored), every command passing `--work-dir
-  emb-run-atlas`; the scripts' default stays `emb-run-umap/`, the unit-level
-  explorer's. `export_atlas_data.py`/`export_atlas_pairs.py` refuse a work
-  directory not prepared with the flag.
+Each is a numbered sequence; a human runs the publish steps.
 
-- **A hand-written D3 v7 page, not a notebook.** `atlas.qmd` has no code
-  cells — only the `<!-- atlas:app -->` block mounting
-  `website/pages/atlas/atlas.js`/`atlas.css` (D3 from jsdelivr, no build
-  step, no other library) and the explanatory prose. The site's notebooks are
-  frozen results to reproduce; this is a tool for people to use, and the
-  publish runner has Quarto only, so what is committed is exactly what the
-  browser runs. It needs no freeze entry; `_quarto.yml`'s
-  `project.resources: ["pages/atlas/**"]` is what copies the JSON, JS and CSS
-  into `_site`, and every path is relative (`atlas/atlas.json`) so the page
-  works from `_site/pages/atlas.html` and a local `http.server` alike.
-- **What it does**: circle *area* is proportional to counted excerpts
-  (`pc`; square-root radius, 2.5 px floor); a detail panel lists all five closest
-  instruments and the five that point here, each name selecting that
-  instrument; numbered lines join a selection to its five targets; a search box
-  folds accents and case; a labelled *Neighbourhood size* segmented control
-  with a caption switches between the four layouts; zoom keeps radii in
-  screen pixels. The interface is
-  English and says **excerpts** (an article of a transitorios block is a
-  *transitory article*), never *units*, *provisions*, *tooltip* or
-  *n_neighbors*; instrument names stay as the corpus spells them. No
-  provenance footer, script name or commit on the page.
-- **The site's palette, not Vega's**: laws `#2a78d6`, regulations
-  `#008300`, guidelines `#e87ba4` — the site's own rule that a colour means
-  the same thing on every page.
-- **Verified in a real browser.** `scripts/embeddings/tests/test_atlas_page.py`
-  drives headless Chromium through Playwright (in the root `viz` dependency
-  group; `uv run --group viz playwright install chromium` once per machine)
-  over a harness page built from the qmd's own app block, and writes a
-  screenshot to `output/atlas-chapingo.png`; without the browser those tests
-  skip with the reason and the static checks still run. No Home teaser card:
-  `website/index.ipynb` is frozen, and editing it is a re-freeze pass of its
-  own.
-- **The harness is not the site (issue #247).** Quarto's page CSS sends every
-  `aside:not(.footnotes):not(.sidebar)` to the page margin with
-  `grid-column: body-end/page-end !important` (and greys and shrinks its
-  text); inside `.atlas-main` those named lines do not exist, so an `<aside>`
-  panel would make the grid grow implicit tracks and the map's `1fr` track
-  get 0 px. The harness never loads the site's stylesheet, so it cannot see
-  this. The panel is therefore a
-  `<div role="complementary">`, `atlas.css` resets `grid-column` on every
-  child of `.atlas-main` (and Quarto's h2 rule / h3 font on the panel's
-  headings), and the `test_rendered_*` tests render `pages/atlas.qmd` with a
-  local Quarto into the gitignored `website/_site/` and drive that page. They
-  skip only when no Quarto is found — on `PATH`, else the newest
-  `~/.local/opt/quarto-*/bin/quarto` (1.9.38, CI's version, lives there on
-  the development machine, outside `PATH`).
-- **A weight explains itself (issues #249, #250).** Each *Closest
-  instruments* weight is a button that opens a native `<dialog>`: the
-  excerpts behind the number, each beside the closest text the target has,
-  both in full, with similarity and its `1` or `1/m`, 50 rows at a time.
-  *Points here* stays plain. The data is one `pairs/<i>-<j>.json` per pair
-  (6,288, ~159 MB), written by `scripts/embeddings/export_atlas_pairs.py`
-  (#249) and never committed: a human publishes it as the `atlas-pairs`
-  release (`PUBLICAR.md`, issue #115, Hallazgo C); `website.yml` downloads,
-  verifies and unpacks that asset into `website/pages/atlas/pairs/` before
-  publishing, and **fails if it is missing** — so the release must exist
-  before a change reaches `master`, and a regenerated `atlas.json` needs the
-  release *replaced in place* (same tag; the generated `PUBLICAR.md` uploads with
-  `--clobber` and rewrites the body from `.github/atlas-pairs.md`) before its
-  pull request is merged, or the site pairs it with the old files. Locally, `export_atlas_pairs.py --install
-  website/pages/atlas/pairs` fills the same gitignored directory. The page
-  fetches a file on the first click only, and shows a "not available" or
-  "different version of the map" message (checked by both instruments' `k`)
-  rather than failing.
-- **A second data set, from the 4B (issue #261).** The same chain over the
-  Qwen/Qwen3-Embedding-4B vectors (`qwen3-4b`, K = 2560) in its own gitignored
-  work directory, `emb-run-atlas-4b/` — never `emb-run-atlas/` with a flag, which
-  stays the 0.6B's and is untouched — gives the committed
-  `website/pages/atlas/atlas-qwen3-4b.json` (`meta.model` names the model; no
-  new key). `atlas.json` keeps its name and content: the 0.6B stays the default
-  everywhere. `export_atlas_data.py --instruments-as atlas.json` refuses, with a
-  `SystemExit` naming the first differing position, a file whose `c`/`k`/`n`/`p`
-  differ at any position, because the page swaps the two files keeping its
-  selection, so `i` must mean the same instrument in both. Its pair files
-  (6,265, ~169 MB) install into the gitignored
-  `website/pages/atlas/pairs-qwen3-4b/` and travel as three **added** assets of
-  the same `atlas-pairs` release, `atlas-pairs-qwen3-4b.tar.gz` /
-  `manifest-qwen3-4b.json` / `SHA256SUMS-qwen3-4b.txt` (`export_atlas_pairs.py`
-  suffixes every asset of a non-default model with `legalvec.model_slug`; the
-  0.6B's unsuffixed names are unchanged, and inside a tarball the layout is
-  `pairs/` + `manifest.json` either way). `website.yml` fetches, verifies and
-  unpacks both sets before publishing and fails when either is missing, so a
-  human must add the 4B assets to the release (its `PUBLICAR.md`) before the
-  pull request is merged. No page change here: the model control is issue #262.
-- **A lexical baseline, BM25 (issue #267).** A third data set over exactly the
-  same comparison — same unit rows, exclusions, masking, ties, `1/m` weighting
-  and exports — scored by BM25 instead of an embedding: `scripts/embeddings/scoring.py`
-  is now the one place a text-to-text score is computed (`scorer_for(work_dir)`
-  reads `input.json`'s `method`, `dense` when absent, so the two embedding work
-  directories reproduce byte for byte), `prepare_bm25_input.py` builds
-  `emb-run-atlas-bm25/` from `emb-run-atlas/` (row tables copied verbatim, no
-  vectors; `bm25s` 0.3.11 with `scipy`, in the root `viz` group; lowercase words
-  of two or more characters, no stopwords, no stemming; Lucene `k1` 1.5, `b`
-  0.75; the index is the searched candidate set; ties are relative and identity
-  is `text_sha1`), and the same chain gives the committed
-  `website/pages/atlas/atlas-bm25.json` (`meta.method` and `meta.model` are
-  `"bm25"`; `similarity` is the raw score) and the pair set installed into the
-  gitignored `website/pages/atlas/pairs-bm25/`, three **added** assets of the same
-  `atlas-pairs` release (`atlas-pairs-bm25.tar.gz` / `manifest-bm25.json` /
-  `SHA256SUMS-bm25.txt`) that `website.yml` fetches and fails without. A human
-  adds them (`PUBLICAR.md`) before the pull request merges. No page change here:
-  the control is the follow-up.
-  Its parameters were tuned against once (review fix-1, `scripts/embeddings/tune_bm25.py`:
-  300 configurations of method × `k1` × `b` × query weighting on a 10 % stratified
-  sample, then the top three and the defaults in full, objective row-level winner
-  agreement with the 4B) and **the defaults were kept**: the best configuration
-  raised the closest-instrument agreement with the 4B from 933 to 944 of 1,303
-  (+11, under the +26 bar set beforehand), so no data set was regenerated; the
-  table is in `scripts/embeddings/README.md` ("Measured, BM25 tuning").
-- **An embedding-model control (issue #262).** A second `.atlas-segmented`
-  radiogroup, *Embedding model* (`0.6B` default, `4B`), beside *Neighbourhood
-  size*; one `radiogroup()` helper in `atlas.js` builds both. The mount keeps
-  `data-src`/`data-pairs` for the default model and adds `data-models`, a JSON
-  list of `{label, src, pairs}` whose first entry agrees with them — the script
-  hard-codes no path, and a mount without it has no control. The page opens on
-  the 0.6B and fetches the 4B file on the first switch only; it refuses (a
-  status line, the radio stays put) a file whose instruments' `k` differ at any
-  position or that lacks the current layout, and a failed fetch can be retried.
-  A switch swaps `in`/`out`/`inc`/`p`, animates to the model's layout at the
-  *current* neighbourhood size, keeps the selection, and points the pair dialog
-  at the model's directory (explanations cached per model). The worked examples
-  in the qmd describe the 0.6B; there is no URL parameter, no persisted choice
-  and no comparison view.
-- **BM25 on the same control (issue #268).** The *Embedding model* control is
-  retitled **Similarity** and gains a third option, `BM25`
-  (`data-models` lists `0.6B`, `4B`, `BM25` in that order; the 0.6B stays the
-  default and `data-src`/`data-pairs` stay its paths), with a caption true of
-  all three. The explanation dialog's column reads **Score** with one decimal
-  when the data set on screen says `meta.method` is `"bm25"` (never the label —
-  the script still hard-codes no path and no label semantics) and
-  **Similarity** with three decimals otherwise. `atlas.qmd` gained a
-  paragraph on what BM25 is (a lexical baseline, not a model); the worked
-  examples still describe the 0.6B and were not re-measured. No data, script,
-  release or workflow changed: #267 did those, and the `atlas-pairs` release
-  must hold the three `-bm25` assets before this reaches `master`.
-- **Rebuilt without transitorios (issues #264, #265).** #264 made every
-  `TRANSITORIOS…` unit, like a heading, neither a source nor a candidate of the
-  matrix (see the #242 bullet above); #265 recomputed both work directories
-  (`emb-run-atlas/`, `emb-run-atlas-4b/`, not re-prepared — only the matrix
-  rule changed) and regenerated both `atlas*.json` and both pair sets:
-  `meta.transitorio_rows_excluded` (21,344) replaces
-  `transitorio_near_identical_dropped`, `counted_rows` fell from 120,141 /
-  120,027 to 110,362 in both models, and `atlas.qmd`'s rules sentence, counts
-  and both worked examples (Chapingo and the Constitution, whose old example was
-  made of transitory articles and was rewritten, not re-numbered) follow the new
-  data. The closest instrument is unchanged for 1,239 (0.6B) / 1,240 (4B) of the
-  1,303; the measured tables are in `scripts/embeddings/README.md`. As with
-  every regeneration, the two `PUBLICAR.md` hand-offs replace the `atlas-pairs`
-  release in place and must be run **before** the pull request merges.
-- **Counted excerpts, and the word *excerpt* (issue #271).** The page used to
-  size a circle and tell the reader `p`, an instrument's total unit rows,
-  although the matrix compares none of its headings or transitorios and does
-  not count a word-for-word text several instruments share. `atlas*.json` now
-  carry `pc`, the matrix row sum as an integer (`sum(pc)` is `meta.counted_rows`;
-  per model — BM25 differs in 197 instruments — so it is outside the
-  `--instruments-as` identity keys), and the page shows `pc` only (panel,
-  dialog lead "of its 137 counted excerpts", circle area, size legend); `p`
-  stays in the data. *Excerpt* (the paper's word) is the reader's word, *unit*
-  the Python side's, *legal provision* a DOF note; the JSON keys named
-  `provisions` keep their names. The three files were regenerated in one run
-  from the local work directories; pair files and the `atlas-pairs` release
-  are untouched, so there is no publish step.
-- **Which data set is right? Strong links, issue #272.** Agreement between the
-  three data sets measures consensus, not quality, so
-  `scripts/embeddings/gold_links.py` builds an external gold (an instrument
-  whose own name or "objeto" sentence names the instrument it develops; first
-  a reglamento or lineamiento naming a law, 212 instruments, **since review
-  fix-1 of #283 any instrument naming any other**, see below) and
-  `evaluate_links.py` scores the three `matrix.npy`
-  against it under a bootstrap + McNemar rule fixed beforehand. Result: the
-  0.6B, the 4B and BM25 are statistically indistinguishable on the closest and
-  the five closest instruments; only the 4B's weight share on the gold
-  instrument is higher. Outputs stay in `emb-run-atlas/gold-links/` (gitignored); method and
-  tables are in `scripts/embeddings/README.md` ("Comparing the three data sets
-  against strong links").
-- **The same question one unit row at a time, issue #273.** Signal C of
-  `gold_links.py` (`citations.parquet`: "artículo N de la Ley X") and
-  `scripts/embeddings/evaluate_citations.py` re-score each work directory with its
-  own scorer under the matrix's own mask and rank the cited instrument among
-  the 1,302 foreign instruments (2,675 since #283), over 2,003 single-law citing
-  rows (4,468 single-instrument rows since fix-1). Result: **the 4B is
-  better** (recall@5 0.273 against 0.253 and 0.241, median rank 21 against 29),
-  while the 0.6B and BM25 tie; see "Row level: explicit citations" in the same
-  README. Instrument level only, local, gitignored outputs.
-- **The page's prose, citations and evaluation (issue #275).** The prose under
-  the map is as wide as the map (`.atlas-prose` has no `max-width`; its tables
-  scroll, so a phone never widens), is written
-  as flowing academic English with no lead-phrase-and-colon sentence (pinned by
-  a test), opens with the provenance of the three corpora (the Court's database, how
-  each corpus was found — the laws seeded from the Cámara de Diputados' LeyesBiblio
-  catalogue, the regulations and guidelines from the named phrase unions of
-  `discover_federal_*.py`, never from the law discovery tool — which text the map
-  uses, the 1,303 unique instruments),
-  states what text represents an excerpt (the article's own text as in the
-  consolidated law, label included, no law name or heading; the same text goes to
-  the 0.6B, the 4B and BM25) and says its examples describe the 0.6B map the page opens on (the
-  4B gives Chapingo 9 to the UAM, the 0.6B 10; `atlas.json` is what a test pins
-  the example to). The excerpt counts and the unique-name rule live in the *Data*
-  box. UMAP, Qwen3 Embedding and BM25 are cited with Quarto citations
-  (`McInnes2018UMAP`, `Zhang2025Qwen3Embedding`, `Robertson2009BM25` in
-  `website/references.bib`; the page lists none of them: `references.qmd`'s
-  `nocite` carries the three keys and the post-render hook
-  `website/scripts/fix_citation_links.py` retargets the page's links to it, as
-  it does for the Home page), and a section carries the #272/#273 results (strong-link
-  signals A/B/C with examples, two tables; each measure is named in bold in the
-  explanation exactly as in the table, and the weight share is left to the
-  README as too hard to follow; one test per measure, a pairwise table under each
-  results table, and the strong links (227 at first, 275 since fix-1 of #283) in a
-  collapsed callout fed by
-  `website/pages/atlas/_gold-links.md`, which `gold_links.py` writes as `links.md`) as literals copied from
-  `scripts/embeddings/README.md`'s dated *Measured* subsections, never
-  recomputed.
+**A. Crawl a corpus (SCJN).**
 
-- **The treaties on the map (issues #282, #283, done).** The Atlas carries a
-  **fourth collection**, `tratados` (the `scjn-tratados` corpus of #277 and the
-  vectors of #280): #282 made the chain and the page able to (one registry,
-  `build_umap_html.COLLECTION_CODES`, equal in order to
-  `prepare_umap_input.COLLECTIONS` and `legalvec.cache.RELEASE_TAGS` — a test
-  pins it; `atlas.js` builds its legend from `meta.collections`, treaties
-  yellow `#eda100`, an unknown collection stops the page with a message naming
-  it; `export_atlas_pairs.py` refuses, rather than drops, a collection outside
-  the registry) and #283 rebuilt the three data sets in place with them:
-  315 + 863 + 125 + **1,373 = 2,676 instruments**, 203,324 excerpts, 144,023
-  counted (143,661 for BM25), `tratados` stacked last so an old row order is a
-  prefix. **Treaties are not grouped by name** (0 of 1,373 names repeat under
-  #259's folding; `GROUPED_COLLECTIONS` unchanged) and were **candidates only**
-  in the evaluation at first (`gold_links.py`'s sources stayed `reglamentos` and
-  `lineamientos`, the candidates grew from 1,302 to 2,675 foreign instruments);
-  **review fix-1 removed that restriction after the fact**, because it was a
-  limit of the first gold and not of the data: every one of the 2,676
-  instruments is now a possible source *and* a possible target of a strong link
-  in any direction (reglamento → ley, ley → Constitución, tratado → tratado, ley
-  → tratado, …), under one rule, **an instrument is never linked to itself**
-  (a name the source carries itself, as the two `LEY de Amnistía` or a
-  regulation filed once as a law and once as a reglamento, is its own and not a
-  mention of another instrument; three old links were dropped for it). Treaty
-  names of five words or more also answer to a short form, and a prefix sibling is
-  never a link. The gold is now 251 instruments through 275 links (A 161, B 170,
-  62 unresolved names), signal C 5,218 citing rows (4,468 scored); the
-  conclusions are unchanged (the three data sets are tied on the closest
-  instrument; the 4B is better row by row, on all five measures against the 0.6B),
-  and the page's literals, `_gold-links.md` and the README's dated section
-  "Measured, strong links between any two instruments, 2026-10-12" follow it.
-  Matrices, `atlas*.json` and the pair files were not touched by the fix, so
-  it has no publish step. The
-  page's title, subtitle, provenance (treaties found by the *Tratados
-  Internacionales* scope, any category, 1,455 found, 82 without text), legend
-  sentence, Data box and both worked examples (Chapingo now has a treaty among
-  its closest, the Constitution too) describe the new data and are pinned by
-  `test_atlas_page.py` against `atlas.json`. The unit-level explorer (#241) was
-  not rebuilt. The three `atlas-pairs` sets were regenerated (12,002 / 11,983 /
-  12,074 files); **nothing was published** — a human runs the three
-  `PUBLICAR.md` (`emb-run-atlas/atlas-pairs/`, `emb-run-atlas-4b/atlas-pairs/`,
-  `emb-run-atlas-bm25/atlas-pairs/`) before the pull request merges, or
-  `website.yml` pairs the new `atlas*.json` with the old pair files. Measured
-  tables: `scripts/embeddings/README.md` ("Measured, with the treaties,
-  2026-10-12").
+1. `scripts/discover_federal_laws.py` / `discover_federal_reglamentos.py` / `discover_federal_lineamientos.py`
+   / `discover_federal_tratados.py` list candidates and stop (they write no state; an `abrev` is a release
+   asset name, so a new law is a human's decision). `scjn.discovery` holds the shared paging and rescue
+   rules; reglamentos and lineamientos are found by category (plus the reform-category rescue), treaties
+   by *ámbito*.
+2. `scripts/seed_federal_reglamentos.py --coleccion {reglamentos,lineamientos,tratados}` turns a reviewed
+   list into `estado.json` files, idempotently.
+3. `scripts/fetch_scjn_legislacion.py` crawls (`--coleccion`, `--plan` for the row-comparison plan,
+   `--actualiza`/`--solo-fecha`/`--dof-only`/`--reintenta` for `leyes` only); `scripts/recrawl_scjn_outline.py`
+   re-crawls a whole corpus with the markers on (a ledger, raw answers kept, an instrument swapped in only
+   when every snapshot came back; `--instrumento` forces keys). `scripts/rewrite_scjn_from_raw.py` rewrites
+   Markdown from the kept raw answers without the network.
+4. `scripts/enlaza_scjn_legislacion.py` links new `leyes` reforms to their `codNota` (DOF); the id-keyed
+   collections have no DOF linking.
+5. `scripts/verify_scjn_outline.py`, then `scripts/measure_block_gaps.py`.
+6. `scripts/empaqueta_scjn_leyes.py` / `scripts/empaqueta_scjn_coleccion.py --coleccion ...` package the
+   release (tarballs, `indice-global.json.gz`, `SHA256SUMS.txt`, `MANIFEST.md`, `partes.json`,
+   `PUBLICAR.md`).
+7. **A human** reads `PUBLICAR.md` and publishes; only changed tarballs need `--clobber`. This happens
+   before anything derived from it is published.
 
-- **Topics of the instrument map (issue #285, done; the 4B since review fix-1).**
-  `scripts/embeddings/cluster_instruments.py` clusters the 2,676 instruments from
-  the L2-normalised rows of `A` with four algorithms (HDBSCAN on a 5-dimensional
-  UMAP, Ward, k-means, Louvain over `A + Aᵀ`), 22 configurations (the issue said
-  21; its own sweeps add up to 22), scored by silhouette and by **strong-link
-  co-membership** (the gold's 275 links), and picks one by a rule fixed beforehand
-  and never tuned: gates of 20-80 clusters, at most 15 % noise and a largest cluster
-  of at most 25 %, then the highest co-membership (`--choose` overrides and is
-  recorded; no passing configuration is a non-zero exit, not a softer gate). The
-  gold is read through `--gold` (default `emb-run-atlas/gold-links/gold.json`, as in
-  `evaluate_links.py`), not from the work directory: it is built from names and
-  text, so one file serves every work directory, and one built for another
-  instrument count is refused. #285 measured the 0.6B (`emb-run-atlas`); **the page
-  runs the 4B** (`emb-run-atlas-4b`, `Qwen/Qwen3-Embedding-4B`, the data set the
-  row-level evaluation found better), with the same rule, gates, sweeps and
-  labels. Measured 2026-10-13 on the 4B: only Louvain passes the gates (Ward and
-  k-means fail the largest-cluster one, HDBSCAN the noise one or, at a minimum of
-  30, collapses into four clusters), and **Louvain at `resolution` 1.0** wins with
-  32 topics, no noise, a largest topic of 365 instruments and co-membership 0.811
-  (223 of 275). The 0.6B's own run (also Louvain 1.0, 32 topics, 0.855) stays in the
-  README's "Measured, topics, 2026-10-12" as history, and its gitignored output in
-  `emb-run-atlas/topics/` is untouched. Each cluster is labelled by its ten c-TF-IDF
-  terms (unigrams and bigrams of the searched rows, `prepare_bm25_input.py`'s
-  tokeniser, 58 Spanish function words dropped because most clusters were otherwise
-  headed by `de`/`la`/`el`) and its three representatives. Output is
-  `emb-run-atlas-4b/topics/` (gitignored, nothing uploaded); `networkx` is named in
-  the root `viz` group. No hierarchy; the tables are in `scripts/embeddings/README.md`
-  ("Measured, topics, the 4B, 2026-10-13").
+**B. From the corpora to the Atlas and the Instruments page.**
 
-- **The Topics page (issue #286, done; the 4B since review fix-1; a draft since
-  review fix-2).** **The site does not render, link or ship it**: by decision of the
-  repository owner on 2026-10-13 (to be reviewed later) `website/pages/topics.qmd` has
-  `draft: true` (Quarto 1.9.38 renders a draft as an empty stub, so `_quarto.yml`'s
-  `project.render` also excludes `!pages/topics.qmd` and no `topics.html` exists), and
-  there is no navbar entry, no `pages/topics/**` resource, no BERTopic key in
-  `references.qmd`'s `nocite` and no `topics.html` in `fix_citation_links.py`'s `PAGES`;
-  `test_topics_page.py` asserts all of it. The page, the exporter, the two generated
-  files and the measured README subsections stay committed for that review.
-  **Re-enabling it** takes dropping `draft: true` and the render exclusion, restoring
-  the *Topics* navbar entry right after *Atlas*, the `pages/topics/**` resource, the
-  `nocite` key (and its sentence) and the `PAGES` entry (the note beside
-  `project.resources`). What was designed: the **Topics** page
-  (`website/pages/topics.qmd`, navbar entry right after *Atlas*)
-  lists every topic of the 4B run: static Markdown, no code cells, no JavaScript, no
-  freeze entry, `project.resources` gaining `pages/topics/**`. Two generated files
-  are committed under `website/pages/topics/`, written by
-  `scripts/embeddings/export_topics_page.py --work-dir emb-run-atlas-4b` (a pure
-  read of `emb-run-atlas-4b/topics/`, refusing a work directory with no
-  `topics/.done`): `topics.json` (short keys, `meta.model` is
-  `Qwen/Qwen3-Embedding-4B`, the Atlas' `[c, k, n]` triples so an `i` resolves; a
-  test pins them to `atlas-qwen3-4b.json`) and `_topics.md`, which the qmd includes —
-  a summary table, then per topic (largest first, numbered from 1, the noise last) a
-  heading with its three leading c-TF-IDF terms and an explicit `{#topic-n}` id, its
-  ten terms, a composition sentence, three representatives and a collapsed member
-  list grouped by collection and ordered by distance to the mean. Regenerating
-  either file is a human running the exporter, never a workflow (issue #115,
-  Hallazgo C). The prose says the matrix is the one the 4B gives (the Atlas'
-  *4B* option), and its numbers are literals copied from the README's 4B section and
-  pinned by `test_topics_page.py` against the committed data; the Grootendorst (2022)
-  BERTopic reference is in `references.bib`, `references.qmd`'s `nocite` and
-  `fix_citation_links.py`'s page list. No link into the Atlas, no `atlas*.json`
-  change.
+1. Build units (`build_units.py --coleccion ... --no-split-articles`), plan shards, embed with both models,
+   merge, package (`PUBLICAR.md`), `compare_merges.py` against the published merge.
+2. `stage_vectors_cache.py`; then, in each Atlas work directory, `prepare_umap_input.py --unique-names`,
+   `instrument_matrix.py`, `nearest_texts.py` (4B), `build_instrument_umap_html.py`.
+3. `export_atlas_data.py` (the three `atlas*.json`), `export_atlas_pairs.py` (three pair sets),
+   `export_instrument_files.py` (files + `instruments.json`).
+4. Evaluations: `gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`; topics:
+   `cluster_instruments.py`, `export_topics_page.py`.
+5. Update the pages' literals from the new *Measured* section and run the website tests.
+6. **A human** publishes, in this order: the four corpora (A.7), the four vectors releases
+   (`emb-run-<c>-NNN/publish/PUBLICAR.md`), the three `atlas-pairs` sets and `atlas-instruments`; or
+   `website.yml` fails or pairs the new JSON with old files.
 
-## The Instruments page (issues #288, #289, #290)
-
-The website gained a page to browse every instrument of the Atlas as `md2akn`
-reads it, with, on every searched excerpt, its closest texts of other instruments
-(issues #288, #289 and #290, all done).
-
-- **Nearest texts (issue #288, done).** `scripts/embeddings/nearest_texts.py`
-  repeats `instrument_matrix.py`'s sweep and keeps the **top five foreign
-  vector rows** (`TOP_TEXTS`, importable) of every searched excerpt instead
-  of only the winner, under exactly the matrix's rules — sources are the
-  searched unit rows (no heading, no transitorio), candidates are every vector
-  row but the source instrument's exclusively owned rows and the unowned ones,
-  and a text shared with another instrument stays a candidate. Five *texts*,
-  not five instruments (a text owned by several lists every owner in
-  `targets`); a tie at the cut is broken by the lower vector row, a tie at
-  rank 1 is ranks 1 and 2; rows are keyed by `(i, row)`, not by unit row, and
-  the exporter fans them back out by `eId`. It writes
-  `<work-dir>/nearest-texts/` (its own directory, `.done` last) and **proves
-  before `.done` that rank 1 is the Atlas' winner** (similarity within the
-  matrix's 1e-6, `targets` inside the matrix's, every source present both
-  ways): a disagreement is a `SystemExit` naming `(i, row)`, never a looser
-  tolerance. The 4B (`emb-run-atlas-4b`) only; the 0.6B and BM25 work
-  directories are untouched (the code works through `scoring.scorer_for`).
-  `instrument_matrix.py`'s `sbatch_command`/`submit`/`wait`/`load_job`/
-  `slurm_tail`/`output_dir` gained keyword arguments (script, sub-directory,
-  job name, extra arguments, required files) with the matrix's own as
-  defaults, so the Slurm plumbing is shared, not copied. Measured 2026-10-13:
-  145,970 searched unit rows, 145,693 source texts, 728,465 rows, agreement
-  true; the cluster queue was blocked by other users' jobs, so it was computed
-  on the login node (730 s) — see `scripts/embeddings/README.md`, "Nearest
-  texts" and "Measured, nearest texts, the 4B, 2026-10-13". Nothing is
-  committed from the run (`emb-run-atlas-4b/` is gitignored) and
-  `nearest.parquet`, `atlas*.json` and the `atlas-pairs` release are unchanged.
-
-- **The instrument files (issue #289, done).**
-  `scripts/embeddings/export_instrument_files.py` writes, for each of the Atlas'
-  2,676 instruments of `emb-run-atlas-4b`, `files/<coleccion>/<clave>.json`: the
-  raw Markdown once, the `md2akn` tree (each node `{t, e, n, h, r, s, l, x, a,
-  c}`), the excerpts (`u, e, p, pe, s, l, sha, v, x, f`) and, on every *searched*
-  excerpt, `near`, the five nearest texts of #288 resolved to owners (first owner
-  = lowest Atlas index, a text several instruments own is one entry). **Each
-  instrument is shown at the one snapshot its vectors were built from** (the
-  released `units.parquet`'s `archivo`) and **its re-parse is asserted equal to
-  the released excerpts**, `start_char`/`end_char` included, or the run stops
-  naming the instrument and position — no `--allow-mismatch`; it held for all
-  2,676. **Offsets are UTF-16 code units** (converted from md2akn's code
-  points), so the page slices `markdown` directly. **Flags are counts, never
-  judgements** (`loose`, `duplicate_number`, `numbering_gap`, `over_window`,
-  `no_articles`, `uncovered`, `no_transitorios`; the two numbering flags skip
-  transitorios; `score` ranks); the findings they reveal are reported in the
-  README ("Measured, the instrument files"), not fixed here. The index
-  `website/pages/instruments/instruments.json` (0.57 MB, agrees with
-  `atlas-qwen3-4b.json` by position) is committed; the files (320 MB) are not
-  (`/website/pages/instruments/files/`, gitignored) but travel as the release
-  `atlas-instruments` (`atlas-instruments-qwen3-4b.tar.gz`,
-  `manifest-qwen3-4b.json`, `SHA256SUMS-qwen3-4b.txt`; every name carries the
-  model slug, body `.github/atlas-instruments.md`) which a human publishes with
-  `PUBLICAR.md` (issue #115, Hallazgo C) **before the page's pull request
-  merges** — `website.yml`'s *Fetch the instrument files* step fails without it,
-  on purpose. Nothing was published.
-
-- **The page (issue #290, done).** `website/pages/instruments.qmd` (title *The
-  Instruments of the Atlas, as md2akn Reads Them*, `pages/instruments/**` in
-  `project.resources`) mounts
-  `website/pages/instruments/instruments.js`/`instruments.css`: one IIFE, no library,
-  reading only its mount's `data-*` attributes (index, files folder, `data-repo`, and a
-  one-entry `data-models` for the 4B). It is the Atlas' kind of page, not a notebook: no
-  code cell, no freeze entry, prose in `.instruments-prose` as wide as the app. A landing
-  (combobox search — same ARIA, folding and ranking as the Atlas' — and a sortable,
-  collection-filtered corpus table, 50 rows at a time) opens an instrument at
-  `?c=<collection>&k=<key>[#<eId>[.<piece>]]` with `pushState`/`popstate`; the instrument
-  view has a header, a parse summary whose flag counts jump to and cycle through the flagged
-  excerpts, a collapsible outline, the `md2akn` tree rendered in `requestAnimationFrame`
-  chunks (badge `akn_type · eId · num`, per-node *Raw*, every excerpt wrapped with its
-  `data-unit-type`) and a *Parsed/Raw* mode where *Raw* is the whole document once with each
-  excerpt and every uncovered character marked. Compared excerpts (never a heading or a
-  transitory article) carry a lazily built *Nearest texts* list whose links open the other
-  instrument at the excerpt; a missing file, or one whose `meta.k` differs from the index's,
-  is a status message and the page stays usable. Every badge and the header link to a
-  prefilled GitHub issue (`md2akn: <key> <archivo> <eId>`). Decisions: the corpus table has
-  no numbering column (the index does not carry it and #290 may not change #289's data; the
-  mode is in each file's `meta`), a nearest text's label is derived from its eId alone (its
-  file is not loaded yet), and the page says *excerpt*, *compared excerpt*, *nearest texts*
-  and *parse*, never *unit*/*provision*/*tooltip*. Verified by
-  `scripts/embeddings/tests/test_instruments_page.py` (static checks; headless Chromium over
-  a toy site built by the real exporter; the rendered page through Quarto, plus the real Civil
-  Code when the files are installed). The README's "The Instruments page" has the details.
-  **The navbar entry (issue #297, below) replaced the owner's decision of 2026-10-13 not to
-  have one:** `Instruments` is listed right after `Atlas`, the page is neither a draft nor excluded
-  from `project.render`, and the six-name pins in `test_atlas_page.py`, `test_topics_page.py` and
-  `test_instruments_page.py` now include it.
-  **Publish posture:** the `atlas-instruments` release of #289's `PUBLICAR.md` must exist
-  before this reaches `master`; until then `website.yml`'s *Fetch the instrument files* step
-  fails, as intended. Nothing was published and no PR was opened.
-- **Introductions and tables (issue #294, done).** `intro` and `table` (`md2akn` 0.5.1's rules
-  12 and 13) are nodes of the page like any other: badge, outline entry (*Introduction*, *Table N*),
-  excerpt wrapper and nearest texts. In *Parsed* mode a table node is drawn as an HTML table, **one per
-  excerpt**: a long table is cut at row boundaries into pieces (numbered from 1; a table that fits is
-  piece 0), each wrapped as its own excerpt and addressable as `#<eId>.<piece>`; a cell's `\|` is a
-  pipe, `**bold**` is kept, and a block that is not a row (the `**(ARANCEL)**` label) is a one-cell row
-  spanning the table. *Raw* mode is unchanged. The prose says *introduction* and *table*, never *unit*.
-  The real data is covered by browser tests that need no Quarto (`ligie-2022` shows `sec_I__intro` and its
-  tariff as tables, `137355` shows `art_1.1`); `export_atlas_pairs.py` labels the new excerpt types.
-
-- **The reader's page (issue #297, done).** The owner decided on 2026-10-22 that the page, which had
-  served its purpose as a review tool for how `md2akn` segments every instrument (#291's six passes),
-  becomes a **reading page for an end user**: title *The Instruments of the Atlas*, navbar entry
-  *Instruments* right after *Atlas*, and the Atlas page's last paragraph reworded to match. The review
-  apparatus was removed from `instruments.js`/`instruments.css` rather than hidden, with no developer
-  mode, toggle or second page (the old page is in git history at `0f8b5d6`): the parse summary and flag
-  buttons, the *Parsed/Raw* mode, per-node badges and *Raw* buttons, the report links, the excerpt bar
-  and tags, the outline's compared dot and ⚑, the amber colour, and the flag/score/excerpt columns of the
-  landing, which is now *Instrument*, *Collection*, *Text as of* (`14 November 2025`) and *Articles*,
-  sorted by name. An opened instrument shows an outline without marks and the document as headings
-  (`h3` to `h6` by container depth), paragraphs and tables, reform annotations kept; a **compared
-  excerpt** carries `data-compared="true"` (a quiet left rule and a small *Compared* label in CSS) and
-  its *Nearest texts (5)* list with similarity to three places, any other excerpt neither; no eId,
-  `unit_type` or flag is printed. **The `<!-- scjn:block ... -->` marker lines of the files' `markdown`
-  are stripped on display** by `stripMarkers`, a documented *copy* of `scjn.outline.MARKER` (the page is
-  build-less; a test compares the two), display only: offsets are untouched, and the index, the files,
-  the exporter and the `atlas-instruments` release are unchanged and nothing was published. The flags
-  stay in the data for the maintainers' measurements. `data-repo` stays in the pinned mount block, unread.
-  Tests turned around accordingly (`test_instruments_page.py` asserts the absence of every piece of
-  apparatus, of marker lines and of eIds, over the toy site, the rendered page and, with the release
-  installed, the real Civil Code and a real treaty with decree blocks). On the Intel Mac the `viz` group
-  does not resolve (`llvmlite` fails to build for `pynndescent`), so the three website test files were run
-  with `uv run --with playwright --with pytest --with pandas --with pyarrow --with numpy --with scipy
-  --with bm25s --with networkx pytest ...`; the local Quarto is 1.6.40 and one pre-existing Atlas test
-  (`test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references`, a collapsed-callout class) fails
-  there with or without this change, CI's 1.9.38 being what it pins.
-  **Review fix-1 of #297:** `mark` scrolls with `block: "start"` (not `"center"`, which left the middle of an
-  article taller than the window on screen), with a `scroll-margin-top` of 1rem on nodes, excerpts and headings.
-
-## Tables in SCJN snapshots (issue #253, done)
-
-The SCOW API hands `scjn.api.articulos_of_reforma` each article's `contenido`
-as **plain text**, no HTML. A table survives in it as three signals: a blank
-line (`\r\n\r\n`) ends a row, a bare newline (`\r\n`) is a wrapped line
-inside a cell, and a run of tabs separates columns. `articulos_a_markdown`
-used to split on **every** newline alike, so a wrapped multi-line cell came
-back as several separate Markdown paragraphs instead of the one table row it
-always was.
-
-- **Only a blank-line-separated block that carries a tab changes.** Every
-  other block converts exactly as before, byte for byte — the existing
-  tests in `packages/scjn/tests/test_api.py` pass unmodified, and the
-  module's long-standing promise of reproducing the retired `.docx` path
-  still holds wherever there is no tab.
-- **One recovered row is one Markdown paragraph**, `"| cell | cell |"`,
-  blank-line separated from the next — no GFM header separator, no header
-  inference, no column padding. Chosen over a GFM table on 2026-09-23
-  because `md2akn` reads consecutive lines as one block and has no rule to
-  cut a table by rows: a GFM table would turn `ligie-2022`'s tariff (393,640
-  tab lines in one snapshot) into one giant unit, and a `|---|` line would
-  itself become a noise unit. A GFM shape plus an `md2akn` table rule can be
-  a later issue.
-- **A wrapped multi-line header is rebuilt by merging, cell by cell.** A
-  tabbed line whose own first cell is empty continues the row already being
-  built rather than starting a new one — this is how a header spread over
-  several tabbed lines (`Cobertura` / `Cuota por cada kilohertz` /
-  `concesionado o` / `permisionado 1MHz=1000 KHz`) comes back as the single
-  row it always was. Headers are best-effort this way; data rows are what
-  the fix is actually for.
-- **An `Artículo N`/ordinal lead on a tabbed line is never read as a row.**
-  2 of 23,592 measured tab lines open with `**ARTICULO N.-**`; turning one
-  into a row would drop that article from `md2akn`'s own tree, which is
-  worse than a fee value left inline as prose.
-- **A recovered row bypasses `_formatea_parrafo`.** An all-caps row would
-  otherwise be bolded whole, and a cell led by `a).-` would be read as a
-  list marker — both wrong for a table row. A reform annotation
-  (`(REFORMADO, D.O.F. ...)`) inside a tabbed block keeps its usual bold
-  treatment, since that is the shape `md2akn.patterns.ANOTACION` already
-  recognises.
-- **Measured on the cached `scjn-leyes` release (2026-09-23): 35 of 315
-  laws, 567 of 3,707 snapshots** carry at least one tab-bearing block —
-  `ligie-2022`/`lfd`/`lfisan` are the three heaviest.
-  `scjn-reglamentos`/`scjn-lineamientos` were not measured (their tarballs
-  were not in the local cache that day), but both are written by the same
-  `scjn.api.snapshot` and inherit the fix.
-- **Nothing rewrites an already-published snapshot on its own.** The raw
-  `contenido` is not cached anywhere, so a snapshot written before this fix
-  keeps its old shape until it is re-downloaded — see "Re-downloading
-  table-bearing SCJN instruments (issue #255, review fix)" below for how
-  (not `--reintenta`, which deletes `estado.json`/`indice.json` and
-  re-searches without the recorded `id_ordenamiento` — issue #115's
-  wrong-document path), then
-  `scripts/empaqueta_scjn_leyes.py`/`empaqueta_scjn_coleccion.py` (whose
-  `MANIFEST.md` lists exactly the rewritten instruments), then a human
-  republish (issue #115, Hallazgo C).
-  `nota2md`'s own derived cache
-  (`<CACHE_DIR>/scjn-leyes/md/<slug>-<archivo>.md`) is keyed by file name and
-  reused when present, so it goes stale for a rewritten law until deleted or
-  `refrescar=True` is passed.
-- **`md2akn` needed no change.** A row starting with `|` matches none of
-  `clasifica`'s patterns (falls through to an ordinary `content` leaf) and
-  `MARCADOR_LISTA` requires its marker at the head of the block, which `|`
-  is not — so `a).-` at the head of a row never opens an inciso. A test
-  pins this reading (`packages/md2akn/tests/test_units.py`) so a later
-  change to either package cannot regress it silently.
-- **`scjn` went to 0.4.0** — a behaviour change in every future snapshot of
-  the 35 laws above; `nota2md`'s floor `scjn>=0.2.0` is unaffected.
-
-## Re-downloading table-bearing SCJN instruments (issue #255, review fix)
-
-Issue #255's first attempt (a since-deleted script) re-converted a snapshot
-**in place**, body only, and only wrote it back when a word-order check passed (`words(old) == words(new)`, ignoring
-`*`/`|`/`\`/whitespace). That check was too strict: when a table's column
-header is wrapped over several source lines, #253's merge rule rebuilds it
-as one row, and a header's own words can come out in a different order than
-the old line-by-line dump had them (`Dia Tipo de Vialidad Noche` vs `Tipo de
-Vialidad Dia Noche` — same words, same table, different order because the
-old dump was never in reading order to begin with). That rejected roughly
-half of every affected snapshot in `leyes`/`reglamentos` as a false
-`mismatch`, leaving those instruments inconsistently converted. A per-word
-order check cannot tell a genuine upstream text edit apart from a faithful
-but differently-ordered reassembly of the same table — so the repository
-owner replaced the whole approach rather than loosening the check.
-
-**The procedure now, authoritative since this fix:**
-
-1. For every instrument of all three collections, ask the SCJN for its
-   **latest version only** (`scjn.api.ScjnApi.reformas_of_ordenamiento`, the
-   newest reform with `tieneArticulos` true, then
-   `articulos_of_reforma` for that one reform) — `scripts/find_scjn_table_instruments.py`.
-2. **Has a table** iff any article's raw `contenido` contains a tab — #253's
-   own signal, checked on the fresh API answer, never on what is on disk.
-3. An instrument whose *latest* version has no table is left exactly as
-   published, even if an older snapshot of it still has one. Confirmed with
-   the repository owner explicitly: a `mismatch` from the abandoned approach
-   is not itself a reason to touch an instrument now.
-4. A selected instrument (latest version has a table) gets **all** of its
-   snapshots re-downloaded from scratch — `fetch_scjn_legislacion.py
-   --instrumento <key>` after deleting only its `*.md` files (never
-   `estado.json`/`indice.json`/`notas/`) — which also picks up any reform
-   published since the last crawl, on purpose: a half-updated instrument is
-   worse than a fully current one.
-5. `leyes` reforms newly picked up this way are linked
-   (`enlaza_scjn_legislacion.py`), same as any other new reform; the
-   id-keyed collections have no DOF linking at all, unchanged.
-6. Packaging (`empaqueta_scjn_leyes.py`/`empaqueta_scjn_coleccion.py
-   --instrumento`) and publishing stay exactly as before — manual, issue
-   #115 Hallazgo C — over only the selected instruments.
-
-There is no word-level verification step any more: a full re-download from
-the SCJN's own current answer is trusted the same way any other crawl is,
-and a genuine upstream edit (if any) is exactly what a fresh crawl is
-supposed to pick up.
-
-- **Hand-off**: `scripts/scjn/table-instruments-PUBLISH.md` (gitignored,
-  regenerated by re-running the pipeline) — probed/selected/re-downloaded/
-  failed counts per collection, the codNota-change report for `leyes`, and
-  the exact `gh release upload`/`gh release edit` commands. Nothing is
-  published automatically.
-- **Out of scope, deliberately**: derived data (`md2akn` `units.parquet`,
-  the three `*-vectors` releases, the Atlas matrix/`atlas.json`/
-  `atlas-pairs`) is untouched and stays stale until a future issue plans
-  regenerating it — nothing here does that.
-
-## `dof2md` is now `document2md` (issue #228, done)
-
-*Both packages left this repository in issues #233/#234 and now live in
-https://github.com/INGEOTEC/document2md — the paths below (`packages/dof2md/`,
-`docs/source/document2md_api.rst`, `publish-pypi.yml`'s tag rules) no longer
-exist here. The section is kept as frozen history: it records why the rename
-happened and the rules the tombstone still lives by in its new home.*
-
-The package that OCRs a PDF or a set of page images to Markdown was renamed:
-distribution, directory, import package, console script, release tag, Read
-the Docs page (`docs/source/document2md_api.rst`) and website page
-(`website/pages/document2md.ipynb`) all say `document2md` now. Nothing else
-changed — same `BatchConverter`, same CLI flags (including the Spanish
-`--titulo`/`--titulo-siguiente`, deliberately untouched), same output, same
-version line (`0.3.0`, continued rather than reset).
-
-- **A package is named after what it does, not after the corpus that first
-  needed it.** That is the criterion this rename settles, and the one the
-  project's later package renames follow. `dof2md` had had no notion of the
-  DOF since issue #134 moved the edition download out into
-  `dofjson.download_edicion_pdf`; nothing in it knows what a note or a legal
-  provision is. The name also has to survive the backend: `mineru` is an
-  implementation detail and a cloud OCR/layout service is a plausible second
-  one, so `ocr2md` was rejected along with `scan2md` (excludes born-digital
-  PDFs) and `pdf2md` (excludes the image path, which is the one `nota2md`
-  actually uses for pre-1999 notes).
-- **The multi-backend seam is not here.** No `backend=` parameter, no
-  registry, no second converter — the *possibility* of one is the reason for
-  the name, not part of the rename; it gets its own issue.
-- **`packages/dof2md/` still exists, as a tombstone that raises.** It is a
-  code-less final release for the old PyPI name: `__version__ = "0.3.0"`,
-  then an unconditional `ImportError` naming `document2md` and
-  `pip install document2md`. It does **not** depend on `document2md` — a
-  working shim was rejected, because it would keep the old package alive as
-  real, maintained code, and would let `pip install dof2md` quietly keep
-  working through a transitive import. Silence was rejected too: PyPI would
-  otherwise keep serving 0.2.0 forever with nothing saying it was renamed.
-- **`__version__` must stay above the `raise`, as a plain literal.** Both
-  setuptools' `attr:` resolution and `scripts/check_package_versions.py`'s
-  `local_version()` read it statically (AST, no import) — that is what makes
-  a module which raises on import buildable and publishable at all.
-  `packages/dof2md/tests/test_tombstone.py` guards the ordering, alongside
-  the test that the import raises.
-- **The version gate learned about tombstones.**
-  `[tool.legalia] tombstone = true`, in the package's own `pyproject.toml`,
-  exempts it from `check_package_versions.py`'s one-step-ahead rule (issue
-  #194): once `dof2md-v0.3.0` is published, local and PyPI agree forever,
-  which the gate would otherwise report as a failure on every pull request
-  from then on. The marker is data in the package it describes, so the next
-  rename costs a key, not a code edit.
-- **Publish order:** `document2md` 0.3.0 goes to PyPI **before or at the
-  same time as** any `nota2md` release whose `ocr` extra requires it
-  (`document2md>=0.3.0`), or `pip install nota2md[ocr]` breaks for everyone
-  outside this repo — the same rule this file already states for `scjn` and
-  `nota2md`. `dof2md-v0.3.0` (the tombstone) can go at any point after;
-  `publish-pypi.yml` keeps its `dof2md-v*` tag rule for exactly that one
-  last release.
-- The website page was **not** re-executed (it needs `mineru` and a real
-  edition PDF): the rename changes no output, so the `website/_freeze/`
-  payloads were edited textually, which is what `freeze: true` publishes.
-  `.github/migracion-diputados.md` keeps its `dof2md` mentions — it is a
-  frozen historical record, like this file's own history sections.
-
-## `document2md` moved to its own repository (issues #233, #234, done)
-
-**This section describes the tree, not a direction.** `packages/document2md/`
-and `packages/dof2md/` are gone; both live in
-https://github.com/INGEOTEC/document2md, which #233 created as a single import
-commit taken from this repository at `e1f258c` (history was not extracted — it
-stays readable here, and LegalIA is public). #234 then made this repository
-consistent with that. `document2md` is the **first** package to leave, and the
-criterion it sets is the one a later candidate is measured against.
-
-- **The criterion: no dependency on the monorepo, plus its own release
-  cadence.** `document2md` imports nothing from any package here, has had no
-  notion of the DOF since #134, and was renamed away from `dof2md` in #228
-  precisely because it is a general tool. The only thing here that uses it is
-  `nota2md`'s optional `ocr` extra, imported lazily. Sharing a repository
-  bought it nothing and cost everyone a ~100 MB `.git` and a seven-package CI
-  matrix. A package that *does* depend on a sibling (`nota2md` on `dofjson`
-  and `scjn`) has not met this bar and is not a candidate.
-- **What left, and what stayed.** The package, its tests, its Read the Docs
-  page (now that repository's `docs/source/index.rst`) and the `dof2md`
-  tombstone all left — the tombstone is `document2md`'s concern, being its own
-  old PyPI name, so LegalIA keeps no trace of either. What **stayed** is
-  `website/pages/document2md.ipynb` and its `_freeze/` payload: the website is
-  results about the gazette, which is a LegalIA concern regardless of where
-  the code that produced them lives (#119's rule, unchanged). It was not even
-  re-executed — editing its prose means re-freezing, which is a docs pass of
-  its own.
-- **The bridge, and the condition that removed it.** `document2md` 0.3.0 was
-  not on PyPI when #234 landed (publishing is a human step: a `TWINE` secret
-  and a tag), so everything that needed it importable *in this repository's own
-  environments* took it from GitHub **pinned to #233's import commit**, never a
-  branch, so a later push there could not change what LegalIA's CI tested: the
-  root `pyproject.toml`'s `[tool.uv.sources]` (a root-level source applies to
-  every workspace member, so it was declared once),
-  `.github/workflows/test.yml`'s `nota2md` job, and `.devcontainer/python.sh`.
-  That bridge is **gone**: 0.3.0 reached PyPI on 2026-09-13 and issue #235
-  replaced all three with the plain PyPI name the same day, so this repository
-  now depends on `document2md` exactly the way any outside user does. The
-  devcontainer names no requirement of its own for it — it installs
-  `packages/nota2md[ocr,test]`, and the `ocr` extra is the single place the
-  requirement is declared.
-- **The published `nota2md` never carries a URL.** Its `ocr` extra is, and
-  stays, `document2md>=0.3.0`: PyPI rejects direct-URL dependencies in a
-  published package, so the bridge lives only where this repository builds its
-  own environments. This is also why `nota2md`'s own error message says `pip
-  install document2md (or nota2md[ocr])` — the path it used to name is gone,
-  and the PyPI name is the durable instruction.
-- **Publish order is now a cross-repository rule.** `document2md` 0.3.0 must
-  reach PyPI **before or at the same time as** any `nota2md` release whose
-  `ocr` extra requires it, or `pip install nota2md[ocr]` breaks for everyone
-  outside these repositories — the same rule this file already states for
-  `scjn` and `nota2md`, except the two sides are no longer released from one
-  tree.
-- **The docs split, per #119's rule.** LegalIA's Read the Docs stops
-  installing and documenting the package: `docs/source/document2md_api.rst` is
-  deleted, `conf.py` no longer imports it, `.readthedocs.yaml` no longer
-  installs it, and `requests` left `docs/requirements.txt` with it (it was
-  there only for that `--no-deps` install). `index.rst` keeps a `document2md`
-  row whose cells link **out** — repository, PyPI, its own docs site — with
-  `—` for the version, and the architecture diagram keeps the node, redrawn
-  dashed like the external systems. A row that links out is what a monorepo's
-  docs owe a package that lives elsewhere. The new repository's own Sphinx
-  site refers back here for `dofjson`/`nota2md`; it would use intersphinx, but
-  `legalia.readthedocs.io` publishes no `objects.inv` today, so those are
-  plain links and its `conf.py` records the one-line change that restores
-  intersphinx.
-- **`is_tombstone` stays in `scripts/check_package_versions.py`**, with no
-  package using it. The marker exists so "the next rename costs a key, not a
-  code edit" — deleting the mechanism along with its first user would undo
-  that on purpose. `legalvec`'s boundary test, by contrast, **did** drop
-  `document2md`/`dof2md` from the tuple it greps for: that guard says "nothing
-  else in this monorepo", and naming packages that are no longer in it would
-  make it assert something false.
-
-## Documentation: two sites, one division of labour (issue #119, done)
-
-The project has two documentation sites, and what goes on which one is a
-rule, not a per-page judgment call — stated identically in `README.md`,
-`docs/source/index.rst` and `website/_quarto.yml`'s navbar, so a reader
-lands on the same story regardless of which one they open first:
-
-- **Read the Docs** (`docs/source/`, Sphinx, built from this repo's default
-  branch at legalia.readthedocs.io) is the **developer reference**: every
-  package's full API, public and private, with a worked example for every
-  public symbol. Usage examples live here — they do not live on the website.
-- **`website/`** (Quarto, `ingeotec.github.io/LegalIA`) is **results**:
-  datasets, findings, the analysis of the gazette itself. A page there uses
-  the packages to build something (a figure, a corpus, a number worth
-  reporting) rather than teaching how to call them; if a page starts
-  explaining a function's arguments one by one, that content belongs on the
-  function's Read the Docs page instead, with a link down to it.
-
-Rules for a package's Read the Docs page (`docs/source/<pkg>_api.rst`),
-settled by issues #195-200 while building the site the original four
-packages shared, and inherited unchanged by `scjn` when it joined (#212):
-
-- **Every public symbol gets a verified example.** Concretely: every name in
-  a package's `__all__`, every public method of an exported class, every CLI
-  subcommand. "Verified" means a live doctest, run by the separate
-  `docs-doctest` job in `.github/workflows/test.yml` (network access
-  allowed; the Read the Docs build itself stays HTML-only and must not
-  depend on the network). Where that is genuinely not possible — as with the
-  OCR paths of `document2md`, which need `mineru` and which took this rule
-  with them to their own repository (#234) — the exception is written down on
-  the page itself, with the package's own pytest suite named as what verifies
-  that behaviour instead; it is not silently skipped.
-- **Private/internal helpers** (leading-underscore names) get a full
-  docstring and appear via `:private-members:`, but need no worked example —
-  they are documented for whoever is extending or debugging the package, not
-  exemplified for a caller.
-- **Tests are never documented**: no `automodule` over a package's `tests/`,
-  no doctest collection under `packages/*/tests/`.
-- Any example that touches a large GitHub Release corpus (`scjn-leyes`,
-  `notas-archivo`) picks one small law/asset rather than walking the whole
-  release, and the doctest job caches `nota2md.cache.CACHE_DIR`/
-  `dofjson.titulos.CACHE_DIR` between runs — the releases are hundreds of MB.
-
-A future package added to this monorepo inherits this rule: it gets a
-`docs/source/<pkg>_api.rst` page built to the same standard, not a "usage"
-section bolted onto `website/`.
+**C. When the parser changes.** Run the `md2akn` suite, `scripts/embeddings/measure_trees.py` (trees and
+hits before against after), `compare_units.py` against the published units, and the release sweep; a
+change that alters any unit's text or hash means B from step 1, and a version bump of `md2akn` if it
+changes what a future vector means.
 
 ## Commands
 
-Three test files make real network calls and are excluded from routine runs
-(CI's `test.yml` does include them by default — check before assuming a
-failure there is unrelated). Their GitHub API calls carry the runner's token
-when `GH_TOKEN` is set (`test.yml` sets it on the `test` and `docs-doctest`
-jobs; `_github_api_headers` in `dofjson.titulos`, `legalvec.cache` and
-`scjn.release` adds the header only then): unauthenticated, a shared runner
-IP's 60 requests an hour ran out on pull request #298 and one matrix cell
-failed with `403 rate limit exceeded` while the other two passed. Since issue
-#209 moved the `scjn-leyes` release readers into the `scjn` package, two of
-the three now live there:
+Three test files make real network calls and are excluded from routine runs (CI's `test.yml` includes
+them; check before assuming a CI failure there is unrelated). Their GitHub calls carry `GH_TOKEN` when set
+(`_github_api_headers` in `dofjson.titulos`, `legalvec.cache` and `scjn.release`): unauthenticated, a
+shared runner IP's 60 requests an hour run out.
 
 ```bash
-pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py
+pytest packages/dofjson -q
 pytest packages/scjn -q --ignore=packages/scjn/tests/test_api_red.py \
-    --ignore=packages/scjn/tests/test_release_red.py
-```
-
-A fourth test file is excluded for a different reason — not network, but
-wall-clock time plus a ~380 MB local cache not every machine has: issue
-#218's `md2akn.units.coverage()` invariant and issue #227's
-`max_unit_chars()` one, swept over all three cached SCJN releases (~12
-minutes, measured) rather than over a handful of fixtures.
-
-```bash
+    --ignore=packages/scjn/tests/test_release_red.py        # the two excluded files are network
+pytest packages/nota2md -q --ignore=packages/nota2md/tests/test_leyes_44.py
 pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_sweep.py
+pytest packages/legalvec -q
+pytest scripts/embeddings/tests scripts/tests -q
+python -m sphinx -b doctest docs/source docs/build/doctest   # needs network and cached lfca / reglamento 104906
+python scripts/check_docs_references.py                      # paths, dotted names, flags, #N a document cites
+pytest packages/md2akn/tests/test_units_release_sweep.py     # about an hour, ~380 MB cache; see the parser section
+python scripts/test_inventory.py                             # duplicated and parametrisable tests
 ```
 
-There is no `pytest packages/document2md` any more: that package has its own
-repository and its own suite (#234). `uv sync` still puts it in this
-repository's `.venv`, from PyPI via `nota2md`'s `ocr` extra (issue #235
-removed the pinned-git bridge), because
-`packages/nota2md/tests/test_builder.py` patches `document2md.converter.*`.
+The sweep is excluded for wall-clock time plus a local cache not every machine has. There is no
+`pytest packages/document2md`: that package has its own repository, but `uv sync` still installs it
+(through `nota2md`'s `ocr` extra) because `packages/nota2md/tests/test_builder.py` patches
+`document2md.converter.*`. **Except on an Intel Mac**, where the root `pyproject.toml`'s dev group markers
+that extra out (`onnxruntime` has no macOS x86_64 wheel past 1.23.2 and listing it makes every `uv run`
+fail to resolve); the four tests that patch it skip themselves there. The `viz` group does not resolve
+there either (`llvmlite`): run the website tests with `uv run --with playwright --with pytest --with
+pandas --with pyarrow --with numpy --with scipy --with bm25s --with networkx pytest ...`.
 
-**Except on an Intel Mac**, where the root `pyproject.toml`'s dev group
-markers that extra out (`sys_platform != 'darwin' or platform_machine !=
-'x86_64'`): `document2md` reaches `mineru`, which requires `onnxruntime`,
-whose last macOS x86_64 wheel was 1.23.2. Listing it unconditionally there
-did not merely skip the OCR path — it made `uv sync`, and therefore *every*
-`uv run <anything>`, fail to resolve at all. The four `test_builder.py` tests
-that patch `document2md.converter.*` skip themselves when the import is
-missing; CI (Linux) installs the package and still runs them.
-
-The website's notebooks are committed without their outputs, via an
-`nbstripout` clean filter (`.gitattributes` maps `*.ipynb` to it). The filter
-itself lives in `.git/config`, which is not versioned. The devcontainer
-installs it for you (`.devcontainer/postCreate.sh`); a clone outside the
-container has to do it once — otherwise notebook outputs get committed and
-the pack grows by megabytes per commit (`website/pages/titles.ipynb` alone
-was 7.7 MB with outputs, 42 KB without):
+The website's notebooks are committed without outputs, through an `nbstripout` clean filter
+(`.gitattributes` maps `*.ipynb`; the filter lives in `.git/config`, which is not versioned). The
+devcontainer installs it (`.devcontainer/postCreate.sh`); a clone outside it does it once:
 
 ```bash
 pip install nbstripout
 nbstripout --install --attributes .gitattributes
 ```
 
-The site renders from the committed `website/_freeze/` cache, not from the
-notebooks, so stripping outputs costs the site nothing — but only because
-`_quarto.yml` sets `execute: freeze: true`. Under the default `freeze: auto`
-it silently breaks the publish workflow: `auto` compares the notebook's md5
-against the one stored in the freeze entry, and those can never agree once
-the clean filter is installed (the freeze is written from the local copy,
-which has outputs; git stores the stripped one). That is exactly how the
-`Publish website` run on the #150 merge failed — Quarto tried to execute
-`pages/titles.ipynb` on a runner with no Python.
-
-Consequence for local work: `quarto render` will *not* pick up edits to a
-notebook's code. Re-execute explicitly and commit the refreshed `_freeze/`.
-`--no-freeze` is a project-level flag only — on a single file quarto (1.9.36)
-hands it to pandoc, which dies with `Unknown option --no-freeze`. So:
+The site renders from the committed `website/_freeze/`, not from the notebooks, and only because
+`_quarto.yml` sets `execute: freeze: true`: under the default `freeze: auto` the md5 of a stripped
+notebook never matches its freeze entry and the publish workflow tries to execute it on a runner with no
+Python. So `quarto render` does not pick up edits to a notebook's code; re-execute explicitly and commit
+the refreshed `_freeze/` (`--no-freeze` is a project-level flag only):
 
 ```bash
-quarto render --no-freeze                                  # the whole site
+quarto render --no-freeze                                          # the whole site
 QUARTO_FREEZE=false quarto render pages/dataset.ipynb --execute   # one file
 ```
 
-A clone that skips the `nbstripout` install is not broken — an undefined
-filter is a pass-through — it just stops shrinking what it commits.
+A clone that skips the `nbstripout` install is not broken: an undefined filter is a pass-through.
 
 ## Git workflow: branches, issues and PRs
 
-- A branch is created to work on one particular issue. It is created only at
-  the moment, while on the main branch, an issue is read and about to be
-  implemented — that is the single point where a new branch gets created.
-- While working on that issue, it may turn out necessary to read and
-  implement another (secondary) issue to complete the main one. In that
-  case, do **not** create a new branch — you are already on a working
-  branch, and the secondary issue's work happens there too.
-- Do not open a pull request as a side effect of finishing the work. A PR is
-  only created when the user explicitly asks for it, after both the main
-  issue and every secondary issue pulled in to complete it are done. Never
-  open a PR proactively "because the work is done."
+- A branch is created to work on one particular issue, only at the moment, while on the main branch, an
+  issue is read and about to be implemented.
+- While working on it, a secondary issue may turn out necessary; do **not** create a new branch, the
+  secondary work happens on the working branch.
+- Do not open a pull request as a side effect of finishing the work. A PR is only created when the user
+  explicitly asks for it, after the main issue and every secondary one are done.
 
 ## Language policy
 
-- The project's implementation must always be in English: identifiers
-  (function/variable/class names), code comments, docstrings, commit
-  messages, and any new documentation. This applies regardless of what
-  language the instructions for the task were given in — instructions can be
-  in Spanish or English, but what gets written into the repo must be English.
-- The codebase currently has a mix of English and Spanish identifiers and
-  comments (see `scjn.header`'s `versiones_de_directorio`/`lee_cabecera`,
-  `scjn.api`'s `descarga_ordenamiento`, and the Spanish CLI
-  help/script output throughout `scripts/`). Leave existing Spanish code
-  as-is when touching unrelated lines — do not do drive-by mass renames. But new code,
-  and any code you're already rewriting for other reasons, should be
-  written in English so the codebase converges over time.
-- Domain terms that are proper nouns or established Mexican legal/legislative
-  vocabulary (`DOF`, `codNota`, `SIDOF`, `NOM-...` codes, law abbreviations
-  like `cpeum`/`lft`) are not translated — they aren't Spanish-vs-English,
-  they're names.
+- The project's implementation is always in English: identifiers, code comments, docstrings, commit
+  messages and any new documentation, whatever language the instructions were given in.
+- The codebase still mixes English and Spanish identifiers and comments (`scjn.header`'s
+  `versiones_de_directorio`, `scjn.api`'s `descarga_ordenamiento`, the Spanish CLI help in `scripts/`).
+  Leave existing Spanish code as it is when touching unrelated lines, no drive-by renames; new code, and
+  code you are rewriting anyway, is English so the codebase converges.
+- Domain terms that are proper nouns or established Mexican legal vocabulary (`DOF`, `codNota`, `SIDOF`,
+  `NOM-...` codes, law abbreviations like `cpeum`/`lft`) are names, not translated.
 
 ## Working conventions
 
-- Naming favors precision over brevity even when verbose: `codNota`,
-  `legal_provisions`, `download_scjn_leyes_corpus` are the
-  domain's actual vocabulary (a DOF "nota" is a legal provision, not a
-  short informal note) — don't shorten it for its own sake.
-- Comments in this codebase often record a specific past incident or a
-  numeric check that justified a design choice (e.g. why NOM codes are kept
-  as opaque strings, why treaty-name matching is rarity-weighted, why a
-  version floor is pinned in a `pyproject.toml` dependency) — read them
-  before "simplifying" the code they're attached to.
-- `nota2md`'s OCR paths depend on `document2md` (its own repository since
-  #234) and through it on `mineru`, which is heavy; `nota2md`'s HTML path
-  (`beautifulsoup4` + `dofjson` + `requests`) works standalone and is the
-  preferred/default source — `document2md` is an optional extra
-  (`nota2md[ocr]`) and is imported lazily, so installing `nota2md` alone
-  doesn't pull it in.
+- Naming favors precision over brevity: `codNota`, `legal_provisions`, `download_scjn_leyes_corpus` are the
+  domain's vocabulary (a DOF "nota" is a legal provision), not to be shortened for its own sake.
+- Comments often record a specific past incident or a numeric check that justified a design choice (why
+  NOM codes are opaque strings, why treaty-name matching is rarity-weighted, why a version floor is
+  pinned): read them before "simplifying" the code they are attached to.
+- `nota2md`'s HTML path (`beautifulsoup4` + `dofjson` + `requests`) works standalone and is the default
+  DOF source; the OCR paths depend on `document2md` and `mineru`, which are heavy, so `document2md` is an
+  optional extra imported lazily.
+- A behaviour that moves a document's output is proved, not argued: by digests over every snapshot and
+  fixture, by `pyarrow.Table.equals` against the published vectors, or by the release sweep.
+- Decisions that outlive an issue are recorded here as a present-tense bullet; the narrative of how they
+  were reached goes to `docs/HISTORY.md`.

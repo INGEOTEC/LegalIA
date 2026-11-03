@@ -10,7 +10,7 @@ Issue #289 (the data side of the website's Instruments page, issue #290):
         --install website/pages/instruments/files
 
 `md2akn` is what every vector, matrix and Atlas number rests on, and nobody can
-check 2,676 parses by hand. This writes, for each instrument of the work
+check thousands of parses by hand. This writes, for each instrument of the work
 directory (`instruments.parquet`, positionally the Atlas' own `instruments`), a
 file a reviewer's browser can read: the document, the tree `md2akn` read in it,
 the excerpts `text_units` cut from it, flags saying where to look first and,
@@ -38,7 +38,7 @@ on every searched excerpt, the five closest texts of other instruments
   empty keys omitted) and `units` (document order: `u` unit_type, `e` eId, `p`
   piece, `pe` piece_eId, `s`/`l`, `sha` text_sha1, `v` vector row, `x` true when
   the excerpt was **searched** (`instrument_matrix.searched_mask`: no heading, no
-  transitorio), `f` flag names, and, only when `x`, `near`: up to `top` entries
+  transitorio, no envelope), `f` flag names, and, only when `x`, `near`: up to `top` entries
   `[j, eId, piece, similarity, also]` — `j` the Atlas index of the first owner of
   the target text (lowest `j`, then its first unit), its excerpt there, the
   similarity to 4 places and `also` the other owners as `[[j, eId, piece], ...]`;

@@ -147,13 +147,13 @@ def build_rows(
     both Parquet files are written once at the end rather than streamed.
 
     `stats` carries what the manifest reports beyond the row counts: how many
-    instruments were read, how rule 8 read each of them, and what rule 9 left
+    instruments were read, how rule B3 read each of them, and what rule U5 left
     over the cap (issue #227's decisions 2 and 3 — the two new rules are
     recorded, like the other seven, rather than being invisible in the
     output). `split_articles=False` (issue #256) moves an over-cap article
     out of `over_cap`/`unsplittable` and into its own `articles_over_cap` /
-    `longest_article_chars`, since rule 9 was never offered the chance to cut
-    it -- the "still over the cap" failure below stays about rule 9's own
+    `longest_article_chars`, since rule U5 was never offered the chance to cut
+    it -- the "still over the cap" failure below stays about rule U5's own
     invariant, not about an article left whole on purpose.
     """
     lector = COLECCIONES[coleccion]
@@ -168,7 +168,7 @@ def build_rows(
         clave = str(instrumento[lector["clave"]])
         markdown = instrumento["markdown"]
         tree = parse_markdown(markdown)
-        # The builder's own decision (rule 8, marker-aware since rule 19), not a
+        # The builder's own decision (rule B3, marker-aware since rule S1), not a
         # second reading of the text.
         modo = tree.modo
         modos[modo or "articulo"] = modos.get(modo or "articulo", 0) + 1
@@ -188,7 +188,7 @@ def build_rows(
         if reporte.splittable:
             raise SystemExit(
                 f"{coleccion}/{clave}: {reporte.splittable} unit(s) over the cap that "
-                "rule 9 could still have split -- md2akn's own invariant is broken"
+                "rule U5 could still have split -- md2akn's own invariant is broken"
             )
         for unit in units:
             unit_rows.append({
@@ -262,11 +262,11 @@ def main(argv=None) -> None:
     parser.add_argument("--cap", type=int, default=DEFAULT_SPLIT_CAP)
     parser.add_argument("--template", choices=("bare", "contextual"), default="bare")
     parser.add_argument("--no-split-over-cap", dest="split_over_cap", action="store_false",
-                         help="Turn off rule 9 (issue #227): leave a unit that is still over "
+                         help="Turn off rule U5 (issue #227): leave a unit that is still over "
                               "the cap after the article split whole, as #218 did. Only ever "
                               "used to reproduce a pre-#227 corpus byte for byte.")
     parser.add_argument("--no-split-articles", dest="split_articles", action="store_false",
-                         help="Turn off rules 3/9 for articles (issue #256): every article is "
+                         help="Turn off rules U2 and U5 for articles (issue #256): every article is "
                               "one unit, whole, whatever its length. `cap` keeps governing "
                               "loose/heading/preamble/conclusions unchanged.")
     args = parser.parse_args(argv)

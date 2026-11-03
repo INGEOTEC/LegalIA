@@ -1,4 +1,4 @@
-"""Rules 25-28 (review fix-3 of #291): annexes belong to the chapter the SCJN's
+"""Rule S7 (review fix-3 of #291): annexes belong to the chapter the SCJN's
 outline says they annex, appendices to the annex or instrument they follow, and
 a text of its own printed after them (an amending resolution) to none of them.
 
@@ -12,21 +12,16 @@ then amending resolutions) -- with the text cut down to a line or two a block.
 from md2akn import parse_markdown
 from md2akn.model import REFERS_TO_ANEXO, REFERS_TO_APENDICE
 from md2akn.units import coverage, text_units
+from .conftest import walk
 
 M = "<!-- scjn:block "
-
-
-def _walk(node):
-    yield node
-    for child in node.children:
-        yield from _walk(child)
 
 
 def _shape(node, skip=("content", "paragraph", "point", "subpoint", "intro", "table", "article")):
     """``{eId: [child eIds]}`` of the structural nodes."""
     return {
         n.eId: [c.eId for c in n.children if c.akn_type not in skip]
-        for n in _walk(node) if n.akn_type not in skip
+        for n in walk(node) if n.akn_type not in skip
     }
 
 
@@ -81,10 +76,10 @@ def test_an_annex_is_a_child_of_the_chapter_it_annexes():
 
 def test_a_chapter_is_never_inside_an_annex():
     tree = parse_markdown(TMEC)
-    for node in _walk(tree):
+    for node in walk(tree):
         if node.akn_type == "chapter":
             assert node.parent.akn_type == "body", node.eId
-    assert {n.refers_to for n in _walk(tree) if n.akn_type == "attachment"} == {
+    assert {n.refers_to for n in walk(tree) if n.akn_type == "attachment"} == {
         REFERS_TO_ANEXO, REFERS_TO_APENDICE,
     }
 
@@ -113,7 +108,7 @@ def test_a_repeated_running_header_is_text_of_the_appendix_it_repeats():
 
 def test_no_container_is_repeated_in_the_t_mec_fixture():
     tree = parse_markdown(TMEC)
-    assert not [n.eId for n in _walk(tree) if n.repeated]
+    assert not [n.eId for n in walk(tree) if n.repeated]
 
 
 # -- the gas carrier code ---------------------------------------------------
@@ -171,11 +166,11 @@ def test_appendices_are_appendices_inside_the_code_they_close():
 
 def test_an_amending_resolution_is_never_inside_an_appendix():
     tree = parse_markdown(CODIGO)
-    for node in _walk(tree):
+    for node in walk(tree):
         if node.num and node.num.startswith("RESOLUCIÓN MSC.4"):
             assert node.parent.akn_type == "body", node.eId
-    for app in (n for n in _walk(tree) if n.refers_to == REFERS_TO_APENDICE):
-        assert not [d for d in _walk(app) if d.num and d.num.startswith("RESOLUCIÓN")]
+    for app in (n for n in walk(tree) if n.refers_to == REFERS_TO_APENDICE):
+        assert not [d for d in walk(app) if d.num and d.num.startswith("RESOLUCIÓN")]
 
 
 def test_the_appendix_fixture_keeps_every_character_and_repeats_nothing():
@@ -183,7 +178,7 @@ def test_the_appendix_fixture_keeps_every_character_and_repeats_nothing():
     assert coverage(tree, text_units(tree)).uncovered_chars == 0
     # (the text of the first resolution, which follows the transitorios, is
     # read as theirs: its paragraphs repeat `p_content`, which is not a number)
-    assert not [n.eId for n in _walk(tree) if n.repeated and n.akn_type != "content"]
+    assert not [n.eId for n in walk(tree) if n.repeated and n.akn_type != "content"]
 
 
 def test_an_appendix_with_no_annex_open_hangs_from_the_instrument():
@@ -210,13 +205,13 @@ def test_a_document_without_markers_keeps_its_attachment_eids():
         "**APÉNDICE 1**\n\n**LISTA**\n\nTres.\n"
     )
     tree = parse_markdown(text)
-    assert [(n.eId, n.parent.akn_type) for n in _walk(tree) if n.akn_type == "attachment"] == [
+    assert [(n.eId, n.parent.akn_type) for n in walk(tree) if n.akn_type == "attachment"] == [
         ("att_2-A", "body"), ("att_1", "body"),
     ]
 
 
 def test_a_section_of_its_own_stays_in_its_chapter_when_no_attachment_is_open():
-    """Rule 28 only separates a text of its own from an annex or appendix: the
+    """Rule S7 only separates a text of its own from an annex or appendix: the
     `DISPOSICIONES GENERALES` the Código Civil Federal's chapter IV opens with is
     a section of that chapter (an unguarded rule hung it from the body)."""
     text = (
@@ -228,7 +223,7 @@ def test_a_section_of_its_own_stays_in_its_chapter_when_no_attachment_is_open():
         "**Artículo 178.-** Uno.\n"
     )
     tree = parse_markdown(text)
-    section = next(n for n in _walk(tree) if n.num == "DISPOSICIONES GENERALES")
-    # Rule 44: a block the API labels `other` is an `hcontainer`, not a `section`.
+    section = next(n for n in walk(tree) if n.num == "DISPOSICIONES GENERALES")
+    # Rule S8: a block the API labels `other` is an `hcontainer`, not a `section`.
     assert section.akn_type == "hcontainer"
     assert section.parent.eId == "cap_IV"

@@ -79,7 +79,7 @@ COLLECTION_COLORS = {"L": "#4c78a8", "R": "#f58518", "N": "#54a24b", "T": "#e457
 
 #: `md2akn`'s own `unit_type` vocabulary (issue #218), coded the same way and
 #: for the same reason. Order is the code: `u = 0` is `article`. `intro` and
-#: `table` (md2akn 0.5.1's rules 12 and 13, issue #291) are appended, so every
+#: `table` (md2akn 0.5.1's rules B6 and B7, issue #291) are appended, so every
 #: code an older `points.parquet`/`atlas.json` carries keeps its meaning.
 UNIT_TYPES = (
     "article", "article_piece", "heading", "loose", "preamble", "conclusions",

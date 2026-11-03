@@ -1,4 +1,4 @@
-"""Rules 14-18 (review fix-1 of #291, a finding made after the fact): an
+"""Rules B1, S14, B5 and B4 (review fix-1 of #291, a finding made after the fact): an
 instrument's articles must not repeat a number because of how `md2akn` read it.
 
 209 of the 2,676 instruments of the Atlas carried a repeated article number.
@@ -13,26 +13,16 @@ from pathlib import Path
 import pytest
 
 from md2akn import parse_markdown
-from md2akn.patterns import ARTICULO
 from md2akn.units import coverage, text_units
+from .conftest import article_opener, read_unit_fixture, walk
 
 FIXTURES = Path(__file__).parent / "fixtures_units"
-
-
-def _read(name: str) -> str:
-    return (FIXTURES / name).read_text(encoding="utf-8")
-
-
-def _walk(node):
-    yield node
-    for child in node.children:
-        yield from _walk(child)
 
 
 def _articles(tree, *, outside_transitorios=True):
     return [
         n
-        for n in _walk(tree)
+        for n in walk(tree)
         if n.akn_type == "article" and not (outside_transitorios and "transitorios" in n.eId)
     ]
 
@@ -41,12 +31,7 @@ def _repeated(tree):
     return {n for n, c in Counter(str(a.num).strip() for a in _articles(tree)).items() if c > 1}
 
 
-def _num(line: str):
-    m = ARTICULO.match(line.replace("**", ""))
-    return None if m is None else (m.group("num"), m.group("sep").strip())
-
-
-# -- rule 14: an article's number is read whole ----------------------------
+# -- rule B1: an article's number is read whole ----------------------------
 
 
 @pytest.mark.parametrize(
@@ -81,7 +66,7 @@ def _num(line: str):
     ],
 )
 def test_number_is_read_whole(line, expected):
-    assert _num(line) == expected
+    assert article_opener(line) == expected
 
 
 def test_a_letter_suffix_does_not_repeat_its_base_article():
@@ -101,21 +86,21 @@ def test_a_letter_suffix_does_not_repeat_its_base_article():
     assert not _repeated(tree)
 
 
-# -- rules 15 and 16: a table of contents, and PARTE/ANEXO -------------------
+# -- rules S14 and B5: a table of contents, and PARTE/ANEXO -------------------
 
 
 def test_index_parts_and_appendices_of_the_imdg_code():
     # tratados/114738: the code's index repeats every heading of its body, and
     # its seven parts hold chapters `1.1`, `2.1`, ... that restart per part
-    text = _read("codigo_indice_partes.md")
+    text = read_unit_fixture("codigo_indice_partes.md")
     tree = parse_markdown(text)
-    types = [n.akn_type for n in _walk(tree)]
+    types = [n.akn_type for n in walk(tree)]
     assert types.count("toc") == 1
-    assert [n.num for n in _walk(tree) if n.akn_type == "part"] == ["1", "2"]
-    assert [n.num for n in _walk(tree) if n.akn_type == "attachment"] == ["A", "B"]
+    assert [n.num for n in walk(tree) if n.akn_type == "part"] == ["1", "2"]
+    assert [n.num for n in walk(tree) if n.akn_type == "attachment"] == ["A", "B"]
     assert not _repeated(tree)
     # the body's chapters sit inside their Parte, the index entries are no article
-    chapters = {n.eId for n in _walk(tree) if n.akn_type == "chapter"}
+    chapters = {n.eId for n in walk(tree) if n.akn_type == "chapter"}
     assert chapters == {"part_1__cap_1.1", "part_2__cap_2.1"}
     units = text_units(text, split_articles=False)
     assert [u.unit_type for u in units].count("toc") == 1
@@ -126,17 +111,17 @@ def test_index_parts_and_appendices_of_the_imdg_code():
 def test_a_marker_alone_never_swallows_text():
     text = "**ÍNDICE**\n\nTexto del índice.\n\n**Artículo 1o.** Uno.\n"
     tree = parse_markdown(text)
-    assert not [n for n in _walk(tree) if n.akn_type == "toc"]
+    assert not [n for n in walk(tree) if n.akn_type == "toc"]
     assert [a.num for a in _articles(tree)] == ["1o"]
 
 
-# -- rule 17: recitals are not provisions ------------------------------------
+# -- rule B4: recitals are not provisions ------------------------------------
 
 
 def test_numbered_recitals_are_not_articles():
     # lineamientos/109459 and friends: `PRIMERO.-` .. `TERCERO.-` under
     # CONSIDERANDO are the preamble; the same words under ACUERDA are articles
-    tree = parse_markdown(_read("acuerdo_considerando_ordinal.md"))
+    tree = parse_markdown(read_unit_fixture("acuerdo_considerando_ordinal.md"))
     assert [a.num for a in _articles(tree)] == ["PRIMERO", "SEGUNDO", "TERCERO", "CUARTO", "QUINTO"]
     assert not _repeated(tree)
 
@@ -150,17 +135,17 @@ def test_unnumbered_recitals_leave_the_numbered_paragraphs_to_be_articles():
     assert [a.num for a in _articles(tree)] == ["1", "2", "3", "4", "5"]
 
 
-# -- rule 18: a numeral that starts over is a list item -----------------------
+# -- rule B4: a numeral that starts over is a list item -----------------------
 
 
 def test_restarted_numerals_are_list_items_of_the_provision_above():
     # lineamientos/93817: `1.`..`4.` inside `2.2`, `1.-`..`3.-` inside `4.1`
-    tree = parse_markdown(_read("lineamientos_numerales_reinicio.md"))
+    tree = parse_markdown(read_unit_fixture("lineamientos_numerales_reinicio.md"))
     assert [a.num for a in _articles(tree)] == [
         "1", "2", "2.1", "2.2", "3", "3.1", "4", "4.1", "5", "6"
     ]
     assert not _repeated(tree)
-    units = text_units(_read("lineamientos_numerales_reinicio.md"), split_articles=False)
+    units = text_units(read_unit_fixture("lineamientos_numerales_reinicio.md"), split_articles=False)
     item = next(u for u in units if u.eId == "art_2.2")
     assert "Aplicar recursos económicos" in item.text and "Apoyar a las personas" in item.text
 

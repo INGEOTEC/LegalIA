@@ -123,7 +123,7 @@ B_EXCLUDED_NAMES = ("constitucion politica de los estados unidos mexicanos",)
 
 #: The unit types signal B reads: a preamble, a conclusion or a heading is never
 #: the instrument's "objeto" article. `intro` is what `loose` text under a container
-#: became with md2akn 0.5.1 (rule 12, issue #291): an "objeto" sentence that opens a
+#: became with md2akn 0.5.1 (rule B6, issue #291): an "objeto" sentence that opens a
 #: chapter is the same text as before, only labelled differently, so it is read as
 #: before (issue #294; without it the gold lost 6 links to a relabelling).
 SOURCE_UNIT_TYPES = ("article", "loose", "intro")

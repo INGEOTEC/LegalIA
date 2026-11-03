@@ -143,14 +143,10 @@ class TestLoadUnits(ConReleaseSintetico):
 
 
 class TestColeccionDesconocida(unittest.TestCase):
-    def test_load_units_rechaza_una_coleccion_que_no_existe(self):
-        with self.assertRaises(ValueError):
-            legalvec.load_units("normas")
-
-    def test_download_rechaza_una_coleccion_que_no_existe(self):
-        with self.assertRaises(ValueError):
-            legalvec.download_vectors_assets("normas")
-
+    def test_una_coleccion_que_no_existe_se_rechaza_al_leer_y_al_bajar(self):
+        for funcion in (legalvec.load_units, legalvec.download_vectors_assets):
+            with self.subTest(funcion=funcion.__name__), self.assertRaises(ValueError):
+                funcion("normas")
 
 class TestDownloadVectorsAssets(unittest.TestCase):
     """The only function here that talks to the network, with the HTTP layer

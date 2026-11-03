@@ -436,6 +436,36 @@ ever holds the daily index, never a legal provision's own `cadenaContenido`
 (its HTML text), which always requires the one-note SIDOF/dofweb request
 `get_nota()` already makes.
 
+## Tests
+
+```bash
+pytest packages/dofjson
+```
+
+No test touches the network: SIDOF, `www.dof.gob.mx` and GitHub are mocked.
+
+| File | What it covers |
+|---|---|
+| `test_api.py` | `dofjson.api`: `get_nota`/`get_notas`, the respaldo, the note and edition downloads |
+| `test_archivo.py` | the daily-index archive (`--archivo`): resumption, the cache, the respaldo |
+| `test_cli.py` | the console script |
+| `test_dofjson.py` | the one-entry-point contract: everything is reachable off `dofjson` |
+| `test_dofweb.py` | recovering a day from `www.dof.gob.mx` |
+| `test_notas.py` | page inference and the editions' note lists |
+| `test_sidof.py` | the SIDOF transport and its downloads |
+| `test_titulos.py` | the `notas-archivo` release reader (`legal_provisions_titles`) |
+
+Shared helpers live in `tests/conftest.py`, one definition each. To find a test that repeats another
+(same input and assertions, a subset, a parametrisable group, a helper defined in two files) run the
+read-only inventory, which parses the tests without importing them:
+
+```bash
+python scripts/test_inventory.py --suite dofjson
+```
+
+After merging or deleting tests, compare line coverage per file by the *set* of covered lines
+(`pytest --cov=dofjson --cov-report=json`): a line covered before and not after is a lost test.
+
 ## Development
 
 ```bash

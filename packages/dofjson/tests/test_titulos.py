@@ -1,29 +1,13 @@
 import datetime as dt
-import gzip
-import io
-import json
 import os
-import tarfile
 import tempfile
 import unittest
-from collections import Counter
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 import dofjson
 from dofjson import titulos
-
-
-def hacer_tgz(archivos: dict) -> bytes:
-    """Build an in-memory notas-YYYY.tgz from {member_name: dict_contenido}."""
-    buf = io.BytesIO()
-    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
-        for nombre, contenido in archivos.items():
-            data = json.dumps(contenido).encode("utf-8")
-            info = tarfile.TarInfo(name=nombre)
-            info.size = len(data)
-            tar.addfile(info, io.BytesIO(data))
-    return buf.getvalue()
+from .conftest import make_tgz
 
 
 def dia(*notas_matutinas):
@@ -132,7 +116,7 @@ class TestDownloadDofAssets(unittest.TestCase):
 
 class TestTitulosDeTgz(unittest.TestCase):
     def test_extracts_only_codnota_titulo_fecha_y_codorgauno(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia(
                 {
                     "codNota": 1,
@@ -156,7 +140,7 @@ class TestTitulosDeTgz(unittest.TestCase):
         )
 
     def test_reads_multiple_days(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia(
                 {"codNota": 1, "titulo": "A", "fecha": "02-01-1980", "codOrgaUno": "PEJ"}
             ),
@@ -180,7 +164,7 @@ class TestTitulosDeTgz(unittest.TestCase):
         `fuente`; it rides along so a recovered note stays identifiable."""
         recuperado = dia({"codNota": 1, "titulo": "A", "fecha": "08-03-1999", "codOrgaUno": "PE"})
         recuperado["fuente"] = "dof.gob.mx"
-        contenido = hacer_tgz({"1999/08031999-notas.json": recuperado})
+        contenido = make_tgz({"1999/08031999-notas.json": recuperado})
 
         resultado = list(titulos._titulos_de_tgz(contenido))
 
@@ -191,7 +175,7 @@ class TestTitulosDeTgz(unittest.TestCase):
         says, so only the exceptions are marked."""
         desde_sidof = dia({"codNota": 1, "titulo": "A", "fecha": "09-03-1999", "codOrgaUno": "PE"})
         desde_sidof["fuente"] = "sidof"
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1999/09031999-notas.json": desde_sidof,
             # A day stored before the marker existed is SIDOF's too.
             "1999/10031999-notas.json": dia(
@@ -205,7 +189,7 @@ class TestTitulosDeTgz(unittest.TestCase):
         self.assertTrue(all("fuente" not in t for t in resultado))
 
     def test_fecha_y_codorgauno_default_to_none_when_missing(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A"}),
         })
 
@@ -216,7 +200,7 @@ class TestTitulosDeTgz(unittest.TestCase):
         )
 
     def test_builds_organigrama_from_notas(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia(
                 {
                     "codNota": 1,
@@ -250,7 +234,7 @@ class TestTitulosDeTgz(unittest.TestCase):
     def test_organigrama_keeps_first_name_seen_for_a_code(self):
         """A code's name is settled once; later, differently-cased/renamed
         occurrences of the same codOrgaUno do not overwrite it."""
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia(
                 {
                     "codNota": 1,
@@ -275,7 +259,7 @@ class TestTitulosDeTgz(unittest.TestCase):
         self.assertEqual(organigrama, {"PEJ": "PODER EJECUTIVO"})
 
     def test_organigrama_ignored_when_not_provided(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia(
                 {
                     "codNota": 1,
@@ -308,7 +292,7 @@ class TestLegalProvisionsTitles(unittest.TestCase):
         self.addCleanup(self.tmpdir.cleanup)
 
     def _cachea(self, nombre, miembros):
-        (self.cache_dir / nombre).write_bytes(hacer_tgz(miembros))
+        (self.cache_dir / nombre).write_bytes(make_tgz(miembros))
 
     @patch("dofjson.titulos.requests.get")
     @patch("dofjson.titulos.listar_assets")
@@ -479,7 +463,7 @@ class TestNotasDeTgz(unittest.TestCase):
     (title-less ones included), ordered by day then codNota."""
 
     def test_yields_every_field_a_note_carries(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia(
                 {
                     "codNota": 1,
@@ -508,7 +492,7 @@ class TestNotasDeTgz(unittest.TestCase):
     def test_keeps_title_less_notes(self):
         """Unlike _titulos_de_tgz, this is meant to reconstruct a whole day
         -- e.g. for nota_del_dia_en_cache() -- so stub entries stay in."""
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia(
                 {"codNota": 1, "titulo": "DECRETO uno", "fecha": "02-01-1980"},
                 {"codNota": 2, "fecha": "02-01-1980"},
@@ -522,7 +506,7 @@ class TestNotasDeTgz(unittest.TestCase):
     def test_orders_by_day_even_when_the_tar_does_not(self):
         """DDMMYYYY sorts as text by day first: a naive filename sort would
         put 01-02-1980 before 31-01-1980."""
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/01021980-notas.json": dia({"codNota": 2, "fecha": "01-02-1980"}),
             "1980/31011980-notas.json": dia({"codNota": 1, "fecha": "31-01-1980"}),
         })
@@ -532,7 +516,7 @@ class TestNotasDeTgz(unittest.TestCase):
         self.assertEqual([n["codNota"] for n in resultado], [1, 2])
 
     def test_orders_by_codnota_within_a_day(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia(
                 {"codNota": 3, "fecha": "02-01-1980"},
                 {"codNota": 1, "fecha": "02-01-1980"},
@@ -547,14 +531,14 @@ class TestNotasDeTgz(unittest.TestCase):
     def test_marks_notas_from_a_day_recovered_from_the_web(self):
         recuperado = dia({"codNota": 1, "fecha": "08-03-1999"})
         recuperado["fuente"] = "dof.gob.mx"
-        contenido = hacer_tgz({"1999/08031999-notas.json": recuperado})
+        contenido = make_tgz({"1999/08031999-notas.json": recuperado})
 
         resultado = list(titulos.notas_de_tgz(contenido))
 
         self.assertEqual(resultado[0]["fuente"], "dof.gob.mx")
 
     def test_does_not_add_fuente_for_a_plain_sidof_day(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia({"codNota": 1, "fecha": "02-01-1980"}),
         })
 
@@ -563,7 +547,7 @@ class TestNotasDeTgz(unittest.TestCase):
         self.assertNotIn("fuente", resultado[0])
 
     def test_builds_organigrama_from_every_note_seen(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia(
                 {"codNota": 1, "codOrgaUno": "PEJ", "nombreCodOrgaUno": "PODER EJECUTIVO"},
                 {"codNota": 2, "codOrgaUno": "PJU", "nombreCodOrgaUno": "PODER JUDICIAL"},
@@ -590,10 +574,10 @@ class TestIteradorDeAssets(unittest.TestCase):
             {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
             {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
         ]
-        tgz_1980 = hacer_tgz({
+        tgz_1980 = make_tgz({
             "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
         })
-        tgz_1981 = hacer_tgz({
+        tgz_1981 = make_tgz({
             "1981/02011981-notas.json": dia({"codNota": 2, "titulo": "B", "fecha": "02-01-1981"})
         })
         mock_get.side_effect = [
@@ -613,7 +597,7 @@ class TestIteradorDeAssets(unittest.TestCase):
     @patch("dofjson.titulos.listar_assets")
     def test_reads_from_cache_dir_when_given(self, mock_listar, mock_get):
         mock_listar.return_value = [{"name": "notas-1980.tgz", "url": "https://x/1980.tgz"}]
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "A", "fecha": "02-01-1980"})
         })
         mock_get.return_value = Mock(content=contenido, raise_for_status=Mock())
@@ -634,12 +618,12 @@ class TestIteradorDeAssets(unittest.TestCase):
             {"name": "notas-1980.tgz", "url": "https://x/1980.tgz"},
             {"name": "notas-1981.tgz", "url": "https://x/1981.tgz"},
         ]
-        tgz_1980 = hacer_tgz({
+        tgz_1980 = make_tgz({
             "1980/02011980-notas.json": dia({
                 "codNota": 1, "codOrgaUno": "PEJ", "nombreCodOrgaUno": "PODER EJECUTIVO",
             })
         })
-        tgz_1981 = hacer_tgz({
+        tgz_1981 = make_tgz({
             "1981/02011981-notas.json": dia({
                 "codNota": 2, "codOrgaUno": "PJU", "nombreCodOrgaUno": "PODER JUDICIAL",
             })
@@ -667,7 +651,7 @@ class TestIteradorDeAssets(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             cache_dir = Path(tmp) / "cache"
             cache_dir.mkdir()
-            (cache_dir / "notas-1980.tgz").write_bytes(hacer_tgz({
+            (cache_dir / "notas-1980.tgz").write_bytes(make_tgz({
                 "1980/02011980-notas.json": dia(
                     {"codNota": 1, "titulo": "A", "fecha": "02-01-1980"}
                 )
@@ -727,7 +711,7 @@ class TestNotaDelDiaEnCache(unittest.TestCase):
         self.tmpdir.cleanup()
 
     def test_reads_the_day_straight_off_a_yearly_asset(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "DECRETO"}),
         })
         (self.cache_dir / "notas-1980.tgz").write_bytes(contenido)
@@ -739,7 +723,7 @@ class TestNotaDelDiaEnCache(unittest.TestCase):
         self.assertEqual(resultado["NotasMatutinas"], [{"codNota": 1, "titulo": "DECRETO"}])
 
     def test_reads_the_day_off_the_current_years_monthly_asset(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "2026/15032026-notas.json": dia({"codNota": 1, "titulo": "DECRETO"}),
         })
         (self.cache_dir / "notas-2026-03.tgz").write_bytes(contenido)
@@ -758,7 +742,7 @@ class TestNotaDelDiaEnCache(unittest.TestCase):
         self.assertIsNone(resultado)
 
     def test_returns_none_when_the_day_is_not_inside_the_cached_asset(self):
-        contenido = hacer_tgz({
+        contenido = make_tgz({
             "1980/02011980-notas.json": dia({"codNota": 1, "titulo": "DECRETO"}),
         })
         (self.cache_dir / "notas-1980.tgz").write_bytes(contenido)
@@ -772,7 +756,7 @@ class TestNotaDelDiaEnCache(unittest.TestCase):
     def test_preserves_fuente_and_every_other_top_level_key(self):
         recuperado = dia({"codNota": 1, "titulo": "DECRETO"})
         recuperado["fuente"] = "dof.gob.mx"
-        contenido = hacer_tgz({"1999/08031999-notas.json": recuperado})
+        contenido = make_tgz({"1999/08031999-notas.json": recuperado})
         (self.cache_dir / "notas-1999.tgz").write_bytes(contenido)
 
         resultado = titulos.nota_del_dia_en_cache(

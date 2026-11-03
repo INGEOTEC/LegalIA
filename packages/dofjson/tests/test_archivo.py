@@ -1,7 +1,5 @@
 import datetime as dt
-import io
 import json
-import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +9,7 @@ import requests
 
 from dofjson import archivo, dofweb, titulos
 from dofjson.cli import main
+from .conftest import make_tgz
 
 
 def respuesta_notas(titulos):
@@ -23,19 +22,6 @@ def respuesta_notas(titulos):
         "NotasVespertinas": [],
         "NotasExtraordinarias": [],
     }
-
-
-def hacer_tgz(archivos: dict) -> bytes:
-    """Build an in-memory notas-YYYY.tgz from {member_name: dict_contenido}
-    -- same shape tests/test_titulos.py's own helper builds."""
-    buf = io.BytesIO()
-    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
-        for nombre, contenido in archivos.items():
-            data = json.dumps(contenido).encode("utf-8")
-            info = tarfile.TarInfo(name=nombre)
-            info.size = len(data)
-            tar.addfile(info, io.BytesIO(data))
-    return buf.getvalue()
 
 
 def registro(root):
@@ -288,7 +274,7 @@ class TestCacheDir(unittest.TestCase):
     def test_a_cached_day_is_saved_without_touching_sidof_or_dofweb(
         self, mock_sidof, mock_web
     ):
-        contenido = hacer_tgz({"1980/02011980-notas.json": {
+        contenido = make_tgz({"1980/02011980-notas.json": {
             "messageCode": 200, "response": "OK", "fuente": "sidof",
             "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
             "NotasVespertinas": [], "NotasExtraordinarias": [],
@@ -308,7 +294,7 @@ class TestCacheDir(unittest.TestCase):
     @patch("dofjson.dofweb.get_notas")
     @patch("dofjson.sidof.get_notas")
     def test_a_cache_hit_skips_the_pausa(self, mock_sidof, mock_web):
-        contenido = hacer_tgz({"1980/02011980-notas.json": {
+        contenido = make_tgz({"1980/02011980-notas.json": {
             "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
             "NotasVespertinas": [], "NotasExtraordinarias": [],
         }})
@@ -335,7 +321,7 @@ class TestCacheDir(unittest.TestCase):
         """Calling archivo.download_archivo() directly, with no cache_dir at
         all, still picks up dofjson.titulos.CACHE_DIR -- same default as
         api.get_notas()."""
-        contenido = hacer_tgz({"1980/02011980-notas.json": {
+        contenido = make_tgz({"1980/02011980-notas.json": {
             "NotasMatutinas": [{"codNota": 1, "titulo": "DECRETO cacheado"}],
             "NotasVespertinas": [], "NotasExtraordinarias": [],
         }})

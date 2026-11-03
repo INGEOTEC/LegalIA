@@ -1,5 +1,5 @@
 The per-instrument files behind the website's Instruments page: for each of the
-2,676 unique federal laws, regulations and guidelines and international treaties
+2,670 unique federal laws, regulations and guidelines and international treaties
 of the [Atlas](https://ingeotec.github.io/LegalIA/pages/atlas.html), one JSON
 file holding the document, the tree `md2akn` read in it, the excerpts it was cut
 into, parse-quality flags and, on every searched excerpt, its five nearest texts

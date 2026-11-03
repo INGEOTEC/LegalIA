@@ -34,6 +34,7 @@ import legalvec.cache  # noqa: E402
 from test_instrument_matrix import (  # noqa: E402,F401
     COLLECTIONS as THREE_TOY, K, SLUG, VECTORS, cache, index_of, stub_corpus_reader,
     stub_umap, write_units, write_vectors)
+from conftest import quiet
 
 COLLECTIONS = THREE_TOY + ("tratados",)
 NOW = datetime(2026, 10, 12, 12, 0, tzinfo=timezone.utc)
@@ -42,10 +43,6 @@ TREATY = "7001"
 #: Nearest to `t6` (`902`'s second article, [0.8, 0.6, 0, 0]) at cosine 0.9987,
 #: above the shared `ts` (0.99) that used to be `t6`'s nearest foreign text.
 VECTORS["tt1"] = [0.8, 0.6, 0.0, 0.05]
-
-
-def quiet(*args):
-    pass
 
 
 @pytest.fixture

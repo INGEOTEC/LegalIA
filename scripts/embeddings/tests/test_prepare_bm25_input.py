@@ -21,10 +21,7 @@ import prepare_bm25_input  # noqa: E402
 import scoring  # noqa: E402
 from test_instrument_matrix import (  # noqa: E402,F401
     COLLECTIONS, cache, prepared, transitorio_work)
-
-
-def quiet(*args):
-    pass
+from conftest import quiet
 
 
 @pytest.fixture

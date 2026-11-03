@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Re-crawl every snapshot of one SCJN corpus with the Markdown writer that
-keeps the API's outline (review fix-2 of #291), without ever leaving an
+keeps the API's outline, without ever leaving an
 instrument half-converted.
 
 `scjn.api.articulos_a_markdown(..., outline=True)` writes a marker line before

@@ -49,6 +49,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from test_instrument_matrix import (  # noqa: E402,F401
     cache, index_of, prepared, stub_umap, with_matrix)
+from conftest import quiet
 
 REPO = Path(__file__).resolve().parents[3]
 WEBSITE = REPO / "website"
@@ -290,13 +291,13 @@ def test_the_publish_workflow_fetches_the_pair_explanations_before_publishing():
     assert "Hallazgo C" in text
 
 
-def test_the_installed_pairs_are_never_committed():
+@pytest.mark.parametrize("directory", ["pairs", "pairs-qwen3-4b", "pairs-bm25"])
+def test_the_installed_pairs_are_never_committed(directory):
     lines = (REPO / ".gitignore").read_text(encoding="utf-8").splitlines()
-    assert "/website/pages/atlas/pairs/" in lines
-    tracked = subprocess.run(["git", "-C", str(REPO), "ls-files", "website/pages/atlas/pairs"],
+    assert f"/website/pages/atlas/{directory}/" in lines
+    tracked = subprocess.run(["git", "-C", str(REPO), "ls-files", f"website/pages/atlas/{directory}"],
                              capture_output=True, text=True, check=True).stdout
     assert tracked == ""
-
 
 def test_the_publish_workflow_fetches_the_4b_pair_explanations_before_publishing():
     text = WORKFLOW.read_text(encoding="utf-8")
@@ -315,15 +316,6 @@ def test_the_publish_workflow_fetches_the_4b_pair_explanations_before_publishing
     # The 0.6B step neither loses nor gains a byte of its own set.
     first = text[text.index("name: Fetch the Atlas pair explanations\n"):step]
     assert "qwen3-4b" not in first
-
-
-def test_the_4b_pairs_are_never_committed():
-    lines = (REPO / ".gitignore").read_text(encoding="utf-8").splitlines()
-    assert "/website/pages/atlas/pairs-qwen3-4b/" in lines
-    tracked = subprocess.run(["git", "-C", str(REPO), "ls-files",
-                              "website/pages/atlas/pairs-qwen3-4b"],
-                             capture_output=True, text=True, check=True).stdout
-    assert tracked == ""
 
 
 def test_the_4b_data_lists_the_same_instruments_as_the_default():
@@ -345,20 +337,25 @@ def test_the_4b_data_lists_the_same_instruments_as_the_default():
         assert len(points) == 2670 and layout in default["projections"]
 
 
-@pytest.mark.skipif(not PAIRS_4B.is_dir(), reason="website/pages/atlas/pairs-qwen3-4b/ "
-                    "is not installed (export_atlas_pairs.py --install)")
-def test_the_installed_4b_pairs_match_the_4b_data():
-    data = json.loads(DATA_4B.read_text(encoding="utf-8"))
+@pytest.mark.parametrize("data_file, pairs_dir", [
+    pytest.param(DATA_4B, PAIRS_4B, marks=pytest.mark.skipif(
+        not PAIRS_4B.is_dir(), reason="website/pages/atlas/pairs-qwen3-4b/ "
+        "is not installed (export_atlas_pairs.py --install)"), id="4b"),
+    pytest.param(DATA_BM25, PAIRS_BM25, marks=pytest.mark.skipif(
+        not PAIRS_BM25.is_dir(), reason="website/pages/atlas/pairs-bm25/ "
+        "is not installed (export_atlas_pairs.py --install)"), id="bm25"),
+])
+def test_the_installed_pairs_of_a_data_set_match_its_data(data_file, pairs_dir):
+    data = json.loads(data_file.read_text(encoding="utf-8"))
     checked = 0
     for i, entry in enumerate(data["instruments"]):
         for j, _ in entry["out"]:
-            document = json.loads((PAIRS_4B / f"{i}-{j}.json").read_text(encoding="utf-8"))
+            document = json.loads((pairs_dir / f"{i}-{j}.json").read_text(encoding="utf-8"))
             assert document["source"]["k"] == entry["k"] == data["instruments"][i]["k"]
             assert document["target"]["k"] == data["instruments"][j]["k"]
             checked += 1
     assert checked == sum(len(entry["out"]) for entry in data["instruments"])
-    assert len(list(PAIRS_4B.glob("*-*.json"))) == checked
-
+    assert len(list(pairs_dir.glob("*-*.json"))) == checked
 
 def test_the_publish_workflow_fetches_the_bm25_pair_explanations_before_publishing():
     text = WORKFLOW.read_text(encoding="utf-8")
@@ -379,15 +376,6 @@ def test_the_publish_workflow_fetches_the_bm25_pair_explanations_before_publishi
     assert "bm25" not in earlier
 
 
-def test_the_bm25_pairs_are_never_committed():
-    lines = (REPO / ".gitignore").read_text(encoding="utf-8").splitlines()
-    assert "/website/pages/atlas/pairs-bm25/" in lines
-    tracked = subprocess.run(["git", "-C", str(REPO), "ls-files",
-                              "website/pages/atlas/pairs-bm25"],
-                             capture_output=True, text=True, check=True).stdout
-    assert tracked == ""
-
-
 def test_the_bm25_data_lists_the_same_instruments_as_the_default():
     default, second = atlas_data(), json.loads(DATA_BM25.read_text(encoding="utf-8"))
     assert second["meta"]["model"] == "bm25" and second["meta"]["method"] == "bm25"
@@ -406,21 +394,6 @@ def test_the_bm25_data_lists_the_same_instruments_as_the_default():
         assert second["meta"][key] == default["meta"][key], key
     for layout, points in second["projections"].items():
         assert len(points) == 2670 and layout in default["projections"]
-
-
-@pytest.mark.skipif(not PAIRS_BM25.is_dir(), reason="website/pages/atlas/pairs-bm25/ "
-                    "is not installed (export_atlas_pairs.py --install)")
-def test_the_installed_bm25_pairs_match_the_bm25_data():
-    data = json.loads(DATA_BM25.read_text(encoding="utf-8"))
-    checked = 0
-    for i, entry in enumerate(data["instruments"]):
-        for j, _ in entry["out"]:
-            document = json.loads((PAIRS_BM25 / f"{i}-{j}.json").read_text(encoding="utf-8"))
-            assert document["source"]["k"] == entry["k"] == data["instruments"][i]["k"]
-            assert document["target"]["k"] == data["instruments"][j]["k"]
-            checked += 1
-    assert checked == sum(len(entry["out"]) for entry in data["instruments"])
-    assert len(list(PAIRS_BM25.glob("*-*.json"))) == checked
 
 
 def test_the_qmd_describes_the_explanation_and_its_example():
@@ -1925,10 +1898,6 @@ def test_rendered_selection_draws_five_lines(rendered_page):
 
 
 # -- the explanation dialog over a toy site (issue #250) ---------------------- #
-
-def quiet(*args):
-    pass
-
 
 @pytest.fixture
 def toy_site(with_matrix, stub_umap, cache, tmp_path):

@@ -95,6 +95,8 @@ neither file is usable on its own.
 >>> import legalvec
 >>> conjunto = legalvec.load_vectors(
 ...     "leyes", "lft", "Qwen/Qwen3-Embedding-0.6B", cache_dir=cache_dir)
+>>> isinstance(conjunto, legalvec.VectorSet)
+True
 >>> conjunto.text_sha1
 ['propio', 'compartido']
 >>> conjunto.k, conjunto.vectors.shape, conjunto.vectors.dtype

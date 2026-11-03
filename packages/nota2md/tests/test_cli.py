@@ -198,98 +198,49 @@ class TestCliDownload(unittest.TestCase):
 
         self.assertIn("1 downloaded, 1 already cached", self.log[-1])
 
-    @patch("scjn.release.download_scjn_reglamentos_assets")
-    def test_federal_regulations_sin_cache_dir_usa_el_default_de_scjn(self, mock_assets):
-        mock_assets.return_value = [(self.destino / "scjn-reglamentos" / "1.tgz", True)]
+    #: The three id-keyed subcommands: `(subcommand, scjn function it delegates to, cache subdirectory,
+    #: the `--id` arguments, the ids that reach the function)` (issue #305: one parametrised set
+    #: instead of four tests per subcommand).
+    POR_ID = (
+        ("federal-regulations", "download_scjn_reglamentos_assets", "scjn-reglamentos", ["1", "2"]),
+        ("federal-guidelines", "download_scjn_lineamientos_assets", "scjn-lineamientos", ["3"]),
+        ("international-treaties", "download_scjn_tratados_assets", "scjn-tratados", ["5", "6"]),
+    )
 
-        main(["download", "federal-regulations"])
+    def test_los_subcomandos_por_id_sin_cache_dir_usan_el_default_de_scjn(self):
+        for subcomando, funcion, subdirectorio, _ in self.POR_ID:
+            with self.subTest(subcomando=subcomando), patch(f"scjn.release.{funcion}") as mock_assets:
+                mock_assets.return_value = [(self.destino / subdirectorio / "1.tgz", True)]
 
-        args, kwargs = mock_assets.call_args
-        self.assertIsNone(args[0])
-        self.assertIsNone(kwargs["cache_dir"])
-        self.assertFalse(kwargs["refrescar"])
+                main(["download", subcomando])
 
-    @patch("scjn.release.download_scjn_reglamentos_assets")
-    def test_federal_regulations_acota_con_id_repetible(self, mock_assets):
-        mock_assets.return_value = [(self.destino / "1.tgz", False)]
+                args, kwargs = mock_assets.call_args
+                self.assertIsNone(args[0])
+                self.assertIsNone(kwargs["cache_dir"])
+                self.assertFalse(kwargs["refrescar"])
 
-        main(["download", "federal-regulations", "--id", "1", "--id", "2",
-              "--cache-dir", str(self.destino), "--refrescar"])
+    def test_los_subcomandos_por_id_aceptan_id_repetible(self):
+        for subcomando, funcion, _, ids in self.POR_ID:
+            with self.subTest(subcomando=subcomando), patch(f"scjn.release.{funcion}") as mock_assets:
+                mock_assets.return_value = [(self.destino / "1.tgz", False)]
 
-        args, kwargs = mock_assets.call_args
-        self.assertEqual(args[0], ["1", "2"])
-        self.assertEqual(kwargs["cache_dir"], self.destino)
-        self.assertTrue(kwargs["refrescar"])
+                main(["download", subcomando, *[a for i in ids for a in ("--id", i)],
+                      "--cache-dir", str(self.destino), "--refrescar"])
 
-    def test_federal_regulations_rechaza_slug(self):
-        with self.assertRaises(SystemExit):
-            main(["download", "federal-regulations", "--slug", "lft"])
+                args, kwargs = mock_assets.call_args
+                self.assertEqual(args[0], ids)
+                self.assertEqual(kwargs["cache_dir"], self.destino)
+                self.assertTrue(kwargs["refrescar"])
 
-    def test_federal_regulations_rechaza_cache_dir_none(self):
-        with self.assertRaises(SystemExit):
-            main(["download", "federal-regulations", "--cache-dir", "none"])
+    def test_los_subcomandos_por_id_rechazan_slug(self):
+        for subcomando, *_ in self.POR_ID:
+            with self.subTest(subcomando=subcomando), self.assertRaises(SystemExit):
+                main(["download", subcomando, "--slug", "lft"])
 
-    @patch("scjn.release.download_scjn_lineamientos_assets")
-    def test_federal_guidelines_sin_cache_dir_usa_el_default_de_scjn(self, mock_assets):
-        mock_assets.return_value = [(self.destino / "scjn-lineamientos" / "1.tgz", True)]
-
-        main(["download", "federal-guidelines"])
-
-        args, kwargs = mock_assets.call_args
-        self.assertIsNone(args[0])
-        self.assertIsNone(kwargs["cache_dir"])
-        self.assertFalse(kwargs["refrescar"])
-
-    @patch("scjn.release.download_scjn_lineamientos_assets")
-    def test_federal_guidelines_acota_con_id_repetible(self, mock_assets):
-        mock_assets.return_value = [(self.destino / "1.tgz", False)]
-
-        main(["download", "federal-guidelines", "--id", "3",
-              "--cache-dir", str(self.destino), "--refrescar"])
-
-        args, kwargs = mock_assets.call_args
-        self.assertEqual(args[0], ["3"])
-        self.assertEqual(kwargs["cache_dir"], self.destino)
-        self.assertTrue(kwargs["refrescar"])
-
-    def test_federal_guidelines_rechaza_slug(self):
-        with self.assertRaises(SystemExit):
-            main(["download", "federal-guidelines", "--slug", "lft"])
-
-    def test_federal_guidelines_rechaza_cache_dir_none(self):
-        with self.assertRaises(SystemExit):
-            main(["download", "federal-guidelines", "--cache-dir", "none"])
-
-    @patch("scjn.release.download_scjn_tratados_assets")
-    def test_international_treaties_sin_cache_dir_usa_el_default_de_scjn(self, mock_assets):
-        mock_assets.return_value = [(self.destino / "scjn-tratados" / "1.tgz", True)]
-
-        main(["download", "international-treaties"])
-
-        args, kwargs = mock_assets.call_args
-        self.assertIsNone(args[0])
-        self.assertIsNone(kwargs["cache_dir"])
-        self.assertFalse(kwargs["refrescar"])
-
-    @patch("scjn.release.download_scjn_tratados_assets")
-    def test_international_treaties_acota_con_id_repetible(self, mock_assets):
-        mock_assets.return_value = [(self.destino / "1.tgz", False)]
-
-        main(["download", "international-treaties", "--id", "5", "--id", "6",
-              "--cache-dir", str(self.destino), "--refrescar"])
-
-        args, kwargs = mock_assets.call_args
-        self.assertEqual(args[0], ["5", "6"])
-        self.assertEqual(kwargs["cache_dir"], self.destino)
-        self.assertTrue(kwargs["refrescar"])
-
-    def test_international_treaties_rechaza_slug(self):
-        with self.assertRaises(SystemExit):
-            main(["download", "international-treaties", "--slug", "lft"])
-
-    def test_international_treaties_rechaza_cache_dir_none(self):
-        with self.assertRaises(SystemExit):
-            main(["download", "international-treaties", "--cache-dir", "none"])
+    def test_los_subcomandos_por_id_rechazan_cache_dir_none(self):
+        for subcomando, *_ in self.POR_ID:
+            with self.subTest(subcomando=subcomando), self.assertRaises(SystemExit):
+                main(["download", subcomando, "--cache-dir", "none"])
 
     @patch("scjn.cache.migrate_legacy_assets")
     @patch("scjn.release.download_scjn_tratados_assets")

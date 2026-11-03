@@ -25,7 +25,7 @@ import bisect
 from dataclasses import dataclass, field
 
 from md2akn.model import REFERS_TO_TRANSITORIOS, AknNode
-from md2akn.structure import _es_el_mismo_numero_en_otra_cifra, _extiende
+from md2akn.skeleton import _es_el_mismo_numero_en_otra_cifra, _extiende
 from md2akn.outline import (
     MARCADORES_EN_TEXTO,
     _plano,
@@ -45,7 +45,7 @@ ANIDAMIENTO: dict[str, frozenset[str]] = {
     "act": frozenset({"preamble", "body", "conclusions"}),
     "preamble": frozenset({"content"}),
     # A `part` (`PARTE`), an `attachment` (`ANEXO`/`APÉNDICE`) and a `toc` are
-    # review fix-1 of #291's rules 15 and 16: an attachment closes every other
+    # review fix-1 of #291's rules S14 and B5: an attachment closes every other
     # container, so it sits straight under the body; a part sits under the
     # body, an attachment or, in a document whose chapters come first, inside
     # a chapter or a title.
@@ -62,7 +62,7 @@ ANIDAMIENTO: dict[str, frozenset[str]] = {
          "table", "hcontainer"}
     ),
     "toc": frozenset(),
-    # A container's `intro` (rule 12, issue #291) and the `table`s of rule 13
+    # A container's `intro` (rule B6, issue #291) and the `table`s of rule B7
     # sit among its children; an `intro` holds the plain paragraphs and the
     # tables of the text a container opens with.
     "book": frozenset(
@@ -75,8 +75,8 @@ ANIDAMIENTO: dict[str, frozenset[str]] = {
     "chapter": frozenset(
         {"intro", "toc", "part", "section", "level", "article", "content", "table", "hcontainer"}
     ),
-    # A section inside a section: the implicit section an API block opens (rule 23)
-    # inside the transitorios section of the decree that holds it (rule 34).
+    # A section inside a section: the implicit section an API block opens (rule S6)
+    # inside the transitorios section of the decree that holds it (rule S4).
     "section": frozenset(
         {"intro", "toc", "level", "section", "article", "content", "table", "hcontainer"}
     ),
@@ -94,7 +94,7 @@ ANIDAMIENTO: dict[str, frozenset[str]] = {
     "content": frozenset(),
     "table": frozenset(),
     "conclusions": frozenset(),
-    # Review fix-4 of #291 (rules 29 to 31): a labelled block or division holds
+    # Review fix-4 of #291 (rules S8, S10 and B9): a labelled block or division holds
     # whatever a container holds, divisions and further blocks included.
     "hcontainer": frozenset(
         {"intro", "toc", "part", "attachment", "book", "title", "chapter", "section", "level",
@@ -291,7 +291,7 @@ _ESTRUCTURA_DE_TEXTO = frozenset(
 
 
 def _block_escapes(tree: AknNode) -> list[Violation]:
-    """Invariant I1 (rule 34, review fix-6 of #291): what an API block's text
+    """Invariant I1 (rule S4, review fix-6 of #291): what an API block's text
     holds hangs from what the block opened.
 
     A block is the characters from its marker to the next one. The nodes that
@@ -302,7 +302,7 @@ def _block_escapes(tree: AknNode) -> list[Violation]:
     * a block whose root is a **container** (an `hcontainer`, a `section`, a
       chapter, an annex ...) holds everything else of its text *inside* that
       root -- not beside it, not in the container the block before opened --
-      except a transitorios section its own text opens (rule 20: it hangs from
+      except a transitorios section its own text opens (rule S3: it hangs from
       the body);
     * a block whose root is an **article**, or a leaf of an article opened
       before it, may print further articles or headings (an article of a
@@ -354,7 +354,7 @@ def _block_escapes(tree: AknNode) -> list[Violation]:
             continue
         continuacion = k > 0 and raices_previas and (
             es_continuacion(etiquetas[k], etiquetas[k - 1])
-            # Rule 40 (issue #300): a bare `CONTENIDO` after a title-only block.
+            # Rule S10 (issue #300): a bare `CONTENIDO` after a title-only block.
             or es_contenido_suelto(
                 etiquetas[k], clases[k], texto[encontradas[k - 1].end():encontradas[k].start()],
                 clases[k - 1],
@@ -383,7 +383,7 @@ def _block_escapes(tree: AknNode) -> list[Violation]:
                 continue
             if nodo.akn_type == "attachment" and nodo.parent is not None \
                     and nodo.parent.akn_type == "body":
-                # Rule 16: an annex a text prints sits straight under the body,
+                # Rule B5: an annex a text prints sits straight under the body,
                 # and what it holds is its own.
                 escapa = False
                 raices.append(nodo)
@@ -440,23 +440,23 @@ class Disagreement:
         return f"{self.klass} at block {self.orden} ({self.kind} {self.label!r}) {self.eId}: {self.detail}"
 
 
-#: The disagreements the parser takes on purpose (rules 19, 38 and 39), and why. Each is
+#: The disagreements the parser takes on purpose (rules S1, S6 and S9), and why. Each is
 #: recognised by the shape of the marker and of the tree, never by an instrument.
 CLASES_DOCUMENTADAS = {
     "documented-number-by-numero": (
         "the marker's `label` and its own `numero` disagree, the text prints the number "
-        "`numero` says, and the node takes it (rule 19: `ARTICULO XXVII` on the block "
+        "`numero` says, and the node takes it (rule S1: `ARTICULO XXVII` on the block "
         "numbered 37, whose text prints `XXXVII`)"
     ),
     "documented-number-label-repeated": (
         "the marker's `label` repeats the label of an earlier block and the text prints "
         "another number: the API labelled two blocks with one number, and the node takes "
-        "the text's rather than repeat an identifier (rule 19, `alternativa`)"
+        "the text's rather than repeat an identifier (rule S1, `alternativa`)"
     ),
     "documented-article-served-as-chapter": (
         "a block the API labels `ARTÍCULO 83` whose text is the heading `Capítulo 83` "
         "(the LIGIE's tariff chapters): the node is the chapter the text says, with the "
-        "label's own number (rule 19)"
+        "label's own number (rule S1)"
     ),
     "documented-closing-signature": (
         "a block the API labels `transitorios` whose whole text is the closing signatures "
@@ -467,13 +467,13 @@ CLASES_DOCUMENTADAS = {
         "an API `article` block that holds only a heading and a caption and is followed by "
         "`provision` blocks (the Reglamento General de Infantería's `ARTICULO 1°. "
         "Generalidades` over `1.- ...`): the node is the section the provisions belong to "
-        "(rule 38)"
+        "(rule S6)"
     ),
 }
 
 #: What the root node of a block must be, by the block's `kind` (and container `type`):
 #: the Akoma Ntoso `akn_type`s the builder may give it. An `other`, `preamble` and
-#: `recitals` block is an `hcontainer` (rules 29 and 44) -- a `section` only where the
+#: `recitals` block is an `hcontainer` (rule S8) -- a `section` only where the
 #: marker says so (it never does for these kinds); the document's first `header` is the
 #: `preamble`.
 _TIPO_DE_CONTENEDOR = {
@@ -506,7 +506,7 @@ def block_conformance(tree: AknNode) -> list[Disagreement]:
 
     The root of a block is the first node that starts inside it (the node of the block
     itself, not the group of the promulgation decree it sits in); a block that is the
-    second half of one the API split in two (rules 30 and 40) has none of its own. A tree
+    second half of one the API split in two (rule S10) has none of its own. A tree
     parsed from a document with no markers has no blocks and no disagreements. The
     disagreements the parser takes on purpose come back with a ``documented-`` class
     (`CLASES_DOCUMENTADAS`).
@@ -519,7 +519,7 @@ def block_conformance(tree: AknNode) -> list[Disagreement]:
     attrs = [lee_marcador(m.group(0)) or {} for m in encontradas]
     limites = [*marcas, len(texto) + 1]
     nodos = [n for n in tree.walk() if n.akn_type not in ("act", "body")]
-    # A block that is the second half of the one before it (rules 30 and 40) has no node
+    # A block that is the second half of the one before it (rule S10) has no node
     # of its own, and the block before reaches to the end of it.
     es_segunda_mitad = [
         k > 0 and (
@@ -555,7 +555,7 @@ def block_conformance(tree: AknNode) -> list[Disagreement]:
         raiz = dentro[0]
         if raiz.refers_to == "#promulgation" and len(dentro) > 1 and dentro[1].parent is raiz:
             # The group the blocks of the Mexican decree are kept together under opens
-            # at the first of them; the block's own node is inside it (rule 29).
+            # at the first of them; the block's own node is inside it (rule S8).
             raiz = dentro[1]
         raiz_de[k] = raiz
     # -- the containers the markers' order implies above each container block --
@@ -572,14 +572,14 @@ def block_conformance(tree: AknNode) -> list[Disagreement]:
             elif rol == "promulgation":
                 rol = None
             if rol in ("promulgation", "conclusions", "note"):
-                abiertos.clear()  # a text of its own, outside whatever was open (rule 29)
+                abiertos.clear()  # a text of its own, outside whatever was open (rule S8)
             continue
         if kind == "article" and raiz is not None and raiz.akn_type in _RANGO_DE_CONTENEDOR:
             kind, tipo = "container", raiz.akn_type  # a tariff chapter served as an article
         if kind != "container":
             continue
         if tipo == "part":
-            # Rule 45: a part holds the book, title or chapter the very next marker
+            # Rule S12: a part holds the book, title or chapter the very next marker
             # opens and ranks just above it; any other part is read from the document.
             siguiente = attrs[k + 1] if k + 1 < len(attrs) else {}
             if siguiente.get("kind") != "container" or siguiente.get("type") not in (
@@ -621,7 +621,7 @@ def block_conformance(tree: AknNode) -> list[Disagreement]:
             repetida = False
         if es_segunda_mitad[k]:
             continue
-        # A leaf may not reach into the next block (rule 34).
+        # A leaf may not reach into the next block (rule S4).
         for nodo in dentro_de[k]:
             if nodo.akn_type in _TIPOS_DE_HOJA and nodo.end_char > fines[k] \
                     and fines[k] < len(texto):
@@ -664,7 +664,7 @@ def block_conformance(tree: AknNode) -> list[Disagreement]:
                 and raiz.akn_type in permitidos:
             nodo_num, marca_num = _plano(raiz.num or ""), _plano(a["num"])
             # The text may say more than the label (`82 BIS` under `ARTÍCULO 82`) or spell
-            # the same number in the other numeral (`I` under `ARTÍCULO 1`): rule 19.
+            # the same number in the other numeral (`I` under `ARTÍCULO 1`): rule S1.
             if nodo_num != marca_num and not _extiende(nodo_num, marca_num) \
                     and not _extiende(marca_num, nodo_num) \
                     and not _es_el_mismo_numero_en_otra_cifra(raiz.num or "", a["num"]):

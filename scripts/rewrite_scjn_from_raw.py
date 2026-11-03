@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Rewrite every snapshot of one SCJN corpus from the raw API answers a
-re-crawl kept (review fix-2 of #291), with no request to the SCJN.
+re-crawl kept, with no request to the SCJN.
 
 `recrawl_scjn_outline.py` saves what the API answered for each reform it
 fetched under ``<outdir>/raw-api/<coleccion>/<key>/<snapshot>.json.gz``. When

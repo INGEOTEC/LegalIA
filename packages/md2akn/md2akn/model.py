@@ -40,13 +40,13 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 #: existing element plus `refers_to` (`section` + `#transitorios`, `level` +
 #: `#apartado`) instead. See #159 and #160.
 #:
-#: `part`, `attachment` and `toc` (review fix-1 of #291, rules 15 and 16) are
+#: `part`, `attachment` and `toc` (review fix-1 of #291, rules S14 and B5) are
 #: Akoma Ntoso's own too: a `part` is a `PARTE` (above a book, or inside a
 #: chapter when the document puts its chapters first), an `attachment` an
 #: `ANEXO` or `APÉNDICE` (told apart by `refers_to`) and a `toc` a table of
 #: contents.
 #:
-#: `hcontainer` (review fix-4 of #291, rules 29 to 31) is Akoma Ntoso's generic
+#: `hcontainer` (review fix-4 of #291, rules S8, S10 and B9) is Akoma Ntoso's generic
 #: hierarchical container: a block the SCJN's API labels with a name no
 #: container word covers (`NOTA EXPLICATIVA`, `FIRMA`, `PARTE FINAL DEL
 #: ACUERDO`), the group of blocks a Mexican promulgation decree is made of, and a
@@ -62,22 +62,22 @@ AKN_TYPES = (
     "act",          # the whole document (the root)
     "preamble",     # "Al margen un sello...", the enacting formula
     "body",         # the normative body
-    "attachment",   # ANEXO / APÉNDICE, via refers_to (rule 16, review fix-1 of #291)
-    "part",         # PARTE (rule 16, review fix-1 of #291)
-    "toc",          # a table of contents (rule 15, review fix-1 of #291)
+    "attachment",   # ANEXO / APÉNDICE, via refers_to (rule B5, review fix-1 of #291)
+    "part",         # PARTE (rule B5, review fix-1 of #291)
+    "toc",          # a table of contents (rule S14, review fix-1 of #291)
     "book",         # LIBRO
     "title",        # TÍTULO
     "chapter",      # CAPÍTULO
     "section",      # SECCIÓN, and TRANSITORIOS via refers_to
     "level",        # APARTADO A/B, via refers_to
-    "hcontainer",   # a labelled block or division (rules 29-31, review fix-4 of #291)
-    "intro",        # a container's introductory text (rule 12, issue #291)
+    "hcontainer",   # a labelled block or division (rules S8, S10 and B9, review fix-4 of #291)
+    "intro",        # a container's introductory text (rule B6, issue #291)
     "article",      # Artículo N
     "paragraph",    # fracción
     "point",        # inciso
     "subpoint",     # subinciso / numeral
     "content",      # a plain paragraph
-    "table",        # consecutive `| ... |` rows (rule 13, issue #291)
+    "table",        # consecutive `| ... |` rows (rule B7, issue #291)
     "conclusions",  # the closing signatures
 )
 
@@ -87,10 +87,10 @@ AKN_TYPES = (
 REFERS_TO_TRANSITORIOS = "#transitorios"
 REFERS_TO_APARTADO = "#apartado"
 #: An `attachment` is an `ANEXO` or an `APÉNDICE`; which one is `refers_to`
-#: (rule 16, review fix-1 of #291).
+#: (rule B5, review fix-1 of #291).
 REFERS_TO_ANEXO = "#anexo"
 REFERS_TO_APENDICE = "#apendice"
-#: What an `hcontainer` is (rules 29 and 31, review fix-4 of #291). A plain
+#: What an `hcontainer` is (rules S8 and B9, review fix-4 of #291). A plain
 #: block or division carries no `refers_to`.
 REFERS_TO_PROMULGACION = "#promulgation"   # the Mexican decree's own blocks, grouped
 REFERS_TO_CONCLUSIONES = "#conclusions"    # `PARTE FINAL ...`
@@ -226,7 +226,7 @@ class AknNode:
     #: place the question is answered, by construction.
     repeated: bool = False
     #: On the root `act` only: how the document numbers its provisions when it
-    #: never writes `Artículo N` -- rule 8's `"ordinal"` or `"numeral"`, or
+    #: never writes `Artículo N` -- rule B3's `"ordinal"` or `"numeral"`, or
     #: `None` (the ordinary case) -- as the builder decided it.
     modo: str | None = None
     parent: "AknNode | None" = field(default=None, repr=False)

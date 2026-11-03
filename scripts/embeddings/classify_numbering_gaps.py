@@ -70,7 +70,7 @@ OVERRIDES = {
         "index-without-marker",
         "the block `FIRMAS` lists the amended articles of the ITU Convention as an index "
         "(`PARTE I - Prefacio`, `ARTÍCULO 2 Elecciones...`, `4 El Consejo`, ...) with no "
-        "`Índice` word, so rule 15 does not read it as one",
+        "`Índice` word, so rule S14 does not read it as one",
     ),
 }
 

@@ -28,6 +28,7 @@ import build_instrument_umap_html  # noqa: E402
 import build_umap_html  # noqa: E402
 import instrument_matrix  # noqa: E402
 import prepare_umap_input  # noqa: E402
+from conftest import write_units
 
 SLUG = "qwen3-0.6b"
 K = 4
@@ -100,19 +101,6 @@ def write_vectors(directory: Path, name: str, hashes) -> None:
         "text_sha1": pa.array(list(hashes), type=pa.string()),
         "vector": pa.array([VECTORS[h] for h in hashes], type=pa.list_(pa.float32())),
     }), directory / name)
-
-
-def write_units(directory: Path, coleccion: str, rows) -> None:
-    directory.mkdir(parents=True, exist_ok=True)
-    pq.write_table(pa.table({
-        "coleccion": pa.array([coleccion] * len(rows), type=pa.string()),
-        "clave": pa.array([r[0] for r in rows], type=pa.string()),
-        "nombre": pa.array([r[1] for r in rows], type=pa.string()),
-        "unit_type": pa.array([r[2] for r in rows], type=pa.string()),
-        "eId": pa.array([r[3] for r in rows], type=pa.string()),
-        "text_sha1": pa.array([r[4] for r in rows], type=pa.string()),
-        "text": pa.array([r[5] for r in rows], type=pa.string()),
-    }), directory / "units.parquet")
 
 
 @pytest.fixture
@@ -321,7 +309,7 @@ def test_headings_are_neither_sources_nor_winners(prepared, cache):
     assert matrix[index["b"], index["c"]] == 0
     summary = result["summary"]
     # A table of contents joined the headings in review fix-1 of #291 (md2akn's
-    # rule 15), so the recorded list says both.
+    # rule S14), so the recorded list says both.
     assert summary["excluded_unit_types"] == ["heading", "toc"]
     assert summary["heading_rows_excluded"] == 3
     assert summary["unit_rows"] == 16
@@ -1066,7 +1054,7 @@ def test_the_counts_and_the_identity(transitorio_work):
     assert (summary["searched_rows"] + summary["heading_rows_excluded"]
             + summary["transitorio_rows_excluded"]) == summary["unit_rows"]
     # A table of contents joined the headings in review fix-1 of #291 (md2akn's
-    # rule 15), so the recorded list says both.
+    # rule S14), so the recorded list says both.
     assert summary["excluded_unit_types"] == ["heading", "toc"]
     assert summary["excluded_transitorios"] is True
     assert summary["identical_shared_dropped"] == 3

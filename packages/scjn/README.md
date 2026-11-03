@@ -1,28 +1,24 @@
 # scjn
 
-Client for the SCJN's SCOW JSON API (`https://legislacion.scjn.gob.mx`) and
-reader for the `scjn-leyes` GitHub release: a Mexican federal law's
-reform-dated snapshots, each tagged with a `fuente: scjn` provenance header.
-The SCJN is **not** an official source of legal text — the *Diario Oficial de
-la Federación* (DOF), read through [`dofjson`](../dofjson), remains that;
-this package's crawl is a convenience corpus SCJN's own consolidated view
-makes possible, never a replacement for it.
+Client for the SCJN's SCOW JSON API (`https://legislacion.scjn.gob.mx`), the writer of its Markdown
+snapshots and reader of the four SCJN GitHub releases: `scjn-leyes` (a Mexican federal law's
+reform-dated snapshots, keyed by `abrev`) and the id-keyed `scjn-reglamentos`, `scjn-lineamientos` and
+`scjn-tratados` (keyed by `id_ordenamiento`; international treaties are the SCJN's *ámbito*
+`TRATADOS INTERNACIONALES`, any category). Each snapshot carries a `fuente: scjn` provenance header.
+The SCJN is **not** an official source of legal text — the *Diario Oficial de la Federación* (DOF),
+read through [`dofjson`](../dofjson), remains that; this package's crawl is a convenience corpus the
+SCJN's own consolidated view makes possible, never a replacement for it.
 
-This package was extracted out of a downstream package's own modules (issue
-#206). Fase 1 (issue #207) moved the transport (`scjn.api`), the catalogue's
-own algebra (`scjn.catalog`), per-instrument crawl state (`scjn.state`), and
-the provenance header's reader (`scjn.header`) — no behaviour change, no
-release-format change. Fase 3 (issue #209) moved the `scjn-leyes` release's
-own readers here too (`scjn.release`: `download_scjn_leyes_corpus`,
-`download_scjn_leyes_index`, `download_scjn_leyes_catalog`,
-`iter_current_federal_laws`, `markdown_de_snapshot`,
-`download_scjn_leyes_assets`, `local_slugs`), now in the package's own public
-`scjn.__all__`, disk-first and with their own cache directory
-(`scjn.cache`, `$SCJN_CACHE_DIR` — a separate lifecycle from the downstream
-package's cache, migrated once automatically from wherever it used to live).
-`codNota` linking — matching a snapshot to the DOF `codNota` that produced it
-— stays one layer up: a `codNota` is a DOF concept, and this package's
-dependency direction is one way (see `tests/test_boundary.py`).
+The package depends on nothing else in this monorepo, and nothing here imports back from `nota2md` or
+`dofjson` (`tests/test_boundary.py`). `scjn.api` is the transport, `scjn.markdown` and `scjn.outline`
+write a snapshot, `scjn.catalog`, `scjn.state` and `scjn.header` are the catalogue's algebra, the
+per-instrument crawl state and the provenance header's reader, `scjn.discovery` is the shared discovery
+of the id-keyed collections, and `scjn.release` holds the release readers (`download_scjn_leyes_corpus`,
+`download_scjn_leyes_index`, `download_scjn_leyes_catalog`, `iter_current_federal_laws`,
+`markdown_de_snapshot`, `download_scjn_leyes_assets`, `local_slugs`, and the same names with
+`reglamentos`/`lineamientos`/`tratados`), disk-first, with their own cache directory (`scjn.cache`,
+`$SCJN_CACHE_DIR`). `codNota` linking — matching a snapshot to the DOF `codNota` that produced it —
+stays one layer up in `nota2md`: a `codNota` is a DOF concept, and the dependency direction is one way.
 
 Since issue #215 every law also carries the SCJN's own `materia` (subject
 classification), `vigencia` (whether it is still in force — seven values, not
@@ -34,16 +30,54 @@ them with no extra request — which makes `scjn-leyes` a *classified* corpus.
 search per law, matched by `idOrdenamiento` so a wrong document can never be
 described as the right one (issue #115, Hallazgo C).
 
-    scjn download [--slug SLUG] [--cache-dir DIR] [--refrescar]
+    scjn download [--coleccion {leyes,reglamentos,lineamientos,tratados}] [--slug SLUG | --id ID]
+                  [--cache-dir DIR] [--refrescar]
 
-puts the release on disk; every reader in `scjn.release` then reads off it
+puts a release on disk (`leyes` by default; `--slug` narrows `leyes`, `--id` the others); every reader in `scjn.release` then reads off it
 with no network request at all, raising `scjn.release.AssetNotCached` for
 whatever is not there yet. Resolving a release's parts asks the GitHub API,
 where an unauthenticated address gets 60 requests an hour; when `GH_TOKEN`
 (or `GITHUB_TOKEN`) is set, those requests carry it as a bearer token, and
 without one nothing changes.
 
+## Verifying the outline
+
+Every snapshot carries one marker line
+(`<!-- scjn:block orden=… numero=… kind=… label="…" -->`, `scjn.outline`) before
+each API block that yields text, and the raw answer of every reform is kept
+gzipped beside it. `scripts/verify_scjn_outline.py` (read-only, no network, issue
+#303) checks the contract between the writer (`scjn.markdown`) and its readers over
+the four local corpora (`scripts/scjn/<c>/<key>/<snapshot>.md` and
+`scripts/scjn/raw-api/…`):
+
+- **writer drift**: the body rebuilt from the raw answer against the body on disk
+  (`identical`, `differs`, `no-raw`) — reported, never rewritten, and never a
+  failure (`scripts/rewrite_scjn_from_raw.py` is what a human runs to decide);
+- **marker completeness**: every raw block with text has exactly one marker; an
+  `orden` with no marker is *explained* when the block wrote no text (the predicate
+  `scripts/measure_block_gaps.py` holds) and otherwise an omission;
+- **attribute round-trip**: each marker equals `marker_line(parse_marker(…))` and
+  `classify` of its own label;
+- **text invariance**: `strip_markers` of the rebuilt body is the `outline=False` text.
+
+The exit status is non-zero only for a round-trip or an invariance violation. `--guard`
+audits `scjn.api.completeness_defects` (the predicate `articulos_of_reforma` also uses)
+over every raw answer, and `--compare before.json` checks that two runs have the same
+drift classes (how the `scjn.api` → `scjn.markdown` split was shown to change nothing).
+`--write-vocabulary` writes `packages/md2akn/tests/fixtures_units/marker_vocabulary.json`,
+the one fixture `scjn`'s and `md2akn`'s tests both read: `md2akn` imports nothing from
+this package, so the marker grammar it reads and the one written here are tied by that
+generated data, never by an import.
+
 ## Changelog
+
+Rule numbers below are those of the day each entry was written; `packages/md2akn/RULES.md` (issue #304) maps every old number to the present layered list (W, S, B, U).
+
+- **Issue #303 (still 0.5.1):** `scjn.markdown` is the Markdown writer, moved out of
+  `scjn.api` with every name re-exported from it (a pure move; the writer-drift classes of
+  `scripts/verify_scjn_outline.py` are identical before and after), and
+  `scjn.api.completeness_defects(filas, tamanio)` is the guard's predicate as a pure
+  function. No behaviour change, no new public name in `scjn.__all__`.
 
 - **0.5.1** — a bug fix (issue #291): `articulos_a_markdown` bolds a decimal
   article lead whole. The T-MEC and six other treaties write `Artículo 1.1:`
@@ -129,6 +163,44 @@ without one nothing changes.
   the catalogue algebra, the crawl state, the provenance header and the
   disk-first readers of the `scjn-leyes`/`scjn-reglamentos`/
   `scjn-lineamientos` releases (issues #206-#212, #220, #222).
+
+## Tests
+
+```bash
+pytest packages/scjn -q --ignore=packages/scjn/tests/test_api_red.py \
+    --ignore=packages/scjn/tests/test_release_red.py
+```
+
+The two ignored files make real network calls (the live SCOW API and the real `scjn-leyes`
+release); CI includes them, so check before assuming a failure there is unrelated.
+
+| File | What it covers |
+|---|---|
+| `test_api.py` | `scjn.api` against recorded JSON shapes: paging, the completeness guard, the crawl |
+| `test_api_red.py` | live check of the SCOW API (network) |
+| `test_boundary.py` | the one-way dependency: `scjn` imports no sibling package |
+| `test_cache.py` | the disk-first cache and `AssetNotCached` |
+| `test_catalog.py` | the catalogue algebra: slugs, `abrev`, the instrument key |
+| `test_discovery.py` | the discovery passes, with a stub API |
+| `test_header.py` | the provenance header |
+| `test_markdown.py` | the plain-text-to-Markdown writer (`scjn.markdown`) |
+| `test_outline.py` | the outline markers the writer keeps |
+| `test_release.py` | the release readers; the three id-keyed collections share one parametrised wrapper set (`TestIdKeyedWrappers`, over `COLECCIONES_POR_ID`) |
+| `test_release_red.py` | end-to-end check against the real release (network) |
+| `test_site_references.py` | no reference to the retired WebForms site anywhere in the tree |
+| `test_state.py` | crawl state and the row-comparison plan |
+| `test_text.py` | editorial-note removal and instrument grouping |
+
+Shared helpers live in `tests/conftest.py`, one definition each. To find a test that repeats another
+(same input and assertions, a subset, a parametrisable group, a helper defined in two files) run the
+read-only inventory, which parses the tests without importing them:
+
+```bash
+python scripts/test_inventory.py --suite scjn
+```
+
+After merging or deleting tests, compare line coverage per file by the *set* of covered lines
+(`pytest --cov=scjn --cov-report=json`): a line covered before and not after is a lost test.
 
 ## Development
 

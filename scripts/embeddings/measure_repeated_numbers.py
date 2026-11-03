@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""What each rule of review fix-1 of #291 (rules 14-18 of `md2akn.text_units`
+"""What each rule of review fix-1 of #291 (rules B1, S14, B5 and B4 of `md2akn.text_units`
 and `scjn.api`'s writer) contributed to the repeated article numbers.
 
 209 of the Atlas' 2,676 instruments carried a `duplicate_number` flag. For each
@@ -9,9 +9,9 @@ instrument file) and counts the flagged excerpts under the same definition
 
     S0  the count the old index recorded (old parser, old Markdown)
     A   the new parser, every rule on, on the old Markdown
-    B   the new parser with rules 15-18 off: the number grammar (rule 14) and
+    B   the new parser with rules S14, B5 and B4 off: the number grammar (rule B1) and
         the transitorios markers are what is left of S0 - B
-    T P R L   rule 15 (tables of contents), 16 (PARTE/ANEXO), 17 (recitals),
+    T P R L   rule S14 (tables of contents), 16 (PARTE/ANEXO), 17 (recitals),
         18 (restarted numerals) off, one at a time: a rule's share is its count
         minus A
     S2  the new parser on the Markdown the fixed `scjn.api` writer produced

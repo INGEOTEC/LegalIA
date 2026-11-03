@@ -49,13 +49,13 @@ DEFAULT_SPLIT_CAP = 2000
 
 _WHITESPACE = re.compile(r"\s+")
 
-#: A blank line — the paragraph boundary rule 9 splits an over-cap unit at,
+#: A blank line — the paragraph boundary rule U5 splits an over-cap unit at,
 #: and exactly the boundary `md2akn.segmenter.iter_blocks` reads the document
 #: with: a Markdown block *is* a paragraph here.
 _PARAGRAPH_BREAK = re.compile(r"\n[ \t]*\n")
 
 #: The Akoma Ntoso container types that carry a `.heading` and therefore get
-#: their own `heading` unit (rule 4): `book`/`title`/`chapter`/`section`, and
+#: their own `heading` unit (rule U3): `book`/`title`/`chapter`/`section`, and
 #: `level` (an apartado) -- but only in the one shape that ever reaches
 #: `_walk_container` at all, an apartado holding whole articles of its own
 #: (`SECCIÓN ... > APARTADO I > Artículo N`, the appellate-procedure shape
@@ -70,7 +70,7 @@ _PARAGRAPH_BREAK = re.compile(r"\n[ \t]*\n")
 #: book/title/chapter/section/level without an article between them, so it
 #: never reaches this function as `node`.
 _CONTAINER_LABEL = {
-    # Review fix-1 of #291 (rule 16): a `PARTE`, and an `ANEXO`/`APÉNDICE` (its
+    # Review fix-1 of #291 (rule B5): a `PARTE`, and an `ANEXO`/`APÉNDICE` (its
     # word is `refers_to`'s, see `_container_label`).
     "attachment": "ANEXO",
     "part": "PARTE",
@@ -79,7 +79,7 @@ _CONTAINER_LABEL = {
     "chapter": "CAPÍTULO",
     "section": "SECCIÓN",
     "level": "APARTADO",
-    # Review fix-4 of #291 (rules 29 to 31): a labelled block or a division. Its
+    # Review fix-4 of #291 (rules S8, S10 and B9): a labelled block or a division. Its
     # label *is* its `num` (see `_container_label`), so this word is only the
     # fallback for a division with no heading.
     "hcontainer": "DIVISIÓN",
@@ -95,15 +95,15 @@ UNIT_TYPES = (
     "heading",
     "loose",
     "conclusions",
-    # Issue #291's rules 12 and 13: a container's introductory text, and a
+    # Issue #291's rules B6 and B7: a container's introductory text, and a
     # table (cut at row boundaries).
     "intro",
     "table",
-    # Review fix-1 of #291's rule 15: a table of contents.
+    # Review fix-1 of #291's rule S14: a table of contents.
     "toc",
 )
 
-#: The two templates `text_units` ships (issue #218 Fase 1, rule 7): whether
+#: The two templates `text_units` ships (issue #218 Fase 1, rule U4): whether
 #: an `article`/`article_piece` unit's text is prefixed with the law's name
 #: and the article's own number. `heading`/`loose` units always carry their
 #: ancestor path regardless of which template is chosen -- only an article's
@@ -191,19 +191,19 @@ class Coverage:
 
 @dataclass(frozen=True)
 class CapReport:
-    """The cap invariant, as data (issue #227's rule 9) — `coverage()`'s
+    """The cap invariant, as data (issue #227's rule U5) — `coverage()`'s
     sibling: `coverage()` turned "nothing is lost" into something a test can
     fail on, this turns "the units are usable" into the same.
 
     `splittable == 0` is the invariant. An over-cap unit is only admissible
-    when rule 9 has nothing left to cut, which happens for two reasons and is
+    when rule U5 has nothing left to cut, which happens for two reasons and is
     counted in `unsplittable` — the residue #218's own 665 over-cap units
     were counted as:
 
-    - the unit's own span is a **single paragraph** — rule 9 never cuts
+    - the unit's own span is a **single paragraph** — rule U5 never cuts
       mid-sentence, so a 52,578-character paragraph stays one unit;
     - or what pushes it over the cap is a prefix rather than its own text:
-      rule 3 prefixes every piece of a split article with that article's
+      rule U2 prefixes every piece of a split article with that article's
       chapeau, and `cff`'s article 20 has a 3,500-character chapeau, so each
       of its 14 pieces is over the cap no matter how finely the piece itself
       is cut. Splitting the chapeau would leave a piece carrying half of its
@@ -216,11 +216,11 @@ class CapReport:
     max_chars: int
     #: Units whose text is longer than `cap`.
     over_cap: int
-    #: Of those, the ones rule 9 has nothing left to cut — see above.
+    #: Of those, the ones rule U5 has nothing left to cut — see above.
     unsplittable: int
     #: Of those, the ones that could still have been cut — the invariant.
     splittable: int
-    #: `article` units over `cap` that rule 3/9 never had a chance to split
+    #: `article` units over `cap` that rules U2 and U5 never had a chance to split
     #: because `split_articles=False` — counted separately from `over_cap`
     #: (issue #256), since leaving an article whole is the point rather than
     #: a residue. Always 0 when `split_articles=True` (the default).
@@ -286,7 +286,7 @@ def _annotation_ranges(tree: AknNode, doc_text: str) -> list[tuple[int, int]]:
             continue
         ranges.append((idx, idx + len(note.raw)))
         cursor = idx + len(note.raw)
-    # An outline marker (rule 19) is metadata exactly like an annotation: it
+    # An outline marker (rule S1) is metadata exactly like an annotation: it
     # is no part of what gets embedded, and `coverage()` counts its
     # characters as annotation.
     if "<!-- scjn:block " in doc_text:
@@ -374,7 +374,7 @@ def _container_label(node: AknNode) -> str:
 
 
 def _with_context(raw_text: str, path: tuple[str, ...]) -> str:
-    """`raw_text`, prefixed with its ancestor `path` — rule 7's context
+    """`raw_text`, prefixed with its ancestor `path` — rule U4's context
     prefix, unconditional for `heading`/`loose` units."""
     if not path:
         return normalize(raw_text)
@@ -399,9 +399,9 @@ def _unpipe_label_rows(raw_text: str) -> str:
 
 
 def _with_article_template(raw_text: str, template: str, num: str | None, law_name: str | None) -> str:
-    """`raw_text`, prefixed as `template` says — rule 7's article prefix.
+    """`raw_text`, prefixed as `template` says — rule U4's article prefix.
 
-    Takes the article's `num` rather than the node itself so that rule 9 can
+    Takes the article's `num` rather than the node itself so that rule U5 can
     re-wrap one of its pieces with the same prefix without carrying the tree
     around (see `_capped_pieces`).
     """
@@ -421,7 +421,7 @@ def _paragraph_spans(doc_text: str, start: int, end: int) -> list[tuple[int, int
 
     The separator stays with the paragraph it follows, so the spans partition
     the range exactly — no character falls between two of them, which is what
-    keeps `coverage()` true of a unit rule 9 has split.
+    keeps `coverage()` true of a unit rule U5 has split.
     """
     spans: list[tuple[int, int]] = []
     cursor = start
@@ -443,7 +443,7 @@ def _capped_pieces(
     wrap,
     split_over_cap: bool,
 ) -> list[tuple[int, int, str]]:
-    """Rule 9 (issue #227): `[start, end)` as consecutive
+    """Rule U5 (issue #227): `[start, end)` as consecutive
     `(start, end, text)` pieces, each fitting `cap`.
 
     One piece — the whole range — whenever the text already fits, whenever
@@ -517,16 +517,16 @@ def _units_from_pieces(
     """`_capped_pieces`' output as `TextUnit`s.
 
     A single piece is the unit whole, `piece` 0 — exactly what every unit
-    looked like before rule 9. Several are consecutive pieces of it, numbered
+    looked like before rule U5. Several are consecutive pieces of it, numbered
     from `first_piece + 1`, all carrying the same `piece_eId` (the node the
     text came from, when there is one: paragraph pieces of the same child of
     an article share it) and `piece_type` as their `unit_type` when the split
     changes what they are — a split `article` becomes `article_piece`, while a
     split `preamble` stays a `preamble`, since the vocabulary has no other
-    name for it and rule 9 adds none (issue #227).
+    name for it and rule U5 adds none (issue #227).
 
-    `whole_if_single` is off for the pieces rule 3 already numbers — one of
-    an article's children is piece `n` of that article whether or not rule 9
+    `whole_if_single` is off for the pieces rule U2 already numbers — one of
+    an article's children is piece `n` of that article whether or not rule U5
     then cuts it in two, and renumbering it 0 would claim it is the whole
     article.
     """
@@ -578,7 +578,7 @@ def _article_units(
 
     whole_raw = _node_text(article, ann_ranges)
     if not split_articles:
-        # split_articles=False: rules 3 and 9 never apply to an article --
+        # split_articles=False: rules U2 and U5 never apply to an article --
         # whatever its length, it is one `article` unit, `piece` 0.
         text = wrap(whole_raw)
         return [
@@ -590,7 +590,7 @@ def _article_units(
             )
         ]
     if len(normalize(whole_raw)) <= cap or not article.children:
-        # Rule 2, unchanged — and rule 9 behind it, for the one shape rule 3
+        # Rule U2, unchanged — and rule U5 behind it, for the one shape rule U2
         # cannot reach: an article with no children at all whose own text is
         # over the cap (a 25,000-character transitorio, say).
         pieces = _capped_pieces(
@@ -633,7 +633,7 @@ def _article_units(
 
 
 def _is_loose_leaf(node: AknNode) -> bool:
-    # Rule 35 (review fix-6 of #291): a container with nothing under it -- an
+    # Rule U6 (review fix-6 of #291): a container with nothing under it -- an
     # annex, a part, a chapter whose text is only its own heading line -- is a
     # heading, not loose text; `_walk_container` emits it as one.
     return (not node.children
@@ -666,7 +666,7 @@ def _loose_units(
 ) -> list[TextUnit]:
     units = []
     for group in _loose_groups(leaves, ann_ranges, cap):
-        # The grouping above packs by raw length; the cap rule 9 enforces is
+        # The grouping above packs by raw length; the cap rule U5 enforces is
         # on the embedded text, which also carries the ancestor path.
         pieces = _capped_pieces(
             group[0].start_char, group[-1].end_char, ann_ranges, cap,
@@ -686,20 +686,20 @@ def _table_units(
     cap: int,
     split_over_cap: bool = True,
 ) -> list[TextUnit]:
-    """Rule 13 (issue #291): one `table` node as `table` units, cut at row
+    """Rule B7 (issue #291): one `table` node as `table` units, cut at row
     boundaries.
 
     A row is one paragraph of the table's span (`scjn.api` writes one row per
     Markdown paragraph, issue #253). Rows are packed in order into the longest
     run whose embedded text still fits `cap`, and **every piece after the
     first is prefixed with the table's first row** -- its column header --
-    chapeau-style, the way rule 3 repeats an article's chapeau: without it the
+    chapeau-style, the way rule U2 repeats an article's chapeau: without it the
     pieces of a tariff would be rows of numbers with no column names. The
     prefix is part of the embedded text only; a piece's `[start_char,
     end_char)` is its own rows, so the pieces partition the table's span and
     `coverage()` stays true. Like every unit it carries its ancestor `path`.
 
-    A single row over the cap is left whole -- rule 9 never cuts inside a
+    A single row over the cap is left whole -- rule U5 never cuts inside a
     paragraph -- and so is a row whose header prefix pushes it over:
     `max_unit_chars` counts both as unsplittable. `split_over_cap=False`
     turns the cutting off and gives one unit per table.
@@ -741,13 +741,13 @@ def _intro_units(
     cap: int,
     split_over_cap: bool = True,
 ) -> list[TextUnit]:
-    """Rules 12 and 13 (issue #291) for one container's `intro`: its plain
+    """Rules B6 and B7 (issue #291) for one container's `intro`: its plain
     paragraphs as `intro` units, its tables as `table` units, in document
     order.
 
     The paragraphs between two tables (or before the first, or after the last)
     are packed like `loose` leaves -- up to `cap`, then cut at paragraph
-    boundaries by rule 9 -- and all carry the intro's own `eId`: one piece is
+    boundaries by rule U5 -- and all carry the intro's own `eId`: one piece is
     the unit whole (`piece` 0), several are numbered `1..n` across the whole
     intro, in document order. A table is never part of an `intro` unit: a
     LIGIE chapter's *Nota.* paragraphs are one `intro` unit and its tariff is
@@ -786,7 +786,7 @@ def _toc_units(
     cap: int,
     split_over_cap: bool = True,
 ) -> list[TextUnit]:
-    """Rule 15 (review fix-1 of #291): one `toc` node as `toc` units.
+    """Rule S14 (review fix-1 of #291): one `toc` node as `toc` units.
 
     A table of contents is text, and `coverage()` has to account for it, but it
     is not law: it lists headings the document goes on to write. It is cut like
@@ -881,270 +881,39 @@ def text_units(
     (`md2akn.parse_markdown`'s return), so a caller who parsed for another
     reason does not pay to parse twice.
 
-    The twenty-four rules — seven from issue #218's Fase 1, two added by #227, one
-    by #279, three by #291 and eleven by its review fixes, numbered into the same list rather than
-    replacing any of them:
+    The rules live in `packages/md2akn/RULES.md`, one layered list (issue #304):
+    **W** what the writer's markers promise, **S** the skeleton the markers
+    state, **B** the text rules run inside one API block, **U** the units this
+    function cuts. Those that decide what a unit is:
 
-    1. Frontmatter and reform annotations are metadata, never embedded.
-    2. An article no longer than `cap` (normalized) is one unit, whole. With
-       `split_articles=False`, every article is one unit whatever its
-       length — this rule then applies unconditionally, and rule 3 never
-       fires.
-    3. A longer article splits at its direct children: the chapeau alone,
-       then one piece per remaining child, each prefixed with the chapeau.
-       Never applied when `split_articles=False` (see rule 2).
-    4. A container's epigraph — the text before its first child — is its own
-       `heading` unit.
-    5. Consecutive leaf children of a non-article node are grouped into one
-       `loose` unit each, up to `cap`.
-    6. `preamble` and `conclusions` are one unit each.
-    7. `heading`/`loose` units always carry their ancestor `path` in the
-       embedded text; whether an article carries its own number and the
-       law's name is `template`'s call (`"bare"` or `"contextual"`).
-    8. An instrument that never writes `Artículo N` numbers its provisions
-       some other way, and that is decided once per document, in
-       `md2akn.structure.modo_sin_articulos` — bold ordinals
-       (`**PRIMERO.-**`), or failing those decimal numerals (`1.`, `2.1`),
-       open articles in its body too. Gated on the *document*, so no law and
-       no article-numbered reglamento can change.
-    9. No unit exceeds `cap`: one still over it after rules 2-6 is cut again
-       at **paragraph** boundaries into consecutive pieces, reusing `piece` /
-       `piece_eId` and the same context prefix. A single paragraph longer
-       than `cap` is left whole — never cut mid-sentence — and
-       `max_unit_chars` counts what is left that way. `split_over_cap=False`
-       turns this rule off, which is how a pre-#227 vector set is reproduced
-       byte for byte. Never applied to an article when `split_articles=False`
-       (see rule 2) — an over-cap article is then left whole, counted by
-       `max_unit_chars`' own `articles_over_cap` rather than `over_cap`.
-    10. A roman-numbered article opener (`ARTÍCULO I`, `**ARTÍCULO IV.-**`) is
-       an article — how an international treaty numbers its own articles
-       (issue #279). Unconditional: a roman alternative in
-       `patterns.NUM_ARTICULO`, so the gate of rule 8 sees it too and a
-       roman-numbered treaty is never read as an *acuerdo*.
-    11. A decimal article number is read whole: `Artículo 1.1:` is article
-       `1.1` (eId `art_1.1`), not article `1`. How the T-MEC and six other
-       treaties number their articles (issue #291). Unconditional, and only
-       after the article word.
-    12. A container's introductory text -- every block between its heading
-       (epigraph included) and its first child container or article -- is
-       that container's `intro` node and a `intro` unit, not a `loose` one:
-       the *Notas.* of a LIGIE section or chapter (issue #291). Capped and cut
-       like `loose`, carrying the same ancestor `path`; text before any
-       container keeps its `preamble`/`loose` treatment.
-    13. Consecutive table rows (blocks opening and closing with `|`, as
-       `scjn.api` writes them since #253) are one `table` node, and a table
-       that is not inside an article yields `table` units cut at row
-       boundaries up to `cap`, each piece after the first prefixed with the
-       table's first row -- its column header. A table inside an article is
-       part of that article's own text. A table is never part of an `intro`
-       unit.
-    14. An article's number is read whole (review fix-1 of #291): `1o.-A BIS`,
-       `3o.- Bis`, `228 a`, `228 a BIS`, `Artículo 5 Bis 1` are each their own
-       number, not the base article's again. Unconditional, a widening of
-       `patterns.NUM_ARTICULO`; `scjn.api`'s writer bolds the same shapes.
-    15. A table of contents -- a run of short blocks after a marker (`Índice`,
-       `Contenido`) that the document then repeats as its own headings -- is
-       one `toc` node and `toc` units, never containers or articles. A marker
-       with no repeat after it is left alone.
-    16. `PARTE` is a container above the books and titles, and
-       `ANEXO`/`APÉNDICE` an `attachment` closing a container of its own: the
-       chapter `1.1` of Part 1 is not the chapter `1.1` of Part 2, and an
-       annex is its own text.
-    17. Recitals are not provisions: under `CONSIDERANDO`, numbered paragraphs
-       stay in the preamble, in an instrument whose provisions are numbered
-       the same way (rule 8); they end at a container, at the heading that
-       opens what is ordered, at transitorios or when their numbering starts
-       over. A `D.O.F.`-headed decree quoted in the text opens its own
-       transitorios instead of continuing the host's.
-    18. In rule 8's numeral mode a whole numeral that starts over (`1.` after
-       `3.`), or carries on a list that did, is a list item of the provision
-       above, not a further article. A dotted numeral (`2.1`) always opens one.
-    19. (review fix-2 of #291, again after the fact.) A snapshot written by
-       `scjn.api` since that fix carries the outline the SCJN's API states, one
-       `<!-- scjn:block ... -->` marker line before each block (`kind`:
-       header, recitals, preamble, toc, transitorios, decree, container,
-       article, provision, other). The markers are metadata, like rule 1's
-       frontmatter: never embedded, counted as annotation by `coverage()`.
-       Where one is present it decides the class of the block's heading (a
-       container with its type and number, an article with its number, the
-       index as a `toc`) and the text heuristics are used only inside a
-       block. A document with no marker is read exactly as before.
-    20. A reform decree the API marks (`kind=decree`, `D.O.F.` plus a date)
-       holds everything after it -- its own transitorios, an `ANEXO ÚNICO`
-       reprinting the instrument -- as one section, so none of it is the host
-       instrument's again.
-    21. A container found in the *text* of a container's block nests below
-       that container instead of beside it (`AknNode`'s floor): the `PARTE 1`
-       an annex's block contains is inside that annex.
-    22. An identifier is never silently reused: a second claimant of an eId
-       takes a `_2` suffix and `AknNode.repeated` is true for **both**
-       claimants, which is what the Instruments page's *repeated number* flag
-       counts. A number that restarts inside another container is a
-       different identifier and no repeat.
-    23. A block the API marks `other` (or a second `preamble`) that holds
-       articles in its own text, or is followed by article blocks, opens an
-       implicit `section` until the next non-article marker: a code's
-       `1 ÁMBITO` whose articles are `1.1`, `1.2`.
-    24. Inside a block the API marks `article`, `header`, `preamble` or
-       `recitals`, no line opens structure: an amendment article quoting
-       `ARTÍCULO 5.-` is that article's own text. An article's identity is
-       the number of its text when it equals or extends the API's label, the
-       label when it extends the text's, else the one consistent with the
-       API's own `numero`.
-    25. An annex the API numbers after a chapter (`numero` 2, `num` `2-A`:
-       the `N-` prefix is the fallback) is a child of the innermost open
-       container carrying that number -- `cap_2__att_2-A` -- and the next
-       container of the chapter's level or higher closes it, so a chapter is
-       never inside an annex. An annex with no owner stays at the top. Its
-       title is the text of its own label (`ANEXO 2-A:` is not annex `2`
-       titled `A`).
-    26. An appendix is an `attachment` whose `refersTo` is `#apendice` and
-       whose eId prefix is `app` (`app_1`), never `att`. One the API marks
-       with no owner nests in the annex that is open, after that annex's
-       chapters, or else in the instrument.
-    27. A bare `**APÉNDICE**` heading, with no number, directly under the
-       unnumbered appendix it repeats is that appendix's own running page
-       header (the T-MEC's tariff appendix of annex 2-C, over seven pages), not
-       a further appendix.
-    28. A block the API marks `other` that opens an implicit section (rule
-       23) is a text of its own -- an amending `RESOLUCIÓN MSC.411(97)` --
-       and hangs from the body whatever was open: never inside the appendix,
-       annex or chapter before it.
-    29. Every block the API marks `other` is a container of its own: an
-       `hcontainer` whose `num` is its label and whose eId is derived from it
-       (`hc_NOTA_EXPLICATIVA`). An explicit role table (`md2akn.outline.
-       ROLES_DE_ETIQUETA`) gives some a `refersTo`: `PARTE FINAL ...` is
-       `#conclusions`, `NOTA EXPLICATIVA` and `NOTAS` are `#note`, the steps of
-       the Mexican promulgation decree (`FIRMA`, `APROBACIÓN`, `RESERVA(S)`,
-       `RATIFICACIÓN Y DEPÓSITO`, `PROMULGACIÓN`, `CERTIFICACIÓN`,
-       `DECLARACIÓN ...`) are kept together under one `#promulgation`
-       container, and `RESOLUCIÓN ...` is the amending-resolution container of
-       rule 28. A label that only *starts* with one of those words
-       (`RESERVAS AL REGLAMENTO DE RADIOCOMUNICACIONES`) has no role. What the
-       block holds before its first article is its `intro` (rule 12). An API
-       `provision` block (`PRIMERO.-` of an acuerdo) is an article.
-    30. A block the API split in two -- a title (`ARTÍCULOS`) and a second
-       block labelled `CONTENIDO ARTICULOS` -- is one container.
-    31. A numbering that starts over *inside* one block opens a division
-       (`hcontainer`, `refersTo="#division"`; `#form` for a model certificate),
-       so an identifier is the same article or it is not repeated: the
-       `MODELO DE CERTIFICADO ...` of an appendix and the `SE CERTIFICA`
-       placeholder of the certificates that print no title, a heading such as
-       `A.II - VENTANAS` or `Artículos que se refieren al Comité Ejecutivo`.
-       The boxes of a form are not articles, a numeral followed by a lower-case
-       word (`1.1. cuando ...`) is a value and not an opener, and a numeral
-       equal to the number of the article just above is that article's
-       paragraph. A division needs a heading to open at: with none the repeat
-       stays, flagged on both claimants, and nothing is merged or renumbered.
-    32. The article-number grammar of the marker path reads `S5.43`/`5.43A`
-       (a radio-regulations provision, under its `ARTÍCULO S5` section and
-       `APÉNDICE S30` appendix), `Artículo Primero.-` with a mixed-case ordinal
-       inside transitorios, and the caption line the SCJN prints *before* an
-       article's heading (`Objeto`) as the start of that article.
-    33. An API block is the root of its hierarchy (review fix-5 of #291).
-       Every `RESOLUCIÓN ...` block is a `section`, whether or not its own text
-       has articles (it used to be an `hcontainer` when it had none). The
-       headings a block's text prints keep their order among themselves: an
-       `ANEXO` holds the chapters printed after it, a chapter its parts
-       (`PARTE A`, `B`, ...: the next chapter's `PARTE A` is its own, never
-       `part_A_2`), a bare `APÉNDICE` after the annex of the same block is
-       inside it, and the next marker closes the whole stack the block opened.
-       The one annex that leaves its block is the one with no container or
-       article after its heading in the block's text: the structure of the
-       code a resolution amends, or of the instrument an `ANEXO ÚNICO`
-       approves, is what the API serves in the blocks that follow, and they
-       belong to that annex.
-    34. An API block is the root of *all* its text (review fix-6 of #291).
-       What a block's text holds hangs from the container the block opened,
-       whatever transitorios section is open around it (the text of an `other`
-       block after a reform decree used to hang from the decree: the block's
-       container held only its heading line); an index belongs to the API block
-       it starts in and ends at the next marker, never swallowing the heading
-       the next block opens with; the lines between a marker and the heading it
-       opens a container with (`[...]` before `Transitorios`, an institution's
-       name above `SEGUNDA PARTE`) are that heading's; and the text a
-       container (or the body) holds after its index, or after a captioned
-       table, is its `intro` too. `md2akn.validate._block_escapes` checks it.
-    35. A container with nothing under it -- an annex, a part, a chapter whose
-       text is only its heading line -- is a `heading` unit, never `loose`.
-    36. A table's caption belongs to it: one or two bold-led lines
-       (`**A.** Tarifa para ...`, `**TARIFA**`) straight before its rows are the
-       first lines of the `table` node (its `heading` is the first one), and the
-       plain paragraphs right after the rows are its notes, up to the next
-       caption. A table inside an article stays article text.
-    37. `**Artículo 8o. **fracción II primer párrafo: $179,017.26`, a line that
-       names an article and goes on in lower case, is a reference, not an
-       article opener, unless the API says the block is an article.
-    38. An API `article` block whose text is only its heading and a caption,
-       followed by `provision` blocks, opens a section of those provisions
-       (the numbered provisions of a regulation run on across its headed
-       articles): when a document does it three times or more.
-    39. A numbered provision the API could not classify because the source
-       misprints its number (`kind=other`, label `98 (SIC)`) is an article.
-    40. A bare `CONTENIDO` block (`kind=other`, no label after the word) that follows a
-       block holding only its own title -- `ANEXO` and `CONTENIDO`, `PROTOCOLO`
-       and `CONTENIDO` -- is that block's content, as rule 30 reads `ARTÍCULOS` and
-       `CONTENIDO ARTICULOS` (issue #300). One that follows a block with text of
-       its own (an index after a `CONSIDERANDO`) is read by the other rules.
-    41. A heading line that is only `Art. 8`, straight before the block `**ARTICULO 8**`
-       with the same number, is a running head and not an article (the Radio
-       Regulations a treaty reprints); and an article number may end with a capital
-       letter that closes the line (`Artículo 11 A`, issue #300).
-    42. On a snapshot with outline markers `preamble` is exactly the title block
-       (`kind=header`) and `conclusions` never crosses an API block (review fix-1
-       of #301, found after the fact: both used to be built from text heuristics
-       that ignored the blocks, and the validator exempted them). A recitals or
-       preamble block that follows the title block (`CONSIDERANDO`, a treaty's own
-       `PREÁMBULO`) is a labelled container of its own, an index the SCJN labels is
-       an API block whose marker ends the block before it, and a dated closing line
-       (`Lima, a los ... Rúbricas.`) followed by another API block leaves no
-       `conclusions` node: that block and the ones after it keep their own nodes by
-       their own role.
-    43. Whether a promulgation-decree block is the *envelope* (`TextUnit.envelope`) is
-       read from its position (`md2akn.outline.bloques_de_decreto`): a run of decree
-       blocks right after the title block, or at the end of the document, made of blocks
-       labelled as a step of the decree (`es_etiqueta_de_decreto`) and of the blocks it
-       interleaves between two steps (`CANJE DE NOTAS`, `NOTIFICACIÓN`, its own
-       `TRANSITORIO`, a bare `CONTENIDO` after a step). A decree-step label inside the
-       instrument's own text (a treaty's testimonium `FIRMA`) is not envelope and is
-       not part of the `DECRETO PROMULGATORIO` group; a `PARTE FINAL DEL DECRETO
-       PROMULGATORIO` is envelope wherever it stands. Read from markers and positions,
-       never from an instrument or an eId.
-    44. The outline governs first (review fix-2 of #300 and #301, found after the fact:
-       the text rules used to overrule the SCJN's own markers). A block labelled
-       `other` is an `hcontainer` named by its label, never a `section` because
-       articles follow it (rule 23's implicit section: `SECCIÓN` is what the SCJN says
-       when it says a section, `type=section`), and holds the article blocks that follow
-       it; and when the block opens with a line that is only its own label
-       (`**DISPOSICIONES PRELIMINARES**`, `**III. CONSIDERANDOS**`, `Finalidad.`,
-       compared without case, accents, bold, `:` or `.`, a leading numeral allowed)
-       that line is the **heading** of the node -- a `heading` unit, neither source nor
-       candidate -- never an `intro` unit that is only a title. The `(NOTA: ...)` and
-       `(REFORMADO, ...)` lines printed above it describe that heading.
-    45. A part the SCJN labels (`type=part`) whose very next marker opens a book, a
-       title or a chapter holds it and ranks just above that type (the Código Civil
-       Federal's `PRIMERA PARTE` holds its titles inside the fourth book; a treaty's
-       `SEGUNDA PARTE` holds the chapters VIII to XIII, closing the chapter open before
-       it); a part is a sibling of the part before it. Any other part keeps the
-       document-wide reading (SOLAS: `Parte A` inside `Capítulo II-2`).
-    46. An annotation read after the last text of an API block and before the next
-       marker (`(DEROGADO SEGUNDO PÁRRAFO, ...)` after an article's last paragraph)
-       belongs to that block. It used to wait for "the next node", whose span then began
-       before its own marker.
-    47. A block the API labels `provision` is one text, like an `article` block (rule
-       24): a line inside it that reads like an annex or a chapter heading (the IMDG
-       Code's `1.1.2 Convenios`, which lists SOLAS and MARPOL with their own `Capítulo`
-       and `Anexo` lines) opens nothing.
-    Invariant I5 (`md2akn.validate.block_conformance`): for every API block the node it
-    opened is typed as its marker says (`kind`/`type`), numbered as its `num`, has the
-    block's own label line as its heading, has no leaf reaching into the next block and
-    hangs from the container the markers' order implies. The disagreements the parser
-    takes on purpose have a `documented-` class (`CLASES_DOCUMENTADAS`): the label of a
-    block disagreeing with its own `numero` or repeating an earlier label (rule 19),
-    the LIGIE's tariff chapters served as `ARTÍCULO N`, rule 38's heading-only article
-    blocks and a closing signature the API labels `transitorios`.
-    Rules 25 to 47 apply to a document with outline markers; one without
-    them is read, and its eIds written, as before.
+    - U1. Frontmatter, reform annotations and marker lines are metadata, never
+      embedded.
+    - U2. An article no longer than `cap` (normalized) is one unit, whole; a
+      longer one splits at its direct children (the chapeau alone, then one
+      piece per remaining child, each prefixed with the chapeau). With
+      `split_articles=False` every article is one unit whatever its length and
+      the split never fires.
+    - U3. A container's epigraph is its own `heading` unit, consecutive leaf
+      children of a non-article node group into `loose` units up to `cap`, and
+      `preamble`, `conclusions`, `intro`, `table` and `toc` nodes yield units of
+      their own type (B6, B7, S14).
+    - U4. `heading`/`loose` units always carry their ancestor `path` in the
+      embedded text; whether an article carries its own number and the law's
+      name is `template`'s call (`"bare"` or `"contextual"`).
+    - U5. No unit exceeds `cap`: one still over it is cut again at **paragraph**
+      boundaries into consecutive pieces (`piece`/`piece_eId`, same context
+      prefix); a single paragraph longer than `cap` is left whole and counted by
+      `max_unit_chars`. `split_over_cap=False` turns this off, which is how a
+      pre-#227 vector set is reproduced byte for byte; it is never applied to an
+      article when `split_articles=False`.
+    - U6. A container with nothing under it is a `heading` unit, never `loose`.
+    - U7. A unit that starts inside the title block or the promulgation decree's
+      steps is `envelope` (`TextUnit.envelope`), read from markers and positions.
+
+    How the tree those units are cut from is built (S, B) is `md2akn.skeleton`
+    and `md2akn.structure`; invariant I5 (`md2akn.validate.block_conformance`)
+    and its `documented-` classes (`CLASES_DOCUMENTADAS`) are in `RULES.md` too.
+    A document with no outline markers is read, and its eIds written, as before.
 
     >>> import md2akn
     >>> text = (
@@ -1155,7 +924,7 @@ def text_units(
     >>> [(u.unit_type, u.text) for u in units]
     [('heading', '**CAPITULO I** **Del objeto**'), ('article', '**Artículo 1o.** Esta ley regula el objeto.')]
 
-    Rule 9, on a document with one over-cap unit and three paragraphs to cut
+    U5, on a document with one over-cap unit and three paragraphs to cut
     it at:
 
     >>> acuerdo = "\\n\\n".join(["Párrafo de %d." % n for n in range(1, 4)])
@@ -1305,11 +1074,11 @@ def max_unit_chars(
     tree: AknNode, units: list[TextUnit], *, cap: int = DEFAULT_SPLIT_CAP, split_articles: bool = True
 ) -> CapReport:
     """The cap invariant, as data: how many of `units` are longer than `cap`,
-    and how many of those rule 9 could still have cut.
+    and how many of those rule U5 could still have cut.
 
     `coverage()`'s sibling (issue #227). A corpus built with `split_over_cap`
     on has `splittable == 0`; whatever is left in `unsplittable` is a unit
-    rule 9 has nothing left to cut — see `CapReport`.
+    rule U5 has nothing left to cut — see `CapReport`.
 
     Counted against the *embedded* text — a `heading`/`loose` unit's ancestor
     path, an article piece's chapeau and an article's `contextual` prefix are
@@ -1317,10 +1086,10 @@ def max_unit_chars(
     measured on. "Could still have been cut" is counted against the unit's
     own span instead, and only its paragraphs that carry text: a paragraph
     that is nothing but a reform annotation is stripped from the embedded
-    text (rule 1), so cutting there would produce an empty unit.
+    text (rule U1), so cutting there would produce an empty unit.
 
     `split_articles` must match the flag `units` was built with (issue #256):
-    when it is `False`, an over-cap `article` unit was never offered to rule 9
+    when it is `False`, an over-cap `article` unit was never offered to rule U5
     at all, so it is counted in `articles_over_cap` instead of `over_cap` —
     `splittable == 0` stays the invariant either way.
 
@@ -1349,7 +1118,7 @@ def max_unit_chars(
             for start, end in _paragraph_spans(doc_text, unit.start_char, unit.end_char)
             if normalize(_strip_ranges(doc_text, start, end, ann_ranges))
         ]
-        # Rule 9's own decision, restated rather than re-derived: the greedy
+        # Rule U5's own decision, restated rather than re-derived: the greedy
         # packer emits more than one piece exactly when the span has two or
         # more paragraphs that carry text. A piece whose chapeau prefix alone
         # is over the cap therefore lands here as unsplittable, since its own

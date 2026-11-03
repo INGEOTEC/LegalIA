@@ -13,10 +13,85 @@ inside `packages/`.
 
 **This has been run, end to end, against the real cluster and both real
 models** — six model × corpus runs (issue #227's Fase 3; the leyes half was
-first run for #218 and rebuilt here under rules 8 and 9). What is *not*
+first run for #218). What is *not*
 automated is the publish: no GitHub Action creates or uploads a release
 here, and a human runs the `PUBLICAR.md` the packaging step generates (issue
 #115, Hallazgo C).
+
+> **Rule numbers.** The dated *Measured* sections below quote `md2akn`'s rules by the number they had
+> the day they were written (1 to 47, in the order they were found). Issue #304 renumbered them into a
+> layered list (W, S, B, U); `packages/md2akn/RULES.md` is that list and `docs/HISTORY.md` carries the
+> old-to-new table. A *Measured* section is never edited afterwards: it says what was true on its date.
+
+## As it stands
+
+What this directory does today, in one place (the sections below are the manual and the record of
+each run).
+
+- **Four collections**, one gitignored work directory each (`emb-run-<collection>[-NNN]/`; a numbered
+  copy per rebuild, a published one is never touched), both models (`Qwen/Qwen3-Embedding-0.6B`, K 1,024;
+  `Qwen/Qwen3-Embedding-4B`, K 2,560), whole articles as units (`--no-split-articles`, truncated at the
+  model's window, never split) and `md2akn` 0.5.1. Release bodies: `.github/scjn-<collection>-vectors*.md`.
+- **The chain**: `build_units.py` → `plan_shards.py` → `submit_jobs.py` (one model at a time) →
+  `merge_shards.py` → `package_vectors.py` (writes `PUBLICAR.md`, uploads nothing) →
+  `compare_merges.py` against the published merge → `stage_vectors_cache.py` (a `legalvec`-shaped cache
+  of what is not published yet) → the Atlas work directories (`prepare_umap_input.py --unique-names`,
+  `prepare_bm25_input.py`, `instrument_matrix.py`, `nearest_texts.py`) → `export_atlas_data.py`,
+  `export_atlas_pairs.py`, `export_instrument_files.py` → `gold_links.py`, `evaluate_links.py`,
+  `evaluate_citations.py` → `cluster_instruments.py`, `export_topics_page.py`.
+- **What the matrix compares**: `instrument_matrix.searched_mask` — no heading, `toc`, transitorio or
+  envelope unit is a source or a candidate; a text several instruments own word for word is not counted;
+  a tied winner is shared `1/m`.
+- **The data as of 28 October 2026** (`atlas.json`): 2,670 unique instruments (314 laws, 864 regulations,
+  125 guidelines, 1,367 treaties), 227,132 excerpts, 156,432 counted; three data sets (0.6B, 4B, BM25);
+  gold of 253 instruments and 277 links.
+- **Nothing here is published by a script** (issue #115, Hallazgo C): a human runs each `PUBLICAR.md`,
+  and the order is the four corpora, the four vectors releases, the three `atlas-pairs` sets and
+  `atlas-instruments`.
+
+## Tests
+
+```bash
+uv run pytest scripts/embeddings/tests scripts/tests -q
+```
+
+The browser and Quarto tests (`test_atlas_page.py`, `test_instruments_page.py`, `test_topics_page.py`)
+skip with a reason when Playwright's Chromium or Quarto is absent, and the tests that read the
+gitignored pair sets or instrument files skip when those are not installed; nothing here needs the
+network, Slurm or a model. Helpers used by several files (`quiet`, `write_units`) are in
+`tests/conftest.py`, imported with `from conftest import ...`; the toy-corpus fixtures (`cache`,
+`prepared`, ...) still live in `test_instrument_matrix.py` and are imported by the other files.
+
+| File | What it covers |
+|---|---|
+| `test_atlas_page.py` | the Atlas page, in a real browser |
+| `test_cluster_instruments.py` | the topics of the instrument map |
+| `test_compare_merges.py`, `test_compare_units.py`, `test_stage_vectors_cache.py` | the incremental re-embedding checks and the staged cache |
+| `test_embeddings_scripts.py` | the pure-Python logic of the embedding pipeline |
+| `test_envelope_exclusion.py` | an instrument's envelope is neither a source nor a candidate |
+| `test_evaluate_citations.py`, `test_evaluate_links.py`, `test_gold_links.py` | the strong-link gold and the evaluations |
+| `test_export_atlas_data.py`, `test_export_atlas_pairs.py` | the Atlas data and its pair explanations |
+| `test_export_instrument_files.py`, `test_instruments_page.py` | the Instruments page's files and the page |
+| `test_four_collections.py` | the Atlas chain over four collections |
+| `test_instrument_matrix.py`, `test_nearest_texts.py`, `test_scoring.py` | the matrix, the nearest texts and the scorers |
+| `test_prepare_bm25_input.py`, `test_tune_bm25.py` | the BM25 data set |
+| `test_submit_jobs.py`, `test_umap_scripts.py` | the Slurm waits and the UMAP scripts |
+| `test_topics_page.py` | the Topics page and its exporter |
+| `test_unique_instruments.py` | the unique-instrument rule |
+| `scripts/tests/` | `find_scjn_table_instruments.py`, `verify_scjn_outline.py` and `test_inventory.py` |
+
+To find tests that repeat each other across every suite of the repository (same input and
+assertions, a subset, a parametrisable group, a helper defined in two files), run the read-only
+inventory, which parses the tests without importing them:
+
+```bash
+python scripts/test_inventory.py                    # every suite
+python scripts/test_inventory.py --suite md2akn     # one suite
+python scripts/test_inventory.py --json inventory.json
+```
+
+After merging or deleting tests, compare line coverage per file by the *set* of covered lines
+(`pytest --cov=scripts --cov-report=json`): a line covered before and not after is a lost test.
 
 ## One work directory per collection
 
@@ -66,7 +141,7 @@ work/
 nota2md download all
 
 # 1. The corpus, as two Parquet files + a manifest. Once per collection:
-#    --no-split-articles (issue #256) turns rules 3/9 off for articles: one
+#    --no-split-articles (issue #256) turns rules U2/U5 off for articles: one
 #    article is one unit whatever its length, truncated at the model's own
 #    window rather than split. Omit it to keep the default, cap-2000 shape
 #    that reproduces a pre-#256 vector set byte for byte.
@@ -255,7 +330,7 @@ dependency on `torch`/`transformers` being importable at all.
   `units.parquet`'s own `text_sha1 -> clave` map.
 - `units.parquet` is byte-reproducible from the same release, cap and
   template — the row order is `(coleccion, clave, document order)`. Rebuilding
-  the 315 laws under issue #227's rule 8 with rule 9 off
+  the 315 laws under issue #227's rule B3 (then 8) with rule U5 (then 9) off
   (`--no-split-over-cap`) reproduced the pre-#227 file exactly, one byte
   apart: the pyarrow writer version in the Parquet footer.
 - Every artifact is written as `<name>.parcial`, `fsync`'d, then renamed —
@@ -1714,7 +1789,7 @@ uv run --group viz python scripts/embeddings/export_instrument_files.py --work-d
   parsed again (`md2akn.parse_markdown`, `text_units(split_articles=False)`) and
   the result must equal the released rows — `(unit_type, eId, piece, text_sha1,
   start_char, end_char)` in order — or the run is a `SystemExit` naming the
-  instrument and the first differing position. There is no `--allow-mismatch`:
+  instrument and the first differing position. No flag lets a mismatch pass:
   issue #279 proved the re-parse reproduces the units, so a difference is a
   finding to report, not noise to skip.
 - **`files/<coleccion>/<clave>.json`**, short keys, the text stored once. `meta`:
@@ -2841,7 +2916,7 @@ only: the cited *article* is not resolved (renumbering, `Bis` articles and range
 are a project of their own).
 
 **Scoring** (`evaluate_citations.py` -- a script of its own rather than
-`evaluate_links.py --level row`, which would have had to carry a scorer, a mask and
+a row level of `evaluate_links.py`, which would have had to carry a scorer, a mask and
 a row join the instrument level never needs; it imports that script's bootstrap,
 McNemar test and instrument check). For each model's work directory: its own
 scorer (`scoring.scorer_for`: the exact cosine or BM25), the unit-row join, and

@@ -1,7 +1,4 @@
 import datetime as dt
-import io
-import json
-import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,19 +19,7 @@ from dofjson.api import (
     get_nota,
     get_notas,
 )
-
-
-def hacer_tgz(archivos: dict) -> bytes:
-    """Build an in-memory notas-YYYY[-MM].tgz from {member_name: dict_contenido}
-    -- same shape tests/test_titulos.py's own helper builds."""
-    buf = io.BytesIO()
-    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
-        for nombre, contenido in archivos.items():
-            data = json.dumps(contenido).encode("utf-8")
-            info = tarfile.TarInfo(name=nombre)
-            info.size = len(data)
-            tar.addfile(info, io.BytesIO(data))
-    return buf.getvalue()
+from .conftest import make_tgz
 
 
 def _write_pdf(path, n_pages):
@@ -309,7 +294,7 @@ class TestGetNotasCacheDir(unittest.TestCase):
         self.tmpdir.cleanup()
 
     def _cachear(self, notas_del_dia):
-        contenido = hacer_tgz({"1980/02011980-notas.json": notas_del_dia})
+        contenido = make_tgz({"1980/02011980-notas.json": notas_del_dia})
         (self.cache_dir / "notas-1980.tgz").write_bytes(contenido)
 
     @patch("dofjson.api.dofweb.get_notas")
@@ -555,36 +540,13 @@ class TestResolverNotaGuardsAgainstDofwebOnlyNotes(unittest.TestCase):
 
     @patch("dofjson.api.dofweb.get_nota")
     @patch("dofjson.api.sidof.get_nota")
-    def test_download_nota_imagenes_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
-        self._mock_dofweb_only_nota(mock_sidof, mock_web)
+    def test_every_download_function_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
+        for download in (download_nota_imagenes, download_nota_pdf, download_nota_imagen_o_pdf, download_nota):
+            with self.subTest(download=download.__name__):
+                self._mock_dofweb_only_nota(mock_sidof, mock_web)
 
-        with self.assertRaises(ValueError):
-            download_nota_imagenes(4997808, self.outdir)
-
-    @patch("dofjson.api.dofweb.get_nota")
-    @patch("dofjson.api.sidof.get_nota")
-    def test_download_nota_pdf_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
-        self._mock_dofweb_only_nota(mock_sidof, mock_web)
-
-        with self.assertRaises(ValueError):
-            download_nota_pdf(4997808, self.outdir)
-
-    @patch("dofjson.api.dofweb.get_nota")
-    @patch("dofjson.api.sidof.get_nota")
-    def test_download_nota_imagen_o_pdf_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
-        self._mock_dofweb_only_nota(mock_sidof, mock_web)
-
-        with self.assertRaises(ValueError):
-            download_nota_imagen_o_pdf(4997808, self.outdir)
-
-    @patch("dofjson.api.dofweb.get_nota")
-    @patch("dofjson.api.sidof.get_nota")
-    def test_download_nota_rejects_a_dofweb_only_nota(self, mock_sidof, mock_web):
-        self._mock_dofweb_only_nota(mock_sidof, mock_web)
-
-        with self.assertRaises(ValueError):
-            download_nota(4997808, self.outdir)
-
+                with self.assertRaises(ValueError):
+                    download(4997808, self.outdir)
 
 class TestDownloadNota(unittest.TestCase):
     def setUp(self):

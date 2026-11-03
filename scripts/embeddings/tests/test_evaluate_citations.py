@@ -28,10 +28,7 @@ import scoring  # noqa: E402
 from test_instrument_matrix import (COLLECTIONS, UNITS, VECTORS, cache, computed,  # noqa: E402,F401
                                     index_of, prepared)
 from test_prepare_bm25_input import bm25_dir  # noqa: E402,F401
-
-
-def quiet(*args):
-    pass
+from conftest import quiet
 
 
 # -- the rank, by hand ------------------------------------------------------------ #

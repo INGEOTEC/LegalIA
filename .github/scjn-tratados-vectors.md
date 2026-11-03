@@ -20,7 +20,7 @@ unidades = legalvec.load_units("tratados")
 clave que la SCJN garantiza estable.
 
 **Los artículos romanos son artículos.** Un tratado numera sus artículos
-`ARTÍCULO I`, `ARTÍCULO II`, …; `md2akn` 0.5.0 (regla 10, issue #279) los lee
+`ARTÍCULO I`, `ARTÍCULO II`, …; `md2akn` 0.5.0 (regla B1 de `packages/md2akn/RULES.md`, issue #279) los lee
 como unidades de artículo, y por eso estos vectores no se pueden construir con
 una versión anterior de `md2akn`.
 
@@ -74,9 +74,7 @@ más largos que la ventana de los dos modelos (de 41 360 a 115 193 tokens).
 | Tamaño | 95 MB | 227 MB |
 
 Corpus: 1 373 tratados, 61 338 unidades, **58 747 textos distintos**,
-`cap` 2 000, plantilla `bare`, `md2akn` 0.5.1 (issue #291: los artículos
-decimales, las introducciones de contenedor y las tablas, y la revisión de los números de artículo repetidos:
-reglas 14 a 18, y la lectura de la estructura que declara la API de la SCJN (revisión fix-2 de #291: marcadores de esquema en el Markdown, reglas 19 a 24, y revisión fix-4 de #291: los bloques `other` de la API, las divisiones donde la numeración reinicia y la numeración del Reglamento de Radiocomunicaciones, reglas 29 a 32, revisión fix-5 de #291: un bloque de la API es la raíz de su jerarquía, regla 33, y revisión fix-6 de #291: cada bloque de la API acota su texto, un encabezado sin contenido es un encabezado, las leyendas y notas de una tabla son de la tabla, un artículo-encabezado abre una sección y `N (SIC)` es un artículo, reglas 34 a 39)). Issue #300 añadió los bloques que la API de la SCJN omitía y la regla 40. Issue #301 añade a `units.parquet` la columna `envelope`, verdadera para la cabecera de la SCJN, el decreto de promulgación y las fórmulas de cierre: es parte del corpus y se vectoriza como cualquier otra unidad, pero el Atlas no la compara. La revisión fix-1 de #301 corrige cómo se lee esa envoltura y el preámbulo: el preámbulo es sólo el bloque de cabecera, las conclusiones nunca cruzan un bloque de la API y el decreto de promulgación se reconoce por su posición (reglas 42 y 43). La revisión fix-2 de #300 y #301 hace que la estructura que declara la API gobierne primero: el texto sólo afina dentro de un bloque y el rótulo de un bloque es su encabezado, no un fragmento comparado (reglas 44 a 47, invariante I5). Los otros 82
+`cap` 2 000, plantilla `bare`, `md2akn` 0.5.1: la estructura que declara la API de la SCJN gobierna primero (un marcador de bloque en el Markdown, `packages/md2akn/RULES.md`) y las reglas de texto sólo afinan dentro de cada bloque. El número de artículo se lee completo (decimal, romano, `Bis`); la introducción de un contenedor y una tabla son nodos propios; el corpus incluye los bloques que la API de la SCJN omitía en versiones anteriores. `units.parquet` lleva la columna `envelope`, verdadera para la cabecera de la SCJN, el decreto de promulgación y las fórmulas de cierre (por su posición): es parte del corpus y se vectoriza como cualquier otra unidad, pero el Atlas no la compara. Los otros 82
 instrumentos del release `scjn-tratados` no aparecen: la SCJN los clasifica
 pero no sirve texto consolidado de ninguno (`snapshots: 0`, issue #222,
 decisión 6).

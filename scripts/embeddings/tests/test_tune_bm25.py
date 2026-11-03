@@ -22,10 +22,7 @@ import scoring  # noqa: E402
 import tune_bm25  # noqa: E402
 from test_instrument_matrix import COLLECTIONS, cache, computed, prepared  # noqa: E402,F401
 from test_prepare_bm25_input import bm25_dir  # noqa: E402,F401
-
-
-def quiet(*args):
-    pass
+from conftest import quiet
 
 
 # -- the grid ---------------------------------------------------------------- #

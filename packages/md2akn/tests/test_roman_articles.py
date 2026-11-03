@@ -1,4 +1,4 @@
-"""Rule 10 (issue #279): a roman-numbered article opener is an article.
+"""Rule B1 (issue #279): a roman-numbered article opener is an article.
 
 International treaties number their own articles `ARTÍCULO I`, `ARTÍCULO II`,
 ... — 6,646 such openers over 489 of the cached `scjn-tratados`. The rule is
@@ -11,18 +11,12 @@ from pathlib import Path
 import pytest
 
 from md2akn import parse_markdown
-from md2akn.patterns import ARTICULO
 from md2akn.segmenter import iter_blocks
 from md2akn.structure import modo_sin_articulos
 from md2akn.units import coverage, text_units
+from .conftest import article_opener
 
 FIXTURE = Path(__file__).parent / "fixtures_units" / "tratado_romano.md"
-
-
-def _num(line: str):
-    # `clasifica` matches against the line with its bold markers removed.
-    m = ARTICULO.match(line.replace("**", ""))
-    return None if m is None else (m.group("num"), m.group("sep").strip())
 
 
 @pytest.mark.parametrize(
@@ -40,7 +34,7 @@ def _num(line: str):
     ],
 )
 def test_roman_opener_shapes_match(line, expected):
-    assert _num(line) == expected
+    assert article_opener(line) == expected
 
 
 @pytest.mark.parametrize(
@@ -54,29 +48,29 @@ def test_roman_opener_shapes_match(line, expected):
     ],
 )
 def test_prose_and_malformed_numerals_do_not_match(line):
-    assert _num(line) is None
+    assert article_opener(line) is None
 
 
 def test_ordinal_word_is_still_an_ordinal_word():
     # `V` + `IGÉSIMO` would be a roman reading; the lookahead forbids it.
     # A bare tens word was never an article number (`ORDINAL_PALABRA` wants a
     # unit after it); it still is not, and it is not `V` either.
-    assert _num("ARTÍCULO VIGÉSIMO") is None
-    assert _num("ARTÍCULO VIGÉSIMO PRIMERO.-") == ("VIGÉSIMO PRIMERO", ".-")
-    assert _num("ARTÍCULO DÉCIMO") == ("DÉCIMO", "")
-    assert _num("ARTÍCULO ÚNICO.-") == ("ÚNICO", ".-")
+    assert article_opener("ARTÍCULO VIGÉSIMO") is None
+    assert article_opener("ARTÍCULO VIGÉSIMO PRIMERO.-") == ("VIGÉSIMO PRIMERO", ".-")
+    assert article_opener("ARTÍCULO DÉCIMO") == ("DÉCIMO", "")
+    assert article_opener("ARTÍCULO ÚNICO.-") == ("ÚNICO", ".-")
 
 
 def test_digit_articles_are_unchanged():
-    assert _num("**ARTICULO 27 Bis.-** Texto") == ("27 Bis", ".-")
-    assert _num("Artículo 5 A las personas") == ("5", "")
+    assert article_opener("**ARTICULO 27 Bis.-** Texto") == ("27 Bis", ".-")
+    assert article_opener("Artículo 5 A las personas") == ("5", "")
 
 
 def test_plural_heading_keeps_its_reading():
     # `ARTICULOS I y II` is read as article `I` — the same reading the digit
     # form `ARTICULOS 1 y 2` has always had. Pinned, not designed (#279).
-    assert _num("ARTICULOS I y II") == ("I", "")
-    assert _num("ARTICULOS 1 y 2") == ("1", "")
+    assert article_opener("ARTICULOS I y II") == ("I", "")
+    assert article_opener("ARTICULOS 1 y 2") == ("1", "")
 
 
 def test_treaty_yields_one_article_unit_per_roman_article():
@@ -91,7 +85,7 @@ def test_treaty_yields_one_article_unit_per_roman_article():
 
 def test_paragraphs_stay_inside_their_roman_article():
     text = FIXTURE.read_text(encoding="utf-8")
-    # rule 8 must not fire: the gate now sees articles.
+    # rule B3 must not fire: the gate now sees articles.
     assert modo_sin_articulos(list(iter_blocks(text))) is None
     article_iii = next(
         u for u in text_units(text, split_articles=False) if u.eId == "art_III"
@@ -118,7 +112,7 @@ def test_roman_and_arabic_eids_never_collide():
 
 
 def test_numeral_paragraphs_of_a_roman_treaty_are_not_articles():
-    # Before rule 10 this document had no article, so rule 8 read every
+    # Before rule B1 this document had no article, so rule B3 read every
     # `1.` / `2.` paragraph as its own "article" and lost the roman heading.
     text = (
         "**ARTÍCULO I**\n\n1. Uno.\n\n2. Dos.\n\n3. Tres.\n\n4. Cuatro.\n\n"

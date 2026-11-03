@@ -54,11 +54,11 @@ this package (it remains in git history if it is ever needed again).
 | Artículo N | `article` | |
 | fracción / inciso / subinciso | `paragraph` / `point` / `subpoint` | |
 | TRANSITORIOS | `section` | + `refers_to="#transitorios"` |
-| PARTE | `part` | above books and titles; rule 16 of `text_units` |
-| ANEXO / APÉNDICE | `attachment` | + `refers_to="#anexo"` / `"#apendice"`; rule 16 |
-| a table of contents | `toc` | eId `toc_N`; rule 15 of `text_units` |
-| a container's introductory text (the *Notas.* of a LIGIE chapter) | `intro` | eId `<container>__intro`; rule 12 of `text_units` |
-| consecutive `\| … \|` rows | `table` | eId `<parent>__table_N`; rule 13 of `text_units` |
+| PARTE | `part` | above books and titles; rule B5 |
+| ANEXO / APÉNDICE | `attachment` | + `refers_to="#anexo"` / `"#apendice"`; rule B5 |
+| a table of contents | `toc` | eId `toc_N`; rule S14 |
+| a container's introductory text (the *Notas.* of a LIGIE chapter) | `intro` | eId `<container>__intro`; rule B6 |
+| consecutive `\| … \|` rows | `table` | eId `<parent>__table_N`; rule B7 |
 | a plain paragraph | `content` | numbered 1..n inside its parent (`art_1o__p_2`) |
 | the closing signatures | `conclusions` | |
 
@@ -92,7 +92,7 @@ SCJN corpus, so the variation it covers is the variation that is there:
 laws use none), ordinals (`1o.`, `1°`, `1º`), Latin suffixes in any case and
 joined by a space or a dash (`28 Bis`, `3° bis`, `103-Bis`, `3° Bis 1`),
 letter suffixes (`27-A`, and the CCF's `410 A`), roman numerals
-(`ARTÍCULO IV`, how a treaty numbers its articles — rule 10 of `text_units`),
+(`ARTÍCULO IV`, how a treaty numbers its articles — rule B1),
 two articles under one
 heading (`Art. 30,31.` — kept as one node with `num="30,31"`, since dividing
 the shared text between them is not possible without guessing), and container
@@ -187,10 +187,9 @@ In Akoma Ntoso terms this is the **passive** side of a modification
 but the information is here at the granularity someone would need to emit it.
 The **active** side, a DOF decree saying what *it* changed, is issue #163.
 
-Over the 315 laws of the SCJN corpus this reads **36,836 annotations, of which
-36,835 yield an action and a date or a source**; the one that does not is a
-typo in the source itself (`13 DE AGOSTO **CE** 2009`), and it is kept with
-its `raw` rather than dropped.
+Over the 315 laws of the SCJN corpus (the 2026-10-26 crawl) this reads **37,113
+annotations, of which 165 yield no action**: `scripts/md2akn_sweep.py` counts them, and
+each is kept with its `raw` rather than dropped.
 
 ## Validation
 
@@ -225,23 +224,26 @@ since it is deliberately parsed into `meta` rather than into a node.
 
 `scripts/md2akn_sweep.py` runs the whole thing over the 315 laws and writes a
 report sorted worst-metric-first. It is not a test and does not run in CI: it
-needs data this repository deliberately does not version. The current run:
+needs data this repository deliberately does not version. The release sweep
+(`packages/md2akn/tests/test_units_release_sweep.py`) is the one that asserts
+invariants over every corpus; this one measures `validate`'s own, older ones.
+The run of 2026-11-01, over the newest snapshot of each law:
 
 | | |
 |---|---|
 | laws parsed | 315 / 315, none raising |
-| coverage | **100.00 % median, 99.99 % mean, 99.45 % worst** — all 315 above 99 % |
-| invariant violations | **0**, across every law |
+| coverage | **100.00 % median, 100.00 % mean, 99.89 % worst** — all 315 above 99 % |
+| invariant violations | **18 in 16 laws**, all `overlapping-siblings` (a node whose span starts before the previous sibling's ends; e.g. `lcf`, `lfd`, `cff`, `ladua`, `lan`) |
 | laws with no article recognized | 0 |
-| articles / fracciones / incisos | 53,740 / 65,318 / 7,657 |
-| sibling articles sharing a number | 498 (0.9 %) |
-| annotations, and unparsed ones | 36,838 / **0** |
-| throughput | 533 KB/s; the 1.89 MB worst case (`ligie-2022`) in 6.8 s |
+| articles / fracciones / incisos | 54,169 / 64,784 / 7,736 |
+| sibling articles sharing a number | 42 (0.08 %) |
+| annotations, and ones with no action | 37,113 / 165 |
+| throughput | 256 KB/s; the 1.69 MB worst case (`ligie-2022`) in 8.0 s |
 
-The threshold this was held to, fixed in issue #162 before it closed: **zero
-invariant violations, every law with at least one article, and ≥99 % coverage
-on ≥95 % of the laws.** The measured result clears it — 100 % of the laws are
-above 99 %, not 95 % of them.
+The threshold fixed for this sweep in issue #162 was **zero invariant violations,
+every law with at least one article, and ≥99 % coverage on ≥95 % of the laws.**
+Coverage and articles clear it; the 18 `overlapping-siblings` violations do not,
+and are a finding for the maintainers, not something this README hides.
 
 ## The spaCy layer
 
@@ -340,6 +342,56 @@ name and its own number (`template="contextual"`) or neither
 published vector set, never a code edit — `heading`/`loose` units carry
 their ancestor path either way.
 
+The rules `text_units` and `parse_markdown` follow are one layered list in
+[`RULES.md`](RULES.md) (issue #304): **W** what a snapshot's outline markers
+promise, **S** the skeleton those markers state (read first, by
+`md2akn.skeleton`), **B** the text rules, which run only *inside* one API block,
+and **U** the units. The changelog below, written as each version shipped,
+still quotes the old numbers; the table at the end of `RULES.md` maps each to
+its place in the list.
+
+## Tests
+
+```bash
+pytest packages/md2akn -q --ignore=packages/md2akn/tests/test_units_release_sweep.py
+```
+
+The release sweep is excluded for wall-clock time and the local cache it needs (see Development).
+Helpers shared by the marker-document tests (`walk`, `marker`, `document_of`, `units_of`, ...) are in
+`tests/conftest.py`; the rules the files below name are those of [`RULES.md`](RULES.md).
+
+| File | What it covers |
+|---|---|
+| `test_annexes_appendices.py` | S7: annexes and appendices |
+| `test_annotations.py` | reform annotations as metadata |
+| `test_bare_contenido.py` | S10: a bare `CONTENIDO` block |
+| `test_block_hierarchy.py`, `test_block_root.py` | S4: an API block is the root of its text |
+| `test_decree_position.py`, `test_envelope.py` | S11, U7: preamble, conclusions and the envelope |
+| `test_fixtures.py` | the curated law fixtures |
+| `test_lists.py` | fracciones, incisos and subincisos |
+| `test_marker_conformance.py` | invariant I5 and S8, S12, S13, S2 |
+| `test_model.py` | the tree's own contract |
+| `test_other_blocks.py` | S8, S10, B9, B2: the blocks the API labels `other` |
+| `test_outline_markers.py` | S1, S3-S6: an instrument written with the outline |
+| `test_pipeline.py` | the spaCy layer and the entry points |
+| `test_repeated_numbers.py`, `test_roman_articles.py`, `test_tables_intros.py` | B1, B4-B7, S14: article numbers, recitals, tables, intros |
+| `test_segmenter.py` | frontmatter and the block scan |
+| `test_skeleton.py` | the two phases: the skeleton alone, the named deviations, the interior bound |
+| `test_structure.py` | containers, articles, preamble, transitorios |
+| `test_units.py` | `text_units`, `coverage`, `max_unit_chars` |
+| `test_units_release_sweep.py` | the invariants over the whole cached corpus (excluded above) |
+
+Shared helpers live in `tests/conftest.py`, one definition each. To find a test that repeats another
+(same input and assertions, a subset, a parametrisable group, a helper defined in two files) run the
+read-only inventory, which parses the tests without importing them:
+
+```bash
+python scripts/test_inventory.py --suite md2akn
+```
+
+After merging or deleting tests, compare line coverage per file by the *set* of covered lines
+(`pytest --cov=md2akn --cov-report=json`): a line covered before and not after is a lost test.
+
 ## Development
 
 ```bash
@@ -352,6 +404,8 @@ over the whole cached SCJN corpus — `scjn-leyes`, `scjn-reglamentos`,
 every machine has — rather than over a handful of fixtures; see its own module docstring.
 
 ## Changelog
+
+Rule numbers below are those of the day each entry was written; `packages/md2akn/RULES.md` (issue #304) maps every old number to the present layered list (W, S, B, U).
 
 - **0.5.1** — three parse errors fixed, bug fixes only (issue #291), as
   **rules 11, 12 and 13** of `text_units`. All three are unconditional.

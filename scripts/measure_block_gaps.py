@@ -50,6 +50,19 @@ def missing_orden(markdown: str) -> list[int]:
     return sorted(set(range(1, max(ordenes) + 1)) - ordenes)
 
 
+def served_orden(rows: list[dict]) -> set[int]:
+    """The `orden` values of the rows of one raw API answer."""
+    return {row["orden"] for row in rows if row.get("orden") is not None}
+
+
+def is_explained(missing: list[int], served: set[int] | None) -> bool:
+    """A gap is *explained* when the raw answer kept for the snapshot holds
+    every missing `orden`: the API served the block and it wrote no text (an
+    editorial `N. DE E.` aside), so there is no marker for it. With no raw
+    answer (`served` is None) nothing can be explained."""
+    return served is not None and set(missing) <= served
+
+
 def ledger_status(base: Path, name: str) -> dict[str, dict]:
     """The last ledger row of every key, over the plain ledger and its ``--part`` ones."""
     rows: dict[str, dict] = {}
@@ -67,7 +80,7 @@ def raw_orden(raw_dir: Path, collection: str, key: str, snapshot: str) -> set[in
     if not path.exists():
         return None
     with gzip.open(path, "rt", encoding="utf-8") as f:
-        return {row["orden"] for row in json.load(f) if row.get("orden") is not None}
+        return served_orden(json.load(f))
 
 
 def measure(outdir: Path, collection: str, ledger_name: str, raw_dir: Path) -> dict:
@@ -85,7 +98,7 @@ def measure(outdir: Path, collection: str, ledger_name: str, raw_dir: Path) -> d
             faltan = missing_orden(path.read_text(encoding="utf-8"))
             if faltan:
                 served = raw_orden(raw_dir, collection, directory.name, path.name)
-                if served is not None and set(faltan) <= served:
+                if is_explained(faltan, served):
                     explained[(directory.name, path.name)] = faltan
                     continue
                 gaps[path.name] = faltan

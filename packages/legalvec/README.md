@@ -49,6 +49,29 @@ evaluation has not been run, so nothing has earned the right to drop either
 — and putting both in one file per instrument would make whoever wants the
 0.6B download the 4B's 2,560 floats to throw them away.
 
+## Tests
+
+```bash
+pytest packages/legalvec
+```
+
+| File | What it covers |
+|---|---|
+| `test_boundary.py` | the package imports nothing else of this monorepo |
+| `test_cli.py` | `legalvec download` and `legalvec status`, network patched out |
+| `test_release.py` | the readers against a synthetic on-disk release |
+
+Shared helpers live in `tests/conftest.py`, one definition each. To find a test that repeats another
+(same input and assertions, a subset, a parametrisable group, a helper defined in two files) run the
+read-only inventory, which parses the tests without importing them:
+
+```bash
+python scripts/test_inventory.py --suite legalvec
+```
+
+After merging or deleting tests, compare line coverage per file by the *set* of covered lines
+(`pytest --cov=legalvec --cov-report=json`): a line covered before and not after is a lost test.
+
 ## Development
 
 ```bash
@@ -61,6 +84,8 @@ synthetic on-disk release, and the downloader with its HTTP layer patched
 out.
 
 ## Changelog
+
+Rule numbers below are those of the day each entry was written; `packages/md2akn/RULES.md` (issue #304) maps every old number to the present layered list (W, S, B, U).
 
 - **0.2.0** — a fourth collection, `tratados`: `RELEASE_TAGS["tratados"]` is
   `scjn-tratados-vectors`, `legalvec download --collection tratados` and

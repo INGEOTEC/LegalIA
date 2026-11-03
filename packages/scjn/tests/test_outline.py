@@ -5,11 +5,14 @@ the IMDG-style fire test code (tratado 96728), `outline_103948.json` of
 reglamento 103948, whose last reform decree reprints the whole instrument.
 """
 
+import importlib.util
 import json
 import unittest
 from pathlib import Path
 
 from scjn.api import Articulo, articulos_a_markdown, articulos_de_crudo, guarda_crudo
+from scjn.outline import CONTAINER_TYPES as CONTAINER_TYPES_
+from scjn.outline import KINDS as KINDS_
 from scjn.outline import classify, marker_line, parse_marker, strip_markers
 
 FIXTURES = Path(__file__).parent / "fixtures" / "scjn_api"
@@ -60,6 +63,78 @@ class ClassifyTests(unittest.TestCase):
         self.assertEqual(classify("1 ÁMBITO"), {"kind": "other"})
         self.assertEqual(classify("D.O.F 31 DE OCTUBRE DE 2014")["kind"], "decree")
         self.assertEqual(classify("PROMULGACIÓN"), {"kind": "other"})
+
+
+class VocabularyFixtureTests(unittest.TestCase):
+    """`md2akn` imports nothing of this package, so the marker grammar is read twice:
+    here (`scjn.outline`) and in `md2akn.outline`. The fixture
+    `md2akn/tests/fixtures_units/marker_vocabulary.json` is the bridge. It is
+    *generated* by `scripts/verify_scjn_outline.py --write-vocabulary` from
+    `scjn.outline` and never edited; this test regenerates it and compares (the way
+    `marker_free_digests.json` is used), and `md2akn`'s own test reads the same file
+    (issue #303)."""
+
+    ROOT = Path(__file__).resolve().parents[3]
+    FIXTURE = ROOT / "packages" / "md2akn" / "tests" / "fixtures_units" / "marker_vocabulary.json"
+    SCRIPT = ROOT / "scripts" / "verify_scjn_outline.py"
+
+    @classmethod
+    def setUpClass(cls):
+        if not (cls.FIXTURE.exists() and cls.SCRIPT.exists()):
+            raise unittest.SkipTest("not inside the monorepo")
+        spec = importlib.util.spec_from_file_location("verify_scjn_outline", cls.SCRIPT)
+        cls.script = importlib.util.module_from_spec(spec)
+        import sys
+
+        sys.path.insert(0, str(cls.SCRIPT.parent))
+        try:
+            spec.loader.exec_module(cls.script)
+        finally:
+            sys.path.remove(str(cls.SCRIPT.parent))
+        cls.fixture = json.loads(cls.FIXTURE.read_text(encoding="utf-8"))
+
+    def test_the_fixture_is_what_scjn_outline_produces_now(self):
+        regenerated = self.script.build_vocabulary(None)
+        for key in ("marker_prefix", "kinds", "container_types", "examples"):
+            with self.subTest(key):
+                self.assertEqual(self.fixture[key], regenerated[key])
+
+    def test_the_vocabulary_is_scjn_outlines_own(self):
+        from scjn.outline import CONTAINER_TYPES, KINDS, MARKER_PREFIX
+
+        self.assertEqual(self.fixture["kinds"], list(KINDS))
+        self.assertEqual(self.fixture["container_types"], list(CONTAINER_TYPES))
+        self.assertEqual(self.fixture["marker_prefix"], MARKER_PREFIX)
+
+    def test_every_classify_branch_has_an_example(self):
+        kinds = {e["attributes"]["kind"] for e in self.fixture["examples"]}
+        self.assertEqual(kinds, set(KINDS_))
+        types = {e["attributes"].get("type") for e in self.fixture["examples"]} - {None}
+        self.assertEqual(types, set(CONTAINER_TYPES_))
+
+    def test_each_example_is_a_marker_that_parses_back_to_its_attributes(self):
+        for example in self.fixture["examples"]:
+            with self.subTest(example["referencia"]):
+                self.assertEqual(example["line"], marker_line(example["orden"], example["numero"], example["referencia"]))
+                self.assertEqual(parse_marker(example["line"]), example["attributes"])
+                self.assertEqual(example["attributes"]["label"], example["referencia"])
+                classified = classify(example["referencia"])
+                self.assertEqual(
+                    {k: example["attributes"][k] for k in ("kind", "type", "num") if k in example["attributes"]},
+                    classified,
+                )
+
+    def test_a_label_that_could_end_the_comment_or_the_attribute_cannot(self):
+        (example,) = [e for e in self.fixture["examples"] if "--" in e["referencia"]]
+        self.assertEqual(example["line"].count("-->"), 1)
+        self.assertEqual(parse_marker(example["line"])["label"], example["referencia"])
+
+    def test_the_distribution_is_informative_and_only_uses_known_kinds(self):
+        for collection, counts in self.fixture["distribution"].items():
+            with self.subTest(collection):
+                self.assertLessEqual(set(counts["kind"]), set(KINDS_))
+                self.assertLessEqual(set(counts["type"]), set(CONTAINER_TYPES_))
+                self.assertEqual(sum(counts["kind"].values()), counts["markers"])
 
 
 class MarkerTests(unittest.TestCase):

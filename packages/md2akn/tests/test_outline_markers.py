@@ -1,4 +1,4 @@
-"""Rules 19-23 (review fix-2 of #291): an instrument written with the outline
+"""Rules S1, S3, S4, S5 and S6 (review fix-2 of #291): an instrument written with the outline
 the SCJN's API states -- one marker line before each block -- is built from
 that outline, and uses the text heuristics only inside a block.
 
@@ -11,23 +11,15 @@ byte for byte, from the API blocks, so the marker grammar this package reads
 cannot drift from the one that is written.
 """
 
+import json
 from pathlib import Path
 
 from md2akn import parse_markdown
-from md2akn.outline import lee_marcador
+from md2akn.outline import MARCADORES_EN_TEXTO, lee_marcador
 from md2akn.units import coverage, text_units
+from .conftest import read_unit_fixture, walk
 
 FIXTURES = Path(__file__).parent / "fixtures_units"
-
-
-def _read(name: str) -> str:
-    return (FIXTURES / name).read_text(encoding="utf-8")
-
-
-def _walk(node):
-    yield node
-    for child in node.children:
-        yield from _walk(child)
 
 
 def _outline(node, depth=0):
@@ -55,12 +47,12 @@ def test_lee_marcador():
 
 
 def test_annex_holds_its_parts_and_each_part_its_appendix():
-    tree = parse_markdown(_read("outline_tratado.md"))
+    tree = parse_markdown(read_unit_fixture("outline_tratado.md"))
     body = next(c for c in tree.children if c.akn_type == "body")
     top = [(c.akn_type, c.num) for c in body.children if c.akn_type not in ("article", "content")]
-    # the recitals block is a container of its own (rule 42, review fix-1 of #301);
+    # the recitals block is a container of its own (rule S11, review fix-1 of #301);
     # the index is a toc, not containers; the block that holds articles `1.1`
-    # and `1.2` in its own text is an `hcontainer` named by its label (rules 23 and
+    # and `1.2` in its own text is an `hcontainer` named by its label (rule S6 and
     # 44: the API said `other`, never `SECCIÓN`); ANEXO 1 and ANEXO 2 are siblings
     assert top == [
         ("hcontainer", "CONSIDERANDO"), ("toc", "1"), ("hcontainer", "1 ÁMBITO"),
@@ -77,11 +69,11 @@ def test_annex_holds_its_parts_and_each_part_its_appendix():
 
 
 def test_the_same_number_in_two_parts_is_not_a_repeat():
-    tree = parse_markdown(_read("outline_tratado.md"))
-    eids = [n.eId for n in _walk(tree) if n.akn_type == "article"]
+    tree = parse_markdown(read_unit_fixture("outline_tratado.md"))
+    eids = [n.eId for n in walk(tree) if n.akn_type == "article"]
     # the labelled block's own `1.1` and Part 1's `1.1` are two identifiers
     assert "hc_1_ÁMBITO__art_1.1" in eids and "att_1__part_1__art_1.1" in eids
-    assert not any(n.repeated for n in _walk(tree))
+    assert not any(n.repeated for n in walk(tree))
     assert len(eids) == len(set(eids))
 
 
@@ -100,15 +92,15 @@ def test_a_number_repeated_in_one_container_is_flagged():
         '<!-- scjn:block orden=5 numero=1 kind=article num="1" label="ARTÍCULO 1" -->\n\n'
         "**Artículo 1.-** En otro capítulo.\n"
     )
-    arts = [n for n in _walk(parse_markdown(text)) if n.akn_type == "article"]
+    arts = [n for n in walk(parse_markdown(text)) if n.akn_type == "article"]
     assert [(n.eId, n.repeated) for n in arts] == [
         ("cap_I__art_1", True), ("cap_I__art_1_2", True), ("cap_II__art_1", False),
     ]
 
 
 def test_the_index_is_a_toc_even_though_its_text_opens_with_anexo():
-    tree = parse_markdown(_read("outline_tratado.md"))
-    toc = next(n for n in _walk(tree) if n.akn_type == "toc")
+    tree = parse_markdown(read_unit_fixture("outline_tratado.md"))
+    toc = next(n for n in walk(tree) if n.akn_type == "toc")
     assert "**ANEXO**" in toc.text and "9 LISTA DE REFERENCIAS" in toc.text
     # nothing inside it was read as a container or an article
     assert toc.children == []
@@ -118,9 +110,9 @@ def test_the_index_is_a_toc_even_though_its_text_opens_with_anexo():
 
 
 def test_a_decree_keeps_what_it_reprints():
-    tree = parse_markdown(_read("outline_decreto.md"))
+    tree = parse_markdown(read_unit_fixture("outline_decreto.md"))
     body = next(c for c in tree.children if c.akn_type == "body")
-    own = [n for n in _walk(body) if n.akn_type == "article" and n.eId.startswith("tit_")
+    own = [n for n in walk(body) if n.akn_type == "article" and n.eId.startswith("tit_")
            or n.akn_type == "article" and n.eId.startswith("art_")]
     # the instrument's own articles are not doubled by the reprint
     # (the acuerdo's own `TERCERO` provision follows them: the API labels it a
@@ -132,15 +124,15 @@ def test_a_decree_keeps_what_it_reprints():
     annex = decree.find("sec_10_DE_NOVIEMBRE_DE_2023__att_ÚNICO")
     assert annex is not None and annex.akn_type == "attachment"
     # its titles, chapters and articles hang under the annex, inside the decree
-    assert {n.akn_type for n in _walk(annex)} >= {"title", "chapter", "article"}
+    assert {n.akn_type for n in walk(annex)} >= {"title", "chapter", "article"}
     # the decree's own transitorios nest under it instead of ending it
     assert decree.find("sec_10_DE_NOVIEMBRE_DE_2023__sec_transitorios") is not None
-    assert not any(n.repeated for n in _walk(tree))
+    assert not any(n.repeated for n in walk(tree))
     assert own  # the instrument's own articles are there
 
 
 def test_decrees_are_siblings():
-    tree = parse_markdown(_read("outline_decreto.md"))
+    tree = parse_markdown(read_unit_fixture("outline_decreto.md"))
     body = next(c for c in tree.children if c.akn_type == "body")
     assert [c.num for c in body.children if c.refers_to == "#transitorios"] == [
         "10 DE NOVIEMBRE DE 2023", "28 DE NOVIEMBRE DE 2023",
@@ -152,7 +144,7 @@ def test_decrees_are_siblings():
 
 def test_markers_are_never_embedded_and_coverage_holds():
     for name in ("outline_tratado.md", "outline_decreto.md"):
-        text = _read(name)
+        text = read_unit_fixture(name)
         tree = parse_markdown(text)
         units = text_units(tree)
         assert units and not any("scjn:block" in u.text for u in units)
@@ -160,7 +152,7 @@ def test_markers_are_never_embedded_and_coverage_holds():
         assert coverage(tree, units).uncovered_chars == 0
 
 
-# -- rules 22-24 -----------------------------------------------------------
+# -- rules S5, S6 and S2 -----------------------------------------------------------
 
 
 def test_an_article_label_that_disagrees_with_its_text_does_not_collide():
@@ -173,13 +165,13 @@ def test_an_article_label_that_disagrees_with_its_text_does_not_collide():
         '<!-- scjn:block orden=2 numero=7 kind=article num="6" label="ARTÍCULO 6" -->\n\n'
         "**Artículo 7.-** Siete.\n"
     )
-    arts = [n for n in _walk(parse_markdown(text)) if n.akn_type == "article"]
+    arts = [n for n in walk(parse_markdown(text)) if n.akn_type == "article"]
     assert [n.eId for n in arts] == ["art_6", "art_7"]
     assert not any(n.repeated for n in arts)
 
 
 def test_an_article_block_that_quotes_another_article_stays_one_article():
-    """Rule 24: inside an `article` block no line opens structure -- an
+    """Rule S2: inside an `article` block no line opens structure -- an
     amendment article quoting `ARTÍCULO 5.-` is that article's own text."""
     text = (
         '<!-- scjn:block orden=1 numero=1 kind=article num="1" label="ARTÍCULO 1" -->\n\n'
@@ -187,13 +179,13 @@ def test_an_article_block_that_quotes_another_article_stays_one_article():
         "**ARTÍCULO 5.-** Texto citado.\n"
     )
     tree = parse_markdown(text)
-    arts = [n for n in _walk(tree) if n.akn_type == "article"]
+    arts = [n for n in walk(tree) if n.akn_type == "article"]
     assert [n.eId for n in arts] == ["art_1"]
     assert "Texto citado." in arts[0].text
 
 
 def test_a_block_that_holds_articles_in_its_own_text_opens_a_labelled_container():
-    """Rules 23 and 44: an `other` block carrying articles opens a container of its
+    """Rules S6 and S8: an `other` block carrying articles opens a container of its
     own -- an `hcontainer` named by its label, since the API did not say `SECCIÓN` --
     so a number the next block restarts is not a repeat."""
     text = (
@@ -205,10 +197,10 @@ def test_a_block_that_holds_articles_in_its_own_text_opens_a_labelled_container(
         "**Artículo 1.1:** Otra vez, en otra sección.\n"
     )
     tree = parse_markdown(text)
-    secs = [n for n in _walk(tree) if n.akn_type == "hcontainer"]
+    secs = [n for n in walk(tree) if n.akn_type == "hcontainer"]
     assert [n.num for n in secs] == ["1 ÁMBITO", "2 OTRO"]
-    assert not [n for n in _walk(tree) if n.akn_type == "section"]
-    assert not any(n.repeated for n in _walk(tree))
+    assert not [n for n in walk(tree) if n.akn_type == "section"]
+    assert not any(n.repeated for n in walk(tree))
 
 
 def test_a_container_label_written_as_a_table_row_is_a_heading_not_a_table():
@@ -222,7 +214,7 @@ def test_a_container_label_written_as_a_table_row_is_a_heading_not_a_table():
         "**Artículo 1.** Uno.\n"
     )
     tree = parse_markdown(text)
-    chapter = next(n for n in _walk(tree) if n.akn_type == "chapter")
+    chapter = next(n for n in walk(tree) if n.akn_type == "chapter")
     assert chapter.heading == "DE LOS INGRESOS"
     heading = next(u for u in text_units(text, split_articles=False) if u.unit_type == "heading")
     assert "|" not in heading.text and heading.text.startswith("CAPÍTULO II")
@@ -242,6 +234,57 @@ def test_a_chapter_the_api_labels_as_an_article_is_a_chapter():
         "Sección A - Ámbito\n\n**Artículo 3-01**: Texto.\n"
     )
     tree = parse_markdown(text)
-    assert [(n.akn_type, n.num) for n in _walk(tree) if n.akn_type in ("chapter", "article")] == [
+    assert [(n.akn_type, n.num) for n in walk(tree) if n.akn_type in ("chapter", "article")] == [
         ("chapter", "84"), ("chapter", "85"), ("article", "3"),
     ]
+
+
+# -- the marker vocabulary `scjn.outline` writes (issue #303) ---------------- #
+
+
+def _vocabulary() -> dict:
+    """`marker_vocabulary.json`, generated from `scjn.outline` by
+    `scripts/verify_scjn_outline.py --write-vocabulary` and compared with it by
+    `packages/scjn/tests/test_outline.py`. `md2akn` imports nothing of `scjn`
+    (issue #158): this file is the bridge, and the grammar this package reads is
+    checked against it here."""
+    return json.loads(read_unit_fixture("marker_vocabulary.json"))
+
+
+def test_lee_marcador_parses_every_example_to_the_attributes_scjn_wrote():
+    examples = _vocabulary()["examples"]
+    assert len(examples) >= 40
+    for example in examples:
+        assert lee_marcador(example["line"]) == example["attributes"], example["referencia"]
+
+
+def test_lee_marcador_reads_the_vocabulary_scjn_declares():
+    vocabulary = _vocabulary()
+    kinds = {e["attributes"]["kind"] for e in vocabulary["examples"]}
+    types = {e["attributes"].get("type") for e in vocabulary["examples"]} - {None}
+    assert kinds == set(vocabulary["kinds"])
+    assert types == set(vocabulary["container_types"])
+    assert vocabulary["marker_prefix"] == "<!-- scjn:block "
+
+
+def test_marcadores_en_texto_strips_exactly_the_marker_lines():
+    examples = _vocabulary()["examples"]
+    lines = [e["line"] for e in examples]
+    # Marker lines interleaved with text that must survive, one per example.
+    document = "\n\n".join(f"{line}\n\nTexto {i}" for i, line in enumerate(lines)) + "\n"
+    found = [m.group(0) for m in MARCADORES_EN_TEXTO.finditer(document)]
+    assert found == lines
+    stripped = MARCADORES_EN_TEXTO.sub("", document)
+    assert "scjn:block" not in stripped
+    for i in range(len(lines)):
+        assert f"Texto {i}" in stripped
+
+
+def test_a_marker_with_trailing_blanks_and_text_that_only_resembles_one():
+    line = _vocabulary()["examples"][0]["line"]
+    assert lee_marcador(line + "  \t") is not None
+    assert MARCADORES_EN_TEXTO.findall(line + "  \t") == [line + "  \t"]
+    # An inline mention is no marker: the line must open with the prefix and close with `-->`.
+    for text in (f"texto {line}", f"{line} texto", "<!-- scjn:block orden=1", "<!-- otro -->"):
+        assert lee_marcador(text) is None
+        assert MARCADORES_EN_TEXTO.findall(text) == []

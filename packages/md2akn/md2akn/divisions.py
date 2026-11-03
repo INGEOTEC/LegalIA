@@ -1,6 +1,6 @@
 """The headings that open a *division* inside one block of an instrument (rule
-31, review fix-4 of #291), and the numbering schemes the marker path reads that
-the ordinary grammar does not (rule 32).
+B9, review fix-4 of #291), and the numbering schemes the marker path reads that
+the ordinary grammar does not (rule B2).
 
 An API block is often a whole document: the SCJN serves the annexes of a code,
 the amending resolutions of a convention or the appendices of a radio-regulations
@@ -8,7 +8,7 @@ text each as one block. Inside it, a heading line -- ``A.II - VÁLVULAS DE MARIP
 CONTRAINCENDIOS``, ``MODELO DE CERTIFICADO DE SEGURIDAD PARA BUQUE DE PASAJE``,
 ``Artículos que se refieren al Comité Ejecutivo`` -- starts a text of its own
 whose articles are numbered from 1 again, and an identifier is only ever the same
-identifier when it is the same article (rule 22). Two functions answer the two
+identifier when it is the same article (rule S5). Two functions answer the two
 questions that needs: **where does a division start** (`encabezado_fuerte`/`encabezado_debil`,
 which read blocks) and **when is it needed** (`inicio_de_la_serie`, which reads a
 run of article numbers).
@@ -213,7 +213,7 @@ def inicio_de_la_serie(numeros: list[str | None], posicion: int) -> int:
     return j
 
 
-# -- numbering the ordinary grammar does not read (rule 32) -------------------
+# -- numbering the ordinary grammar does not read (rule B2) -------------------
 
 #: A provision of a radio-regulations text, `S5.43`, `S5.362B`, `S9.36.2`: an
 #: `S`, the article, a dot and the provision, optionally a letter suffix.

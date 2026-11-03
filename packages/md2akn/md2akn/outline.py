@@ -1,5 +1,5 @@
 """The outline markers `scjn.api` writes before every block of a snapshot
-(rules 19-23, review fix-2 of #291).
+(rules S1, S3, S4, S5 and S6, review fix-2 of #291).
 
 The SCJN's API states the structure of an instrument -- the label of each
 block it serves (`ÍNDICE`, `TÍTULO PRIMERO`, `ARTÍCULO 6 TER`, `ANEXO 1`,
@@ -50,7 +50,7 @@ def lee_marcador(texto: str) -> dict[str, str] | None:
     return attrs
 
 
-# -- the blocks the API calls `other` (rules 29 and 30, review fix-4 of #291) --
+# -- the blocks the API calls `other` (rules S8 and S10, review fix-4 of #291) --
 
 _ACENTOS = str.maketrans("ÁÉÍÓÚÜÑáéíóúüñ", "AEIOUUNaeiouun")
 _ESPACIOS = re.compile(r"\s+")
@@ -67,7 +67,7 @@ def pliega_etiqueta(etiqueta: str) -> str:
     return _ESPACIOS.sub(" ", plano).strip(" .:;,-")
 
 
-#: The roles a label can carry (rule 29), as ``(role, pattern)`` in the order they
+#: The roles a label can carry (rule S8), as ``(role, pattern)`` in the order they
 #: are tried, each pattern matched against the *whole* folded label. An explicit
 #: table, not a guess per instrument: the vocabulary of the blocks the API calls
 #: `other` is open (2,620 distinct shapes over the four corpora once digits are
@@ -86,7 +86,7 @@ def pliega_etiqueta(etiqueta: str) -> str:
 #:   connectives only.
 #: - `note`: `NOTA EXPLICATIVA`, `NOTAS`.
 #: - `resolution`: `RESOLUCIÓN MSC.404(96)` -- an amending resolution is a text of
-#:   its own, always a `section` (rule 33: the container rule 23 gave one that
+#:   its own, always a `section` (rule S4: the container rule S6 gave one that
 #:   holds articles, now every one, so sibling resolutions are of one type).
 #: - everything else has no role: a generic labelled container.
 #: Review fix-1 of #301 widened this only where the measurement showed a decree step
@@ -117,7 +117,7 @@ ROLES_DE_ETIQUETA: tuple[tuple[str, "re.Pattern[str]"], ...] = (
 
 
 def rol_de_etiqueta(etiqueta: str) -> str | None:
-    """The role of an `other` block's label (rule 29), or `None` for a generic one.
+    """The role of an `other` block's label (rule S8), or `None` for a generic one.
 
     >>> rol_de_etiqueta("PARTE FINAL DEL DECRETO PROMULGATORIO")
     'conclusions'
@@ -141,7 +141,7 @@ _CONTENIDO = re.compile(r"CONTENIDO (?:(?:DE LAS|DE LOS|DE LA|DEL|DE) )?(?P<rest
 
 
 def es_continuacion(etiqueta: str, anterior: str) -> bool:
-    """Rule 30: whether a block labelled `etiqueta` is the content of the block
+    """Rule S10: whether a block labelled `etiqueta` is the content of the block
     labelled `anterior`, which the API split in two -- a block with only the
     title (`ARTÍCULOS`) and a second with its text (`CONTENIDO ARTICULOS`).
 
@@ -156,13 +156,13 @@ def es_continuacion(etiqueta: str, anterior: str) -> bool:
     return m is not None and m.group("resto") == pliega_etiqueta(anterior)
 
 
-#: The longest single line a block can be and still be only a title (rule 40),
-#: the same bound rule 38 uses for a heading block's lines.
+#: The longest single line a block can be and still be only a title (rule S10),
+#: the same bound rule S6 uses for a heading block's lines.
 MAX_LINEA_DE_TITULO = 160
 
 
 def es_solo_titulo(texto: str) -> bool:
-    """Rule 40: whether the text of an API block (its marker line left out) is
+    """Rule S10: whether the text of an API block (its marker line left out) is
     only a title -- one short line, bold or not, with no body. Reform
     annotations (`(REFORMADO, D.O.F. ...)`) do not count as text.
 
@@ -187,10 +187,10 @@ def es_solo_titulo(texto: str) -> bool:
 def es_contenido_suelto(
     etiqueta: str, kind: str, texto_anterior: str, kind_anterior: str = "other"
 ) -> bool:
-    """Rule 40 (issue #300): whether an API block is the bare `CONTENIDO` the
+    """Rule S10 (issue #300): whether an API block is the bare `CONTENIDO` the
     SCJN serves as the body of the block before it, when that block holds only
     its own title (`ANEXO`, `ANEXO 4`, `PROTOCOLO`). The second half of a split
-    block like rule 30's, but with no label after `CONTENIDO`, so rule 30 does
+    block like rule S10's, but with no label after `CONTENIDO`, so rule S10 does
     not recognise it. A `CONTENIDO` after a block that has text of its own (a
     `CONSIDERANDO` followed by an index), or after a header, recitals, preamble or
     article block, is not this one.
@@ -216,7 +216,7 @@ def es_contenido_suelto(
     )
 
 
-#: The folded label of the block that closes a Mexican promulgation decree (rule 29's
+#: The folded label of the block that closes a Mexican promulgation decree (rule S8's
 #: `conclusions` role, narrowed): a treaty's *own* closing clause (`PARTE FINAL DEL
 #: ESTATUTO`, `PARTE FINAL DE LAS ACTAS`) is part of the instrument and is not it, and
 #: neither is the closing of a decree that is itself the instrument (`PARTE FINAL DEL

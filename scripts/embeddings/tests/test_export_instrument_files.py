@@ -4,7 +4,7 @@
 
 A toy corpus of **real Markdown** parsed by `md2akn` itself: five tiny
 instruments over three collections (two `leyes`, a `lineamientos` numbered
-`PRIMERO.-` so rule 8 fires, a `tratados` with `ARTÍCULO I`/`II` so rule 10
+`PRIMERO.-` so rule B3 fires, a `tratados` with `ARTÍCULO I`/`II` so rule B1
 fires), written so that between them they produce a `loose` block, a duplicated
 article number, a numbering gap, a document with no articles and none with no
 transitorios, an astral character before an article, a text shared by two
@@ -39,6 +39,7 @@ import nearest_texts  # noqa: E402
 import prepare_umap_input  # noqa: E402
 from md2akn import parse_markdown, text_units  # noqa: E402
 from test_instrument_matrix import stub_corpus_reader  # noqa: E402
+from conftest import quiet
 
 REPO = Path(__file__).resolve().parents[3]
 MODEL = "Qwen/Qwen3-Embedding-4B"
@@ -311,10 +312,6 @@ DOCUMENTS = {
     ("lineamientos", "900"): ("LINEAMIENTOS P", "09-09-2021.md", None, LINEAMIENTOS),
     ("tratados", "700"): ("TRATADO X", "10-10-2017.md", None, TRATADO),
 }
-
-
-def quiet(*args):
-    pass
 
 
 def vector_of(sha: str):
@@ -657,7 +654,7 @@ def test_every_flag_is_named_and_explained():
 def test_the_excerpt_flags_of_alfa(exported):
     document = read_file(exported, "leyes", "alfa")
     flags = {u["e"]: u.get("f", []) for u in document["units"]}
-    # A container's own opening text is an `intro` since md2akn 0.5.1 (rule 12,
+    # A container's own opening text is an `intro` since md2akn 0.5.1 (rule B6,
     # issue #291), not a `loose` excerpt; `loose` is what is left under the
     # transitorios.
     assert flags["tit_PRIMERO__cap_I__intro"] == []
@@ -725,7 +722,7 @@ def test_an_uncovered_document_is_flagged(world, monkeypatch):
 
 
 def test_an_introduction_and_a_table_are_nodes_with_their_own_excerpts(exported):
-    """md2akn 0.5.1's rules 12 and 13 (issues #291, #294): a container's opening text is an
+    """md2akn 0.5.1's rules B6 and B7 (issues #291, #294): a container's opening text is an
     `intro` node, a run of `| ... |` rows a `table` node, and a long table is cut into
     pieces, one excerpt each, whose offsets still index the raw document."""
     document = read_file(exported, "leyes", "alfa")
