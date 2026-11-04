@@ -306,7 +306,10 @@ The pages of the website:
   code cells and no build step; `_quarto.yml`'s `project.resources` copies `pages/atlas/**`. Circle area is
   the counted excerpts; a detail panel lists the five closest instruments and the five that point there;
   *Neighbourhood size* switches the four UMAP layouts and *Similarity* the three data sets (4B default,
-  0.6B, BM25; the first entry of the mount's `data-models` is the one the page opens on); each weight opens a `<dialog>` with the excerpts behind it, read from
+  0.6B, BM25; the first entry of the mount's `data-models` is the one the page opens on); a switch of either
+  draws, under the circles (`g.atlas-trails`), a `line.atlas-trail` for every instrument that moves 4 px or more
+  on screen, in its collection's colour, which fades over 2.5 s after the move and is repositioned by `place()`
+  on zoom; each weight opens a `<dialog>` with the excerpts behind it, read from
   `pairs*/<i>-<j>.json`. The panel is a `<div role="complementary">`, never an `<aside>` (Quarto sends an
   `<aside>` to the page margin). Colours: laws `#2a78d6`, regulations `#008300`, guidelines `#e87ba4`,
   treaties `#eda100`; the legend comes from `meta.collections`.

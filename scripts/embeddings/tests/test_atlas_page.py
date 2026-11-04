@@ -1114,7 +1114,8 @@ def test_the_neighbourhood_control_moves_the_points_and_keeps_the_selection(page
     buttons = group.locator('[role="radio"]')
     assert buttons.all_inner_texts() == ["4", "8", "16", "32"]
     assert group.locator('[aria-checked="true"]').inner_text() == "16"
-    assert "The layout changes, the data does not." in page.locator(".atlas").inner_text()
+    assert "The layout changes, the data does not. A trail shows where each instrument came from." \
+        in page.locator(".atlas").inner_text()
 
     select_by_search(page, "chapingo", CHAPINGO)
     page.wait_for_timeout(700)
@@ -1399,7 +1400,8 @@ def test_the_model_control_starts_on_the_default_and_fetches_only_that_file(brow
         text = page.locator(".atlas").inner_text()
         assert "The method that measured how similar two texts are; the 4B is the default." in text
         assert "embedding model" not in text.lower()
-        assert "the neighbourhood size changes the layout only" in text
+        assert "the neighbourhood size changes the layout only. A trail shows where each " \
+            "instrument came from." in text
         assert [url.rsplit("/", 1)[1] for url in requests if url.endswith(".json")] \
             == ["atlas-qwen3-4b.json"]
         assert page.locator(".atlas-model-status").is_hidden()
@@ -2557,6 +2559,9 @@ def test_rendered_dialog_heading_has_no_quarto_rule(rendered_page):
     select_by_search(rendered_page, "chapingo", CHAPINGO)
     rendered_page.locator(".atlas-out .atlas-why").first.click()
     rendered_page.wait_for_selector("dialog.atlas-explain[open] h2")
+    # The dialog draws its heading again when the pair file arrives; read the settled one
+    # (the read once came back empty from an h2 that was being replaced).
+    rendered_page.wait_for_selector(".atlas-explain-table tbody tr")
     assert rendered_page.eval_on_selector(
         ".atlas-explain h2", "n => getComputedStyle(n).borderBottomWidth") == "0px"
     box = rendered_page.locator("dialog.atlas-explain").bounding_box()
@@ -2616,3 +2621,167 @@ def test_rendered_page_stacks_the_two_controls_on_a_phone(browser, rendered_site
         assert page.evaluate("() => document.documentElement.scrollWidth") <= 390
     finally:
         page.close()
+
+
+# -- the trails of a layout or similarity switch (issue #311) ----------------- #
+
+TRAIL_MIN_PX = 4
+
+
+def circle_points(page):
+    """Every circle's `[cx, cy]`, by instrument position."""
+    return page.evaluate(
+        "() => { const out = []; document.querySelectorAll('circle.atlas-point')"
+        ".forEach(n => { out[Number(n.dataset.i)] = "
+        "[Number(n.getAttribute('cx')), Number(n.getAttribute('cy'))]; }); return out; }")
+
+
+def trails(page):
+    """Every `line.atlas-trail` on the page: `i`, both ends, stroke and its opacity now."""
+    return page.evaluate(
+        "() => [...document.querySelectorAll('line.atlas-trail')].map(n => ({"
+        "i: Number(n.dataset.i), x1: Number(n.getAttribute('x1')), y1: Number(n.getAttribute('y1')),"
+        "x2: Number(n.getAttribute('x2')), y2: Number(n.getAttribute('y2')),"
+        "stroke: n.getAttribute('stroke'), opacity: Number(getComputedStyle(n).strokeOpacity)}))")
+
+
+def choose_size(page, value):
+    page.locator(NEIGHBOURHOOD).locator(f'[data-value="{value}"]').click()
+
+
+def distance(a, b):
+    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+
+
+def test_the_trails_are_styled_never_hit_and_named_in_the_captions():
+    js, css = APP_JS.read_text(encoding="utf-8"), APP_CSS.read_text(encoding="utf-8")
+    assert "A trail shows where each instrument came from." in js
+    assert js.count("instrument came from.") == 2                  # both captions
+    assert "const TRAIL_MIN_PX = 4;" in js and "const TRAIL_FADE_MS = 2500;" in js
+    rule = css[css.index(".atlas-trail {"):]
+    rule = rule[:rule.index("}")]
+    assert "stroke-width: 1.5px" in rule and "stroke-opacity: 0.45" in rule
+    assert "stroke-linecap: round" in rule and "pointer-events: none" in rule
+    assert ".atlas-trails {\n  pointer-events: none;" in css
+    flat = " ".join(QMD.read_text(encoding="utf-8").split())
+    assert "leaves a thin line, in the colour of its collection, from its old place to its new one" in flat
+    assert "with the same trails from the old places" in flat
+
+
+def test_a_layout_switch_leaves_trails_for_the_instruments_that_moved(page):
+    data = atlas_data()
+    before = circle_points(page)
+    choose_size(page, 8)
+    started = trails(page)                            # drawn when the switch starts
+    assert page.evaluate(
+        "() => !!(document.querySelector('g.atlas-trails').compareDocumentPosition("
+        "document.querySelector('g.atlas-points')) & Node.DOCUMENT_POSITION_FOLLOWING)")
+    settled_xs(page)
+    after = circle_points(page)
+    moved = {i for i in range(len(before)) if distance(before[i], after[i]) >= TRAIL_MIN_PX}
+    drawn = {t["i"] for t in started}
+    assert len(drawn) == len(started) and drawn                    # one trail per instrument
+    # A circle's attributes are rounded to 0.1 px, so an instrument right at 4 px may go either way.
+    borderline = {i for i in range(len(before))
+                  if abs(distance(before[i], after[i]) - TRAIL_MIN_PX) < 0.3}
+    assert drawn - borderline == moved - borderline
+    for t in started:
+        assert distance((t["x1"], t["y1"]), before[t["i"]]) < 0.3
+        assert distance((t["x2"], t["y2"]), after[t["i"]]) < 0.3
+        assert t["stroke"] == PALETTE[data["instruments"][t["i"]]["c"]]
+        assert t["opacity"] <= 0.45
+
+
+def test_trails_fade_and_disappear(page):
+    choose_size(page, 8)
+    assert trails(page)
+    page.wait_for_function(
+        "() => [...document.querySelectorAll('line.atlas-trail')].some("
+        "n => Number(getComputedStyle(n).strokeOpacity) < 0.44)", timeout=10000)
+    assert all(t["opacity"] < 0.45 for t in trails(page))
+    # 700 ms of move and 2,500 ms of fade; the software renderer gets some slack.
+    page.wait_for_function("() => !document.querySelector('line.atlas-trail')", timeout=8000)
+    assert page.locator("line.atlas-trail").count() == 0
+
+
+def test_a_second_switch_clears_the_trails_of_the_first(page):
+    start = circle_points(page)
+    choose_size(page, 8)
+    first = {t["i"] for t in trails(page)}
+    page.wait_for_timeout(200)
+    # The click and the read are one task, so the circles are where the second move found them.
+    second, here = page.evaluate("""() => {
+        document.querySelector('[aria-labelledby="atlas-neighbourhood-label"] [data-value="32"]').click();
+        const circles = [];
+        document.querySelectorAll('circle.atlas-point').forEach(n => {
+          circles[Number(n.dataset.i)] = [Number(n.getAttribute('cx')), Number(n.getAttribute('cy'))]; });
+        const lines = [...document.querySelectorAll('line.atlas-trail')].map(n => ({
+          i: Number(n.dataset.i), x1: Number(n.getAttribute('x1')), y1: Number(n.getAttribute('y1'))}));
+        return [lines, circles]; }""")
+    indices = [t["i"] for t in second]
+    assert len(indices) == len(set(indices)) and indices          # never two for one instrument
+    assert page.locator("line.atlas-trail").count() == len(second)
+    near = [t for t in second if distance((t["x1"], t["y1"]), here[t["i"]]) < 0.3]
+    assert len(near) == len(second)
+    assert len(first) > 0
+    off_start = [t for t in second if distance((t["x1"], t["y1"]), start[t["i"]]) > 1]
+    assert len(off_start) >= 0.8 * len(second)                    # from where they were, not from layout 16
+
+
+def test_a_model_switch_leaves_trails_too(page):
+    choose_model(page, "0.6B", checked=False)
+    page.wait_for_function("() => document.querySelectorAll('line.atlas-trail').length > 0",
+                           timeout=30000)
+    found = trails(page)
+    indices = [t["i"] for t in found]
+    assert len(indices) == len(set(indices)) and indices
+    assert {t["stroke"] for t in found} <= set(PALETTE.values())
+
+
+def test_trails_take_no_pointer_events_and_keep_the_selection(page):
+    select_by_search(page, "chapingo", CHAPINGO)
+    page.wait_for_timeout(700)
+    links = page.locator("line.atlas-link").count()
+    assert links > 0
+    choose_size(page, 8)
+    found = trails(page)
+    box = page.locator("svg.atlas-map").bounding_box()
+    for t in found:
+        mid = ((t["x1"] + t["x2"]) / 2, (t["y1"] + t["y2"]) / 2)
+        under = page.evaluate(
+            "([x, y]) => { const n = document.elementFromPoint(x, y); "
+            "return n ? n.getAttribute('class') : null; }", [box["x"] + mid[0], box["y"] + mid[1]])
+        assert under != "atlas-trail"                              # the pointer goes through it
+        if under == "atlas-background":
+            page.mouse.move(box["x"] + mid[0], box["y"] + mid[1])
+            break
+    else:
+        pytest.fail("no trail midpoint over the bare map")
+    assert page.locator(".atlas-label").is_hidden()
+    assert page.locator("circle.atlas-ring").count() == 1
+    assert page.locator("line.atlas-link").count() == links
+    assert panel_title(page) == CHAPINGO
+
+
+def test_zooming_moves_the_trails_with_the_points(page):
+    choose_size(page, 8)
+    settled_xs(page)                                  # the move is over, the trails are fading
+    found = trails(page)
+    if not found:
+        pytest.skip("the trails had already faded on a slow renderer")
+    box = page.locator("svg.atlas-map").bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.mouse.wheel(0, -400)
+    page.wait_for_timeout(300)
+    zoomed, here = page.evaluate("""() => {
+        const circles = [];
+        document.querySelectorAll('circle.atlas-point').forEach(n => {
+          circles[Number(n.dataset.i)] = [Number(n.getAttribute('cx')), Number(n.getAttribute('cy'))]; });
+        const lines = [...document.querySelectorAll('line.atlas-trail')].map(n => ({
+          i: Number(n.dataset.i), x2: Number(n.getAttribute('x2')), y2: Number(n.getAttribute('y2'))}));
+        return [lines, circles]; }""")
+    if not zoomed:
+        pytest.skip("the trails had already faded on a slow renderer")
+    assert all(distance((t["x2"], t["y2"]), here[t["i"]]) < 0.3 for t in zoomed)
+    before = {t["i"]: (t["x2"], t["y2"]) for t in found}
+    assert any(distance(before[t["i"]], (t["x2"], t["y2"])) > 5 for t in zoomed)

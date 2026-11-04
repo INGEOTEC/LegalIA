@@ -2352,3 +2352,19 @@ per-axis min-max, not a similarity, so aligning an already aligned layout again 
 0.3 to 0.7 %); the script therefore does nothing when every file already carries `meta.alignment` for the reference
 (`--force` aligns again). And `uv.lock` is gitignored in this repository, so adding `pot` to the `viz` group changed
 `pyproject.toml` only. The page's JavaScript is untouched; the trails that show the remaining movement are the next issue.
+
+## Trails on the Atlas when the layout changes (issue #311, done)
+
+This closes the story of #309 (the map opens on the 4B at 16) and #310 (every layout aligned onto it): with the turn gone, what a
+switch still moves is what changed, and the page said nothing about it once the move ended. The owner chose **trails that fade**
+and no control. `moveTo` in `atlas.js` now draws, at the start of the move and under the circles (`g.atlas-trails`), one
+`line.atlas-trail` for every instrument whose on-screen displacement is at least `TRAIL_MIN_PX` (4 px: under that a trail is
+shorter than a circle's radius and reads as noise), in its collection's colour, from where it was to where it arrives, so the
+circle travels along its own line. When the layout transition ends a second, named transition (`trail-fade`, `TRAIL_FADE_MS`
+2,500 ms) takes `stroke-opacity` from 0.45 to 0 and removes the lines; `moveTo` first interrupts and removes any trail still
+fading, so an instrument never has two, and a switch in mid-flight draws its trails from the positions it found. A trail is in
+screen pixels like a circle, so the zoom handler and `resize` reposition it (`placeTrails`), and `pointer-events: none` keeps it
+off the pointer. The fade is a transition of the *style*, not of the attribute, because the CSS rule would override an attribute.
+The captions say "A trail shows where each instrument came from." and `atlas.qmd` says it once for the layout and once for the
+method. `prefers-reduced-motion` stays unread, as the move itself does. Trails exist only for layout and similarity switches;
+the zoom, the resize and the selection move nothing between layouts.

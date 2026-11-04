@@ -253,7 +253,10 @@ that minimises the optimal-transport distance between the two clouds of points
 with any other, so that the few instruments that really changed neighbourhood do not
 bend the turn. Switching the neighbourhood size or the similarity therefore moves an
 instrument only as far as its place among the others changes, and the map is never
-turned as a whole.
+turned as a whole. While the map moves, every
+instrument that travels far enough to see leaves a thin line, in the colour of its
+collection, from its old place to its new one, and the lines fade after a moment, so
+that the instruments to look at are the ones that left a trail.
 
 ## The similarity
 
@@ -273,7 +276,8 @@ therefore calls them scores and shows one decimal.
 Choosing another method is not a change of view like the neighbourhood size.
 A different method finds different closest texts, so the instruments listed in
 the panel, the weights and the lines all change, and the layout is drawn again
-from them, turned onto the orientation of the map as it opens. The selected instrument stays selected and the neighbourhood size
+from them, turned onto the orientation of the map as it opens, with the same trails
+from the old places. The selected instrument stays selected and the neighbourhood size
 stays where it was. The map of the 0.6B or of BM25 is fetched the first time it
 is chosen, and the table behind each weight is then read for that method.
 

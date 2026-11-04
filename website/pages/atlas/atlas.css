@@ -280,6 +280,20 @@
   pointer-events: none;
 }
 
+/* Where an instrument came from after a layout or similarity switch (issue #311):
+   the stroke colour is the collection's, set on the line; the fade is a
+   transition of this opacity. Never a target of the pointer. */
+.atlas-trails {
+  pointer-events: none;
+}
+
+.atlas-trail {
+  stroke-width: 1.5px;
+  stroke-opacity: 0.45;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
 .atlas-ring {
   fill: none;
   stroke: var(--atlas-ink);

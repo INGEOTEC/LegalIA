@@ -49,10 +49,16 @@
   const SIZE_LEGEND = [10, 100, 1000];
   const SUGGESTIONS = 8;
   const TRANSITION_MS = 700;
+  // The trails of a layout or similarity switch (issue #311): a point that
+  // moves at least TRAIL_MIN_PX on screen leaves a line from where it was to
+  // where it arrives, which fades over TRAIL_FADE_MS once the move has ended.
+  const TRAIL_MIN_PX = 4;
+  const TRAIL_FADE_MS = 2500;
   const CAPTION =
     "How many neighbours each instrument is placed against when the map is " +
     "drawn. Small values keep tight local groups; large values keep the " +
-    "overall shape. The layout changes, the data does not.";
+    "overall shape. The layout changes, the data does not. A trail shows where " +
+    "each instrument came from.";
   const EMPTY =
     "Search for an instrument or click a point to see which laws, " +
     "regulations, guidelines and treaties its excerpts are closest to.";
@@ -60,7 +66,7 @@
     "The method that measured how similar two texts are; the 4B is the " +
     "default. Switching it changes which instruments are closest, so both the " +
     "relations the panel lists and the layout change; the neighbourhood size " +
-    "changes the layout only.";
+    "changes the layout only. A trail shows where each instrument came from.";
   const PAGE_SIZE = 50;
   const NOT_AVAILABLE = "The explanation for this pair is not available.";
   const OTHER_VERSION = "The explanation was built for a different version of the map.";
@@ -330,6 +336,8 @@
     // -- the map --------------------------------------------------------------- //
     const svg = d3.select(svgNode);
     const background = svg.append("rect").attr("class", "atlas-background");
+    // Under the circles, so a trail never covers a point or the selection.
+    const trailLayer = svg.append("g").attr("class", "atlas-trails");
     const pointLayer = svg.append("g").attr("class", "atlas-points");
     const linkLayer = svg.append("g").attr("class", "atlas-links");
     const overlay = svg.append("g").attr("class", "atlas-overlay");
@@ -377,6 +385,7 @@
       circles.attr("r", (d) => Math.max(MIN_RADIUS, radius(d.pc)));
       drawSizeLegend();
       place();
+      placeTrails();
     }
 
     function place() {
@@ -388,6 +397,39 @@
       drawSelection();
     }
 
+    // A trail is in screen pixels, like a circle: the line from where the
+    // instrument was to where it arrives, under the zoom now on screen.
+    function trailEnds(d) {
+      return [
+        transform.applyX(x(d.fromX)), transform.applyY(y(d.fromY)),
+        transform.applyX(x(d.toX)), transform.applyY(y(d.toY)),
+      ];
+    }
+
+    function placeTrails() {
+      trailLayer.selectAll("line.atlas-trail").each(function (d) {
+        const [x1, y1, x2, y2] = trailEnds(d);
+        this.setAttribute("x1", x1.toFixed(1));
+        this.setAttribute("y1", y1.toFixed(1));
+        this.setAttribute("x2", x2.toFixed(1));
+        this.setAttribute("y2", y2.toFixed(1));
+      });
+    }
+
+    function clearTrails() {
+      trailLayer.selectAll("line.atlas-trail").interrupt("trail-fade").remove();
+    }
+
+    function fadeTrails() {
+      trailLayer
+        .selectAll("line.atlas-trail")
+        .transition("trail-fade")
+        .duration(TRAIL_FADE_MS)
+        .ease(d3.easeLinear)
+        .style("stroke-opacity", 0)
+        .remove();
+    }
+
     const zoom = d3
       .zoom()
       .scaleExtent([1, 12])
@@ -397,6 +439,7 @@
         transform = event.transform;
         hideLabel();
         place();
+        placeTrails();
       });
     svg.call(zoom).on("dblclick.zoom", null);
     svg.on("click", () => clear());
@@ -940,6 +983,22 @@
         [d.toX, d.toY] = positions[d.i];
       });
       hideLabel();
+      // A trail for every instrument that moves far enough to see, drawn in
+      // full at the start (the circle then travels along it); any trail still
+      // fading from the switch before goes first, so no instrument has two.
+      clearTrails();
+      const moved = items.filter((d) => {
+        const [x1, y1, x2, y2] = trailEnds(d);
+        return Math.hypot(x2 - x1, y2 - y1) >= TRAIL_MIN_PX;
+      });
+      trailLayer
+        .selectAll("line.atlas-trail")
+        .data(moved, (d) => d.i)
+        .join("line")
+        .attr("class", "atlas-trail")
+        .attr("data-i", (d) => d.i)
+        .attr("stroke", (d) => COLLECTIONS[d.c].color);
+      placeTrails();
       d3.select(mount)
         .transition("layout")
         .duration(TRANSITION_MS)
@@ -950,7 +1009,8 @@
             d.by = d.fromY + (d.toY - d.fromY) * t;
           });
           place();
-        });
+        })
+        .on("end", fadeTrails);
     }
 
     function setLayout(value) {
