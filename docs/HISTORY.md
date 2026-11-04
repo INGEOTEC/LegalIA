@@ -2294,3 +2294,20 @@ it compared that is not the instrument's own text: its **envelope**.
   2026-10-28"). **Nothing was published**; the human order is: the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, issue
   #300), the four vectors releases (`emb-run-<c>-058/publish/PUBLICAR.md`, **`-058` since this fix; the `-057` ones are
   superseded**), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+
+## A comment link on the Instruments page (issue #308, done)
+
+A reader who found something wrong in an instrument had no way to say so from the page: issue #297 had removed
+issue #290's per-node report links together with the rest of the review apparatus. The owner asked for **one link
+per opened instrument**, not per excerpt. The header of an opened instrument now carries *Comment on this
+instrument* (`a.instruments-comment`, after the facts line), which opens
+`<data-repo>/issues/new?template=instrument.yml&title=...&instrument=...&page=...` in a new tab. The repository is
+the mount's `data-repo`, which the script reads again (the mount block stays pinned verbatim; the script
+hard-codes no address). The target is an **issue form**, `.github/ISSUE_TEMPLATE/instrument.yml`, with the ids
+`instrument`, `page`, `comment` and `where` and the new label `instrument-feedback`, because a form's `labels:`
+applies for any reader while the `labels=` URL parameter is ignored for those without triage rights, and the fields
+guide a non-developer. There is no `config.yml`, so blank issues stay allowed. The `page` value is the absolute
+address plus the hash the reader is at, recomputed in a `click` listener, so a report made after following a nearest
+text names that excerpt; the eId appears only inside the GitHub issue, never on the page. The link text avoids the
+word "report", which the tests keep forbidden from #297. GitHub reads issue forms from the default branch, so the
+form works only once this is on `master`; the tests check the URL and the YAML, not a live GitHub page.

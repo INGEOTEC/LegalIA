@@ -126,7 +126,8 @@ def test_the_prose_says_what_the_page_is_and_nothing_forbidden():
     flat = " ".join(prose.split())
     for needle in ("compared excerpts", "Nearest texts", "Compared", "Qwen3 Embedding 4B",
                    "atlas-instruments", "instruments.html?c=leyes&k=ccf#art_1",
-                   "Diario Oficial de la Federación", "back button"):
+                   "Diario Oficial de la Federación", "back button",
+                   "Comment on this instrument"):
         assert needle in flat, needle
     # Nothing of the review apparatus of issue #290 is explained to the reader any more.
     for word in ("flag", "Raw", "Akoma Ntoso", "badge", "parse", "md2akn", "Loose",
@@ -155,9 +156,9 @@ def test_the_script_hard_codes_no_path_and_reads_only_its_mount():
     for attribute in ("dataset.index", "dataset.files"):
         assert attribute in js
     assert "instruments/instruments.json" in js           # only as the documented default
-    # `data-repo` stays in the mount block (pinned verbatim) and is no longer read: the
-    # reports it fed were removed in issue #297, and the file comment says so.
-    assert "dataset.repo" not in js and "data-repo" in js
+    # `data-repo` is read again (issue #308), only for the header's one comment link; the
+    # repository's address is the mount's, never the script's.
+    assert "dataset.repo" in js and "data-repo" in js
     assert "https://github.com/INGEOTEC/LegalIA" not in js
 
 
@@ -566,12 +567,129 @@ def test_no_review_apparatus_is_on_an_opened_instrument(page):
                  "flag-tag", "tag", "excerpt-bar", "mode", "mark", "compared", "segmented",
                  "uncovered", "range", "node-head"):
         assert page.locator(f".instruments-{name}").count() == 0, name
-    assert page.locator("a[href*='issues/new']").count() == 0
+    # The one link of the page is the header's comment link (issue #308), none per excerpt.
+    assert page.locator("a[href*='issues/new']").count() == 1
+    assert page.locator(".instruments-head a.instruments-comment").count() == 1
     assert page.locator("[data-unit-type]").count() == 0
     text = page.inner_text("#instruments")
     for word in ("Raw", "Loose", "Repeated number", "Number gap", "Over window", "Score",
                  "md2akn", "Akoma", "report"):
         assert word not in text, word
+
+
+# -- the comment link (issue #308) -------------------------------------------------------- #
+
+def comment_link(page):
+    return page.locator(".instruments-head a.instruments-comment")
+
+
+def comment_fields(href: str) -> dict:
+    return {name: values[0] for name, values in parse_qs(urlparse(href).query).items()}
+
+
+def test_an_opened_instrument_has_one_comment_link_prefilled_for_it(page):
+    open_from_table(page, "alfa")
+    link = comment_link(page)
+    assert link.count() == 1 and link.inner_text() == "Comment on this instrument"
+    assert link.get_attribute("target") == "_blank"
+    assert "noopener" in link.get_attribute("rel")
+    # After the facts line, in the header.
+    assert page.locator(".instruments-head > .instruments-facts + a.instruments-comment").count() == 1
+    href = link.get_attribute("href")
+    assert href.startswith(f"{REPO_URL}/issues/new?template=instrument.yml")
+    fields = comment_fields(href)
+    document = read_file_of_toy(page, "alfa")["meta"]
+    assert fields["template"] == "instrument.yml"
+    assert fields["title"] == f"Instrument: {document['n']} (leyes/alfa)"
+    assert fields["instrument"] == f"leyes/alfa · {document['n']} · snapshot {document['archivo']}"
+    origin = page.evaluate("location.origin + location.pathname")
+    assert fields["page"] == f"{origin}?c=leyes&k=alfa"
+    assert set(fields) == {"template", "title", "instrument", "page"}
+
+
+def test_the_comment_link_carries_the_excerpt_the_reader_is_at(browser, server):
+    page = open_page(browser, f"{server}?c=leyes&k=alfa#{ALFA}art_5")
+    page.wait_for_selector('.instruments-document[data-rendered="true"]')
+    # Stop the click from opening a tab: the href it would have followed is what counts.
+    page.evaluate("document.querySelector('a.instruments-comment')"
+                  ".addEventListener('click', event => event.preventDefault())")
+    comment_link(page).click()
+    fields = comment_fields(comment_link(page).get_attribute("href"))
+    assert fields["page"].endswith(f"?c=leyes&k=alfa#{ALFA}art_5")
+    # Moving to another excerpt changes the hash; the same link then reports the new place.
+    page.evaluate("history.replaceState(null, '', location.pathname + location.search + '#art_1')")
+    comment_link(page).click()
+    fields = comment_fields(comment_link(page).get_attribute("href"))
+    assert fields["page"].endswith("?c=leyes&k=alfa#art_1")
+    assert page.errors == []
+    page.close()
+
+
+def test_the_landing_has_no_comment_link(page):
+    assert page.locator("a.instruments-comment").count() == 0
+    assert page.locator("a[href*='issues/new']").count() == 0
+
+
+def test_without_data_repo_no_comment_link_is_drawn(browser, site):
+    block = app_block(QMD.read_text(encoding="utf-8")).replace(f' data-repo="{REPO_URL}"', "")
+    assert "data-repo" not in block
+    harness = HARNESS.format(app=block)
+
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def do_GET(self):
+            if self.path.split("?")[0] == "/harness.html":
+                body = harness.encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            super().do_GET()
+
+        def log_message(self, *args):
+            pass
+
+    httpd = http.server.ThreadingHTTPServer(
+        ("127.0.0.1", 0), functools.partial(Handler, directory=str(site)))
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    try:
+        page = open_page(browser, f"http://127.0.0.1:{httpd.server_address[1]}/harness.html"
+                                  "?c=leyes&k=alfa")
+        wait_rendered(page)
+        assert title(page) == "LEY ALFA"
+        assert page.locator("a.instruments-comment").count() == 0
+        assert page.locator("a[href*='issues/new']").count() == 0
+        assert page.errors == []
+        page.close()
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+
+
+def test_the_instrument_issue_form_has_the_fields_the_page_prefills():
+    yaml = pytest.importorskip("yaml")
+    form = yaml.safe_load((REPO / ".github" / "ISSUE_TEMPLATE" / "instrument.yml")
+                          .read_text(encoding="utf-8"))
+    assert form["name"] and form["description"]
+    assert form["labels"] == ["instrument-feedback"]
+    fields = {item["id"]: item for item in form["body"] if "id" in item}
+    assert set(fields) == {"instrument", "page", "comment", "where"}
+    assert fields["comment"]["type"] == "textarea"
+    assert fields["instrument"]["type"] == fields["page"]["type"] == fields["where"]["type"] == "input"
+    for name in ("instrument", "page", "comment"):
+        assert fields[name]["validations"]["required"] is True, name
+    assert not fields["where"].get("validations", {}).get("required")
+    # Every key `commentUrl` writes is GitHub's own or a field id of the form.
+    js = APP_JS.read_text(encoding="utf-8")
+    body = js.split("function commentUrl", 1)[1].split("function nearHref", 1)[0]
+    literal = body.split("const fields = {", 1)[1].split("};", 1)[0]
+    written = set(re.findall(r"^\s+(\w+)(?::|,)", literal, re.M))
+    assert written == {"template", "title", "instrument", "page"}
+    assert written - {"template", "title"} <= set(fields)
+    assert "label" not in written
+    # No blank-issue switch: the form lives alone in the folder.
+    assert not (REPO / ".github" / "ISSUE_TEMPLATE" / "config.yml").exists()
 
 
 def test_no_marker_line_and_no_identifier_is_visible_in_an_instrument(browser, server):

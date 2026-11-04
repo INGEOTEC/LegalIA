@@ -42,7 +42,10 @@ the reading was.
 
 Every instrument and every excerpt has an address, so that a link can point at it. An
 address such as `instruments.html?c=leyes&k=ccf#art_1` opens the Federal Civil Code at
-its first article.
+its first article. Each instrument also has a *Comment on this instrument* link under
+its name, which opens a GitHub issue about that instrument with its name, its snapshot
+and the address of the page already filled in, so that a reader who finds something
+wrong, or has something to add, only needs to write the comment.
 
 The text is the consolidated snapshot of the Supreme Court of Justice of the Nation
 from which the vectors were built, and its date is shown under the name of each

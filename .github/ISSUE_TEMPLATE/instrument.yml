@@ -1,0 +1,41 @@
+# The issue form behind the "Comment on this instrument" link of the Instruments page
+# (issue #308). The page prefills `instrument` and `page` through the query string, which
+# GitHub matches by field id: renaming an id here breaks the prefill, and a test
+# (scripts/embeddings/tests/test_instruments_page.py) compares the ids with the keys the
+# page writes. GitHub reads issue forms from the default branch.
+name: Comment on an instrument
+description: Tell us what is wrong with an instrument of the Instruments page, or what you would like to say about it.
+title: "Instrument: "
+labels: ["instrument-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reading an instrument closely. You can write the comment in English or in Spanish. The two fields below the comment were filled in by the page, so that we know which text you were reading.
+  - type: input
+    id: instrument
+    attributes:
+      label: Instrument
+      description: The collection, key, name and snapshot of the instrument, as the page filled them in.
+    validations:
+      required: true
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The address of the page you were at, which may point at one excerpt.
+    validations:
+      required: true
+  - type: textarea
+    id: comment
+    attributes:
+      label: What is wrong, or what would you like to say?
+      description: A broken heading, a missing article, text that does not match the Diario Oficial de la Federación, a nearest text that does not belong, or anything else.
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where in the instrument
+      description: Optional, if the address above does not say it.
+      placeholder: Article 5, second paragraph

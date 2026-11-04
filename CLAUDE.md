@@ -305,7 +305,10 @@ The pages of the website:
   library. A landing (search, sortable table) opens an instrument at `?c=<collection>&k=<key>[#<eId>]`:
   an outline, the document as headings, paragraphs and tables, and on a *compared* excerpt its five
   nearest texts. No eId, unit type or flag is printed; `stripMarkers` removes the marker lines on display
-  (a documented copy of `scjn.outline.MARKER`, compared by a test).
+  (a documented copy of `scjn.outline.MARKER`, compared by a test). An opened instrument's header carries one
+  *Comment on this instrument* link, read from the mount's `data-repo`, to the `.github/ISSUE_TEMPLATE/instrument.yml`
+  issue form (label `instrument-feedback`), prefilled with the collection, key, name, snapshot and the page
+  address (the hash is read at click time); the page has no per-excerpt link.
 - **Topics**: a draft, not rendered (above).
 - **Committed:** `atlas.json`, `atlas-qwen3-4b.json`, `atlas-bm25.json`, `_gold-links.md`,
   `instruments/instruments.json`, `topics/` (draft), `data/scjn-leyes-summary.json`. **Fetched by
