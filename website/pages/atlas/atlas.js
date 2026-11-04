@@ -1,6 +1,6 @@
 // The Atlas of Mexican federal law (issue #245).
 //
-// A hand-written D3 v7 application over one file, `atlas.json`, which
+// A hand-written D3 v7 application over one file (the default is `atlas-qwen3-4b.json`), which
 // `scripts/embeddings/export_atlas_data.py` exports (issue #244): 1,303
 // instruments, each with its counted excerpts (`pc`, the model's row sum; `p`,
 // the total, stays in the data and is never shown), the weight other
@@ -57,7 +57,7 @@
     "Search for an instrument or click a point to see which laws, " +
     "regulations, guidelines and treaties its excerpts are closest to.";
   const MODEL_CAPTION =
-    "The method that measured how similar two texts are; the 0.6B is the " +
+    "The method that measured how similar two texts are; the 4B is the " +
     "default. Switching it changes which instruments are closest, so both the " +
     "relations the panel lists and the layout change; the neighbourhood size " +
     "changes the layout only.";

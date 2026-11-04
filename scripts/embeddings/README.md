@@ -42,7 +42,8 @@ each run).
 - **What the matrix compares**: `instrument_matrix.searched_mask` — no heading, `toc`, transitorio or
   envelope unit is a source or a candidate; a text several instruments own word for word is not counted;
   a tied winner is shared `1/m`.
-- **The data as of 28 October 2026** (`atlas.json`): 2,670 unique instruments (314 laws, 864 regulations,
+- **The data as of 28 October 2026** (`atlas-qwen3-4b.json`, the file the Atlas opens on since issue #309; `atlas.json` is
+  the 0.6B): 2,670 unique instruments (314 laws, 864 regulations,
   125 guidelines, 1,367 treaties), 227,132 excerpts, 156,432 counted; three data sets (0.6B, 4B, BM25);
   gold of 253 instruments and 277 links.
 - **Nothing here is published by a script** (issue #115, Hallazgo C): a human runs each `PUBLICAR.md`,
@@ -611,9 +612,9 @@ legend binding and the canvas renderer are all in it.
 
 **The similarity control (issues #262, #268).** Beside *Neighbourhood size*, the
 toolbar has a second `.atlas-segmented` radiogroup, *Similarity* (titled
-*Embedding model* until issue #268, when BM25 joined it), with `0.6B` (the
-default), `4B` and `BM25`, and a caption saying the method is what measured how
-similar two texts are (the 0.6B is the default), so both the relations the panel
+*Embedding model* until issue #268, when BM25 joined it), with `4B` (the
+default since issue #309; it was `0.6B` before), `0.6B` and `BM25`, and a caption saying the method is what measured how
+similar two texts are (the 4B is the default), so both the relations the panel
 lists and the layout change (the neighbourhood size changes the layout only). Both controls are
 built by one `radiogroup()` helper in `atlas.js` — same markup, `aria-checked`,
 roving `tabindex` and arrow keys — and sit side by side in `.atlas-controls`
@@ -621,16 +622,16 @@ at desktop width and stacked at 390 px.
 
 * **The mount names the models.** `data-src`/`data-pairs` stay the default
   model's paths; one more attribute, `data-models`, is a JSON list of
-  `{label, src, pairs}` (`0.6B` → `atlas/atlas.json` + `atlas/pairs/`, `4B` →
-  `atlas/atlas-qwen3-4b.json` + `atlas/pairs-qwen3-4b/`, `BM25` →
+  `{label, src, pairs}` (`4B` → `atlas/atlas-qwen3-4b.json` + `atlas/pairs-qwen3-4b/`, `0.6B` →
+  `atlas/atlas.json` + `atlas/pairs/`, `BM25` →
   `atlas/atlas-bm25.json` + `atlas/pairs-bm25/`), relative like the
   rest, whose first entry must agree with `data-src`/`data-pairs` (a test checks
   it). A mount without it — or with a malformed one — builds the page with no
   model control at all, which is how the toy site's older tests run.
-* **Load on switch.** The page opens on the 0.6B and fetches nothing else. The
-  first switch to the 4B fetches its file once (a failed fetch is not
+* **Load on switch.** The page opens on the 4B (the first entry) and fetches nothing else. The
+  first switch to the 0.6B fetches its file once (a failed fetch is not
   remembered: choosing it again retries, and the status line under the control
-  says "The 4B map could not be loaded. Choose it again to retry."). The file is
+  says "The 0.6B map could not be loaded. Choose it again to retry."). The file is
   refused — the status line says "The 4B map cannot be used: it lists different
   instruments." or "…has no such layout.", and the radio stays on the model on
   screen — unless its `instruments` have the same `k` at every position and its
@@ -655,7 +656,7 @@ at desktop width and stacked at 390 px.
   rest of a switch (fetch once, the refusal rules, the status messages naming
   the option, the dialog directory) is #262's, unchanged with three entries.
 * **Tests.** The harness tests count requests with Playwright's
-  `page.on("request")` (only `atlas.json` on load, the 4B file once however many
+  `page.on("request")` (only `atlas-qwen3-4b.json` on load, the 0.6B file once however many
   switches), read Chapingo's list for each model from the two JSON files, follow
   the layouts by the correlation of circle positions with `projections[k]`,
   route the 4B file through edited copies (swapped `k`, a missing layout, a
@@ -1456,7 +1457,7 @@ Quarto's `aside` rule collapse the map to 0 px — leaving
 skip only when no Quarto is found on `PATH` or under
 `~/.local/opt/quarto-*/bin/quarto`. Every number the tests compare with the
 page (the subtitle's counts, Chapingo's five targets, the Constitution's
-counted excerpts, the pair dialog's rows) is read off `atlas.json` and the installed
+counted excerpts, the pair dialog's rows) is read off `atlas-qwen3-4b.json` (the file the page opens on) and the installed
 pair file, so the prose and the data cannot drift.
 
 **The explanation dialog (issue #250).** Each weight under *Closest

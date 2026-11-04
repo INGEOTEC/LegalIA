@@ -35,7 +35,7 @@ left out, and the remaining ones are called compared excerpts. Each of them is m
 the margin of the document with a thin rule and the word *Compared*, and it carries a
 *Nearest texts* line. Opening it lists the five closest texts that live in other
 instruments, each with its similarity as the Qwen3 Embedding 4B model measures it,
-which is the *4B* option of the Atlas. A text that several instruments share appears
+which is the one on which the Atlas opens. A text that several instruments share appears
 once, with the others named under it. Following a link opens that other instrument at
 the excerpt in question, highlighted, and the browser's back button returns to where
 the reading was.

@@ -2311,3 +2311,18 @@ address plus the hash the reader is at, recomputed in a `click` listener, so a r
 text names that excerpt; the eId appears only inside the GitHub issue, never on the page. The link text avoids the
 word "report", which the tests keep forbidden from #297. GitHub reads issue forms from the default branch, so the
 form works only once this is on `master`; the tests check the URL and the YAML, not a live GitHub page.
+
+## The Atlas opens on the 4B (issue #309, done)
+
+The Atlas opened on the 0.6B and offered the 4B and BM25 as alternatives, although the row-level evaluation on the page
+itself finds the 4B better than the 0.6B on every measure of explicit citations and never worse at instrument level, and
+the Instruments page already read the 4B. The owner decided the map opens on the **4B at neighbourhood size 16**. The
+page's rule is that the first entry of the mount's `data-models` is the default, so the change is the mount (`data-src`
+and `data-pairs` point at the 4B file and `data-models` lists 4B, 0.6B, BM25) and the prose, with **no file renamed**:
+`atlas.json` is still the 0.6B export and the `--instruments-as` reference, `pairs/` its pairs, and `website.yml` and the
+`atlas-pairs` release are untouched. The worked examples (Chapingo, the Constitution, the sentence on treaties) were
+rewritten, not annotated, from `atlas-qwen3-4b.json` and its pair file (Chapingo's closest text goes 7 to the UAM, 6 to
+Antonio Narro and one each to three more instruments; the Constitution's first weight is 16.0 and its table lists 16
+excerpts; 1,298 of the 1,367 treaties have a treaty as their closest instrument), and the evaluation section says once
+why the map opens on the 4B. The toy-site tests keep their own default file name through `toy_mount()` in
+`test_atlas_page.py`. Nothing was regenerated and nothing was published.
