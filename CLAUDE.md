@@ -237,6 +237,14 @@ a dated *Measured* section for every run.
   `atlas-bm25.json` (a lexical baseline: `bm25s`, Lucene `k1` 1.5, `b` 0.75, defaults
   kept after one tuning run). `export_atlas_data.py --instruments-as atlas.json` refuses a file whose
   instruments differ at any position, because the page swaps files keeping its selection.
+- **Layout alignment.** The twelve layouts (three data sets by four neighbourhood sizes) are independent UMAP
+  fits, with no common orientation. `align_atlas_layouts.py` turns each onto the 4B at 16 by Wasserstein
+  Procrustes (an orthogonal transform and one scale minimising the exact 2-Wasserstein cost, the transport plan
+  free; POT's `ot.emd`), then puts all twelve in one common `[0, 1]` frame, and rewrites the three `atlas*.json`
+  in place. `meta.alignment` (after `umap`, in every file, the reference's own identity included) records the
+  reference, the frame and, per layout, the transform, the costs and the displacements. A run over files that
+  already carry it for this reference does nothing; `--check` exits 1 if a file would change. It is a step over
+  the exported files, never part of `export_atlas_data.py`, and `pot` is in the `viz` group.
 - **Unique instruments.** `unique_instruments.py` keeps one instrument per identical name in
   `reglamentos` and `lineamientos` (the newest original publication date wins; NFKD, accents, whitespace
   and case folded) and, in every collection, one per identical multiset of compared `text_sha1`. Leyes and
@@ -369,7 +377,8 @@ Each is a numbered sequence; a human runs the publish steps.
 2. `stage_vectors_cache.py`; then, in each Atlas work directory, `prepare_umap_input.py --unique-names`,
    `instrument_matrix.py`, `nearest_texts.py` (4B), `build_instrument_umap_html.py`.
 3. `export_atlas_data.py` (the three `atlas*.json`), `export_atlas_pairs.py` (three pair sets),
-   `export_instrument_files.py` (files + `instruments.json`).
+   `export_instrument_files.py` (files + `instruments.json`), then `align_atlas_layouts.py` over the three
+   `atlas*.json` (rewrites them in place; a re-export drops `meta.alignment`, so this step follows every export).
 4. Evaluations: `gold_links.py`, `evaluate_links.py`, `evaluate_citations.py`; topics:
    `cluster_instruments.py`, `export_topics_page.py`.
 5. Update the pages' literals from the new *Measured* section and run the website tests.
