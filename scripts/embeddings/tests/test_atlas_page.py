@@ -722,11 +722,13 @@ def test_the_qmd_compares_the_methods_with_one_test_per_measure():
 
 def test_the_bib_has_the_atlas_citations():
     bib = (WEBSITE / "references.bib").read_text(encoding="utf-8")
-    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25",
+                "Grave2019WassersteinProcrustes"):
         assert re.search(r"@\w+\{" + key + ",", bib), key
     # The References page lists them through its `nocite` field (review fix-1).
     nocite = (PAGES / "references.qmd").read_text(encoding="utf-8")
-    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25",
+                "Grave2019WassersteinProcrustes"):
         assert f"@{key}" in nocite, key
 
 
@@ -735,7 +737,8 @@ def test_the_qmd_cites_but_does_not_list_its_references():
     a hook retargets the Atlas page's links there (review fix-1)."""
     text = QMD.read_text(encoding="utf-8")
     assert "## References" not in text and "#refs" not in text
-    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25",
+                "Grave2019WassersteinProcrustes"):
         assert f"[@{key}]" in text
     assert "scripts/fix_citation_links.py" in (WEBSITE / "_quarto.yml").read_text(encoding="utf-8")
     assert "pages/atlas.html" in (WEBSITE / "scripts" / "fix_citation_links.py").read_text(encoding="utf-8")
@@ -848,6 +851,23 @@ def test_the_data_file_is_the_244_export():
     names = [(e["c"], e["n"]) for e in data["instruments"] if e["c"] != "leyes"]
     assert len(names) == len(set(names))
     assert sorted(data["projections"], key=int) == ["4", "8", "16", "32"]
+
+
+@pytest.mark.parametrize("path", [DATA, DATA_06B, DATA_BM25], ids=["4b", "06b", "bm25"])
+def test_every_data_file_is_aligned_onto_the_4b_at_16_and_lies_in_the_unit_square(path):
+    """Issue #310: `align_atlas_layouts.py` turned the twelve layouts onto the 4B's 16."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    alignment = data["meta"]["alignment"]
+    assert alignment["reference"] == {"file": "atlas-qwen3-4b.json",
+                                      "model": "Qwen/Qwen3-Embedding-4B", "n_neighbors": 16}
+    assert alignment["method"] == "wasserstein-procrustes"
+    assert list(alignment["layouts"]) == list(data["projections"])
+    keys = list(data["meta"])
+    assert keys[keys.index("umap") + 1] == "alignment"
+    for points in data["projections"].values():
+        flat = [value for point in points for value in point]
+        assert min(flat) >= 0 and max(flat) <= 1
+        assert all(round(value, 4) == value for value in flat)
 
 
 # -- the browser ------------------------------------------------------------- #
@@ -1866,7 +1886,8 @@ def test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references(rendered_
     assert "[@" not in html                      # every citation key resolved
     assert 'id="refs"' not in html and "quarto-appendix" not in html
     assert 'id="ref-' not in html
-    keys = ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25")
+    keys = ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25",
+            "Grave2019WassersteinProcrustes")
     # What Quarto and the hook wrote (the DOM would resolve the addresses).
     source = (SITE / "pages" / "atlas.html").read_text(encoding="utf-8")
     links = re.findall(r'href="([^"]*#ref-[^"]*)"', source)
