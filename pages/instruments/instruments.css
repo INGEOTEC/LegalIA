@@ -1,4 +1,4 @@
-/* The Instruments page (issues #290, #297). The site's own colours
+/* The Instruments page (issues #290, #297, #308). The site's own colours
    (website/style.scss): ink #1f1e1b, muted #52514e / #898781, rules #e1e0d9,
    link #1c5cab, panels #f9f8f4. Controls use system-ui; headings keep the
    site's serif (Palatino).
@@ -282,6 +282,20 @@
 .instruments-facts {
   color: var(--instruments-muted);
   margin: 0 0 0.9rem;
+}
+
+/* The one link of the header (issue #308): it sits under the facts line, quiet, in the
+   link colour of the page and the size of the facts. */
+.instruments-comment {
+  display: inline-block;
+  margin: -0.5rem 0 0.9rem;
+  color: var(--instruments-link);
+  font-size: 0.93em;
+  text-decoration: none;
+}
+
+.instruments-comment:hover {
+  text-decoration: underline;
 }
 
 /* Quarto's page CSS sends `aside` to the margin and gives h2/h3 a rule and

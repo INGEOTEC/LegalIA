@@ -1,10 +1,12 @@
-/* The Instruments page (issues #290, #297): every instrument of the Atlas, read one
+/* The Instruments page (issues #290, #297, #308): every instrument of the Atlas, read one
    by one at the text its map was built from. One IIFE, no library, no build step; it
-   reads only the `data-*` attributes of its mount (the index and the folder of
-   per-instrument files). The mount also carries `data-repo`, which this script no
-   longer uses: the page once linked each node to a prefilled report (issue #290's review
-   apparatus, removed in issue #297; see git history at 0f8b5d6) and the attribute stays
-   in the mount block because the block is pinned verbatim by the tests. The files are the
+   reads only the `data-*` attributes of its mount (the index, the folder of
+   per-instrument files and the repository). `data-repo` is read again, and only for the
+   one "Comment on this instrument" link of an opened instrument's header, which opens
+   the repository's `instrument.yml` issue form prefilled with the collection, key, name,
+   snapshot and page address (issue #308). The per-node reports of issue #290's review
+   apparatus were removed in issue #297 (see git history at 0f8b5d6) and do not come
+   back: there is no link per excerpt. The files are the
    ones scripts/embeddings/export_instrument_files.py writes (issue #289): the raw
    document once, md2akn's tree and its excerpts as UTF-16 offsets into it and, on every
    compared excerpt, its nearest texts. Their parse flags are in the data and are not
@@ -67,6 +69,8 @@
 
   const INDEX_URL = new URL(mount.dataset.index || "instruments/instruments.json", document.baseURI);
   const FILES_URL = new URL(mount.dataset.files || "instruments/files/", document.baseURI);
+  // The repository whose issue form the comment link opens; none, no link.
+  const REPO = (mount.dataset.repo || "").replace(/\/+$/, "");
 
   // Accents and case never decide a match: "constitucion" finds "CONSTITUCIÓN".
   function fold(text) {
@@ -613,6 +617,24 @@
       return hash ? `${base}#${encodeURIComponent(hash)}` : base;
     }
 
+    // The issue form `.github/ISSUE_TEMPLATE/instrument.yml` is prefilled by field id:
+    // `instrument` and `page` are its fields, `title` and `template` GitHub's own. The
+    // page address is absolute and carries the hash the reader is at when asked.
+    function commentUrl(item, doc) {
+      const m = doc.meta;
+      const page = new URL(url(m.c, m.k), location.href).href + location.hash;
+      const fields = {
+        template: "instrument.yml",
+        title: `Instrument: ${m.n} (${m.c}/${m.k})`,
+        instrument: `${m.c}/${m.k} · ${m.n} · snapshot ${m.archivo}`,
+        page,
+      };
+      const query = Object.entries(fields)
+        .map(([name, value]) => `${name}=${encodeURIComponent(value)}`)
+        .join("&");
+      return `${REPO}/issues/new?${query}`;
+    }
+
     function nearHref(c, k, eId, piece) {
       const hash = piece ? `${eId}.${piece}` : eId;
       return `?c=${encodeURIComponent(c)}&k=${encodeURIComponent(k)}#${encodeURIComponent(hash)}`;
@@ -722,6 +744,21 @@
           ` · text as of ${when.text} · ${number(item.d.a)} articles`,
         ]),
       ]);
+      if (REPO) {
+        const comment = element("a", {
+          className: "instruments-comment",
+          href: commentUrl(item, doc),
+          target: "_blank",
+          rel: "noopener",
+          text: "Comment on this instrument",
+        });
+        // The reader may have followed an excerpt since the header was drawn: the
+        // address is read again, before the browser follows the link.
+        comment.addEventListener("click", () => {
+          comment.href = commentUrl(item, doc);
+        });
+        header.append(comment);
+      }
 
       // -- the outline and the document ------------------------------------------------ //
       const outlineList = element("ul", { className: "instruments-outline-list" });
