@@ -2368,3 +2368,7 @@ off the pointer. The fade is a transition of the *style*, not of the attribute, 
 The captions say "A trail shows where each instrument came from." and `atlas.qmd` says it once for the layout and once for the
 method. `prefers-reduced-motion` stays unread, as the move itself does. Trails exist only for layout and similarity switches;
 the zoom, the resize and the selection move nothing between layouts.
+
+A review of the run (fix-1) then removed the one place where a selection did move the map: `reveal()` zoomed to fit the instrument
+and its five closest on a search or a click on a name in the panel (introduced with the Atlas, #245). The owner wants the zoom to
+belong to the reader, so `select(i)` only draws the ring, the lines and the panel and never touches `transform`.

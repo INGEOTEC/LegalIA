@@ -358,7 +358,7 @@
       .on("pointerleave", hideLabel)
       .on("click", (event, d) => {
         event.stopPropagation();
-        select(d.i, { reveal: false });
+        select(d.i);
       });
 
     const byId = new Map(circles.nodes().map((node) => [Number(node.dataset.i), node]));
@@ -571,7 +571,7 @@
           "data-i": String(j),
           text: target.n,
         });
-        button.addEventListener("click", () => select(j, { reveal: true }));
+        button.addEventListener("click", () => select(j));
         let weight;
         if (from === undefined) {
           weight = element("span", { className: "atlas-weight", text: w.toFixed(1) });
@@ -872,24 +872,8 @@
     });
 
     // -- selecting ------------------------------------------------------------- //
-    // Zoom so the instrument and its five closest instruments all fit: the
-    // relation is what was asked for, and centring on the point alone left
-    // most of its lines running off the map.
-    function reveal(d) {
-      const members = [d, ...d.out.map(([j]) => items[j])];
-      const [x0, x1] = d3.extent(members, (m) => x(m.bx));
-      const [y0, y1] = d3.extent(members, (m) => y(m.by));
-      const pad = 70;
-      const k = Math.max(1, Math.min(4,
-        (width - 2 * pad) / Math.max(x1 - x0, 1),
-        (height - 2 * pad) / Math.max(y1 - y0, 1)));
-      const target = d3.zoomIdentity
-        .translate(width / 2 - (k * (x0 + x1)) / 2, height / 2 - (k * (y0 + y1)) / 2)
-        .scale(k);
-      svg.transition().duration(600).call(zoom.transform, target);
-    }
-
-    function select(i, options) {
+    // The zoom belongs to the reader: a selection only draws, it never moves the map.
+    function select(i) {
       selected = i;
       const d = items[i];
       // A collection shown alone would hide the instrument just asked for.
@@ -898,7 +882,6 @@
       restyle();
       drawSelection();
       fillPanel();
-      if (options && options.reveal) reveal(d);
     }
 
     function clear() {
@@ -1167,7 +1150,7 @@
     function choose(d) {
       closeSuggestions();
       input.value = d.n;
-      select(d.i, { reveal: true });
+      select(d.i);
     }
 
     function showSuggestions() {

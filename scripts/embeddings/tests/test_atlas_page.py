@@ -1025,6 +1025,13 @@ def test_circle_area_is_proportional_to_counted_excerpts(page):
         max(2.5, largest * (constitution["pc"] / biggest["pc"]) ** 0.5), rel=1e-3)
 
 
+def zoom_state(page):
+    """`(k, x, y)` of the zoom transform on the map's svg, as d3 holds it."""
+    return tuple(page.evaluate(
+        """() => { const t = d3.zoomTransform(document.querySelector('svg.atlas-map'));
+                   return [t.k, t.x, t.y]; }"""))
+
+
 def test_constitucion_finds_the_constitution_first_and_enter_selects_it(page):
     # Both the Constitution and the treaty "CONSTITUCION Y CONVENIO DE LA UNION
     # INTERNACIONAL DE TELECOMUNICACIONES" start with the query, and the treaty counts more
@@ -1039,13 +1046,8 @@ def test_constitucion_finds_the_constitution_first_and_enter_selects_it(page):
     panel = page.locator(".atlas-panel").inner_text()
     assert f"{cpeum['pc']:,} counted excerpts" in panel
     assert f"{cpeum['p']:,}" not in panel          # the total is never displayed
-    # Brought into view: after the pan, its centre is inside the map.
-    page.wait_for_timeout(900)
-    box = page.locator("svg.atlas-map").bounding_box()
-    circle = page.locator('circle[data-k="cpeum"]').bounding_box()
-    centre = (circle["x"] + circle["width"] / 2, circle["y"] + circle["height"] / 2)
-    assert box["x"] <= centre[0] <= box["x"] + box["width"]
-    assert box["y"] <= centre[1] <= box["y"] + box["height"]
+    # A search never moves the map: the zoom is still the identity, with no pan to wait for.
+    assert zoom_state(page) == (1, 0, 0)
     assert page.locator("circle.atlas-ring").count() == 1
 
 
@@ -1098,6 +1100,29 @@ def test_a_name_in_the_panel_selects_that_instrument(page):
         "name => document.querySelector('.atlas-panel h2')?.textContent === name",
         arg=targets_of(atlas_data(), "luach")[0][1])
     assert page.locator("circle.atlas-ring").count() == 1
+
+
+def test_selecting_an_instrument_never_changes_the_readers_zoom(page):
+    box = page.locator("svg.atlas-map").bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 3, box["y"] + box["height"] / 3)
+    page.mouse.wheel(0, -600)
+    page.wait_for_function(
+        """() => d3.zoomTransform(document.querySelector('svg.atlas-map')).k > 1""")
+    page.wait_for_timeout(300)
+    zoomed = zoom_state(page)
+    assert zoomed[0] > 1
+    select_by_search(page, "chapingo", CHAPINGO)
+    page.wait_for_timeout(900)                        # a transition would have moved it by now
+    assert zoom_state(page) == zoomed
+    assert page.locator("circle.atlas-ring").count() == 1
+    page.locator(".atlas-out .atlas-target-name").first.click()
+    page.wait_for_function(
+        "name => document.querySelector('.atlas-panel h2')?.textContent === name",
+        arg=targets_of(atlas_data(), "luach")[0][1])
+    page.wait_for_timeout(900)
+    assert zoom_state(page) == zoomed
+    page.locator('circle.atlas-point').first.dispatch_event("click")
+    assert zoom_state(page) == zoomed
 
 
 def test_a_regulation_is_named_by_its_scjn_id(page):
