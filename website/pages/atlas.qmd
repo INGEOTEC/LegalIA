@@ -8,7 +8,7 @@ number-sections: false
 
 <!-- atlas:app -->
 <link rel="stylesheet" href="atlas/atlas.css">
-<div id="atlas" class="atlas" data-src="atlas/atlas.json" data-pairs="atlas/pairs/" data-models='[{"label":"0.6B","src":"atlas/atlas.json","pairs":"atlas/pairs/"},{"label":"4B","src":"atlas/atlas-qwen3-4b.json","pairs":"atlas/pairs-qwen3-4b/"},{"label":"BM25","src":"atlas/atlas-bm25.json","pairs":"atlas/pairs-bm25/"}]'></div>
+<div id="atlas" class="atlas" data-src="atlas/atlas-qwen3-4b.json" data-pairs="atlas/pairs-qwen3-4b/" data-models='[{"label":"4B","src":"atlas/atlas-qwen3-4b.json","pairs":"atlas/pairs-qwen3-4b/"},{"label":"0.6B","src":"atlas/atlas.json","pairs":"atlas/pairs/"},{"label":"BM25","src":"atlas/atlas-bm25.json","pairs":"atlas/pairs-bm25/"}]'></div>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="atlas/atlas.js"></script>
 <!-- /atlas:app -->
@@ -203,33 +203,35 @@ count, as the example below shows.
 ## An example
 
 The two examples below describe the map as it opens, which is drawn from the
-0.6B model, so that a reader who has switched to the 4B or to BM25 may see
+4B model, so that a reader who has switched to the 0.6B or to BM25 may see
 slightly different numbers in the panel. The *LEY que crea la Universidad
 Autónoma Chapingo* has 29 excerpts, 16 of which count, the other thirteen being
-headings, transitory articles, the title block and the closing text, which are not compared. For 9 of them the
+headings, transitory articles, the title block and the closing text, which are not compared. For 7 of them the
 closest text outside the law belongs to the *LEY Orgánica de la Universidad
 Autónoma Metropolitana*, for 6 to the *LEY Orgánica de la Universidad Autónoma
-Agraria Antonio Narro*, and the last one to a treaty, the *CONVENIO INTERNACIONAL PARA EL
-ESTABLECIMIENTO DE LA UNIVERSIDAD PARA LA PAZ Y CARTA DE LA UNIVERSIDAD PARA LA PAZ
-(MULTILATERAL, 1980)*. On the map the law sits among the organic laws of the UAM, Antonio
-Narro and the UNAM, beside that treaty. The relation is directed, since 18
-excerpts of other instruments have their closest text in Chapingo's law, 7 of
-them in Antonio Narro's and 7 in the UAM's.
+Agraria Antonio Narro*, and for one each to the *LEY General de Educación*, to the
+*LEY Orgánica de la Universidad Nacional Autónoma de México* and to a treaty, the
+*CONVENIO INTERNACIONAL PARA EL ESTABLECIMIENTO DE LA UNIVERSIDAD PARA LA PAZ Y CARTA
+DE LA UNIVERSIDAD PARA LA PAZ (MULTILATERAL, 1980)*. On the map the law sits among the
+organic laws of the UAM, Antonio Narro and the UNAM, beside that treaty. The relation is
+directed, since 18 excerpts of other instruments have their closest text in Chapingo's
+law, 6 of them in Antonio Narro's and 6 in the UAM's.
 
 The Constitution has 1,347 excerpts, but only its 136 articles are compared,
 so that 136 count. Its closest instrument is the *LEY
-General de Instituciones y Procedimientos Electorales*, at 14.0. The table
-behind that weight lists 14 excerpts, every one a whole 1, among them articles
-41, 51 to 56, 58 to 60 and 63 on elections and Congress, and articles 115 and 116 on the states. The closest of them,
-article 96, is matched to article 494 of that law at a similarity of 0.86, and
-the weakest, article 58, to its article 10 at 0.67. The next closest
+General de Instituciones y Procedimientos Electorales*, at 16.0. The table
+behind that weight lists 16 excerpts, every one a whole 1, among them articles
+35, 41, 51 to 53, 55, 56, 58 to 60, 63, 77 and 80 on citizens, elections, Congress and
+the Presidency, article 96 on the judiciary, and articles 115 and 116 on the states. The closest of them,
+article 96, is matched to article 500 of that law at a similarity of 0.86, and
+the weakest, article 58, to its article 10 at 0.54. The next closest
 instruments are the *LEY Orgánica del Congreso General de los Estados Unidos
-Mexicanos* and the *LEY Orgánica del Poder Judicial de la Federación*, both at
-8.0, and a treaty, the *Convención Americana sobre Derechos Humanos*, is among
-the five closest at 5.0.
+Mexicanos*, the *LEY Orgánica del Poder Judicial de la Federación* and a treaty,
+the *Convención Americana sobre Derechos Humanos*, all at 9.0, and the *Estatuto de
+Gobierno del Distrito Federal* is the fifth, at 6.0.
 
-Treaties mostly resemble one another. For 1,279 of the 1,367 treaties the closest
-instrument is another treaty, and only 10 laws, 5 regulations and 1 guideline have a
+Treaties mostly resemble one another. For 1,298 of the 1,367 treaties the closest
+instrument is another treaty, and only 10 laws, 6 regulations and 2 guidelines have a
 treaty as their closest instrument.
 
 ## The neighbourhood size
@@ -243,16 +245,27 @@ the number of neighbours in that graph, so that small values preserve tight
 local groups, such as the universities above, while large values preserve the
 overall shape, such as how the laws, the regulations, the guidelines and the
 treaties sit relative to one another. Switching it changes the layout and never the
-relations listed in the panel.
+relations listed in the panel. A UMAP embedding has no fixed orientation, handedness or
+scale, so each of the twelve layouts (the three similarities at the four sizes) was
+turned, mirrored and scaled onto the one on which the map opens, with the transform
+that minimises the optimal-transport distance between the two clouds of points
+[@Grave2019WassersteinProcrustes], and the transport is free to pair an instrument
+with any other, so that the few instruments that really changed neighbourhood do not
+bend the turn. Switching the neighbourhood size or the similarity therefore moves an
+instrument only as far as its place among the others changes, and the map is never
+turned as a whole. While the map moves, every
+instrument that travels far enough to see leaves a thin line, in the colour of its
+collection, from its old place to its new one, and the lines fade after a moment, so
+that the instruments to look at are the ones that left a trail.
 
 ## The similarity
 
 Two excerpts are close when the method that compares them says so, and the map
 can be drawn from any of three methods. Two of them are Qwen3-Embedding models
 [@Zhang2025Qwen3Embedding], which turn each excerpt into a list of numbers. The
-smaller, Qwen3-Embedding-0.6B (the 0.6B), is the one on which the map opens
-and the one that the examples above describe, and the larger,
-Qwen3-Embedding-4B (the 4B), is a model of the same family. The third, BM25
+larger, Qwen3-Embedding-4B (the 4B), is the one on which the map opens
+and the one that the examples above describe, and the smaller,
+Qwen3-Embedding-0.6B (the 0.6B), is a model of the same family. The third, BM25
 [@Robertson2009BM25], is a lexical baseline and not a model at all. It ranks
 texts by the words they share, weighting each word by how rare it is among the
 excerpts being compared, so that it knows nothing beyond the corpus itself and
@@ -263,8 +276,9 @@ therefore calls them scores and shows one decimal.
 Choosing another method is not a change of view like the neighbourhood size.
 A different method finds different closest texts, so the instruments listed in
 the panel, the weights and the lines all change, and the layout is drawn again
-from them. The selected instrument stays selected and the neighbourhood size
-stays where it was. The map of the 4B or of BM25 is fetched the first time it
+from them, turned onto the orientation of the map as it opens, with the same trails
+from the old places. The selected instrument stays selected and the neighbourhood size
+stays where it was. The map of the 0.6B or of BM25 is fetched the first time it
 is chosen, and the table behind each weight is then read for that method.
 
 ## Checking the map against known links
@@ -485,7 +499,7 @@ On the question the map answers, which is what an instrument is closest to,
 the three methods are nearly indistinguishable at finding the instrument that another
 one develops, and a lexical baseline that learns nothing is as good as either
 embedding model and, on the narrow gold standard, better than the smaller one. The 4B ranks a cited instrument higher for a single excerpt,
-and this is the one measured reason for switching to it. BM25 is not beaten
+and this is the one measured reason for which the map opens on it. BM25 is not beaten
 everywhere. Among the ten most cited instruments it is the best on the *Código
 Fiscal de la Federación*, where the cited instrument is among the five closest
 for 79.7 % of the 172 excerpts against 44.2 % for the 4B, and the lowest of the
@@ -503,8 +517,8 @@ the guidelines
 ([`scjn-lineamientos`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-lineamientos))
 and the treaties
 ([`scjn-tratados`](https://github.com/INGEOTEC/LegalIA/releases/tag/scjn-tratados)).
-They are divided into excerpts and embedded with `Qwen/Qwen3-Embedding-0.6B`,
-the default of the map, and with `Qwen/Qwen3-Embedding-4B`, to which the
+They are divided into excerpts and embedded with `Qwen/Qwen3-Embedding-4B`,
+on which the map opens, and with `Qwen/Qwen3-Embedding-0.6B`, to which the
 similarity control switches, as it does to BM25, a lexical baseline computed
 from the same excerpts. Of the 227,132 excerpts, 36,137 are headings, 22,575
 are transitory articles and 10,093 belong to the envelope of an instrument,

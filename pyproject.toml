@@ -81,4 +81,7 @@ viz = [
     # `cluster_instruments.py`). Present transitively today; named so the import
     # is deliberate. Leiden would need `igraph`, which is not added.
     "networkx",
+    # The exact earth mover's plan (`ot.emd`) of the Atlas layout alignment
+    # (issue #310, `align_atlas_layouts.py`): Wasserstein Procrustes.
+    "pot",
 ]

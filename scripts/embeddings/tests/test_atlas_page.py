@@ -4,7 +4,8 @@
     uv run --group viz pytest scripts/embeddings/tests/test_atlas_page.py -q
 
 The page is a hand-written D3 application (`website/pages/atlas/atlas.js`,
-`atlas.css`) over the committed `website/pages/atlas/atlas.json` (issue #244),
+`atlas.css`) over the committed `website/pages/atlas/atlas-qwen3-4b.json` (issue #244; the file
+the page opens on since issue #309),
 wrapped by `website/pages/atlas.qmd`. Most browser tests load a harness
 page: an HTML file served next to `website/pages/atlas/` whose body is the
 qmd's own `<!-- atlas:app -->` block, copied verbatim — so what is clicked
@@ -21,7 +22,7 @@ Issue #250's explanation dialog is tested twice: over a toy site (the
 six-instrument corpus of `test_instrument_matrix.py`, exported by
 `export_atlas_data.py` and `export_atlas_pairs.py` into a temporary directory
 laid out like `website/pages/`, with the real `atlas.js`/`atlas.css`), and,
-when `website/pages/atlas/pairs/` has been installed, over the real
+when `website/pages/atlas/pairs-qwen3-4b/` has been installed, over the real
 pair the Constitution's heaviest weight names.
 
 The static checks at the top always run. The browser tests skip, with the
@@ -57,13 +58,18 @@ PAGES = WEBSITE / "pages"
 QMD = PAGES / "atlas.qmd"
 APP_JS = PAGES / "atlas" / "atlas.js"
 APP_CSS = PAGES / "atlas" / "atlas.css"
-DATA = PAGES / "atlas" / "atlas.json"
-DATA_4B = PAGES / "atlas" / "atlas-qwen3-4b.json"
+#: The file the page opens on: the 4B (issue #309), the first entry of the mount's `data-models`.
+DATA = PAGES / "atlas" / "atlas-qwen3-4b.json"
+DATA_4B = DATA
+#: The 0.6B export keeps the name `atlas.json` and its pairs the name `pairs/`.
+DATA_06B = PAGES / "atlas" / "atlas.json"
 DATA_BM25 = PAGES / "atlas" / "atlas-bm25.json"
 SCREENSHOT = REPO / "output" / "atlas-chapingo.png"
 SITE = WEBSITE / "_site"
-PAIRS = PAGES / "atlas" / "pairs"
+PAIRS_06B = PAGES / "atlas" / "pairs"
 PAIRS_4B = PAGES / "atlas" / "pairs-qwen3-4b"
+#: The pairs of the file the page opens on.
+PAIRS = PAIRS_4B
 PAIRS_BM25 = PAGES / "atlas" / "pairs-bm25"
 WORKFLOW = REPO / ".github" / "workflows" / "website.yml"
 EXPLAIN_SCREENSHOT = REPO / "output" / "atlas-explain-cpeum.png"
@@ -93,7 +99,7 @@ def instrument(data: dict, clave: str) -> dict:
 
 
 def counts(data: dict) -> dict:
-    """The numbers the page prints, read off `atlas.json` so the prose, the
+    """The numbers the page prints, read off the file the page opens on (the 4B's) so the prose, the
     subtitle and the legend cannot drift from the data."""
     return dict(data["meta"]["collections"])
 
@@ -174,8 +180,8 @@ def test_the_qmd_has_the_agreed_front_matter_and_no_code():
 def test_the_qmd_mounts_the_application_with_relative_paths():
     block = app_block(QMD.read_text(encoding="utf-8"))
     assert '<link rel="stylesheet" href="atlas/atlas.css">' in block
-    assert ('<div id="atlas" class="atlas" data-src="atlas/atlas.json" '
-            'data-pairs="atlas/pairs/" data-models=\'') in block
+    assert ('<div id="atlas" class="atlas" data-src="atlas/atlas-qwen3-4b.json" '
+            'data-pairs="atlas/pairs-qwen3-4b/" data-models=\'') in block
     assert '<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>' in block
     assert '<script src="atlas/atlas.js"></script>' in block
 
@@ -199,10 +205,10 @@ def test_the_mount_lists_three_models_and_the_first_is_the_default():
     attributes = mount_attributes()
     models = json.loads(attributes["data-models"])
     assert models == [
-        {"label": "0.6B", "src": "atlas/atlas.json", "pairs": "atlas/pairs/"},
         {"label": "4B", "src": "atlas/atlas-qwen3-4b.json", "pairs": "atlas/pairs-qwen3-4b/"},
+        {"label": "0.6B", "src": "atlas/atlas.json", "pairs": "atlas/pairs/"},
         {"label": "BM25", "src": "atlas/atlas-bm25.json", "pairs": "atlas/pairs-bm25/"}]
-    # The default model's paths stay where every existing mount and test looks.
+    # The first entry is the default and the mount's own `data-src`/`data-pairs` name it (issue #309).
     assert (models[0]["src"], models[0]["pairs"]) == (attributes["data-src"],
                                                       attributes["data-pairs"])
     # Relative, so the page works from `_site/pages/atlas.html` and a local server alike.
@@ -221,7 +227,9 @@ def test_the_qmd_explains_the_similarity_and_names_all_three_options():
     assert "Qwen3-Embedding-0.6B" in flat and "Qwen3-Embedding-4B" in flat
     assert "[@Zhang2025Qwen3Embedding]" in flat and "[@Robertson2009BM25]" in flat
     assert "lexical baseline" in flat and "words they share" in flat
-    assert "the examples above describe" in flat           # the examples stay the 0.6B's
+    assert "the examples above describe" in flat           # the examples are the default's, the 4B's
+    assert flat.index("Qwen3-Embedding-4B (the 4B), is the one on which the map opens") \
+        < flat.index("Qwen3-Embedding-0.6B (the 0.6B), is a model of the same family")
     assert "scores and shows one decimal" in flat
     assert "different method finds different closest texts" in flat
     assert "the layout is drawn again" in flat
@@ -253,7 +261,7 @@ def test_the_qmd_prose_names_the_method_once_and_nothing_forbidden():
     assert "Uniform Manifold Approximation and Projection" in size
     similarity = text[text.index("## The similarity"):text.index("## Checking the map")]
     assert "[@Zhang2025Qwen3Embedding]" in similarity
-    assert "Qwen/Qwen3-Embedding-0.6B" in text
+    assert "Qwen/Qwen3-Embedding-4B" in text
 
 
 def test_the_application_files_say_nothing_forbidden():
@@ -318,10 +326,10 @@ def test_the_publish_workflow_fetches_the_4b_pair_explanations_before_publishing
     assert "qwen3-4b" not in first
 
 
-def test_the_4b_data_lists_the_same_instruments_as_the_default():
-    default, second = atlas_data(), json.loads(DATA_4B.read_text(encoding="utf-8"))
-    assert second["meta"]["model"] == "Qwen/Qwen3-Embedding-4B"
-    assert default["meta"]["model"] == "Qwen/Qwen3-Embedding-0.6B"
+def test_the_06b_data_lists_the_same_instruments_as_the_default():
+    default, second = atlas_data(), json.loads(DATA_06B.read_text(encoding="utf-8"))
+    assert second["meta"]["model"] == "Qwen/Qwen3-Embedding-0.6B"
+    assert default["meta"]["model"] == "Qwen/Qwen3-Embedding-4B"
     assert second["meta"]["unique_names"] is True
     assert list(second["projections"]) == ["4", "8", "16", "32"]
     assert list(second) == list(default) and list(second["meta"]) == list(default["meta"])
@@ -341,6 +349,9 @@ def test_the_4b_data_lists_the_same_instruments_as_the_default():
     pytest.param(DATA_4B, PAIRS_4B, marks=pytest.mark.skipif(
         not PAIRS_4B.is_dir(), reason="website/pages/atlas/pairs-qwen3-4b/ "
         "is not installed (export_atlas_pairs.py --install)"), id="4b"),
+    pytest.param(DATA_06B, PAIRS_06B, marks=pytest.mark.skipif(
+        not PAIRS_06B.is_dir(), reason="website/pages/atlas/pairs/ "
+        "is not installed (export_atlas_pairs.py --install)"), id="06b"),
     pytest.param(DATA_BM25, PAIRS_BM25, marks=pytest.mark.skipif(
         not PAIRS_BM25.is_dir(), reason="website/pages/atlas/pairs-bm25/ "
         "is not installed (export_atlas_pairs.py --install)"), id="bm25"),
@@ -562,39 +573,40 @@ def test_the_qmd_explains_what_text_an_excerpt_is():
 
 
 def test_the_qmd_chapingo_example_matches_the_default_data():
-    """The example describes the 0.6B map the page opens on; the 4B says 9 to the
-    UAM, which once read as an error (issue #275)."""
+    """The example describes the 4B map the page opens on; the 0.6B says 9 to the
+    UAM, which once read as an error (issues #275 and #309)."""
     text = QMD.read_text(encoding="utf-8")
     example = text[text.index("## An example"):text.index("## The neighbourhood size")]
     flat = " ".join(example.replace("*", "").split())
-    assert "drawn from the 0.6B model" in flat
+    assert "drawn from the 4B model" in flat
     data = atlas_data()
     law = instrument(data, "luach")
     assert law["n"] == CHAPINGO
     assert f"has {law['p']} excerpts, {law['pc']} of which count" in flat
     first, second, *rest = law["out"]
-    assert len(rest) == 1 and all(weight == 1 for _, weight in rest)
-    assert [data["instruments"][j]["c"] for j, _ in rest] == ["tratados"]
+    assert len(rest) == 3 and all(weight == 1 for _, weight in rest)
+    assert [data["instruments"][j]["c"] for j, _ in rest] == ["leyes", "leyes", "tratados"]
     for j, _ in rest:
         assert data["instruments"][j]["n"] in flat
+    assert "and for one each to the" in flat
     assert (f"For {first[1]:.0f} of them the closest text outside the law belongs to the "
             f"{data['instruments'][first[0]]['n']}") in flat
     assert f"for {second[1]:.0f} to the {data['instruments'][second[0]]['n']}" in flat
     assert f"{law['in']:.0f} excerpts of other instruments" in flat
     (_, w1), (_, w2) = law["inc"][:2]
     assert f"{w1:.0f} of them in Antonio Narro's and {w2:.0f} in the UAM's" in flat
-    assert f"for {second[1]:.0f} to the" in flat and "the last one to a treaty" in flat
-    # The 4B's reading of the same law differs, which is why the page says whose it is.
-    four = instrument(json.loads(DATA_4B.read_text(encoding="utf-8")), "luach")
-    assert four["out"][0][1] != law["out"][0][1]
+    assert f"for {second[1]:.0f} to the" in flat and "and to a treaty" in flat
+    # The 0.6B's reading of the same law differs, which is why the page says whose it is.
+    small = instrument(json.loads(DATA_06B.read_text(encoding="utf-8")), "luach")
+    assert small["out"][0][1] != law["out"][0][1]
 
 
 def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_the_prose():
     """Issue #283: every file lists the same 2,670 instruments, treaties last,
     `sum(pc)` is the counted rows, and the sentence about treaties resembling one
-    another is read off `atlas.json`."""
+    another is read off the file the page opens on."""
     default = atlas_data()
-    for path in (DATA, DATA_4B, DATA_BM25):
+    for path in (DATA, DATA_06B, DATA_BM25):
         data = json.loads(path.read_text(encoding="utf-8"))
         meta = data["meta"]
         assert list(meta["collections"]) == ["leyes", "reglamentos", "lineamientos", "tratados"]
@@ -611,16 +623,16 @@ def test_the_committed_data_has_the_four_collections_and_the_treaty_claims_of_th
                                    "scjn-tratados-vectors"]
     treaties = [e for e in default["instruments"] if e["c"] == "tratados"]
     closest = [default["instruments"][e["out"][0][0]]["c"] for e in treaties if e["out"]]
-    assert closest.count("tratados") == 1279 and len(treaties) == 1367 and len(closest) == len(treaties)
+    assert closest.count("tratados") == 1298 and len(treaties) == 1367 and len(closest) == len(treaties)
     others = [e for e in default["instruments"] if e["c"] != "tratados" and e["out"]]
     by = {}
     for e in others:
         if default["instruments"][e["out"][0][0]]["c"] == "tratados":
             by[e["c"]] = by.get(e["c"], 0) + 1
-    assert by == {"leyes": 10, "reglamentos": 5, "lineamientos": 1}
+    assert by == {"leyes": 10, "reglamentos": 6, "lineamientos": 2}
     flat = " ".join(QMD.read_text(encoding="utf-8").split())
-    assert "For 1,279 of the 1,367 treaties the closest instrument is another treaty" in flat
-    assert "only 10 laws, 5 regulations and 1 guideline have a treaty as their closest instrument" in flat
+    assert "For 1,298 of the 1,367 treaties the closest instrument is another treaty" in flat
+    assert "only 10 laws, 6 regulations and 2 guidelines have a treaty as their closest instrument" in flat
 
 
 def test_the_qmd_has_the_evaluation_section_with_its_numbers():
@@ -710,11 +722,13 @@ def test_the_qmd_compares_the_methods_with_one_test_per_measure():
 
 def test_the_bib_has_the_atlas_citations():
     bib = (WEBSITE / "references.bib").read_text(encoding="utf-8")
-    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25",
+                "Grave2019WassersteinProcrustes"):
         assert re.search(r"@\w+\{" + key + ",", bib), key
     # The References page lists them through its `nocite` field (review fix-1).
     nocite = (PAGES / "references.qmd").read_text(encoding="utf-8")
-    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25",
+                "Grave2019WassersteinProcrustes"):
         assert f"@{key}" in nocite, key
 
 
@@ -723,7 +737,8 @@ def test_the_qmd_cites_but_does_not_list_its_references():
     a hook retargets the Atlas page's links there (review fix-1)."""
     text = QMD.read_text(encoding="utf-8")
     assert "## References" not in text and "#refs" not in text
-    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25"):
+    for key in ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25",
+                "Grave2019WassersteinProcrustes"):
         assert f"[@{key}]" in text
     assert "scripts/fix_citation_links.py" in (WEBSITE / "_quarto.yml").read_text(encoding="utf-8")
     assert "pages/atlas.html" in (WEBSITE / "scripts" / "fix_citation_links.py").read_text(encoding="utf-8")
@@ -838,6 +853,23 @@ def test_the_data_file_is_the_244_export():
     assert sorted(data["projections"], key=int) == ["4", "8", "16", "32"]
 
 
+@pytest.mark.parametrize("path", [DATA, DATA_06B, DATA_BM25], ids=["4b", "06b", "bm25"])
+def test_every_data_file_is_aligned_onto_the_4b_at_16_and_lies_in_the_unit_square(path):
+    """Issue #310: `align_atlas_layouts.py` turned the twelve layouts onto the 4B's 16."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    alignment = data["meta"]["alignment"]
+    assert alignment["reference"] == {"file": "atlas-qwen3-4b.json",
+                                      "model": "Qwen/Qwen3-Embedding-4B", "n_neighbors": 16}
+    assert alignment["method"] == "wasserstein-procrustes"
+    assert list(alignment["layouts"]) == list(data["projections"])
+    keys = list(data["meta"])
+    assert keys[keys.index("umap") + 1] == "alignment"
+    for points in data["projections"].values():
+        flat = [value for point in points for value in point]
+        assert min(flat) >= 0 and max(flat) <= 1
+        assert all(round(value, 4) == value for value in flat)
+
+
 # -- the browser ------------------------------------------------------------- #
 
 HARNESS = """<!doctype html>
@@ -937,6 +969,7 @@ def page(browser, server):
 NEIGHBOURHOOD = '[role="radiogroup"][aria-labelledby="atlas-neighbourhood-label"]'
 MODEL = '[role="radiogroup"][aria-labelledby="atlas-model-label"]'
 FOUR_B_FILE = "atlas-qwen3-4b.json"
+SMALL_FILE = "atlas.json"      # the 0.6B export keeps its name (issue #309)
 BM25_FILE = "atlas-bm25.json"
 
 
@@ -992,6 +1025,13 @@ def test_circle_area_is_proportional_to_counted_excerpts(page):
         max(2.5, largest * (constitution["pc"] / biggest["pc"]) ** 0.5), rel=1e-3)
 
 
+def zoom_state(page):
+    """`(k, x, y)` of the zoom transform on the map's svg, as d3 holds it."""
+    return tuple(page.evaluate(
+        """() => { const t = d3.zoomTransform(document.querySelector('svg.atlas-map'));
+                   return [t.k, t.x, t.y]; }"""))
+
+
 def test_constitucion_finds_the_constitution_first_and_enter_selects_it(page):
     # Both the Constitution and the treaty "CONSTITUCION Y CONVENIO DE LA UNION
     # INTERNACIONAL DE TELECOMUNICACIONES" start with the query, and the treaty counts more
@@ -1006,13 +1046,8 @@ def test_constitucion_finds_the_constitution_first_and_enter_selects_it(page):
     panel = page.locator(".atlas-panel").inner_text()
     assert f"{cpeum['pc']:,} counted excerpts" in panel
     assert f"{cpeum['p']:,}" not in panel          # the total is never displayed
-    # Brought into view: after the pan, its centre is inside the map.
-    page.wait_for_timeout(900)
-    box = page.locator("svg.atlas-map").bounding_box()
-    circle = page.locator('circle[data-k="cpeum"]').bounding_box()
-    centre = (circle["x"] + circle["width"] / 2, circle["y"] + circle["height"] / 2)
-    assert box["x"] <= centre[0] <= box["x"] + box["width"]
-    assert box["y"] <= centre[1] <= box["y"] + box["height"]
+    # A search never moves the map: the zoom is still the identity, with no pan to wait for.
+    assert zoom_state(page) == (1, 0, 0)
     assert page.locator("circle.atlas-ring").count() == 1
 
 
@@ -1067,6 +1102,29 @@ def test_a_name_in_the_panel_selects_that_instrument(page):
     assert page.locator("circle.atlas-ring").count() == 1
 
 
+def test_selecting_an_instrument_never_changes_the_readers_zoom(page):
+    box = page.locator("svg.atlas-map").bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 3, box["y"] + box["height"] / 3)
+    page.mouse.wheel(0, -600)
+    page.wait_for_function(
+        """() => d3.zoomTransform(document.querySelector('svg.atlas-map')).k > 1""")
+    page.wait_for_timeout(300)
+    zoomed = zoom_state(page)
+    assert zoomed[0] > 1
+    select_by_search(page, "chapingo", CHAPINGO)
+    page.wait_for_timeout(900)                        # a transition would have moved it by now
+    assert zoom_state(page) == zoomed
+    assert page.locator("circle.atlas-ring").count() == 1
+    page.locator(".atlas-out .atlas-target-name").first.click()
+    page.wait_for_function(
+        "name => document.querySelector('.atlas-panel h2')?.textContent === name",
+        arg=targets_of(atlas_data(), "luach")[0][1])
+    page.wait_for_timeout(900)
+    assert zoom_state(page) == zoomed
+    page.locator('circle.atlas-point').first.dispatch_event("click")
+    assert zoom_state(page) == zoomed
+
+
 def test_a_regulation_is_named_by_its_scjn_id(page):
     page.locator('circle.atlas-point[fill="#008300"]').first.dispatch_event("click")
     assert "SCJN id" in page.locator(".atlas-panel").inner_text()
@@ -1081,7 +1139,8 @@ def test_the_neighbourhood_control_moves_the_points_and_keeps_the_selection(page
     buttons = group.locator('[role="radio"]')
     assert buttons.all_inner_texts() == ["4", "8", "16", "32"]
     assert group.locator('[aria-checked="true"]').inner_text() == "16"
-    assert "The layout changes, the data does not." in page.locator(".atlas").inner_text()
+    assert "The layout changes, the data does not. A trail shows where each instrument came from." \
+        in page.locator(".atlas").inner_text()
 
     select_by_search(page, "chapingo", CHAPINGO)
     page.wait_for_timeout(700)
@@ -1164,7 +1223,7 @@ def test_the_treaties_get_a_fourth_yellow_button_and_circles(page):
 
 def test_a_file_without_treaties_gets_three_buttons_and_no_yellow(browser, server):
     def serve_without(page):
-        page.route("**/atlas/atlas.json", lambda route: route.fulfill(
+        page.route("**/atlas/atlas-qwen3-4b.json", lambda route: route.fulfill(
             status=200, content_type="application/json",
             body=json.dumps(without_treaties(atlas_data()))))
     page, _, _ = open_counting(browser, server, before=serve_without)
@@ -1184,7 +1243,7 @@ def test_a_collection_the_page_does_not_know_stops_it_with_a_message_naming_it(b
     page = browser.new_page()
     errors = []
     page.on("pageerror", lambda error: errors.append(str(error)))
-    page.route("**/atlas/atlas.json", lambda route: route.fulfill(
+    page.route("**/atlas/atlas-qwen3-4b.json", lambda route: route.fulfill(
         status=200, content_type="application/json", body=json.dumps(data)))
     try:
         page.goto(server)
@@ -1255,8 +1314,8 @@ def test_the_page_fits_the_width_and_stacks_on_a_phone(browser, server, width):
 
 # -- the embedding model control (issue #262) -------------------------------- #
 
-def data_4b() -> dict:
-    return json.loads(DATA_4B.read_text(encoding="utf-8"))
+def data_06b() -> dict:
+    return json.loads(DATA_06B.read_text(encoding="utf-8"))
 
 
 def data_bm25() -> dict:
@@ -1358,24 +1417,25 @@ def test_the_model_control_starts_on_the_default_and_fetches_only_that_file(brow
     try:
         group = page.locator(MODEL)
         assert page.locator("#atlas-model-label").inner_text().lower() == "similarity"
-        assert group.locator('[role="radio"]').all_inner_texts() == ["0.6B", "4B", "BM25"]
-        assert checked_model(page) == "0.6B"
+        assert group.locator('[role="radio"]').all_inner_texts() == ["4B", "0.6B", "BM25"]
+        assert checked_model(page) == "4B"
         assert group.locator('[role="radio"]').evaluate_all(
             "nodes => nodes.map(n => n.tabIndex)") == [0, -1, -1]
         assert page.locator(".atlas-neighbourhood, .atlas-model").count() == 2
         text = page.locator(".atlas").inner_text()
-        assert "The method that measured how similar two texts are; the 0.6B is the default." in text
+        assert "The method that measured how similar two texts are; the 4B is the default." in text
         assert "embedding model" not in text.lower()
-        assert "the neighbourhood size changes the layout only" in text
+        assert "the neighbourhood size changes the layout only. A trail shows where each " \
+            "instrument came from." in text
         assert [url.rsplit("/", 1)[1] for url in requests if url.endswith(".json")] \
-            == ["atlas.json"]
+            == ["atlas-qwen3-4b.json"]
         assert page.locator(".atlas-model-status").is_hidden()
     finally:
         page.close()
 
 
-def test_the_4b_replaces_the_relations_and_the_layout_and_keeps_the_selection(browser, server):
-    default, other = atlas_data(), data_4b()
+def test_the_06b_replaces_the_relations_and_the_layout_and_keeps_the_selection(browser, server):
+    default, other = atlas_data(), data_06b()
     page, requests, errors = open_counting(browser, server)
     try:
         select_by_search(page, "chapingo", CHAPINGO)
@@ -1386,33 +1446,34 @@ def test_the_4b_replaces_the_relations_and_the_layout_and_keeps_the_selection(br
         before = settled_xs(page)
         assert layout_fit(page, default, 16) > 0.999999
 
-        choose_model(page, "4B")
-        assert checked_model(page) == "4B"
-        assert len([url for url in requests if url.endswith(FOUR_B_FILE)]) == 1
+        choose_model(page, "0.6B")
+        assert checked_model(page) == "0.6B"
+        assert len([url for url in requests if url.endswith(SMALL_FILE)]) == 1
         assert panel_title(page) == CHAPINGO                       # the selection stays
         assert page.locator("circle.atlas-ring").count() == 1
-        assert page.locator("line.atlas-link").count() == len(targets_of(other, "luach"))
-        assert out_list(page) == targets_of(other, "luach")
+        other_targets = targets_of(other, "luach")
+        assert page.locator("line.atlas-link").count() == len(other_targets)
+        assert out_list(page) == other_targets
         assert out_list(page) != targets_of(default, "luach")
         assert inc_list(page) == [(f"{w:.1f}", other["instruments"][j]["n"])
                                   for j, w in instrument(other, "luach")["inc"]]
         assert circle_xs(page) != before
         assert layout_fit(page, other, 16) > 0.999999
         assert layout_fit(page, default, 16) < 0.999999
-        # The numbered lines end at the 4B's five targets.
+        # The numbered lines end at the 0.6B's targets (three for Chapingo, issue #264).
         ranks = page.eval_on_selector_all(
             "g.atlas-badge text", "nodes => nodes.map(n => n.textContent)")
-        assert sorted(ranks) == ["1", "2", "3", "4", "5"]
+        assert sorted(ranks) == [str(n) for n in range(1, len(other_targets) + 1)]
 
-        choose_model(page, "0.6B")
-        assert checked_model(page) == "0.6B"
+        choose_model(page, "4B")
+        assert checked_model(page) == "4B"
         assert panel_title(page) == CHAPINGO
         assert out_list(page) == targets_of(default, "luach")
         assert settled_xs(page) == before
-        choose_model(page, "4B")
+        choose_model(page, "0.6B")
         assert out_list(page) == targets_of(other, "luach")
         # The 4B file was fetched once, whatever the number of switches.
-        assert len([url for url in requests if url.endswith(FOUR_B_FILE)]) == 1
+        assert len([url for url in requests if url.endswith(SMALL_FILE)]) == 1
         assert errors == []
     finally:
         page.close()
@@ -1423,18 +1484,18 @@ def test_the_model_control_moves_with_the_arrow_keys(browser, server):
     try:
         page.locator(MODEL).locator('[data-value="0"]').focus()
         page.keyboard.press("ArrowRight")
-        wait_for_model(page, "4B")
-        assert page.evaluate("() => document.activeElement.textContent") == "4B"
+        wait_for_model(page, "0.6B")
+        assert page.evaluate("() => document.activeElement.textContent") == "0.6B"
         assert page.locator(MODEL).locator('[role="radio"]').evaluate_all(
             "nodes => nodes.map(n => n.tabIndex)") == [-1, 0, -1]
         page.keyboard.press("ArrowRight")
         wait_for_model(page, "BM25")
         assert page.evaluate("() => document.activeElement.textContent") == "BM25"
         page.keyboard.press("ArrowLeft")
-        wait_for_model(page, "4B")
-        page.keyboard.press("ArrowLeft")
         wait_for_model(page, "0.6B")
-        assert page.evaluate("() => document.activeElement.textContent") == "0.6B"
+        page.keyboard.press("ArrowLeft")
+        wait_for_model(page, "4B")
+        assert page.evaluate("() => document.activeElement.textContent") == "4B"
         # The neighbourhood control's own keys are untouched.
         page.locator(NEIGHBOURHOOD).locator('[data-value="16"]').focus()
         page.keyboard.press("ArrowRight")
@@ -1443,34 +1504,34 @@ def test_the_model_control_moves_with_the_arrow_keys(browser, server):
         page.close()
 
 
-def test_the_neighbourhood_size_on_the_4b_moves_to_the_4b_layout(browser, server):
-    default, other = atlas_data(), data_4b()
+def test_the_neighbourhood_size_on_the_06b_moves_to_the_06b_layout(browser, server):
+    default, other = atlas_data(), data_06b()
     page, _, _ = open_counting(browser, server)
     try:
-        choose_model(page, "4B")
+        choose_model(page, "0.6B")
         page.locator(NEIGHBOURHOOD).locator('[data-value="8"]').click()
         page.wait_for_timeout(900)
         assert layout_fit(page, other, 8) > 0.999999
         assert layout_fit(page, default, 8) < 0.999999
         # ... and the size chosen there carries back to the default model.
-        choose_model(page, "0.6B")
+        choose_model(page, "4B")
         assert layout_fit(page, default, 8) > 0.999999
         assert page.locator(NEIGHBOURHOOD).locator('[aria-checked="true"]').inner_text() == "8"
     finally:
         page.close()
 
 
-def serve_4b(page, edit=None, status=200):
+def serve_06b(page, edit=None, status=200):
     """Answer the 4B file from disk (optionally edited), or with `status`."""
     def handler(route):
         if status != 200:
             route.fulfill(status=status, body="broken")
             return
-        data = data_4b()
+        data = data_06b()
         if edit:
             edit(data)
         route.fulfill(status=200, content_type="application/json", body=json.dumps(data))
-    page.route(f"**/{FOUR_B_FILE}", handler)
+    page.route(f"**/{SMALL_FILE}", handler)
 
 
 def swap_two_keys(data):
@@ -1484,47 +1545,47 @@ def drop_the_layout(data):
 
 @pytest.mark.parametrize("edit,reason", [(swap_two_keys, "lists different instruments"),
                                          (drop_the_layout, "has no such layout")])
-def test_a_4b_file_that_does_not_fit_is_refused_and_the_page_stays_on_the_default(
+def test_a_06b_file_that_does_not_fit_is_refused_and_the_page_stays_on_the_default(
         browser, server, edit, reason):
     default = atlas_data()
-    page, requests, errors = open_counting(browser, server, before=lambda p: serve_4b(p, edit))
+    page, requests, errors = open_counting(browser, server, before=lambda p: serve_06b(p, edit))
     try:
         select_by_search(page, "chapingo", CHAPINGO)
         page.wait_for_timeout(900)
         before = settled_xs(page)
-        choose_model(page, "4B", checked=False)
+        choose_model(page, "0.6B", checked=False)
         status = page.locator(".atlas-model-status")
         status.wait_for(state="visible")
         page.wait_for_function(
-            "() => document.querySelector('.atlas-model-status').textContent !== 'Loading the 4B map\u2026'")
-        assert status.inner_text() == f"The 4B map cannot be used: it {reason}."
-        assert checked_model(page) == "0.6B"
+            "() => document.querySelector('.atlas-model-status').textContent !== 'Loading the 0.6B map\u2026'")
+        assert status.inner_text() == f"The 0.6B map cannot be used: it {reason}."
+        assert checked_model(page) == "4B"
         assert out_list(page) == targets_of(default, "luach")
         assert panel_title(page) == CHAPINGO
         page.wait_for_timeout(900)
         assert settled_xs(page) == before
         # Choosing the default again clears the message.
-        choose_model(page, "0.6B", checked=False)
+        choose_model(page, "4B", checked=False)
         assert page.locator(".atlas-model-status").is_hidden()
         assert errors == []
     finally:
         page.close()
 
 
-def test_a_failed_4b_fetch_says_so_and_can_be_retried(browser, server):
-    other = data_4b()
+def test_a_failed_06b_fetch_says_so_and_can_be_retried(browser, server):
+    other = data_06b()
     page, requests, errors = open_counting(browser, server,
-                                           before=lambda p: serve_4b(p, status=500))
+                                           before=lambda p: serve_06b(p, status=500))
     try:
-        choose_model(page, "4B", checked=False)
+        choose_model(page, "0.6B", checked=False)
         status = page.locator(".atlas-model-status")
         page.wait_for_function(
             "() => /could not be loaded/.test(document.querySelector('.atlas-model-status').textContent)")
         assert "Choose it again to retry" in status.inner_text()
-        assert checked_model(page) == "0.6B"
-        page.unroute(f"**/{FOUR_B_FILE}")
-        choose_model(page, "4B")
         assert checked_model(page) == "4B"
+        page.unroute(f"**/{SMALL_FILE}")
+        choose_model(page, "0.6B")
+        assert checked_model(page) == "0.6B"
         assert page.locator(".atlas-model-status").is_hidden()
         select_by_search(page, "chapingo", CHAPINGO)
         assert out_list(page) == targets_of(other, "luach")
@@ -1534,22 +1595,22 @@ def test_a_failed_4b_fetch_says_so_and_can_be_retried(browser, server):
 
 
 def test_the_dialog_reads_the_pairs_of_the_model_on_screen(browser, server):
-    if not (PAIRS.is_dir() and PAIRS_4B.is_dir()):
-        pytest.skip(f"{PAIRS} and {PAIRS_4B} are not both installed: run "
+    if not (PAIRS_4B.is_dir() and PAIRS_06B.is_dir()):
+        pytest.skip(f"{PAIRS_4B} and {PAIRS_06B} are not both installed: run "
                     "export_atlas_pairs.py --install for each work directory")
-    default, other = atlas_data(), data_4b()
+    default, other = atlas_data(), data_06b()
     page, requests, _ = open_counting(browser, server)
     try:
         select_by_search(page, "chapingo", CHAPINGO)
         i = default["instruments"].index(instrument(default, "luach"))
-        for label, data, directory in (("0.6B", default, "/atlas/pairs/"),
-                                       ("4B", other, "/atlas/pairs-qwen3-4b/"),
-                                       ("0.6B", default, None)):
+        for label, data, directory in (("4B", default, "/atlas/pairs-qwen3-4b/"),
+                                       ("0.6B", other, "/atlas/pairs/"),
+                                       ("4B", default, None)):
             choose_model(page, label)
             j, weight = instrument(data, "luach")["out"][0]
             page.locator(".atlas-out .atlas-why").first.click()
             page.wait_for_selector(".atlas-explain-table tbody tr")
-            pair = json.loads(((PAIRS if label == "0.6B" else PAIRS_4B)
+            pair = json.loads(((PAIRS_4B if label == "4B" else PAIRS_06B)
                                / f"{i}-{j}.json").read_text(encoding="utf-8"))
             lead = page.locator(".atlas-explain-lead").inner_text()
             assert lead.startswith(f"{pair['provisions']} excerpts of ")
@@ -1582,7 +1643,7 @@ def test_bm25_replaces_the_relations_and_the_layout_and_keeps_the_selection(brow
         choose_model(page, "BM25")
         assert checked_model(page) == "BM25"
         assert len([url for url in requests if url.endswith(BM25_FILE)]) == 1
-        assert not [url for url in requests if url.endswith(FOUR_B_FILE)]
+        assert not [url for url in requests if url.endswith(SMALL_FILE)]
         assert panel_title(page) == CHAPINGO                       # the selection stays
         assert page.locator("circle.atlas-ring").count() == 1
         assert out_list(page) == targets_of(lexical, "luach")
@@ -1593,7 +1654,7 @@ def test_bm25_replaces_the_relations_and_the_layout_and_keeps_the_selection(brow
         assert layout_fit(page, lexical, 8) > 0.999999
         assert layout_fit(page, default, 8) < 0.999999
 
-        choose_model(page, "0.6B")
+        choose_model(page, "4B")
         assert out_list(page) == targets_of(default, "luach")
         assert layout_fit(page, default, 8) > 0.999999
         choose_model(page, "BM25")
@@ -1633,7 +1694,7 @@ def test_a_bm25_file_that_does_not_fit_is_refused_and_the_page_stays_put(
         page.wait_for_function(
             "() => document.querySelector('.atlas-model-status').textContent !== 'Loading the BM25 map\u2026'")
         assert status.inner_text() == f"The BM25 map cannot be used: it {reason}."
-        assert checked_model(page) == "0.6B"
+        assert checked_model(page) == "4B"
         assert out_list(page) == targets_of(default, "luach")
         page.wait_for_timeout(900)
         assert settled_xs(page) == before
@@ -1652,7 +1713,7 @@ def test_a_failed_bm25_fetch_says_so_and_can_be_retried(browser, server):
             "() => /could not be loaded/.test(document.querySelector('.atlas-model-status').textContent)")
         assert page.locator(".atlas-model-status").inner_text() \
             == "The BM25 map could not be loaded. Choose it again to retry."
-        assert checked_model(page) == "0.6B"
+        assert checked_model(page) == "4B"
         page.unroute(f"**/{BM25_FILE}")
         choose_model(page, "BM25")
         assert checked_model(page) == "BM25"
@@ -1673,9 +1734,9 @@ def test_the_dialog_reads_the_bm25_pairs_and_labels_a_score(browser, server):
         select_by_search(page, "chapingo", CHAPINGO)
         i = default["instruments"].index(instrument(default, "luach"))
         for label, data, directory, header, decimals in (
-                ("0.6B", default, "/atlas/pairs/", "Similarity", 3),
+                ("4B", default, "/atlas/pairs-qwen3-4b/", "Similarity", 3),
                 ("BM25", lexical, "/atlas/pairs-bm25/", "Score", 1),
-                ("0.6B", default, None, "Similarity", 3)):
+                ("4B", default, None, "Similarity", 3)):
             choose_model(page, label)
             j, weight = instrument(data, "luach")["out"][0]
             page.locator(".atlas-out .atlas-why").first.click()
@@ -1711,7 +1772,7 @@ def test_the_two_controls_sit_side_by_side_on_a_desktop_and_stack_on_a_phone(
             assert box["x"] >= 0 and box["x"] + box["width"] <= width
             assert box["y"] >= search_box["y"] + search_box["height"] - 1 \
                 or box["x"] >= search_box["x"] + search_box["width"] - 1     # not over the search box
-        choose_model(page, "4B")
+        choose_model(page, "0.6B")
         assert page.evaluate(
             "() => document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 0
     finally:
@@ -1721,7 +1782,7 @@ def test_the_two_controls_sit_side_by_side_on_a_desktop_and_stack_on_a_phone(
 def test_the_page_with_the_model_control_says_nothing_forbidden(browser, server):
     page, _, _ = open_counting(browser, server)
     try:
-        choose_model(page, "4B")
+        choose_model(page, "0.6B")
         select_by_search(page, "chapingo", CHAPINGO)
         assert forbidden_in(page.content()) == []
     finally:
@@ -1852,7 +1913,8 @@ def test_rendered_prose_is_as_wide_as_the_map_and_lists_its_references(rendered_
     assert "[@" not in html                      # every citation key resolved
     assert 'id="refs"' not in html and "quarto-appendix" not in html
     assert 'id="ref-' not in html
-    keys = ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25")
+    keys = ("McInnes2018UMAP", "Zhang2025Qwen3Embedding", "Robertson2009BM25",
+            "Grave2019WassersteinProcrustes")
     # What Quarto and the hook wrote (the DOM would resolve the addresses).
     source = (SITE / "pages" / "atlas.html").read_text(encoding="utf-8")
     links = re.findall(r'href="([^"]*#ref-[^"]*)"', source)
@@ -1918,12 +1980,30 @@ def toy_site(with_matrix, stub_umap, cache, tmp_path):
             "atlas": json.loads((site / "atlas" / "atlas.json").read_text(encoding="utf-8"))}
 
 
+def toy_mount(block: str) -> str:
+    """The qmd's mount, mapped onto the toy site.
+
+    The page opens on its first model (the 4B's files, issue #309). The toy site names
+    its own default `atlas.json` and `atlas/pairs/`, with the "second" model at the 4B's
+    file names, so the harness lists the models in that order and labels them as the
+    toy's own: what the toy tests exercise is the control's mechanics, and the order of
+    the real labels is pinned against the real page above."""
+    block = block.replace('data-src="atlas/atlas-qwen3-4b.json" data-pairs="atlas/pairs-qwen3-4b/"',
+                          'data-src="atlas/atlas.json" data-pairs="atlas/pairs/"')
+    swapped = re.sub(r"data-models='[^']*'", lambda _: "data-models='" + json.dumps([
+        {"label": "0.6B", "src": "atlas/atlas.json", "pairs": "atlas/pairs/"},
+        {"label": "4B", "src": "atlas/atlas-qwen3-4b.json", "pairs": "atlas/pairs-qwen3-4b/"},
+        {"label": "BM25", "src": "atlas/atlas-bm25.json", "pairs": "atlas/pairs-bm25/"}]) + "'", block)
+    assert 'data-src="atlas/atlas.json"' in swapped and "data-models" in swapped
+    return swapped
+
+
 class Toy:
     """One page over the toy site, with every request it made."""
 
     def __init__(self, browser, toy_site, page_size=None, width=1280, height=900,
                  models=False):
-        block = app_block(QMD.read_text(encoding="utf-8"))
+        block = toy_mount(app_block(QMD.read_text(encoding="utf-8")))
         if not models:
             # A mount without `data-models` builds the page with no model control.
             block = re.sub(r" data-models='[^']*'", "", block)
@@ -2437,7 +2517,7 @@ def test_toy_second_file_with_another_instrument_table_is_refused(browser, toy_t
 def test_the_constitution_explains_its_heaviest_weight(page):
     if not PAIRS.is_dir():
         pytest.skip(f"{PAIRS} is not installed: run export_atlas_pairs.py --install "
-                    "website/pages/atlas/pairs, or unpack the atlas-pairs release there")
+                    "website/pages/atlas/pairs-qwen3-4b, or unpack the atlas-pairs release there")
     data = atlas_data()
     cpeum = instrument(data, "cpeum")
     target_index, weight = cpeum["out"][0]
@@ -2450,7 +2530,7 @@ def test_the_constitution_explains_its_heaviest_weight(page):
     requests = []
     page.on("request", lambda request: requests.append(request.url))
     select_by_search(page, "constitucion", CONSTITUTION)
-    assert not [url for url in requests if "/atlas/pairs/" in url]
+    assert not [url for url in requests if "/atlas/pairs-qwen3-4b/" in url]
     row = page.locator(".atlas-out .atlas-target").filter(has_text=target)
     button = row.locator(".atlas-why")
     assert button.inner_text() == f"{weight:.1f}"
@@ -2482,7 +2562,7 @@ def test_the_constitution_explains_its_heaviest_weight(page):
         assert set(fractions) == {"1"}
         assert "this text is shared by" not in table
     # The whole text, both sides: the file's own, rendered without its `**`.
-    assert [url.rsplit("/", 1)[1] for url in requests if "/atlas/pairs/" in url] == [name]
+    assert [url.rsplit("/", 1)[1] for url in requests if "/atlas/pairs-qwen3-4b/" in url] == [name]
     longest = max(pair["rows"], key=lambda r: len(pair["texts"][str(r["text"])]))
     expected = pair["texts"][str(longest["text"])].replace("**", "")
     assert expected[-60:] in table
@@ -2496,7 +2576,7 @@ def test_the_constitution_explains_its_heaviest_weight(page):
     EXPLAIN_SCREENSHOT.parent.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=str(EXPLAIN_SCREENSHOT))
     assert EXPLAIN_SCREENSHOT.stat().st_size > 10_000
-    assert len([url for url in requests if "/atlas/pairs/" in url]) == 1
+    assert len([url for url in requests if "/atlas/pairs-qwen3-4b/" in url]) == 1
 
 
 def test_rendered_dialog_heading_has_no_quarto_rule(rendered_page):
@@ -2504,6 +2584,9 @@ def test_rendered_dialog_heading_has_no_quarto_rule(rendered_page):
     select_by_search(rendered_page, "chapingo", CHAPINGO)
     rendered_page.locator(".atlas-out .atlas-why").first.click()
     rendered_page.wait_for_selector("dialog.atlas-explain[open] h2")
+    # The dialog draws its heading again when the pair file arrives; read the settled one
+    # (the read once came back empty from an h2 that was being replaced).
+    rendered_page.wait_for_selector(".atlas-explain-table tbody tr")
     assert rendered_page.eval_on_selector(
         ".atlas-explain h2", "n => getComputedStyle(n).borderBottomWidth") == "0px"
     box = rendered_page.locator("dialog.atlas-explain").bounding_box()
@@ -2516,16 +2599,16 @@ def test_rendered_dialog_heading_has_no_quarto_rule(rendered_page):
 # -- the embedding model control in the page Quarto renders (issue #262) ------- #
 
 def test_rendered_model_control_switches_after_quartos_css(rendered_page):
-    default, other = atlas_data(), data_4b()
+    default, other = atlas_data(), data_06b()
     page = rendered_page
-    assert page.locator(MODEL).locator('[role="radio"]').all_inner_texts() == ["0.6B", "4B", "BM25"]
+    assert page.locator(MODEL).locator('[role="radio"]').all_inner_texts() == ["4B", "0.6B", "BM25"]
     assert page.locator("#atlas-model-label").inner_text().lower() == "similarity"
     assert page.eval_on_selector(
         "#atlas-model-label", "n => getComputedStyle(n).textTransform") == "uppercase"
     generated = page.locator("[data-atlas-generated]").inner_text()
     select_by_search(page, "chapingo", CHAPINGO)
     assert out_list(page) == targets_of(default, "luach")
-    choose_model(page, "4B")
+    choose_model(page, "0.6B")
     assert out_list(page) == targets_of(other, "luach")
     # The page shows the date of the map on screen: it changes with the model
     # when the two files were generated on different days, and only then.
@@ -2537,7 +2620,7 @@ def test_rendered_model_control_switches_after_quartos_css(rendered_page):
     assert out_list(page) == targets_of(data_bm25(), "luach")
     assert panel_title(page) == CHAPINGO
     assert forbidden_in(page.locator("#atlas").inner_text()) == []
-    choose_model(page, "0.6B")
+    choose_model(page, "4B")
     assert out_list(page) == targets_of(default, "luach")
     assert page.locator("[data-atlas-generated]").inner_text() == generated
     assert page.locator("#atlas aside").count() == 0
@@ -2559,7 +2642,171 @@ def test_rendered_page_stacks_the_two_controls_on_a_phone(browser, rendered_site
         model = page.locator(".atlas-model").bounding_box()
         assert model["y"] >= neighbourhood["y"] + neighbourhood["height"] - 1
         assert model["x"] + model["width"] <= 390
-        choose_model(page, "4B")
+        choose_model(page, "0.6B")
         assert page.evaluate("() => document.documentElement.scrollWidth") <= 390
     finally:
         page.close()
+
+
+# -- the trails of a layout or similarity switch (issue #311) ----------------- #
+
+TRAIL_MIN_PX = 4
+
+
+def circle_points(page):
+    """Every circle's `[cx, cy]`, by instrument position."""
+    return page.evaluate(
+        "() => { const out = []; document.querySelectorAll('circle.atlas-point')"
+        ".forEach(n => { out[Number(n.dataset.i)] = "
+        "[Number(n.getAttribute('cx')), Number(n.getAttribute('cy'))]; }); return out; }")
+
+
+def trails(page):
+    """Every `line.atlas-trail` on the page: `i`, both ends, stroke and its opacity now."""
+    return page.evaluate(
+        "() => [...document.querySelectorAll('line.atlas-trail')].map(n => ({"
+        "i: Number(n.dataset.i), x1: Number(n.getAttribute('x1')), y1: Number(n.getAttribute('y1')),"
+        "x2: Number(n.getAttribute('x2')), y2: Number(n.getAttribute('y2')),"
+        "stroke: n.getAttribute('stroke'), opacity: Number(getComputedStyle(n).strokeOpacity)}))")
+
+
+def choose_size(page, value):
+    page.locator(NEIGHBOURHOOD).locator(f'[data-value="{value}"]').click()
+
+
+def distance(a, b):
+    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+
+
+def test_the_trails_are_styled_never_hit_and_named_in_the_captions():
+    js, css = APP_JS.read_text(encoding="utf-8"), APP_CSS.read_text(encoding="utf-8")
+    assert "A trail shows where each instrument came from." in js
+    assert js.count("instrument came from.") == 2                  # both captions
+    assert "const TRAIL_MIN_PX = 4;" in js and "const TRAIL_FADE_MS = 2500;" in js
+    rule = css[css.index(".atlas-trail {"):]
+    rule = rule[:rule.index("}")]
+    assert "stroke-width: 1.5px" in rule and "stroke-opacity: 0.45" in rule
+    assert "stroke-linecap: round" in rule and "pointer-events: none" in rule
+    assert ".atlas-trails {\n  pointer-events: none;" in css
+    flat = " ".join(QMD.read_text(encoding="utf-8").split())
+    assert "leaves a thin line, in the colour of its collection, from its old place to its new one" in flat
+    assert "with the same trails from the old places" in flat
+
+
+def test_a_layout_switch_leaves_trails_for_the_instruments_that_moved(page):
+    data = atlas_data()
+    before = circle_points(page)
+    choose_size(page, 8)
+    started = trails(page)                            # drawn when the switch starts
+    assert page.evaluate(
+        "() => !!(document.querySelector('g.atlas-trails').compareDocumentPosition("
+        "document.querySelector('g.atlas-points')) & Node.DOCUMENT_POSITION_FOLLOWING)")
+    settled_xs(page)
+    after = circle_points(page)
+    moved = {i for i in range(len(before)) if distance(before[i], after[i]) >= TRAIL_MIN_PX}
+    drawn = {t["i"] for t in started}
+    assert len(drawn) == len(started) and drawn                    # one trail per instrument
+    # A circle's attributes are rounded to 0.1 px, so an instrument right at 4 px may go either way.
+    borderline = {i for i in range(len(before))
+                  if abs(distance(before[i], after[i]) - TRAIL_MIN_PX) < 0.3}
+    assert drawn - borderline == moved - borderline
+    for t in started:
+        assert distance((t["x1"], t["y1"]), before[t["i"]]) < 0.3
+        assert distance((t["x2"], t["y2"]), after[t["i"]]) < 0.3
+        assert t["stroke"] == PALETTE[data["instruments"][t["i"]]["c"]]
+        assert t["opacity"] <= 0.45
+
+
+def test_trails_fade_and_disappear(page):
+    choose_size(page, 8)
+    assert trails(page)
+    page.wait_for_function(
+        "() => [...document.querySelectorAll('line.atlas-trail')].some("
+        "n => Number(getComputedStyle(n).strokeOpacity) < 0.44)", timeout=10000)
+    assert all(t["opacity"] < 0.45 for t in trails(page))
+    # 700 ms of move and 2,500 ms of fade; the software renderer gets some slack.
+    page.wait_for_function("() => !document.querySelector('line.atlas-trail')", timeout=8000)
+    assert page.locator("line.atlas-trail").count() == 0
+
+
+def test_a_second_switch_clears_the_trails_of_the_first(page):
+    start = circle_points(page)
+    choose_size(page, 8)
+    first = {t["i"] for t in trails(page)}
+    page.wait_for_timeout(200)
+    # The click and the read are one task, so the circles are where the second move found them.
+    second, here = page.evaluate("""() => {
+        document.querySelector('[aria-labelledby="atlas-neighbourhood-label"] [data-value="32"]').click();
+        const circles = [];
+        document.querySelectorAll('circle.atlas-point').forEach(n => {
+          circles[Number(n.dataset.i)] = [Number(n.getAttribute('cx')), Number(n.getAttribute('cy'))]; });
+        const lines = [...document.querySelectorAll('line.atlas-trail')].map(n => ({
+          i: Number(n.dataset.i), x1: Number(n.getAttribute('x1')), y1: Number(n.getAttribute('y1'))}));
+        return [lines, circles]; }""")
+    indices = [t["i"] for t in second]
+    assert len(indices) == len(set(indices)) and indices          # never two for one instrument
+    assert page.locator("line.atlas-trail").count() == len(second)
+    near = [t for t in second if distance((t["x1"], t["y1"]), here[t["i"]]) < 0.3]
+    assert len(near) == len(second)
+    assert len(first) > 0
+    off_start = [t for t in second if distance((t["x1"], t["y1"]), start[t["i"]]) > 1]
+    assert len(off_start) >= 0.8 * len(second)                    # from where they were, not from layout 16
+
+
+def test_a_model_switch_leaves_trails_too(page):
+    choose_model(page, "0.6B", checked=False)
+    page.wait_for_function("() => document.querySelectorAll('line.atlas-trail').length > 0",
+                           timeout=30000)
+    found = trails(page)
+    indices = [t["i"] for t in found]
+    assert len(indices) == len(set(indices)) and indices
+    assert {t["stroke"] for t in found} <= set(PALETTE.values())
+
+
+def test_trails_take_no_pointer_events_and_keep_the_selection(page):
+    select_by_search(page, "chapingo", CHAPINGO)
+    page.wait_for_timeout(700)
+    links = page.locator("line.atlas-link").count()
+    assert links > 0
+    choose_size(page, 8)
+    found = trails(page)
+    box = page.locator("svg.atlas-map").bounding_box()
+    for t in found:
+        mid = ((t["x1"] + t["x2"]) / 2, (t["y1"] + t["y2"]) / 2)
+        under = page.evaluate(
+            "([x, y]) => { const n = document.elementFromPoint(x, y); "
+            "return n ? n.getAttribute('class') : null; }", [box["x"] + mid[0], box["y"] + mid[1]])
+        assert under != "atlas-trail"                              # the pointer goes through it
+        if under == "atlas-background":
+            page.mouse.move(box["x"] + mid[0], box["y"] + mid[1])
+            break
+    else:
+        pytest.fail("no trail midpoint over the bare map")
+    assert page.locator(".atlas-label").is_hidden()
+    assert page.locator("circle.atlas-ring").count() == 1
+    assert page.locator("line.atlas-link").count() == links
+    assert panel_title(page) == CHAPINGO
+
+
+def test_zooming_moves_the_trails_with_the_points(page):
+    choose_size(page, 8)
+    settled_xs(page)                                  # the move is over, the trails are fading
+    found = trails(page)
+    if not found:
+        pytest.skip("the trails had already faded on a slow renderer")
+    box = page.locator("svg.atlas-map").bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.mouse.wheel(0, -400)
+    page.wait_for_timeout(300)
+    zoomed, here = page.evaluate("""() => {
+        const circles = [];
+        document.querySelectorAll('circle.atlas-point').forEach(n => {
+          circles[Number(n.dataset.i)] = [Number(n.getAttribute('cx')), Number(n.getAttribute('cy'))]; });
+        const lines = [...document.querySelectorAll('line.atlas-trail')].map(n => ({
+          i: Number(n.dataset.i), x2: Number(n.getAttribute('x2')), y2: Number(n.getAttribute('y2'))}));
+        return [lines, circles]; }""")
+    if not zoomed:
+        pytest.skip("the trails had already faded on a slow renderer")
+    assert all(distance((t["x2"], t["y2"]), here[t["i"]]) < 0.3 for t in zoomed)
+    before = {t["i"]: (t["x2"], t["y2"]) for t in found}
+    assert any(distance(before[t["i"]], (t["x2"], t["y2"])) > 5 for t in zoomed)

@@ -2294,3 +2294,81 @@ it compared that is not the instrument's own text: its **envelope**.
   2026-10-28"). **Nothing was published**; the human order is: the four corpora (`scripts/scjn/<c>-release/PUBLICAR.md`, issue
   #300), the four vectors releases (`emb-run-<c>-058/publish/PUBLICAR.md`, **`-058` since this fix; the `-057` ones are
   superseded**), the three `atlas-pairs` sets and `atlas-instruments`, regenerated.
+
+## A comment link on the Instruments page (issue #308, done)
+
+A reader who found something wrong in an instrument had no way to say so from the page: issue #297 had removed
+issue #290's per-node report links together with the rest of the review apparatus. The owner asked for **one link
+per opened instrument**, not per excerpt. The header of an opened instrument now carries *Comment on this
+instrument* (`a.instruments-comment`, after the facts line), which opens
+`<data-repo>/issues/new?template=instrument.yml&title=...&instrument=...&page=...` in a new tab. The repository is
+the mount's `data-repo`, which the script reads again (the mount block stays pinned verbatim; the script
+hard-codes no address). The target is an **issue form**, `.github/ISSUE_TEMPLATE/instrument.yml`, with the ids
+`instrument`, `page`, `comment` and `where` and the new label `instrument-feedback`, because a form's `labels:`
+applies for any reader while the `labels=` URL parameter is ignored for those without triage rights, and the fields
+guide a non-developer. There is no `config.yml`, so blank issues stay allowed. The `page` value is the absolute
+address plus the hash the reader is at, recomputed in a `click` listener, so a report made after following a nearest
+text names that excerpt; the eId appears only inside the GitHub issue, never on the page. The link text avoids the
+word "report", which the tests keep forbidden from #297. GitHub reads issue forms from the default branch, so the
+form works only once this is on `master`; the tests check the URL and the YAML, not a live GitHub page.
+
+## The Atlas opens on the 4B (issue #309, done)
+
+The Atlas opened on the 0.6B and offered the 4B and BM25 as alternatives, although the row-level evaluation on the page
+itself finds the 4B better than the 0.6B on every measure of explicit citations and never worse at instrument level, and
+the Instruments page already read the 4B. The owner decided the map opens on the **4B at neighbourhood size 16**. The
+page's rule is that the first entry of the mount's `data-models` is the default, so the change is the mount (`data-src`
+and `data-pairs` point at the 4B file and `data-models` lists 4B, 0.6B, BM25) and the prose, with **no file renamed**:
+`atlas.json` is still the 0.6B export and the `--instruments-as` reference, `pairs/` its pairs, and `website.yml` and the
+`atlas-pairs` release are untouched. The worked examples (Chapingo, the Constitution, the sentence on treaties) were
+rewritten, not annotated, from `atlas-qwen3-4b.json` and its pair file (Chapingo's closest text goes 7 to the UAM, 6 to
+Antonio Narro and one each to three more instruments; the Constitution's first weight is 16.0 and its table lists 16
+excerpts; 1,298 of the 1,367 treaties have a treaty as their closest instrument), and the evaluation section says once
+why the map opens on the 4B. The toy-site tests keep their own default file name through `toy_mount()` in
+`test_atlas_page.py`. Nothing was regenerated and nothing was published.
+
+## The Atlas layouts aligned by optimal transport (issue #310, done)
+
+The Atlas draws twelve layouts of the same 2,670 instruments (three data sets by four neighbourhood sizes), each an
+independent UMAP fit, and UMAP fixes neither orientation, handedness nor scale. Switching from one layout to another therefore
+turned the whole map (the mean displacement per point against the 4B at 16 was 0.19 to 0.54 in the unit frame) and hid the
+change that matters, which instruments moved relative to the others. The owner decided the alignment is an
+**optimal-transport problem**, Wasserstein Procrustes (Grave, Joulin and Berthet, AISTATS 2019), with the plan *free* rather than
+fixed to "instrument `i` is instrument `i`", even after being told that fixed-correspondence orthogonal Procrustes is the closed
+form: the free plan estimates the global turn from the shape of the two clouds, so the instruments that really changed
+neighbourhood do not drag it, and those are the ones whose movement remains. The transform stays orthogonal with one scale (a
+shear would gain about a tenth more at the price of a map that no longer has UMAP's shape). The solver is the exact earth
+mover's plan (`ot.emd`, uniform masses, squared Euclidean cost), whose default `numItermax` stops before optimality on 2,670
+points and warns, so it is raised; Sinkhorn would add a regularisation parameter with nothing to buy. One reference, the 4B at 16,
+the view the map opens on (#309), so every switch is one comparison and not two transforms composed; and one common `[0, 1]`
+frame over all twelve aligned layouts, so the page's fixed scales hold and no rotated corner is clipped, at the price that a
+layout no longer fills the square (the reference now fills about two thirds of it). The step is a script over the exported JSON
+files, `scripts/embeddings/align_atlas_layouts.py`, not part of `export_atlas_data.py`: the frame depends on all twelve layouts,
+the work directories are on the cluster, and a committed derived file is regenerated by a person (issue #115). `meta.alignment`
+is recorded in all three files after `umap`, the reference's identity included. The measured result is in
+`scripts/embeddings/README.md` ("Measured, the aligned layouts, 2026-11-04"): every aligned displacement is below the raw one
+(0.10 to 0.28 against 0.19 to 0.54) and every transport cost falls. Two things the plan did not foresee. The common frame is a
+per-axis min-max, not a similarity, so aligning an already aligned layout again does not give the identity (the scale drifted by
+0.3 to 0.7 %); the script therefore does nothing when every file already carries `meta.alignment` for the reference
+(`--force` aligns again). And `uv.lock` is gitignored in this repository, so adding `pot` to the `viz` group changed
+`pyproject.toml` only. The page's JavaScript is untouched; the trails that show the remaining movement are the next issue.
+
+## Trails on the Atlas when the layout changes (issue #311, done)
+
+This closes the story of #309 (the map opens on the 4B at 16) and #310 (every layout aligned onto it): with the turn gone, what a
+switch still moves is what changed, and the page said nothing about it once the move ended. The owner chose **trails that fade**
+and no control. `moveTo` in `atlas.js` now draws, at the start of the move and under the circles (`g.atlas-trails`), one
+`line.atlas-trail` for every instrument whose on-screen displacement is at least `TRAIL_MIN_PX` (4 px: under that a trail is
+shorter than a circle's radius and reads as noise), in its collection's colour, from where it was to where it arrives, so the
+circle travels along its own line. When the layout transition ends a second, named transition (`trail-fade`, `TRAIL_FADE_MS`
+2,500 ms) takes `stroke-opacity` from 0.45 to 0 and removes the lines; `moveTo` first interrupts and removes any trail still
+fading, so an instrument never has two, and a switch in mid-flight draws its trails from the positions it found. A trail is in
+screen pixels like a circle, so the zoom handler and `resize` reposition it (`placeTrails`), and `pointer-events: none` keeps it
+off the pointer. The fade is a transition of the *style*, not of the attribute, because the CSS rule would override an attribute.
+The captions say "A trail shows where each instrument came from." and `atlas.qmd` says it once for the layout and once for the
+method. `prefers-reduced-motion` stays unread, as the move itself does. Trails exist only for layout and similarity switches;
+the zoom, the resize and the selection move nothing between layouts.
+
+A review of the run (fix-1) then removed the one place where a selection did move the map: `reveal()` zoomed to fit the instrument
+and its five closest on a search or a click on a name in the panel (introduced with the Atlas, #245). The owner wants the zoom to
+belong to the reader, so `select(i)` only draws the ring, the lines and the panel and never touches `transform`.

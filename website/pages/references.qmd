@@ -8,7 +8,7 @@ nocite: |
   @Tellez2018AnOptimization, @Tellez2017ATwitter, @Tellez2017AAnalysis,
   @Graff2020EvoMSA:Analysis, @Graff2022AData, @Graff2025BoW,
   @Tellez2023Regionalized, @McInnes2018UMAP, @Zhang2025Qwen3Embedding,
-  @Robertson2009BM25
+  @Robertson2009BM25, @Grave2019WassersteinProcrustes
 ---
 
 The following publications by the members of the research team inform the
